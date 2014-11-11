@@ -1,7 +1,7 @@
 Colossus
 =========
 
-_Heads up!  We're just getting setup.  Published artifacts may not be available yet._
+_Heads up!  We're just getting setup.  Docs and published artifacts may not be available yet._
 
 Colossus is a lightweight I/O framework for building scala services.
 
