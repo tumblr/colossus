@@ -1,0 +1,123 @@
+---
+layout: intro
+---
+<div class="wrapper col3">
+  <div id="intro">
+    <div id="intronav">
+      <ul>
+      {% for link in site.navigation %}
+        {% assign current = nil %}
+        {% if page.url == link.url or page.layout == link.layout %}
+          {% assign current = 'active' %}
+        {% endif %}
+        {% assign base = nil %}
+        {% if !link.url.start_with?("http") %}
+          {% assign base = site.baseurl + "/" %}
+        {% endif %}
+          <li class="{{ current }}"><a href="{{ base }}{{ link.url }}">{{ link.text }}</a></li>
+      {% endfor %}
+      </ul>
+    </div>
+    <h1>Colossus</h1>
+    <h2>I/O and Microservice library for Scala</h2>
+    <br class="clear" />
+
+      <p>
+      Colossus is a lightweight framework for building high-performance
+      applications in Scala that require non-blocking network I/O.  In
+      particular Colossus is focused on low-latency stateless
+      <em>microservices</em> where often the service is little more than an
+      abstraction over a database and/or cache.  For this use case, Colossus
+      aims to maximize performance while keeping the interface clean and
+      concise.
+      </p>
+
+      <p>
+      Applications are built around a set of single-threaded event
+      loops which handle the low-level network interactions, but these event
+      loops are themselves actors which can send and receive messages.  The
+      result is an environment where you are able to write low-level
+      event-handling code directly in the event loop, but move other parts into
+      actors with ease.
+      </p>
+
+    <div id="features">
+      <div class = "feature">
+        <h3>Clean Event-based Programming</h3>
+        <p>
+          Built directly on NIO, Colossus is a modern take on event-based
+          programming that fully leverages the functional and object-oriented
+          features of Scala.  Write powerful applications with minimal
+          boilerplate.
+        </p>
+      </div>
+      <div class="feature">
+        <h3>Seamless Integration with Akka</h3>
+        <p>
+          Written entirely as Akka actors, Colossus makes it easy to connect
+          your low-level event-handling code with external actors.  Colossus
+          also comes with a fully actor-based API if you wish to keep all your
+          code inside actors.
+        </p>
+      </div>
+      <br class="clear" />
+      <div class="feature">
+        <h3>Real-time Metrics</h3>
+        <p>
+          Colossus comes with a metrics aggregation and reporting system that
+          makes it easy to track events in real-time.  Common metrics like
+          request rates and latency are built into services out of the box, and
+          it's easy to add your own.  A SQL-like DSL allows you to
+          filter and aggregate over these metrics, while a reporting module
+          lets you package and export metrics to an external database like
+          OpenTSDB.
+        </p>
+      </div>
+      <div class="feature">
+        <h3>Write More than Just Services</h3>
+        <p>
+          While Colossus has primarily been built with microservices in mind,
+          at the heart is a simple wrapper on NIO that is fully accessable for
+          you to write your own custom servers and clients.  Furthermore,
+          Colossus Tasks let you write arbitrary code inside event loops when
+          you need to do I/O outside the context of a server.        
+        </p>
+      </div>
+    </div>
+    <br class="clear" />
+    <div id="subintro">
+      {% include index_content.md %}
+    </div>
+    <div id="moar">
+      <p>
+      Ready for more?  Take a look at:
+      </p>
+
+      <ul id="moar">
+        <li> <a href="{{ site.baseurl }}/docs/quickstart">Quickstart Guide</a>
+        <li> <a href="{{ site.baseurl }}/docs">Full Documentation</a>
+        <li> <a href="{{ site.github_examples_url }}">Examples Project</a>
+        <li> <a href="{{ site.github_template_url }}">Template Project</a>
+      </ul>
+    </div>
+    <div class="clear"></div>
+    <div class="section">
+      <h2> Built at Tumblr</h2>
+      <p>
+        Colossus was built to address many of the challenges we've faced at
+        Tumblr when writing Scala services.  It has greatly simplified the
+        development process, allowing engineers to rapidly build services that
+        are production-ready with minimal effort.  Colossus is currently used
+        in several production systems throughout Tumblr's infrastructure.
+      </p>
+      <p>
+        <strong>We need your help!.</strong>  Colossus is still in the early
+        stages of development and while we've met many of the goals we set out
+        to achieve, there's still much to be done.  Features need to be
+        implemented, bugs needs to be fixed, optimizations need to be
+        optimized.  If you find a bug or have a cool idea, let us know and get
+        involved!
+      </p>
+    </div>
+  </div>
+</div>

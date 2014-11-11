@@ -1,0 +1,41 @@
+# Site settings
+title: Colossus
+email: none@none.com
+description: "Colossus IO Framework: Built at Tumblr"
+baseurl: "/pages/tumblr/colossus"
+url: "https://github.com/tumblr/colossus"
+
+# Build settings
+markdown: kramdown
+permalink: pretty
+highlighter: rouge
+
+exclude: [rakefile, Gemfile]
+
+latest_version: 0.5.0-RC3
+github_url: https://github.com
+github_repo_url: https://github.com/tumblr/colossus
+github_examples_url: https://github.com/tumblr/colossus/tree/master/colossus-examples/src/main/scala/colossus-examples
+github_template_url: https://github.ewr01.tumblr.net/dan/colossus-template
+
+# notice, these links aren't actually used anymore because jekyll is broken and
+# fucking base urls!!
+# apparently string operations don't work inside templates, particularly the
+# header.html.  So trying to do the if link.url.start_with?("http") didn't
+# work, so there was no way to not include the base url on the github link.
+# But it DOES work on the index.html?!?!?!?  Undoubtedly a bug in jekyll's
+# parsing or something, sucks
+#
+# also we NEED the baseurl since this stuff is embedded inside github and "/"
+# needs to be "/tumblr/colossus", but baseurl has to be "" when testing
+# locally, BWHAHABASHSHSBAHB (ノಠ益ಠ)ノ彡┻━┻
+
+navigation:
+- text: About
+  url: about/
+- text: Documentation
+  url: docs/
+- text: Community
+  url: /
+- text: Github
+  url: "https://github.com/tumblr/colossus"
