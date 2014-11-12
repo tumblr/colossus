@@ -5,6 +5,7 @@ package protocols.redis
 import core._
 import service._
 import parsing._
+import DataSize._
 
 import akka.util.{ByteString, ByteStringBuilder}
 
@@ -13,7 +14,9 @@ object RedisReplyParser {
   import RedisReplyParser._
   import Combinators._
 
-  def apply(): Parser[Reply] = reply
+  val DefaultMaxSize: DataSize = 1.MB
+
+  def apply(size: DataSize = DefaultMaxSize): Parser[Reply] = maxSize(size, reply)
   
 
   def reply: Parser[Reply] = byte |> {

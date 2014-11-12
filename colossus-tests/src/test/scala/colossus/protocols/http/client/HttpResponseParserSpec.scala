@@ -6,6 +6,9 @@ import core.DataBuffer
 import akka.util.ByteString
 import org.scalatest.{WordSpec, MustMatchers}
 
+import parsing.ParseException
+import parsing.DataSize._
+
 
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
@@ -74,6 +77,20 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val decodedResponse = clientProtocol.decode(encodedResponse)
       decodedResponse.toList must equal(List(expected))
+    }
+
+    "accept a response under the size limit" in {
+      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
+      val parser = HttpResponseParser(res.size.bytes)
+      parser.parse(DataBuffer(res)) must equal(Some(HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, ByteString(), Nil)))
+    }
+
+    "reject a response over the size limit" in {
+      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
+      val parser = HttpResponseParser((res.size - 1).bytes)
+      intercept[ParseException] {
+        parser.parse(DataBuffer(res))
+      }
     }
 
   }
