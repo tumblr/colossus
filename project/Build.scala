@@ -32,7 +32,8 @@ object ColossusBuild extends Build {
 
   val ColossusSettings = GeneralSettings ++ Publish.settings
   
-  val noPubSettings = GeneralSettings ++ Seq(publishLocal := {}, publish :={}, publishLocalSigned :={}, publishSigned := {})
+  val noPubSettings = GeneralSettings ++ Seq(
+    publishArtifact := false)
 
   val testkitDependencies = libraryDependencies ++= Seq(
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
