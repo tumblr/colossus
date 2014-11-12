@@ -16,7 +16,7 @@ object ColossusBuild extends Build {
     organization := "com.tumblr",
     scalaVersion  := "2.11.2",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
-    version                   := "0.5.0",
+    version                   := "0.5.1-M1-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions             ++= Seq("-feature", "-language:implicitConversions", "-language:postfixOps", "-unchecked", "-deprecation"),
 
