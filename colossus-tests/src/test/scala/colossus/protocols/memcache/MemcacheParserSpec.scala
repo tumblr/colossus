@@ -8,6 +8,9 @@ import akka.util.ByteString
 import core.DataBuffer
 import protocols.memcache._
 
+import parsing.ParseException
+import parsing.DataSize._
+
 class MemcacheParserSuite extends FlatSpec with ShouldMatchers{
   import MemcacheReply._
 
@@ -35,4 +38,17 @@ class MemcacheParserSuite extends FlatSpec with ShouldMatchers{
     p.parse(reply) should equal (Some(Error("ERROR")))
   }
 
+  it should "accept a reply under the size limit" in {
+    val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
+    val p = MemcacheReplyParser(reply.size.bytes)
+    p.parse(reply) should equal (Some(Value("foo", ByteString("hello"))))
+  }
+
+  it should "reject a reply over the size limit" in {
+    val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
+    val p = MemcacheReplyParser((reply.size -1).bytes)
+    intercept[ParseException] {
+      p.parse(reply)
+    }
+  }
 }

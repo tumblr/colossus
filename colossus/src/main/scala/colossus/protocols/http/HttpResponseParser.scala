@@ -13,6 +13,11 @@ import DataSize._
 
 object HttpResponseParser {
 
+
+  val DefaultMaxSize: DataSize = 1.MB
+
+  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, response)
+
   def response: Parser[HttpResponse] = firstLine ~ headers |> {case (version, code) ~ headers =>
     val clength = headers.collectFirst{case (c,v) if (c == HttpHeaders.ContentLength) => v.toInt}.getOrElse(0)
     if (clength > 0) {
@@ -34,7 +39,7 @@ object HttpResponseParser {
 
 
 class HttpResponseParser(maxSize: DataSize = 1.MB) {
-  private def parser = Combinators.maxSize(maxSize, HttpResponseParser.response)
+  private def parser = HttpResponseParser(maxSize)
   var p = parser
   def parse(data: DataBuffer): Option[HttpResponse] = p.parse(data)
   def reset(){ 

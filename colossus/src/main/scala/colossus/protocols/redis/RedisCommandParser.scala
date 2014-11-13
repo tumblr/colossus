@@ -5,10 +5,13 @@ import akka.util.{ByteString, ByteStringBuilder}
 import parsing._
 import core.DataBuffer
 import Combinators._
+import DataSize._
 
 object RedisCommandParser {
 
-  def apply() = command
+  val DefaultMaxSize: DataSize = 1.MB
+
+  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, command)
 
   def command: Parser[Command] = byte |> {
     case '*' => unified

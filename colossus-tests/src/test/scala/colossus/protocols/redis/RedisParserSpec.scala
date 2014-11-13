@@ -11,6 +11,7 @@ import akka.util.ByteString
 import scala.util.Success
 import UnifiedProtocol._
 import parsing._
+import DataSize._
 
 class FastCommandSuite extends FlatSpec with ShouldMatchers{
 
@@ -87,6 +88,25 @@ class FastCommandSuite extends FlatSpec with ShouldMatchers{
     }
   }
 
+  it should "allow command under size limit" in {
+    val command = ByteString("*1\r\n$3\r\nGET\r\n")
+    val expected = Some(Command(CMD_GET))
+    val parser = RedisCommandParser(command.size.bytes)
+    val actual = parser.parse(DataBuffer.fromByteString(command) )
+    actual should equal (expected)
+
+  }
+
+  it should "reject command over size limit" in {
+    val command = ByteString("*1\r\n$3\r\nGET\r\n")
+    val expected = Some(Command(CMD_GET))
+    val parser = RedisCommandParser((command.size - 1).bytes)
+    intercept[ParseException]{
+      parser.parse(DataBuffer(command))
+    }
+
+  }
+
 }
 
 class FastReplySuite extends FlatSpec with ShouldMatchers{
@@ -97,23 +117,19 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
     val reply = ByteString("+OK\r\n")
     val parser = replyParser
     val actual = parser.parse(DataBuffer.fromByteString(reply) )
-    //println(parser.statusStack)    
     actual should equal (Some(StatusReply("OK")))
-    //parser.pending should equal (Nil)
   }
 
   it should "parse bulk reply" in {
     val reply = ByteString("$5\r\nabcde\r\n")
     val parser = replyParser
     parser.parse(DataBuffer.fromByteString(reply)) should equal (Some(BulkReply(ByteString("abcde"))))
-    //parser.pending should equal (Nil)
   }
 
   it should "parse nil reply" in {
     val reply = ByteString("$-1\r\n")
     val parser = replyParser
     parser.parse(DataBuffer.fromByteString(reply)) should equal (Some(NilReply))
-    //parser.pending should equal (Nil)
   }
 
   it should "parse empty list reply" in {
@@ -136,7 +152,6 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
       val (p1, p2) = reply.splitAt(i)
       parser.parse(DataBuffer.fromByteString(p1)) should equal (None)
       parser.parse(DataBuffer.fromByteString(p2)) should equal (Some(BulkReply(ByteString("abcde"))))
-      //parser.pending should equal (Nil)
     }
   }
 
@@ -145,7 +160,6 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
     val parser = replyParser
     val expected = Some(MBulkReply(Seq(BulkReply(ByteString("abcde")), BulkReply(ByteString("123")))))
     parser.parse(DataBuffer.fromByteString(reply)) should equal (expected)
-    //parser.pending should equal (Nil)
   }
 
   it should "parse mbulk in fragments" in {
@@ -156,7 +170,6 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
       val (p1, p2) = reply.splitAt(i)
       parser.parse(DataBuffer.fromByteString(p1)) should equal (None)
       parser.parse(DataBuffer.fromByteString(p2)) should equal (expected)
-      //parser.pending should equal (Nil)
     }
   }
 
@@ -164,6 +177,21 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
     val reply = IntegerReply(89840626838L)
     val parser = replyParser
     parser.parse(reply.raw) should equal(Some(reply))
+  }
+
+  it should "accept reply under the size limit" in {
+    val reply = ByteString("+OK\r\n")
+    val parser = RedisReplyParser(reply.size.bytes)
+    val actual = parser.parse(DataBuffer.fromByteString(reply) )
+    actual should equal (Some(StatusReply("OK")))
+  }
+
+  it should "reject reply over the size limit" in {
+    val reply = ByteString("+OK\r\n")
+    val parser = RedisReplyParser((reply.size - 1).bytes)
+    intercept[ParseException]{
+      parser.parse(DataBuffer(reply))
+    }
   }
 
 

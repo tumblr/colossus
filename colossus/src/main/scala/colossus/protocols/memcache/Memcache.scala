@@ -7,9 +7,8 @@ import service._
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.zip.{Deflater, Inflater}
 
-/**
- * This codec is woefully incomplete
- */
+import parsing._
+import DataSize._
 
 
 object MemcacheCommand {
@@ -76,9 +75,9 @@ object MemcacheReply {
   
 }
 
-class MemcacheReplyParser {
+class MemcacheReplyParser(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) {
 
-  private var parser = MemcacheReplyParser.reply
+  private var parser = MemcacheReplyParser(maxSize)
 
   def parse(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
 
@@ -91,6 +90,11 @@ object MemcacheReplyParser {
   import parsing._
   import Combinators._
   import MemcacheReply._
+
+
+  val DefaultMaxSize: DataSize = 1.MB
+
+  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, reply)
 
   def reply = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
     case "VALUE"      => value(Nil, pieces(1), pieces(3).toInt)
