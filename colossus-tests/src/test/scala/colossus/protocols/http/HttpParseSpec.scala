@@ -190,6 +190,14 @@ class HttpParserSuite extends WordSpec with MustMatchers{
         println(parser.parse(DataBuffer(ByteString(req))))
       }
     }
+
+    "parse a generated request" in {
+      val req = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = "/foo", headers = Nil), None)
+      val data = DataBuffer(req.bytes)
+      val parser = requestParser
+      parser.parse(data) must equal(Some(req))
+      data.remaining must equal(0)
+    }
     
       
 

@@ -16,6 +16,15 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
   "HttpResponseParser" must {
 
+    "parse a basic response" in {
+      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
+      val parser = HttpResponseParser(res.size.bytes)
+      val data = DataBuffer(res)
+      parser.parse(data) must equal(Some(HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, ByteString(), Nil)))
+      data.remaining must equal(0)
+    }
+      
+
     "parse a response with no body" in {
 
       val res = "HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\n\r\n"
@@ -39,7 +48,9 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         HttpCodes.OK,
         ByteString("{some : json}"),
         List("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate", "content-length"->size.toString))
-      parser.parse(DataBuffer(ByteString(res))).toList must equal(List(expected))
+      val data = DataBuffer(ByteString(res))
+      parser.parse(data).toList must equal(List(expected))
+      data.remaining must equal(0)
     }
 
     "decode a response that was encoded by colossus with no body" in {
@@ -57,6 +68,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val decodedResponse = clientProtocol.decode(encodedResponse)
       decodedResponse.toList must equal(List(expected))
+      encodedResponse.remaining must equal(0)
     }
 
     "decode a response that was encoded by colosuss with a body" in {
@@ -77,6 +89,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val decodedResponse = clientProtocol.decode(encodedResponse)
       decodedResponse.toList must equal(List(expected))
+      encodedResponse.remaining must equal(0)
     }
 
     "accept a response under the size limit" in {
