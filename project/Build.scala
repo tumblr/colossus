@@ -33,7 +33,9 @@ object ColossusBuild extends Build {
   val ColossusSettings = GeneralSettings ++ Publish.settings
   
   val noPubSettings = GeneralSettings ++ Seq(
-    publishArtifact := false)
+    publishArtifact := false,
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))) 
+    )
 
   val testkitDependencies = libraryDependencies ++= Seq(
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
@@ -64,7 +66,7 @@ object ColossusBuild extends Build {
       .settings(Revolver.settings:_*)
 
   lazy val ColossusTestkitProject = Project(id="colossus-testkit", base = file("colossus-testkit"))
-      .settings(GeneralSettings:_*)
+      .settings(ColossusSettings:_*)
       .settings(testkitDependencies)
       .dependsOn(ColossusProject)
 
