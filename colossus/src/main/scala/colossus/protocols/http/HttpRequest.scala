@@ -32,7 +32,7 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
 
   //TODO optimize
   def bytes : ByteString = {
-    head.bytes ++ ByteString("\r\n\r\n") ++ entity.getOrElse(ByteString())
+    head.bytes ++ entity.getOrElse(ByteString())
   }
 }
 

@@ -362,7 +362,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
             //close the connection to ensure it's not in an undefined state
             key.attachment match {
               case c: Connection => {
-                log.warning(s"closing connection $c.id due to unknown error")
+                log.warning(s"closing connection ${c.id} due to unknown error")
                 unregisterConnection(c, DisconnectCause.Error(t))
               }
               case other => {

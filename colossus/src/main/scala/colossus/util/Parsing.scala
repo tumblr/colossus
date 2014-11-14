@@ -393,7 +393,7 @@ object Combinators {
         } else {
           val ws = isWhiteSpace(b.toChar)
           if (allowWhiteSpace == false && ws) {
-            throw new ParseException(s"Invalid whitespace character in stream, after '${build.toString}'")
+            throw new ParseException(s"Invalid whitespace character '${b.toChar}' ($b) in stream, after '${build.toString}'")
           }
           if (!leadingWhiteSpace || (!ltrim || !ws)) {
             leadingWhiteSpace = false
