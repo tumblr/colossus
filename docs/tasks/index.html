@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Tasks</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/tasks/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Tasks</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>A task is a way to run arbitrary functions inside a worker.  This is very
+useful if you need to spin up some clients outside the context of the server.</p>
+
+<h4 id="basic-task">Basic Task</h4>
+
+<p>Starting a simple task is very easy</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">io_system</span> <span class="k">=</span> <span class="c1">//...
+</span>
+<span class="nc">Task</span><span class="o">{</span><span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"HELLO FROM INSIDE A WORKER LOOP"</span><span class="o">)</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">unbind</span><span class="o">()</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The way this works is the task binds to one of the workers in the IO System.
+The worker then executes the task inside its event loop and will continue to
+keep track of it until the task calls the <code>unbind()</code> method.</p>
+
+<h4 id="task-proxy-actors">Task Proxy Actors</h4>
+
+<p>The reason tasks are bound to workers is because like connection handlers,
+tasks can hook into the worker’s mailbox to receive messages from outside the
+event loop.  Every task has a built-in proxy actor with external code can use
+to communicate with the task </p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">proxy</span> <span class="k">=</span> <span class="nc">Task</span><span class="o">{</span><span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">context._</span>
+  <span class="n">become</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">"PING"</span> <span class="k">=&gt;</span> <span class="n">sender</span> <span class="o">!</span> <span class="s">"PONG"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+<span class="o">(</span><span class="n">proxy</span> <span class="o">?</span> <span class="s">"PING"</span><span class="o">).</span><span class="n">onSuccess</span><span class="o">{</span>
+  <span class="k">case</span> <span class="s">"PONG"</span> <span class="k">=&gt;</span> <span class="n">proxy</span> <span class="o">!</span> <span class="nc">PoisonPill</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Just like an Akka actor, tasks have access to <code>self</code>, <code>sender</code>, and <code>become</code>
+members.  A Task will automatically be unbound if its proxy actor is stopped,
+and vise versa.</p>
+
+<h4 id="a-word-of-caution">A Word of Caution</h4>
+
+<p>Because tasks can send and receive messages, they behave a bit like actors.
+However it’s important to realize that tasks are not actors and do not have the
+same fault-tolerance and supervision features that an Actor has.  There’s
+nothing to prevent a task from running CPU intensive code inside a worker and
+gumming up its event loop.  Also workers only “watch” tasks in the context of
+forwarding messages to them.  Tasks have no concept of lifecycle, they cannot
+be killed, and if a task throws an exception it may kill the whole worker.</p>
+
+<p>For these reasons, if you are building a system that is running a server and
+also needs to run background tasks, it is better to run the tasks in a separate
+IO System from the server.  If you’re only running 1 task, then that IO System
+only needs 1 worker.</p>
+
+<p>A good pattern for tasks is to pair them with an actor.  The actor creates the
+task and periodically sends status check requests to it.  If the supervisor
+actor fails to receive a response in time, it can simply destroy the entire IO
+System and start over (remember an IO System with 1 worker is only 2 actors and
+1 thread, so they are fairly lightweight)</p>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2014 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

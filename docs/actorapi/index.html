@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Actor Api</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/actorapi/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Actor Api</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <h2 id="introduction">Introduction</h2>
+
+<p>As the name suggests, the actor API is a fully actor-based API on top of
+Colossus core.  It allows you to assign an actor to every server or client
+connection and interact with the connection purely through message passing.</p>
+
+<p>Since it is built on the core layer, the actor API only works with raw TCP
+connections.  Any higher-level abstraction needs to be implemented manually.</p>
+
+<h2 id="creating-an-actor-based-server">Creating an actor-based server</h2>
+
+<p>When a server accepts a connection, two actors will be created.  The first is a
+generic “proxy” actor that directly interacts with the connection and the event
+loop, and the second actor is your own handler actor, which receives sanitized
+messages from the proxy.</p>
+
+<p>There are two sets of event messages that are passed between the handler and
+proxy.  All messages from the proxy inherit the <code>ConnectionEvent</code> trait, and
+all messages sent from the handler to the proxy are <code>ConnectionCommand</code>
+objects.</p>
+
+<p>Colossus will automatically register a newly created handler with its proxy.  Afterwards, the general flow of messages is:</p>
+
+<ol>
+  <li>The proxy sends the <code>Connected</code> event to the handler.  For the handler, the <code>sender</code> of the message is the proxy, so hold onto that reference!</li>
+  <li>The proxy begins to send <code>ReceivedData</code> events to the handler whenever it gets some data on the connection</li>
+  <li>The handler sends <code>Write</code> commands to the proxy to write data.  With each write it can choose how writes are acknowledged</li>
+  <li>The proxy sends a <code>WriteAck</code> message to the handler to indicate whether data was successfully written or not (it may fail if the write buffer is full)</li>
+  <li>If the write buffer ever fills up, the proxy will send a <code>ReadyForData</code> event when the buffer has drained.</li>
+  <li>The handler can terminate the connection by sending the <code>Disconnect</code> command, or by stopping itself or the proxy.</li>
+</ol>
+
+<p>To create the server, first let’s define a simple connection handler:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">ConnectionEvent._</span>
+<span class="k">import</span> <span class="nn">ConnectionCommand._</span>
+
+<span class="k">class</span> <span class="nc">Handler</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">Connected</span> <span class="k">=&gt;</span> <span class="n">context</span><span class="o">.</span><span class="n">become</span><span class="o">(</span><span class="n">connected</span><span class="o">(</span><span class="n">sender</span><span class="o">))</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">handleClosed</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">ConnectionTerminated</span><span class="o">(</span><span class="n">cause</span> <span class="k">:</span> <span class="kt">DisconnectError</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">s</span><span class="s">"Connection unepexpectedly terminated: $cause"</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">case</span> <span class="nc">ConnectionTerminated</span><span class="o">(</span><span class="n">cause</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"Connection closed"</span><span class="o">)</span>
+      <span class="n">context</span> <span class="n">stop</span> <span class="n">self</span>
+    <span class="o">}</span>
+
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">connected</span><span class="o">(</span><span class="n">con</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">)</span><span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="n">handleClosed</span> <span class="n">orElse</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">ReceivedData</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">con</span> <span class="o">!</span> <span class="nc">Write</span><span class="o">(</span><span class="n">data</span><span class="o">,</span> <span class="nc">AckLevel</span><span class="o">.</span><span class="nc">Failure</span><span class="o">)</span>
+    <span class="k">case</span> <span class="nc">WriteAck</span><span class="o">(</span><span class="n">status</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">context</span><span class="o">.</span><span class="n">become</span><span class="o">(</span><span class="n">waiting</span><span class="o">(</span><span class="n">con</span><span class="o">))</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">waiting</span><span class="o">(</span><span class="n">con</span><span class="k">:</span> <span class="kt">ActorRef</span><span class="o">)</span> <span class="k">:</span> <span class="kt">Receive</span> <span class="o">=</span> <span class="n">handleClosed</span> <span class="n">orElse</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="nc">ReadyForData</span> <span class="k">=&gt;</span> <span class="n">context</span><span class="o">.</span><span class="n">become</span><span class="o">(</span><span class="n">connected</span><span class="o">(</span><span class="n">con</span><span class="o">))</span>
+  <span class="o">}</span>
+
+<span class="o">}</span></code></pre></div>
+
+<p>This example has a basic setup to handle connection termination and write
+backpressure.  One actor will be created for every connection, and the actor
+will immediately received the <code>Connected</code> message.  When the connection is
+closed for any reason, a <code>ConnectionTerminated</code> message is sent.  At that
+point, the proxy connection is already terminated.</p>
+
+<p>Now, we simply need to start a server with a <code>Props</code> for the actor</p>
+
+<p><em>note - this api doesn’t exist yet, make the delegator yourself &gt;:(</em></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="nc">ServerConfig</span><span class="o">(</span><span class="cm">/*...*/</span><span class="o">)</span>
+
+<span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="nc">ActorServer</span><span class="o">(</span><span class="n">config</span><span class="o">,</span> <span class="nc">Props</span><span class="o">[</span><span class="kt">Handler</span><span class="o">])</span></code></pre></div>
+
+<p>Building a client is very similar, except instead of starting a server, you
+send a <code>Connect</code> message to the IO System.  Furthermore, clients may receive a
+<code>ConnectionFailed</code> message if the connection fails.  Colossus will not
+automically retry to connect, and you should simply create a new actor to try
+again.</p>
+
+<h3 id="write-backpressure">Write Backpressure</h3>
+
+<p>When working with a connection in an asynchronous manner, handling write
+backpressure is important.  The underlying NIO buffer can only hold so much
+data, and if you attempt to write more data than it can handle, only part or
+none will actually be written.  The actor API lets you handle this with write
+acknowledgement.  The <code>Write</code> message contains an <code>ackLevel</code> field that lets
+you specify how the write is acknowledged.  The possible write statuses are:</p>
+
+<ul>
+  <li><strong>Complete</strong> : The entire ByteString was written</li>
+  <li><strong>Partial</strong> : Only part of the data was written, but colossus is internally holding onto the rest and will automatically write it when able.  Any further writes will fail until that happens</li>
+  <li><strong>Zero</strong> : The buffer is full and no data was written or buffered</li>
+  <li><strong>Failed</strong> : There is a problem with the connection, no data was written or buffered</li>
+</ul>
+
+<p>The available levels for write acknowledgement are :</p>
+
+<ul>
+  <li><strong>None</strong> : Writes are never acknowledged</li>
+  <li><strong>Success</strong> : Only the <code>Complete</code> and <code>Partial</code> statuses are sent</li>
+  <li><strong>Failure</strong> : Only the <code>Zero</code> and <code>Failed</code> statuses are sent</li>
+  <li><strong>All</strong> : Every write sends an acknowledgement</li>
+</ul>
+
+<p>So if you send a write command with an ack level of <code>Failure</code>, and the data is
+only partially written, you will then receive a <code>WriteAck(WriteStatus.Partial)</code>
+message.</p>
+
+<p>The safest way to write data is to use <code>AckLevel.All</code> and only send one write
+at a time, waiting for the acknowledgement each time.  However, for
+higher-throughput, you can use only <code>AckLevel.Failure</code>, but be aware that you
+may end up receiving multiple failure messages.</p>
+
+<p><em>TODO - need to add tokens to writes so in the acks the user can know which writes failed</em></p>
+
+<h2 id="creating-an-actor-based-client">Creating an actor-based client</h2>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#creating-an-actor-based-server">Creating an actor-based server</a></li><li><a href="#creating-an-actor-based-client">Creating an actor-based client</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2014 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
