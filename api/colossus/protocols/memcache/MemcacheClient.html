@@ -1,0 +1,954 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>MemcacheClient - colossus.protocols.memcache.MemcacheClient</title>
+          <meta name="description" content="MemcacheClient - colossus.protocols.memcache.MemcacheClient" />
+          <meta name="keywords" content="MemcacheClient colossus.protocols.memcache.MemcacheClient" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.memcache.MemcacheClient';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img src="../../../lib/class_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.memcache">memcache</a></p>
+        <h1>MemcacheClient</h1> <span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MemcacheClient</span><span class="result"> extends <a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>], <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>], <a href="../../service/LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>], <a href="../../service/ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>, <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <span class="extype" name="colossus.core.WorkerItem">WorkerItem</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.memcache.MemcacheClient"><span>MemcacheClient</span></li><li class="in" name="colossus.service.ServiceClient"><span>ServiceClient</span></li><li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="colossus.service.LocalClient"><span>LocalClient</span></li><li class="in" name="colossus.service.ClientLike"><span>ClientLike</span></li><li class="in" name="colossus.core.ClientConnectionHandler"><span>ClientConnectionHandler</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="colossus.protocols.memcache.MemcacheClient#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef):colossus.protocols.memcache.MemcacheClient"></a>
+      <a id="&lt;init&gt;:MemcacheClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MemcacheClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@&lt;init&gt;(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef):colossus.protocols.memcache.MemcacheClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.service.ServiceClient.AsyncRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AsyncRequestextendsProductwithSerializable"></a>
+      <a id="AsyncRequest:AsyncRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="../../service/ServiceClient$AsyncRequest.html"><span class="name">AsyncRequest</span></a><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.ServiceClient.I">I</span></span>, <span name="handler">handler: <a href="../../service/ServiceClient.html#ResponseHandler=scala.util.Try[O]=&gt;Unit" class="extmbr" name="colossus.service.ServiceClient.ResponseHandler">ResponseHandler</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceClient@AsyncRequestextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.ResponseHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ResponseHandler=scala.util.Try[O]=&gt;Unit"></a>
+      <a id="ResponseHandler:ResponseHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ResponseHandler</span><span class="result"> = (<span class="extype" name="scala.util.Try">Try</span>[<a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@ResponseHandler=scala.util.Try[O]=&gt;Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.SourcedRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SourcedRequestextendsProductwithSerializable"></a>
+      <a id="SourcedRequest:SourcedRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="../../service/ServiceClient$SourcedRequest.html"><span class="name">SourcedRequest</span></a><span class="params">(<span name="message">message: <span class="extype" name="colossus.service.ServiceClient.I">I</span></span>, <span name="handler">handler: <a href="../../service/ServiceClient.html#ResponseHandler=scala.util.Try[O]=&gt;Unit" class="extmbr" name="colossus.service.ServiceClient.ResponseHandler">ResponseHandler</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceClient@SourcedRequestextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@##():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#bound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bound(id:Long,worker:colossus.core.WorkerRef):Unit"></a>
+      <a id="bound(Long,WorkerRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bound</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@bound(id:Long,worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when this item has successfully been bound to a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when this item has successfully been bound to a Worker.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The id assigned to this Item.</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The Worker whom was bound
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → WorkerItem</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@clone():Object" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#codec" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="codec:colossus.service.Codec[I,O]"></a>
+      <a id="codec:Codec[MemcacheCommand,MemcacheReply]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">codec</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@codec:colossus.service.Codec[I,O]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#config" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="config:colossus.service.ClientConfig"></a>
+      <a id="config:ClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">config</span><span class="result">: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@config:colossus.service.ClientConfig" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connect():Unit"></a>
+      <a id="connect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connect():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connected(endpoint:colossus.core.WriteEndpoint):Unit"></a>
+      <a id="connected(WriteEndpoint):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connected</span><span class="params">(<span name="endpoint">endpoint: <a href="../../core/WriteEndpoint.html" class="extype" name="colossus.core.WriteEndpoint">WriteEndpoint</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connected(endpoint:colossus.core.WriteEndpoint):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This handler is called when a Worker new Connection is established.</p><div class="fullcomment"><div class="comment cmt"><p>This handler is called when a Worker new Connection is established.  A Connection can be
+either an incoming (ie: something to connected to the server), or outgoing(ie: the server connected
+to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endpoint</dt><dd class="cmt"><p>The endpoint which wraps the java NIO layer.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionClosed" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionClosed(cause:colossus.core.DisconnectCause):Unit"></a>
+      <a id="connectionClosed(DisconnectCause):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionClosed</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connectionClosed(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Connection was closed on our end, either by a shutdown, or by normal means</p><div class="fullcomment"><div class="comment cmt"><p>Connection was closed on our end, either by a shutdown, or by normal means</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionFailed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionFailed():Unit"></a>
+      <a id="connectionFailed():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionFailed</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connectionFailed():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Event handler for when a connection failed.</p><div class="fullcomment"><div class="comment cmt"><p>Event handler for when a connection failed.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionLost" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionLost(cause:colossus.core.DisconnectError):Unit"></a>
+      <a id="connectionLost(DisconnectError):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionLost</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connectionLost(cause:colossus.core.DisconnectError):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Connection lost is caused by termination, closed, etc</p><div class="fullcomment"><div class="comment cmt"><p>Connection lost is caused by termination, closed, etc</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionStatus:colossus.core.ConnectionStatus"></a>
+      <a id="connectionStatus:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionStatus</span><span class="result">: <a href="../../core/ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connectionStatus:colossus.core.ConnectionStatus" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.core.ConnectionHandler#connectionTerminated" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionTerminated(cause:colossus.core.DisconnectCause):Unit"></a>
+      <a id="connectionTerminated(DisconnectCause):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionTerminated</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@connectionTerminated(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by and error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by and error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#endpointId" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="endpointId:Option[Long]"></a>
+      <a id="endpointId:Option[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">endpointId</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@endpointId:Option[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#gracefulDisconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="gracefulDisconnect():Unit"></a>
+      <a id="gracefulDisconnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">gracefulDisconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@gracefulDisconnect():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Allow any requests in transit to complete, but cancel all pending requests
+and don't allow any new ones
+</p><div class="fullcomment"><div class="comment cmt"><p>Allow any requests in transit to complete, but cancel all pending requests
+and don't allow any new ones
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#isConnected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isConnected:Boolean"></a>
+      <a id="isConnected:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isConnected</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@isConnected:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Checks if the underlying WriteEndpoint's status is ConnectionStatus.Connected</p><div class="fullcomment"><div class="comment cmt"><p>Checks if the underlying WriteEndpoint's status is ConnectionStatus.Connected</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#log" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="log:akka.event.LoggingAdapter"></a>
+      <a id="log:LoggingAdapter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">log</span><span class="result">: <span class="extype" name="akka.event.LoggingAdapter">LoggingAdapter</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#readyForData" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="readyForData():Unit"></a>
+      <a id="readyForData():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">readyForData</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@readyForData():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This function is called to signal to the handler that it can resume writing data.</p><div class="fullcomment"><div class="comment cmt"><p>This function is called to signal to the handler that it can resume writing data.
+It is called as part of the WriteEndPoint event loop write cycle, where previously this handler
+attempted to write data, but the buffers were filled up.  This is called once the buffers
+are empty again and able to receive data.  This handler should be in a state where it is paused on writing
+data until this handler is invoked.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#receivedData" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedData(data:colossus.core.DataBuffer):Unit"></a>
+      <a id="receivedData(DataBuffer):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedData</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@receivedData(data:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Handler which is called when data is received from a Connection.</p><div class="fullcomment"><div class="comment cmt"><p>Handler which is called when data is received from a Connection.</p></div><dl class="paramcmts block"><dt class="param">data</dt><dd class="cmt"><p>DataBuffer read from the underlying Connection.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → WorkerItem</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="send(request:I):colossus.service.Callback[O]"></a>
+      <a id="send(MemcacheCommand):Callback[MemcacheReply]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">send</span><span class="params">(<span name="request">request: <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></span>)</span><span class="result">: <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@send(request:I):colossus.service.Callback[O]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a callback for sending a request.</p><div class="fullcomment"><div class="comment cmt"><p>Create a callback for sending a request.  this allows you to do something like
+service.sendCB(&quot;request&quot;){response =&gt; &quot;YAY&quot;}.map{str =&gt; println(str)}.execute()
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#shared" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shared:colossus.service.SharedClient[I,O]"></a>
+      <a id="shared:SharedClient[MemcacheCommand,MemcacheReply]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shared</span><span class="result">: <a href="../../service/SharedClient.html" class="extype" name="colossus.service.SharedClient">SharedClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@shared:colossus.service.SharedClient[I,O]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">asynchronously send a request - this method is thread safe
+</p><div class="fullcomment"><div class="comment cmt"><p>asynchronously send a request - this method is thread safe
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@toString():String" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#unbound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unbound():Unit"></a>
+      <a id="unbound():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unbound</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@unbound():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when this item is unbound from a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when this item is unbound from a Worker.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>WorkerItem</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClient@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="colossus.service.ServiceClient">
+              <h3>Inherited from <a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</h3>
+            </div><div class="parent" name="colossus.service.ServiceClientLike">
+              <h3>Inherited from <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</h3>
+            </div><div class="parent" name="colossus.service.LocalClient">
+              <h3>Inherited from <a href="../../service/LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</h3>
+            </div><div class="parent" name="colossus.service.ClientLike">
+              <h3>Inherited from <a href="../../service/ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>, <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</h3>
+            </div><div class="parent" name="colossus.core.ClientConnectionHandler">
+              <h3>Inherited from <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></h3>
+            </div><div class="parent" name="colossus.core.ConnectionHandler">
+              <h3>Inherited from <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></h3>
+            </div><div class="parent" name="colossus.core.WorkerItem">
+              <h3>Inherited from <span class="extype" name="colossus.core.WorkerItem">WorkerItem</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
