@@ -1,8 +1,6 @@
 Colossus
 =========
 
-_Heads up!  We're just getting setup.  Docs and published artifacts may not be available yet._
-
 Colossus is a lightweight I/O framework for building scala services.
 
 Full documentation can be found here : http://tumblr.github.io/colossus
