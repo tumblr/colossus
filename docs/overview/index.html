@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Overview</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/overview/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Overview</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p><strong>Colossus</strong> is a lightweight, event-driven I/O layer for building Scala services.</p>
+
+<p>Colossus is built around a few core principles:</p>
+
+<ol>
+  <li><strong>Keep it simple</strong> - Reduce boilerplate and barrier to entry.  Writing a service should be as easy as writing a single function!</li>
+  <li><strong>Keep it fast</strong> - Colossus aims to have as little overhead as possible between NIO and your code.</li>
+  <li><strong>Keep it transparent</strong> - Choose how much magic you want!  Colossus is built in several layers which allow you to build high-level abstractions without being walled off from taking full control.</li>
+  <li><strong>Keep it focused</strong> - Colossus has a relatively small codebase and is not intended to be an overreaching framework.  It is not meant to solve all your back-end “webscale” architectural problems, but rather solve a specific subset of those problems very well.</li>
+</ol>
+
+<h2 id="concepts">Concepts</h2>
+
+<p>Colossus is an <strong>event-based</strong> framework, which means all of your code runs
+inside a single-threaded <em>event-loop</em>.  Actually that’s only half of the truth;
+Colossus scales by running multiple identical event loops in parallel, with
+each loop taking a portion of connections handled by your server.  However, a
+single connection is permanently bound to exactly one event loop for its
+lifetime, so code dealing with a single connection is effectively
+single-threaded.  This is a fairly common method of high-scale I/O called the
+<em>multi-reactive model</em>.</p>
+
+<p>Colossus is <strong>non-blocking</strong>, meaning that whenever a connection attached to
+your server isn’t doing anything, it is not blocking any threads, keeping the
+event loop free for other connections that do have work to do.  This means that
+even a Colossus server running just one event loop has no problem
+simultaneously handling thousands of connections.</p>
+
+<p>Colossus is also <strong>actor-based</strong>, meaning that the event loops are actually actors.
+This lets us work around what is normally the biggest challenge of event-based
+systems, interacting with blocking and parallel code.  So if your service has to
+interact with a blocking API, perform some CPU intensive operation, or perform
+some task in parallel with the event loop, Colossus makes it easy to jump out
+of the event loop using actors and futures.  This also makes it easy to safely
+share state between event loops and connections.</p>
+
+<h2 id="architecture">Architecture</h2>
+
+<p>Colossus is built mostly in four modules:</p>
+
+<h4 id="core">Core</h4>
+
+<p>This is a fully generalized multi-reactor implementation on top of NIO.  The
+Core layer manages event loops, servers and raw TCP connections, as well as
+providing the API for being able to attach event handlers to incoming server
+connections and outgoing client connections.</p>
+
+<h4 id="service">Service</h4>
+
+<p>This layer has all the logic for building RPC-like services that transform
+request objects into response objects.  Common issues like managing
+backpressure are handled by the service layer.</p>
+
+<h4 id="protocols">Protocols</h4>
+
+<p>Colossus comes with implementations for several application-level protocols
+packaged into Codecs.  While codecs are currently only used within services,
+they are fully decoupled from the service layer, making them usable in other
+situations that don’t have the same semantics as services.</p>
+
+<h4 id="util">Util</h4>
+
+<p>Mostly empty at the moment.  The biggest component is the <a href="http://tumblr.github.io/colossus/docs/tasks">Task</a> API
+which lets you run arbitrary code inside event loops.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#concepts">Concepts</a></li><li><a href="#architecture">Architecture</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2014 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

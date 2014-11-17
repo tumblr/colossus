@@ -1,0 +1,476 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>DataBuffer - colossus.core.DataBuffer</title>
+          <meta name="description" content="DataBuffer - colossus.core.DataBuffer" />
+          <meta name="keywords" content="DataBuffer colossus.core.DataBuffer" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.core.DataBuffer';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <a href="DataBuffer$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
+        <h1><a href="DataBuffer$.html" title="Go to companion">DataBuffer</a></h1> <span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DataBuffer</span><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A thin wrapper around a NIO ByteBuffer with data to read</p><p>DataBuffers are the primary way that data is read from and written to a
+connection.  DataBuffers are mutable and not thread safe.  They can only be
+read from once and cannot be reset.</p></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyVal">AnyVal</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.core.DataBuffer"><span>DataBuffer</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="colossus.core.DataBuffer#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(data:java.nio.ByteBuffer):colossus.core.DataBuffer"></a>
+      <a id="&lt;init&gt;:DataBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DataBuffer</span><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@&lt;init&gt;(data:java.nio.ByteBuffer):colossus.core.DataBuffer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Any###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@##():Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#data" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="data:java.nio.ByteBuffer"></a>
+      <a id="data:ByteBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">data</span><span class="result">: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@data:java.nio.ByteBuffer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyVal#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_&lt;:AnyVal]"></a>
+      <a id="getClass():Class[_&lt;:AnyVal]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.Class">Class</span>[_ &lt;: <span class="extype" name="scala.AnyVal">AnyVal</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@getClass():Class[_&lt;:AnyVal]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyVal → Any</dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#hasNext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hasNext:Boolean"></a>
+      <a id="hasNext:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hasNext</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@hasNext:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns true if this DataBuffer still has unread data, false otherwise</p>
+    </li><li name="colossus.core.DataBuffer#hasUnreadData" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hasUnreadData:Boolean"></a>
+      <a id="hasUnreadData:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hasUnreadData</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@hasUnreadData:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns true if this DataBuffer still has unread data, false otherwise</p>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#next" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="next():Byte"></a>
+      <a id="next():Byte"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">next</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Byte">Byte</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@next():Byte" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Get the next byte, removing it from the buffer</p><div class="fullcomment"><div class="comment cmt"><p>Get the next byte, removing it from the buffer</p><p>WARNING : This method will throw an exception if no data is left.  It is
+up to you to use hasUnreadData to figure out if you should call this.
+This is done to avoid unnecessary object allocation with using Option
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>the next byte in the buffer
+</p></dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#remaining" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="remaining:Int"></a>
+      <a id="remaining:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">remaining</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@remaining:Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataBuffer#size" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="size:Int"></a>
+      <a id="size:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">size</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@size:Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns the total size of this DataBuffer</p>
+    </li><li name="colossus.core.DataBuffer#take" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="take(n:Int):Array[Byte]"></a>
+      <a id="take(Int):Array[Byte]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">take</span><span class="params">(<span name="n">n: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@take(n:Int):Array[Byte]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Get some bytes</p><div class="fullcomment"><div class="comment cmt"><p>Get some bytes</p></div><dl class="paramcmts block"><dt class="param">n</dt><dd class="cmt"><p>how many bytes you want.</p></dd><dt>returns</dt><dd class="cmt"><p>an filled array of size min(n, remaining)
+</p></dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#takeAll" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="takeAll:Array[Byte]"></a>
+      <a id="takeAll:Array[Byte]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">takeAll</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@takeAll:Array[Byte]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns an array containing all of the unread data in this Databuffer</p>
+    </li><li name="colossus.core.DataBuffer#takeCopy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="takeCopy:colossus.core.DataBuffer"></a>
+      <a id="takeCopy:DataBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">takeCopy</span><span class="result">: <a href="" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@takeCopy:colossus.core.DataBuffer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Copy the unread data in this buffer to a new buffer</p><div class="fullcomment"><div class="comment cmt"><p>Copy the unread data in this buffer to a new buffer</p><p>Data will not be shared between the buffers.  The position of this buffer will be completed
+</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>a new DataBuffer containing only the unread data in this buffer
+</p></dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#takeInto" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="takeInto(buffer:Array[Byte],offset:Int,length:Int):Unit"></a>
+      <a id="takeInto(Array[Byte],Int,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">takeInto</span><span class="params">(<span name="buffer">buffer: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>, <span name="offset">offset: <span class="extype" name="scala.Int">Int</span></span>, <span name="length">length: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@takeInto(buffer:Array[Byte],offset:Int,length:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Directly copy data into a target byte array</p><div class="fullcomment"><div class="comment cmt"><p>Directly copy data into a target byte array</p></div><dl class="paramcmts block"><dt class="param">buffer</dt><dd class="cmt"><p>the array to copy into</p></dd><dt class="param">offset</dt><dd class="cmt"><p>the first index of buffer to start writing to</p></dd><dt class="param">length</dt><dd class="cmt"><p>how many bytes to write</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt">ArrayOutOfBoundsException<p>
+</p></span></dd></dl></div>
+    </li><li name="colossus.core.DataBuffer#taken" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="taken:Int"></a>
+      <a id="taken:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">taken</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@taken:Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns how many bytes have already been read from this DataBuffer</p>
+    </li><li name="colossus.core.DataBuffer#writeTo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="writeTo(channel:java.nio.channels.SocketChannel):Int"></a>
+      <a id="writeTo(SocketChannel):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">writeTo</span><span class="params">(<span name="channel">channel: <span class="extype" name="java.nio.channels.SocketChannel">SocketChannel</span></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataBuffer@writeTo(channel:java.nio.channels.SocketChannel):Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Write the buffer into a SocketChannel</p><div class="fullcomment"><div class="comment cmt"><p>Write the buffer into a SocketChannel</p><p>The buffer's taken and remaining values will be updated to reflect how
+much data was written.  Be aware that buffer's containing large amounts of
+data will probably not be written in one call
+</p></div><dl class="paramcmts block"><dt class="param">channel</dt><dd class="cmt"><p>the channel to write to</p></dd><dt>returns</dt><dd class="cmt"><p>how many bytes were written
+</p></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="scala.AnyVal">
+              <h3>Inherited from <span class="extype" name="scala.AnyVal">AnyVal</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
