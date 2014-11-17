@@ -15,8 +15,7 @@ sacrifices.
 
 ### Releases
 * {{ site.latest_version }} - The latest release (this verison used in the docs), built against scala 2.10.4, 2.11.2, akka 2.3.6
-* 0.4.4 Latest stable - built against Scala 2.10.4, akka 2.3.6
-
+* 0.5.1-M1-SNAPSHOT - Latest development snapshot
 
 ### Release Workflow
 
@@ -38,12 +37,6 @@ changes
 
 The repo is at [git@github.ewr01.tumblr.net:TumblrSvcs/colossus.git](git@github.ewr01.tumblr.net:TumblrSvcs/colossus.git) . You will need to have SBT setup on your computer.  It currently contains several sub-projects
 
-* colossus - the framework
-* colossus-testkit - A few handy tools to use when writing tests for a colossus service
-* colossus-examples - a runnable examples project showing off several different kinds of servers
-* colossus-tests - the tests for Colossus 
-
-To build Colossus, simply switch to the "colossus" project and run "publish-local"
 
 ### License
 
