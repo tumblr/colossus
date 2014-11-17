@@ -36,6 +36,6 @@ navigation:
 - text: Documentation
   url: docs/
 - text: Community
-  url: /
+  url: https://groups.google.com/forum/#!forum/colossus-users
 - text: Github
   url: "https://github.com/tumblr/colossus"
