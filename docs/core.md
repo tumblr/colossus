@@ -40,27 +40,6 @@ connections are able to tap into the actor's mailbox, such that an event
 handler has the ability to send and receive messages both to itself and other
 actors.
 
-## Actor-driven, not Actor-based
-
-In an actor-based model (such as Akka's own IO layer), everything is an actor
-including user event handlers.  The event loop and the event handlers interact
-using Actor message passing.  Colossus does not work this way.  While the event
-loops are actors, event handlers are simply POJO's (POSO?) and all
-interactions are through regular function calls.
-
-One of the reasons for doing this is that even though message passing is a
-fairly lightweight operation, it is not nearly as lightweight as just a
-function call, and in a massively concurrent system handling millions of events
-per second, the difference in overhead is non-trivial.  This is not a
-theoretical conjecture, but is an empirical observation that initially led to
-the development of Colossus.
-
-Another reason for fully embedded event handlers is the ability to run code
-directly inside the event loop.  Like other reactive frameworks, this can allow
-you to simplify low-level logic since all the code inside an event handler is
-single-threaded (the service layer extensively takes advantage of this
-feature).
-
 ## The IO System
 
 The heart of any Colossus project is the IO System.  This is essentially a

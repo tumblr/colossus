@@ -94,7 +94,7 @@ In the case of a server like our service, all of the event loops in the
 them.  This means that overall our service is multi-threaded, but all our code
 interacting with a particular connection is single-threaded (at least so far).
 
-We defined the `IOSystem` as `implicit` becuase it is a dependency for the next
+We defined the `IOSystem` as `implicit` because it is a dependency for the next
 line, which is where we actually spin up our service:
 
 {% highlight scala %}
@@ -110,7 +110,7 @@ So for the telnet protocol, your service only has to worry about taking a
 
 `Service.become` is the simplest form of starting a service, and requires a
 pattern-matching expression as its body.  This is perfect for simple, stateless
-services like this one, but there are other methods avaiable for more
+services like this one, but there are other methods available for more
 sophisticated situations.
 
 This brings us to the actual logic of the service:
@@ -128,7 +128,7 @@ This is mostly just standard pattern matching against a `TelnetCommand`, produci
 TelnetReply("Bye!").onWrite(OnWriteAction.Disconnect)
 {% endhighlight %}
 
-`onWrite` is not a method of `TelnetReply`, but actually we are uising Scala's
+`onWrite` is not a method of `TelnetReply`, but actually we are using Scala's
 type-lifting pattern to lift the `TelnetReply` into a
 `Completion[TelnetReply]`, which lets us attach metadata and some other things
 to our response object.  This way we can tell Colossus to terminate the
@@ -138,7 +138,7 @@ callbacks.
 ## Let's get Hacking
 
 Writing a service in ~5 lines of code is pretty neat, but obviously this
-example is artifically simple and doesn't really illustrate the real power of
+example is artificially simple and doesn't really illustrate the real power of
 Colossus.  Let's try doing something a little more interesting, such as writing
 a http interface to a redis server.
 

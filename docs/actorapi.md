@@ -13,8 +13,6 @@ connection and interact with the connection purely through message passing.
 Since it is built on the core layer, the actor API only works with raw TCP
 connections.  Any higher-level abstraction needs to be implemented manually.
 
-*Note - The actor API is not a heavily invested feature of Colossus.  While it is functional, not deprecated, and there are no plans to remove it, it may not stay around forever (unless somebody speaks up and really likes it)*
-
 ## Creating an actor-based server
 
 When a server accepts a connection, two actors will be created.  The first is a

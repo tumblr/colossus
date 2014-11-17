@@ -20,8 +20,6 @@ of opening a socket and listening for incoming connections.  Server actors are a
 3.  Delegator.  This is a simple class that is in charge of creating new ConnectionHandler's for each new connection.  Delegators live inside workers and run as part of the worker's event loop
 
 
-![img]({{ site.baseurl }}/img/iosystem.png)
-
 ## Creating a Server
 
 In most cases, you will generally not be creating servers from scratch, but rather using the [services]({{ site.baseurl}}/docs/serviceserver) abstraction layer.
