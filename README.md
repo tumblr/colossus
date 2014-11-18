@@ -1,6 +1,9 @@
 Colossus
 =========
 
+[![Build Status](https://api.travis-ci.org/tumblr/colossus.png?branch=master)](https://travis-ci.org/tumblr/colossus)
+
+
 Colossus is a lightweight I/O framework for building scala services.
 
 Full documentation can be found here : http://tumblr.github.io/colossus
