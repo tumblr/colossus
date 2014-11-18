@@ -2,26 +2,60 @@ package colossus
 
 import testkit._
 import core._
+import service.{Codec, AsyncServiceClient, ClientConfig}
 
 import akka.actor._
 import akka.agent._
 import akka.testkit.TestProbe
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
+import java.net.InetSocketAddress
 
 import org.scalatest.Tag
 
-object NewTest extends Tag("NewTest")
+
+
+
 
 class ServerSpec extends ColossusSpec {
 
   def expectConnections(server: ServerRef, num: Int) {
     server.server ! Server.GetInfo
     expectMsg(50.milliseconds, Server.ServerInfo(num, ServerStatus.Bound))
- }
+  }
 
- val EchoServerConfig = ServerConfig(
+  object RawCodec extends Codec.ClientCodec[ByteString, ByteString] {
+    def decode(data: DataBuffer) = Some(ByteString(data.takeAll))
+    def encode(raw: ByteString) = DataBuffer(raw)
+    def reset(){}
+  }
+
+  def testClient(io: IOSystem, waitForConnected: Boolean = true): AsyncServiceClient[ByteString, ByteString] = {
+    val config = ClientConfig(
+      name = "/test",
+      requestTimeout = 100.milliseconds,
+      address = new InetSocketAddress("localhost", TEST_PORT),
+      pendingBufferSize = 0,
+      failFast = true
+    )
+    val client = AsyncServiceClient(config, RawCodec)(io)
+    if (waitForConnected) {
+      var tries = 10
+      val sleepMillis = 50
+      while (Await.result(client.connectionStatus, 50.milliseconds) != ConnectionStatus.Connected) {
+        Thread.sleep(sleepMillis)
+        tries -= 1
+        if (tries == 0) {
+          throw new Exception("Test client failed to connect")
+        }
+      }
+    }
+    client
+  }
+
+  val EchoServerConfig = ServerConfig(
     name = "test-server",
     settings = ServerSettings(
       port = TEST_PORT
@@ -70,19 +104,21 @@ class ServerSpec extends ColossusSpec {
       probe.expectTerminated(io.workerManager)
     }      
 
-    "shutting down a system kills client connections" ignore {
-      implicit val io = IOSystem("test", 2)
-      val probe = TestProbe()
-      val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
-      probe watch server.server
-      Thread.sleep(100)
-      val c = new TestConnection(TEST_PORT)
-      c.socket.isConnected must equal(true)
-      c.write(ByteString("HELLO"))
-      c.read() must equal(ByteString("HELLO"))
-      io.shutdown()
-      probe.expectTerminated(server.server)
-      c.isClosed must equal (true)
+    "shutting down a system kills client connections" in {
+      withIOSystem { implicit io => 
+        val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+        val probe = TestProbe()
+        probe watch server.server
+        withServer(server) {
+          val cio = IOSystem("client_io")
+          val c = testClient(cio)
+          Await.result(c.send(ByteString("HELLO")), 200.milliseconds) must equal(ByteString("HELLO"))
+          io.shutdown()
+          probe.expectTerminated(server.server)
+          Await.result(c.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connecting)
+          cio.shutdown()
+        }
+      }
     }
 
     "get server info" in {
@@ -93,42 +129,34 @@ class ServerSpec extends ColossusSpec {
     }
       
 
-    "reject connection when maxed out" ignore {
+    "reject connection when maxed out"  in {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
       )
       val server = createServer(Delegator.basic(() => new EchoHandler), Some(settings))
-      val c1 = new TestConnection(TEST_PORT)
-      c1.socket.isConnected must equal(true)
+      val c1 = testClient(server.system)
       expectConnections(server, 1)
-      val c2 = new TestConnection(TEST_PORT)
-      c2.socket.isConnected must equal(true)
+      val c2 = testClient(server.system, false)
       expectConnections(server, 1)
-      c2.write(ByteString("testing"))
-      c2.isClosed must equal (true)
       end(server)
     }
 
-    "open up spot when connection closes" ignore {
+    "open up spot when connection closes" in {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
       )
       val server = createServer(Delegator.basic(() => new EchoHandler), Some(settings))
-      val c1 = new TestConnection(TEST_PORT)
-      c1.socket.isConnected must equal(true)
+      val c1 = testClient(server.system)
       expectConnections(server, 1)
-      c1.write(ByteString("testing"))
-      c1.read() must equal(ByteString("testing"))
-      c1.close()
-      Thread.sleep(50) 
-      expectConnections(server, 0)
-      val c2 = new TestConnection(TEST_PORT)
-      c2.socket.isConnected must equal(true)
-      c2.write(ByteString("testing"))
-      Thread.sleep(50)
-      c2.read() must equal(ByteString("testing"))
+      val c2 = testClient(server.system, false)
+      //notice, we can't just check if the connectin is connected because the server will accept the connection before closing it
+      Await.result(c2.send(ByteString("hello")), 500.milliseconds)
+      c1.disconnect()
+      Await.result(c1.connectionStatus, 50.milliseconds) must equal(ConnectionStatus.NotConnected)
+      expectConnections(server, 1)
+      Await.result(c1.connectionStatus, 50.milliseconds) must equal(ConnectionStatus.Connected)
       end(server)
 
     }
