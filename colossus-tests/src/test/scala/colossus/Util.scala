@@ -1,14 +1,9 @@
 package colossus
 
-import testkit._
-
-import core._
-
-import akka.actor._
-import akka.testkit.TestProbe
+import java.net.{Socket, SocketException}
 
 import akka.util.ByteString
-import java.net.{SocketException, Socket}
+import colossus.core._
 
 
 class EchoHandler extends BasicSyncHandler {

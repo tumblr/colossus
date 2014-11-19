@@ -210,7 +210,7 @@ private[colossus] object WorkerManager {
 
 
   private[colossus] case class Initialize(system: IOSystem)
-  private[colossus]case class GatherConnectionInfo(requester: Option[ActorRef])
+  private[colossus] case class GatherConnectionInfo(requester: Option[ActorRef])
 
   //sent from a worker during restart
   private[colossus] case object ReinitializeWorker

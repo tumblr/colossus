@@ -46,7 +46,7 @@ class ServerSpec extends ColossusSpec {
 
   "Server" must {
     "attach to a system and start" in {
-      withIOSystem { implicit io =>     
+      withIOSystem { implicit io =>
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
         withServer(server) {
           val c = new TestConnection(TEST_PORT)
@@ -68,7 +68,19 @@ class ServerSpec extends ColossusSpec {
       io.shutdown()
       probe2.expectTerminated(server.server)
       probe.expectTerminated(io.workerManager)
-    }      
+    }
+
+    "indicates when it cannot bind to a port when a duration is supplied" in {
+      withIOSystemSafe { implicit io =>
+        val existingServer = Server.basic("echo3", TEST_PORT, () => new EchoHandler)
+        waitForServer(existingServer)
+        val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = Some(PollingDuration(50 milliseconds, Some(1L))))
+        val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
+        val clashingServer: ServerRef = Server(cfg)
+        waitForServer(clashingServer, serverStatus = ServerStatus.Unbound)
+        Seq(existingServer.server, clashingServer.server)
+      }
+    }
 
     "shutting down a system kills client connections" in {
       implicit val io = IOSystem("test", 2)
