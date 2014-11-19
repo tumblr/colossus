@@ -281,7 +281,7 @@ class ServiceClient[I,O](
     log.warning(s"connection lost: $cause")
     disconnects.hit(tags = hpTags)
     if (!disconnecting) {
-      worker ! Schedule(1.second, Connect(address, _ => this))
+      worker ! Schedule(1.second, Reconnect(address, this))
     }
   }
 
@@ -289,7 +289,7 @@ class ServiceClient[I,O](
     log.error(s"Failed to connect to ${address.toString}, retrying...")
     connectionFailures.hit(tags = hpTags)
     if (!disconnecting) {
-      worker ! Schedule(1.second, Connect(address, _ => this))
+      worker ! Schedule(1.second, Reconnect(address, this))
     }
   }
 

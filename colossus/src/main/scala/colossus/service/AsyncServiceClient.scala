@@ -19,40 +19,25 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
   override def preStart() {
     system.workerManager ! IOCommand.Connect(address, handlerFactory(self))
-    context.become(waitingForConnected)
+    context.become(binding)
   }
 
-  def receive = waitingForConnected
+  def receive = binding
 
-  def inactive: Receive = {
-    case x => {
-      stash()  
-    }
-  }
-
-
-  def waitingForConnected: Receive = {
-    case AsyncServiceClient.GetConnectionStatus => sender ! ConnectionStatus.Connecting
-    case Connected(id: Long) => {
+  def binding: Receive = {
+    case Bound(id) => {
+      context.become(proxy(id, sender))
       unstashAll()
-      val worker = sender()
-      context.become(active(id, worker))
     }
-    case other => stash()
+    case x => stash()
+
   }
 
-  def active(connectionId: Long, worker: ActorRef): Receive = {
-    case AsyncServiceClient.GetConnectionStatus => sender ! ConnectionStatus.Connected
+
+  def proxy(connectionId: Long, worker: ActorRef): Receive = {
+    case Connected => {} //we ignore this because there's nothing to do with it.  Maybe add a callback in the future
     case AsyncServiceClient.Disconnect => self ! PoisonPill //the worker is watching us and will close the underlying connection
-    case ConnectionTerminated(cause) => context.become(waitingForConnected)
     case x => worker ! Message(connectionId, x)
-  }
-
-  def disconnecting: Receive = {
-    case AsyncServiceClient.GetConnectionStatus => sender ! ConnectionStatus.NotConnected
-    case x => {
-      sender ! new Exception("Client is disconnected")
-    }
   }
 
 }
@@ -67,7 +52,7 @@ object AsyncServiceClient {
   sealed trait ClientCommand
 
   case object Disconnect extends ClientCommand
-  case object GetConnectionStatus extends ClientCommand
+  case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
   def apply[Request, Response](config: ClientConfig, codec: Codec.ClientCodec[Request, Response])(implicit io: IOSystem): AsyncServiceClient[Request,Response] = {
     val gen = new AsyncHandlerGenerator(config, codec)
@@ -98,25 +83,20 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
   ) extends ServiceClient[I,O](codec, config, worker) with WatchedHandler {
     implicit val sender = worker.worker
     val watchedActor = caller
-    override def connected(e: WriteEndpoint) {
-      super.connected(e)
-      caller ! ConnectionEvent.Connected(e.id)
-    }
 
-    override protected def connectionClosed(cause : DisconnectCause) {
-      caller ! ConnectionTerminated(cause)
-      super.connectionClosed(cause)
-    }
-
-    override protected def connectionLost(cause : DisconnectError) {
-      caller ! ConnectionTerminated(cause)
-      super.connectionLost(cause)
+    override def bound(id: Long, worker: WorkerRef) {
+      super.bound(id, worker)
+      caller.!( ConnectionEvent.Bound(id))(worker.worker)
     }
 
     override def receivedMessage(message: Any, sender: ActorRef) {
       message match {
         case PackagedRequest(request, promise) => {
+          println("GOT REQUEST")
           send(request).execute(promise.complete)
+        }
+        case AsyncServiceClient.GetConnectionStatus(promise) => {
+          promise.success(connectionStatus)
         }
         case other => super.receivedMessage(message, sender)
       }
@@ -139,7 +119,11 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     //TODO: when the user manually calls disconnect, this future never
     //completes.  This isn't terrible but we should think of something more
     //meaningful
-    def connectionStatus: Future[ConnectionStatus] = (proxy ? AsyncServiceClient.GetConnectionStatus).mapTo[ConnectionStatus]
+    def connectionStatus: Future[ConnectionStatus] = {
+      val s = AsyncServiceClient.GetConnectionStatus()
+      proxy ! s
+      s.promise.future
+    }
   }
 
   val handlerFactory: ActorRef => WorkerRef => ConnectionHandler = caller => worker => new AsyncHandler(config, worker, caller)

@@ -20,7 +20,7 @@ class ActorHandler extends Actor with Stash {
 
   def receive = {
     case RegisterListener(listener) => {
-      context.become(waitingForConnected(listener))
+      context.become(binding(listener))
       unstashAll()
     }
     case other => {
@@ -28,10 +28,20 @@ class ActorHandler extends Actor with Stash {
     }
   }
 
-  def waitingForConnected(listener: ActorRef): Receive = {
-    case c @ Connected(id) => {
-      listener ! c //maybe don't send this message, but another without the id
-      context.become(active(listener, sender(), id))
+  def binding(listener: ActorRef): Receive = {
+    case Bound(id) => {
+      context.become(waitingForConnected(listener, id))
+    }
+    case other => {
+      stash()
+    }
+  }
+    
+
+  def waitingForConnected(listener: ActorRef, connectionId: Long): Receive = {
+    case Connected => {
+      listener ! Connected 
+      context.become(active(listener, sender(), connectionId))
       unstashAll()
     }
     case ConnectionFailed => {

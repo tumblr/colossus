@@ -35,7 +35,8 @@ class ConnectionHandlerSpec extends ColossusSpec {
     val props = Props(classOf[Handler], probe.ref)
     val server = createServer(AsyncDelegator.factorize(props))
     val c = new TestConnection(TEST_PORT)
-    probe.expectMsgType[ConnectionEvent.Connected]
+    probe.expectMsgType[ConnectionEvent.Bound]
+    probe.expectMsg(ConnectionEvent.Connected)
     (server, c, probe)
   }
 
