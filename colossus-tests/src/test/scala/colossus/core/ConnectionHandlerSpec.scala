@@ -2,6 +2,7 @@ package colossus
 
 import testkit._
 import core._
+import service.AsyncServiceClient
 
 import akka.actor._
 import akka.testkit.TestProbe
@@ -30,11 +31,11 @@ object AsyncDelegator {
 
 class ConnectionHandlerSpec extends ColossusSpec {
 
-  def createHandlerServer(): (ServerRef, TestConnection, TestProbe) = {
+  def createHandlerServer(): (ServerRef, AsyncServiceClient[ByteString, ByteString], TestProbe) = {
     val probe = TestProbe()
     val props = Props(classOf[Handler], probe.ref)
     val server = createServer(AsyncDelegator.factorize(props))
-    val c = new TestConnection(TEST_PORT)
+    val c = TestClient(server.system, TEST_PORT)
     probe.expectMsgType[ConnectionEvent.Bound]
     probe.expectMsg(ConnectionEvent.Connected)
     (server, c, probe)
@@ -47,13 +48,13 @@ class ConnectionHandlerSpec extends ColossusSpec {
     }
     "receive connection lost event" in {
       val (server, con, probe) = createHandlerServer()
-      con.close()
+      con.disconnect()
       probe.expectMsgType[ConnectionEvent.ConnectionTerminated]
       end(server)
     }
     "receive data event" in {
       val (server, con, probe) = createHandlerServer()
-      con.write(ByteString("HELLO WORLD"))
+      con.send(ByteString("HELLO WORLD"))
       probe.expectMsgPF(100.milliseconds){
         case ConnectionEvent.ReceivedData(data) if (data == ByteString("HELLO WORLD")) => true
       }
@@ -61,7 +62,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
     }
     "send data back to client" in {
       val (server, con, probe) = createHandlerServer()
-      con.write(ByteString("ECHO"))
+      con.send(ByteString("ECHO"))
       probe.expectMsg(ReceivedData(ByteString("ECHO")))
       end(server)
     }

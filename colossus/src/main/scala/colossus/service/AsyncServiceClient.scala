@@ -92,7 +92,6 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     override def receivedMessage(message: Any, sender: ActorRef) {
       message match {
         case PackagedRequest(request, promise) => {
-          println("GOT REQUEST")
           send(request).execute(promise.complete)
         }
         case AsyncServiceClient.GetConnectionStatus(promise) => {
