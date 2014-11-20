@@ -15,6 +15,26 @@ import java.net.ServerSocket
 
 import scala.collection.JavaConversions._
 
+/**
+ * Simple class which contains parameters for configuring a polling operation
+ * @param interval The interval of the poll
+ * @param maximumTries The number of times to execute the poll
+ */
+case class PollingDuration(interval : FiniteDuration, maximumTries : Option[Long])
+
+
+object PollingDuration {
+  /**
+   * Adds support for specifying maximumTries in terms of a [[scala.concurrent.duration.FiniteDuration]]
+   * @param interval The interval of the poll
+   * @param maxDuration The maximum amount of time to execute the poll.
+   * @return
+   */
+  def apply(interval : FiniteDuration, maxDuration : FiniteDuration) : PollingDuration = {
+    PollingDuration(interval, Some(Math.round(maxDuration / interval)))
+  }
+}
+
 
 /** Contains values for configuring how a Server operates 
  *
@@ -36,7 +56,9 @@ import scala.collection.JavaConversions._
  * @param maxIdleTime Maximum idle time for connections when in non high water conditions
  * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.  
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
- *
+ * @param bindingAttemptDuration The polling configuration for binding to a port.
+  *                               If the server cannot bind to the port, during this duration,
+  *                               it will shutdown.
  */
 case class ServerSettings(
   port: Int,
@@ -45,7 +67,8 @@ case class ServerSettings(
   lowWatermarkPercentage: Double = 0.75, 
   highWatermarkPercentage: Double = 0.85, 
   highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
-  tcpBacklogSize: Option[Int] = None
+  tcpBacklogSize: Option[Int] = None,
+  bindingAttemptDuration : Option[PollingDuration] = None
 ) {
   def lowWatermark = lowWatermarkPercentage * maxConnections
   def highWatermark = highWatermarkPercentage * maxConnections
@@ -75,13 +98,15 @@ case class ServerConfig(
  * @param config The ServerConfig used to create this Server
  * @param server The ActorRef of the Server
  * @param system The IOSystem to which this Server belongs
- * @param serverState The current state of the Server.
+ * @param serverStateAgent The current state of the Server.
  */
-case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, private val serverState : Agent[ServerState]) {
+case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateAgent : Agent[ServerState]) {
   def name = config.name
 
+  def serverState = serverStateAgent.get()
+
   def maxIdleTime = {
-    if(serverState().connectionVolumeState == ConnectionVolumeState.HighWater) {
+    if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
       config.settings.highWaterMaxIdleTime
     } else {
       config.settings.maxIdleTime
@@ -97,13 +122,21 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
   def delegatorBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
     server.!(Server.DelegatorBroadcast(message))(sender)
   }
+
+  /**
+   * Shutdown this server.
+   */
+  def shutdown() {
+    server ! PoisonPill
+  }
 }
 
 /**
  * Class representing the state of the server.  Currently the only reported status is the ConnectionVolumeState.
  * @param connectionVolumeState Represents if the a Server's connections are normal or in highwater
+ * @param serverStatus Represents the Server's current status
  */
-case class ServerState(connectionVolumeState : ConnectionVolumeState)
+case class ServerState(connectionVolumeState : ConnectionVolumeState, serverStatus : ServerStatus)
 
 /**
  * ConnectionVolumeState indicates whether or not if the Server is operating with a normal workload, which is represented
@@ -151,6 +184,8 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
   private var openConnections = 0
 
+  private val defaultBindingDuration = PollingDuration(200 milliseconds, None)
+
   def start() = {
     //setup the server
     try {
@@ -165,45 +200,73 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     }
   }
 
+  private def changeState(receive : Receive, status : ServerStatus) {
+    log.debug(s"changing state to $status")
+    context.become(receive)
+    updateServerStatus(status)
+  }
+
+  def alwaysHandle : Receive = handleMetrics orElse handleShutdown orElse handleStatus
+
   def receive = waitForWorkers
 
 
-  def waitForWorkers: Receive = handleMetrics orElse handleShutdown orElse {
-    case GetStatus => sender ! Initializing
+  def waitForWorkers: Receive = alwaysHandle orElse {
     case GetInfo => sender ! ServerInfo(0, Initializing)
     case WorkersReady(workers) => {
-      log.debug("Got workers, initializing")
-      context.become(binding(workers))
-      self ! RetryBind.start
+      log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
+      changeState(binding(workers), ServerStatus.Binding)
+      val bindingDuration = config.settings.bindingAttemptDuration.getOrElse(defaultBindingDuration)
+      self ! RetryBind(bindingDuration)
       unstashAll()
     }
     case d: DelegatorBroadcast => stash()
   }
 
-  case class RetryBind(nextDelay: FiniteDuration)
-  object RetryBind {
-    def from(currentDelay: FiniteDuration) = RetryBind(math.min(currentDelay.toMillis, 2.seconds.toMillis).milliseconds)
-    def start = RetryBind(100.milliseconds)
+  private case class RetryBind(interval: FiniteDuration, timeElapsed: FiniteDuration = 0.milliseconds, maximumTries : Option[Long], timesTried : Long = 0)
+
+  private object RetryBind {
+
+    def apply(pd : PollingDuration) : RetryBind = RetryBind(interval = pd.interval, maximumTries = pd.maximumTries)
+
+    //kinda ugly
+    def increment(retryBind : RetryBind) : Option[RetryBind] = {
+      val newTime = retryBind.timeElapsed + retryBind.interval
+      //if there is no max, create a new retry, else honor the max
+      retryBind.maximumTries.fold(incrementAsOption(retryBind, newTime)){maxTries =>
+        if(retryBind.timesTried >= maxTries){
+          None
+        }else{
+          incrementAsOption(retryBind, newTime)
+        }
+      }
+    }
+
+    private def incrementAsOption(bind : RetryBind, newTime : FiniteDuration): Option[RetryBind] = Some(bind.copy(timeElapsed = newTime, timesTried = bind.timesTried  + 1))
+
   }
 
-  //NOTE: this should throw if it can't bind.  I've seen issues where the port is taken and app keeps looping.  It should fail fast.
-  //Or this behavior should be pluggable: ie, failOnNonBind=true
-  def binding(router: ActorRef): Receive = handleMetrics orElse handleShutdown orElse {
-    case GetStatus => sender ! Binding
-    case GetInfo => sender ! ServerInfo(0, Binding)
+  def binding(router: ActorRef): Receive = alwaysHandle orElse {
+    case GetInfo => sender ! ServerInfo(0, serverStatus)
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
-    case  RetryBind(delay) => {
+    case rb : RetryBind => {
       if (start()) {
-        context.become(accepting(router))
+        changeState(accepting(router), Bound)
         self ! Select
       } else {
-        context.system.scheduler.scheduleOnce(delay, self, RetryBind.from(delay))
+        log.error(s"Could not bind to ${settings.port} after trying ${rb.timesTried} times")
+        RetryBind.increment(rb) match {
+          case None => {
+            log.error(s"could NOT bind to ${settings.port}.  Taking poison pill")
+            self ! PoisonPill
+          }
+          case Some(a) =>  context.system.scheduler.scheduleOnce(a.interval, self, a)
+        }
       }
     }
   }
 
-  def accepting(router: ActorRef): Receive = handleMetrics orElse handleShutdown orElse {
-    case GetStatus => sender ! Bound
+  def accepting(router: ActorRef): Receive = alwaysHandle orElse {
     case Select => {
       selectLoop(router)
       self ! Select
@@ -212,14 +275,22 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       openConnections -= 1
       connections.decrement()
       closed.hit(tags = Map("cause" -> cause.toString))
-      updateServerState()
+      updateServerConnectionState()
     }
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
-    case GetInfo => sender ! ServerInfo(openConnections, Bound)
+    case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
   }
 
   def handleShutdown: Receive = {
     case Terminated(w) => self ! PoisonPill
+  }
+
+  def handleStatus : Receive = {
+    case GetStatus =>{
+      val status: ServerStatus = serverStatus
+      log.debug(s"was asked for status, returning $status")
+      sender ! serverStatus
+    }
   }
 
   def selectLoop(router: ActorRef) {
@@ -244,7 +315,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
             sc.configureBlocking(false)
             sc.socket.setTcpNoDelay(true)
             router ! Worker.NewConnection(sc)
-            updateServerState()
+            updateServerConnectionState()
           } else {
             sc.close()
             refused.hit()
@@ -274,14 +345,19 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     log.info("SERVER PEACE OUT")
   }
 
-  private def updateServerState() {
+  private def updateServerConnectionState() {
     val connectionState = determineConnectionStateChange(openConnections, settings.lowWatermark, settings.highWatermark, stateAgent().connectionVolumeState)
-    
     connectionState.foreach {
-      x => stateAgent.send(ServerState(x))
-      highwaters.hit()
+      x => stateAgent.send(stateAgent().copy(connectionVolumeState = x))
+        highwaters.hit()
     }
   }
+
+  private def updateServerStatus(serverStatus : ServerStatus) {
+    stateAgent.send(stateAgent().copy(serverStatus = serverStatus))
+  }
+
+  private def serverStatus = stateAgent().serverStatus
 
   private def determineConnectionStateChange(currentCount : Int, lowCount : Double, highCount : Double, previousState : ConnectionVolumeState) : Option[ConnectionVolumeState] = {
 
@@ -295,7 +371,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   }
 }
 
-//NOTE: rename, confusing with ServerState
 /**
  * Represents the startup status of the server.  Can be either Initializing, Binding and Bound.
  */
@@ -337,7 +412,8 @@ object Server {
    */
   def apply(config: ServerConfig)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
-    val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal))
+    import ServerStatus._
+    val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
     val actor = io.actorSystem.actorOf(Props(classOf[Server], io, config, serverStateAgent).withDispatcher("server-dispatcher") ,name = config.name.idString)
     ServerRef(config, actor, io, serverStateAgent)
   }

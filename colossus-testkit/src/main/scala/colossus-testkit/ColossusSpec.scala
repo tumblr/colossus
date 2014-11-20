@@ -3,8 +3,6 @@ package testkit
 
 import core._
 
-import akka.pattern.ask
-
 import org.scalatest._
 
 import akka.actor._
@@ -39,17 +37,25 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     try {
       f(sys)
     } finally {
+      implicit val ec = mySystem.dispatcher
+      val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
+      val watches = registeredServers.map { ref =>
+        val p = TestProbe()
+        p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
+        (p, ref.server)
+      }
       sys.shutdown()
       probe.expectTerminated(sys.workerManager)
+      watches.foreach{case (p, ac) => p.expectTerminated(ac)}
     }
   }
 
-  def waitForServer(server: ServerRef, waitTime: FiniteDuration = 500.milliseconds) {
+  def waitForServer(server: ServerRef, waitTime: FiniteDuration = 500.milliseconds, serverStatus : ServerStatus = ServerStatus.Bound) {
     var attempts = 0
     val MaxAttempts = 20
     val waitPerAttempt = waitTime / MaxAttempts
 
-    while (attempts < MaxAttempts && Await.result(server.server ? Server.GetStatus, waitTime) != ServerStatus.Bound) {
+    while (attempts < MaxAttempts && server.serverState.serverStatus != serverStatus) {
       Thread.sleep(waitPerAttempt.toMillis)
       attempts += 1
     }
@@ -74,6 +80,8 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     server
   }
 
+  //TODO: end only a server, not the IO System.  This will impact all tests which rely on this to implicitly
+  //shutdown the whole IO system.
   def end(server: ServerRef) {
     val probe = TestProbe()
     probe watch server.server

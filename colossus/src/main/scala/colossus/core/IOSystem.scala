@@ -1,5 +1,7 @@
 package colossus
 
+import akka.util.Timeout
+
 import core._
 
 import akka.actor._
@@ -7,6 +9,8 @@ import metrics._
 import task._
 
 import java.net.InetSocketAddress
+
+import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
@@ -53,6 +57,9 @@ case class IOSystemConfig(name: String, numWorkers: Int){
 case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemConfig, metrics: MetricSystem, actorSystem: ActorSystem) {
   import IOCommand._
 
+  import akka.pattern.ask
+  import colossus.core.WorkerManager.RegisteredServers
+
   /**
    * Name of the IOSystem as specified in the IOSystemConfig
    * @return
@@ -83,6 +90,10 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    */
   def apocalypse() {
     workerManager ! WorkerManager.Apocalypse
+  }
+
+  def registeredServers(implicit to : Timeout, ec : ExecutionContext) : Future[Seq[ServerRef]] = {
+    (workerManager ? WorkerManager.ListRegisteredServers).mapTo[RegisteredServers].map(_.servers)
   }
 
   /**

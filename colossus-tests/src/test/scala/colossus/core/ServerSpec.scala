@@ -15,16 +15,12 @@ import java.net.InetSocketAddress
 import org.scalatest.Tag
 
 
-
-
-
 class ServerSpec extends ColossusSpec {
 
   def expectConnections(server: ServerRef, num: Int) {
     server.server ! Server.GetInfo
     expectMsg(50.milliseconds, Server.ServerInfo(num, ServerStatus.Bound))
   }
-
 
   val EchoServerConfig = ServerConfig(
     name = "test-server",
@@ -51,13 +47,12 @@ class ServerSpec extends ColossusSpec {
 
   "Server" must {
     "attach to a system and start" in {
-      withIOSystem { implicit io =>     
+      withIOSystem { implicit io =>
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
-        withServer(server) {
-          val c = TestClient(io, TEST_PORT)
-          val data = ByteString("hello world!")
-          Await.result(c.send(data), 100.milliseconds) must equal(data)
-        }
+        waitForServer(server)
+        val c = TestClient(io, TEST_PORT)
+        val data = ByteString("hello world!")
+        Await.result(c.send(data), 100.milliseconds) must equal(data)
       }
     }
 
@@ -72,7 +67,20 @@ class ServerSpec extends ColossusSpec {
       io.shutdown()
       probe2.expectTerminated(server.server)
       probe.expectTerminated(io.workerManager)
-    }      
+    }
+
+    "indicates when it cannot bind to a port when a duration is supplied" in {
+      withIOSystem { implicit io =>
+        val existingServer = Server.basic("echo3", TEST_PORT, () => new EchoHandler)
+        waitForServer(existingServer)
+        val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = Some(PollingDuration(50 milliseconds, Some(1L))))
+        val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
+        val p = TestProbe()
+        val clashingServer: ServerRef = Server(cfg)
+        p.watch(clashingServer.server)
+        p.expectTerminated(clashingServer.server)
+      }
+    }
 
     "shutting down a system kills client connections" ignore {
       withIOSystem { implicit io => 
@@ -99,7 +107,7 @@ class ServerSpec extends ColossusSpec {
     }
       
 
-    "reject connection when maxed out"  in {
+    "reject connection when maxed out" in {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
@@ -207,25 +215,24 @@ class ServerSpec extends ColossusSpec {
           delegatorFactory = Delegator.basic(() => new EchoHandler)
         )
         val server = Server(config)
-        withServer(server) {
-          val idleConnections = for{i <- 1 to 5} yield new TestConnection(TEST_PORT)
-          Thread.sleep(100)
-          expectConnections(server, 5)
-          //these should push us over the edge of the high water mark
-          val chattyConnections = for{i <- 1 to 4} yield chattyConnection(TEST_PORT)
-          chattyConnections.foreach(_._1.start())
-          //we should now be right above the watermark //the first 5 should be culled
-          Thread.sleep(1000)
-          expectConnections(server, 4)
-          idleConnections.foreach { _.isClosed must equal(true)}
-          chattyConnections.foreach { case (t, c) =>
-            t.isAlive must equal(true)
-            t.isInterrupted must equal(false)
-            c.running = false
-          }
-          Thread.sleep(230)
-          chattyConnections.foreach{case (t, _) => t.join()}
+        waitForServer(server)
+        val idleConnections = for{i <- 1 to 5} yield new TestConnection(TEST_PORT)
+        Thread.sleep(100)
+        expectConnections(server, 5)
+         //these should push us over the edge of the high water mark
+         val chattyConnections = for{i <- 1 to 4} yield chattyConnection(TEST_PORT)
+        chattyConnections.foreach(_._1.start())
+         //we should now be right above the watermark //the first 5 should be culled
+        Thread.sleep(1000)
+        expectConnections(server, 4)
+        idleConnections.foreach { _.isClosed must equal(true)}
+        chattyConnections.foreach { case (t, c) =>
+          t.isAlive must equal(true)
+          t.isInterrupted must equal(false)
+          c.running = false
         }
+        Thread.sleep(230)
+        chattyConnections.foreach{case (t, _) => t.join()}
       }
     }
     */

@@ -1,24 +1,16 @@
 package colossus
 
-import testkit._
-
-import core._
-
 import java.net.InetSocketAddress
 import service.{Codec, AsyncServiceClient, ClientConfig}
 
-import akka.actor._
-import akka.testkit.TestProbe
-
 import akka.util.ByteString
-import java.net.{SocketException, Socket}
+import colossus.core._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-
 class EchoHandler extends BasicSyncHandler {
-  def receivedData(data: DataBuffer){ 
+  def receivedData(data: DataBuffer){
     endpoint.write(data)
   }
 }

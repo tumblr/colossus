@@ -157,7 +157,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     case WorkerManager.RegisterServer(server, factory) => if (!delegators.contains(server.server)){
       log.debug(s"registered server ${server.name}")
       delegators(server.server) = createDelegator(factory, server)
-      context.watch(server.server)
       sender ! WorkerManager.ServerRegistered
     } else {
       log.warning("attempted to re-register a server")
@@ -193,7 +192,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       if (watchedConnections contains handler) {
         watchedConnections(handler).close(DisconnectCause.Disconnect) //TODO: Is this right?  Should I be sending Terminated?
         watchedConnections -= handler
-      } else unregisterServer(handler)        
+      }
     }
     case ConnectionSummaryRequest => {
       val now = System.currentTimeMillis //save a few thousand calls by doing this
@@ -303,7 +302,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       delegators -= handler
       delegator.onShutdown()
     } else {
-      log.warning(s"Atteempted to unregister unknown server actor ${handler.path.toString}")
+      log.warning(s"Attempted to unregister unknown server actor ${handler.path.toString}")
     }
   }
   
