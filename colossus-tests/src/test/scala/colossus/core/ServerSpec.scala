@@ -48,12 +48,11 @@ class ServerSpec extends ColossusSpec {
     "attach to a system and start" in {
       withIOSystem { implicit io =>
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
-        withServer(server) {
-          val c = new TestConnection(TEST_PORT)
-          val data = ByteString("hello world!")
-          c.write(data)
-          c.read() must equal(data)
-        }
+        waitForServer(server)
+        val c = new TestConnection(TEST_PORT)
+        val data = ByteString("hello world!")
+        c.write(data)
+        c.read() must equal(data)
       }
     }
 
@@ -71,14 +70,13 @@ class ServerSpec extends ColossusSpec {
     }
 
     "indicates when it cannot bind to a port when a duration is supplied" in {
-      withIOSystemSafe { implicit io =>
+      withIOSystem { implicit io =>
         val existingServer = Server.basic("echo3", TEST_PORT, () => new EchoHandler)
         waitForServer(existingServer)
         val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = Some(PollingDuration(50 milliseconds, Some(1L))))
         val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
         val clashingServer: ServerRef = Server(cfg)
         waitForServer(clashingServer, serverStatus = ServerStatus.Unbound)
-        Seq(existingServer.server, clashingServer.server)
       }
     }
 
@@ -225,25 +223,24 @@ class ServerSpec extends ColossusSpec {
           delegatorFactory = Delegator.basic(() => new EchoHandler)
         )
         val server = Server(config)
-        withServer(server) {
-          val idleConnections = for{i <- 1 to 5} yield new TestConnection(TEST_PORT)
-          Thread.sleep(100)
-          expectConnections(server, 5)
-          //these should push us over the edge of the high water mark
-          val chattyConnections = for{i <- 1 to 4} yield chattyConnection(TEST_PORT)
-          chattyConnections.foreach(_._1.start())
-          //we should now be right above the watermark //the first 5 should be culled
-          Thread.sleep(1000)
-          expectConnections(server, 4)
-          idleConnections.foreach { _.isClosed must equal(true)}
-          chattyConnections.foreach { case (t, c) =>
-            t.isAlive must equal(true)
-            t.isInterrupted must equal(false)
-            c.running = false
-          }
-          Thread.sleep(230)
-          chattyConnections.foreach{case (t, _) => t.join()}
+        waitForServer(server)
+        val idleConnections = for{i <- 1 to 5} yield new TestConnection(TEST_PORT)
+        Thread.sleep(100)
+        expectConnections(server, 5)
+         //these should push us over the edge of the high water mark
+         val chattyConnections = for{i <- 1 to 4} yield chattyConnection(TEST_PORT)
+        chattyConnections.foreach(_._1.start())
+         //we should now be right above the watermark //the first 5 should be culled
+        Thread.sleep(1000)
+        expectConnections(server, 4)
+        idleConnections.foreach { _.isClosed must equal(true)}
+        chattyConnections.foreach { case (t, c) =>
+          t.isAlive must equal(true)
+          t.isInterrupted must equal(false)
+          c.running = false
         }
+        Thread.sleep(230)
+        chattyConnections.foreach{case (t, _) => t.join()}
       }
     }
 

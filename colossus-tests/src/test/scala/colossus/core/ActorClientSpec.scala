@@ -46,18 +46,20 @@ class AsyncClientSpec extends ColossusSpec {
   "Async Client" must {
     "connect to a server" in {
       withClient{case (server, client, probe) => 
-        end(server)
+        //nop
       }
     }
 
 
-    "teorminates on disconnect" in {
-      withClient{case (s,c,p) => 
+    //temporary until we can stop a server without stopping the whole IO system
+    "terminates on disconnect" in {
+      var probe : TestProbe = TestProbe()
+      withClient{case (s,c,p) =>
         p.watch(c)
-        end(s)
-        p.expectMsgType[ConnectionTerminated]
-        p.expectTerminated(c)
+        probe = p
+        //end(s)
       }
+      probe.expectMsgType[ConnectionTerminated]
     }
 
     "write and read some data" in {
@@ -65,7 +67,6 @@ class AsyncClientSpec extends ColossusSpec {
         val bytes = ByteString("abcdefg\r\n")
         c ! Write(bytes, AckLevel.AckNone)
         p.expectMsg(ReceivedData(bytes))
-        end(s)
       }
     }
 
@@ -73,7 +74,6 @@ class AsyncClientSpec extends ColossusSpec {
       withClient{ case (s, c, p) => 
         c ! Write(ByteString("abc"), AckLevel.AckSuccess)
         p.expectMsg(WriteAck(WriteStatus.Complete))
-        end(s)
       }
     }
       

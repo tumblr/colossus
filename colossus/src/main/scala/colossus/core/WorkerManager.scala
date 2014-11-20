@@ -185,6 +185,10 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         log.warning(s"Attempted to Unregister unknown server ${u.server.name}")
       }
     }
+
+    case ListRegisteredServers => {
+      sender ! RegisteredServers(registeredServers.map(_.server))
+    }
   }
 
 
@@ -207,7 +211,9 @@ private[colossus] object WorkerManager {
   //ping manager
   case class RegisterServer(server: ServerRef, factory: Delegator.Factory)
   case class UnregisterServer(server: ServerRef)
+  case object ListRegisteredServers
 
+  case class RegisteredServers(servers : Seq[ServerRef])
 
   private[colossus] case class Initialize(system: IOSystem)
   private[colossus] case class GatherConnectionInfo(requester: Option[ActorRef])

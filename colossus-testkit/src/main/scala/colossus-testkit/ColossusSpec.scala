@@ -39,28 +39,16 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     try {
       f(sys)
     } finally {
-      sys.shutdown()
-      probe.expectTerminated(sys.workerManager)
-    }
-  }
-
-  //this is gone next commit!
-  def withIOSystemSafe(f : IOSystem => Seq[ActorRef]) {
-    val sys = IOSystem("test-system", 2)
-    val probe = TestProbe()
-    probe.watch(sys.workerManager)
-    var actorsToWatch = Seq[(TestProbe, ActorRef)]()
-    try {
-      val actors = f(sys)
-      actorsToWatch = actors.map{a =>
+      implicit val ec = mySystem.dispatcher
+      val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
+      val watches = registeredServers.map { ref =>
         val p = TestProbe()
-        p.watch(a)
-        (p, a)
+        p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
+        (p, ref.server)
       }
-    } finally {
       sys.shutdown()
       probe.expectTerminated(sys.workerManager)
-      actorsToWatch.foreach{case (p, ac) => p.expectTerminated(ac)}
+      watches.foreach{case (p, ac) => p.expectTerminated(ac)}
     }
   }
 
@@ -69,7 +57,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     val MaxAttempts = 20
     val waitPerAttempt = waitTime / MaxAttempts
 
-    while (attempts < MaxAttempts && Await.result(server.server ? Server.GetStatus, waitTime) != serverStatus) {
+    while (attempts < MaxAttempts && server.serverState.serverStatus != serverStatus) {
       Thread.sleep(waitPerAttempt.toMillis)
       attempts += 1
     }
