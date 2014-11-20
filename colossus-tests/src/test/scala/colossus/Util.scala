@@ -1,54 +1,49 @@
 package colossus
 
-import java.net.{Socket, SocketException}
+import java.net.InetSocketAddress
+import service.{Codec, AsyncServiceClient, ClientConfig}
 
 import akka.util.ByteString
 import colossus.core._
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class EchoHandler extends BasicSyncHandler {
-  def receivedData(data: DataBuffer){ 
+  def receivedData(data: DataBuffer){
     endpoint.write(data)
   }
 }
 
-class TestConnection(port: Int) {
-  val socket = new Socket("localhost", port)
-  val input = socket.getInputStream
-  val output = socket.getOutputStream
 
-  def write(data: ByteString) {
-    try {
-      output.write(data.toArray)
-      output.flush()
-    } catch {
-      case s: SocketException => {}
-    }
-  }
-
-  def read(): ByteString = {
-    val buffer = new Array[Byte](1024)
-    val num = input.read(buffer)
-    ByteString.fromArray(buffer, 0, num)
-  }
-
-  def close() {
-    socket.close()
-  }
-
-  //the only reliable way to check if the connection is closed is to try
-  //writing and then read
-  def isClosed = {
-    try {
-      write(ByteString("wat"))
-      Thread.sleep(50)
-      read()
-      false
-    }catch {
-      case e : SocketException => true
-      case _ : Throwable => false
-    }
-  }
-
+object RawCodec extends Codec.ClientCodec[ByteString, ByteString] {
+  def decode(data: DataBuffer) = Some(ByteString(data.takeAll))
+  def encode(raw: ByteString) = DataBuffer(raw)
+  def reset(){}
 }
 
+object TestClient {
+
+  def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true): AsyncServiceClient[ByteString, ByteString] = {
+    val config = ClientConfig(
+      name = "/test",
+      requestTimeout = 100.milliseconds,
+      address = new InetSocketAddress("localhost", port),
+      pendingBufferSize = 0,
+      failFast = true
+    )
+    val client = AsyncServiceClient(config, RawCodec)(io)
+    if (waitForConnected) {
+      var tries = 10
+      val sleepMillis = 50
+      while (Await.result(client.connectionStatus, 50.milliseconds) != ConnectionStatus.Connected) {
+        Thread.sleep(sleepMillis)
+        tries -= 1
+        if (tries == 0) {
+          throw new Exception("Test client failed to connect")
+        }
+      }
+    }
+    client
+  }
+}

@@ -5,6 +5,7 @@ import akka.actor._
 import metrics._
 import service.CallbackExecution
 
+import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 
@@ -203,24 +204,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     import IOCommand._
     cmd match {
       case Connect(address, handlerFactory) => {
-        val channel = SocketChannel.open()
-        channel.configureBlocking(false)  
-        channel.connect(address)
-        val key = channel.register(selector, SelectionKey.OP_CONNECT)
-        val handler = handlerFactory(me)
-        val connection = new ClientConnection(newId, key, channel, handler)
-        key.attach(connection)    
-        connections(connection.id) = connection
-        numConnections.increment()
-        handler.bound(connection.id, me)
-        //notice - handler connected call is not here since we're not connected yet!
-        handler match {
-          case w: WatchedHandler => {
-            watchedConnections(w.watchedActor) = connection
-            context.watch(w.watchedActor)
-          }
-          case _ =>{}
-        }
+        clientConnect(address, handlerFactory(me))
+      }
+      case Reconnect(address, handler) => {
+        clientConnect(address, handler)
       }
       case BindWorkerItem(workerItem) => {
         val id = newId
@@ -230,6 +217,31 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
     }
   }
+
+  //start the connection process for either a new client or a reconnecting client
+  //FIXME: https://github.com/tumblr/colossus/issues/19
+  def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
+    val channel = SocketChannel.open()
+    channel.configureBlocking(false)  
+    channel.connect(address)
+    val key = channel.register(selector, SelectionKey.OP_CONNECT)
+    val connection = new ClientConnection(newId, key, channel, handler)
+    key.attach(connection)    
+    connections(connection.id) = connection
+    numConnections.increment()
+    handler.bound(connection.id, me)
+    //notice - handler connected call is not here since we're not connected yet!
+    handler match {
+      case w: WatchedHandler => {
+        watchedConnections(w.watchedActor) = connection
+        context.watch(w.watchedActor)
+      }
+      case _ =>{}
+    }
+  
+
+  }
+
 
   def handleWorkerCommand(cmd: WorkerCommand){ 
     import WorkerCommand._

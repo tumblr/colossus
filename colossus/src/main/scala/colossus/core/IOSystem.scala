@@ -134,6 +134,10 @@ object IOCommand {
    */
   case class Connect(address: InetSocketAddress, handler: WorkerRef => ClientConnectionHandler) extends IOCommand
 
+  //used internally by service clients to reconnect without getting a new WorkerItem id
+  //TODO: probably a less-hacky way to accomplish this
+  private[colossus] case class Reconnect(address: InetSocketAddress, boundHandler: ClientConnectionHandler) extends IOCommand
+
 
   /**
    * Bind the BindableWorkerItem to a Worker.  The only BindableWorkerItem currently supported is a Task.
