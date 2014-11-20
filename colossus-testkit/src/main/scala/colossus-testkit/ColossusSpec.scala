@@ -3,8 +3,6 @@ package testkit
 
 import core._
 
-import akka.pattern.ask
-
 import org.scalatest._
 
 import akka.actor._

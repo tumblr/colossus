@@ -75,8 +75,10 @@ class ServerSpec extends ColossusSpec {
         waitForServer(existingServer)
         val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = Some(PollingDuration(50 milliseconds, Some(1L))))
         val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
+        val p = TestProbe()
         val clashingServer: ServerRef = Server(cfg)
-        waitForServer(clashingServer, serverStatus = ServerStatus.Unbound)
+        p.watch(clashingServer.server)
+        p.expectTerminated(clashingServer.server)
       }
     }
 

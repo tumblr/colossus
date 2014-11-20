@@ -130,7 +130,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
       case Worker.ConnectionSummary(sum) => {
         latestSummary = sum
         latestSummaryTime = System.currentTimeMillis
-        log.info(s"Got connection summary, size ${sum.size}")
+        log.debug(s"Got connection summary, size ${sum.size}")
       }
       case GetConnectionSummary => {
         val r = sender()
@@ -155,8 +155,8 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   }
 
   def serverRegistration: Receive = {
+    //TODO: This will need a bit of rethought to allow for more user defined control over timeout and retries.
     case r : RegisterServer => {
-      registeredServers.append(r)
       implicit val timeout = Timeout(500.milliseconds)
       currentState.foreach{state =>
         Future.traverse(state.workers){worker =>
@@ -170,20 +170,23 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
           }
           attempt()
         }.map{_ =>
+          registeredServers.append(r)
+          context.watch(r.server.server)
           r.server.server ! WorkersReady(state.workerRouter)
         }
       }
     }
-    //NOTE:  Why is this not waiting like register is?
     case u: UnregisterServer => {
-      registeredServers.find{_.server == u.server}.map{r =>
-        registeredServers -= r
-        currentState.foreach{_.workers.foreach{worker =>
-          worker ! u
-        }}
-      }.getOrElse{
-        log.warning(s"Attempted to Unregister unknown server ${u.server.name}")
-      }
+      val registeredServer = registeredServers.find(_.server == u.server)
+      registeredServer.fold(log.warning(s"Attempted to Unregister unknown server ${u.server.name}"))(unregisterServer(u, _))
+    }
+
+    //should be only triggered when a Server actor terminates
+    case Terminated(ref) => {
+        val registeredServer = registeredServers.find(_.server.server == ref)
+        registeredServer.fold { log.warning(s"$ref was terminated, and is not a registered server.")}{ r =>
+            unregisterServer(UnregisterServer(r.server), r)
+        }
     }
 
     case ListRegisteredServers => {
@@ -191,6 +194,14 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
     }
   }
 
+
+  private def unregisterServer(u : UnregisterServer, r : RegisterServer) {
+    log.info(s"unregistering server: ${r.server.name}")
+    registeredServers -= r
+    currentState.foreach{_.workers.foreach{worker =>
+      worker ! u
+    }}
+  }
 
   override def postStop() {
     currentState.foreach{

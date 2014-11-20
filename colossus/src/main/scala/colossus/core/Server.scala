@@ -58,8 +58,7 @@ object PollingDuration {
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
  * @param bindingAttemptDuration The polling configuration for binding to a port.
   *                               If the server cannot bind to the port, during this duration,
-  *                               it will enter a dead state [[colossus.core.ServerStatus.Unbound]] and will
-  *                               not accept any messages other than shutdown.
+  *                               it will shutdown.
  */
 case class ServerSettings(
   port: Int,
@@ -122,6 +121,13 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
    */
   def delegatorBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
     server.!(Server.DelegatorBroadcast(message))(sender)
+  }
+
+  /**
+   * Shutdown this server.
+   */
+  def shutdown() {
+    server ! PoisonPill
   }
 }
 
@@ -250,15 +256,14 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       } else {
         log.error(s"Could not bind to ${settings.port} after trying ${rb.timesTried} times")
         RetryBind.increment(rb) match {
-          case None => changeState(unbound, Unbound)
+          case None => {
+            log.error(s"could NOT bind to ${settings.port}.  Taking poison pill")
+            self ! PoisonPill
+          }
           case Some(a) =>  context.system.scheduler.scheduleOnce(a.interval, self, a)
         }
       }
     }
-  }
-
-  def unbound : Receive = alwaysHandle orElse {
-    case a => log.error(s"Server is Unbound and received:  $a")
   }
 
   def accepting(router: ActorRef): Receive = alwaysHandle orElse {
@@ -374,7 +379,6 @@ object ServerStatus {
   case object Initializing extends ServerStatus
   case object Binding extends ServerStatus
   case object Bound extends ServerStatus
-  case object Unbound extends ServerStatus
 }
 
 /**
