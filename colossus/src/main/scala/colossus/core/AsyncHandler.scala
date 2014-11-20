@@ -28,12 +28,14 @@ case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHan
   
   }
 
-  def bound(id: Long, worker: WorkerRef){}
+  def bound(id: Long, worker: WorkerRef){
+    handler ! Bound(id)
+  }
 
 
   def connected(e: WriteEndpoint) {
     endpointOpt = Some(e)
-    handler ! Connected(endpoint.id)
+    handler ! Connected
   }
   def readyForData() {
     handler ! ReadyForData
@@ -122,10 +124,17 @@ object ConnectionEvent {
   //maybe include an id or something
   case class WriteAck(status: WriteStatus) extends ConnectionEvent
   case class ConnectionTerminated(cause : DisconnectCause) extends ConnectionEvent
-  case class Connected(id: Long) extends ConnectionEvent
+  
+  //for server connections, Connected is send immediately after Bound.  For
+  //clients, the messages are more semantic, Bound is sent immediately while
+  //connected only when the connection is fully established
+  case class Bound(id: Long) extends ConnectionEvent
+
+  case object Connected extends ConnectionEvent
   //for client connections
   case object ConnectionFailed extends ClientConnectionEvent
 }
+
 
 /**
  * These messages are sent to async connection actors to interact with connections

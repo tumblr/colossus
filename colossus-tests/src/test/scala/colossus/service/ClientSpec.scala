@@ -64,8 +64,6 @@ class ClientSpec extends ColossusSpec {
 
     "get connection status" in {
       val (server, client) = makeClient
-      Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connecting)
-      Thread.sleep(100)
       Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
       end(server)
     }

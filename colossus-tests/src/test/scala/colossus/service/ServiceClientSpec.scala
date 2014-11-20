@@ -377,7 +377,8 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectMsgType[client.AsyncRequest](50.milliseconds)
     }
 
-    "attempts to reconnect when server closes connection" in {
+    //blocked on https://github.com/tumblr/colossus/issues/19
+    "attempts to reconnect when server closes connection" ignore {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem{implicit sys => 
         import service._
@@ -397,10 +398,10 @@ class ServiceClientSpec extends ColossusSpec {
         )
         val client = AsyncServiceClient(config, new RedisClientCodec)
         Thread.sleep(50)
-        Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
+        Await.result(client.connectionStatus, 1000.milliseconds) must equal(ConnectionStatus.Connected)
         client.send(Command("hey"))
         Thread.sleep(50)
-        Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connecting)
+        Await.result(client.connectionStatus, 1000.milliseconds) must equal(ConnectionStatus.Connecting)
       }
     }
 

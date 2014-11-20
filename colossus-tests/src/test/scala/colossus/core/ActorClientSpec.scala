@@ -35,7 +35,7 @@ class AsyncClientSpec extends ColossusSpec {
       val client = ActorHandler(new InetSocketAddress("localhost", TEST_PORT))
       val p2 = TestProbe()
       client ! ActorHandler.RegisterListener(p2.ref)
-      p2.expectMsgType[Connected]
+      p2.expectMsg(Connected)
       f(server, client, p2)
     }
   }
