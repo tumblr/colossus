@@ -1,11 +1,14 @@
 Colossus
 =========
 
-_Heads up!  We're just getting setup.  Docs and published artifacts may not be available yet._
+[![Build Status](https://api.travis-ci.org/tumblr/colossus.png?branch=master)](https://travis-ci.org/tumblr/colossus)
+
 
 Colossus is a lightweight I/O framework for building scala services.
 
 Full documentation can be found here : http://tumblr.github.io/colossus
+
+For general discussion and Q&A, check out the [Google Group](https://groups.google.com/forum/#!forum/colossus-users).
 
 Here's an overview of what you can find in this repo
 

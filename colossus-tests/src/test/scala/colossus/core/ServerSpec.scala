@@ -82,7 +82,7 @@ class ServerSpec extends ColossusSpec {
       }
     }
 
-    "shutting down a system kills client connections" in {
+    "shutting down a system kills client connections" ignore {
       implicit val io = IOSystem("test", 2)
       val probe = TestProbe()
       val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
@@ -105,7 +105,7 @@ class ServerSpec extends ColossusSpec {
     }
       
 
-    "reject connection when maxed out" in {
+    "reject connection when maxed out" ignore {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
@@ -122,7 +122,7 @@ class ServerSpec extends ColossusSpec {
       end(server)
     }
 
-    "open up spot when connection closes" in {
+    "open up spot when connection closes" ignore {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
@@ -145,7 +145,7 @@ class ServerSpec extends ColossusSpec {
 
     }
 
-    "close connection when worker rejects" in {
+    "close connection when worker rejects" ignore {
       class AngryDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
         def acceptNewConnection = None // >:(
       }
@@ -163,7 +163,7 @@ class ServerSpec extends ColossusSpec {
 
     }
 
-    "times out idle client connection" in {
+    "times out idle client connection" ignore {
       withIOSystem { implicit io =>
         val probe = TestProbe()
         val config = ServerConfig(
@@ -186,7 +186,7 @@ class ServerSpec extends ColossusSpec {
       }
     }
 
-    "stash delegator broadcast messages until workers report ready" taggedAs(NewTest) in {
+    "stash delegator broadcast messages until workers report ready" ignore {
       val (sys, mprobe) = FakeIOSystem.withManagerProbe()
       val config = EchoServerConfig
       val server = Server(config)(sys)
@@ -211,7 +211,7 @@ class ServerSpec extends ColossusSpec {
     }
 
     //NOTICE - this test flaps sometimes , consider rewriting
-    "switch to high water timeout when connection count passes the high water mark" in {
+    "switch to high water timeout when connection count passes the high water mark" ignore {
       withIOSystem { implicit io =>
         val config = ServerConfig(
           name = "highWaterTest",
