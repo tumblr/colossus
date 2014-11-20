@@ -80,6 +80,8 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     server
   }
 
+  //TODO: end only a server, not the IO System.  This will impact all tests which rely on this to implicitly
+  //shutdown the whole IO system.
   def end(server: ServerRef) {
     val probe = TestProbe()
     probe watch server.server
