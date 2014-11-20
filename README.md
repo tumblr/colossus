@@ -8,6 +8,8 @@ Colossus is a lightweight I/O framework for building scala services.
 
 Full documentation can be found here : http://tumblr.github.io/colossus
 
+For general discussion and Q&A, check out the [Google Group](https://groups.google.com/forum/#!forum/colossus-users).
+
 Here's an overview of what you can find in this repo
 
 * `colossus` : The framework
