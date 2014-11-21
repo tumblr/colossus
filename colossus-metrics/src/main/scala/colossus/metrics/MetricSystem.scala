@@ -35,7 +35,7 @@ object MetricSystem {
   def apply(namespace: MetricAddress, tickPeriod: FiniteDuration = 1.second)
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
-    val clock = system.actorOf(Props(classOf[MetricClock], tickPeriod), name =  "clock")
+    val clock = system.actorOf(Props(classOf[MetricClock], tickPeriod), name =  s"${namespace.idString}-clock")
     val snap = Agent[MetricMap](Map())
     val db = system.actorOf(Props(classOf[MetricDatabase], namespace, snap))
 

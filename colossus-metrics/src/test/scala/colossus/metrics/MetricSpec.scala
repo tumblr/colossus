@@ -16,6 +16,17 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
     }
   }
 
+  "MetricSystem" must {
+    "allow multiple systems to start without any conflicts" in {
+      import akka.actor._
+      implicit val sys = ActorSystem("metrics")
+      val m1 = MetricSystem("/sys1")
+      val m2 = MetricSystem("/sys2")
+      //no exceptions means the test passed
+      sys.shutdown()
+    }
+  }
+
 
   "Metric" must {
     "add a new tagged value" in {
