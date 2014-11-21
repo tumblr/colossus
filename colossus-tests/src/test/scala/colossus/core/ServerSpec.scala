@@ -50,14 +50,14 @@ class ServerSpec extends ColossusSpec {
         waitForServer(server2)
         val servers = Await.result(io.registeredServers, 200 milliseconds)
         servers must have length 2
-        servers.map(_.name.toString) must be === Seq("/echo1", "/echo2")
+        servers.map(_.name.toString) mustBe Seq("/echo1", "/echo2")
 
         server2.shutdown()
         Thread.sleep(100)
 
         val remainingServers = Await.result(io.registeredServers, 200 milliseconds)
         remainingServers must have length 1
-        remainingServers.head.name.toString must be === "/echo1"
+        remainingServers.head.name.toString mustBe "/echo1"
       }
     }
   }
@@ -111,7 +111,7 @@ class ServerSpec extends ColossusSpec {
       }
     }
 
-    "shutdown when a delegator surpasses the alotted duration" in {
+    "shutdown when a delegator surpasses the allotted duration" in {
       val slowDelegator : Delegator.Factory = (s, w) => {
         Thread.sleep(2000)
         new Delegator(s,w){

@@ -182,7 +182,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
     log.debug(s"attempting to register ${r.server.name}")
     val s = Future.traverse(state.workers){ _ ? r }
     s.onComplete {
-      case Success(x) => {
+      case Success(x) if !x.contains(RegistrationFailed) => {
         //closing over state..kind of a no no, if an "unregister" request comes through while a registration is processing.
         //That's an oddball state however.
         //this is only additive, so i'm kind of ok with this, until we actually need to change it.
@@ -190,17 +190,25 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         context.watch(r.server.server)
         r.server.server ! WorkersReady(state.workerRouter)
       }
-      case Failure(err) => {
+      case Failure(err)  => {
         log.error(err, s"Worker failed to register server ${r.server.name} after ${r.timesTried} tries with error: ${err.getMessage}")
-        val maxTries = r.server.config.settings.delegatorCreationDuration.maximumTries
-        val tryAgain = maxTries.fold(true){_ < r.timesTried}
-        if(tryAgain) {
-          self ! r.copy(timesTried = r.timesTried + 1)
-        }else {
-          log.error(s"Exhausted all attempts to register ${r.server.name}, aborting.")
-          r.server.server ! RegistrationFailed
-        }
+        tryReregister(r)
       }
+      case _ => {
+        log.error(s"One or more Workers failed to register server ${r.server.name} after ${r.timesTried} tries")
+        tryReregister(r)
+      }
+    }
+  }
+
+  private def tryReregister(r : RegisterServer) {
+    val maxTries = r.server.config.settings.delegatorCreationDuration.maximumTries
+    val tryAgain = maxTries.fold(true){_ < r.timesTried}
+    if(tryAgain) {
+      self ! r.copy(timesTried = r.timesTried + 1)
+    }else {
+      log.error(s"Exhausted all attempts to register ${r.server.name}, aborting.")
+      r.server.server ! RegistrationFailed
     }
   }
 
@@ -227,12 +235,11 @@ private[colossus] object WorkerManager {
   //send from workers to the manager
   private[colossus] case object WorkerReady
   private[colossus] case object ServerRegistered
-
+  private[colossus] case object RegistrationFailed
 
   //ping manager
   case class RegisterServer(server: ServerRef, factory: Delegator.Factory, timesTried : Int = 1)
   case class UnregisterServer(server: ServerRef)
-  case object RegistrationFailed
   case object ListRegisteredServers
 
   case class RegisteredServers(servers : Seq[ServerRef])
