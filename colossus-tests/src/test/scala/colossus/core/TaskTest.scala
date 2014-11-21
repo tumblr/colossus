@@ -79,7 +79,7 @@ class TaskTest extends ColossusSpec {
               case "PING" => sender.!("PONG")(proxy)
             }
           }
-          override def unbound() {
+          override def onUnbind() {
             probe.ref.!("UNBOUND")(proxy)
           }
         }
@@ -103,7 +103,7 @@ class TaskTest extends ColossusSpec {
           }
           def receivedMessage(message: Any, sender: ActorRef) {
           }
-          override def unbound() {
+          override def onUnbind() {
             probe.ref.!("UNBOUND")(proxy)
           }
         }
@@ -127,7 +127,7 @@ class TaskTest extends ColossusSpec {
             probe.ref.!(id)(proxy)
           }
         }
-        probe.expectMsg(300.milliseconds, 1L)
+        probe.expectMsg(300.milliseconds, Some(1L))
       }
     }
     "receive and become" in {

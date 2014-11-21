@@ -16,9 +16,9 @@ abstract class Task(implicit factory: ActorRefFactory) extends BindableWorkerIte
   implicit val proxy = factory.actorOf(Props[TaskProxy])
   import TaskProxy._
 
-  def bound(id :Long, worker: WorkerRef) {  
-    proxy ! Bound(id, worker.worker)
-    start(id, worker)
+  override def onBind() {  
+    proxy ! Bound(id.get, boundWorker.get.worker)
+    start(id.get, boundWorker.get)
   }
 
   def start(id: Long, worker: WorkerRef)
@@ -27,7 +27,7 @@ abstract class Task(implicit factory: ActorRefFactory) extends BindableWorkerIte
   /**
    * Unbinds this Task from a Worker
    */
-  def unbind() {
+  def unbindTask() {
     proxy ! TaskProxy.Unbind
   }
 }
@@ -36,8 +36,8 @@ class TaskException(message: String) extends Exception(message)
 
 trait TaskContext {
   implicit val proxy: ActorRef
-  def id: Long 
-  def worker: WorkerRef
+  def taskId: Long 
+  def taskWorker: WorkerRef
 
   def sender: ActorRef
   def become(it: Task.Receive)
@@ -50,8 +50,6 @@ class BasicTask(implicit factory: ActorRefFactory) extends Task with TaskContext
   //private stuff
 
   private var startFunc: Function0[Unit] = () => ()
-  private var _id: Option[Long] = None
-  private var _worker: Option[WorkerRef] = None
   private var receiver: Receive = {
     case a => println(s"unhandled task message $a")
   }
@@ -59,8 +57,6 @@ class BasicTask(implicit factory: ActorRefFactory) extends Task with TaskContext
 
 
   def start(i: Long, w: WorkerRef) {
-    _id = Some(i)
-    _worker = Some(w)
     startFunc()
   }
 
@@ -71,8 +67,8 @@ class BasicTask(implicit factory: ActorRefFactory) extends Task with TaskContext
 
   //api methods
 
-  def id: Long = _id.getOrElse(throw new TaskException("Cannot access id, task not bound"))
-  def worker: WorkerRef = _worker.getOrElse(throw new TaskException("Cannot access worker, task not bound"))
+  def taskId: Long = id.getOrElse(throw new TaskException("Cannot access id, task not bound"))
+  def taskWorker: WorkerRef = boundWorker.getOrElse(throw new TaskException("Cannot access worker, task not bound"))
 
   def onStart(f: => Unit) {
     startFunc = () => f
@@ -84,7 +80,7 @@ class BasicTask(implicit factory: ActorRefFactory) extends Task with TaskContext
   }
   def run(f: => Any) {
     f
-    unbind()
+    unbindTask()
   }
 }
 

@@ -33,37 +33,40 @@ case class ClientConfig(
   name: MetricAddress,
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 20,
-  failFast: Boolean = false
+  failFast: Boolean = false,
+  autoReconnect: Boolean = true
 )
+
+class ServiceClientException(message: String) extends Exception(message)
 
 /**
  * Thrown when a request is lost in transit
  * @param message Cause
  */
-class ConnectionLostException(message: String) extends Exception(message)
+class ConnectionLostException(message: String) extends ServiceClientException(message)
 
 /**
  * Throw when a request is attempted while not connected
  * @param message Cause
  */
-class NotConnectedException(message: String) extends Exception(message)
+class NotConnectedException(message: String) extends ServiceClientException(message)
 
 /**
  * Thrown when the pending buffer is full
  * @param message Cause
  */
-class ClientOverloadedException(message: String) extends Exception(message)
+class ClientOverloadedException(message: String) extends ServiceClientException(message)
 
 /**
  * Returned when a request has been pending for too long
  */
-class RequestTimeoutException extends Exception("Request Timed out")
+class RequestTimeoutException extends ServiceClientException("Request Timed out")
 
 /**
  * Thrown when there's some kind of data error
  * @param message Cause
  */
-class DataException(message: String) extends Exception(message)
+class DataException(message: String) extends ServiceClientException(message)
 
 /**
  * The ClientLike trait is intended to be an interface for anything that you
@@ -146,7 +149,6 @@ class ServiceClient[I,O](
   private val pendingBuffer = mutable.Queue[SourcedRequest]()
   private var writer: Option[WriteEndpoint] = None
   private var disconnecting: Boolean = false //set to true during graceful disconnect
-  protected def endpointId = writer.map{_.id}
   val log = Logging(worker.system.actorSystem, s"client:$address")
 
   //TODO way too application specific
@@ -165,7 +167,9 @@ class ServiceClient[I,O](
    *
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
    */
-  def connectionStatus: ConnectionStatus = writer.map{_.status}.getOrElse(ConnectionStatus.Connecting)
+  def connectionStatus: ConnectionStatus = writer.map{_.status}.getOrElse(
+    if (config.autoReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
+  )
 
   def connect() {
     if(!manuallyDisconnected){
@@ -175,8 +179,8 @@ class ServiceClient[I,O](
     }
   }
 
-  //TODO : replace worker in constructor
-  def bound(id: Long, worker: WorkerRef){}
+  //todo: this should now auto-connect on binding
+  //override def onBind(){}
 
   /**
    * Allow any requests in transit to complete, but cancel all pending requests
@@ -205,7 +209,7 @@ class ServiceClient[I,O](
     def send(request: I): Future[O] = {
       val promise = Promise[O]()
       val handler = {response: Try[O] => promise.complete(response);()}
-      writer.map{_.sendMessage(AsyncRequest(request, handler))}.getOrElse(promise.failure(new NotConnectedException("Not Connected")))
+      id.map{id => worker ! Message(id, (AsyncRequest(request, handler)))}.getOrElse(promise.failure(new NotConnectedException("Not Bound to worker")))
       promise.future
     }
   }
@@ -280,15 +284,15 @@ class ServiceClient[I,O](
     purgeBuffers(new NotConnectedException("Connection lost"))
     log.warning(s"connection lost: $cause")
     disconnects.hit(tags = hpTags)
-    if (!disconnecting) {
-      worker ! Schedule(1.second, Reconnect(address, this))
+    if (!disconnecting && config.autoReconnect) {
+      worker ! Schedule(250.milliseconds, Reconnect(address, this))
     }
   }
 
   def connectionFailed() {
     log.error(s"Failed to connect to ${address.toString}, retrying...")
     connectionFailures.hit(tags = hpTags)
-    if (!disconnecting) {
+    if (!disconnecting && config.autoReconnect) {
       worker ! Schedule(1.second, Reconnect(address, this))
     }
   }

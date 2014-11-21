@@ -2,6 +2,7 @@ package colossus
 package core
 
 import akka.actor._
+import akka.event.LoggingAdapter
 import metrics._
 import service.CallbackExecution
 
@@ -18,6 +19,31 @@ import scala.util.control.NonFatal
  * ConnectionHandlers.
  */
 private[colossus] trait WorkerItem {
+  private var _id: Option[Long] = None
+  private var _boundWorker: Option[WorkerRef] = None
+  def id = _id
+  def boundWorker = _boundWorker
+
+
+  /**
+   * bind the item to a Worker.
+   * @param id  The id assigned to this Item.
+   * @param worker The Worker whom was bound
+   */
+  private[colossus] def bind(id: Long, worker: WorkerRef) {
+    _id = Some(id)
+    _boundWorker = Some(worker)
+    onBind()
+  }
+
+  /**
+   * Called when this item is unbound from a Worker.
+   */
+  private[colossus] def unbind(){
+    _id = None
+    _boundWorker = None
+    onUnbind()
+  }
 
   /**
    * Provides a way to send this WorkerItem a message from an Actor by way of
@@ -28,22 +54,24 @@ private[colossus] trait WorkerItem {
   def receivedMessage(message: Any, sender: ActorRef)
 
   /**
-   * Called when this item has successfully been bound to a Worker.
-   * @param id  The id assigned to this Item.
-   * @param worker The Worker whom was bound
+   * Called when the item is bound to a worker.
    */
-  def bound(id: Long, worker: WorkerRef)
+  def onBind(){}
 
   /**
-   * Called when this item is unbound from a Worker.
+   * Called when the item has been unbound from a worker
    */
-  def unbound(){}
+  def onUnbind(){}
+
+
 }
 
 /**
  * BindableWorkItem is the public facing trait which is meant for Tasks and other objects which are Bindable to
  * a Worker.  WorkerItem itself is directly extended by ConnectionHandler which has a different and specific lifecycle inside
  * of a Worker.
+ *
+ * TODO; this is probably not needed anymore
  */
 trait BindableWorkerItem extends WorkerItem
 
@@ -79,6 +107,51 @@ case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system
   def !(message: Any)(implicit sender: ActorRef = ActorRef.noSender)  = worker ! message
 }
 
+/**
+ * This keeps track of all the bound worker items, and properly handles added/removing them
+ */
+class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
+
+  private val workerItems = collection.mutable.Map[Long, WorkerItem]()
+
+  private var id: Long = 0L
+  def newId(): Long = {
+    id += 1
+    id
+  }
+
+  def get(id: Long): Option[WorkerItem] = workerItems.get(id)
+
+  /**
+   * Binds a new worker item to this worker
+   */
+  def bind(workerItem: WorkerItem) {
+    val id = newId()
+    workerItems(id) = workerItem
+    workerItem.bind(id, worker)
+  }
+
+  def unbind(id: Long) {
+    if (workerItems contains id) {
+      val item = workerItems(id)
+      workerItems -= id
+      item.unbind()   
+    } else {
+      log.error(s"Attempted to unbind worker $id that is not bound to this worker")
+    }    
+  }
+
+  def unbind(workerItem: WorkerItem) {
+    workerItem.id.map{i => 
+      unbind(i)
+    }.getOrElse(
+      //maybe throw an exception instead?  
+      log.error("Attempted to unbind worker item that was already not bound!")
+    )
+  }
+}
+
+
 
 private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMetrics with ActorLogging with CallbackExecution {
   import Server._
@@ -91,8 +164,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
 
+  //these ids are used for both connections and worker items so a connection
+  //and it's attached handler will have different ids
+  //TODO - we can probably improve performance by making ids a case class containing the item as a private field
   private var id: Long = 0L
-  def newId: Long = {
+  def newId(): Long = {
     id += 1
     id
   }
@@ -109,23 +185,18 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
 
 
-  /**
-   * Using two collections here instead of just one for WorkerItems because it
-   * involves less filtering (but it may not matter)
-   *
-   * maybe encapsulate in a class
-   */
+  //collection of all the active connections
   val connections = collection.mutable.Map[Long, Connection]()
-  val workerItems = collection.mutable.Map[Long, WorkerItem]()
-  def getWorkerItem(id: Long): Option[WorkerItem] = workerItems.get(id).orElse(connections.get(id).map{_.handler})
-
 
 
   //mapping of registered servers to their delegators
   val delegators = collection.mutable.Map[ActorRef, Delegator]()
 
-
   val me = WorkerRef(workerId, metrics, self, io)
+
+  //collection of all the bound WorkerItems, including connection handlers
+  val workerItems = new WorkerItemManager(me, log)
+  def getWorkerItem(id: Long): Option[WorkerItem] = workerItems.get(id)
 
   override def preStart() {
     super.preStart()
@@ -210,19 +281,21 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     import IOCommand._
     cmd match {
       case Connect(address, handlerFactory) => {
-        clientConnect(address, handlerFactory(me))
+        val handler = handlerFactory(me)
+        workerItems.bind(handler)
+        clientConnect(address, handler)
       }
       case Reconnect(address, handler) => {
         clientConnect(address, handler)
       }
       case BindWorkerItem(workerItem) => {
-        val id = newId
-        workerItems(id) = workerItem
-        workerItem.bound(id, me)
+        workerItems.bind(workerItem)
       }
 
     }
   }
+
+
 
   //start the connection process for either a new client or a reconnecting client
   //FIXME: https://github.com/tumblr/colossus/issues/19
@@ -231,12 +304,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     channel.configureBlocking(false)  
     channel.connect(address)
     val key = channel.register(selector, SelectionKey.OP_CONNECT)
-    val connection = new ClientConnection(newId, key, channel, handler)
+    val connection = new ClientConnection(newId(), key, channel, handler)
     key.attach(connection)    
     connections(connection.id) = connection
     numConnections.increment()
-    handler.bound(connection.id, me)
-    //notice - handler connected call is not here since we're not connected yet!
     handler match {
       case w: WatchedHandler => {
         watchedConnections(w.watchedActor) = connection
@@ -244,8 +315,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       case _ =>{}
     }
-  
-
   }
 
 
@@ -257,6 +326,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         getWorkerItem(wid).map{item =>
           item.receivedMessage(message, responder)
         }.getOrElse{
+          log.error(s"worker received message $message for unknown item $wid")
           responder ! MessageDeliveryFailed(wid, message)
         }
       }
@@ -267,14 +337,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         //(yes we have the TaskScheduler, but lets try to get that out of here)
         context.parent ! s
       }
-      case UnbindWorkerItem(wid) => {
-        workerItems.get(wid).foreach{workerItem =>
-          workerItems -= wid
-          workerItem.unbound()
-        }
+      case UnbindWorkerItem(id) => {
+        workerItems.unbind(id)
       }
-      case Disconnect(wid) => {
-        connections.get(wid).foreach{con =>
+      case Disconnect(connectionId) => {
+        connections.get(connectionId).foreach{con =>
           unregisterConnection(con, DisconnectCause.Disconnect)
         }
       }
@@ -286,11 +353,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
-      val connection = new ServerConnection(newId, newKey, sc, handler, server)(self)
+      val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
       newKey.attach(connection)
       connections(connection.id) = connection
       numConnections.increment()
-      handler.bound(connection.id, me)
+      workerItems.bind(handler)
       handler.connected(connection)
   }
 
@@ -298,7 +365,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     connections -= con.id
     con.close(cause)
     numConnections.decrement()
-
+    if (con.unbindHandlerOnClose) {
+      workerItems.unbind(con.handler)
+    } 
   }
 
   def unregisterServer(handler: ActorRef) {

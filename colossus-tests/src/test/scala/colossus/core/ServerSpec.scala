@@ -11,6 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
 
+import RawProtocol._
 
 class ServerSpec extends ColossusSpec {
 
@@ -127,18 +128,18 @@ class ServerSpec extends ColossusSpec {
 
     }
 
-    "shutting down a system kills client connections" ignore {
-      withIOSystem { implicit io => 
+    "shutting down a system kills client connections"  in {
+      withIOSystem { implicit io =>
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
         val probe = TestProbe()
         probe watch server.server
         withServer(server) {
           val cio = IOSystem("client_io")
-          val c = TestClient(cio, TEST_PORT)
+          val c = TestClient(cio, TEST_PORT, reconnect = false)
           Await.result(c.send(ByteString("HELLO")), 200.milliseconds) must equal(ByteString("HELLO"))
           io.shutdown()
           probe.expectTerminated(server.server)
-          Await.result(c.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connecting)
+          TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
           cio.shutdown()
         }
       }
@@ -165,7 +166,7 @@ class ServerSpec extends ColossusSpec {
       end(server)
     }
 
-    "open up spot when connection closes" ignore {
+    "open up spot when connection closes" in {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1
@@ -173,26 +174,31 @@ class ServerSpec extends ColossusSpec {
       val server = createServer(Delegator.basic(() => new EchoHandler), Some(settings))
       val c1 = TestClient(server.system, TEST_PORT)
       expectConnections(server, 1)
-      val c2 = TestClient(server.system, TEST_PORT, false)
-      //notice, we can't just check if the connectin is connected because the server will accept the connection before closing it
-      Await.result(c2.send(ByteString("hello")), 500.milliseconds)
+      val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, reconnect = false)
+      //notice, we can't just check if the connection is connected because the
+      //server will accept the connection before closing it
+      intercept[service.ServiceClientException] {
+        Await.result(c2.send(ByteString("hello")), 5000.milliseconds)
+      }
+      TestClient.waitForStatus(c2, ConnectionStatus.NotConnected)
       c1.disconnect()
-      Await.result(c1.connectionStatus, 50.milliseconds) must equal(ConnectionStatus.NotConnected)
-      expectConnections(server, 1)
-      Await.result(c1.connectionStatus, 50.milliseconds) must equal(ConnectionStatus.Connected)
+      TestUtil.expectServerConnections(server, 0)
+      val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, reconnect = false)
+      TestUtil.expectServerConnections(server, 1)
       end(server)
 
     }
 
-    "close connection when worker rejects" ignore {
+    "close connection when worker rejects" in {
       class AngryDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
         def acceptNewConnection = None // >:(
       }
       val server = createServer((s,w) => new AngryDelegator(s,w))
-      val c1 = TestClient(server.system, TEST_PORT)
-      intercept[service.NotConnectedException] {
+      val c1 = TestClient(server.system, TEST_PORT, reconnect = false, waitForConnected = false)
+      intercept[service.ServiceClientException] {
         Await.result(c1.send(ByteString("testing")), 100.milliseconds)
       }
+      TestClient.waitForStatus(c1, ConnectionStatus.NotConnected)
       end(server)
 
     }
@@ -211,10 +217,10 @@ class ServerSpec extends ColossusSpec {
         val server = Server(config)
         probe watch server.server
         waitForServer(server)
-        val c = TestClient(server.system, TEST_PORT)
+        val c = TestClient(server.system, TEST_PORT, reconnect = false)
         expectConnections(server, 1)
         Thread.sleep(1000)
-        expectConnections(server, 0)
+        TestUtil.expectServerConnections(server, 0)
         //TODO c.isClosed must equal(true)
       }
     }
@@ -243,10 +249,8 @@ class ServerSpec extends ColossusSpec {
 
     }
 
-    //NOTICE - this test flaps sometimes , consider rewriting
-    //this test is totally broken right now
-    /*
-    "switch to high water timeout when connection count passes the high water mark" ignore {
+    "switch to high water timeout when connection count passes the high water mark" in {
+      //for now this test only checks to see that the server switched its status
       withIOSystem { implicit io =>
         val config = ServerConfig(
           name = "highWaterTest",
@@ -255,32 +259,20 @@ class ServerSpec extends ColossusSpec {
             maxConnections = 10,
             lowWatermarkPercentage = 0.60,
             highWatermarkPercentage = 0.80,
-            highWaterMaxIdleTime = 50.milliseconds
+            highWaterMaxIdleTime = 50.milliseconds,
+            maxIdleTime = 1.hour
           ),
           delegatorFactory = Delegator.basic(() => new EchoHandler)
         )
         val server = Server(config)
-        waitForServer(server)
-        val idleConnections = for{i <- 1 to 5} yield new TestConnection(TEST_PORT)
-        Thread.sleep(100)
-        expectConnections(server, 5)
-         //these should push us over the edge of the high water mark
-         val chattyConnections = for{i <- 1 to 4} yield chattyConnection(TEST_PORT)
-        chattyConnections.foreach(_._1.start())
-         //we should now be right above the watermark //the first 5 should be culled
-        Thread.sleep(1000)
-        expectConnections(server, 4)
-        idleConnections.foreach { _.isClosed must equal(true)}
-        chattyConnections.foreach { case (t, c) =>
-          t.isAlive must equal(true)
-          t.isInterrupted must equal(false)
-          c.running = false
+        withServer(server) {
+          val idleConnections = for{i <- 1 to 9} yield TestClient(server.system, TEST_PORT, reconnect = false)
+          TestUtil.expectServerConnections(server, 9)
+          Thread.sleep(1000) //have to wait a second since that's how often the check it done
+          expectConnections(server, 0)
         }
-        Thread.sleep(230)
-        chattyConnections.foreach{case (t, _) => t.join()}
       }
     }
-    */
 
     "delegator onShutdown is called when a worker shuts down" in {
       import scala.concurrent.ExecutionContext.Implicits.global

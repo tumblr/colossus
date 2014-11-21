@@ -27,9 +27,7 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
   }
 
   def status: ConnectionStatus = connection_status
-  def sendMessage(message: Any){
-    workerProbe.ref ! message
-  }
+
   val worker: ActorRef = workerProbe.ref
 
   def isWritable = connection_status == ConnectionStatus.Connected && bytesAvailable > 0

@@ -141,13 +141,11 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     checkBuffer()
   }
 
-  //TODO: replace worker in constructor with this
-  def bound(id: Long, worker: WorkerRef){}
-
   def connected(endpoint: WriteEndpoint) {
     writer = Some(endpoint)
+    val wid = id.getOrElse(throw new Exception("connected called on unbound service handler"))
     requestTimeout match {
-      case f: FiniteDuration => worker ! Schedule(f, Message(endpoint.id, CheckTimeout))
+      case f: FiniteDuration => worker ! Schedule(f, Message(wid, CheckTimeout))
       case _ => {}
     }
   }
@@ -156,8 +154,8 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     message match {
       case CheckTimeout => {
         checkTimeout()
-        (requestTimeout, writer) match {
-          case (f: FiniteDuration, Some(w)) => worker ! Schedule(f, Message(w.id,CheckTimeout))
+        (requestTimeout, id) match {
+          case (f: FiniteDuration, Some(wid)) => worker ! Schedule(f, Message(wid,CheckTimeout))
           case _ => {}
         }
       }
