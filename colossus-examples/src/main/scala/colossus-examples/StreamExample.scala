@@ -38,11 +38,14 @@ class StreamWorker(provider: ActorRef) extends Actor with ActorLogging {
   import MessageProvider._
 
   def receive = {
-    case Connected(id) => {
+    case Connected => {
+      log.info("New Stream client connected")
       context.become(alive(sender))  
       provider ! NextMessage
     }
   }
+
+
   
   def alive(connection: ActorRef): Receive = {
     case message: String => {

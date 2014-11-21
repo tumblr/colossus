@@ -15,6 +15,9 @@ import java.net.InetSocketAddress
 
 import protocols.redis._
 import UnifiedProtocol._
+import org.scalatest.Tag
+
+import RawProtocol._
 
 class ServiceClientSpec extends ColossusSpec {
 
@@ -30,6 +33,7 @@ class ServiceClientSpec extends ColossusSpec {
       failFast = failFast
     )
     val client = new RedisClient(config, worker)
+    client.bind(1, worker)
     client.connect()
     workerProbe.expectMsgType[IOCommand.Connect](50.milliseconds)
     val endpoint = new MockWriteEndpoint(30, workerProbe, Some(client))
@@ -374,34 +378,53 @@ class ServiceClientSpec extends ColossusSpec {
       val shared = client.shared
       val cmd1 = Command(CMD_GET, "foo")
       val f = shared.send(cmd1)
-      probe.expectMsgType[client.AsyncRequest](50.milliseconds)
+      //probe.expectMsg(Message(1, AsyncRequest
+      probe.expectMsgType[WorkerCommand.Message](50.milliseconds)
     }
 
     //blocked on https://github.com/tumblr/colossus/issues/19
-    "attempts to reconnect when server closes connection" ignore {
+    "attempts to reconnect when server closes connection" in {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem{implicit sys => 
         import service._
         import Response._
         import protocols.redis._
         import scala.concurrent.Await
+        val reply = StatusReply("LATER LOSER!!!")
         val server = Service.become[Redis]("test", TEST_PORT) {
-          case foo => {
-            complete(StatusReply("LATER LOSER!!!")).onWrite(OnWriteAction.Disconnect)
+          case c if (c.command == "BYE") => {
+            complete(reply).onWrite(OnWriteAction.Disconnect)
           }
+          case other => StatusReply("ok")
         }
-        waitForServer(server)
-        val config = ClientConfig(
-          address = new InetSocketAddress("localhost", TEST_PORT),
-          name = "/test",
-          requestTimeout = 100.milliseconds
-        )
-        val client = AsyncServiceClient(config, new RedisClientCodec)
-        Thread.sleep(50)
-        Await.result(client.connectionStatus, 1000.milliseconds) must equal(ConnectionStatus.Connected)
-        client.send(Command("hey"))
-        Thread.sleep(50)
-        Await.result(client.connectionStatus, 1000.milliseconds) must equal(ConnectionStatus.Connecting)
+        withServer(server) {
+          val config = ClientConfig(
+            address = new InetSocketAddress("localhost", TEST_PORT),
+            name = "/test",
+            requestTimeout = 100.milliseconds
+          )
+          val client = AsyncServiceClient(config, new RedisClientCodec)
+          TestClient.waitForConnected(client)
+          TestUtil.expectServerConnections(server, 1)
+          Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
+          Thread.sleep(100)
+          TestUtil.expectServerConnections(server, 1)
+          TestClient.waitForConnected(client)
+          Await.result(client.send(Command("hey")), 500.milliseconds) must equal(StatusReply("ok"))
+        }
+      }
+    }
+
+    "not attempt reconnect when autoReconnect is false" in {
+      withIOSystem{ implicit io => 
+        val server = Service.become[Raw]("rawwww", TEST_PORT) {
+          case foo => foo.onWrite(OnWriteAction.Disconnect)
+        }
+        withServer(server) {
+          val client = TestClient(io, TEST_PORT, reconnect = false)
+          client.send(ByteString("blah"))
+          TestUtil.expectServerConnections(server, 0)
+        }
       }
     }
 

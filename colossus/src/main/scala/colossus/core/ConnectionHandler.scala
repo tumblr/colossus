@@ -73,6 +73,14 @@ trait ClientConnectionHandler extends ConnectionHandler {
 }
 
 /**
+ * A Simple mixin trait that will cause the worker to automatically unbind this
+ * handler if the connection it's attached to is closed.  This is generally a
+ * good idea if the handler is not going to attempt any connection retry logic
+ * or is not setup to receive any actor messages
+ */
+trait AutoUnbindHandler extends ClientConnectionHandler
+
+/**
  * Convenience implementation of ConnectionHandler which provides implementations for all of
  * the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
  * for the functions they require.
@@ -102,7 +110,7 @@ trait BasicSyncHandler extends ConnectionHandler {
   def readyForData(){}
 
   //this is the only method you have to implement
-  def receivedData(data: DataBuffer)
+  //def receivedData(data: DataBuffer)
 }
 
 

@@ -28,7 +28,6 @@ trait WriteEndpoint {
   def isWritable: Boolean
   def disconnect()
   def status: ConnectionStatus
-  def sendMessage(message: Any)
   def worker: ActorRef
 }
 
@@ -39,9 +38,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   val startTime = System.currentTimeMillis
 
-  /** ABSTRACT MEMBERS **/
-
-  def domain: String
   //dont make these vals, doesn't work with client connections
   lazy val host: String = try {
     _channel.socket.getInetAddress.getHostName
@@ -53,8 +49,13 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   } catch {
     case n: NullPointerException => 0
   }
+
+  /** ABSTRACT MEMBERS **/
+
+  def domain: String
   def outgoing: Boolean //true for client, false for server
   def isTimedOut(time: Long): Boolean
+  def unbindHandlerOnClose: Boolean
 
 
   protected val channel = _channel
@@ -72,11 +73,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
       bytesSent = bytesSent, 
       bytesReceived = bytesReceived
     )
-  }
-
-
-  def sendMessage(message: Any) = {
-    sender ! Message(id, message)
   }
 
   def status = if (channel.isConnectionPending) {
@@ -98,9 +94,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
     handler.receivedData(data)
   }
 
-  def receivedMessage(message: Any, sender: ActorRef) = {
-    handler.receivedMessage(message, sender)
-  }
 
   def consoleString = {
     val now = System.currentTimeMillis
@@ -144,6 +137,8 @@ private[core] class ServerConnection(id: Long, key: SelectionKey, channel: Socke
 
   def isTimedOut(time: Long) = server.maxIdleTime != Duration.Inf && time - lastTimeDataReceived > server.maxIdleTime.toMillis
 
+  def unbindHandlerOnClose = true
+
 }
 
 private[core] class ClientConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ClientConnectionHandler)(implicit sender: ActorRef)
@@ -162,6 +157,11 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
   }
 
   def isTimedOut(time: Long) = false
+
+  def unbindHandlerOnClose = handler match {
+    case u: AutoUnbindHandler => true
+    case _ => false
+  }
 
 
 }

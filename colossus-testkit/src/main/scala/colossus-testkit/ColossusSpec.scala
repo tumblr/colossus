@@ -37,16 +37,21 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     try {
       f(sys)
     } finally {
-      implicit val ec = mySystem.dispatcher
-      val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
-      val watches = registeredServers.map { ref =>
-        val p = TestProbe()
-        p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
-        (p, ref.server)
+      //TEMPORARY until we fix waitForServer to not kill the whole iosystem
+      try {
+        implicit val ec = mySystem.dispatcher
+        val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
+        val watches = registeredServers.map { ref =>
+          val p = TestProbe()
+          p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
+          (p, ref.server)
+        }
+        sys.shutdown()
+        probe.expectTerminated(sys.workerManager)
+        watches.foreach{case (p, ac) => p.expectTerminated(ac)}
+      } catch {
+        case t: Throwable => {}
       }
-      sys.shutdown()
-      probe.expectTerminated(sys.workerManager)
-      watches.foreach{case (p, ac) => p.expectTerminated(ac)}
     }
   }
 

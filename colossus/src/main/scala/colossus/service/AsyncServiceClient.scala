@@ -84,9 +84,9 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     implicit val sender = worker.worker
     val watchedActor = caller
 
-    override def bound(id: Long, worker: WorkerRef) {
-      super.bound(id, worker)
-      caller.!( ConnectionEvent.Bound(id))(worker.worker)
+    override def onBind() {
+      super.onBind()
+      caller.!(ConnectionEvent.Bound(id.get))(worker.worker)
     }
 
     override def receivedMessage(message: Any, sender: ActorRef) {
