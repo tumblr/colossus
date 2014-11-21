@@ -10,9 +10,6 @@ import akka.testkit.TestProbe
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
-import java.net.InetSocketAddress
-
-import org.scalatest.Tag
 
 import RawProtocol._
 
@@ -44,6 +41,26 @@ class ServerSpec extends ColossusSpec {
       io.shutdown()
       probe.expectTerminated(io.workerManager)
     }
+
+    "list all registered servers" in {
+      withIOSystem { implicit io =>
+        implicit val ec = io.actorSystem.dispatcher
+        val server1 = Server.basic("echo1", TEST_PORT, () => new EchoHandler)
+        waitForServer(server1)
+        val server2 = Server.basic("echo2", TEST_PORT + 1, () => new EchoHandler)
+        waitForServer(server2)
+        val servers = Await.result(io.registeredServers, 200 milliseconds)
+        servers must have length 2
+        servers.map(_.name.toString) mustBe Seq("/echo1", "/echo2")
+
+        server2.shutdown()
+        Thread.sleep(100)
+
+        val remainingServers = Await.result(io.registeredServers, 200 milliseconds)
+        remainingServers must have length 1
+        remainingServers.head.name.toString mustBe "/echo1"
+      }
+    }
   }
 
   "Server" must {
@@ -70,11 +87,11 @@ class ServerSpec extends ColossusSpec {
       probe.expectTerminated(io.workerManager)
     }
 
-    "indicates when it cannot bind to a port when a duration is supplied" in {
+    "shutdown when it cannot bind to a port when a duration is supplied" in {
       withIOSystem { implicit io =>
         val existingServer = Server.basic("echo3", TEST_PORT, () => new EchoHandler)
         waitForServer(existingServer)
-        val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = Some(PollingDuration(50 milliseconds, Some(1L))))
+        val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = PollingDuration(50 milliseconds, Some(1L)))
         val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
         val p = TestProbe()
         val clashingServer: ServerRef = Server(cfg)
@@ -83,8 +100,36 @@ class ServerSpec extends ColossusSpec {
       }
     }
 
+    "shutdown when a delegator fails to instantiate" in {
+      val badDelegator : Delegator.Factory = (s, w) => throw new Exception("failed during delegator creation")
+
+      withIOSystem{ implicit io =>
+        val cfg = ServerConfig("echo", badDelegator, ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(2L))))
+        val serverProbe = TestProbe()
+        val failedServer = Server(cfg)
+        serverProbe.watch(failedServer.server)
+        serverProbe.expectTerminated(failedServer.server)
+      }
+    }
+
+    "shutdown when a delegator surpasses the allotted duration" in {
+      val slowDelegator : Delegator.Factory = (s, w) => {
+        Thread.sleep(400)
+        new Delegator(s,w){
+          def acceptNewConnection = Some(new EchoHandler())
+        }}
+      withIOSystem{ implicit io =>
+        val cfg = ServerConfig("echo", slowDelegator, ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(1L))))
+        val serverProbe = TestProbe()
+        val failedServer = Server(cfg)
+        serverProbe.watch(failedServer.server)
+        serverProbe.expectTerminated(failedServer.server)
+      }
+
+    }
+
     "shutting down a system kills client connections"  in {
-      withIOSystem { implicit io => 
+      withIOSystem { implicit io =>
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
         val probe = TestProbe()
         probe watch server.server
@@ -121,7 +166,7 @@ class ServerSpec extends ColossusSpec {
       end(server)
     }
 
-    "open up spot when connection closes" taggedAs(Tag("wat")) in {
+    "open up spot when connection closes" in {
       val settings = ServerSettings(
         port = TEST_PORT,
         maxConnections = 1

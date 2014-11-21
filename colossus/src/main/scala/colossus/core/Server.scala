@@ -27,7 +27,7 @@ object PollingDuration {
   /**
    * Adds support for specifying maximumTries in terms of a [[scala.concurrent.duration.FiniteDuration]]
    * @param interval The interval of the poll
-   * @param maxDuration The maximum amount of time to execute the poll.
+   * @param maxDuration The maximum amount of time to execute the poll.  None means indefinitely.
    * @return
    */
   def apply(interval : FiniteDuration, maxDuration : FiniteDuration) : PollingDuration = {
@@ -46,7 +46,7 @@ object PollingDuration {
  * connections, it will change the idle timeout from `maxIdleTime` to
  * `highWaterMaxIdleTime` in an attempt to more aggressively close idle
  * connections.  This will continue until the percentage drops below
- * `lowWatermartPerentage`.  This can be totally disabled by just setting both
+ * `lowWatermarkPercentage`.  This can be totally disabled by just setting both
  * watermarks to 1.
  *
  * @param port Port on which this Server will accept connections
@@ -56,9 +56,14 @@ object PollingDuration {
  * @param maxIdleTime Maximum idle time for connections when in non high water conditions
  * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.  
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
- * @param bindingAttemptDuration The polling configuration for binding to a port.
-  *                               If the server cannot bind to the port, during this duration,
-  *                               it will shutdown.
+ * @param bindingAttemptDuration The polling configuration for binding to a port.  The The [[IOSystem]] will check
+  *                               [[PollingDuration.interval]] [[PollingDuration.maximumTries]] times. If the server
+  *                               cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
+  *                               will wait indefinitely.
+  *@param delegatorCreationDuration The polling configuration for creating [[[colossus.core.Delegator]]s.  The [[IOSystem]] will wait
+  *                                  [[PollingDuration.interval]] for all [[colossus.core.Delegator]]s to be created.  It will fail to startup
+  *                                  after [[PollingDuration.maximumTries]] and shutdown if it cannot successfully create
+  *                                  the [[colossus.core.Delegator]]s
  */
 case class ServerSettings(
   port: Int,
@@ -68,7 +73,8 @@ case class ServerSettings(
   highWatermarkPercentage: Double = 0.85, 
   highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
   tcpBacklogSize: Option[Int] = None,
-  bindingAttemptDuration : Option[PollingDuration] = None
+  bindingAttemptDuration : PollingDuration = PollingDuration(200 milliseconds, None),
+  delegatorCreationDuration : PollingDuration = PollingDuration(500.milliseconds, None)
 ) {
   def lowWatermark = lowWatermarkPercentage * maxConnections
   def highWatermark = highWatermarkPercentage * maxConnections
@@ -83,7 +89,7 @@ case class ServerSettings(
  *  and the name and settings by the user.
  *
  * @param name Name of the Server, all reported metrics are prefixed using this name
- * @param delegatorFactory Factory to generate Delegators for each Worker
+ * @param delegatorFactory Factory to generate [[colossus.core.Delegator]]s for each Worker
  * @param settings lower-level server configuration settings
  */
 case class ServerConfig(
@@ -114,7 +120,7 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
   }
 
   /**
-   * Post a message to a Server's Delegator
+   * Post a message to a [[Server]]'s [[Delegator]]
    * @param message
    * @param sender
    * @return
@@ -184,8 +190,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
   private var openConnections = 0
 
-  private val defaultBindingDuration = PollingDuration(200 milliseconds, None)
-
   def start() = {
     //setup the server
     try {
@@ -216,9 +220,12 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     case WorkersReady(workers) => {
       log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
       changeState(binding(workers), ServerStatus.Binding)
-      val bindingDuration = config.settings.bindingAttemptDuration.getOrElse(defaultBindingDuration)
-      self ! RetryBind(bindingDuration)
+      self ! RetryBind(settings.bindingAttemptDuration)
       unstashAll()
+    }
+    case RegistrationFailed => {
+      log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
+      self ! PoisonPill
     }
     case d: DelegatorBroadcast => stash()
   }
@@ -257,7 +264,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
         log.error(s"Could not bind to ${settings.port} after trying ${rb.timesTried} times")
         RetryBind.increment(rb) match {
           case None => {
-            log.error(s"could NOT bind to ${settings.port}.  Taking poison pill")
+            log.error(s"Could not bind to ${settings.port}.  Taking PoisonPill")
             self ! PoisonPill
           }
           case Some(a) =>  context.system.scheduler.scheduleOnce(a.interval, self, a)

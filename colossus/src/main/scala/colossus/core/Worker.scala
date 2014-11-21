@@ -12,7 +12,7 @@ import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.control.NonFatal
 
 /**
  * A WorkerItem is anything that can be attached to and communicated through a Worker.  Examples are Tasks and
@@ -180,7 +180,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops", List(1.second))
   val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
   val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections", List(1.second, 60.seconds))
-  val failedDelegatorCreation = metrics getOrAdd Rate(io.namespace / "worker" / "delegator_creation_fails", List(1.second, 60.seconds))
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -225,10 +224,17 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         log.debug(s"Terminated ${timedOut.size} idle connections")
       }
     }
-    case WorkerManager.RegisterServer(server, factory) => if (!delegators.contains(server.server)){
-      log.debug(s"registered server ${server.name}")
-      delegators(server.server) = createDelegator(factory, server)
-      sender ! WorkerManager.ServerRegistered
+    case WorkerManager.RegisterServer(server, factory, timesTried) => if (!delegators.contains(server.server)){
+      try{
+        delegators(server.server) = factory(server, me)
+        log.debug(s"registered server ${server.name}")
+        sender ! ServerRegistered
+      }catch {
+        case NonFatal(e) => {
+          log.error(e, s"failed to create delegator")
+          sender ! RegistrationFailed
+        }
+      }
     } else {
       log.warning("attempted to re-register a server")
       sender ! WorkerManager.ServerRegistered
@@ -241,11 +247,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         .find{case (_, delegator) => delegator.server == server}
         .map{case (_, delegator) =>
           delegator.handleMessage.orElse[Any, Unit] {
-            case unhandled => log.warning(s"Unhandled message ${unhandled} for delegator of server ${server.name}")
+            case unhandled => log.warning(s"Unhandled message $unhandled for delegator of server ${server.name}")
           }(message)
         }
         .getOrElse{
-          log.error(s"delegator message ${message} for unknown server ${server.name}")
+          log.error(s"delegator message $message for unknown server ${server.name}")
         }
     }
     case NewConnection(sc) => delegators.get(sender()).map{delegator =>
@@ -483,19 +489,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     }
     selector.close()
     log.info("PEACE OUT")
-  }
-
-  private def createDelegator(f : Delegator.Factory, serverRef : ServerRef)  = {
-
-    val t = Try(f(serverRef, me))
-    t match {
-      case Success(delegator) => delegator
-      case Failure(x) => {
-        log.warning(s"failure to create delegator in worker $workerId.  Cause : $x")
-        failedDelegatorCreation.hit(tags = Map("server"->serverRef.name.idString, "worker"->workerId.toString))
-        throw DelegatorCreationException(s"failure to create delegator in worker $workerId", x)
-      }
-    }
   }
 
 }

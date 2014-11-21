@@ -73,11 +73,3 @@ object DelegatorCommand {
   case class Register(server: ActorRef, sock: SocketChannel, handler: ConnectionHandler) extends DelegatorCommand
 
 }
-
-/**
- * Thrown when a Delegator could not be created. This is the exception which is thrown when the code that is
- * provided to create a Delegator fails.
- * @param msg the error message
- * @param t the cause of the error
- */
-case class DelegatorCreationException(msg : String, t : Throwable) extends Exception(msg, t)
