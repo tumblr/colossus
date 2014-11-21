@@ -224,7 +224,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       unstashAll()
     }
     case RegistrationFailed => {
-      log.error(s"awww snaps.  I could not register with the IOSystem.  The Bart The")
+      log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
       self ! PoisonPill
     }
     case d: DelegatorBroadcast => stash()
@@ -264,7 +264,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
         log.error(s"Could not bind to ${settings.port} after trying ${rb.timesTried} times")
         RetryBind.increment(rb) match {
           case None => {
-            log.error(s"could NOT bind to ${settings.port}.  Taking poison pill")
+            log.error(s"Could not bind to ${settings.port}.  Taking PoisonPill")
             self ! PoisonPill
           }
           case Some(a) =>  context.system.scheduler.scheduleOnce(a.interval, self, a)
