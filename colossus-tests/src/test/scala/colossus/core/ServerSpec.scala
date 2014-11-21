@@ -113,7 +113,7 @@ class ServerSpec extends ColossusSpec {
 
     "shutdown when a delegator surpasses the allotted duration" in {
       val slowDelegator : Delegator.Factory = (s, w) => {
-        Thread.sleep(2000)
+        Thread.sleep(400)
         new Delegator(s,w){
           def acceptNewConnection = Some(new EchoHandler())
         }}
