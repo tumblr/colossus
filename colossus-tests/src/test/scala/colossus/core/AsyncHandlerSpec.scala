@@ -25,6 +25,13 @@ class AsyncHandlerSpec extends ColossusSpec {
   }
     
   "AsyncHandler" must {
+    "send Bound event" in {
+      withHandler {case (endpoint, handler, probe) => 
+        handler.bind(34, handler.worker)
+        probe.expectMsg(Bound(34))
+      }
+    }
+
     "send Connected event" in {
       withHandler{ case (endpoint, handler, probe) => 
         handler.connected(endpoint)

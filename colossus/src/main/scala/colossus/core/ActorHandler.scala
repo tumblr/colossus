@@ -21,7 +21,7 @@ class ActorHandler extends Actor with Stash {
   def receive = {
     case RegisterListener(listener) => {
       context.become(binding(listener))
-      unstashAll()
+      unstashAll() //this unstash must be here in case we get Bound first
     }
     case other => {
       stash()

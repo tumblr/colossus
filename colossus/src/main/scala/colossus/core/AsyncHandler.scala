@@ -28,8 +28,8 @@ case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHan
   
   }
 
-  def bound(id: Long, worker: WorkerRef){
-    handler ! Bound(id)
+  override def onBind(){
+    handler ! Bound(id.get)
   }
 
 
