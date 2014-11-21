@@ -154,9 +154,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         log.debug(s"Terminated ${timedOut.size} idle connections")
       }
     }
-    case WorkerManager.RegisterServer(server, factory) => if (!delegators.contains(server.server)){
-      log.debug(s"registered server ${server.name}")
+    case WorkerManager.RegisterServer(server, factory, timesTried) => if (!delegators.contains(server.server)){
       delegators(server.server) = createDelegator(factory, server)
+      log.debug(s"registered server ${server.name}")
       sender ! WorkerManager.ServerRegistered
     } else {
       log.warning("attempted to re-register a server")
@@ -170,11 +170,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         .find{case (_, delegator) => delegator.server == server}
         .map{case (_, delegator) =>
           delegator.handleMessage.orElse[Any, Unit] {
-            case unhandled => log.warning(s"Unhandled message ${unhandled} for delegator of server ${server.name}")
+            case unhandled => log.warning(s"Unhandled message $unhandled for delegator of server ${server.name}")
           }(message)
         }
         .getOrElse{
-          log.error(s"delegator message ${message} for unknown server ${server.name}")
+          log.error(s"delegator message $message for unknown server ${server.name}")
         }
     }
     case NewConnection(sc) => delegators.get(sender()).map{delegator =>

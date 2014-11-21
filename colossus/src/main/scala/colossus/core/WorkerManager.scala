@@ -13,6 +13,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.collection.immutable.Iterable
+import scala.util.{Failure, Success}
 
 
 private[colossus] case class WorkerManagerConfig(numWorkers: Int, metrics: MetricSystem)
@@ -155,26 +156,9 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   }
 
   def serverRegistration: Receive = {
-    //TODO: This will need a bit of rethought to allow for more user defined control over timeout and retries.
     case r : RegisterServer => {
-      implicit val timeout = Timeout(500.milliseconds)
-      currentState.foreach{state =>
-        Future.traverse(state.workers){worker =>
-          def attempt(): Future[Any] = {
-            (worker ? r).recoverWith{
-              case err => {
-                log.error(s"Worker failed to register server: ${err.getMessage}, retrying") 
-                attempt()
-              }
-            }
-          }
-          attempt()
-        }.map{_ =>
-          registeredServers.append(r)
-          context.watch(r.server.server)
-          r.server.server ! WorkersReady(state.workerRouter)
-        }
-      }
+      implicit val timeout = Timeout(r.server.config.settings.delegatorCreationDuration.interval)
+      currentState.foreach(registerServer(_, r))
     }
     case u: UnregisterServer => {
       val registeredServer = registeredServers.find(_.server == u.server)
@@ -191,6 +175,32 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
 
     case ListRegisteredServers => {
       sender ! RegisteredServers(registeredServers.map(_.server))
+    }
+  }
+
+  private def registerServer(state : State, r : RegisterServer)(implicit to : Timeout) {
+    log.debug(s"attempting to register ${r.server.name}")
+    val s = Future.traverse(state.workers){ _ ? r }
+    s.onComplete {
+      case Success(x) => {
+        //closing over state..kind of a no no, if an "unregister" request comes through while a registration is processing.
+        //That's an oddball state however.
+        //this is only additive, so i'm kind of ok with this, until we actually need to change it.
+        registeredServers.append(r)
+        context.watch(r.server.server)
+        r.server.server ! WorkersReady(state.workerRouter)
+      }
+      case Failure(err) => {
+        log.error(err, s"Worker failed to register server ${r.server.name} after ${r.timesTried} tries with error: ${err.getMessage}")
+        val maxTries = r.server.config.settings.delegatorCreationDuration.maximumTries
+        val tryAgain = maxTries.fold(true){_ < r.timesTried}
+        if(tryAgain) {
+          self ! r.copy(timesTried = r.timesTried + 1)
+        }else {
+          log.error(s"Exhausted all attempts to register ${r.server.name}, aborting.")
+          r.server.server ! RegistrationFailed
+        }
+      }
     }
   }
 
@@ -220,8 +230,9 @@ private[colossus] object WorkerManager {
 
 
   //ping manager
-  case class RegisterServer(server: ServerRef, factory: Delegator.Factory)
+  case class RegisterServer(server: ServerRef, factory: Delegator.Factory, timesTried : Int = 1)
   case class UnregisterServer(server: ServerRef)
+  case object RegistrationFailed
   case object ListRegisteredServers
 
   case class RegisteredServers(servers : Seq[ServerRef])
