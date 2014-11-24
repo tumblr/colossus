@@ -1,16 +1,11 @@
 package colossus
 
-import core._
-
 import java.net.InetSocketAddress
-import service.{Codec, AsyncServiceClient, ClientConfig}
 
-import akka.actor._
 import akka.pattern.ask
-import akka.testkit.TestProbe
-
 import akka.util.{ByteString, Timeout}
-import java.net.{SocketException, Socket}
+import colossus.core._
+import colossus.service.{AsyncServiceClient, ClientConfig}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -22,7 +17,7 @@ class EchoHandler extends BasicSyncHandler {
 }
 
 object RawProtocol {
-  import service._
+  import colossus.service._
 
   object RawCodec extends Codec[ByteString, ByteString] {
     def decode(data: DataBuffer) = Some(ByteString(data.takeAll))
@@ -50,14 +45,15 @@ object RawProtocol {
 
 object TestClient {
 
-  def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true, reconnect: Boolean = true): AsyncServiceClient[ByteString, ByteString] = {
+  def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true,
+            connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)): AsyncServiceClient[ByteString, ByteString] = {
     val config = ClientConfig(
       name = "/test",
       requestTimeout = 100.milliseconds,
       address = new InetSocketAddress("localhost", port),
       pendingBufferSize = 0,
       failFast = true,
-      autoReconnect = reconnect
+      connectionAttempts = connectionAttempts
     )
     val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
     if (waitForConnected) {

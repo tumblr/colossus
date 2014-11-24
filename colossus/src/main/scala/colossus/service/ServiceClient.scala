@@ -5,18 +5,15 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
-import scala.util.{Try, Success, Failure}
-import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
-import java.net.InetSocketAddress
-import core._
-import metrics._
+import colossus.core._
+import colossus.metrics._
 
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
+
 
 /**
  * Configuration used to specify a Client's parameters
@@ -26,6 +23,9 @@ import scala.util.{Failure, Success, Try}
  * @param pendingBufferSize Size of the pending buffer
  * @param sentBufferSize Size of the sent buffer
  * @param failFast  When a failure is detected, immediately fail all pending requests.
+ * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
+ *                           and for connection lost events.
+ *
  */
 case class ClientConfig(
   address: InetSocketAddress, 
@@ -34,7 +34,7 @@ case class ClientConfig(
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 20,
   failFast: Boolean = false,
-  autoReconnect: Boolean = true
+  connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)
 )
 
 class ServiceClientException(message: String) extends Exception(message)
@@ -145,6 +145,7 @@ class ServiceClient[I,O](
 
 
   private var manuallyDisconnected = false
+  private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
   private val pendingBuffer = mutable.Queue[SourcedRequest]()
   private var writer: Option[WriteEndpoint] = None
@@ -168,7 +169,7 @@ class ServiceClient[I,O](
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
    */
   def connectionStatus: ConnectionStatus = writer.map{_.status}.getOrElse(
-    if (config.autoReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
+    if (canReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
   )
 
   def connect() {
@@ -246,11 +247,11 @@ class ServiceClient[I,O](
     }
   }
 
-  //TODO:  If I throw here, a Worker can die.
   def connected(endpoint: WriteEndpoint) {
     log.info(s"Connected to $address")
     codec.reset()    
     writer = Some(endpoint)
+    connectionAttempts = 0
     readyForData()
   }
 
@@ -282,20 +283,33 @@ class ServiceClient[I,O](
 
   override protected def connectionLost(cause : DisconnectError) {
     purgeBuffers(new NotConnectedException("Connection lost"))
-    log.warning(s"connection lost: $cause")
+    log.warning(s"connection to ${address.toString} lost: $cause")
     disconnects.hit(tags = hpTags)
-    if (!disconnecting && config.autoReconnect) {
-      worker ! Schedule(250.milliseconds, Reconnect(address, this))
-    }
+    attemptReconnect()
   }
 
   def connectionFailed() {
-    log.error(s"Failed to connect to ${address.toString}, retrying...")
+
+    log.error(s"failed to connect to ${address.toString}")
     connectionFailures.hit(tags = hpTags)
-    if (!disconnecting && config.autoReconnect) {
-      worker ! Schedule(1.second, Reconnect(address, this))
+    attemptReconnect()
+  }
+
+  private def attemptReconnect() {
+    connectionAttempts += 1
+    if(!disconnecting) {
+      if(canReconnect) {
+        log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
+        worker ! Schedule(config.connectionAttempts.interval, Reconnect(address, this))
+      }
+      else {
+        log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
+      }
     }
   }
+
+  private def canReconnect = config.connectionAttempts.isExpended(connectionAttempts)
+
 
   private def attemptWrite(s: SourcedRequest, bufferPending: Boolean) {
     def enqueuePending(s: SourcedRequest) {
