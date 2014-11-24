@@ -30,7 +30,7 @@ object RedisTest {
 
 class ClientSpec extends ColossusSpec {
 
-  def makeClient: (ServerRef, AsyncServiceClient[Command, Reply]) = {
+  def withAsyncClient(f: (ServerRef, AsyncServiceClient[Command, Reply]) => Any) = {
     implicit val io = IOSystem("test", 2)
     val server = RedisTest.server(TEST_PORT)
     waitForServer(server)
@@ -40,7 +40,11 @@ class ClientSpec extends ColossusSpec {
       name = MetricAddress.Root / "test-client"
     )
     val client = AsyncServiceClient(config, new RedisClientCodec)
-    (server, client)
+    try {
+      f(server, client)
+    } finally {
+      shutdownIOSystem(io)
+    }
   }
 
   def waitForClient(client: ActorRef) {
@@ -52,34 +56,34 @@ class ClientSpec extends ColossusSpec {
       throw new Exception("timed out waiting for client to connect")
     }
   }
-      
+
 
   "AsyncServiceClient" must {
     "send a command" in {
-      val (server, client) = makeClient
-      Await.result(client.send(Command("GET", "foo")), 5000.milliseconds) must equal(StatusReply("echo"))
-      end(server)
+      withAsyncClient { (server, client) => {
+        Await.result(client.send(Command("GET", "foo")), 5000.milliseconds) must equal(StatusReply("echo"))
+      }
+      }
     }
 
-
     "get connection status" in {
-      val (server, client) = makeClient
-      Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
-      end(server)
+      withAsyncClient { (server, client) => {
+        Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
+      }
+      }
     }
 
     "disconnect from server" in {
-      val (server, client) = makeClient
-      Thread.sleep(100)
-      Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
-      client.disconnect()
-      intercept[Exception] {
+      withAsyncClient { (server, client) => {
+        Thread.sleep(100)
         Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
+        client.disconnect()
+        intercept[Exception] {
+          Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
+        }
       }
-
-      end(server)
+      }
     }
-
   }
 }
 

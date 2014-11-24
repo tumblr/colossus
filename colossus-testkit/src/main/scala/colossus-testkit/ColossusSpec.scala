@@ -30,31 +30,44 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     TestKit.shutdownActorSystem(system)
   }
 
+  /**
+   * Convenience function for using an IOSystem.  This will create an IOSystem, and ensure its shutdown.
+   * @param f
+   */
   def withIOSystem(f: IOSystem => Any) {
     val sys = IOSystem("test-system", 2)
-    val probe = TestProbe()
-    probe.watch(sys.workerManager)
     try {
       f(sys)
     } finally {
-      //TEMPORARY until we fix waitForServer to not kill the whole iosystem
-      try {
-        implicit val ec = mySystem.dispatcher
-        val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
-        val watches = registeredServers.map { ref =>
-          val p = TestProbe()
-          p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
-          (p, ref.server)
-        }
-        sys.shutdown()
-        probe.expectTerminated(sys.workerManager)
-        watches.foreach{case (p, ac) => p.expectTerminated(ac)}
-      } catch {
-        case t: Throwable => {}
-      }
+      shutdownIOSystem(sys)
     }
   }
 
+  /**
+   * Shuts down the IOSystem, and ensures all Servers have been terminated.
+   * @param sys
+   */
+  def shutdownIOSystem(sys : IOSystem) {
+    implicit val ec = mySystem.dispatcher
+    val probe = TestProbe()
+    probe.watch(sys.workerManager)
+    val registeredServers = Await.result(sys.registeredServers, 500.milliseconds)
+    val watches = registeredServers.map { ref =>
+      val p = TestProbe()
+      p.watch(ref.server) //implicit map from ServerRef -> ActorRef? mayhaps
+      (p, ref.server)
+    }
+    sys.shutdown()
+    probe.expectTerminated(sys.workerManager)
+    watches.foreach{case (p, ac) => p.expectTerminated(ac)}
+  }
+
+  /**
+   * Waits for a Server to be in the specified status.
+   * @param server
+   * @param waitTime
+   * @param serverStatus Defaults to ServerStatus.Bound
+   */
   def waitForServer(server: ServerRef, waitTime: FiniteDuration = 500.milliseconds, serverStatus : ServerStatus = ServerStatus.Bound) {
     var attempts = 0
     val MaxAttempts = 20
@@ -70,30 +83,50 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
 
   }
 
+  /**
+   * Convenience function for createing an IOSystem and Server, based on the Delegator factory passed in.  By default the
+   * created server will be listening on [[TEST_PORT]], and will have all of the default values listed in [[colossus.core.ServerSettings]]
+   * @param factory The factory to create Delegators
+   * @param customSettings An custom settings which will override the defaults found in [[colossus.core.ServerSettings]]
+   * @param waitTime Amount of time to wait for the Server to be ready
+   * @param f The function which runs tests.
+   * @return
+   */
+  def withIOSystemAndServer(factory: Delegator.Factory,
+                           customSettings: Option[ServerSettings] = None,
+                           waitTime: FiniteDuration = 500.milliseconds)(f : (IOSystem, ServerRef) => Any ) = {
+    withIOSystem { implicit io =>
 
-  def createServer(factory: Delegator.Factory, customSettings: Option[ServerSettings] = None, waitTime: FiniteDuration = 500.milliseconds): ServerRef = {
-    implicit val io = IOSystem("async-test", 2)
-    val config = ServerConfig(
-      name = "async-test",
-      settings = customSettings.getOrElse(ServerSettings(
-        port = TEST_PORT
-      )),
-      delegatorFactory = factory
-    )
-    val server = Server(config)
-    waitForServer(server, waitTime)
-    server
+      val config = ServerConfig(
+        name = "async-test",
+        settings = customSettings.getOrElse(ServerSettings(
+          port = TEST_PORT
+        )),
+        delegatorFactory = factory
+      )
+      val server = Server(config)
+      waitForServer(server, waitTime)
+      f(io, server)
+    }
   }
 
-  //TODO: end only a server, not the IO System.  This will impact all tests which rely on this to implicitly
-  //shutdown the whole IO system.
+  /**
+   * Shuts down, and asserts that a Server has been terminated.
+   * @param server
+   */
   def end(server: ServerRef) {
     val probe = TestProbe()
     probe watch server.server
-    server.system.shutdown()
+    server.shutdown()
     probe.expectTerminated(server.server)
   }
 
+  /**
+   * Convenience function which waits for a Server,and then shuts the Server down after the function runs.
+   * @param server
+   * @param op
+   * @return
+   */
   def withServer(server:ServerRef)(op: => Any) {
     waitForServer(server)
     try {
