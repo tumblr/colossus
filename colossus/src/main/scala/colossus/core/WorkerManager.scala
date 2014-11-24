@@ -31,6 +31,8 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
 
+  val IdleCheckFrequency = 250.milliseconds
+
   /*
    * This strategy is chosen specifically for durability.  We don't want to kill the entire system if workers start
    * excepting.
@@ -91,7 +93,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
       val nowReady = ready + 1
       if (nowReady == numWorkers) {
         log.info("All Workers reports ready, lets do this")
-        context.system.scheduler.schedule(1.seconds, 1.seconds, self, IdleCheck)
+        context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
         unstashAll()
         context.become(running(state))
       } else {
