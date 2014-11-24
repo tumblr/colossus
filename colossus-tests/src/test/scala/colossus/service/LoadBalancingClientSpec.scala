@@ -1,12 +1,14 @@
 package colossus
 package service
 
+import core.WorkerCommand
+import colossus.testkit.{ColossusSpec, FakeIOSystem}
 import org.scalatest.{WordSpec, MustMatchers}
 import org.scalatest.mock.MockitoSugar
 
 import org.mockito.Mockito._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import ExecutionContext.Implicits.global
 import scala.util.{Try, Success, Failure}
 import java.net.InetSocketAddress
@@ -14,7 +16,7 @@ import scala.concurrent.duration._
 
 
 
-class LoadBalancingClientSpec extends WordSpec with MustMatchers with MockitoSugar{
+class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
   type C = ServiceClient[String,Int]
   
@@ -57,7 +59,8 @@ class LoadBalancingClientSpec extends WordSpec with MustMatchers with MockitoSug
 
     "send two consecutive commands to different clients" in {
       val clients = addrs(3)
-      val l = new LoadBalancingClient[String,Int](mockGenerator, initialClients = clients)
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, initialClients = clients)
       l.send("hey").execute{_ must equal(Success(2))}
       l.send("hey").execute{_ must equal(Success(3))}
       l.send("hey").execute{_ must equal(Success(1))}
@@ -70,7 +73,8 @@ class LoadBalancingClientSpec extends WordSpec with MustMatchers with MockitoSug
       (1 to 5).foreach{num => 
         val ops = (1 to num).permutations.toList.size //lazy factorial
         val clients = addrs(num)
-        val l = new LoadBalancingClient[String,Int](mockGenerator, maxTries = 2, initialClients = clients)
+        val (probe, worker) = FakeIOSystem.fakeWorkerRef
+        val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2, initialClients = clients)
         (1 to ops).foreach{i => 
           l.send("hey").execute()
         }
@@ -84,7 +88,8 @@ class LoadBalancingClientSpec extends WordSpec with MustMatchers with MockitoSug
       val bad = mockClient(1, Some(Failure(new Exception("I fucked up :("))))
       val good = mockClient(2, Some(Success(123)))
 
-      val l = new LoadBalancingClient[String,Int](staticClients(List(good, bad)), maxTries = 2, initialClients = addrs(2))
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, staticClients(List(good, bad)), maxTries = 2, initialClients = addrs(2))
       //sending a bunch of commands ensures both clients are attempted as the first try at least once
       //the test succeeds if no exception is thrown
       (1 to 10).foreach{i => 
@@ -95,23 +100,53 @@ class LoadBalancingClientSpec extends WordSpec with MustMatchers with MockitoSug
       }
     }
 
-    "get a shared interface" in {
-      (1 to 5).foreach{num => 
-        val ops = (1 to num).permutations.toList.size //lazy factorial
-        val clients = addrs(num)
-        val l = new LoadBalancingClient[String,Int](mockGenerator, maxTries = 2, initialClients = clients)
+    "fail to get a shared interface when not bound to a worker" in {
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2 )
+      intercept[LoadBalancingClientException] {
         val shared = l.shared
-        (1 to ops).foreach{i => 
-          shared.send("hey")
-        }
-        l.currentClients.foreach{c =>
-          verify(c.shared, times(ops / num)).send("hey")
-        }
       }
     }
 
+    "get a shared interface when bound" in {
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
+      l.bind(1, worker)
+      val shared = l.shared
+    }
+
+    "send messages in shared interface" in {
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
+      l.bind(1, worker)
+      val shared = l.shared
+      shared.send("hey")
+      probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
+      probe.expectMsgPF(100.milliseconds) {
+        case WorkerCommand.Message(1, l.Send("hey", _)) => true
+      }
+    }
+
+    "correctly receive messages from shared interface" in {
+      val num = 5
+      val ops = (1 to num).permutations.toList.size //lazy factorial
+      val clients = addrs(num)
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2, initialClients = clients)
+      l.bind(1, worker)
+      val shared = l.shared
+      (1 to ops).foreach{i => 
+        l.receivedMessage(l.Send("hey", Promise()), probe.ref)
+      }
+      l.currentClients.foreach{c =>
+        verify(c, times(ops / num)).send("hey")
+      }
+    }
+
+
     "close removed connection on update" in {
-      val l = new LoadBalancingClient[String, Int](mockGenerator, maxTries = 2, initialClients = addrs(3))
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[String, Int](worker, mockGenerator, maxTries = 2, initialClients = addrs(3))
       val clients = l.currentClients
 
       val removed = clients(0)

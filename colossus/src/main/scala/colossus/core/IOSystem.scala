@@ -102,7 +102,11 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    * @return The Task's ActorRef
    */
   def run(t: Task): ActorRef = {
-    workerManager ! IOCommand.BindWorkerItem(t)
+    //TODO: we should be creating the task inside the worker, however then we
+    //can't get a reference to the proxy actor here.  Probably need to provide
+    //the proxy as a param adn curry it.  Not a big deal for tasks since
+    //everything should be done inside start anyway
+    workerManager ! IOCommand.BindWorkerItem(() => t)
     t.proxy
   }
 
@@ -121,6 +125,10 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
  * An IO Command is sent to an IO System, which then routes the command to a
  * random worker using a round-robin router.  If you want more determinism over
  * how items are distributed across workers, just use multiple IO Systems
+ *
+ * TODO: It may be a better idea to move these into WorkerCommand with a tag
+ * trait to show they can be accepted by the IOSystem, and then also add
+ * methods onto the IOSystem to eliminate confusion
  */
 sealed trait IOCommand
 
@@ -141,8 +149,8 @@ object IOCommand {
 
   /**
    * Bind the BindableWorkerItem to a Worker.  The only BindableWorkerItem currently supported is a Task.
-   * @param item The item to bind.
+   * @param item A closure to create the item to bind.  This helps ensure that the entire lifecycle of the item occurs inside the worker
    */
-  case class BindWorkerItem(item: BindableWorkerItem) extends IOCommand
+  case class BindWorkerItem(item: () => BindableWorkerItem) extends IOCommand
 
 }

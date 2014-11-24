@@ -10,6 +10,8 @@ import akka.testkit.TestProbe
 
 import scala.concurrent.duration._
 
+import org.scalatest.Tag
+
 class TaskTest extends ColossusSpec {
   import IOCommand.BindWorkerItem
 
@@ -30,7 +32,7 @@ class TaskTest extends ColossusSpec {
           }
           def receivedMessage(message: Any, sender: ActorRef){}
         }
-        sys ! BindWorkerItem(task)
+        sys ! BindWorkerItem(() => task)
         probe.expectMsg(500.milliseconds, "BOUND")
       }
     }    
@@ -48,7 +50,7 @@ class TaskTest extends ColossusSpec {
             }
           }
         }
-        sys ! BindWorkerItem(task)
+        sys ! BindWorkerItem(() => task)
         probe.expectMsg(500.milliseconds, "RECEIVED")
       }
     }
@@ -63,7 +65,7 @@ class TaskTest extends ColossusSpec {
             }
           }
         }
-        sys ! BindWorkerItem(task)
+        sys ! BindWorkerItem(() => task)
         task.proxy ! "PING"
         expectMsg(100.milliseconds, "PONG")
       }
@@ -83,7 +85,7 @@ class TaskTest extends ColossusSpec {
             probe.ref.!("UNBOUND")(proxy)
           }
         }
-        sys ! BindWorkerItem(task)
+        sys ! BindWorkerItem(() => task)
         task.proxy ! "PING"
         expectMsg(100.milliseconds, "PONG")
         task.proxy ! TaskProxy.Unbind
@@ -107,7 +109,7 @@ class TaskTest extends ColossusSpec {
             probe.ref.!("UNBOUND")(proxy)
           }
         }
-        sys ! BindWorkerItem(task)
+        sys ! BindWorkerItem(() => task)
         probe.expectMsg(100.milliseconds, "BOUND")
         task.proxy ! PoisonPill
         probe.expectMsg(100.milliseconds, "UNBOUND")
