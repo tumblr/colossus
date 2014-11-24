@@ -11,7 +11,6 @@ import java.net.InetSocketAddress
 import scala.concurrent.duration._
 import akka.util.ByteString
 
-import ConnectionCommand._
 import ConnectionEvent._
 
 class Handler(listener: ActorRef) extends Actor {
@@ -32,14 +31,17 @@ object AsyncDelegator {
 
 class ConnectionHandlerSpec extends ColossusSpec {
 
-  def createHandlerServer(): (ServerRef, AsyncServiceClient[ByteString, ByteString], TestProbe) = {
+  def withHandlerServer(f :(ServerRef, AsyncServiceClient[ByteString, ByteString], TestProbe) => Any) = {
+
     val probe = TestProbe()
     val props = Props(classOf[Handler], probe.ref)
-    val server = createServer(AsyncDelegator.factorize(props))
-    val c = TestClient(server.system, TEST_PORT)
-    probe.expectMsg(ConnectionEvent.Bound(1))
-    probe.expectMsg(ConnectionEvent.Connected)
-    (server, c, probe)
+    withIOSystemAndServer(AsyncDelegator.factorize(props)) { (io, server) => {
+      val c = TestClient(server.system, TEST_PORT)
+      probe.expectMsg(ConnectionEvent.Bound(1))
+      probe.expectMsg(ConnectionEvent.Connected)
+      f(server, c, probe)
+      }
+    }
   }
 
   "Server Connection Handler" must {
@@ -49,13 +51,13 @@ class ConnectionHandlerSpec extends ColossusSpec {
         override def onBind() {
           probe.ref ! "BOUND"
         }
-        def receivedData(data: DataBuffer){}
+
+        def receivedData(data: DataBuffer) {}
       }
-      withIOSystem{ implicit io =>
-        withServer(Server.basic("test", TEST_PORT, () => new MyHandler)) {
-          val c = TestClient(io, TEST_PORT)
-          probe.expectMsg(100.milliseconds, "BOUND")
-        }
+      withIOSystemAndServer(Delegator.basic(() => new MyHandler)) { (io, server) => {
+        val c = TestClient(io, TEST_PORT)
+        probe.expectMsg(100.milliseconds, "BOUND")
+      }
       }
     }
 
@@ -67,8 +69,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         }
         def receivedData(data: DataBuffer){}
       }
-      withIOSystem{ implicit io =>
-        withServer(Server.basic("test", TEST_PORT, () => new MyHandler)) {
+      withIOSystemAndServer(Delegator.basic(() => new MyHandler)){ (io, server) => {
           val c = TestClient(io, TEST_PORT)
           c.disconnect()
           probe.expectMsg(100.milliseconds, "UNBOUND")
@@ -137,40 +138,42 @@ class ConnectionHandlerSpec extends ColossusSpec {
           probe.expectMsg(200.milliseconds, "UNBOUND")
         }
       }
-
     }
-
   }
 
 
   "Async Server Handler" must {
     "receive connected event" in {
-      val (server, con, probe) = createHandlerServer()
-      end(server)
-    }
-    "receive connection lost event" in {
-      val (server, con, probe) = createHandlerServer()
-      con.disconnect()
-      probe.expectMsgType[ConnectionEvent.ConnectionTerminated]
-      end(server)
-    }
-    "receive data event" in {
-      val (server, con, probe) = createHandlerServer()
-      con.send(ByteString("HELLO WORLD"))
-      probe.expectMsgPF(100.milliseconds){
-        case ConnectionEvent.ReceivedData(data) if (data == ByteString("HELLO WORLD")) => true
+      withHandlerServer { (server, con, probe) =>
+        //nop
       }
-      end(server)
+    }
+
+    "receive connection lost event" in {
+      withHandlerServer { (io, con, probe) => {
+        con.disconnect()
+        probe.expectMsgType[ConnectionEvent.ConnectionTerminated]
+      }
+
+      }
+    }
+
+    "receive data event" in {
+      withHandlerServer { (server, con, probe) => {
+        con.send(ByteString("HELLO WORLD"))
+        probe.expectMsgPF(100.milliseconds) {
+          case ConnectionEvent.ReceivedData(data) if data == ByteString("HELLO WORLD") => true
+        }
+      }
+      }
     }
     "send data back to client" in {
-      val (server, con, probe) = createHandlerServer()
-      con.send(ByteString("ECHO"))
-      probe.expectMsg(ReceivedData(ByteString("ECHO")))
-      end(server)
+      withHandlerServer { (server, con, probe) => {
+        con.send(ByteString("ECHO"))
+        probe.expectMsg(ReceivedData(ByteString("ECHO")))
+      }
+      }
     }
-
   }
-
-
 }
 
