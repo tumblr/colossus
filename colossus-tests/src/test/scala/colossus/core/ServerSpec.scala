@@ -137,7 +137,7 @@ class ServerSpec extends ColossusSpec {
         probe watch server.server
         withServer(server) {
           val cio = IOSystem("client_io")
-          val c = TestClient(cio, TEST_PORT, reconnect = false)
+          val c = TestClient(cio, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
           Await.result(c.send(ByteString("HELLO")), 200.milliseconds) must equal(ByteString("HELLO"))
           io.shutdown()
           probe.expectTerminated(server.server)
@@ -178,7 +178,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystemAndServer(simpleEchoDelegator, Some(settings)) {(io, server) => {
           val c1 = TestClient(server.system, TEST_PORT)
           expectConnections(server, 1)
-          val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, reconnect = false)
+          val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, connectionAttempts = PollingDuration.NoRetry)
           //notice, we can't just check if the connection is connected because the
           //server will accept the connection before closing it
           intercept[service.ServiceClientException] {
@@ -187,7 +187,7 @@ class ServerSpec extends ColossusSpec {
           TestClient.waitForStatus(c2, ConnectionStatus.NotConnected)
           c1.disconnect()
           TestUtil.expectServerConnections(server, 0)
-          val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, reconnect = false)
+          val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, connectionAttempts = PollingDuration.NoRetry)
           TestUtil.expectServerConnections(server, 1)
         }
         }
@@ -198,7 +198,7 @@ class ServerSpec extends ColossusSpec {
           def acceptNewConnection = None // >:(
         }
         withIOSystemAndServer((s,w) => new AngryDelegator(s,w)) {(io, server) => {
-          val c1 = TestClient(server.system, TEST_PORT, reconnect = false, waitForConnected = false)
+          val c1 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry, waitForConnected = false)
           intercept[service.ServiceClientException] {
             Await.result(c1.send(ByteString("testing")), 100.milliseconds)
           }
@@ -222,7 +222,7 @@ class ServerSpec extends ColossusSpec {
           val server = Server(config)
           probe watch server.server
           waitForServer(server)
-          val c = TestClient(server.system, TEST_PORT, reconnect = false)
+          val c = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
           expectConnections(server, 1)
           Thread.sleep(1000)
           TestUtil.expectServerConnections(server, 0)
@@ -270,7 +270,7 @@ class ServerSpec extends ColossusSpec {
           )
           val server = Server(config)
           withServer(server) {
-            val idleConnections = for{i <- 1 to 9} yield TestClient(server.system, TEST_PORT, reconnect = false)
+            val idleConnections = for{i <- 1 to 9} yield TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
             TestUtil.expectServerConnections(server, 9)
             Thread.sleep(1000) //have to wait a second since that's how often the check it done
             expectConnections(server, 0)

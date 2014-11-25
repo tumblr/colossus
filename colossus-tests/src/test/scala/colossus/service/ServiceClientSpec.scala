@@ -1,7 +1,7 @@
 package colossus
 package service
 
-import core._
+import colossus.core._
 import testkit._
 
 import akka.testkit.TestProbe
@@ -15,7 +15,7 @@ import java.net.InetSocketAddress
 
 import protocols.redis._
 import UnifiedProtocol._
-import org.scalatest.Tag
+import scala.concurrent.Await
 
 import RawProtocol._
 
@@ -389,7 +389,7 @@ class ServiceClientSpec extends ColossusSpec {
         import service._
         import Response._
         import protocols.redis._
-        import scala.concurrent.Await
+
         val reply = StatusReply("LATER LOSER!!!")
         val server = Service.become[Redis]("test", TEST_PORT) {
           case c if (c.command == "BYE") => {
@@ -414,18 +414,39 @@ class ServiceClientSpec extends ColossusSpec {
         }
       }
     }
-
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
         val server = Service.become[Raw]("rawwww", TEST_PORT) {
           case foo => foo.onWrite(OnWriteAction.Disconnect)
         }
         withServer(server) {
-          val client = TestClient(io, TEST_PORT, reconnect = false)
+          val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
           client.send(ByteString("blah"))
           TestUtil.expectServerConnections(server, 0)
         }
       }
+    }
+
+    "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
+      withIOSystem{ implicit io =>
+        val server = Service.become[Raw]("rawwww", TEST_PORT) {
+          case foo => foo.onWrite(OnWriteAction.Disconnect)
+        }
+        withServer(server) {
+
+          val config = ClientConfig(
+            name = "/test",
+            requestTimeout = 100.milliseconds,
+            address = new InetSocketAddress("localhost", TEST_PORT + 1),
+            connectionAttempts = PollingDuration(50.milliseconds, Some(2L)))
+
+          val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
+          TestUtil.expectServerConnections(server, 0)
+          TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+        }
+      }
+
+
     }
 
 

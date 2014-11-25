@@ -204,8 +204,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   }
 
   private def tryReregister(r : RegisterServer) {
-    val maxTries = r.server.config.settings.delegatorCreationDuration.maximumTries
-    val tryAgain = maxTries.fold(true){_ < r.timesTried}
+    val tryAgain = r.server.config.settings.delegatorCreationDuration.isExpended(r.timesTried)
     if(tryAgain) {
       self ! r.copy(timesTried = r.timesTried + 1)
     }else {
