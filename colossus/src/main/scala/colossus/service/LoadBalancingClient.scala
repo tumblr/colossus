@@ -1,7 +1,9 @@
 package colossus
 package service
 
-import scala.concurrent.{ExecutionContext, Future}
+import akka.actor.ActorRef
+import core.{BindableWorkerItem, WorkerRef}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 
 import java.net.InetSocketAddress
@@ -70,11 +72,12 @@ class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(s
  * so setting maxTries to a very large number will mean that every client will
  * be tried once
  */
-class LoadBalancingClient[I,O](
+class LoadBalancingClient[I,O] (
+  worker: WorkerRef,
   generator: InetSocketAddress => ServiceClient[I,O], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends LocalClient[I,O] {
+) extends LocalClient[I,O] with BindableWorkerItem {
 
 
   private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
@@ -82,6 +85,11 @@ class LoadBalancingClient[I,O](
   private var permutations = new PermutationGenerator(clients.toList)
 
   update(initialClients)
+
+  worker.bind(this)
+
+  //note, this type must be inner to avoid type erasure craziness
+  case class Send(request: I, promise: Promise[O])
 
 
   private def regeneratePermutations() {
@@ -146,31 +154,26 @@ class LoadBalancingClient[I,O](
     }
   }
 
-  /**
-   * Returns a shared version of the client that can be used across threads,
-   * inside futures, etc.  Notice that clients cannot be added/removed from
-   * this object and any clients added/removed from the local version are not
-   * reflected in any existing shared clients.
-   */
-  def shared(implicit ex: ExecutionContext): SharedClient[I,O] = new SharedClient[I,O] {
-    //TODO: obviously this is not an ideal solution, this can be fixed by allowing this to bind to a worker and receive messages
-    val permutations = new PermutationGenerator(clients.map{_.shared}.toList)    
-    
-    def send(request: I): Future[O] = {
-      val retryList = synchronized { permutations.next().take(maxTries) }
-      def go(next: SharedClient[I,O], list: List[SharedClient[I, O]]): Future[O] = next.send(request).recoverWith{
-        case err => list match {
-          case head :: tail => go(head, tail)
-          case Nil => Future.failed(new SendFailedException(retryList.size, err))
-        }      
-      }
-      if (retryList.isEmpty) {
-        Future.failed(new SendFailedException(retryList.size, new Exception("Empty client list!")))
-      } else {
-        go(retryList.head, retryList.tail)
-      }
+  override def receivedMessage(message: Any, sender: ActorRef) {
+    message match {
+      case Send(request, promise) => send(request).execute(promise.complete)
     }
   }
+
+  /**
+   * Returns a shared version of the client that can be used across threads,
+   * inside futures, etc.
+   *
+   * TODO: There is probably room to generalize some of this plumbing
+   */
+  def shared(implicit ex: ExecutionContext): SharedClient[I,O] = binding.map{binding => new SharedClient[I,O] {
+    
+    def send(request: I): Future[O] = {
+      val promise = Promise[O]()
+      binding.send(Send(request, promise))
+      promise.future      
+    }
+  }}.getOrElse(throw new LoadBalancingClientException("Attempted to get shared interface from unbound load balancer"))
 
 }
 

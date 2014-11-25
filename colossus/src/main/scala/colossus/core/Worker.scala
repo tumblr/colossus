@@ -14,15 +14,34 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
+
+/**
+ * Represents the binding of an item to a worker
+ *
+ * @param id the id used to reference the worker item
+ * @param worker the worker the item is bound to
+ */
+case class WorkerItemBinding(id: Long, worker: WorkerRef) {
+  def send(message: Any) {
+    worker.worker ! WorkerCommand.Message(id, message)
+  }
+  def unbind() {
+    worker.worker ! WorkerCommand.UnbindWorkerItem(id)
+  }
+}
+
 /**
  * A WorkerItem is anything that can be attached to and communicated through a Worker.  Examples are Tasks and
  * ConnectionHandlers.
  */
 private[colossus] trait WorkerItem {
-  private var _id: Option[Long] = None
-  private var _boundWorker: Option[WorkerRef] = None
-  def id = _id
-  def boundWorker = _boundWorker
+  private var _binding: Option[WorkerItemBinding] = None
+  def id = _binding.map{_.id}
+  def boundWorker = _binding.map{_.worker}
+
+  /** When bound to a worker, this contains the [WorkerItemBinding] */
+  def binding = _binding
+  def isBound = _binding.isDefined
 
 
   /**
@@ -31,8 +50,7 @@ private[colossus] trait WorkerItem {
    * @param worker The Worker whom was bound
    */
   private[colossus] def bind(id: Long, worker: WorkerRef) {
-    _id = Some(id)
-    _boundWorker = Some(worker)
+    _binding = Some(WorkerItemBinding(id, worker))
     onBind()
   }
 
@@ -40,8 +58,7 @@ private[colossus] trait WorkerItem {
    * Called when this item is unbound from a Worker.
    */
   private[colossus] def unbind(){
-    _id = None
-    _boundWorker = None
+    _binding = None
     onUnbind()
   }
 
@@ -56,20 +73,21 @@ private[colossus] trait WorkerItem {
   /**
    * Called when the item is bound to a worker.
    */
-  def onBind(){}
+  protected def onBind(){}
 
   /**
    * Called when the item has been unbound from a worker
    */
-  def onUnbind(){}
+  protected def onUnbind(){}
 
 
 }
 
 /**
  * BindableWorkItem is the public facing trait which is meant for Tasks and other objects which are Bindable to
- * a Worker.  WorkerItem itself is directly extended by ConnectionHandler which has a different and specific lifecycle inside
- * of a Worker.
+ * a Worker.  Connection handlers purposely do not implement this trait so
+ * users don't accidentally attempt to bind connection handlers this way, which
+ * won't work
  *
  * TODO; this is probably not needed anymore
  */
@@ -105,6 +123,15 @@ case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system
    * @return
    */
   def !(message: Any)(implicit sender: ActorRef = ActorRef.noSender)  = worker ! message
+
+  /**
+   * Bind a new worker item to this worker.  The item should have been created
+   * and initialized within this worker to ensure that the worker item's
+   * lifecycle is single-threaded.
+   */
+  def bind(item: BindableWorkerItem) {
+    worker ! IOCommand.BindWorkerItem(() => item)
+  }
 }
 
 /**
@@ -289,7 +316,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         clientConnect(address, handler)
       }
       case BindWorkerItem(workerItem) => {
-        workerItems.bind(workerItem)
+        workerItems.bind(workerItem())
       }
 
     }
@@ -523,6 +550,7 @@ object Worker {
  */
 sealed trait WorkerCommand
 object WorkerCommand {
+
   case class UnbindWorkerItem(id: Long) extends WorkerCommand
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand
