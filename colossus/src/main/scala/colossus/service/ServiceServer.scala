@@ -37,7 +37,8 @@ class DroppedReply extends Error("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext) extends ConnectionHandler  {
+abstract class ServiceServer[I,O](val codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext) 
+extends ConnectionHandler with InputController[I,O] with OutputController[I,O] {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -60,7 +61,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
     errors.hit(tags = tags)
   }
-  
+
   sealed trait ServiceServerMessage
   case object CheckTimeout extends ServiceServerMessage
 
@@ -81,8 +82,8 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   }
 
   private val requestBuffer = collection.mutable.Queue[SyncPromise]()
-  private var writer: Option[WriteEndpoint] = None
-  private var partiallyWrittenResponse: Option[SyncPromise] = None
+  protected var writer: Option[WriteEndpoint] = None
+  protected val maxQueueSize = 50 //todo that's a totally arbitrary number
   private var numRequests = 0
 
   private def checkTimeout() {
@@ -100,45 +101,18 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
    */
   private def checkBuffer() {
     writer.map{w => 
-      while (requestBuffer.size > 0 && requestBuffer.head.isComplete && w.isWritable) {
+      while (requestBuffer.size > 0 && requestBuffer.head.isComplete) {
         val done = requestBuffer.dequeue()
         val comp = done.response
         requests.hit(tags = comp.tags)
         latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
-        w.write(codec.encode(comp.value)) match {
-          case WriteStatus.Partial => {
-            partiallyWrittenResponse = Some(done)
-          }
-          case WriteStatus.Failed => {
-            addError(new DroppedReply)
-            println("Dropped reply") //todo: make better
-          }
-          case WriteStatus.Zero => {
-            //this should never occur since checking isWritable checks to see
-            //if data ia partially buffered.  note that even if we actually
-            //write 0 bytes to the channel and the whole response is buffered,
-            //we'll still get a Partial writestatus since the whole thing is
-            //buffered
-            throw new Exception("Attempt to write when data is partially buffered")
-          }
-          case WriteStatus.Complete => {
-            handleOnWrite(comp.onwrite)
-          }
+        push(comp.value) {
+          case OutputResult.Success => {} //todo: post-write
+          case _ => println("dropped reply")
         }
+        //todo: deal with output-controller full
       }
     }
-  }
-
-  /**
-   * this is called if we previously filled up the write buffer and had to wait
-   * for it to clear up, and now it's ready
-   */
-  def readyForData() {
-    partiallyWrittenResponse.foreach{r =>
-      handleOnWrite(r.response.onwrite)
-      partiallyWrittenResponse = None
-    }
-    checkBuffer()
   }
 
   def connected(endpoint: WriteEndpoint) {
@@ -172,36 +146,33 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     connectionClosed(cause)
   }
 
-  def receivedData(data: DataBuffer) {
-    codec.decodeAll(data){request =>
-      numRequests += 1
-      val promise = new SyncPromise(request)
-      requestBuffer.enqueue(promise)
-      /**
-       * Notice, if the request buffer if full we're still adding to it, but by skipping
-       * processing of requests we can hope to alleviate overloading
-       */
-      val response: Response[O] = if (requestBuffer.size < requestBufferSize) {
-        try {
-          processRequest(request) 
-        } catch {
-          case t: Throwable => {
-            handleFailure(request, t)
-          }
+  protected def processMessage(request: I) {
+    numRequests += 1
+    val promise = new SyncPromise(request)
+    requestBuffer.enqueue(promise)
+    /**
+     * Notice, if the request buffer if full we're still adding to it, but by skipping
+     * processing of requests we can hope to alleviate overloading
+     */
+    val response: Response[O] = if (requestBuffer.size < requestBufferSize) {
+      try {
+        processRequest(request) 
+      } catch {
+        case t: Throwable => {
+          handleFailure(request, t)
         }
-      } else {
-        handleFailure(request, new RequestBufferFullException)
       }
-      val cb: Callback[Completion[O]] = response match {
-        case SyncResponse(s) => Callback.successful(s)
-        case AsyncResponse(a) => Callback.fromFuture(a)
-        case CallbackResponse(c) => c
-      }
-      cb.execute{
-        case Success(res) => promise.complete(res)
-        case Failure(err) => promise.complete(handleFailure(promise.request, err))
-      }
-
+    } else {
+      handleFailure(request, new RequestBufferFullException)
+    }
+    val cb: Callback[Completion[O]] = response match {
+      case SyncResponse(s) => Callback.successful(s)
+      case AsyncResponse(a) => Callback.fromFuture(a)
+      case CallbackResponse(c) => c
+    }
+    cb.execute{
+      case Success(res) => promise.complete(res)
+      case Failure(err) => promise.complete(handleFailure(promise.request, err))
     }
   }
 

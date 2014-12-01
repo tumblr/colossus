@@ -123,7 +123,7 @@ class ServiceClient[I,O](
   val codec: Codec[I,O], 
   val config: ClientConfig,
   val worker: WorkerRef
-) extends ClientConnectionHandler with ServiceClientLike[I,O] {
+) extends ClientConnectionHandler with ServiceClientLike[I,O] with InputController[O,I] with OutputController[O,I]{
   import colossus.IOCommand._
   import colossus.core.WorkerCommand._
   import config._
@@ -148,7 +148,8 @@ class ServiceClient[I,O](
   private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
   private val pendingBuffer = mutable.Queue[SourcedRequest]()
-  private var writer: Option[WriteEndpoint] = None
+  protected var writer: Option[WriteEndpoint] = None
+  protected val maxQueueSize = config.sentBufferSize
   private var disconnecting: Boolean = false //set to true during graceful disconnect
   val log = Logging(worker.system.actorSystem, s"client:$address")
 
@@ -221,20 +222,17 @@ class ServiceClient[I,O](
    */
   def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
 
-  def receivedData(data: DataBuffer) {
+  def processMessage(response: O) {
     val now = System.currentTimeMillis
-    codec.decodeAll(data){response =>
-      try {
-        val source = sentBuffer.dequeue()
-        latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
-        source.handler(Success(response))
-        requests.hit(tags = hpTags)
-      } catch {
-        case e: java.util.NoSuchElementException => {
-          throw new DataException(s"No Request for response ${response.toString}!")
-        }
+    try {
+      val source = sentBuffer.dequeue()
+      latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
+      source.handler(Success(response))
+      requests.hit(tags = hpTags)
+    } catch {
+      case e: java.util.NoSuchElementException => {
+        throw new DataException(s"No Request for response ${response.toString}!")
       }
-      
     }
     checkGracefulDisconnect()
     checkPendingBuffer()
@@ -330,38 +328,20 @@ class ServiceClient[I,O](
       enqueuePending(s)
     } else if (requestTimeout.isFinite && System.currentTimeMillis - s.start > requestTimeout.toMillis) {
       s.handler(Failure(new RequestTimeoutException))
+    } else if (writer.isDefined) {
+      //notice, we don't deal with postWrite since we handle it through the sentbuffer
+      val pushed = push(s.message){_ => {}}
+      if (pushed) {
+        sentBuffer.enqueue(s)
+      } else {
+        enqueuePending(s)
+      }
     } else {
-      writer.map{w =>
-        w.write(codec.encode(s.message)) match {
-          case WriteStatus.Complete | WriteStatus.Partial => {
-            sentBuffer.enqueue(s)
-          }
-          case WriteStatus.Zero => if (bufferPending) {
-            enqueuePending(s)
-          } else {
-            //if this ever happens there is a major problem since in this case
-            //we're only writing if we already checked if the connection is
-            //writable
-            throw new Exception("Zero Write Status on pending!")
-          }
-          case WriteStatus.Failed => {
-            //notice - this would only happen if a write was attempted after a connection closed but before 
-            //the connectionClosed handler method was called, since that unsets the WriteEndpoint
-            if (bufferPending && !failFast) {
-              enqueuePending(s)
-            } else {
-              droppedRequests.hit(tags = hpTags)
-              s.handler(Failure(new NotConnectedException("Write Failure")))
-            }
-          }
-        }
-      }.getOrElse{
-        if (bufferPending && !failFast) {
-          enqueuePending(s)
-        } else {
-          droppedRequests.hit(tags = hpTags)
-          s.handler(Failure(new NotConnectedException("Not Connected")))
-        }
+      if (bufferPending && !failFast) {
+        enqueuePending(s)
+      } else {
+        droppedRequests.hit(tags = hpTags)
+        s.handler(Failure(new NotConnectedException("Not Connected")))
       }
     }
   }
@@ -382,10 +362,4 @@ class ServiceClient[I,O](
     }
   }
 
-  /*
-   * if any requests are waiting in the pending buffer, attempt to send as many as possible.
-   */
-  def readyForData(){
-    checkPendingBuffer()
-  }
 }
