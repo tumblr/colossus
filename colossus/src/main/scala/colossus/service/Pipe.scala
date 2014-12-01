@@ -293,6 +293,7 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
             case _ => {}
           }
           processMessage(message)
+          receivedData(data)
         }
         case None => {}
       }
