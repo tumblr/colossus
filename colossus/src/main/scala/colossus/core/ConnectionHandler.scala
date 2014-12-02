@@ -68,7 +68,7 @@ trait ConnectionHandler extends WorkerItem {
    * Be aware that this is totally independant of a connection's idle timeout,
    * which is only based on the last time there was any I/O.
    *
-   * @param period the frequency at which this method is called.  Currently this is hardcoded to 250ms, but may become application dependent in the future.
+   * @param period the frequency at which this method is called.  Currently this is hardcoded to `WorkerManager.IdleCheckFrequency`, but may become application dependent in the future.
    */
   def idleCheck(period: Duration)
 }
