@@ -131,7 +131,7 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   def bytes : ByteString = {
     val reqString = ByteString(s"${method.name} $getEncodedURL HTTP/$version\r\n")
     if (headers.size > 0) {
-      val headerString = ByteString(headers.map{case(k,v) => k + ":" + v}.mkString("\r\n"))
+      val headerString = ByteString(headers.map{case(k,v) => k + ": " + v}.mkString("\r\n"))
       reqString ++ headerString ++ ByteString("\r\n\r\n")
     } else {
       reqString ++ ByteString("\r\n")

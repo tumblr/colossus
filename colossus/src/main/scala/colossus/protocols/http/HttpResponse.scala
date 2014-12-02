@@ -18,11 +18,11 @@ case class HttpResponse(version: HttpVersion, code: HttpCode, data: ByteString, 
     builder append ByteString("\r\n")
     headers.foreach{case (key, value) =>
       builder putBytes key.getBytes
-      builder putBytes ":".getBytes
+      builder putBytes ": ".getBytes
       builder putBytes value.getBytes
       builder append NEWLINE
     }
-    builder putBytes s"Content-Length:${data.size}".getBytes
+    builder putBytes s"Content-Length: ${data.size}".getBytes
     builder append NEWLINE
     builder append NEWLINE
     builder append data
