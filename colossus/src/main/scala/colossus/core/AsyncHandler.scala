@@ -3,6 +3,7 @@ package core
 
 import akka.actor._
 import akka.util.ByteString
+import scala.concurrent.duration._
 
 /**
  * A Watched handler allows an actor to be tied to a connection.  The worker
@@ -83,6 +84,8 @@ case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHan
   def connectionFailed() {
     handler ! ConnectionFailed
   }
+
+  def idleCheck(period: Duration){}
 
 }
 

@@ -2,6 +2,7 @@ package colossus
 package core
 
 import akka.actor.ActorRef
+import scala.concurrent.duration._
 
 /**
  * This is the base trait for all connection handlers.  When attached to a
@@ -59,6 +60,17 @@ trait ConnectionHandler extends WorkerItem {
    * @param endpoint The endpoint which wraps the java NIO layer.
    */
   def connected(endpoint: WriteEndpoint)
+
+  /**
+   * Called periodically on every attached connection handler, this can be used
+   * for checking if an ongoing operation has timed out.
+   *
+   * Be aware that this is totally independant of a connection's idle timeout,
+   * which is only based on the last time there was any I/O.
+   *
+   * @param period the frequency at which this method is called.  Currently this is hardcoded to 250ms, but may become application dependent in the future.
+   */
+  def idleCheck(period: Duration)
 }
 
 /**
@@ -108,6 +120,7 @@ trait BasicSyncHandler extends ConnectionHandler {
   }
   def receivedMessage(message: Any, sender: ActorRef){}
   def readyForData(){}
+  def idleCheck(period: Duration){}
 
   //this is the only method you have to implement
   //def receivedData(data: DataBuffer)

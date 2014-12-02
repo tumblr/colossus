@@ -61,9 +61,6 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     errors.hit(tags = tags)
   }
   
-  sealed trait ServiceServerMessage
-  case object CheckTimeout extends ServiceServerMessage
-
   case class SyncPromise(request: I) {
     val creationTime = System.currentTimeMillis
 
@@ -85,7 +82,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   private var partiallyWrittenResponse: Option[SyncPromise] = None
   private var numRequests = 0
 
-  private def checkTimeout() {
+  def idleCheck(period: Duration) {
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.head.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
@@ -144,24 +141,9 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   def connected(endpoint: WriteEndpoint) {
     writer = Some(endpoint)
     val wid = id.getOrElse(throw new Exception("connected called on unbound service handler"))
-    requestTimeout match {
-      case f: FiniteDuration => worker ! Schedule(f, Message(wid, CheckTimeout))
-      case _ => {}
-    }
   }
 
-  def receivedMessage(message: Any, sender: ActorRef) {
-    message match {
-      case CheckTimeout => {
-        checkTimeout()
-        (requestTimeout, id) match {
-          case (f: FiniteDuration, Some(wid)) => worker ! Schedule(f, Message(wid,CheckTimeout))
-          case _ => {}
-        }
-      }
-      case other => throw new Exception(s"Received unknown message $other")
-    }
-  }
+  def receivedMessage(message: Any, sender: ActorRef) {}
 
   def connectionClosed(cause : DisconnectCause) {
     requestsPerConnection.add(numRequests)
