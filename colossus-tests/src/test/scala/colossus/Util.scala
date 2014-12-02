@@ -83,11 +83,11 @@ object TestClient {
 
 
 object TestUtil {
-  def expectServerConnections(server: ServerRef, connections: Int, maxTries: Int = 5) {
+  def expectServerConnections(server: ServerRef, connections: Int, maxTries: Int = 10) {
     var tries = maxTries
     implicit val timeout = Timeout(100.milliseconds)
     while (Await.result((server.server ? Server.GetInfo), 100.milliseconds) != Server.ServerInfo(connections, ServerStatus.Bound)) {
-      Thread.sleep(50)
+      Thread.sleep(100)
       tries -= 1
       if (tries == 0) {
         throw new Exception(s"Server failed to achieve $connections connections")
