@@ -388,4 +388,8 @@ class ServiceClient[I,O](
   def readyForData(){
     checkPendingBuffer()
   }
+
+  def idleCheck(period: Duration) {
+    //TODO: timeout pending requests
+  }
 }
