@@ -2,6 +2,7 @@ package colossus
 package service
 
 import core._
+import controller._
 
 import akka.actor._
 import akka.event.Logging

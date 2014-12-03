@@ -1,19 +1,24 @@
 package colossus
-package service
+package controller
 
 import core.{ConnectionHandler, DataBuffer, DataStream, WriteEndpoint, WriteStatus}
 import akka.util.ByteString
+
+import service.Codec
 
 /**
  * This trait is mostly intended for ByteBuffers which need to be copied to the
  * heap if they need to be buffered, basically in every other case copy can just return itself
  */
-trait Copyable[T] {self: T => 
-  def copy(): T
+trait Copier[T] {
+  def copy(item: T): T
 }
 
-trait BasicCopyable[T] extends Copyable[T] { self: T =>
-  def copy() = self
+object Copier {
+
+  implicit object DataBufferCopier extends Copier[DataBuffer] {
+    def copy(d: DataBuffer) = d.takeCopy
+  }
 }
 
 trait Transport {
@@ -141,7 +146,7 @@ class PipeFullException(size: Int) extends Exception(s"Pipe is full (max size $s
 class PipeTerminatedException(reason: Throwable) extends Exception("Pipe Terminated", reason) with PipeException
 class PipeClosedException extends Exception("Pipe Closed") with PipeException
 
-class InfinitePipe[T <: Copyable[T]](maxSize: Int) extends Pipe[T] {
+class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
   import PushResult.{Error => PushError, _}
   import PullResult.{Error => PullError, _}
 
@@ -176,7 +181,8 @@ class InfinitePipe[T <: Copyable[T]](maxSize: Int) extends Pipe[T] {
         Ok
       }
       case None => {
-        queue.add(item.copy())
+        val copier = implicitly[Copier[T]]
+        queue.add(copier.copy(item))
         if (queue.size == maxSize) {
           val t = new Trigger
           drainCallback = Some(t)
@@ -251,232 +257,6 @@ trait MessageHandler[Input, Output] {
   def codec: Codec[Output, Input]
 }
 
-/**
- * A mixin for ConnectionHandler that takes control of all read operations.
- * This will properly handle decoding messages, and for messages which are
- * streams, it will properly route data into the stream's source and handle
- * backpressure.
- */
-trait InputController[Input, Output] extends ConnectionHandler with MessageHandler[Input, Output] {
-  import PushResult._
 
-  //todo: read-endpoint
-
-  private var currentSource: Option[Source[DataBuffer]] = None
-  private var currentTrigger: Option[Trigger] = None
-
-  def receivedData(data: DataBuffer) {
-    currentSource match {
-      case Some(source) => source.push(data) match {
-        case Ok => {}
-        case Done => {
-          currentSource = None
-          //recurse since the databuffer may still contain data for the next request
-          if (data.hasUnreadData) receivedData(data)
-        }
-        case Full(trigger) => {
-          //TODO: disconnect reads and set trigger to re-enable reads
-          currentTrigger = Some(trigger)
-        }
-        case Error(reason) => {
-          //todo: what to do here?
-        }
-      }
-      case None => codec.decode(data) match {
-        case Some(message) =>  {
-          message match {
-            case s: StreamMessage => {
-              currentSource = Some(s.source)
-            }
-            case _ => {}
-          }
-          processMessage(message)
-          if (data.hasUnreadData) receivedData(data)
-        }
-        case None => {}
-      }
-    }
-  }
-
-
-  protected def processMessage(message: Input)
-
-}
-
-//passed to the onWrite handler to indicate the status of the write for a
-//message
-sealed trait OutputResult
-object OutputResult {
-
-  // the message was successfully written
-  case object Success   extends OutputResult
-
-  // the message failed, most likely due to the connection closing partway
-  case object Failure   extends OutputResult
-
-  // the message was cancelled before it was written (not implemented yet) 
-  case object Cancelled extends OutputResult
-}
-
-/**
- * A mixin for ConnectionHandler that takes control of all write operations.
- * This controller is designed to accept messages to write, where a message may
- * be a (possibly infinite) stream
- *
- */
-trait OutputController[Input, Output] extends ConnectionHandler with MessageHandler[Input, Output]{
-
-  import OutputResult._
-  import PullResult._
-
-  // == ABSTRACT MEMBERS ==
-  
-  // the write endpoint to control
-  protected def writer: Option[WriteEndpoint]
-
-  // maximum size of the pending write queue
-  protected def maxQueueSize: Int
-
-  // == PUBLIC / PROTECTED MEMBERS ==
-
-  /** Push a message to be written
-   * @param item the message to push
-   * @param postWrite called either when writing has completed or failed
-   */
-  def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
-    if (waitingToSend.size < maxQueueSize) {
-      waitingToSend.add(QueuedItem(item, postWrite))
-      checkQueue() 
-      true
-    } else {
-      false
-    }
-  }
-
-  //messages being sent are failed, the rest are cancelled
-  def purgeOutgoing() {
-    currentlyWriting.foreach{queued => queued.postWrite(OutputResult.Failure)}
-    currentlyWriting = None
-    currentStream.foreach{case (queued, sink) => sink.terminate(new NotConnectedException("Connection closed"))}
-    currentStream = None
-
-  }
-
-  def purgePending() {
-    while (waitingToSend.size > 0) {
-      val q = waitingToSend.remove()
-      q.postWrite(Cancelled)
-    }
-  }
-
-  def purgeAll() {
-    purgeOutgoing()
-    purgePending()
-  }
-
-  /**
-   * Pauses writing of the next item in the queue.  If there is currently a
-   * message in the process of writing, it will be unaffected
-   */
-  def pauseWrites() {
-    enabled = false
-  }
-
-  /**
-   * Resumes writing of messages if currently paused, otherwise has no affect
-   */
-  def resumeWrites() {
-    enabled = true
-    checkQueue()
-  }
-
-  def paused = !enabled
-
-  // == PRIVATE MEMBERS ==
-
-  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
-
-  //the queue of items waiting to be written.
-  private val waitingToSend = new java.util.LinkedList[QueuedItem]
-
-  //only one of these will ever be filled at a time
-  private var currentlyWriting: Option[QueuedItem] = None
-  private var currentStream: Option[(QueuedItem, Sink[DataBuffer])] = None
-
-
-  //whether or not we should be pulling items out of the queue, this can be set
-  //to fale through pauseWrites
-  private var enabled = true
-
-
-  /*
-   * iterate through the queue and write items.  Writing non-streaming items is
-   * iterative whereas writing a stream enters drain, which will be recursive
-   * if the stream has multiple databuffers to immediately write
-   */
-  private def checkQueue() {
-    while (enabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && writer.isDefined) {
-      val queued = waitingToSend.remove()
-      codec.encode(queued.item) match {
-        case DataStream(sink) => {
-          drain(sink)
-          currentStream = Some((queued, sink))
-        }
-        case d: DataBuffer => writer.get.write(d) match {
-          case WriteStatus.Complete => {
-            queued.postWrite(Success)
-          }
-          case WriteStatus.Failed | WriteStatus.Zero => {
-            //this probably shouldn't occur since we already check if the connection is writable
-            queued.postWrite(Failure)
-          }
-          case WriteStatus.Partial => {
-            currentlyWriting = Some(queued)
-          }
-        }
-      }
-    }
-  }
-      
-
-  /*
-   * keeps reading from a sink until it's empty or writing a databuffer is
-   * incomplete.  Notice in the latter case we just wait for readyForData to be
-   * called and resume there
-   */
-  private def drain(sink: Sink[DataBuffer]) {
-    sink.pull{
-      case Item(data) => writer.get.write(data) match {
-        case WriteStatus.Complete => drain(sink)
-        case _ => {} //todo: maybe do something on Failure?
-      }
-      case End => {
-        currentStream.foreach{case (q, s) => 
-          q.postWrite(OutputResult.Success)
-        }
-        currentStream = None
-        checkQueue()
-      }
-      case Error(err) => {
-        //TODO: what to do here?
-
-      }
-    }
-  }
-
-  /*
-   * If we're currently streaming, resume the stream, otherwise when this is
-   * called it means a non-stream item has finished fully writing, so we can go
-   * back to checking the queue
-   */
-  def readyForData() {
-    currentStream.map{case (q,s) => drain(s)}.getOrElse{
-      currentlyWriting.foreach{q => q.postWrite(OutputResult.Success)}
-      currentlyWriting = None
-      checkQueue()
-    }
-  }
-
-}
 
 
