@@ -243,7 +243,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     case c: WorkerCommand => handleWorkerCommand(c)
     case CheckIdleConnections => {
       val time = System.currentTimeMillis
-      val timedOut = connections.filter{case (_, con) => con.isTimedOut(time)}.toList
+      val timedOut = connections.filter{case (_, con) => 
+        con.handler.idleCheck(WorkerManager.IdleCheckFrequency)
+        con.isTimedOut(time)
+      }.toList
       timedOut.foreach{case (_, con) =>
         unregisterConnection(con, DisconnectCause.TimedOut)
       }

@@ -19,7 +19,7 @@ class HttpSpec extends WordSpec with MustMatchers{
       )
       val request = HttpRequest(head, Some(ByteString("hello")))
 
-      val expected = "POST /hello HTTP/1.1\r\nfoo:bar\r\n\r\nhello"
+      val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\n\r\nhello"
 
       request.bytes.utf8String must equal(expected)
     }
@@ -33,11 +33,20 @@ class HttpSpec extends WordSpec with MustMatchers{
       )
       val request = HttpRequest(head, None)
 
-      val expected = "POST /hello HTTP/1.1\r\nfoo:bar\r\n\r\n"
+      val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\n\r\n"
 
       request.bytes.utf8String must equal(expected)
     }
       
+  }
+
+  "http response" must {
+    "encode basic response" in {
+      val content = "Hello World!"
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, ByteString(content))
+      val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n${content}"
+      ByteString(response.bytes.takeAll).utf8String must equal (expected)
+    }
   }
 }
 

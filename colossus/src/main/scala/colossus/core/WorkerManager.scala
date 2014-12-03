@@ -31,7 +31,6 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
 
-  val IdleCheckFrequency = 250.milliseconds
 
   /*
    * This strategy is chosen specifically for durability.  We don't want to kill the entire system if workers start
@@ -258,4 +257,7 @@ private[colossus] object WorkerManager {
   case class Connect(address: InetSocketAddress)
 
   case object GetConnectionSummary
+
+
+  val IdleCheckFrequency = 100.milliseconds
 }

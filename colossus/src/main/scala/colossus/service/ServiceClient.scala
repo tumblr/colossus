@@ -333,4 +333,8 @@ class ServiceClient[I,O](
     }
   }
 
+
+  def idleCheck(period: Duration) {
+    //TODO: timeout pending requests
+  }
 }
