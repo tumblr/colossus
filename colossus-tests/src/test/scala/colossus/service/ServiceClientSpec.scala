@@ -19,6 +19,8 @@ import scala.concurrent.Await
 
 import RawProtocol._
 
+import org.scalatest.Tag
+
 class ServiceClientSpec extends ColossusSpec {
 
   def newClient(failFast: Boolean = false, maxSentSize: Int = 10): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
@@ -414,7 +416,7 @@ class ServiceClientSpec extends ColossusSpec {
         }
       }
     }
-    "not attempt reconnect when autoReconnect is false" in {
+    "not attempt reconnect when autoReconnect is false" taggedAs(Tag("wat")) in {
       withIOSystem{ implicit io => 
         val server = Service.become[Raw]("rawwww", TEST_PORT) {
           case foo => foo.onWrite(OnWriteAction.Disconnect)

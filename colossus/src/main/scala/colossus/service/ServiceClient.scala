@@ -147,9 +147,8 @@ class ServiceClient[I,O](
   private var manuallyDisconnected = false
   private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
-  private val pendingBuffer = mutable.Queue[SourcedRequest]()
   protected var writer: Option[WriteEndpoint] = None
-  protected val maxQueueSize = config.sentBufferSize
+  protected val maxQueueSize = config.pendingBufferSize
   private var disconnecting: Boolean = false //set to true during graceful disconnect
   val log = Logging(worker.system.actorSystem, s"client:$address")
 
@@ -190,7 +189,9 @@ class ServiceClient[I,O](
    */
   def gracefulDisconnect() {
     log.info(s"Terminating connection to $address")
-    clearPendingBuffer(new NotConnectedException("Connection is closing"))
+    //clearPendingBuffer(new NotConnectedException("Connection is closing"))
+    //todo, we should maybe make the Cancelled OutputResult take a Throwable
+    purgePending()
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()
@@ -202,7 +203,7 @@ class ServiceClient[I,O](
    */
   private def sendNow(request: I)(handler: ResponseHandler){
     val s = SourcedRequest(request, handler)
-    attemptWrite(s, bufferPending = true)
+    attemptWrite(s)
   }
 
   /** Create a shared interface that is thread safe and returns Futures
@@ -235,7 +236,7 @@ class ServiceClient[I,O](
       }
     }
     checkGracefulDisconnect()
-    checkPendingBuffer()
+    if (paused) resumeWrites()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {
@@ -260,19 +261,11 @@ class ServiceClient[I,O](
       s.handler(Failure(new ConnectionLostException("Connection closed while request was in transit")))
     }
     sentBuffer.clear()
+    purgeOutgoing()
     if (failFast) {
-      clearPendingBuffer(pendingException)
+      purgePending()
     }
   }
-
-  private def clearPendingBuffer(ex : => Throwable) {
-    pendingBuffer.foreach{ s =>
-      droppedRequests.hit(tags = hpTags)
-      s.handler(Failure(ex))
-    }
-    pendingBuffer.clear()
-  }
-
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
     manuallyDisconnected = true
@@ -309,40 +302,27 @@ class ServiceClient[I,O](
   private def canReconnect = config.connectionAttempts.isExpended(connectionAttempts)
 
 
-  private def attemptWrite(s: SourcedRequest, bufferPending: Boolean) {
-    def enqueuePending(s: SourcedRequest) {
-      if (pendingBuffer.size >= pendingBufferSize) {
-        droppedRequests.hit(tags = hpTags)
-        s.handler(Failure(new ClientOverloadedException("Client is overlaoded")))
-      } else {
-        pendingBuffer.enqueue(s)
-      }
-    }
+  private def attemptWrite(s: SourcedRequest) {
     if (disconnecting) {
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
-    } else if (pendingBuffer.size > 0 && bufferPending) {
-      //don't even bother trying to write, we're already backed up
-      enqueuePending(s)
-    } else if (sentBuffer.size >= sentBufferSize) {
-      enqueuePending(s)
-    } else if (requestTimeout.isFinite && System.currentTimeMillis - s.start > requestTimeout.toMillis) {
-      s.handler(Failure(new RequestTimeoutException))
-    } else if (writer.isDefined) {
-      //notice, we don't deal with postWrite since we handle it through the sentbuffer
-      val pushed = push(s.message){_ => {}}
+    } else if (writer.isDefined || !failFast) {
+      val pushed = push(s.message){
+        case OutputResult.Success   => sentBuffer.enqueue(s)
+        case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
+        case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
+      }
       if (pushed) {
         sentBuffer.enqueue(s)
+        if (sentBuffer.size >= config.sentBufferSize) {
+          pauseWrites()
+        }
       } else {
-        enqueuePending(s)
+        s.handler(Failure(new ClientOverloadedException("Client is overloaded")))
       }
     } else {
-      if (bufferPending && !failFast) {
-        enqueuePending(s)
-      } else {
-        droppedRequests.hit(tags = hpTags)
-        s.handler(Failure(new NotConnectedException("Not Connected")))
-      }
+      droppedRequests.hit(tags = hpTags)
+      s.handler(Failure(new NotConnectedException("Not Connected")))
     }
   }
 
@@ -350,15 +330,6 @@ class ServiceClient[I,O](
     if (disconnecting && sentBuffer.size == 0) {
       writer.foreach{_.disconnect()}
       writer = None
-    }
-  }
-
-  private def checkPendingBuffer() {
-    writer.foreach{w => 
-      while (pendingBuffer.size > 0 && sentBuffer.size < sentBufferSize && w.isWritable) {
-        val s = pendingBuffer.dequeue()
-        attemptWrite(s, bufferPending = false)
-      }
     }
   }
 

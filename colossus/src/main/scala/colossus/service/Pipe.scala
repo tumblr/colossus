@@ -266,6 +266,7 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
   private var currentTrigger: Option[Trigger] = None
 
   def receivedData(data: DataBuffer) {
+    println(s"received data ${data.remaining}")
     currentSource match {
       case Some(source) => source.push(data) match {
         case Ok => {}
@@ -287,8 +288,6 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
           message match {
             case s: StreamMessage => {
               currentSource = Some(s.source)
-              //recurse to push rest of databuffer into source
-              receivedData(data)
             }
             case _ => {}
           }
@@ -375,6 +374,24 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
     purgePending()
   }
 
+  /**
+   * Pauses writing of the next item in the queue.  Any currently outgoing
+   * message or stream will be unaffected
+   */
+  def pauseWrites() {
+    enabled = false
+  }
+
+  /**
+   * Resumes writing of messages if currently paused, otherwise has no affect
+   */
+  def resumeWrites() {
+    enabled = true
+    checkQueue()
+  }
+
+  def paused = !enabled
+
   // == PRIVATE MEMBERS ==
 
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
@@ -382,6 +399,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
   private var currentlyWriting: Option[QueuedItem] = None
   private var currentStream: Option[(QueuedItem, Sink[DataBuffer])] = None
+  private var enabled = true //setting this to false pauses writing new requests
 
 
   /*
