@@ -47,8 +47,8 @@ class ServiceClientSpec extends ColossusSpec {
     var numCalledBack = 0
     commandReplies.foreach{case (command, reply) =>
       client.send(command).map{ r =>
-          numCalledBack += 1
-          r must equal(reply)
+        numCalledBack += 1
+        r must equal(reply)
       }.execute()
     }
 
@@ -97,6 +97,7 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
     "send big command" in {
+      //command is exactly the size of the write buffer
       val command = Command(CMD_GET, "123456789012345678901234567890")
       val raw = command.raw
       val (endpoint, client, probe) = newClient()
@@ -118,15 +119,14 @@ class ServiceClientSpec extends ColossusSpec {
       val cb2 = client.send(command2)
       cb.execute()
       cb2.execute()
-      endpoint.numWrites must equal(2)
+      endpoint.numWrites must equal(1)
       endpoint.writeCalls(0) must equal(raw.slice(0, 30))
-      endpoint.writeCalls(1) must equal(ByteString())
+      endpoint.clearBuffer()
+      endpoint.numWrites must equal(3)
       endpoint.clearBuffer()
       endpoint.numWrites must equal(4)
-      endpoint.clearBuffer()
-      endpoint.numWrites must equal(5)
-      endpoint.writeCalls(2) must equal(raw.slice(30, raw.size))
-      endpoint.writeCalls(3) ++ endpoint.writeCalls(4) must equal(command2.raw)
+      endpoint.writeCalls(1) must equal(raw.slice(30, raw.size))
+      endpoint.writeCalls(2) ++ endpoint.writeCalls(3) must equal(command2.raw)
 
     }
 
@@ -226,8 +226,7 @@ class ServiceClientSpec extends ColossusSpec {
         case Success(r) => response2 = Some(r)
         case Failure(nope) => throw new Exception("NOPE2")
       }
-      endpoint.numWrites must equal(2)
-      endpoint.writeCalls(1) must equal(ByteString())
+      endpoint.numWrites must equal(1)
       while (endpoint.clearBuffer().size > 0) {}
       client.receivedData(reply1.raw)
       client.receivedData(reply2.raw)
@@ -248,7 +247,7 @@ class ServiceClientSpec extends ColossusSpec {
           case _ => throw new Exception("Executed!")
         }
       }
-      endpoint.numWrites must equal (2)
+      endpoint.numWrites must equal (1)
       var failed = false
       client.send(shouldFail).execute{
         case Success(_) => throw new Exception("Didn't fail?!?!")
@@ -279,8 +278,8 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.numWrites must equal(0)
       endpoint.connection_status = ConnectionStatus.NotConnected
       cb.execute{
-        case Success(wat) => throw new Exception("NOPE")
-        case Failure(yay) => failed = true
+        case Success(wat) => println("HERE");throw new Exception("NOPE")
+        case Failure(yay) => println("THER");failed = true
       }
       failed must equal(true)
     }
@@ -423,7 +422,8 @@ class ServiceClientSpec extends ColossusSpec {
         }
         withServer(server) {
           val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
-          client.send(ByteString("blah"))
+          import server.system.actorSystem.dispatcher
+          client.send(ByteString("blah")).onComplete(println)
           TestUtil.expectServerConnections(server, 0)
         }
       }

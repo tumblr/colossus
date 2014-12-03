@@ -51,7 +51,7 @@ object TestClient {
       name = "/test",
       requestTimeout = 100.milliseconds,
       address = new InetSocketAddress("localhost", port),
-      pendingBufferSize = 0,
+      pendingBufferSize = 10,
       failFast = true,
       connectionAttempts = connectionAttempts
     )

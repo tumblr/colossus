@@ -266,14 +266,13 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
   private var currentTrigger: Option[Trigger] = None
 
   def receivedData(data: DataBuffer) {
-    println(s"received data ${data.remaining}")
     currentSource match {
       case Some(source) => source.push(data) match {
         case Ok => {}
         case Done => {
           currentSource = None
           //recurse since the databuffer may still contain data for the next request
-          receivedData(data)
+          if (data.hasUnreadData) receivedData(data)
         }
         case Full(trigger) => {
           //TODO: disconnect reads and set trigger to re-enable reads
@@ -292,7 +291,7 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
             case _ => {}
           }
           processMessage(message)
-          receivedData(data)
+          if (data.hasUnreadData) receivedData(data)
         }
         case None => {}
       }
@@ -340,9 +339,10 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
 
   // == PUBLIC / PROTECTED MEMBERS ==
 
-  /// entry point for writing an item
-  //todo: we should have another enum besides WriteStatus, since only Complete
-  //or Failure will ever be exposed here
+  /** Push a message to be written
+   * @param item the message to push
+   * @param postWrite called either when writing has completed or failed
+   */
   def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
     if (waitingToSend.size < maxQueueSize) {
       waitingToSend.add(QueuedItem(item, postWrite))
@@ -375,8 +375,8 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
   }
 
   /**
-   * Pauses writing of the next item in the queue.  Any currently outgoing
-   * message or stream will be unaffected
+   * Pauses writing of the next item in the queue.  If there is currently a
+   * message in the process of writing, it will be unaffected
    */
   def pauseWrites() {
     enabled = false
@@ -396,10 +396,17 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
 
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
 
+  //the queue of items waiting to be written.
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
+
+  //only one of these will ever be filled at a time
   private var currentlyWriting: Option[QueuedItem] = None
   private var currentStream: Option[(QueuedItem, Sink[DataBuffer])] = None
-  private var enabled = true //setting this to false pauses writing new requests
+
+
+  //whether or not we should be pulling items out of the queue, this can be set
+  //to fale through pauseWrites
+  private var enabled = true
 
 
   /*
@@ -408,7 +415,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    * if the stream has multiple databuffers to immediately write
    */
   private def checkQueue() {
-    while (currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && writer.isDefined) {
+    while (enabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && writer.isDefined) {
       val queued = waitingToSend.remove()
       codec.encode(queued.item) match {
         case DataStream(sink) => {
@@ -419,7 +426,11 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
           case WriteStatus.Complete => {
             queued.postWrite(Success)
           }
-          case _ => {
+          case WriteStatus.Failed | WriteStatus.Zero => {
+            //this probably shouldn't occur since we already check if the connection is writable
+            queued.postWrite(Failure)
+          }
+          case WriteStatus.Partial => {
             currentlyWriting = Some(queued)
           }
         }
@@ -454,7 +465,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
   }
 
   /*
-   * If we're currently streaming, resume the stream, otherwise if this is
+   * If we're currently streaming, resume the stream, otherwise when this is
    * called it means a non-stream item has finished fully writing, so we can go
    * back to checking the queue
    */

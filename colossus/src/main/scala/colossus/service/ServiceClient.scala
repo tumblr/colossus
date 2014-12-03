@@ -199,7 +199,6 @@ class ServiceClient[I,O](
 
   /**
    * Sent a request to the service, along with a handler for processing the response.
-   *
    */
   private def sendNow(request: I)(handler: ResponseHandler){
     val s = SourcedRequest(request, handler)
@@ -313,7 +312,6 @@ class ServiceClient[I,O](
         case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
       }
       if (pushed) {
-        sentBuffer.enqueue(s)
         if (sentBuffer.size >= config.sentBufferSize) {
           pauseWrites()
         }

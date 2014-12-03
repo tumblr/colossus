@@ -104,7 +104,10 @@ extends ConnectionHandler with InputController[I,O] with OutputController[I,O] {
         requests.hit(tags = comp.tags)
         latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
         push(comp.value) {
-          case OutputResult.Success => {} //todo: post-write
+          case OutputResult.Success => comp.onwrite match {
+            case OnWriteAction.Disconnect => disconnect()
+            case OnWriteAction.DoNothing => {}
+          }
           case _ => println("dropped reply")
         }
         //todo: deal with output-controller full
