@@ -3,8 +3,9 @@ package controller
 
 import core.{ConnectionHandler, DataBuffer, DataStream, WriteEndpoint, WriteStatus}
 import akka.util.ByteString
+import scala.util.{Try, Success, Failure}
 
-import service.Codec
+import service.{Callback, Codec, UnmappedCallback}
 
 /**
  * This trait is mostly intended for ByteBuffers which need to be copied to the
@@ -34,7 +35,7 @@ trait Transport {
  * attach a callback to for when the pipe can receive more items
  */
 trait Source[T] extends Transport {
-  def push(item: T): PushResult
+  def push(item: T): Try[PushResult]
 
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete()
@@ -49,7 +50,7 @@ trait Source[T] extends Transport {
  * it is able to
  */
 trait Sink[T] extends Transport {
-  def pull(onReady: PullResult[T] => Unit)
+  def pull(onReady: Try[Option[T]] => Unit)
 
   //notice that Sink has no equivalent of complete.  This is because we never
   //have a situation where a sink non-erroneously doesn't read the entire
@@ -83,20 +84,7 @@ object PushResult {
   case object Done extends PushResult
   //the item was pushed, but subsequent pushes will fail until trigger is fired
   case class Full(trigger: Trigger) extends PushResult
-  //an error occurred, due to pushing to a terminated, full, or complete source
-  case class Error(reason: PipeException) extends PushResult
 }
-
-sealed trait PullResult[+T]
-object PullResult {
-  //pulled item
-  case class Item[T](item: T) extends PullResult[T]
-  //expect no more data
-  case object End extends PullResult[Nothing]
-  //an error occurred, possibly before all expected data was received
-  case class Error(reson: PipeException) extends PullResult[Nothing]
-}
-
 
 //a pipe designed to accept a fixed number of bytes
 class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
@@ -109,9 +97,9 @@ class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
   def remaining = totalBytes - taken
 
 
-  def push(data: DataBuffer): PushResult = {
+  def push(data: DataBuffer): Try[PushResult] = {
     if (taken == totalBytes) {
-      Done
+      Success(Done)
     } else if (remaining >= data.remaining) {
       taken += data.size
       internal.push(data) 
@@ -121,11 +109,11 @@ class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
       internal.push(partial)
       internal.complete()
       //we don't care if we fill the buffer cause we're done
-      Done
+      Success(Done)
     }
   }
 
-  def pull(onReady: PullResult[DataBuffer] => Unit) {
+  def pull(onReady: Try[Option[DataBuffer]] => Unit) {
     internal.pull(onReady)
   }
 
@@ -146,14 +134,15 @@ class PipeFullException(size: Int) extends Exception(s"Pipe is full (max size $s
 class PipeTerminatedException(reason: Throwable) extends Exception("Pipe Terminated", reason) with PipeException
 class PipeClosedException extends Exception("Pipe Closed") with PipeException
 
+//object EndOfStream extends Exception("End of Stream")
+
 class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
-  import PushResult.{Error => PushError, _}
-  import PullResult.{Error => PullError, _}
+  import PushResult._
 
   val queue = new java.util.LinkedList[T]
 
   //set by the puller when they pull and the queue is empty
-  private var readyCallback: Option[PullResult[T] => Unit] = None
+  private var readyCallback: Option[Try[Option[T]] => Unit] = None
 
   //set by the pusher when their last push fills the queue, called when it empties
   private var drainCallback: Option[Trigger] = None
@@ -169,16 +158,16 @@ class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
    * @return true if pipe can accept more data, false if this push filled the pipe
    * @throws PipeException when pushing to a full pipe
    */
-  def push(item: T): PushResult = if (terminated) {
-    PushError(new PipeTerminatedException(termination.get))
+  def push(item: T): Try[PushResult] = if (terminated) {
+    Failure(new PipeTerminatedException(termination.get))
   } else if (completed) {
-    PushError(new PipeClosedException) 
+    Failure(new PipeClosedException) 
   } else if (queue.size < maxSize) {
     readyCallback match{
       case Some(f) => {
         readyCallback = None
-        f(Item(item))
-        Ok
+        f(Success(Some(item)))
+        Success(Ok)
       }
       case None => {
         val copier = implicitly[Copier[T]]
@@ -186,43 +175,45 @@ class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
         if (queue.size == maxSize) {
           val t = new Trigger
           drainCallback = Some(t)
-          Full(t)
+          Success(Full(t))
         } else {
-          Ok
+          Success(Ok)
         }
       }
     }
   } else {
-    PushError(new PipeFullException(maxSize))
+    Failure(new PipeFullException(maxSize))
   }
 
   //notice that whenReady is only called at most once.  This is done so the
   //consumer must explicitly call pull every time it needs more data, so can
   //properly apply backpressure
-  def pull(whenReady: PullResult[T] => Unit) {
+  def pull(whenReady: Try[Option[T]] => Unit) {
     if (queue.size > 0) {
-      whenReady(Item(queue.remove()))
+      whenReady(Success(Some(queue.remove())))
       drainCallback.foreach { trigger => 
         drainCallback = None
         trigger.trigger()
       }
     } else {
       if (completed) {
-        whenReady(End)
+        whenReady(Success(None))
       } else if (terminated) {
-        whenReady(PullError(new PipeTerminatedException(termination.get)))
+        whenReady(Failure(new PipeTerminatedException(termination.get)))
       } else {
         readyCallback = Some(whenReady)
       }
     }
   }
 
+  def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
+
   def complete() {
     completed = true
     //notice if a callback  has been set, we know the queue is empty
     readyCallback.foreach{ c =>
       readyCallback = None
-      c(End)
+      c(Success(None))
     }
   }
 
@@ -233,30 +224,11 @@ class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
     termination = Some(reason)
     readyCallback.foreach{ c => 
       readyCallback = None
-      c(PullError(new PipeTerminatedException(reason)))
+      c(Failure(new PipeTerminatedException(reason)))
     }
     queue.clear()
   }
 
 }
-
-
-
-/** trait representing a decoded message that is actually a stream
- * 
- * When a codec decodes a message that contains a stream (perhaps an http
- * request with a very large body), the returned message MUST extend this
- * trait, otherwise the InputController will not know to push subsequent data
- * to the stream message and things will get all messed up. 
- */
-trait StreamMessage {
-  def source: Source[DataBuffer]
-}
-
-trait MessageHandler[Input, Output] {
-  def codec: Codec[Output, Input]
-}
-
-
 
 

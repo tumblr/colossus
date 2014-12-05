@@ -1,6 +1,7 @@
 package colossus
 package controller
 
+import scala.util.{Try, Success, Failure}
 import core._
 
 
@@ -21,17 +22,17 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
   def receivedData(data: DataBuffer) {
     currentSource match {
       case Some(source) => source.push(data) match {
-        case Ok => {}
-        case Done => {
+        case Success(Ok) => {}
+        case Success(Done) => {
           currentSource = None
           //recurse since the databuffer may still contain data for the next request
           if (data.hasUnreadData) receivedData(data)
         }
-        case Full(trigger) => {
+        case Success(Full(trigger)) => {
           //TODO: disconnect reads and set trigger to re-enable reads
           currentTrigger = Some(trigger)
         }
-        case Error(reason) => {
+        case Failure(reason) => {
           //todo: what to do here?
         }
       }

@@ -1,6 +1,7 @@
 package colossus
 package controller
 
+import scala.util.{Try, Success, Failure}
 import core._
 
 
@@ -27,16 +28,10 @@ object OutputResult {
  */
 trait OutputController[Input, Output] extends ConnectionHandler with MessageHandler[Input, Output]{
 
-  import OutputResult._
-  import PullResult._
-
   // == ABSTRACT MEMBERS ==
   
   // the write endpoint to control
   protected def writer: Option[WriteEndpoint]
-
-  // maximum size of the pending write queue
-  protected def maxQueueSize: Int
 
   // == PUBLIC / PROTECTED MEMBERS ==
 
@@ -45,7 +40,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    * @param postWrite called either when writing has completed or failed
    */
   def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
-    if (waitingToSend.size < maxQueueSize) {
+    if (waitingToSend.size < controllerConfig.outputBufferSize) {
       waitingToSend.add(QueuedItem(item, postWrite))
       checkQueue() 
       true
@@ -67,7 +62,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
   def purgePending() {
     while (waitingToSend.size > 0) {
       val q = waitingToSend.remove()
-      q.postWrite(Cancelled)
+      q.postWrite(OutputResult.Cancelled)
     }
   }
 
@@ -126,11 +121,11 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
         }
         case d: DataBuffer => writer.get.write(d) match {
           case WriteStatus.Complete => {
-            queued.postWrite(Success)
+            queued.postWrite(OutputResult.Success)
           }
           case WriteStatus.Failed | WriteStatus.Zero => {
             //this probably shouldn't occur since we already check if the connection is writable
-            queued.postWrite(Failure)
+            queued.postWrite(OutputResult.Failure)
           }
           case WriteStatus.Partial => {
             currentlyWriting = Some(queued)
@@ -148,18 +143,18 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    */
   private def drain(sink: Sink[DataBuffer]) {
     sink.pull{
-      case Item(data) => writer.get.write(data) match {
+      case Success(Some(data)) => writer.get.write(data) match {
         case WriteStatus.Complete => drain(sink)
         case _ => {} //todo: maybe do something on Failure?
       }
-      case End => {
+      case Success(None) => {
         currentStream.foreach{case (q, s) => 
           q.postWrite(OutputResult.Success)
         }
         currentStream = None
         checkQueue()
       }
-      case Error(err) => {
+      case Failure(err) => {
         //TODO: what to do here?
 
       }
