@@ -122,10 +122,10 @@ class StaleClientException(msg : String) extends Exception(msg)
  * Connect message to a worker or IOSystem, you should not call connect()
  */
 class ServiceClient[I,O](
-  val codec: Codec[I,O], 
+  codec: Codec[I,O], 
   val config: ClientConfig,
   val worker: WorkerRef
-) extends ClientConnectionHandler with ServiceClientLike[I,O] with InputController[O,I] with OutputController[O,I]{
+) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
   import colossus.IOCommand._
   import colossus.core.WorkerCommand._
   import config._
@@ -149,8 +149,6 @@ class ServiceClient[I,O](
   private var manuallyDisconnected = false
   private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
-  protected var writer: Option[WriteEndpoint] = None
-  protected val maxQueueSize = config.pendingBufferSize
   private var disconnecting: Boolean = false //set to true during graceful disconnect
   val log = Logging(worker.system.actorSystem, s"client:$address")
 
@@ -247,10 +245,10 @@ class ServiceClient[I,O](
     }
   }
 
-  def connected(endpoint: WriteEndpoint) {
+  override def connected(endpoint: WriteEndpoint) {
+    super.connected(endpoint)
     log.info(s"Connected to $address")
     codec.reset()    
-    writer = Some(endpoint)
     connectionAttempts = 0
     readyForData()
   }

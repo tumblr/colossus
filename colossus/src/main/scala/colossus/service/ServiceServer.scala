@@ -38,8 +38,8 @@ class DroppedReply extends Error("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O](val codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext) 
-extends ConnectionHandler with InputController[I,O] with OutputController[I,O] {
+abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext) 
+extends Controller[I,O](codec, ControllerConfig(50)) {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -80,8 +80,6 @@ extends ConnectionHandler with InputController[I,O] with OutputController[I,O] {
   }
 
   private val requestBuffer = collection.mutable.Queue[SyncPromise]()
-  protected var writer: Option[WriteEndpoint] = None
-  protected val maxQueueSize = 50 //todo that's a totally arbitrary number
   private var numRequests = 0
 
   def idleCheck(period: Duration) {
@@ -114,11 +112,6 @@ extends ConnectionHandler with InputController[I,O] with OutputController[I,O] {
         //todo: deal with output-controller full
       }
     }
-  }
-
-  def connected(endpoint: WriteEndpoint) {
-    writer = Some(endpoint)
-    val wid = id.getOrElse(throw new Exception("connected called on unbound service handler"))
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {}
