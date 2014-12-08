@@ -1,12 +1,13 @@
 package colossus
 package protocols.http
 
-import core._
-import service._
+import colossus.core._
+import colossus.parsing.DataSize
+import colossus.service._
 
-class HttpClientCodec extends Codec.ClientCodec[HttpRequest, HttpResponse]{
+class HttpClientCodec(maxSize: DataSize = HttpResponseParser.DefaultMaxSize) extends Codec.ClientCodec[HttpRequest, HttpResponse]{
 
-  val parser = new HttpResponseParser
+  val parser = new HttpResponseParser(maxSize)
 
   override def encode(out: HttpRequest): DataBuffer = DataBuffer(out.bytes)
 
