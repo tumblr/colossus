@@ -52,6 +52,18 @@ trait Source[T] extends Transport {
 trait Sink[T] extends Transport {
   def pull(onReady: Try[Option[T]] => Unit)
 
+  def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
+
+  def fold[U](init: U)(cb: (T, U) => U): Callback[U] = {
+    pullCB().flatMap{
+      case Some(i) => fold(cb(i, init))(cb)
+      case None => Callback.successful(init)
+    }
+  }
+    
+
+  def ++(next: Sink[T]): Sink[T] = new DualSink(this, next)
+
   //notice that Sink has no equivalent of complete.  This is because we never
   //have a situation where a sink non-erroneously doesn't read the entire
   //stream
@@ -87,12 +99,12 @@ object PushResult {
 }
 
 //a pipe designed to accept a fixed number of bytes
-class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
+class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
   import PushResult._
 
   private val internal = new InfinitePipe[DataBuffer](maxSize)
 
-  private var taken = 0
+  private var taken = 0L
 
   def remaining = totalBytes - taken
 
@@ -104,7 +116,7 @@ class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
       taken += data.size
       internal.push(data) 
     } else {
-      val partial = DataBuffer(ByteString(data.take(remaining)))
+      val partial = DataBuffer(ByteString(data.take(math.min(remaining, Int.MaxValue).toInt)))
       taken = totalBytes
       internal.push(partial)
       internal.complete()
@@ -124,6 +136,33 @@ class FiniteBytePipe(totalBytes: Int, maxSize: Int) extends Pipe[DataBuffer] {
 
   def terminate(reason: Throwable) {
     internal.terminate(reason: Throwable)
+  }
+}
+
+/**
+ * Wraps 2 sinks and will automatically begin reading from the second only when
+ * the first is empty.  The `None` from the first sink is never exposed.  The
+ * first error reported from either sink is propagated.
+ */
+class DualSink[T](a: Sink[T], b: Sink[T]) extends Sink[T] {
+  private var a_empty = false
+  def pull(cb: Try[Option[T]] => Unit) {
+    if (a_empty) {
+      b.pull(cb)
+    } else {
+      a.pull{
+        case Success(None) => {
+          a_empty = true
+          pull(cb)
+        }
+        case other => cb(other)
+      }
+    }
+  }
+
+  def terminate(reason: Throwable) {
+    a.terminate(reason)
+    b.terminate(reason)
   }
 }
 
@@ -206,7 +245,6 @@ class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
     }
   }
 
-  def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
 
   def complete() {
     completed = true
