@@ -33,7 +33,7 @@ object RawProtocol {
   implicit object RawCodecProvider extends CodecProvider[Raw] {
     def provideCodec() = RawCodec
 
-    def errorResponse(request: ByteString, reason: Throwable) = ByteString(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+    def errorResponse(request: ByteString, reason: Throwable) = Completion(ByteString(s"Error (${reason.getClass.getName}): ${reason.getMessage}"))
   }
 
   implicit object RawClientCodecProvider extends ClientCodecProvider[Raw] {

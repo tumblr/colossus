@@ -109,42 +109,12 @@ case class Completion[+O](value: O, tags: TagMap = TagMap.Empty, onwrite: OnWrit
 
 
 object Completion {
-  implicit def liftObj[O](obj: O): Completion[O] = Completion(obj)
+
+  object Implicits {
+    implicit def liftObj[O](obj: O): Completion[O] = Completion(obj)
+    implicit def liftCallback[O](c: Callback[O]): Callback[Completion[O]] = c.map{x => Completion(x)}
+    implicit def liftCompletion[O](c: Completion[O]): Callback[Completion[O]] = Callback.successful(c)
+    implicit def liftObjCallback[O](obj: O): Callback[Completion[O]] = Callback.successful(Completion(obj))
+  }
 }
 
-sealed trait Response[+O]{self =>
-  
-  def withTags(newtags: (String, String)*): Response[O] = mapCompletion(_.withTags(newtags:_*))
-
-  def mapCompletion[U >: O](f: Completion[O] => Completion[U])(implicit executionContext: ExecutionContext = ExecutionContext.global): Response[U]
-}
-
-object Response {
-  case class SyncResponse[O](result: Completion[O]) extends Response[O] {
-    def mapCompletion[U >: O](f: Completion[O] => Completion[U])(implicit executionContext: ExecutionContext = ExecutionContext.global)= SyncResponse(f(result))
-  }
-
-  case class AsyncResponse[O](result: Future[Completion[O]]) extends Response[O] {
-
-    def mapCompletion[U >: O](f: Completion[O] => Completion[U])(implicit executionContext: ExecutionContext = ExecutionContext.global) = {
-      AsyncResponse(result.map{c => f(c)})
-    }
-  }
-
-  case class CallbackResponse[O](callback: Callback[Completion[O]]) extends Response[O]{
-    def mapCompletion[U >: O](f: Completion[O] => Completion[U])(implicit executionContext: ExecutionContext = ExecutionContext.global) = {
-      CallbackResponse(callback.map{c => f(c)})
-    }
-
-  }
-
-  def complete[O](value: O): Completion[O] = new Completion(value)
-
-
-  implicit def liftSync[O](o: O): Response[O] = SyncResponse(Completion(o))
-  implicit def liftFuture[O](f: Future[O])(implicit ex: ExecutionContext): Response[O] = AsyncResponse(f.map{x => Completion(x)})
-  implicit def liftCallback[O](c: Callback[O]): Response[O] = CallbackResponse(c.map{x => Completion(x)})
-  implicit def liftCompletedSync[O](o: Completion[O]): Response[O] = SyncResponse(o)
-  implicit def liftCompletedFuture[O](f: Future[Completion[O]]): Response[O] = AsyncResponse(f)
-  implicit def liftCompletedCallback[O](c: Callback[Completion[O]]): Response[O] = CallbackResponse(c)
-}

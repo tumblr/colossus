@@ -3,6 +3,7 @@ package service
 
 import colossus.core._
 import testkit._
+import Completion.Implicits._
 
 import akka.testkit.TestProbe
 
@@ -387,13 +388,13 @@ class ServiceClientSpec extends ColossusSpec {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem{implicit sys => 
         import service._
-        import Response._
         import protocols.redis._
+        import Completion.Implicits._
 
         val reply = StatusReply("LATER LOSER!!!")
         val server = Service.become[Redis]("test", TEST_PORT) {
           case c if (c.command == "BYE") => {
-            complete(reply).onWrite(OnWriteAction.Disconnect)
+            Completion(reply).onWrite(OnWriteAction.Disconnect)
           }
           case other => StatusReply("ok")
         }
@@ -417,7 +418,7 @@ class ServiceClientSpec extends ColossusSpec {
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
         val server = Service.become[Raw]("rawwww", TEST_PORT) {
-          case foo => foo.onWrite(OnWriteAction.Disconnect)
+          case foo => Callback.successful(foo.onWrite(OnWriteAction.Disconnect))
         }
         withServer(server) {
           val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
@@ -430,7 +431,7 @@ class ServiceClientSpec extends ColossusSpec {
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem{ implicit io =>
         val server = Service.become[Raw]("rawwww", TEST_PORT) {
-          case foo => foo.onWrite(OnWriteAction.Disconnect)
+          case foo => Callback.successful(foo.onWrite(OnWriteAction.Disconnect))
         }
         withServer(server) {
 

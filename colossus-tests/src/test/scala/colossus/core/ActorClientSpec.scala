@@ -20,6 +20,7 @@ class AsyncClientSpec extends ColossusSpec {
   def createService()(implicit io: IOSystem) = {
     import protocols.telnet._
     import service._
+    import Completion.Implicits._
     Service.become[Telnet]("test", TEST_PORT) {
       case TelnetCommand(c :: tail) => {
         println("HERE")

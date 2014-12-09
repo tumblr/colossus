@@ -18,7 +18,7 @@ package object redis {
   implicit object RedisCodecProvider extends CodecProvider[Redis] {
     def provideCodec() = new RedisServerCodec
 
-    def errorResponse(request: Command, reason: Throwable) = ErrorReply(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+    def errorResponse(request: Command, reason: Throwable) = Completion(ErrorReply(s"Error (${reason.getClass.getName}): ${reason.getMessage}"))
   }
 
   implicit object RedisClientCodecProvider extends ClientCodecProvider[Redis] {

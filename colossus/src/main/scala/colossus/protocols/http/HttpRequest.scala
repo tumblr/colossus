@@ -9,7 +9,6 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   import head._
   import HttpCodes._
   import HttpParse._
-  import Response._
 
   def complete(response: HttpResponse): Completion[HttpResponse] = {
     val tags = Map("status_code" -> response.code.code.toString)

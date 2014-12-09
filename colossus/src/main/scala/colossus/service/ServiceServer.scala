@@ -41,7 +41,6 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   import ServiceServer._
   import WorkerCommand._
   import config._
-  import Response._
 
   implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
   val log = Logging(worker.system.actorSystem, name.toString())
@@ -163,23 +162,18 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
        * Notice, if the request buffer if full we're still adding to it, but by skipping
        * processing of requests we can hope to alleviate overloading
        */
-      val response: Response[O] = if (requestBuffer.size < requestBufferSize) {
+      val response: Callback[Completion[O]] = if (requestBuffer.size < requestBufferSize) {
         try {
           processRequest(request) 
         } catch {
           case t: Throwable => {
-            handleFailure(request, t)
+            Callback.successful(handleFailure(request, t))
           }
         }
       } else {
-        handleFailure(request, new RequestBufferFullException)
+        Callback.successful(handleFailure(request, new RequestBufferFullException))
       }
-      val cb: Callback[Completion[O]] = response match {
-        case SyncResponse(s) => Callback.successful(s)
-        case AsyncResponse(a) => Callback.fromFuture(a)
-        case CallbackResponse(c) => c
-      }
-      cb.execute{
+      response.execute{
         case Success(res) => promise.complete(res)
         case Failure(err) => promise.complete(handleFailure(promise.request, err))
       }
@@ -203,12 +197,12 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
     }
   }
 
-  //this is just to make some request processing methods cleaner
-  def respond(f: => Response[O]): Response[O] = f
+  def complete(response: O): Callback[Completion[O]] = Callback.successful(Completion(response))
+  def complete(callback: Callback[Completion[O]]) = Completion.Implicits.liftCallback(callback)
 
   // ABSTRACT MEMBERS
 
-  protected def processRequest(request: I): Response[O]
+  protected def processRequest(request: I): Callback[Completion[O]]
 
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
   protected def processFailure(request: I, reason: Throwable): Completion[O]

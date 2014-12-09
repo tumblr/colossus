@@ -3,6 +3,7 @@ package colossus
 import testkit._
 import core._
 import service._
+import Completion.Implicits._
 
 import akka.testkit.TestProbe
 

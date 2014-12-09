@@ -11,6 +11,7 @@ import java.net.InetSocketAddress
 
 import protocols.telnet._
 import service._
+import Completion.Implicits._
 
 
 class IOSystemSpec extends ColossusSpec {
