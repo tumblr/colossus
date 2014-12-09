@@ -6,6 +6,8 @@ object UrlParsing {
   sealed trait UrlComponent
   case class ParsedUrl(pieces: List[String]) extends UrlComponent
   case object Root extends UrlComponent
+  case class StringUrl(url:String) extends UrlComponent
+  case object Null extends UrlComponent
 
   object Url {
     def parse(str: String): UrlComponent = {
@@ -41,4 +43,7 @@ object UrlParsing {
     def unapply(request: HttpRequest): Option[(HttpMethod, UrlComponent)] = Some(request.head.method, Url.parse(request.head.url))
   }
 
+  case object in {
+    def unapply(request:HttpRequest):Option[(HttpMethod, UrlComponent)] = Some(request.head.method, Root)
+  }
 }
