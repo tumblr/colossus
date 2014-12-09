@@ -326,11 +326,11 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.clearBuffer()
       client.gracefulDisconnect()
       endpoint.disconnectCalled must equal(false)
-      intercept[NotConnectedException] {
+      intercept[CallbackExecutionException] {
         client.send(cmd2).execute{
           case Success(StatusReply(msg)) => {}
-          case Failure(nope) => throw nope
-          case _ => throw new Exception("Bad Response")
+          case Failure(nope: NotConnectedException) => throw nope
+          case _ => {}
         }
       }
       client.receivedData(rep1.raw)
