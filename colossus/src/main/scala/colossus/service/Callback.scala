@@ -6,33 +6,73 @@ import scala.util.{Try, Success, Failure}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+
 /**
- * A Callback is a bit like a synchronous Future.  It essentially allows us to
- * build a callback in a monadic way before it is handed off to the function
- * that actually requires the callback
+ * This exception is only thrown when there's a uncaught exception in the execution block of a Callback.  For example, {{{
+ val c: Callback[Foo] = getCallback()
+ c.execute{
+   case Success(foo) => throw new Exception("exception")
+ }
+ }}}
+ * will result in a `CallbackExecutionException` being thrown, however {{{
+ c.map{_ => throw new Exception("exception")}.execute()
+ }}}
+ * will not because the exception can still be recovered
+ */
+
+class CallbackExecutionException(cause: Throwable) extends Exception("Uncaught exception in callback Execution block", cause)
+
+
+/**
+ * A Callback is a Monad for doing in-thread non-blocking operations.  It is
+ * essentially a "function builder" that uses function composition to chain
+ * together a callback function that is eventually passed to another function.
  *
- * So normally if you have a function that requires a callback, the function looks something like:
+ * Normally if you have a function that requires a callback, the function looks something like:{{{
+   def doSomething(param, param, callBack: result => Unit)
+ }}}
+ * and then you'd call it like {{{
+  doSomething(arg1, arg2, result => println("got the result"))
+  }}}
+ * This is the well-known continuation pattern, and it something we'd like to avoid due to the common occurrance of deeply nested "callback hell".  Instead, the `Callback` allows us to define out function as{{{
+  def doSomething(param1, param2): Callback[Result]
+  }}}
+ * and call it like {{{
+  val c = doSomething(arg1, arg2)
+  c.map{ result =>
+    println("got the result")
+  }.execute()
+  }}}
  *
- *  def doSomething(param, param, callBack: result => Unit)
- *
- * and then you'd call it like 
- *
- *  
- * passing the callback as a parameter.  The problem with this is we really
- * want callbacks to behave more like futures (aka a monad), where you get a
- * return value that you can hand off to someone else.  The Callback trait does
- * this by delaying invocation of the caller function, allowing you to build
- * your callback with function composition.
- *
- * The big differences from a future are:
+ * Thus, in practice working with Callbacks is very similar to working with Futures.  The big differences from a future are:
  *
  * 1.  Callbacks are not thread safe at all.  They are entirely intended to stay inside a single worker.  Otherwise just use Futures.
  *
  * 2.  The execute() method needs to be called once the callback has been
  * fully built, which unlike futures requires some part of the code to know when a callback is ready to be invoked
  *
+ * == Using Callbacks in Services ==
+ *
+ * When building services, particularly when working with service clients, you
+ * will usually be getting Callbacks back from clients when requests are sent.
+ * *Do not call `execute` yourself!* on these Callbacks.  They must be returned
+ * as part of request processing, and Colossus will invoke the callback itself.
+ *
+ * == Using Callbacks elsewhere ==
+ *
+ * If you are using Callbacks in some custom situation outside of services, be
+ * aware that exceptions thrown inside a `map` or `flatMap` are properly caught
+ * and can be recovered using `recover` and `recoverWith`, however exceptions
+ * thrown in the "final" handler passed to `execute` are not caught.  This is
+ * because the final block cannot be mapped on (since it is only passed when
+ * the callback is executed) and throwing the exception is preferrable to
+ * suppressing it.  
+ *
+ * Any exception that is thrown in this block is however rethrown as a
+ * `CallbackExecutionException`.  Therefore, any "trigger" function you wrap
+ * inside a callback should properly catch this exception.
+ *
  */
-
 trait Callback[+O] {
   def map[U](f: O => U): Callback[U]
   def flatMap[U](f: O => Callback[U]): Callback[U]
@@ -64,7 +104,11 @@ trait Callback[+O] {
 
 case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[I] => Try[O]) extends Callback[O] {
   def execute(onComplete: Try[O] => Unit = _ => ()) {
-    trigger({i => onComplete(handler(i))})
+    try {
+      trigger({i => onComplete(handler(i))})
+    } catch {
+      case err: Throwable => throw new CallbackExecutionException(err)
+    }
   }
 
   //since we're getting a new callback, we must rebuild the trigger so that the
@@ -76,7 +120,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
         case Success(callback) => callback.execute(cb)
         case Failure(err) => cb(Failure(err))
       }
-    })
+    }.get) //this get is needed to avoid suppressing thrown exceptions in the final execute block
     UnmappedCallback(newTrigger)
   }
   def map[U](f: O => U): Callback[U] = MappedCallback(trigger, {i: Try[I] => handler(i).flatMap(v => Try(f(v)))})
@@ -118,14 +162,18 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
         case Success(callback) => callback.execute(cb)
         case Failure(err) => cb(Failure(err))
       }
-    })
+    }.get)
     UnmappedCallback(newTrigger)
   }
 
   def mapTry[O](f: Try[I] => Try[O]): Callback[O] = MappedCallback(trigger, f)
 
   def execute(onComplete: Try[I] => Unit = _ => ()) {
-    trigger({i => onComplete(i)})
+    try {
+      trigger({i => onComplete(i)})
+    } catch {
+      case err: Throwable => throw new CallbackExecutionException(err)
+    }
   }
 
   def recover[U >: I](p: PartialFunction[Throwable, U]): Callback[U] = MappedCallback(trigger, (i: Try[I]) => i match {
@@ -149,6 +197,16 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
 
 }
 
+/**
+ * A `CallbackExecutor` is an actor that mixes in the [CallbackExecution] trait
+ * to complete the execution of a [Callback] that has been converted from a
+ * `Future`.  In almost every case, the executor should be an actor running in
+ * a Pinned Dispatcher and shound be the same actor that created the original
+ * Callback, for example, a Colossus worker.
+ *
+ * This type is generally only needed when converting a Future to a Callback,
+ * or scheduling a Callback for delayed execution.  
+ */
 case class CallbackExecutor(context: ExecutionContext, executor: ActorRef)
 object CallbackExecutor {
   def apply(executor: ActorRef)(implicit ex: ExecutionContext): CallbackExecutor = CallbackExecutor(ex, executor)

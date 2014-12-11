@@ -168,19 +168,19 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
 
 
 
-class MemcacheClientCodec extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
-  private var parser = new MemcacheReplyParser//(NoCompressor) //config
+class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
+  private var parser = new MemcacheReplyParser(maxSize)//(NoCompressor) //config
 
   def encode(cmd: MemcacheCommand): DataBuffer = DataBuffer(cmd.bytes(NoCompressor))
   def decode(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
   def reset(){
-    parser = new MemcacheReplyParser//(NoCompressor)
+    parser = new MemcacheReplyParser(maxSize)//(NoCompressor)
   }
 }
 
-class MemcacheClient(config: ClientConfig, worker: WorkerRef) 
+class MemcacheClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
   extends ServiceClient[MemcacheCommand, MemcacheReply](
-    codec   = new MemcacheClientCodec,
+    codec   = new MemcacheClientCodec(maxSize),
     config  = config,
     worker  = worker
   )

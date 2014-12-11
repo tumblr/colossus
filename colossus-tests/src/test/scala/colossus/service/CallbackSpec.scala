@@ -8,6 +8,8 @@ import scala.concurrent.{ExecutionContext, Promise}
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 
+import org.scalatest._
+
 class CallbackSpec extends ColossusSpec {
   val func = {f: (Try[Int] => Unit) => f(Success(5))}
 
@@ -145,6 +147,21 @@ class CallbackSpec extends ColossusSpec {
       b must equal(false)
     }
 
+    "catch exception in flatMap" in {
+      var j = false
+      //from unmapped callback
+      val c = Callback(func).flatMap[Int]{i => throw new Exception("HEY")}.map{_ => j = true}.execute()
+      j must equal(false)
+
+      //from mapped callback
+      var a = false
+      var b = false
+      val c1 = Callback(func).map{x => a = true;x}.flatMap{i => throw new Exception("LISTEN")}.map{_ => b = true}.execute()
+      a must equal(true)
+      b must equal(false)
+    }
+      
+
     "recover" in {
       var recovered = false
       val c = Callback(func).map[Int]{i => throw new Exception("OVER HERE")}.recover{
@@ -161,6 +178,17 @@ class CallbackSpec extends ColossusSpec {
       }.execute()
       recovered must equal(true)
       mapped must equal(false)
+    }
+
+    "recover after flatMap" in {
+      var recovered = false
+      var mapped = false
+      Callback(func).flatMap[Int]{i => throw new Exception("WATCH OUT")}.map{_ => mapped = true}.recover{
+        case t => recovered = true
+      }.execute()
+      recovered must equal(true)
+      mapped must equal(false)
+
     }
 
     "recover - fall-through" in {
@@ -268,14 +296,41 @@ class CallbackSpec extends ColossusSpec {
 
 
     }
-      
-        
-      
 
+    "not suppress exceptions thrown in the execute block" in {
+      //in practice, throwing an exception here is really bad, since the
+      //exception will likely not actually be thrown at the call site, so any
+      //try/catch around .execute will not actually catch the exception.  But
+      //this is better than simply suppressing the exception, which is what
+      //used to happen
+      //
+      //also note, this is only an issue in the final block passed to execute.
+      //In any other place, even when mapping/flatMapping, unhandled exceptions are
+      //properly caught inside the callback and suppressed, allowing for
+      //recovery using recover and recoverWith.  The difference is this final
+      //block has no way to recover, so we have to either suppress or throw
+      //without the possibility of recovery.
+      //todo: maybe completely eliminate the block in execution
 
-      
+      class FoobarException extends Exception("FOOBAR")
 
+      intercept[CallbackExecutionException] {
+        Callback(func).execute{
+          case _ => throw new FoobarException
+        }
+      }
 
+      intercept[CallbackExecutionException] {
+        Callback(func).flatMap{x => Callback(func)}.execute {
+          case _ => {
+            val e = new FoobarException
+            //e.printStackTrace()
+            throw e
+          }
+        }
+      }
+
+    }
 
   }
 }

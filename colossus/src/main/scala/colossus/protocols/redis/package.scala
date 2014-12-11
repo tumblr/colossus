@@ -1,6 +1,7 @@
 package colossus
 package protocols
 
+import colossus.parsing.DataSize
 import core._
 import service._
 
@@ -26,8 +27,8 @@ package object redis {
     val name = "redis"
   }
 
-  class RedisClient(config: ClientConfig, worker: WorkerRef) extends ServiceClient(
-    codec     = new RedisClientCodec,
+  class RedisClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) extends ServiceClient(
+    codec     = new RedisClientCodec(maxSize),
     config    = config,
     worker    = worker
   ) {
