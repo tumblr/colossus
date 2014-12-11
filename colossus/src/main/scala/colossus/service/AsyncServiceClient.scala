@@ -12,13 +12,13 @@ import scala.concurrent.duration._
 /**
  * This correctly routes messages to the right worker and handler
  */
-class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => WorkerRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
+class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
   import WorkerCommand._
   import ConnectionEvent._
   import config._
 
   override def preStart() {
-    system.workerManager ! IOCommand.Connect(address, handlerFactory(self))
+    system.workerManager ! IOCommand.BindWorkerItem(handlerFactory(self))
     context.become(binding)
   }
 
@@ -26,6 +26,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
   def binding: Receive = {
     case Bound(id) => {
+      println(s"service client bound $id")
       context.become(proxy(id, sender))
       unstashAll()
     }
@@ -35,6 +36,9 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
 
   def proxy(connectionId: Long, worker: ActorRef): Receive = {
+    case Bound(wat) => {
+      println(s"RECEIVED BOUND AGAIN! $connectionId vs $wat")
+    }
     case Connected => {} //we ignore this because there's nothing to do with it.  Maybe add a callback in the future
     case AsyncServiceClient.Disconnect => self ! PoisonPill //the worker is watching us and will close the underlying connection
     case x => worker ! Message(connectionId, x)
@@ -78,15 +82,13 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
    */
   class AsyncHandler(
     config: ClientConfig,
-    worker: WorkerRef,
     val caller: ActorRef
-  ) extends ServiceClient[I,O](codec, config, worker) with WatchedHandler {
-    implicit val sender = worker.worker
+  ) extends ServiceClient[I,O](codec, config) with WatchedHandler {
     val watchedActor = caller
 
     override def onBind() {
       super.onBind()
-      caller.!(ConnectionEvent.Bound(id.get))(worker.worker)
+      caller.!(ConnectionEvent.Bound(id.get))(boundWorker.get.worker)
     }
 
     override def receivedMessage(message: Any, sender: ActorRef) {
@@ -125,6 +127,6 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     }
   }
 
-  val handlerFactory: ActorRef => WorkerRef => ConnectionHandler = caller => worker => new AsyncHandler(config, worker, caller)
+  val handlerFactory: ActorRef => ConnectionHandler = caller => new AsyncHandler(config, caller)
 
 }

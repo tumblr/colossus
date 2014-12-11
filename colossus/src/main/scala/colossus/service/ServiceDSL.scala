@@ -100,9 +100,7 @@ trait ServiceContext[C <: CodecDSL] {
   def receive(receiver: Receive)
 
   def clientFor[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    val client = new ServiceClient(provider.clientCodec(), config, worker)
-    client.connect()
-    client
+    ServiceClient(provider.clientCodec(), config, worker)
   }
 
   def clientFor[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
