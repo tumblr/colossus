@@ -12,8 +12,7 @@ package protocols.http
  * To use either language, import the UrlParsing._ object
 */
  object UrlParsing {
-  /** Constant indicating the root of the URL for use in string based parsing */
-  val ROOT = "/"
+
 
   /** Trait encapsulating parts of the parse of a url */
   sealed trait UrlComponent
@@ -50,20 +49,7 @@ package protocols.http
     }
   }
 
-  /** Extractor for right-binding string based DSL. To use:
-    * case irl @ Get <or other method> in ROOT /: first level /: second level /: remainder
-    */
-  object /: {
-    def unapply(s:String):Option[(String, String)] = s match {
-      case url:String if (url == "/") => Some((url, ""))
-      case url:String if (url startsWith "/") => Some("/", url drop 1)
-      case url:String  =>
-        val last = url.indexOf('/')
-        val tail = url.substring(last + 1)
-        val head = url.substring(0, last)
-        Some((if (head.isEmpty) "/" else head, tail))
-    }
-  }
+
 
   /** Extractor for integers */
   object Integer {
@@ -80,6 +66,24 @@ package protocols.http
   case object on {
     def unapply(request: HttpRequest): Option[(HttpMethod, UrlComponent)] = Some(request.head.method, Url.parse(request.head.url))
   }
+object Strings{
+  /** Constant indicating the root of the URL for use in string based parsing */
+  val ROOT = "/"
+
+  /** Extractor for right-binding string based DSL. To use:
+    * case irl @ Get <or other method> in ROOT /: first level /: second level /: remainder
+    */
+  object /: {
+    def unapply(s:String):Option[(String, String)] = s match {
+      case url:String if (url == "/") => Some((url, ""))
+      case url:String if (url startsWith "/") => Some("/", url drop 1)
+      case url:String  =>
+        val last = url.indexOf('/')
+        val tail = url.substring(last + 1)
+        val head = url.substring(0, last)
+        Some((if (head.isEmpty) "/" else head, tail))
+    }
+  }
 
   /**
    * Keyword which triggers right-binding string based parsing. Must be used to match a url pattern with an HTTP method.
@@ -93,4 +97,5 @@ package protocols.http
       Some(request.head.method, component)
     }
   }
+}
 }

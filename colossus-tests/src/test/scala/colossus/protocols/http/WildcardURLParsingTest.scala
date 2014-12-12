@@ -8,7 +8,7 @@ import org.scalatest.{MustMatchers, WordSpec}
 class WildcardURLParsingTest extends WordSpec with MustMatchers {
   import colossus.protocols.http.HttpMethod._
   import colossus.protocols.http.HttpVersion._
-  import colossus.protocols.http.UrlParsing._
+  import colossus.protocols.http.UrlParsing.Strings._
     "The wildcard url parser" should {
       "match a root url" in {
           val url = ""
