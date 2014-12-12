@@ -14,7 +14,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
           val url = ""
           val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
           request match {
-            case req @ Get in ROOT => true
+            case req @ Get on Root => true
             case _ => fail()
           }
       }
@@ -23,7 +23,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
         val url = "/moose.jpg"
         val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
         request match {
-          case req @ Get in ROOT /: rest => rest must be("moose.jpg")
+          case req @ Get on Root /: rest => rest must be("moose.jpg")
           case _ => fail("Failed to match url")
         }
       }
@@ -32,7 +32,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
         val url = "/bronx/zoo/moose.jpg"
         val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
         request match {
-          case req @ Get in base /: city /: place /: animal  =>
+          case req @ Get on base /: city /: place /: animal  =>
             base must be("/")
             city must be("bronx")
             place must be("zoo")
@@ -45,7 +45,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
         val url = "/bronx/zoo/moose.jpg"
         val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
         request match {
-          case req @ Get in ROOT /: city /: placeAndAnimal => placeAndAnimal must be("zoo/moose.jpg")
+          case req @ Get on Root /: city /: placeAndAnimal => placeAndAnimal must be("zoo/moose.jpg")
           case _ => fail("Failed to match complex url")
         }
       }

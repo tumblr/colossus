@@ -68,7 +68,7 @@ package protocols.http
   }
 object Strings{
   /** Constant indicating the root of the URL for use in string based parsing */
-  val ROOT = "/"
+  val Root = "/"
 
   /** Extractor for right-binding string based DSL. To use:
     * case irl @ Get <or other method> in ROOT /: first level /: second level /: remainder
@@ -88,7 +88,7 @@ object Strings{
   /**
    * Keyword which triggers right-binding string based parsing. Must be used to match a url pattern with an HTTP method.
    */
-  case object in {
+  case object on {
     def unapply(request: HttpRequest): Option[(HttpMethod, String)] = {
       val component = request.head.url match {
         case "" => "/"
