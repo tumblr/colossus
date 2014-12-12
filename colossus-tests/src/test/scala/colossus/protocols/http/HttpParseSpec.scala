@@ -1,18 +1,11 @@
 package colossus
 package protocols.http
 
-import core._
-
-
-
-import org.scalatest._
-
 import akka.util.ByteString
-
-import protocols.http._
-
-import parsing._
-import DataSize._
+import colossus.core._
+import colossus.parsing.DataSize._
+import colossus.parsing._
+import org.scalatest._
 
 object Broke extends Tag("broke")
 
@@ -205,21 +198,21 @@ class HttpParserSuite extends WordSpec with MustMatchers{
   }
 
   "Http Url Matcher" must {
-    import UrlParsing._
-    import HttpMethod._
-    import HttpVersion._
+    import colossus.protocols.http.HttpMethod._
+    import colossus.protocols.http.HttpVersion._
+    import colossus.protocols.http.UrlParsing._
 
     "parse a url" in {
-      Url.parse("/foo/bar/baz") must equal (ParsedUrl("baz" :: "bar" :: "foo" :: Nil))
+      Url.parse("/foo/bar/baz") must equal (ParsedUrl(Vector("foo", "bar", "baz")))
     }
     "parse a url with integer" in {
-      Url.parse("/foo/3/baz") must equal (ParsedUrl("baz" :: "3" :: "foo" :: Nil))
+      Url.parse("/foo/3/baz") must equal (ParsedUrl(Vector("foo", "3","baz")))
     }
 
     "match url with one component" in {
       val u = Url.parse("/a")
       val r = u match {
-        case ParsedUrl(List("a")) => true
+        case ParsedUrl(Vector("a")) => true
         case _ => false
       }
       r must equal(true)

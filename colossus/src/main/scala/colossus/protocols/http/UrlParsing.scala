@@ -19,7 +19,7 @@ package protocols.http
   sealed trait UrlComponent
 
   /** Case class encapsulating a single piece of a parsed url */
-  case class ParsedUrl(pieces: List[String]) extends UrlComponent
+  case class ParsedUrl(pieces: Vector[String]) extends UrlComponent
 
   /** Case object indicting the root of a url */
   case object Root extends UrlComponent
@@ -29,7 +29,7 @@ package protocols.http
     def parse(str: String): UrlComponent = {
       val paramless = str.split("\\?").headOption
       paramless.map{ x =>
-        val p = x.split("/").filter{_ != ""}.reverse.toList
+        val p = x.split("/").filter{_ != ""}.toVector
         if (p.size == 0) {
           Root
         } else {
@@ -44,8 +44,8 @@ package protocols.http
     */
   object / {
     def unapply(p: UrlComponent): Option[(UrlComponent, String)] = p match {
-      case ParsedUrl(items) if (items.size == 1) => Some((Root, items.head))
-      case ParsedUrl(items) if (items.size > 1) => Some((ParsedUrl(items.tail), items.head))
+      case ParsedUrl(items) if (items.size == 1) => Some((Root, items.last))
+      case ParsedUrl(items) if (items.size > 1) => Some((ParsedUrl(items dropRight 1), items.last))
       case _ => None
     }
   }
