@@ -1,4 +1,5 @@
-import colossus.protocols.http.{HttpHead, HttpRequest}
+package colossus.protocols.http
+
 import org.scalatest.{MustMatchers, WordSpec}
 
 /**
