@@ -5,7 +5,7 @@ package protocols.http
  * URL parsing can be done using one of two paths. The first uses an object based decomposition with a minimal number
  * of string operations. This parses using the 'on' keyword and the left associative '/' operator.
  *
- * The second method uses string operations in a right associtive manner. Because all values are strings, it is less type
+ * The second method uses string operations in a right associative manner. Because all values are strings, it is less type
  * safe than the object method. This is used with the 'in' keyword and the right associative '/:' operator. In this method,
  * the final variable in the pattern will consume all remaining levels.
  *
@@ -22,9 +22,7 @@ package protocols.http
   case class ParsedUrl(pieces: List[String]) extends UrlComponent
 
   /** Case object indicting the root of a url */
-  case object Root extends UrlComponent {
-    def to_s = "/"
-  }
+  case object Root extends UrlComponent
 
   object Url {
     /** Parses a string url into pieces for the object based url parsing DSL */
