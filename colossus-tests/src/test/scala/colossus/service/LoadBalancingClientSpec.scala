@@ -111,14 +111,14 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
     "get a shared interface when bound" in {
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
       val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
-      l.bind(1, worker)
+      l.setBind(1, worker)
       val shared = l.shared
     }
 
     "send messages in shared interface" in {
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
       val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
-      l.bind(1, worker)
+      l.setBind(1, worker)
       val shared = l.shared
       shared.send("hey")
       probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
@@ -133,7 +133,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       val clients = addrs(num)
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
       val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2, initialClients = clients)
-      l.bind(1, worker)
+      l.setBind(1, worker)
       val shared = l.shared
       (1 to ops).foreach{i => 
         l.receivedMessage(l.Send("hey", Promise()), probe.ref)

@@ -12,7 +12,7 @@ import akka.actor._
  *
  */
 
-abstract class Task(implicit factory: ActorRefFactory) extends BindableWorkerItem {
+abstract class Task(implicit factory: ActorRefFactory) extends WorkerItem {
   implicit val proxy = factory.actorOf(Props[TaskProxy])
   import TaskProxy._
 
@@ -91,7 +91,7 @@ object Task {
   def apply(runner: TaskContext => Unit)(implicit io: IOSystem): ActorRef = {
     val task: BasicTask = new BasicTask()(io.actorSystem)
     task.onStart(runner(task))
-    io ! IOCommand.BindWorkerItem(() => task)
+    io ! IOCommand.BindWorkerItem(task)
     task.proxy
   }
 }

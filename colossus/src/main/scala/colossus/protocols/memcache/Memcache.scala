@@ -178,10 +178,9 @@ class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize
   }
 }
 
-class MemcacheClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
+class MemcacheClient(config: ClientConfig, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
   extends ServiceClient[MemcacheCommand, MemcacheReply](
     codec   = new MemcacheClientCodec(maxSize),
-    config  = config,
-    worker  = worker
+    config  = config
   )
 

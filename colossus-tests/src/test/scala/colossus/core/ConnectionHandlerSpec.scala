@@ -21,7 +21,7 @@ class Handler(listener: ActorRef) extends Actor {
   
 class AsyncDelegator(props: Props, server: ServerRef, worker: WorkerRef)(implicit factory: ActorRefFactory) extends Delegator(server, worker) {
   implicit val w = worker.worker
-  def acceptNewConnection = Some(AsyncHandler(factory.actorOf(props), worker))
+  def acceptNewConnection = Some(AsyncHandler(factory.actorOf(props)))
 }
 object AsyncDelegator {
   def factorize(props: Props)(implicit system: ActorSystem): Delegator.Factory = {
@@ -91,7 +91,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
-        io ! IOCommand.Connect(new InetSocketAddress("localhost", TEST_PORT), worker => new MyHandler)
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
@@ -112,7 +112,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.Connect(new InetSocketAddress("localhost", TEST_PORT), worker => new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
           probe.expectNoMsg(200.milliseconds)
         }
       }
@@ -134,7 +134,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.Connect(new InetSocketAddress("localhost", TEST_PORT), worker => new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
           probe.expectMsg(200.milliseconds, "UNBOUND")
         }
       }

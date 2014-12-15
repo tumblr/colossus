@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
+import akka.util.ByteString
 import colossus.core._
 import colossus.metrics._
 
@@ -84,7 +85,6 @@ trait SharedClient[I,O] extends ClientLike[I,O,Future] {
 }
 
 trait ServiceClientLike[I,O] extends LocalClient[I,O] {
-  def connect()
   def gracefulDisconnect()
   def config: ClientConfig
   def shared: SharedClient[I,O]
@@ -93,7 +93,11 @@ trait ServiceClientLike[I,O] extends LocalClient[I,O] {
 
 object ServiceClient {
 
-  def apply[I,O](codec: Codec[I,O], config: ClientConfig, worker: WorkerRef): ServiceClient[I,O] = new ServiceClient(codec, config, worker)
+  def apply[I,O](codec: Codec[I,O], config: ClientConfig, worker: WorkerRef): ServiceClient[I,O] = {
+    val c = new ServiceClient(codec, config)
+    worker.bind(c)
+    c
+  }
 
 }
 
@@ -110,19 +114,14 @@ class StaleClientException(msg : String) extends Exception(msg)
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
  *
- * Notice - a service client will not connect on it's own, the connect() method
- * must be called.  This is to avoid multiple connection requests when a
- * service client handler is created in the closure of a
- * ConnectionCommand.Connect message. 
- *
- * Therefore, if you are directly creating a client inside a server delegator,
- * you should call connect().  If you are creating the handler as part of a
- * Connect message to a worker or IOSystem, you should not call connect()
+ * Notice - The client will not begin to connect until it is bound to a worker,
+ * so when using the default constructor a service client will not connect on
+ * it's own.  You must either call `bind` on the client or use the constructor
+ * that accepts a worker
  */
 class ServiceClient[I,O](
   val codec: Codec[I,O], 
-  val config: ClientConfig,
-  val worker: WorkerRef
+  val config: ClientConfig
 ) extends ClientConnectionHandler with ServiceClientLike[I,O] {
   import colossus.IOCommand._
   import colossus.core.WorkerCommand._
@@ -130,14 +129,17 @@ class ServiceClient[I,O](
 
   type ResponseHandler = Try[O] => Unit
 
-  private val periods = List(1.second, 1.minute)
-  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
-  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
-  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
-  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
-  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
+  private lazy val worker = boundWorker.get
 
-  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  //todo: figure out how to make these not lazy
+  private val periods = List(1.second, 1.minute)
+  private lazy val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
+  private lazy val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
+  private lazy val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
+  private lazy val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
+  private lazy val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
+  private lazy val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   case class SourcedRequest(message: I, handler: ResponseHandler) {
     val start: Long = System.currentTimeMillis
@@ -150,7 +152,6 @@ class ServiceClient[I,O](
   private val pendingBuffer = mutable.Queue[SourcedRequest]()
   private var writer: Option[WriteEndpoint] = None
   private var disconnecting: Boolean = false //set to true during graceful disconnect
-  val log = Logging(worker.system.actorSystem, s"client:$address")
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
@@ -172,16 +173,15 @@ class ServiceClient[I,O](
     if (canReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
   )
 
-  def connect() {
+  override def onBind(){
+    super.onBind()
     if(!manuallyDisconnected){
-      worker ! Connect(address, _ => this)
+      log.info(s"client ${id.get} connecting to $address")
+      worker ! Connect(address, id.get)
     }else{
-      throw new StaleClientException("This client has already been manually disconnected, create a new one.")
+      throw new StaleClientException("This client has already been manually disconnected and cannot be reused, create a new one.")
     }
   }
-
-  //todo: this should now auto-connect on binding
-  //override def onBind(){}
 
   /**
    * Allow any requests in transit to complete, but cancel all pending requests
@@ -223,21 +223,26 @@ class ServiceClient[I,O](
 
   def receivedData(data: DataBuffer) {
     val now = System.currentTimeMillis
-    codec.decodeAll(data){response =>
-      try {
-        val source = sentBuffer.dequeue()
-        latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
-        source.handler(Success(response))
-        requests.hit(tags = hpTags)
-      } catch {
-        case e: java.util.NoSuchElementException => {
-          throw new DataException(s"No Request for response ${response.toString}!")
+    if (writer.isEmpty) {
+      val d = ByteString(data.takeAll)
+      log.error(s"Client $name($address) received data while not connected!: ${d.utf8String}")
+    } else {
+      codec.decodeAll(data){response =>
+        try {
+          val source = sentBuffer.dequeue()
+          latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
+          source.handler(Success(response))
+          requests.hit(tags = hpTags)
+        } catch {
+          case e: java.util.NoSuchElementException => {
+            throw new DataException(s"No Request for response ${response.toString}!")
+          }
         }
+        
       }
-      
+      checkGracefulDisconnect()
+      checkPendingBuffer()
     }
-    checkGracefulDisconnect()
-    checkPendingBuffer()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {
@@ -248,7 +253,10 @@ class ServiceClient[I,O](
   }
 
   def connected(endpoint: WriteEndpoint) {
-    log.info(s"Connected to $address")
+    if (writer.isDefined) {
+      throw new Exception("Handler Connected twice!")
+    }
+    log.info(s"${id.get} Connected to $address")
     codec.reset()    
     writer = Some(endpoint)
     connectionAttempts = 0
@@ -283,7 +291,7 @@ class ServiceClient[I,O](
 
   override protected def connectionLost(cause : DisconnectError) {
     purgeBuffers(new NotConnectedException("Connection lost"))
-    log.warning(s"connection to ${address.toString} lost: $cause")
+    log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
     disconnects.hit(tags = hpTags)
     attemptReconnect()
   }
@@ -300,7 +308,7 @@ class ServiceClient[I,O](
     if(!disconnecting) {
       if(canReconnect) {
         log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
-        worker ! Schedule(config.connectionAttempts.interval, Reconnect(address, this))
+        worker ! Schedule(config.connectionAttempts.interval, Connect(address, id.get))
       }
       else {
         log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
