@@ -18,7 +18,10 @@ package object http {
 
   implicit object HttpProvider extends CodecProvider[Http] {
     def provideCodec = new HttpServerCodec
-    def errorResponse(request: HttpRequest, reason: Throwable) = request.error(reason.toString)
+    def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
+      case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+      case other => request.error(reason.toString)
+    }
 
   }
 
