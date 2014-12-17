@@ -1,9 +1,10 @@
 package colossus.metrics
 
 import org.scalatest._
+import akka.testkit._
 
 import scala.concurrent.duration._
-class RateSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
+class RateSpec extends MetricIntegrationSpec {
 
   "Basic Rate" must {
     "tick" in {
@@ -21,6 +22,23 @@ class RateSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       r.value must equal(0)
     }
 
+  }
+
+  "ConcreteRate" must {
+    "tick for tags" in {
+      val p = TestProbe()
+      val params = Rate("/foo", periods = List(1.second))
+      val r = new ConcreteRate(params, p.ref)
+      r.hit(Map("foo" -> "a"))
+      r.hit(Map("foo" -> "a"))
+      r.hit(Map("foo" -> "b"))
+      val m1 = r.metrics(CollectionContext(Map()))
+      m1("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (0L)
+      m1("/foo/count")(Map("foo" -> "a")) must equal (2L)
+      r.tick(1.second)
+      val m2 = r.metrics(CollectionContext(Map()))
+      m2("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (2L)
+    }
   }
 
 }
