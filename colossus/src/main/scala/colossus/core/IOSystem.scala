@@ -102,11 +102,7 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    * @return The Task's ActorRef
    */
   def run(t: Task): ActorRef = {
-    //TODO: we should be creating the task inside the worker, however then we
-    //can't get a reference to the proxy actor here.  Probably need to provide
-    //the proxy as a param adn curry it.  Not a big deal for tasks since
-    //everything should be done inside start anyway
-    workerManager ! IOCommand.BindWorkerItem(() => t)
+    workerManager ! IOCommand.BindWorkerItem(t)
     t.proxy
   }
 
@@ -116,8 +112,8 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
    *                to the handler.
    */
-  def connect(address: InetSocketAddress, handler: WorkerRef => ClientConnectionHandler) {
-    workerManager ! Connect(address, handler)
+  def connect(address: InetSocketAddress, handler: ClientConnectionHandler) {
+    workerManager ! BindAndConnectWorkerItem(address, handler)
   }
 }
 
@@ -135,22 +131,19 @@ sealed trait IOCommand
 object IOCommand {
 
   /**
-   * Connect to the specified address and use the specified function to create a Handler to attach to it.
-   * @param address The address with which to connect.
-   * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
-   *                to the handler.
+   * Bind a WorkerItem to a worker and then begin establishing an outgoing
+   * connection whose events will be sent to the item.  
+   *
+   * Notice that this is different from Worker.Connect, which must be sent to a
+   * specific worker and can only be used on a WorkerItem already bound to that
+   * worker
    */
-  case class Connect(address: InetSocketAddress, handler: WorkerRef => ClientConnectionHandler) extends IOCommand
-
-  //used internally by service clients to reconnect without getting a new WorkerItem id
-  //TODO: probably a less-hacky way to accomplish this
-  private[colossus] case class Reconnect(address: InetSocketAddress, boundHandler: ClientConnectionHandler) extends IOCommand
-
+  case class BindAndConnectWorkerItem(address: InetSocketAddress, item: WorkerItem) extends IOCommand
 
   /**
-   * Bind the BindableWorkerItem to a Worker.  The only BindableWorkerItem currently supported is a Task.
-   * @param item A closure to create the item to bind.  This helps ensure that the entire lifecycle of the item occurs inside the worker
+   * Bind a [WorkerItem] to a Worker.  Multiple Bind messages are round
+   * robined across workers in an IOSystem
    */
-  case class BindWorkerItem(item: () => BindableWorkerItem) extends IOCommand
+  case class BindWorkerItem(item: WorkerItem) extends IOCommand
 
 }

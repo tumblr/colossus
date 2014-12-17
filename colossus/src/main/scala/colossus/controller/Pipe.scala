@@ -69,6 +69,22 @@ trait Sink[T] extends Transport {
   //stream
 }
 
+object Sink {
+  def one[T](data: T) = new Sink[T] {
+    var item: Try[Option[T]] = Success(Some(data))
+    def pull(onReady: Try[Option[T]] => Unit) {
+      var t = item
+      if (item.isSuccess) {
+        item = Success(None)
+      }
+      onReady(t)
+    }
+    def terminate(reason: Throwable) {
+      item = Failure(reason)
+    }
+  }
+}
+
 
 /**
  * A Pipe is a callback-based data transport abstraction meant for handling

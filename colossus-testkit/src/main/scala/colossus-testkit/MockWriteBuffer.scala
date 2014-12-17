@@ -5,6 +5,8 @@ import core._
 
 import akka.util.ByteString
 
+import org.scalatest
+
 /**
  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
  */
@@ -55,4 +57,6 @@ class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = No
   }
 
   def numWrites = writeCalls.size
+
+    
 }

@@ -19,7 +19,7 @@ object Main extends App {
 
   implicit val actorSystem = ActorSystem("COLOSSUS")
 
-  implicit val ioSystem = IOSystem("examples", numWorkers = Some(1))
+  implicit val ioSystem = IOSystem("examples", numWorkers = Some(4))
 
   //the simplest example, an echo server over telnet
   val telnetServer = TelnetExample.start(9000)

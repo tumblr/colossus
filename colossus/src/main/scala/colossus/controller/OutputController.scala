@@ -39,7 +39,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    * @param item the message to push
    * @param postWrite called either when writing has completed or failed
    */
-  def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
+  protected def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
     if (waitingToSend.size < controllerConfig.outputBufferSize) {
       waitingToSend.add(QueuedItem(item, postWrite))
       checkQueue() 
@@ -50,7 +50,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
   }
 
   //messages being sent are failed, the rest are cancelled
-  def purgeOutgoing() {
+  protected def purgeOutgoing() {
     currentlyWriting.foreach{queued => queued.postWrite(OutputResult.Failure)}
     currentlyWriting = None
     //TODO, move NotConnectedException
@@ -59,14 +59,14 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
 
   }
 
-  def purgePending() {
+  protected def purgePending() {
     while (waitingToSend.size > 0) {
       val q = waitingToSend.remove()
       q.postWrite(OutputResult.Cancelled)
     }
   }
 
-  def purgeAll() {
+  protected def purgeAll() {
     purgeOutgoing()
     purgePending()
   }
@@ -75,19 +75,19 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    * Pauses writing of the next item in the queue.  If there is currently a
    * message in the process of writing, it will be unaffected
    */
-  def pauseWrites() {
+  protected def pauseWrites() {
     enabled = false
   }
 
   /**
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
-  def resumeWrites() {
+  protected def resumeWrites() {
     enabled = true
     checkQueue()
   }
 
-  def paused = !enabled
+  protected def paused = !enabled
 
   // == PRIVATE MEMBERS ==
 

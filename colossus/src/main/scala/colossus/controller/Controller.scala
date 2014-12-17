@@ -30,6 +30,9 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
   protected var writer: Option[WriteEndpoint] = None
 
   def connected(endpoint: WriteEndpoint) {
+    if (writer.isDefined) {
+      throw new Exception("Handler Connected twice!")
+    }
     writer = Some(endpoint)
   }
 }

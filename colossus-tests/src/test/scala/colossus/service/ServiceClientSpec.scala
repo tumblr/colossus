@@ -34,10 +34,9 @@ class ServiceClientSpec extends ColossusSpec {
       sentBufferSize = maxSentSize, 
       failFast = failFast
     )
-    val client = new RedisClient(config, worker)
-    client.bind(1, worker)
-    client.connect()
-    workerProbe.expectMsgType[IOCommand.Connect](50.milliseconds)
+    val client = new RedisClient(config)
+    client.setBind(1, worker)
+    workerProbe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = new MockWriteEndpoint(30, workerProbe, Some(client))
     client.connected(endpoint)
     (endpoint, client, workerProbe)
@@ -327,11 +326,11 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.clearBuffer()
       client.gracefulDisconnect()
       endpoint.disconnectCalled must equal(false)
-      intercept[NotConnectedException] {
+      intercept[CallbackExecutionException] {
         client.send(cmd2).execute{
           case Success(StatusReply(msg)) => {}
-          case Failure(nope) => throw nope
-          case _ => throw new Exception("Bad Response")
+          case Failure(nope: NotConnectedException) => throw nope
+          case _ => {}
         }
       }
       client.receivedData(rep1.raw)
@@ -355,24 +354,6 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectNoMsg(50.milliseconds)
     }
 
-    //TODO:  I need to be a real test.  I'm confused.  Do I call connect? or connected(endpoint). What is the right API?
-    "not allow a disconnected client to reconnect" in {
-      val (endpoint, client, probe) = newClient(true, 10)
-      endpoint.disconnect()
-      val newEndpoint = new MockWriteEndpoint(30, probe, Some(client))
-      intercept[StaleClientException]{
-        client.connect()
-      }
-    }
-
-    "not allow a gracefully disconnected client to reconnect" in {
-      val (endpoint, client, probe) = newClient(true, 10)
-      client.gracefulDisconnect()
-      val newEndpoint = new MockWriteEndpoint(30, probe, Some(client))
-      intercept[StaleClientException]{
-        client.connect()
-      }
-    }
 
     "get a shared interface" in {
       val (endpoint, client, probe) = newClient(true, 10)

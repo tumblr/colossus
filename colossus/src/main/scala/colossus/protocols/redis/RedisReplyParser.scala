@@ -2,16 +2,12 @@ package colossus
 package protocols.redis
 
 
-import core._
-import service._
-import parsing._
-import DataSize._
-
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
+import colossus.parsing.DataSize._
+import colossus.parsing._
 
 
 object RedisReplyParser {
-  import RedisReplyParser._
   import Combinators._
 
   val DefaultMaxSize: DataSize = 1.MB

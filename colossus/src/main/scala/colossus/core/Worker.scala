@@ -14,6 +14,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
+class WorkerItemException(message: String) extends Exception(message)
 
 /**
  * Represents the binding of an item to a worker
@@ -31,11 +32,14 @@ case class WorkerItemBinding(id: Long, worker: WorkerRef) {
 }
 
 /**
- * A WorkerItem is anything that can be attached to and communicated through a Worker.  Examples are Tasks and
- * ConnectionHandlers.
+ * A WorkerItem is anything that can be bound to worker to receive both events
+ * and external messages.  WorkerItems are expected to be single-threaded and
+ * non-blocking.  Once a WorkerItem is bound to a worker, all of its methods
+ * are executed in the event-loop thread of the bound worker.
  */
-private[colossus] trait WorkerItem {
+trait WorkerItem {
   private var _binding: Option[WorkerItemBinding] = None
+  //todo - change these from Option[x] to just x and rethrow None exception as WorkerItemException
   def id = _binding.map{_.id}
   def boundWorker = _binding.map{_.worker}
 
@@ -43,13 +47,38 @@ private[colossus] trait WorkerItem {
   def binding = _binding
   def isBound = _binding.isDefined
 
+  /**
+   * Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
+   * `onBind()` is called and the item will be able to receive events and
+   * messages.  Notice that this method is asynchronous.
+   *
+   * @param worker The worker to bind to
+   */
+  def bind(worker: WorkerRef) {
+    if (isBound) {
+      throw new WorkerItemException(s"Cannot bind WorkerItem, already bound with id ${id.get}")
+    }
+    boundWorker.get.bind(this)
+  }
+
+  /**
+   * Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
+   * `onUnbind()` is called.  This method is asynchronous.
+   */
+  def unbind() {
+    if (!isBound) {
+      throw new WorkerItemException(s"Cannot unbind WorkerItem, not bound to any worker")
+    }
+    boundWorker.get.unbind(id.get)
+  }
+
 
   /**
    * bind the item to a Worker.
    * @param id  The id assigned to this Item.
    * @param worker The Worker whom was bound
    */
-  private[colossus] def bind(id: Long, worker: WorkerRef) {
+  private[colossus] def setBind(id: Long, worker: WorkerRef) {
     _binding = Some(WorkerItemBinding(id, worker))
     onBind()
   }
@@ -57,7 +86,7 @@ private[colossus] trait WorkerItem {
   /**
    * Called when this item is unbound from a Worker.
    */
-  private[colossus] def unbind(){
+  private[colossus] def setUnbind(){
     _binding = None
     onUnbind()
   }
@@ -82,16 +111,6 @@ private[colossus] trait WorkerItem {
 
 
 }
-
-/**
- * BindableWorkItem is the public facing trait which is meant for Tasks and other objects which are Bindable to
- * a Worker.  Connection handlers purposely do not implement this trait so
- * users don't accidentally attempt to bind connection handlers this way, which
- * won't work
- *
- * TODO; this is probably not needed anymore
- */
-trait BindableWorkerItem extends WorkerItem
 
 
 /**
@@ -129,8 +148,12 @@ case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system
    * and initialized within this worker to ensure that the worker item's
    * lifecycle is single-threaded.
    */
-  def bind(item: BindableWorkerItem) {
-    worker ! IOCommand.BindWorkerItem(() => item)
+  def bind(item: WorkerItem) {
+    worker ! IOCommand.BindWorkerItem(item)
+  }
+
+  def unbind(workerItemId: Long) {
+    worker ! WorkerCommand.UnbindWorkerItem(workerItemId)
   }
 }
 
@@ -153,16 +176,20 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
    * Binds a new worker item to this worker
    */
   def bind(workerItem: WorkerItem) {
-    val id = newId()
-    workerItems(id) = workerItem
-    workerItem.bind(id, worker)
+    if (workerItem.isBound) {
+      log.error(s"Attempted to bind worker ${workerItem.binding} that was already bound")
+    } else {
+      val id = newId()
+      workerItems(id) = workerItem
+      workerItem.setBind(id, worker)
+    }
   }
 
   def unbind(id: Long) {
     if (workerItems contains id) {
       val item = workerItems(id)
       workerItems -= id
-      item.unbind()   
+      item.setUnbind()   
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
     }    
@@ -310,18 +337,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   def handleIOCommand(cmd: IOCommand) {
     import IOCommand._
     cmd match {
-      case Connect(address, handlerFactory) => {
-        val handler = handlerFactory(me)
-        workerItems.bind(handler)
-        clientConnect(address, handler)
-      }
-      case Reconnect(address, handler) => {
-        clientConnect(address, handler)
-      }
       case BindWorkerItem(workerItem) => {
-        workerItems.bind(workerItem())
+        workerItems.bind(workerItem)
       }
-
+      case BindAndConnectWorkerItem(address, item) => {
+        workerItems.bind(item)
+        self ! WorkerCommand.Connect(address, item.id.get)
+      }
     }
   }
 
@@ -373,6 +395,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       case Disconnect(connectionId) => {
         connections.get(connectionId).foreach{con =>
           unregisterConnection(con, DisconnectCause.Disconnect)
+        }
+      }
+      case Connect(address, id) => {
+        getWorkerItem(id).map{
+          case handler: ClientConnectionHandler => clientConnect(address, handler)
+          case other => log.error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
+        }.getOrElse {
+          log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
         }
       }
     }
@@ -464,6 +494,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
             key.attachment match {
               case c: Connection => {
                 //connection reset by peer, no need to log
+                log.warning(s"IO Error on ${c.id}: ${t.getMessage}")
+                t.printStackTrace()
                 unregisterConnection(c, DisconnectCause.Closed)
               }
             }
@@ -499,7 +531,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
               unregisterConnection(c, DisconnectCause.Error(j))
             }
             case other: Throwable => {
-              log.warning("Error handling write: ${other.getClass.getName} : ${other.getMessage}")
+              log.warning(s"Error handling write: ${other.getClass.getName} : ${other.getMessage}")
             }
           }
           case _ => {}
@@ -554,6 +586,9 @@ object Worker {
 sealed trait WorkerCommand
 object WorkerCommand {
 
+  //open a new client connection to the specified address.  The bound
+  //[WorkerItem] with id `id` will act as the event handler for the connection
+  case class Connect(address: InetSocketAddress, id: Long) extends WorkerCommand
   case class UnbindWorkerItem(id: Long) extends WorkerCommand
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand

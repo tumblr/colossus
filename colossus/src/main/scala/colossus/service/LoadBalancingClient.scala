@@ -2,7 +2,7 @@ package colossus
 package service
 
 import akka.actor.ActorRef
-import core.{BindableWorkerItem, WorkerRef}
+import core.{WorkerItem, WorkerRef}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 
@@ -77,7 +77,7 @@ class LoadBalancingClient[I,O] (
   generator: InetSocketAddress => ServiceClient[I,O], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends LocalClient[I,O] with BindableWorkerItem {
+) extends LocalClient[I,O] with WorkerItem {
 
 
   private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
@@ -101,7 +101,6 @@ class LoadBalancingClient[I,O] (
     
   private def addClient(address: InetSocketAddress, regen: Boolean): ServiceClient[I,O] = {
     val client = generator(address)
-    client.connect()
     clients.append(client)
     regeneratePermutations()
     client

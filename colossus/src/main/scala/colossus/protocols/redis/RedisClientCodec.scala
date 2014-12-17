@@ -4,13 +4,15 @@ package protocols.redis
 import core._
 import service._
 
-import akka.util.{ByteString, ByteStringBuilder}
+import colossus.parsing.DataSize
 
-class RedisClientCodec extends Codec.ClientCodec[Command, Reply] {
-  private var replyParser = RedisReplyParser()
+class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) extends Codec.ClientCodec[Command, Reply] {
+  private var replyParser = RedisReplyParser(maxSize)
+
   def reset(){
-    replyParser = RedisReplyParser()
+    replyParser = RedisReplyParser(maxSize)
   }
+
   def encode(cmd: Command) = DataBuffer(cmd.raw)
   def decode(data: DataBuffer): Option[Reply] = replyParser.parse(data)
 }

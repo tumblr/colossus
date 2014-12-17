@@ -131,8 +131,8 @@ class PipeSpec extends WordSpec with MustMatchers {
       val pipe = new InfinitePipe[Int](20)
       pipe.push(1)
       var executed = false
-      pipe.fold(0){case (a, b) => println(s"processing $a, $b");a + b}.execute{
-        case Success(7) => {executed = true}
+      pipe.fold(0){case (a, b) => a + b}.execute{
+        case Success(6) => {executed = true}
         case other => {
           println("FAIL")
           throw new Exception(s"bad end value $other")

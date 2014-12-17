@@ -11,30 +11,9 @@ import akka.util.ByteString
 
 class InputControllerSpec extends WordSpec with MustMatchers {
   
-  trait TestInput {
-    def sink: Sink[DataBuffer]
-  }
-  
-  case class TestInputImpl(data: FiniteBytePipe) extends StreamMessage with TestInput{
-    def source = data
-    def sink = data
-  }
-    
-  case class TestOutput(data: Sink[DataBuffer])
-  object TestCodec extends Codec[TestOutput, TestInput]{    
-    import parsing.Combinators._
-    val parser = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num, 10))}
-
-    def decode(data: DataBuffer): Option[TestInput] = parser.parse(data)
-
-    //TODO: need to add support for pipe combinators, eg A ++ B
-    def encode(out: TestOutput) = DataStream(out.data)
-
-    def reset(){}
-  }
 
   class TestController(processor: TestInput => Unit) extends InputController[TestInput, TestOutput] {
-    def codec = TestCodec
+    def codec = new TestCodec
 
     def processMessage(message: TestInput) {
       processor(message)
@@ -45,7 +24,7 @@ class InputControllerSpec extends WordSpec with MustMatchers {
     def idleCheck(period: scala.concurrent.duration.Duration): Unit = ???
     def readyForData(): Unit = ???
 
-    def controllerConfig: colossus.controller.ControllerConfig = ???
+    def controllerConfig: colossus.controller.ControllerConfig = ControllerConfig(5)
     def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
   }
 

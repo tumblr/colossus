@@ -11,6 +11,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
 
+import org.scalatest._
+
 class ServerSpec extends ColossusSpec {
 
   def expectConnections(server: ServerRef, num: Int) {
@@ -260,9 +262,9 @@ class ServerSpec extends ColossusSpec {
             name = "highWaterTest",
             settings = ServerSettings(
               port = TEST_PORT,
-              maxConnections = 10,
-              lowWatermarkPercentage = 0.60,
-              highWatermarkPercentage = 0.80,
+              maxConnections = 2,
+              lowWatermarkPercentage = 0.00,
+              highWatermarkPercentage = 0.50,
               highWaterMaxIdleTime = 50.milliseconds,
               maxIdleTime = 1.hour
             ),
@@ -270,9 +272,10 @@ class ServerSpec extends ColossusSpec {
           )
           val server = Server(config)
           withServer(server) {
-            val idleConnections = for{i <- 1 to 9} yield TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
-            TestUtil.expectServerConnections(server, 9)
-            Thread.sleep(1000) //have to wait a second since that's how often the check it done
+            val idleConnection1 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            TestUtil.expectServerConnections(server, 1)
+            val idleConnection2 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            Thread.sleep(500) //have to wait a second since that's how often the check it done
             expectConnections(server, 0)
           }
         }

@@ -15,11 +15,11 @@ trait WatchedHandler extends ConnectionHandler {
 }
 
 //the sender (the worker
-case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHandler with ClientConnectionHandler {
+case class AsyncHandler(handler: ActorRef) extends WatchedHandler with ClientConnectionHandler {
   import ConnectionCommand._
   import ConnectionEvent._
 
-  implicit val sender = worker.worker
+  implicit lazy val sender = boundWorker.get.worker
 
   private var endpointOpt: Option[WriteEndpoint] = None
   def endpoint = endpointOpt.getOrElse(throw new Exception("Attempted to use non-connected endpoint"))
@@ -99,7 +99,7 @@ object AsyncHandler {
   def serverHandler(handler: ActorRef, worker: WorkerRef)(implicit fact: ActorRefFactory): AsyncHandler = {
     val actor = fact.actorOf(Props[ActorHandler])
     actor ! ActorHandler.RegisterListener(handler)
-    AsyncHandler(actor, worker)
+    AsyncHandler(actor)
   }
     
 }

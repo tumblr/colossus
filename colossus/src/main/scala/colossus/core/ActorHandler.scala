@@ -76,7 +76,7 @@ object ActorHandler {
 
   def apply(address: InetSocketAddress, name: String = "async-client")(implicit io: IOSystem) = {
     val actor = io.actorSystem.actorOf(Props(classOf[ActorHandler]), name = name)
-    io ! IOCommand.Connect(address, worker => new AsyncHandler(actor, worker))
+    io ! IOCommand.BindAndConnectWorkerItem(address, new AsyncHandler(actor))
     actor
   }
 
