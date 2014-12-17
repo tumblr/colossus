@@ -493,9 +493,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           case t: java.io.IOException => {
             key.attachment match {
               case c: Connection => {
-                //connection reset by peer, no need to log
-                log.warning(s"IO Error on ${c.id}: ${t.getMessage}")
-                t.printStackTrace()
+                //connection reset by peer, sometimes thrown by read when the connection closes
                 unregisterConnection(c, DisconnectCause.Closed)
               }
             }

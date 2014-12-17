@@ -147,6 +147,8 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
 
 trait DSLHandler[C <: CodecDSL] extends ServiceServer[C#Input, C#Output] with ConnectionContext[C]
 
+class UnhandledRequestException(message: String) extends Exception(message)
+
 class BasicServiceHandler[C <: CodecDSL]
   (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C]) 
   (implicit ex: ExecutionContext)
@@ -154,7 +156,7 @@ class BasicServiceHandler[C <: CodecDSL]
   with DSLHandler[C] {
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Response[C#Output]]{
-    case other => respond(provider.errorResponse(other, new Error(s"Unhandled Request $other")))
+    case other => respond(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled request $other")))
   }
   
   private var currentHandler: PartialHandler[C] = unhandled
