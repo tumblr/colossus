@@ -4,11 +4,26 @@ import testkit._
 
 import akka.actor._
 import akka.testkit.TestProbe
+import akka.util.ByteString
 
 import scala.concurrent.duration._
 
 import protocols.telnet._
 import service._
+
+import RawProtocol.{RawCodec, Raw}
+
+class ErrorTestDSL(probe: ActorRef) extends CodecProvider[Raw] {
+
+    def provideCodec() = RawCodec
+
+    def errorResponse(request: ByteString, reason: Throwable) = {
+      probe ! reason
+      ByteString(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+    }
+  
+}
+
 
 
 class ServiceDSLSpec extends ColossusSpec {
@@ -26,10 +41,24 @@ class ServiceDSLSpec extends ColossusSpec {
           }}
         }
         server.delegatorBroadcast("PING")
-        probe.expectMsg(50.milliseconds, "PONG")
-        probe.expectMsg(50.milliseconds, "PONG")
+        probe.expectMsg(250.milliseconds, "PONG")
+        probe.expectMsg(250.milliseconds, "PONG")
       }
     }
+
+    "throw UnhandledRequestException on unhandled request" in {
+      val probe = TestProbe() 
+      implicit val provider = new ErrorTestDSL(probe.ref)
+      withIOSystem{ implicit system => 
+        val server = Service.become[Raw]("test", TEST_PORT) { 
+          case any if (false) => ByteString("WAT")
+        }
+        val client = TestClient(system, TEST_PORT)
+        client.send(ByteString("hello"))
+        probe.expectMsgType[UnhandledRequestException]
+      }
+    }
+
   }
 }
 
