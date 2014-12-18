@@ -63,6 +63,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   val latency   = worker.metrics.getOrAdd(Histogram(LATENCY, periods = List(1.second, 1.minute), sampleRate = 0.25))
   val errors    = worker.metrics.getOrAdd(Rate(ERRORS, List(1.second, 1.minute)))
   val requestsPerConnection = worker.metrics.getOrAdd(Histogram(REQPERCON, periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
 
   def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
@@ -110,6 +111,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
         val comp = done.response
         requests.hit(tags = comp.tags)
         latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+        concurrentRequests.decrement()
         w.write(codec.encode(comp.value)) match {
           case WriteStatus.Partial => {
             partiallyWrittenResponse = Some(done)
@@ -156,6 +158,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
   def connectionClosed(cause : DisconnectCause) {
     requestsPerConnection.add(numRequests)
     writer = None
+    concurrentRequests.delta(- requestBuffer.size)
   }
 
   def connectionLost(cause : DisconnectError) {
@@ -167,6 +170,7 @@ abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig
       numRequests += 1
       val promise = new SyncPromise(request)
       requestBuffer.enqueue(promise)
+      concurrentRequests.increment()
       /**
        * Notice, if the request buffer if full we're still adding to it, but by skipping
        * processing of requests we can hope to alleviate overloading

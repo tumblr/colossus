@@ -35,16 +35,17 @@ object Rate {
 
 class BasicRate(period: FiniteDuration) {
 
-  private var total: Long = 0L
+  private var _total: Long = 0L
   private var current: Long = 0L
 
   private var lastFullValue = 0L
 
   private var tickAccum: FiniteDuration = 0.seconds
 
+  def total = _total
 
   def hit(num: Int = 1) {
-    total += num
+    _total += num
     current += num
   }
 
@@ -103,7 +104,11 @@ class ConcreteRate(params: RateParams, collector: ActorRef) extends Rate with Lo
     val values = rates.flatMap{case (tags, values) => values.map{case (period, rate) =>
       (context.globalTags ++ tags + ("period" -> period) , rate.value)
     }}
-    Map(params.address -> values.toMap)
+    //totals are the same for each period
+    val totals = rates.map{case (tags, values) => 
+      (context.globalTags ++ tags, values.head._2.total)
+    }
+    Map(params.address -> values.toMap, (params.address / "count") ->  totals.toMap)
   }
 
   lazy val shared: Shared[Rate] = new SharedRate(params, collector)

@@ -12,13 +12,9 @@ import MetricAddress.Root
 
 case class MetricSystem(namespace: MetricAddress, clock: ActorRef, database: ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
   
-  def query(filter: MetricFilter)(implicit ex: ExecutionContext): Future[MetricMap] = {
-    import MetricDatabase._
-    implicit val timeout = Timeout(50.milliseconds)
-    (database ? Query(filter)).collect{
-      case QueryResult(metrics) => metrics
-    }.mapTo[MetricMap]
-  }  
+  def query(filter: MetricFilter): MetricMap = snapshot().filter(filter)  
+
+  def query(queryString: String): MetricMap = query(MetricFilter(queryString))
 
   def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config)(this, fact)
 
