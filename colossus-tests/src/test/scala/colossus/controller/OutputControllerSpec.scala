@@ -10,23 +10,26 @@ import akka.util.ByteString
 
 
 
-class OutputControllerSpec extends WordSpec with MustMatchers {
+class OutputControllerSpec extends ColossusSpec {
 
   
   class TestController extends OutputController[TestInput, TestOutput] {
-    def codec = TestCodec
+    def codec = new TestCodec
+    var writer: Option[WriteEndpoint] = None
 
-    def connected(endpoint: colossus.core.WriteEndpoint): Unit = ???
+    def connected(endpoint: colossus.core.WriteEndpoint): Unit = {
+      writer = Some(endpoint)
+    }
     protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = ???
     protected def connectionLost(cause: colossus.core.DisconnectError): Unit = ???
     def idleCheck(period: scala.concurrent.duration.Duration): Unit = ???
-    def readyForData(): Unit = ???
 
     def controllerConfig: colossus.controller.ControllerConfig = ControllerConfig(4)
     def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+    def receivedData(data: colossus.core.DataBuffer): Unit = ???
 
-    def testPush(message: TestOutput) {
-      push(message)
+    def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
+      push(message)(onPush)
     }
   }
 
@@ -44,7 +47,7 @@ class OutputControllerSpec extends WordSpec with MustMatchers {
       val (endpoint, controller) = createController
       val data = ByteString("Hello World!")
       val message = TestOutput(Sink.one(DataBuffer(data)))
-      controller.testPush(message)
+      controller.testPush(message){_ must equal (OutputResult.Success)}
       endpoint.writeCalls(0) must equal(data)
 
     }

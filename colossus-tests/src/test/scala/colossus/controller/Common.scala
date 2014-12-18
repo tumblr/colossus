@@ -1,6 +1,8 @@
 package colossus
 package controller
 
+import core._
+import service.Codec
 
 trait TestInput {
   def sink: Sink[DataBuffer]
