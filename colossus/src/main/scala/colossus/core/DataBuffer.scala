@@ -12,7 +12,7 @@ import java.nio.channels.SocketChannel
  */
 sealed trait DataReader
 
-case class DataStream(sink: controller.Sink[DataBuffer]) extends DataReader
+case class DataStream(source: controller.Source[DataBuffer]) extends DataReader
 
 /** A thin wrapper around a NIO ByteBuffer with data to read
  *

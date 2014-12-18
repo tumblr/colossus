@@ -16,15 +16,15 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
 
   //todo: read-endpoint
 
-  private var currentSource: Option[Source[DataBuffer]] = None
+  private var currentSink: Option[Sink[DataBuffer]] = None
   private var currentTrigger: Option[Trigger] = None
 
   def receivedData(data: DataBuffer) {
-    currentSource match {
+    currentSink match {
       case Some(source) => source.push(data) match {
         case Success(Ok) => {}
         case Success(Done) => {
-          currentSource = None
+          currentSink = None
           //recurse since the databuffer may still contain data for the next request
           if (data.hasUnreadData) receivedData(data)
         }
@@ -40,7 +40,7 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
         case Some(message) =>  {
           message match {
             case s: StreamMessage => {
-              currentSource = Some(s.source)
+              currentSink = Some(s.sink)
             }
             case _ => {}
           }

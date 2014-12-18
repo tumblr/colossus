@@ -5,7 +5,7 @@ import core._
 import service.Codec
 
 trait TestInput {
-  def sink: Sink[DataBuffer]
+  def source: Source[DataBuffer]
 }
 
 case class TestInputImpl(data: FiniteBytePipe) extends StreamMessage with TestInput{
@@ -13,7 +13,7 @@ case class TestInputImpl(data: FiniteBytePipe) extends StreamMessage with TestIn
   def sink = data
 }
   
-case class TestOutput(data: Sink[DataBuffer])
+case class TestOutput(data: Source[DataBuffer])
 
 
 class TestCodec extends Codec[TestOutput, TestInput]{    

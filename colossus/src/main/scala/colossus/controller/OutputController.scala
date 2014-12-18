@@ -98,7 +98,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
 
   //only one of these will ever be filled at a time
   private var currentlyWriting: Option[QueuedItem] = None
-  private var currentStream: Option[(QueuedItem, Sink[DataBuffer])] = None
+  private var currentStream: Option[(QueuedItem, Source[DataBuffer])] = None
 
 
   //whether or not we should be pulling items out of the queue, this can be set
@@ -141,10 +141,10 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
    * incomplete.  Notice in the latter case we just wait for readyForData to be
    * called and resume there
    */
-  private def drain(sink: Sink[DataBuffer]) {
-    sink.pull{
+  private def drain(source: Source[DataBuffer]) {
+    source.pull{
       case Success(Some(data)) => writer.get.write(data) match {
-        case WriteStatus.Complete => drain(sink)
+        case WriteStatus.Complete => drain(source)
         case _ => {} //todo: maybe do something on Failure?
       }
       case Success(None) => {

@@ -34,7 +34,7 @@ class InputControllerSpec extends WordSpec with MustMatchers {
       val request = ByteString(expected.size.toString) ++ ByteString("\r\n") ++ expected
       var called = false
       val con = new TestController({input => 
-        input.sink.pullCB().execute{
+        input.source.pullCB().execute{
           case Success(Some(data)) => {
             ByteString(data.takeAll) must equal(expected)
             called = true

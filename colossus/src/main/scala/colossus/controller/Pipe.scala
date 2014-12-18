@@ -29,12 +29,12 @@ trait Transport {
 }
 
 /**
- * A source is the write side of a pipe.  It allows you to push items to it,
+ * A Sink is the write side of a pipe.  It allows you to push items to it,
  * and will return whether or not it can accept more data.  In the case where
- * the pipe is full, the source will return a mutable Trigger and you can
+ * the pipe is full, the Sink will return a mutable Trigger and you can
  * attach a callback to for when the pipe can receive more items
  */
-trait Source[T] extends Transport {
+trait Sink[T] extends Transport {
   def push(item: T): Try[PushResult]
 
   //after this is called, data can no longer be written, but can still be read until EOS
@@ -43,13 +43,13 @@ trait Source[T] extends Transport {
 }
 
 /**
- * A Sink is the read side of a pipe.  You provide a handler for when an item
- * is ready and the sink will call it.  Note that if the underlying pipe has
+ * A Source is the read side of a pipe.  You provide a handler for when an item
+ * is ready and the Source will call it.  Note that if the underlying pipe has
  * multiple items ready, onReady will only be called once.  This is so that the
  * consumer of the sink can implicitly apply backpressure by only pulling when
  * it is able to
  */
-trait Sink[T] extends Transport {
+trait Source[T] extends Transport {
   def pull(onReady: Try[Option[T]] => Unit)
 
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
@@ -62,15 +62,15 @@ trait Sink[T] extends Transport {
   }
     
 
-  def ++(next: Sink[T]): Sink[T] = new DualSink(this, next)
+  def ++(next: Source[T]): Source[T] = new DualSource(this, next)
 
-  //notice that Sink has no equivalent of complete.  This is because we never
-  //have a situation where a sink non-erroneously doesn't read the entire
+  //notice that Source has no equivalent of complete.  This is because we never
+  //have a situation where a Source non-erroneously doesn't read the entire
   //stream
 }
 
-object Sink {
-  def one[T](data: T) = new Sink[T] {
+object Source {
+  def one[T](data: T) = new Source[T] {
     var item: Try[Option[T]] = Success(Some(data))
     def pull(onReady: Try[Option[T]] => Unit) {
       var t = item
@@ -91,7 +91,7 @@ object Sink {
  * streams.  It provides backpressure feedback for both the write and read
  * ends.
  */
-trait Pipe[T] extends Source[T] with Sink[T]
+trait Pipe[T] extends Sink[T] with Source[T]
 
 class Trigger {
   private var callback: Option[() => Unit] = None
@@ -160,7 +160,7 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
  * the first is empty.  The `None` from the first sink is never exposed.  The
  * first error reported from either sink is propagated.
  */
-class DualSink[T](a: Sink[T], b: Sink[T]) extends Sink[T] {
+class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
   private var a_empty = false
   def pull(cb: Try[Option[T]] => Unit) {
     if (a_empty) {

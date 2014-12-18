@@ -12,7 +12,7 @@ import service.Codec
  * to the stream message and things will get all messed up. 
  */
 trait StreamMessage {
-  def source: Source[DataBuffer]
+  def sink: Sink[DataBuffer]
 }
 
 trait MessageHandler[Input, Output] {
