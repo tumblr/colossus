@@ -5,8 +5,7 @@ import org.scalatest._
 
 import akka.util.ByteString
 import core.DataBuffer
-import scala.util.{Try, Success, Failure}
-import Copier._
+import scala.util.{Success, Failure}
 
 class PipeSpec extends WordSpec with MustMatchers {
 
@@ -73,7 +72,7 @@ class PipeSpec extends WordSpec with MustMatchers {
       }
       (0 to 5).foreach{i =>
         pipe.pull{
-          case Success(Some(i)) => pulled = pulled :+ i
+          case Success(Some(j)) => pulled = pulled :+ j
           case _ => throw new Exception("wat")
         }
       }
@@ -102,6 +101,10 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.pull{r => pulled1 = true; r must equal(Success(Some(1)))}
       pipe.pull{r => pulled2 = true; r must equal(Success(Some(2)))}
       pipe.pull{r => pulled3 = true; r must equal(Success(None))}
+
+      pulled1 mustBe true
+      pulled2 mustBe true
+      pulled3 mustBe true
     }
 
     "immediately fail pulls when terminated" in {
@@ -111,6 +114,8 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.terminate(new Exception("asdf"))
       var pulled = false
       pipe.pull{r => pulled = true; r mustBe an[Failure[Int]]}
+
+      pulled mustBe true
     }
 
     "get a callback from pullCB" in {

@@ -1,7 +1,7 @@
 package colossus
 package controller
 
-import scala.util.{Try, Success, Failure}
+import scala.util.{Success, Failure}
 import core._
 
 

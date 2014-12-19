@@ -1,11 +1,11 @@
 package colossus
 package controller
 
-import scala.util.{Try, Success, Failure}
-import core._
-import service.Codec
-import org.scalatest._
 import akka.util.ByteString
+import colossus.core._
+import org.scalatest._
+
+import scala.util.Success
 
 
 
