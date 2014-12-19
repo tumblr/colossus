@@ -8,7 +8,7 @@ import core._
 /**
  * A mixin for ConnectionHandler that takes control of all read operations.
  * This will properly handle decoding messages, and for messages which are
- * streams, it will properly route data into the stream's source and handle
+ * streams, it will properly route data into the stream's sink and handle
  * backpressure.
  */
 trait InputController[Input, Output] extends ConnectionHandler with MessageHandler[Input, Output] {
@@ -21,7 +21,7 @@ trait InputController[Input, Output] extends ConnectionHandler with MessageHandl
 
   def receivedData(data: DataBuffer) {
     currentSink match {
-      case Some(source) => source.push(data) match {
+      case Some(sink) => sink.push(data) match {
         case Success(Ok) => {}
         case Success(Done) => {
           currentSink = None

@@ -125,7 +125,7 @@ class ServiceClient[I,O](
   codec: Codec[I,O], 
   val config: ClientConfig
 ) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
-  import colossus.IOCommand._
+
   import colossus.core.WorkerCommand._
   import config._
 

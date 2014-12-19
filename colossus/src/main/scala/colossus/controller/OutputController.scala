@@ -137,7 +137,7 @@ trait OutputController[Input, Output] extends ConnectionHandler with MessageHand
       
 
   /*
-   * keeps reading from a sink until it's empty or writing a databuffer is
+   * keeps reading from a source until it's empty or writing a databuffer is
    * incomplete.  Notice in the latter case we just wait for readyForData to be
    * called and resume there
    */

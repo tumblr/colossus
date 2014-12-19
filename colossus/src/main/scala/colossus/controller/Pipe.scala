@@ -1,11 +1,11 @@
 package colossus
 package controller
 
-import core.{ConnectionHandler, DataBuffer, DataStream, WriteEndpoint, WriteStatus}
+import core.DataBuffer
 import akka.util.ByteString
 import scala.util.{Try, Success, Failure}
 
-import service.{Callback, Codec, UnmappedCallback}
+import service.{Callback, UnmappedCallback}
 
 /**
  * This trait is mostly intended for ByteBuffers which need to be copied to the
@@ -24,7 +24,7 @@ object Copier {
 
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
-  //all subsquent pull and pushes to return an Error
+  //all subsequent pull and pushes to return an Error
   def terminate(reason: Throwable)
 }
 
@@ -147,7 +147,7 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
 
   //todo: possibly make better distinction between finite and infinite pipe
   def complete() {
-    throw new Exception("Cannot complete a finite pipe")
+    throw new Exception("Cannot complete a finite pipe")  //ASK:: WHY NOT??? What if its a finite stream that I only want an indeterminate subset of?(cough gifs, cough)
   }
 
   def terminate(reason: Throwable) {
