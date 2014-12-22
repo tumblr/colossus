@@ -7,7 +7,6 @@ import java.net.InetSocketAddress
 import akka.actor._
 import akka.event.Logging
 import colossus.controller._
-import akka.util.ByteString
 import colossus.core._
 import colossus.metrics._
 
