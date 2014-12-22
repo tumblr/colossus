@@ -128,11 +128,15 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
   def push(data: DataBuffer): Try[PushResult] = {
     if (taken == totalBytes) {
       Success(Done)
-    } else if (remaining >= data.remaining) {
+    } else if (remaining > data.remaining) {
       taken += data.size
       internal.push(data) 
     } else {
-      val partial = DataBuffer(ByteString(data.take(math.min(remaining, Int.MaxValue).toInt)))
+      val partial = if (remaining == data.remaining) {
+        data
+      } else {
+        DataBuffer(ByteString(data.take(math.min(remaining, Int.MaxValue).toInt)))
+      }
       taken = totalBytes
       internal.push(partial)
       internal.complete()

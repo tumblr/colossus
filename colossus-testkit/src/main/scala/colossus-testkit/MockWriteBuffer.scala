@@ -13,12 +13,11 @@ import org.scalatest
 class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = None) extends WriteBuffer {
   var bytesAvailable = maxWriteSize
   var bufferCleared = false
-  var interestRW = false
-  var interestRO = false
   var writeCalls = collection.mutable.ArrayBuffer[ByteString]()
   var numCallsSinceClear = 0
   var connection_status: ConnectionStatus = ConnectionStatus.Connected
 
+  protected def setKeyInterest(){}
 
   def onBufferClear(){
     bufferCleared = true
@@ -34,12 +33,6 @@ class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = No
     bytesAvailable -= written
     written
   }
-  def keyInterestReadWrite(): Unit = {
-    interestRW = true
-  }
-  def keyInterestReadOnly(): Unit = {
-    interestRO = true
-  }
   def clearBuffer() = {
     bytesAvailable = maxWriteSize
     val dataSinceClear = if (numCallsSinceClear > 0) {
@@ -49,7 +42,7 @@ class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = No
     }
     numCallsSinceClear = 0
     handler.foreach{_ =>
-      if (interestRW) {
+      if (writeReadyEnabled) {
         handleWrite()
       }
     }
