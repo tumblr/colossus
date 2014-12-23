@@ -8,8 +8,6 @@ import scala.concurrent.{ExecutionContext, Promise}
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 
-import org.scalatest._
-
 class CallbackSpec extends ColossusSpec {
   val func = {f: (Try[Int] => Unit) => f(Success(5))}
 

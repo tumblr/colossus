@@ -36,11 +36,11 @@ class ActorHandler extends Actor with Stash {
       stash()
     }
   }
-    
+
 
   def waitingForConnected(listener: ActorRef, connectionId: Long): Receive = {
     case Connected => {
-      listener ! Connected 
+      listener ! Connected
       context.become(active(listener, sender(), connectionId))
       unstashAll()
     }

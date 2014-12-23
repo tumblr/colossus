@@ -20,7 +20,7 @@ object ConnectionStatus {
 
 /**
  * This is passed to handlers to give them a way to synchronously write to the
- * connection.  Services wrap this 
+ * connection.  Services wrap this
  */
 trait WriteEndpoint {
 
@@ -76,10 +76,9 @@ trait WriteEndpoint {
   def enableReads()
 }
 
-private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef) 
+private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
   extends LiveWriteBuffer with WriteEndpoint {
 
-  import WorkerCommand._
 
   val startTime = System.currentTimeMillis
 
@@ -106,16 +105,16 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   protected val channel = _channel
   val worker = sender
   private var bytesReceived = 0L
-  
+
   def info(now: Long): ConnectionInfo = {
     ConnectionInfo(
       domain = domain,
       host = _channel.socket.getInetAddress,
       port = port,
-      id = id, 
-      timeOpen = now - startTime, 
-      timeIdle = now - lastTimeDataReceived, 
-      bytesSent = bytesSent, 
+      id = id,
+      timeOpen = now - startTime,
+      timeIdle = now - lastTimeDataReceived,
+      bytesSent = bytesSent,
       bytesReceived = bytesReceived
     )
   }
@@ -148,7 +147,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-    
+
     sender ! WorkerCommand.Disconnect(id)
   }
 

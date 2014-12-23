@@ -189,17 +189,17 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
     if (workerItems contains id) {
       val item = workerItems(id)
       workerItems -= id
-      item.setUnbind()   
+      item.setUnbind()
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
-    }    
+    }
   }
 
   def unbind(workerItem: WorkerItem) {
-    workerItem.id.map{i => 
+    workerItem.id.map{i =>
       unbind(i)
     }.getOrElse(
-      //maybe throw an exception instead?  
+      //maybe throw an exception instead?
       log.error("Attempted to unbind worker item that was already not bound!")
     )
   }
@@ -270,7 +270,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     case c: WorkerCommand => handleWorkerCommand(c)
     case CheckIdleConnections => {
       val time = System.currentTimeMillis
-      val timedOut = connections.filter{case (_, con) => 
+      val timedOut = connections.filter{case (_, con) =>
         con.handler.idleCheck(WorkerManager.IdleCheckFrequency)
         con.isTimedOut(time)
       }.toList
@@ -353,11 +353,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   //FIXME: https://github.com/tumblr/colossus/issues/19
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
     val channel = SocketChannel.open()
-    channel.configureBlocking(false)  
+    channel.configureBlocking(false)
     channel.connect(address)
     val key = channel.register(selector, SelectionKey.OP_CONNECT)
     val connection = new ClientConnection(newId(), key, channel, handler)
-    key.attach(connection)    
+    key.attach(connection)
     connections(connection.id) = connection
     numConnections.increment()
     handler match {
@@ -370,7 +370,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   }
 
 
-  def handleWorkerCommand(cmd: WorkerCommand){ 
+  def handleWorkerCommand(cmd: WorkerCommand){
     import WorkerCommand._
     cmd match {
       case Message(wid, message) => {
@@ -427,7 +427,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     numConnections.decrement()
     if (con.unbindHandlerOnClose) {
       workerItems.unbind(con.handler)
-    } 
+    }
   }
 
   def unregisterServer(handler: ActorRef) {
@@ -440,7 +440,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       log.warning(s"Attempted to unregister unknown server actor ${handler.path.toString}")
     }
   }
-  
+
   def selectLoop() {
     val num = selector.select(1) //need short wait times to register new connections
     eventLoops.hit()
@@ -544,7 +544,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     connections.foreach{case (_, con) =>
       con.close(DisconnectCause.Terminated)
     }
-    delegators.foreach{ case (server, delegator) => 
+    delegators.foreach{ case (server, delegator) =>
       delegator.onShutdown()
     }
     selector.close()

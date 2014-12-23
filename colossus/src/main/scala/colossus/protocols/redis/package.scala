@@ -2,7 +2,6 @@ package colossus
 package protocols
 
 import colossus.parsing.DataSize
-import core._
 import service._
 
 import akka.util.{ByteString, ByteStringBuilder}

@@ -9,7 +9,7 @@ object WriteStatus {
   case object Failed extends WriteStatus
   //data was partially written and the rest is buffered
   case object Partial extends WriteStatus
-  //buffered data is still being written, requested write did not occur 
+  //buffered data is still being written, requested write did not occur
   case object Zero extends WriteStatus
   //all the data was written
   case object Complete extends WriteStatus
@@ -22,12 +22,12 @@ trait KeyInterestManager {
   def readsEnabled = _readsEnabled
   def writeReadyEnabled = _writeReadyEnabled
 
-  protected def setKeyInterest()   
+  protected def setKeyInterest()
 
   def enableReads() {
     _readsEnabled = true
     setKeyInterest()
-  } 
+  }
   def disableReads() {
     _readsEnabled = false
     setKeyInterest()
@@ -36,7 +36,7 @@ trait KeyInterestManager {
     _writeReadyEnabled = true
     setKeyInterest()
   }
-    
+
   def disableWriteReady() {
     _writeReadyEnabled = false
     setKeyInterest()

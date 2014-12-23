@@ -16,13 +16,13 @@ import java.net.InetAddress
  * @param bytesReceived The amount of bytes that this Connection has received
  */
 case class ConnectionInfo(
-  domain: String, //either a server name or client 
+  domain: String, //either a server name or client
   host: InetAddress, //this is not a string because looking up the hostname takes time
   port: Int,
-  id: Long, 
-  timeOpen: Long = 0, 
-  timeIdle: Long = 0, 
-  bytesSent: Long = 0, 
+  id: Long,
+  timeOpen: Long = 0,
+  timeIdle: Long = 0,
+  bytesSent: Long = 0,
   bytesReceived: Long = 0
 ) {
   def consoleString = f"$id%-10s $domain%-10s ${host.getHostName}%-10s $timeOpen%-10s $timeIdle%-10s $bytesSent%-10s $bytesReceived%-10s"

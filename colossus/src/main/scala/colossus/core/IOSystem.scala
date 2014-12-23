@@ -21,7 +21,7 @@ object IOSystem {
     sys
   }
 
-  def apply(name: String, numWorkers: Int, metrics: MetricSystem)  
+  def apply(name: String, numWorkers: Int, metrics: MetricSystem)
     (implicit system: ActorSystem): IOSystem = apply(IOSystemConfig(name, numWorkers), metrics)
 
 
@@ -132,7 +132,7 @@ object IOCommand {
 
   /**
    * Bind a WorkerItem to a worker and then begin establishing an outgoing
-   * connection whose events will be sent to the item.  
+   * connection whose events will be sent to the item.
    *
    * Notice that this is different from Worker.Connect, which must be sent to a
    * specific worker and can only be used on a WorkerItem already bound to that

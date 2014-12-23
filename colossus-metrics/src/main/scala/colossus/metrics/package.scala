@@ -91,7 +91,6 @@ package object metrics {
     }.toSeq
     def fragments: Seq[MetricFragment] = fragments(TagMap.Empty)
 
-    import JsonDSL._
 
     def toJson: JValue = JObject(
       underlying.map{case (metric, values) => 
