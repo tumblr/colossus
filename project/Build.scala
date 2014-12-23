@@ -18,15 +18,16 @@ object ColossusBuild extends Build {
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
     version                   := "0.5.1-RC1",
     parallelExecution in Test := false,
-    scalacOptions             ++= Seq(
-      "-feature", 
-      "-language:implicitConversions", 
-      "-language:postfixOps", 
-      "-unchecked", 
-      "-deprecation",
-      "-Ywarn-unused-import"
-    ),
-
+    scalacOptions <<= scalaVersion map { v: String =>
+      val default = List(
+        "-feature", 
+        "-language:implicitConversions", 
+        "-language:postfixOps", 
+        "-unchecked", 
+        "-deprecation"
+      )
+      if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
+    },
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
