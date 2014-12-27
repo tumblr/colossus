@@ -155,7 +155,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   ssc.configureBlocking(false)
   val ss: ServerSocket = ssc.socket()
   val address = new InetSocketAddress(settings.port)
-  ssc.register( selector, SelectionKey.OP_ACCEPT )
+  ssc.register(selector, SelectionKey.OP_ACCEPT)
 
   val me = ServerRef(config, self, io, stateAgent)
 

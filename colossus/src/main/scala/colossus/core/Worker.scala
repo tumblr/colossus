@@ -412,7 +412,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
    * Registers a new server connection
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ConnectionHandler) {
-      val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
+      val newKey: SelectionKey = sc.register(selector, SelectionKey.OP_READ)
       val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
       newKey.attach(connection)
       connections(connection.id) = connection
