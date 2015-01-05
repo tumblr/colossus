@@ -70,10 +70,15 @@ class InputControllerSpec extends ColossusSpec {
       val s = source.get
       endpoint.disrupt()
       var failed = false
+      var wrong = false
       s.pullCB().execute {
         case Failure(t: PipeTerminatedException) => failed = true
-        case other => throw new Exception(s"Invalid result $other")
+        case other => {
+          wrong = true
+          throw new Exception(s"Invalid result $other")
+        }
       }
+      wrong must equal(false)
       failed must equal(true)   
     }
 

@@ -31,8 +31,7 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
 }
 
 class TestController(processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4)) {
-  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = ???
-  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = ???
+
   def idleCheck(period: scala.concurrent.duration.Duration): Unit = ???
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???

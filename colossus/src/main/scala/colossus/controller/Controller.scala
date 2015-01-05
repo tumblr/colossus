@@ -39,14 +39,55 @@ object OutputResult {
 abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig) 
 extends ConnectionHandler {
 
-  protected var writer: Option[WriteEndpoint] = None
-  def endpoint = writer
+  private var endpoint: Option[WriteEndpoint] = None
+  def isConnected = endpoint.isDefined
 
-  def connected(endpoint: WriteEndpoint) {
-    if (writer.isDefined) {
+  //represents a message queued for writing
+  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
+  //the queue of items waiting to be written.
+  private val waitingToSend = new java.util.LinkedList[QueuedItem]
+
+  //only one of these will ever be filled at a time, todo: make either
+  private var currentlyWriting: Option[QueuedItem] = None
+  private var currentStream: Option[(QueuedItem, Source[DataBuffer])] = None
+
+  //set when streaming input into a message
+  private var currentSink: Option[Sink[DataBuffer]] = None
+  //set when input stream fills during writing
+  private var currentTrigger: Option[Trigger] = None
+
+
+  //whether or not we should be pulling items out of the queue to write, this can be set
+  //to fale through pauseWrites
+  private var enabled = true
+
+  def connected(endpt: WriteEndpoint) {
+    if (endpoint.isDefined) {
       throw new Exception("Handler Connected twice!")
     }
-    writer = Some(endpoint)
+    endpoint = Some(endpt)
+  }
+
+  private def onClosed() {
+    currentStream.foreach{case (item, source) =>
+      source.terminate(new Exception("Connection Closed"))
+      currentStream = None
+    }
+
+    currentSink.foreach{sink =>
+      sink.terminate(new Exception("Connection Closed"))
+      currentSink = None
+      currentTrigger = None
+    }
+    endpoint = None
+  }
+
+  protected def connectionClosed(cause : DisconnectCause) {
+    onClosed()
+  }
+
+  protected def connectionLost(cause : DisconnectError) {
+    onClosed()
   }
 
   /****** OUTPUT ******/
@@ -113,21 +154,14 @@ extends ConnectionHandler {
 
   protected def paused = !enabled
 
+  def disconnect() {
+    //this has to be public to be used for clients
+    endpoint.foreach{_.disconnect()}
+    endpoint = None
+  }
+
   // == PRIVATE MEMBERS ==
 
-  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
-
-  //the queue of items waiting to be written.
-  private val waitingToSend = new java.util.LinkedList[QueuedItem]
-
-  //only one of these will ever be filled at a time
-  private var currentlyWriting: Option[QueuedItem] = None
-  private var currentStream: Option[(QueuedItem, Source[DataBuffer])] = None
-
-
-  //whether or not we should be pulling items out of the queue, this can be set
-  //to fale through pauseWrites
-  private var enabled = true
 
 
   /*
@@ -200,8 +234,6 @@ extends ConnectionHandler {
 
   /******* INPUT *******/
 
-  private var currentSink: Option[Sink[DataBuffer]] = None
-  private var currentTrigger: Option[Trigger] = None
 
   def receivedData(data: DataBuffer) {
     currentSink match {

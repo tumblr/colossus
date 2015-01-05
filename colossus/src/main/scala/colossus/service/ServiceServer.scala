@@ -104,32 +104,30 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
    * write buffer fills up)
    */
   private def checkBuffer() {
-    writer.map{w => 
-      while (requestBuffer.size > 0 && requestBuffer.head.isComplete) {
-        val done = requestBuffer.dequeue()
-        val comp = done.response
-        requests.hit(tags = comp.tags)
-        latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
-        push(comp.value) {
-          case OutputResult.Success => comp.onwrite match {
-            case OnWriteAction.Disconnect => disconnect()
-            case OnWriteAction.DoNothing => {}
-          }
-          case _ => println("dropped reply")
+    while (isConnected && requestBuffer.size > 0 && requestBuffer.head.isComplete) {
+      val done = requestBuffer.dequeue()
+      val comp = done.response
+      requests.hit(tags = comp.tags)
+      latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+      push(comp.value) {
+        case OutputResult.Success => comp.onwrite match {
+          case OnWriteAction.Disconnect => disconnect()
+          case OnWriteAction.DoNothing => {}
         }
-        //todo: deal with output-controller full
+        case _ => println("dropped reply")
       }
+      //todo: deal with output-controller full
     }
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {}
 
-  def connectionClosed(cause : DisconnectCause) {
+  override def connectionClosed(cause : DisconnectCause) {
+    super.connectionClosed(cause)
     requestsPerConnection.add(numRequests)
-    writer = None
   }
 
-  def connectionLost(cause : DisconnectError) {
+  override def connectionLost(cause : DisconnectError) {
     connectionClosed(cause)
   }
 
@@ -177,8 +175,8 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   }
 
   def schedule(in: FiniteDuration, message: Any) {
-    writer.foreach{w => 
-      worker ! Schedule(in, Message(w.id, message))
+    id.foreach{i => 
+      worker ! Schedule(in, Message(i, message))
     }
   }
 
@@ -192,12 +190,6 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
   protected def processFailure(request: I, reason: Throwable): Completion[O]
 
-  // UTIL METHODS
-
-  def disconnect() {
-    //TODO: exception on not yet connected?
-    writer.foreach{_.disconnect()}
-  }
 }
 
 object ServiceServer {

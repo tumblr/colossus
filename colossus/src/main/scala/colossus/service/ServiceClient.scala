@@ -159,18 +159,16 @@ class ServiceClient[I,O](
   case class AsyncRequest(request: I, handler: ResponseHandler)
 
   /**
-   * Checks if the underlying WriteEndpoint's status is ConnectionStatus.Connected
-   * @return
-   */
-  def isConnected: Boolean = writer.fold(false){_.status == ConnectionStatus.Connected}
-
-  /**
    *
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
    */
-  def connectionStatus: ConnectionStatus = writer.map{_.status}.getOrElse(
-    if (canReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
-  )
+  def connectionStatus: ConnectionStatus = if (isConnected) {
+    ConnectionStatus.Connected 
+  } else if (canReconnect) {
+    ConnectionStatus.Connecting
+  } else {
+    ConnectionStatus.NotConnected
+  }
 
   override def onBind(){
     super.onBind()
@@ -253,7 +251,6 @@ class ServiceClient[I,O](
   }
 
   private def purgeBuffers(pendingException : => Throwable) {
-    writer = None
     sentBuffer.foreach{s => 
       errors.hit(tags = hpTags)
       s.handler(Failure(new ConnectionLostException("Connection closed while request was in transit")))
@@ -266,11 +263,13 @@ class ServiceClient[I,O](
   }
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
+    super.connectionClosed(cause)
     manuallyDisconnected = true
     purgeBuffers(new NotConnectedException("Connection closed"))
   }
 
   override protected def connectionLost(cause : DisconnectError) {
+    super.connectionLost(cause)
     purgeBuffers(new NotConnectedException("Connection lost"))
     log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
     disconnects.hit(tags = hpTags)
@@ -304,7 +303,7 @@ class ServiceClient[I,O](
     if (disconnecting) {
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
-    } else if (writer.isDefined || !failFast) {
+    } else if (isConnected || !failFast) {
       val pushed = push(s.message){
         case OutputResult.Success   => sentBuffer.enqueue(s)
         case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
@@ -312,7 +311,7 @@ class ServiceClient[I,O](
       }
       if (pushed) {
         if (sentBuffer.size >= config.sentBufferSize) {
-          pauseWrites()
+          pauseWrites() //writes resumed in processMessage
         }
       } else {
         s.handler(Failure(new ClientOverloadedException("Client is overloaded")))
@@ -325,8 +324,7 @@ class ServiceClient[I,O](
 
   private def checkGracefulDisconnect() {
     if (disconnecting && sentBuffer.size == 0) {
-      writer.foreach{_.disconnect()}
-      writer = None
+      disconnect()
     }
   }
 
