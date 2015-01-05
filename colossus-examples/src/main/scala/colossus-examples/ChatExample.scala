@@ -48,19 +48,19 @@ class Broadcaster extends Actor {
 
   case class Client(worker: ActorRef, id: Long)
 
-  val clients = collection.mutable.Map[Long, ActorRef]()
+  val clients = collection.mutable.Set[Client]()
 
   def broadcast(message: ChatMessage) {
-    clients.foreach{case (id, worker) => worker ! WorkerCommand.Message(id, message)}
+    clients.foreach{case Client(worker, id) => worker ! WorkerCommand.Message(id, message)}
   }
 
   def receive = {
     case ClientOpened(user, id) => {
-      clients(id) = sender
+      clients += Client(sender, id)
       broadcast(Status(s"$user has joined"))
     }
     case ClientClosed(user, id) => {
-      clients -= id
+      clients -= Client(sender, id)
       broadcast(Status(s"$user has left"))
     }
     case m: ChatMessage => broadcast(m)
@@ -90,8 +90,6 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
     push(Status("Please enter your name")){_ => ()}
   }
 
-  protected def connectionClosed(cause: colossus.core.DisconnectCause){}
-  protected def connectionLost(cause: colossus.core.DisconnectError){}
   def idleCheck(period: scala.concurrent.duration.Duration){}
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef){
