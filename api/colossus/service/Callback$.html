@@ -239,6 +239,26 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.Callback#complete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="complete[I](value:scala.util.Try[I]):colossus.service.Callback[I]"></a>
+      <a id="complete[I](Try[I]):Callback[I]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">complete</span><span class="tparams">[<span name="I">I</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.Callback.complete.I">I</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.complete.I">I</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.Callback$@complete[I](value:scala.util.Try[I]):colossus.service.Callback[I]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a callback that immediately returns the value
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a callback that immediately returns the value
+</p></div><dl class="paramcmts block"><dt class="param">value</dt><dd class="cmt"><p>the successful value or error to complete with
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -273,7 +293,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.service.Callback#failed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.Callback#failed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="failed[I](err:Throwable):colossus.service.Callback[I]"></a>
       <a id="failed[I](Throwable):Callback[I]"></a>
       <h4 class="signature">
@@ -289,7 +309,10 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">returns a callback that will immediately fail with the given error
+</p><div class="fullcomment"><div class="comment cmt"><p>returns a callback that will immediately fail with the given error
+</p></div><dl class="paramcmts block"><dt class="param">err</dt><dd class="cmt"><p>the error to return
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -493,7 +516,7 @@ handle CallbackExec messages
       </a>
     </span>
       
-    </li><li name="colossus.service.Callback#successful" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.Callback#successful" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="successful[I](value:I):colossus.service.Callback[I]"></a>
       <a id="successful[I](I):Callback[I]"></a>
       <h4 class="signature">
@@ -509,8 +532,10 @@ handle CallbackExec messages
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">returns a callback that will complete as soon as its executed...similar to Future.successful
-</p>
+      <p class="shortcomment cmt">returns a callback that will immediately succeed with the value as soon as its executed
+</p><div class="fullcomment"><div class="comment cmt"><p>returns a callback that will immediately succeed with the value as soon as its executed
+</p></div><dl class="paramcmts block"><dt class="param">value</dt><dd class="cmt"><p>the value to complete with
+</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

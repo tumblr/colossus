@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.BasicServiceDelegator#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],requestTimeout:scala.concurrent.duration.Duration):colossus.service.BasicServiceDelegator[C]"></a>
+      <a id="&lt;init&gt;(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],config:colossus.service.ServiceConfig):colossus.service.BasicServiceDelegator[C]"></a>
       <a id="&lt;init&gt;:BasicServiceDelegator[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BasicServiceDelegator</span><span class="params">(<span name="func">func: <a href="CodecDSL$.html#Initializer[C&lt;:colossus.service.CodecDSL]=colossus.service.ServiceContext[C]=&gt;colossus.service.CodecDSL.HandlerGenerator[C]" class="extmbr" name="colossus.service.CodecDSL.Initializer">Initializer</a>[<span class="extype" name="colossus.service.BasicServiceDelegator.C">C</span>]</span>, <span name="server">server: <a href="../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.BasicServiceDelegator.C">C</span>]</span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span>
+        <span class="name">BasicServiceDelegator</span><span class="params">(<span name="func">func: <a href="CodecDSL$.html#Initializer[C&lt;:colossus.service.CodecDSL]=colossus.service.ServiceContext[C]=&gt;colossus.service.CodecDSL.HandlerGenerator[C]" class="extmbr" name="colossus.service.CodecDSL.Initializer">Initializer</a>[<span class="extype" name="colossus.service.BasicServiceDelegator.C">C</span>]</span>, <span name="server">server: <a href="../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.BasicServiceDelegator.C">C</span>]</span>, <span name="config">config: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.BasicServiceDelegator@&lt;init&gt;(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],requestTimeout:scala.concurrent.duration.Duration):colossus.service.BasicServiceDelegator[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.BasicServiceDelegator@&lt;init&gt;(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],config:colossus.service.ServiceConfig):colossus.service.BasicServiceDelegator[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -200,6 +200,23 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.service.ServiceContext#clientFor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clientFor[D&lt;:colossus.service.CodecDSL](address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D]):colossus.service.ServiceClient[D#Input,D#Output]"></a>
+      <a id="clientFor[D&lt;:CodecDSL](InetSocketAddress,Duration)(ClientCodecProvider[D]):ServiceClient[ServiceContext.clientFor.D.Input,ServiceContext.clientFor.D.Output]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clientFor</span><span class="tparams">[<span name="D">D &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ServiceContext.clientFor.D">D</span>]</span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.CodecDSL.Input">ServiceContext.clientFor.D.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">ServiceContext.clientFor.D.Output</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.BasicServiceDelegator@clientFor[D&lt;:colossus.service.CodecDSL](address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D]):colossus.service.ServiceClient[D#Input,D#Output]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ServiceContext.html" class="extype" name="colossus.service.ServiceContext">ServiceContext</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceContext#clientFor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clientFor[D&lt;:colossus.service.CodecDSL](host:String,port:Int,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D]):colossus.service.ServiceClient[D#Input,D#Output]"></a>
       <a id="clientFor[D&lt;:CodecDSL](String,Int,Duration)(ClientCodecProvider[D]):ServiceClient[ServiceContext.clientFor.D.Input,ServiceContext.clientFor.D.Output]"></a>
       <h4 class="signature">
@@ -256,23 +273,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.service.BasicServiceDelegator#config" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="config:colossus.service.ServiceConfig"></a>
-      <a id="config:ServiceConfig"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">config</span><span class="result">: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.BasicServiceDelegator@config:colossus.service.ServiceConfig" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="colossus.core.Delegator#createConnectionHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="createConnectionHandler:Option[colossus.core.ConnectionHandler]"></a>
       <a id="createConnectionHandler:Option[ConnectionHandler]"></a>
@@ -587,7 +587,7 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></dd></dl></div>
+      <p class="shortcomment cmt">reference to the server</p><div class="fullcomment"><div class="comment cmt"><p>reference to the server</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -707,8 +707,8 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">
-</p><div class="fullcomment"><div class="comment cmt"><p>
+      <p class="shortcomment cmt">reference to the worker this delegator belongs to
+</p><div class="fullcomment"><div class="comment cmt"><p>reference to the worker this delegator belongs to
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></dd></dl></div>
     </li></ol>
             </div>

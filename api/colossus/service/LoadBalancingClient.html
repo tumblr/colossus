@@ -43,7 +43,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">LoadBalancingClient</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>
+        <span class="name">LoadBalancingClient</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>] with <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4>
       
@@ -55,7 +55,7 @@ so setting maxTries to a very large number will mean that every client will
 be tried once
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>], <a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>], <a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -73,7 +73,7 @@ be tried once
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.LoadBalancingClient"><span>LoadBalancingClient</span></li><li class="in" name="colossus.service.LocalClient"><span>LocalClient</span></li><li class="in" name="colossus.service.ClientLike"><span>ClientLike</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.LoadBalancingClient"><span>LoadBalancingClient</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="colossus.service.LocalClient"><span>LocalClient</span></li><li class="in" name="colossus.service.ClientLike"><span>ClientLike</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -94,7 +94,7 @@ be tried once
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.LoadBalancingClient#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(maxTries:Int):colossus.service.LoadBalancingClient[I,O]"></a>
+      <a id="&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.ServiceClient[I,O],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[I,O]"></a>
       <a id="&lt;init&gt;:LoadBalancingClient[I,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -102,10 +102,10 @@ be tried once
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">LoadBalancingClient</span><span class="params">(<span name="maxTries">maxTries: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">Int.MaxValue</span></span>)</span>
+        <span class="name">LoadBalancingClient</span><span class="params">(<span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="generator">generator: (<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>) ⇒ <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>, <span name="maxTries">maxTries: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">Int.MaxValue</span></span>, <span name="initialClients">initialClients: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>] = <span class="symbol">Nil</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@&lt;init&gt;(maxTries:Int):colossus.service.LoadBalancingClient[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.ServiceClient[I,O],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[I,O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -115,19 +115,19 @@ be tried once
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.service.LoadBalancingClient.SendFailedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="SendFailedExceptionextendsException"></a>
-      <a id="SendFailedException:SendFailedException"></a>
+              <ol><li name="colossus.service.LoadBalancingClient.Send" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SendextendsProductwithSerializable"></a>
+      <a id="Send:Send"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="LoadBalancingClient$SendFailedException.html"><span class="name">SendFailedException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+        <a href="LoadBalancingClient$Send.html"><span class="name">Send</span></a><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.LoadBalancingClient.I">I</span></span>, <span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@SendFailedExceptionextendsException" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@SendextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -191,18 +191,18 @@ be tried once
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#addClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addClient(client:colossus.service.ServiceClient[I,O]):Unit"></a>
-      <a id="addClient(ServiceClient[I,O]):Unit"></a>
+      <a id="addClient(address:java.net.InetSocketAddress):colossus.service.ServiceClient[I,O]"></a>
+      <a id="addClient(InetSocketAddress):ServiceClient[I,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addClient</span><span class="params">(<span name="client">client: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(client:colossus.service.ServiceClient[I,O]):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(address:java.net.InetSocketAddress):colossus.service.ServiceClient[I,O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -224,6 +224,61 @@ be tried once
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#bind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bind(worker:colossus.core.WorkerRef):Unit"></a>
+      <a id="bind(WorkerRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bind</span><span class="params">(<span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@bind(worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Attempt to bind this WorkerItem to the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
+<code>onBind()</code> is called and the item will be able to receive events and
+messages.  Notice that this method is asynchronous.
+</p></div><dl class="paramcmts block"><dt class="param">worker</dt><dd class="cmt"><p>The worker to bind to
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
+      <a id="binding:Option[WorkerItemBinding]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">binding</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerItemBinding.html" class="extype" name="colossus.core.WorkerItemBinding">WorkerItemBinding</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@binding:Option[colossus.core.WorkerItemBinding]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">When bound to a worker, this contains the [WorkerItemBinding]</p><div class="fullcomment"><div class="comment cmt"><p>When bound to a worker, this contains the [WorkerItemBinding]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#boundWorker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="boundWorker:Option[colossus.core.WorkerRef]"></a>
+      <a id="boundWorker:Option[WorkerRef]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">boundWorker</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@boundWorker:Option[colossus.core.WorkerRef]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -247,6 +302,23 @@ be tried once
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.LoadBalancingClient#currentClients" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="currentClients:List[colossus.service.ServiceClient[I,O]]"></a>
+      <a id="currentClients:List[ServiceClient[I,O]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">currentClients</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@currentClients:List[colossus.service.ServiceClient[I,O]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -338,6 +410,40 @@ be tried once
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="id:Option[Long]"></a>
+      <a id="id:Option[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@id:Option[Long]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBound:Boolean"></a>
+      <a id="isBound:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@isBound:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -406,6 +512,63 @@ be tried once
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onBind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onBind():Unit"></a>
+      <a id="onBind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@onBind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onUnbind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onUnbind():Unit"></a>
+      <a id="onUnbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@onUnbind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item has been unbound from a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.service.LoadBalancingClient#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#removeClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="removeClient(address:java.net.InetSocketAddress):Unit"></a>
       <a id="removeClient(InetSocketAddress):Unit"></a>
@@ -475,9 +638,7 @@ be tried once
     </span>
       <p class="shortcomment cmt">Returns a shared version of the client that can be used across threads,
 inside futures, etc.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a shared version of the client that can be used across threads,
-inside futures, etc.  Notice that clients cannot be added/removed from
-this object and any clients added/removed from the local version are not
-reflected in any existing shared clients.
+inside futures, etc.</p><p>TODO: There is probably room to generalize some of this plumbing
 </p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
@@ -513,6 +674,44 @@ reflected in any existing shared clients.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#unbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unbind():Unit"></a>
+      <a id="unbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@unbind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Unbinds the WorkerItem, if it is bound.</p><div class="fullcomment"><div class="comment cmt"><p>Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
+<code>onUnbind()</code> is called.  This method is asynchronous.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.service.LoadBalancingClient#update" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="update(addresses:Seq[java.net.InetSocketAddress]):Unit"></a>
+      <a id="update(Seq[InetSocketAddress]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">update</span><span class="params">(<span name="addresses">addresses: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@update(addresses:Seq[java.net.InetSocketAddress]):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Updates the client list, creating connections for new addresses not in the
+existing list and closing connections not in the new list
+</p>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -591,7 +790,9 @@ reflected in any existing shared clients.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.service.LocalClient">
+        <div class="parent" name="colossus.core.WorkerItem">
+              <h3>Inherited from <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
+            </div><div class="parent" name="colossus.service.LocalClient">
               <h3>Inherited from <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</h3>
             </div><div class="parent" name="colossus.service.ClientLike">
               <h3>Inherited from <a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</h3>

@@ -161,6 +161,23 @@
       </a>
     </span>
       
+    </li><li name="colossus.protocols.redis.RedisReplyParser#DefaultMaxSize" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DefaultMaxSize:colossus.parsing.DataSize"></a>
+      <a id="DefaultMaxSize:DataSize"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DefaultMaxSize</span><span class="result">: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisReplyParser$@DefaultMaxSize:colossus.parsing.DataSize" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.protocols.redis.RedisReplyParser#ERROR_BYTE" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ERROR_BYTE:Byte"></a>
       <a id="ERROR_BYTE:Byte"></a>
@@ -264,18 +281,18 @@
     </span>
       
     </li><li name="colossus.protocols.redis.RedisReplyParser#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply():colossus.parsing.Combinators.Parser[colossus.protocols.redis.Reply]"></a>
-      <a id="apply():Parser[Reply]"></a>
+      <a id="apply(size:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[colossus.protocols.redis.Reply]"></a>
+      <a id="apply(DataSize):Parser[Reply]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">()</span><span class="result">: <a href="../../parsing/Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
+        <span class="name">apply</span><span class="params">(<span name="size">size: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="#DefaultMaxSize:colossus.parsing.DataSize">DefaultMaxSize</a></span></span></span>)</span><span class="result">: <a href="../../parsing/Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.RedisReplyParser$@apply():colossus.parsing.Combinators.Parser[colossus.protocols.redis.Reply]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.RedisReplyParser$@apply(size:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[colossus.protocols.redis.Reply]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -297,7 +314,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.protocols.redis.RedisReplyParser#bulkReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.redis.RedisReplyParser#bulkReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="bulkReply:colossus.parsing.Combinators.Parser[ProductwithSerializablewithcolossus.protocols.redis.Reply]"></a>
       <a id="bulkReply:Parser[ProductwithSerializablewithReply]"></a>
       <h4 class="signature">
@@ -313,7 +330,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -371,7 +388,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.redis.RedisReplyParser#errorReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.redis.RedisReplyParser#errorReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="errorReply:colossus.parsing.Combinators.Parser[colossus.protocols.redis.ErrorReply]"></a>
       <a id="errorReply:Parser[ErrorReply]"></a>
       <h4 class="signature">
@@ -387,7 +404,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -445,7 +462,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.redis.RedisReplyParser#integerReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.redis.RedisReplyParser#integerReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="integerReply:colossus.parsing.Combinators.Parser[colossus.protocols.redis.IntegerReply]"></a>
       <a id="integerReply:Parser[IntegerReply]"></a>
       <h4 class="signature">
@@ -461,7 +478,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -479,7 +496,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.protocols.redis.RedisReplyParser#mBulkReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.redis.RedisReplyParser#mBulkReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="mBulkReply:colossus.parsing.Combinators.Parser[ProductwithSerializablewithcolossus.protocols.redis.Reply]"></a>
       <a id="mBulkReply:Parser[ProductwithSerializablewithReply]"></a>
       <h4 class="signature">
@@ -495,7 +512,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -581,7 +598,7 @@
       </a>
     </span>
       
-    </li><li name="colossus.protocols.redis.RedisReplyParser#statusReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.redis.RedisReplyParser#statusReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="statusReply:colossus.parsing.Combinators.Parser[colossus.protocols.redis.StatusReply]"></a>
       <a id="statusReply:Parser[StatusReply]"></a>
       <h4 class="signature">
@@ -597,8 +614,8 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.protocols.redis.RedisReplyParser#stringReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisReplyParser#stringReply" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stringReply:colossus.parsing.Combinators.Parser[String]"></a>
       <a id="stringReply:Parser[String]"></a>
       <h4 class="signature">
@@ -614,7 +631,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

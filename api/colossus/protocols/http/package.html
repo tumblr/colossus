@@ -157,42 +157,6 @@
       </a>
     </span>
       
-    </li><li name="colossus.protocols.http.HttpController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="HttpControllerextendsAnyRef"></a>
-      <a id="HttpController:HttpController"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="HttpController.html"><span class="name">HttpController</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package@HttpControllerextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.http.HttpHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpHandlerextendsServiceServer[colossus.protocols.http.HttpRequest,colossus.protocols.http.HttpResponse]withNavigator.ColossusNavigator"></a>
-      <a id="HttpHandler:HttpHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="HttpHandler.html"><span class="name">HttpHandler</span></a><span class="result"> extends <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>, <a href="HttpResponse.html" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a>] with <a href="Navigator$$ColossusNavigator.html" class="extype" name="colossus.protocols.http.Navigator.ColossusNavigator">ColossusNavigator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package@HttpHandlerextendsServiceServer[colossus.protocols.http.HttpRequest,colossus.protocols.http.HttpResponse]withNavigator.ColossusNavigator" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">An instance of ConnectionHandler mixed with ColossusNavigator.</p><div class="fullcomment"><div class="comment cmt"><p>An instance of ConnectionHandler mixed with ColossusNavigator. This class is responsible for taking the decoded
-HttpRequest and examining it's method &amp; path to figure out which helper to delegate to.
-</p></div></div>
     </li><li name="colossus.protocols.http.HttpHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpHeadextendsProductwithSerializable"></a>
       <a id="HttpHead:HttpHead"></a>
@@ -574,42 +538,7 @@ HttpRequest and examining it's method &amp; path to figure out which helper to d
       </a>
     </span>
       
-    </li><li name="colossus.protocols.http.Navigator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Navigator"></a>
-      <a id="Navigator:Navigator"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Navigator$.html"><span class="name">Navigator</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package@Navigator" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides type-aware HTTP routing for Colossus services.</p><div class="fullcomment"><div class="comment cmt"><p>Provides type-aware HTTP routing for Colossus services.</p><p>To implement within your service, first mixin the ColossusNavigator trait:</p><pre><span class="kw">class</span> Router <span class="kw">extends</span> ColossusNavigator {
-...
-}</pre><p>and then define your routes, pointing to existing functions within
-helper objects:</p><pre><span class="kw">class</span> Router <span class="kw">extends</span> ColossusNavigator {
-<span class="kw">val</span> home  = GET   on root            to SomeHelper.root
-<span class="kw">val</span> index = POST  on <span class="lit">"stuff"</span>         to StuffHelper.add
-<span class="kw">val</span> show  = GET   on <span class="lit">"show"</span> / * / *  to ShowHelper.param
-<span class="kw">val</span> redir = GET   on <span class="lit">"redir"</span>         to redirect(<span class="lit">"http://www.google.com"</span>)
-}</pre><p>and finally invoke this from within a Handler:</p><pre><span class="kw">class</span> MyAwesomeService(config: ServiceConfig, worker:WorkerRef, router: ColossusNavigator)(<span class="kw">implicit</span> ex: ExecutionContext)
-<span class="kw">extends</span> ServiceServer[HttpRequest, HttpResponse](<span class="kw">new</span> HttpServerCodec, config, worker) {
-
-<span class="kw">override</span> <span class="kw">def</span> processRequest(request: HttpRequest): Response[HttpResponse] = {
-  router.onRouteRequest(request).get
-}
-...
-}</pre><p>Asterisks int the path will be mapped to the parameters of the specified function
-(so in this case ShowHelper.param must take two parameters), and the types of the
-params supplied will be runtime checked for consistency.</p><p>Note: This mechanism is absolutely not threadsafe. One request at a time please!</p><p>More examples can be found <a href="http://teamon.github.io/play-navigator/" target="_blank">here</a>
-</p></div></div>
-    </li><li name="colossus.protocols.http.UrlParsing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.http.UrlParsing" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UrlParsing"></a>
       <a id="UrlParsing:UrlParsing"></a>
       <h4 class="signature">
@@ -625,7 +554,10 @@ params supplied will be runtime checked for consistency.</p><p>Note: This mechan
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">URL parsing can be done using one of two paths.</p><div class="fullcomment"><div class="comment cmt"><p>URL parsing can be done using one of two paths. The first uses an object based decomposition with a minimal number
+of string operations. This parses using the 'on' keyword and the left associative '/' operator.</p><p>The second method uses string operations in a right associative manner. Because all values are strings, it is less type
+safe than the object method. This is used with the 'in' keyword and the right associative '/:' operator. In this method,
+the final variable in the pattern will consume all remaining levels.</p><p>To use either language, import the UrlParsing._ object</p></div></div>
     </li></ol>
             </div>
 

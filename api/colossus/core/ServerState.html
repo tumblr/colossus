@@ -43,11 +43,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerState</span><span class="params">(<span name="connectionVolumeState">connectionVolumeState: <a href="ConnectionVolumeState.html" class="extype" name="colossus.core.ConnectionVolumeState">ConnectionVolumeState</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServerState</span><span class="params">(<span name="connectionVolumeState">connectionVolumeState: <a href="ConnectionVolumeState.html" class="extype" name="colossus.core.ConnectionVolumeState">ConnectionVolumeState</a></span>, <span name="serverStatus">serverStatus: <a href="ServerStatus.html" class="extype" name="colossus.core.ServerStatus">ServerStatus</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Class representing the state of the server.  Currently the only reported status is the ConnectionVolumeState.</p></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Representes if the a Server's connections are normal or in highwater
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Class representing the state of the server.  Currently the only reported status is the ConnectionVolumeState.</p></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Represents if the a Server's connections are normal or in highwater</p></dd><dt class="param">serverStatus</dt><dd class="cmt"><p>Represents the Server's current status
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
@@ -89,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ServerState#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(connectionVolumeState:colossus.core.ConnectionVolumeState):colossus.core.ServerState"></a>
+      <a id="&lt;init&gt;(connectionVolumeState:colossus.core.ConnectionVolumeState,serverStatus:colossus.core.ServerStatus):colossus.core.ServerState"></a>
       <a id="&lt;init&gt;:ServerState"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,14 +97,14 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerState</span><span class="params">(<span name="connectionVolumeState">connectionVolumeState: <a href="ConnectionVolumeState.html" class="extype" name="colossus.core.ConnectionVolumeState">ConnectionVolumeState</a></span>)</span>
+        <span class="name">ServerState</span><span class="params">(<span name="connectionVolumeState">connectionVolumeState: <a href="ConnectionVolumeState.html" class="extype" name="colossus.core.ConnectionVolumeState">ConnectionVolumeState</a></span>, <span name="serverStatus">serverStatus: <a href="ServerStatus.html" class="extype" name="colossus.core.ServerStatus">ServerStatus</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerState@&lt;init&gt;(connectionVolumeState:colossus.core.ConnectionVolumeState):colossus.core.ServerState" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerState@&lt;init&gt;(connectionVolumeState:colossus.core.ConnectionVolumeState,serverStatus:colossus.core.ServerStatus):colossus.core.ServerState" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Representes if the a Server's connections are normal or in highwater
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Represents if the a Server's connections are normal or in highwater</p></dd><dt class="param">serverStatus</dt><dd class="cmt"><p>Represents the Server's current status
 </p></dd></dl></div>
     </li></ol>
             </div>
@@ -222,8 +222,7 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Representes if the a Server's connections are normal or in highwater
-</p>
+      <p class="shortcomment cmt">Represents if the a Server's connections are normal or in highwater</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -349,6 +348,24 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.ServerState#serverStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="serverStatus:colossus.core.ServerStatus"></a>
+      <a id="serverStatus:ServerStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">serverStatus</span><span class="result">: <a href="ServerStatus.html" class="extype" name="colossus.core.ServerStatus">ServerStatus</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerState@serverStatus:colossus.core.ServerStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents the Server's current status
+</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

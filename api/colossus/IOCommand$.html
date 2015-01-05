@@ -89,7 +89,29 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.IOCommand.BindWorkerItem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="colossus.IOCommand.BindAndConnectWorkerItem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BindAndConnectWorkerItemextendsIOCommandwithProductwithSerializable"></a>
+      <a id="BindAndConnectWorkerItem:BindAndConnectWorkerItem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="IOCommand$$BindAndConnectWorkerItem.html"><span class="name">BindAndConnectWorkerItem</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="item">item: <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.IOCommand$@BindAndConnectWorkerItemextendsIOCommandwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Bind a WorkerItem to a worker and then begin establishing an outgoing
+connection whose events will be sent to the item.</p><div class="fullcomment"><div class="comment cmt"><p>Bind a WorkerItem to a worker and then begin establishing an outgoing
+connection whose events will be sent to the item.</p><p>Notice that this is different from Worker.Connect, which must be sent to a
+specific worker and can only be used on a WorkerItem already bound to that
+worker
+</p></div></div>
+    </li><li name="colossus.IOCommand.BindWorkerItem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="BindWorkerItemextendsIOCommandwithProductwithSerializable"></a>
       <a id="BindWorkerItem:BindWorkerItem"></a>
       <h4 class="signature">
@@ -98,34 +120,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="IOCommand$$BindWorkerItem.html"><span class="name">BindWorkerItem</span></a><span class="params">(<span name="item">item: <a href="core/BindableWorkerItem.html" class="extype" name="colossus.core.BindableWorkerItem">BindableWorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="IOCommand$$BindWorkerItem.html"><span class="name">BindWorkerItem</span></a><span class="params">(<span name="item">item: <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../index.html#colossus.IOCommand$@BindWorkerItemextendsIOCommandwithProductwithSerializable" title="Permalink" target="_top">
         <img src="../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Bind the BindableWorkerItem to a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Bind the BindableWorkerItem to a Worker.  The only BindableWorkerItem currently supported is a Task.</p></div><dl class="paramcmts block"><dt class="param">item</dt><dd class="cmt"><p>The item to bind.
-</p></dd></dl></div>
-    </li><li name="colossus.IOCommand.Connect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ConnectextendsIOCommandwithProductwithSerializable"></a>
-      <a id="Connect:Connect"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="IOCommand$$Connect.html"><span class="name">Connect</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="handler">handler: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../index.html#colossus.IOCommand$@ConnectextendsIOCommandwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Connect to the specified address and use the specified function to create a Handler to attach to it.</p><div class="fullcomment"><div class="comment cmt"><p>Connect to the specified address and use the specified function to create a Handler to attach to it.</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect.</p></dd><dt class="param">handler</dt><dd class="cmt"><p>Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
-               to the handler.
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Bind a [WorkerItem] to a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Bind a [WorkerItem] to a Worker.  Multiple Bind messages are round
+robined across workers in an IOSystem
+</p></div></div>
     </li></ol>
             </div>
 

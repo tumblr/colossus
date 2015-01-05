@@ -54,10 +54,10 @@ the desired protocol.</p><p>Requests can be processed synchronously or
 asynchronously.  The server will ensure that all responses are written back
 in the order that they are received.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <span class="extype" name="colossus.core.WorkerItem">WorkerItem</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../protocols/http/HttpHandler.html" class="extype" name="colossus.protocols.http.HttpHandler">HttpHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a></div>
           </div></div>
         
 
@@ -117,24 +117,7 @@ in the order that they are received.</p></div><div class="toggleContainer block"
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.service.ServiceServer.ServiceServerMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ServiceServerMessageextendsAnyRef"></a>
-      <a id="ServiceServerMessage:ServiceServerMessage"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ServiceServer$ServiceServerMessage.html"><span class="name">ServiceServerMessage</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@ServiceServerMessageextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.ServiceServer.SyncPromise" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.service.ServiceServer.SyncPromise" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SyncPromiseextendsProductwithSerializable"></a>
       <a id="SyncPromise:SyncPromise"></a>
       <h4 class="signature">
@@ -246,25 +229,8 @@ in the order that they are received.</p></div><div class="toggleContainer block"
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.service.ServiceServer.CheckTimeout" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CheckTimeout"></a>
-      <a id="CheckTimeout:CheckTimeout"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ServiceServer$CheckTimeout$.html"><span class="name">CheckTimeout</span></a><span class="result"> extends <a href="ServiceServer$ServiceServerMessage.html" class="extype" name="colossus.service.ServiceServer.ServiceServerMessage">ServiceServerMessage</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@CheckTimeout" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="colossus.service.ServiceServer#ERRORS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ERRORS:trundle.MetricAddress"></a>
+      <a id="ERRORS:colossus.metrics.MetricAddress"></a>
       <a id="ERRORS:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -272,16 +238,16 @@ in the order that they are received.</p></div><div class="toggleContainer block"
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ERRORS</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
+        <span class="name">ERRORS</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@ERRORS:trundle.MetricAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@ERRORS:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="colossus.service.ServiceServer#LATENCY" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="LATENCY:trundle.MetricAddress"></a>
+      <a id="LATENCY:colossus.metrics.MetricAddress"></a>
       <a id="LATENCY:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -289,16 +255,16 @@ in the order that they are received.</p></div><div class="toggleContainer block"
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">LATENCY</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
+        <span class="name">LATENCY</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@LATENCY:trundle.MetricAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@LATENCY:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="colossus.service.ServiceServer#REQPERCON" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="REQPERCON:trundle.MetricAddress"></a>
+      <a id="REQPERCON:colossus.metrics.MetricAddress"></a>
       <a id="REQPERCON:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -306,16 +272,16 @@ in the order that they are received.</p></div><div class="toggleContainer block"
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">REQPERCON</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
+        <span class="name">REQPERCON</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@REQPERCON:trundle.MetricAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@REQPERCON:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="colossus.service.ServiceServer#REQUESTS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="REQUESTS:trundle.MetricAddress"></a>
+      <a id="REQUESTS:colossus.metrics.MetricAddress"></a>
       <a id="REQUESTS:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -323,16 +289,16 @@ in the order that they are received.</p></div><div class="toggleContainer block"
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">REQUESTS</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
+        <span class="name">REQUESTS</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@REQUESTS:trundle.MetricAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@REQUESTS:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="colossus.service.ServiceServer#addError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addError(err:Throwable,extraTags:trundle.TagMap):Unit"></a>
+      <a id="addError(err:Throwable,extraTags:colossus.metrics.TagMap):Unit"></a>
       <a id="addError(Throwable,TagMap):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -340,10 +306,10 @@ in the order that they are received.</p></div><div class="toggleContainer block"
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addError</span><span class="params">(<span name="err">err: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="extraTags">extraTags: <span class="extype" name="trundle.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">addError</span><span class="params">(<span name="err">err: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="extraTags">extraTags: <span class="extype" name="colossus.metrics.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@addError(err:Throwable,extraTags:trundle.TagMap):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@addError(err:Throwable,extraTags:colossus.metrics.TagMap):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -365,24 +331,61 @@ in the order that they are received.</p></div><div class="toggleContainer block"
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.service.ServiceServer#bound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="bound(id:Long,worker:colossus.core.WorkerRef):Unit"></a>
-      <a id="bound(Long,WorkerRef):Unit"></a>
+    </li><li name="colossus.core.WorkerItem#bind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bind(worker:colossus.core.WorkerRef):Unit"></a>
+      <a id="bind(WorkerRef):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bound</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">bind</span><span class="params">(<span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@bound(id:Long,worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@bind(worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Called when this item has successfully been bound to a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when this item has successfully been bound to a Worker.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The id assigned to this Item.</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The Worker whom was bound
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → WorkerItem</dd></dl></div>
+      <p class="shortcomment cmt">Attempt to bind this WorkerItem to the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
+<code>onBind()</code> is called and the item will be able to receive events and
+messages.  Notice that this method is asynchronous.
+</p></div><dl class="paramcmts block"><dt class="param">worker</dt><dd class="cmt"><p>The worker to bind to
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
+      <a id="binding:Option[WorkerItemBinding]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">binding</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerItemBinding.html" class="extype" name="colossus.core.WorkerItemBinding">WorkerItemBinding</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@binding:Option[colossus.core.WorkerItemBinding]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">When bound to a worker, this contains the [WorkerItemBinding]</p><div class="fullcomment"><div class="comment cmt"><p>When bound to a worker, this contains the [WorkerItemBinding]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#boundWorker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="boundWorker:Option[colossus.core.WorkerRef]"></a>
+      <a id="boundWorker:Option[WorkerRef]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">boundWorker</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@boundWorker:Option[colossus.core.WorkerRef]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#callbackExecutor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="callbackExecutor:colossus.service.CallbackExecutor"></a>
       <a id="callbackExecutor:CallbackExecutor"></a>
@@ -423,6 +426,23 @@ in the order that they are received.</p></div><div class="toggleContainer block"
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.ServiceServer#concurrentRequests" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="concurrentRequests:colossus.metrics.EventLocality.Local[colossus.metrics.Counter]"></a>
+      <a id="concurrentRequests:Local[Counter]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">concurrentRequests</span><span class="result">: <span class="extype" name="colossus.metrics.EventLocality.Local">Local</span>[<span class="extype" name="colossus.metrics.Counter">Counter</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@concurrentRequests:colossus.metrics.EventLocality.Local[colossus.metrics.Counter]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ServiceServer#connected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connected(endpoint:colossus.core.WriteEndpoint):Unit"></a>
       <a id="connected(WriteEndpoint):Unit"></a>
@@ -459,7 +479,7 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Connection was closed on our end, either by a shutdown, or by normal means</p><div class="fullcomment"><div class="comment cmt"><p>Connection was closed on our end, either by a shutdown, or by normal means</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+      <p class="shortcomment cmt">Connection was closed on our end, either by a shutdown, or by normal means</p><div class="fullcomment"><div class="comment cmt"><p>Connection was closed on our end, either by a shutdown, or by normal means</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was closed
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#connectionLost" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connectionLost(cause:colossus.core.DisconnectError):Unit"></a>
@@ -477,7 +497,7 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Connection lost is caused by termination, closed, etc</p><div class="fullcomment"><div class="comment cmt"><p>Connection lost is caused by termination, closed, etc</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+      <p class="shortcomment cmt">Connection lost is caused by termination, closed, etc</p><div class="fullcomment"><div class="comment cmt"><p>Connection lost is caused by termination, closed, etc</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was lost
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.core.ConnectionHandler#connectionTerminated" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connectionTerminated(cause:colossus.core.DisconnectCause):Unit"></a>
@@ -495,7 +515,7 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by and error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by and error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>
+      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by and error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by and error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was terminated
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#disconnect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="disconnect():Unit"></a>
@@ -549,7 +569,7 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.ServiceServer#errors" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="errors:trundle.EventLocality.Local[trundle.Rate]"></a>
+      <a id="errors:colossus.metrics.EventLocality.Local[colossus.metrics.Rate]"></a>
       <a id="errors:Local[Rate]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -557,10 +577,10 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">errors</span><span class="result">: <span class="extype" name="trundle.EventLocality.Local">Local</span>[<span class="extype" name="trundle.Rate">Rate</span>]</span>
+        <span class="name">errors</span><span class="result">: <span class="extype" name="colossus.metrics.EventLocality.Local">Local</span>[<span class="extype" name="colossus.metrics.Rate">Rate</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@errors:trundle.EventLocality.Local[trundle.Rate]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@errors:colossus.metrics.EventLocality.Local[colossus.metrics.Rate]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -622,6 +642,62 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="id:Option[Long]"></a>
+      <a id="id:Option[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@id:Option[Long]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceServer#idleCheck" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="idleCheck(period:scala.concurrent.duration.Duration):Unit"></a>
+      <a id="idleCheck(Duration):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@idleCheck(period:scala.concurrent.duration.Duration):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><div class="fullcomment"><div class="comment cmt"><p>Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
+which is only based on the last time there was any I/O.
+</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBound:Boolean"></a>
+      <a id="isBound:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@isBound:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -640,7 +716,7 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.service.ServiceServer#latency" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="latency:trundle.EventLocality.Local[trundle.Histogram]"></a>
+      <a id="latency:colossus.metrics.EventLocality.Local[colossus.metrics.Histogram]"></a>
       <a id="latency:Local[Histogram]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -648,10 +724,10 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">latency</span><span class="result">: <span class="extype" name="trundle.EventLocality.Local">Local</span>[<span class="extype" name="trundle.Histogram">Histogram</span>]</span>
+        <span class="name">latency</span><span class="result">: <span class="extype" name="colossus.metrics.EventLocality.Local">Local</span>[<span class="extype" name="colossus.metrics.Histogram">Histogram</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@latency:trundle.EventLocality.Local[trundle.Histogram]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@latency:colossus.metrics.EventLocality.Local[colossus.metrics.Histogram]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -724,6 +800,43 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onBind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onBind():Unit"></a>
+      <a id="onBind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@onBind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onUnbind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onUnbind():Unit"></a>
+      <a id="onUnbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@onUnbind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item has been unbound from a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#readyForData" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="readyForData():Unit"></a>
       <a id="readyForData():Unit"></a>
@@ -782,9 +895,9 @@ for it to clear up, and now it's ready
       <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → WorkerItem</dd></dl></div>
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#requests" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="requests:trundle.EventLocality.Local[trundle.Rate]"></a>
+      <a id="requests:colossus.metrics.EventLocality.Local[colossus.metrics.Rate]"></a>
       <a id="requests:Local[Rate]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -792,16 +905,16 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">requests</span><span class="result">: <span class="extype" name="trundle.EventLocality.Local">Local</span>[<span class="extype" name="trundle.Rate">Rate</span>]</span>
+        <span class="name">requests</span><span class="result">: <span class="extype" name="colossus.metrics.EventLocality.Local">Local</span>[<span class="extype" name="colossus.metrics.Rate">Rate</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@requests:trundle.EventLocality.Local[trundle.Rate]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@requests:colossus.metrics.EventLocality.Local[colossus.metrics.Rate]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="colossus.service.ServiceServer#requestsPerConnection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="requestsPerConnection:trundle.EventLocality.Local[trundle.Histogram]"></a>
+      <a id="requestsPerConnection:colossus.metrics.EventLocality.Local[colossus.metrics.Histogram]"></a>
       <a id="requestsPerConnection:Local[Histogram]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -809,10 +922,10 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">requestsPerConnection</span><span class="result">: <span class="extype" name="trundle.EventLocality.Local">Local</span>[<span class="extype" name="trundle.Histogram">Histogram</span>]</span>
+        <span class="name">requestsPerConnection</span><span class="result">: <span class="extype" name="colossus.metrics.EventLocality.Local">Local</span>[<span class="extype" name="colossus.metrics.Histogram">Histogram</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@requestsPerConnection:trundle.EventLocality.Local[trundle.Histogram]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@requestsPerConnection:colossus.metrics.EventLocality.Local[colossus.metrics.Histogram]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -885,24 +998,25 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#unbound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unbound():Unit"></a>
-      <a id="unbound():Unit"></a>
+    </li><li name="colossus.core.WorkerItem#unbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unbind():Unit"></a>
+      <a id="unbind():Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unbound</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">unbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceServer@unbound():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceServer@unbind():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Called when this item is unbound from a Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when this item is unbound from a Worker.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd>WorkerItem</dd></dl></div>
+      <p class="shortcomment cmt">Unbinds the WorkerItem, if it is bound.</p><div class="fullcomment"><div class="comment cmt"><p>Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
+<code>onUnbind()</code> is called.  This method is asynchronous.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -984,7 +1098,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <div class="parent" name="colossus.core.ConnectionHandler">
               <h3>Inherited from <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></h3>
             </div><div class="parent" name="colossus.core.WorkerItem">
-              <h3>Inherited from <span class="extype" name="colossus.core.WorkerItem">WorkerItem</span></h3>
+              <h3>Inherited from <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

@@ -47,7 +47,10 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>URL parsing can be done using one of two paths. The first uses an object based decomposition with a minimal number
+of string operations. This parses using the 'on' keyword and the left associative '/' operator.</p><p>The second method uses string operations in a right associative manner. Because all values are strings, it is less type
+safe than the object method. This is used with the 'in' keyword and the right associative '/:' operator. In this method,
+the final variable in the pattern will consume all remaining levels.</p><p>To use either language, import the UrlParsing._ object</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -105,7 +108,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Case class encapsulating a single piece of a parsed url</p>
     </li><li name="colossus.protocols.http.UrlParsing.UrlComponent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="UrlComponentextendsAnyRef"></a>
       <a id="UrlComponent:UrlComponent"></a>
@@ -122,7 +125,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Trait encapsulating parts of the parse of a url</p>
     </li></ol>
             </div>
 
@@ -164,7 +167,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.http.UrlParsing./" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.http.UrlParsing./" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="/"></a>
       <a id="/:/"></a>
       <h4 class="signature">
@@ -180,7 +183,9 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Extractor for left-binding object based DSL.</p><div class="fullcomment"><div class="comment cmt"><p>Extractor for left-binding object based DSL. To use:
+case url @ Get &lt;or other methed&gt; on Root / first level / second level / .. repeat
+</p></div></div>
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a>
       <a id="==(Any):Boolean"></a>
@@ -214,7 +219,7 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Extractor for integers</p>
     </li><li name="colossus.protocols.http.UrlParsing.Root" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Root"></a>
       <a id="Root:Root"></a>
@@ -228,6 +233,23 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.UrlParsing$@Root" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Case object indicting the root of a url</p>
+    </li><li name="colossus.protocols.http.UrlParsing.Strings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Strings"></a>
+      <a id="Strings:Strings"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="UrlParsing$$Strings$.html"><span class="name">Strings</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.UrlParsing$@Strings" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -448,7 +470,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.protocols.http.UrlParsing.on" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.http.UrlParsing.on" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="on"></a>
       <a id="on:on"></a>
       <h4 class="signature">
@@ -464,7 +486,8 @@
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Keyword which triggers left-binding object based parsing.</p><div class="fullcomment"><div class="comment cmt"><p>Keyword which triggers left-binding object based parsing. Must be used to match a url pattern with an HTTP method.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

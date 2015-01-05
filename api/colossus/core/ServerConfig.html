@@ -43,11 +43,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerConfig</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="timeoutConfig">timeoutConfig: <a href="TimeoutConfig.html" class="extype" name="colossus.core.TimeoutConfig">TimeoutConfig</a></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="delegatorFactory">delegatorFactory: <a href="Delegator$.html#Factory=(colossus.core.ServerRef,colossus.core.WorkerRef)=&gt;colossus.core.Delegator" class="extmbr" name="colossus.core.Delegator.Factory">Factory</a></span>, <span name="namespace">namespace: <span class="extype" name="trundle.MetricAddress">MetricAddress</span> = <span class="symbol">MetricAddress.Root</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServerConfig</span><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="delegatorFactory">delegatorFactory: <a href="Delegator$.html#Factory=(colossus.core.ServerRef,colossus.core.WorkerRef)=&gt;colossus.core.Delegator" class="extmbr" name="colossus.core.Delegator.Factory">Factory</a></span>, <span name="settings">settings: <a href="ServerSettings.html" class="extype" name="colossus.core.ServerSettings">ServerSettings</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration used to specify a Server's parameters</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the Server</p></dd><dt class="param">timeoutConfig</dt><dd class="cmt"><p>The Timeout configuration</p></dd><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">delegatorFactory</dt><dd class="cmt"><p>Factory to generate Delegators for each Worker</p></dd><dt class="param">namespace</dt><dd class="cmt"><p>The Metrics namespace</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Override for NIO tcpBacklog
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration used to specify a Server's application-level behavior</p><p> As opposed to ServerSettings which contains just lower-level config,
+ ServiceConfig contains higher-level settings.  Ideally, abstraction layers
+ on top of the core layer should provide an API that allows users to create
+ a specialized server, where the delegator factory is provided by the API
+ and the name and settings by the user.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the Server, all reported metrics are prefixed using this name</p></dd><dt class="param">delegatorFactory</dt><dd class="cmt"><p>Factory to generate <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s for each Worker</p></dd><dt class="param">settings</dt><dd class="cmt"><p>lower-level server configuration settings
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
@@ -89,7 +94,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ServerConfig#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,timeoutConfig:colossus.core.TimeoutConfig,port:Int,delegatorFactory:colossus.core.Delegator.Factory,namespace:trundle.MetricAddress,tcpBacklogSize:Option[Int]):colossus.core.ServerConfig"></a>
+      <a id="&lt;init&gt;(name:colossus.metrics.MetricAddress,delegatorFactory:colossus.core.Delegator.Factory,settings:colossus.core.ServerSettings):colossus.core.ServerConfig"></a>
       <a id="&lt;init&gt;:ServerConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,14 +102,14 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerConfig</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="timeoutConfig">timeoutConfig: <a href="TimeoutConfig.html" class="extype" name="colossus.core.TimeoutConfig">TimeoutConfig</a></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="delegatorFactory">delegatorFactory: <a href="Delegator$.html#Factory=(colossus.core.ServerRef,colossus.core.WorkerRef)=&gt;colossus.core.Delegator" class="extmbr" name="colossus.core.Delegator.Factory">Factory</a></span>, <span name="namespace">namespace: <span class="extype" name="trundle.MetricAddress">MetricAddress</span> = <span class="symbol">MetricAddress.Root</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>)</span>
+        <span class="name">ServerConfig</span><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="delegatorFactory">delegatorFactory: <a href="Delegator$.html#Factory=(colossus.core.ServerRef,colossus.core.WorkerRef)=&gt;colossus.core.Delegator" class="extmbr" name="colossus.core.Delegator.Factory">Factory</a></span>, <span name="settings">settings: <a href="ServerSettings.html" class="extype" name="colossus.core.ServerSettings">ServerSettings</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@&lt;init&gt;(name:String,timeoutConfig:colossus.core.TimeoutConfig,port:Int,delegatorFactory:colossus.core.Delegator.Factory,namespace:trundle.MetricAddress,tcpBacklogSize:Option[Int]):colossus.core.ServerConfig" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerConfig@&lt;init&gt;(name:colossus.metrics.MetricAddress,delegatorFactory:colossus.core.Delegator.Factory,settings:colossus.core.ServerSettings):colossus.core.ServerConfig" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the Server</p></dd><dt class="param">timeoutConfig</dt><dd class="cmt"><p>The Timeout configuration</p></dd><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">delegatorFactory</dt><dd class="cmt"><p>Factory to generate Delegators for each Worker</p></dd><dt class="param">namespace</dt><dd class="cmt"><p>The Metrics namespace</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Override for NIO tcpBacklog
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the Server, all reported metrics are prefixed using this name</p></dd><dt class="param">delegatorFactory</dt><dd class="cmt"><p>Factory to generate <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s for each Worker</p></dd><dt class="param">settings</dt><dd class="cmt"><p>lower-level server configuration settings
 </p></dd></dl></div>
     </li></ol>
             </div>
@@ -222,7 +227,7 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Factory to generate Delegators for each Worker</p>
+      <p class="shortcomment cmt">Factory to generate <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s for each Worker</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -298,39 +303,22 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.core.ServerConfig#name" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="name:String"></a>
-      <a id="name:String"></a>
+      <a id="name:colossus.metrics.MetricAddress"></a>
+      <a id="name:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">name</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@name:String" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerConfig@name:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Name of the Server</p>
-    </li><li name="colossus.core.ServerConfig#namespace" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="namespace:trundle.MetricAddress"></a>
-      <a id="namespace:MetricAddress"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">namespace</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@namespace:trundle.MetricAddress" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The Metrics namespace</p>
+      <p class="shortcomment cmt">Name of the Server, all reported metrics are prefixed using this name</p>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -382,23 +370,24 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ServerConfig#port" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="port:Int"></a>
-      <a id="port:Int"></a>
+    </li><li name="colossus.core.ServerConfig#settings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="settings:colossus.core.ServerSettings"></a>
+      <a id="settings:ServerSettings"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">port</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">settings</span><span class="result">: <a href="ServerSettings.html" class="extype" name="colossus.core.ServerSettings">ServerSettings</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@port:Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerConfig@settings:colossus.core.ServerSettings" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Port on which this Server will accept connections</p>
+      <p class="shortcomment cmt">lower-level server configuration settings
+</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -416,41 +405,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ServerConfig#tcpBacklogSize" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="tcpBacklogSize:Option[Int]"></a>
-      <a id="tcpBacklogSize:Option[Int]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">tcpBacklogSize</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@tcpBacklogSize:Option[Int]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Override for NIO tcpBacklog
-</p>
-    </li><li name="colossus.core.ServerConfig#timeoutConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="timeoutConfig:colossus.core.TimeoutConfig"></a>
-      <a id="timeoutConfig:TimeoutConfig"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">timeoutConfig</span><span class="result">: <a href="TimeoutConfig.html" class="extype" name="colossus.core.TimeoutConfig">TimeoutConfig</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerConfig@timeoutConfig:colossus.core.TimeoutConfig" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The Timeout configuration</p>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>

@@ -49,13 +49,15 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>An IO Command is sent to an IO System, which then routes the command to a
 random worker using a round-robin router.  If you want more determinism over
-how items are distributed across workers, just use multiple IO Systems
+how items are distributed across workers, just use multiple IO Systems</p><p>TODO: It may be a better idea to move these into WorkerCommand with a tag
+trait to show they can be accepted by the IOSystem, and then also add
+methods onto the IOSystem to eliminate confusion
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="IOCommand$$BindWorkerItem.html" class="extype" name="colossus.IOCommand.BindWorkerItem">BindWorkerItem</a>, <a href="IOCommand$$Connect.html" class="extype" name="colossus.IOCommand.Connect">Connect</a></div>
+            <div class="subClasses hiddenContent"><a href="IOCommand$$BindAndConnectWorkerItem.html" class="extype" name="colossus.IOCommand.BindAndConnectWorkerItem">BindAndConnectWorkerItem</a>, <a href="IOCommand$$BindWorkerItem.html" class="extype" name="colossus.IOCommand.BindWorkerItem">BindWorkerItem</a></div>
           </div></div>
         
 

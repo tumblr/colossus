@@ -43,12 +43,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerRef</span><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverState">serverState: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServerRef</span><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverStateAgent">serverStateAgent: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
-an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverState</dt><dd class="cmt"><p>The current state of the Server.
+an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverStateAgent</dt><dd class="cmt"><p>The current state of the Server.
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
@@ -90,7 +90,7 @@ an application design and from Akka idioms and best practices, passing around an
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ServerRef#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(config:colossus.core.ServerConfig,server:akka.actor.ActorRef,system:colossus.IOSystem,serverState:akka.agent.Agent[colossus.core.ServerState]):colossus.core.ServerRef"></a>
+      <a id="&lt;init&gt;(config:colossus.core.ServerConfig,server:akka.actor.ActorRef,system:colossus.IOSystem,serverStateAgent:akka.agent.Agent[colossus.core.ServerState]):colossus.core.ServerRef"></a>
       <a id="&lt;init&gt;:ServerRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -98,14 +98,14 @@ an application design and from Akka idioms and best practices, passing around an
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerRef</span><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverState">serverState: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span>
+        <span class="name">ServerRef</span><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverStateAgent">serverStateAgent: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerRef@&lt;init&gt;(config:colossus.core.ServerConfig,server:akka.actor.ActorRef,system:colossus.IOSystem,serverState:akka.agent.Agent[colossus.core.ServerState]):colossus.core.ServerRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerRef@&lt;init&gt;(config:colossus.core.ServerConfig,server:akka.actor.ActorRef,system:colossus.IOSystem,serverStateAgent:akka.agent.Agent[colossus.core.ServerState]):colossus.core.ServerRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverState</dt><dd class="cmt"><p>The current state of the Server.
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverStateAgent</dt><dd class="cmt"><p>The current state of the Server.
 </p></dd></dl></div>
     </li></ol>
             </div>
@@ -240,7 +240,7 @@ an application design and from Akka idioms and best practices, passing around an
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Post a message to a Server's Delegator</p><div class="fullcomment"><div class="comment cmt"><p>Post a message to a Server's Delegator</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"></dd><dt class="param">sender</dt><dd class="cmt"></dd><dt>returns</dt><dd class="cmt"><p>
+      <p class="shortcomment cmt">Post a message to a <span class="extype" name="Server">Server</span>'s <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></p><div class="fullcomment"><div class="comment cmt"><p>Post a message to a <span class="extype" name="Server">Server</span>'s <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"></dd><dt class="param">sender</dt><dd class="cmt"></dd><dt>returns</dt><dd class="cmt"><p>
 </p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
@@ -334,35 +334,18 @@ an application design and from Akka idioms and best practices, passing around an
     </span>
       
     </li><li name="colossus.core.ServerRef#name" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="name:String"></a>
-      <a id="name:String"></a>
+      <a id="name:colossus.metrics.MetricAddress"></a>
+      <a id="name:MetricAddress"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">name</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerRef@name:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ServerRef#namespace" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="namespace:trundle.MetricAddress"></a>
-      <a id="namespace:MetricAddress"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">namespace</span><span class="result">: <span class="extype" name="trundle.MetricAddress">MetricAddress</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerRef@namespace:trundle.MetricAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerRef@name:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -435,6 +418,40 @@ an application design and from Akka idioms and best practices, passing around an
       </a>
     </span>
       <p class="shortcomment cmt">The ActorRef of the Server</p>
+    </li><li name="colossus.core.ServerRef#serverState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="serverState:colossus.core.ServerState"></a>
+      <a id="serverState:ServerState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">serverState</span><span class="result">: <a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerRef@serverState:colossus.core.ServerState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ServerRef#shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="shutdown():Unit"></a>
+      <a id="shutdown():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdown</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerRef@shutdown():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Shutdown this server.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

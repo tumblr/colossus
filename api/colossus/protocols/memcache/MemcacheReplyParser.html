@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.memcache.MemcacheReplyParser#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(compressor:colossus.protocols.memcache.Compressor):colossus.protocols.memcache.MemcacheReplyParser"></a>
+      <a id="&lt;init&gt;(maxSize:colossus.parsing.DataSize):colossus.protocols.memcache.MemcacheReplyParser"></a>
       <a id="&lt;init&gt;:MemcacheReplyParser"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MemcacheReplyParser</span><span class="params">(<span name="compressor">compressor: <a href="Compressor.html" class="extype" name="colossus.protocols.memcache.Compressor">Compressor</a></span>)</span>
+        <span class="name">MemcacheReplyParser</span><span class="params">(<span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="MemcacheReplyParser$.html">MemcacheReplyParser.DefaultMaxSize</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@&lt;init&gt;(compressor:colossus.protocols.memcache.Compressor):colossus.protocols.memcache.MemcacheReplyParser" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@&lt;init&gt;(maxSize:colossus.parsing.DataSize):colossus.protocols.memcache.MemcacheReplyParser" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -107,95 +107,7 @@
     </li></ol>
             </div>
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="colossus.protocols.memcache.MemcacheReplyParser.DataBuilder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="DataBuilderextendsAnyRef"></a>
-      <a id="DataBuilder:DataBuilder"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$DataBuilder.html"><span class="name">DataBuilder</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@DataBuilderextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser.ParsingData" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParsingDataextendsMemcacheReplyParser.this.StatewithMemcacheReplyParser.this.DataBuilder"></a>
-      <a id="ParsingData:ParsingData"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$ParsingData.html"><span class="name">ParsingData</span></a><span class="result"> extends <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a> with <a href="MemcacheReplyParser$DataBuilder.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.DataBuilder">DataBuilder</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@ParsingDataextendsMemcacheReplyParser.this.StatewithMemcacheReplyParser.this.DataBuilder" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser.ParsingHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParsingHeaderextendsMemcacheReplyParser.this.StatewithMemcacheReplyParser.this.DataBuilder"></a>
-      <a id="ParsingHeader:ParsingHeader"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$ParsingHeader.html"><span class="name">ParsingHeader</span></a><span class="result"> extends <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a> with <a href="MemcacheReplyParser$DataBuilder.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.DataBuilder">DataBuilder</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@ParsingHeaderextendsMemcacheReplyParser.this.StatewithMemcacheReplyParser.this.DataBuilder" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser.ParsingRN" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParsingRNextendsMemcacheReplyParser.this.StatewithProductwithSerializable"></a>
-      <a id="ParsingRN:ParsingRN"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$ParsingRN.html"><span class="name">ParsingRN</span></a><span class="params">(<span name="prevState">prevState: <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a></span>)</span><span class="result"> extends <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@ParsingRNextendsMemcacheReplyParser.this.StatewithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser.State" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="StateextendsAnyRef"></a>
-      <a id="State:State"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$State.html"><span class="name">State</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@StateextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -252,23 +164,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser.Start" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Start"></a>
-      <a id="Start:Start"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="MemcacheReplyParser$Start$.html"><span class="name">Start</span></a><span class="result"> extends <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@Start" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -309,40 +204,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser#compressor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="compressor:colossus.protocols.memcache.Compressor"></a>
-      <a id="compressor:Compressor"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">compressor</span><span class="result">: <a href="Compressor.html" class="extype" name="colossus.protocols.memcache.Compressor">Compressor</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@compressor:colossus.protocols.memcache.Compressor" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser#dataBlockBuffer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="dataBlockBuffer:scala.collection.mutable.Queue[colossus.protocols.memcache.MemcacheReply.Value]"></a>
-      <a id="dataBlockBuffer:Queue[Value]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">dataBlockBuffer</span><span class="result">: <span class="extype" name="scala.collection.mutable.Queue">Queue</span>[<a href="MemcacheReply$$Value.html" class="extype" name="colossus.protocols.memcache.MemcacheReply.Value">Value</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@dataBlockBuffer:scala.collection.mutable.Queue[colossus.protocols.memcache.MemcacheReply.Value]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -503,23 +364,6 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.protocols.memcache.MemcacheReplyParser#parse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parse(data:akka.util.ByteString):Option[colossus.protocols.memcache.MemcacheReply]"></a>
-      <a id="parse(ByteString):Option[MemcacheReply]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parse</span><span class="params">(<span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@parse(data:akka.util.ByteString):Option[colossus.protocols.memcache.MemcacheReply]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser#parse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="parse(data:colossus.core.DataBuffer):Option[colossus.protocols.memcache.MemcacheReply]"></a>
       <a id="parse(DataBuffer):Option[MemcacheReply]"></a>
       <h4 class="signature">
@@ -536,19 +380,19 @@
       </a>
     </span>
       
-    </li><li name="colossus.protocols.memcache.MemcacheReplyParser#state" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="state:MemcacheReplyParser.this.State"></a>
-      <a id="state:State"></a>
+    </li><li name="colossus.protocols.memcache.MemcacheReplyParser#reset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="reset():Unit"></a>
+      <a id="reset():Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">var</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">state</span><span class="result">: <a href="MemcacheReplyParser$State.html" class="extype" name="colossus.protocols.memcache.MemcacheReplyParser.State">State</a></span>
+        <span class="name">reset</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@state:MemcacheReplyParser.this.State" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReplyParser@reset():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>

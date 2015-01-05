@@ -43,7 +43,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Value</span><span class="params">(<span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result"> extends <a href="MemcacheReply$$DataReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply.DataReply">DataReply</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Value</span><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result"> extends <a href="MemcacheReply$$DataReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply.DataReply">DataReply</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.memcache.MemcacheReply.Value#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(data:akka.util.ByteString):colossus.protocols.memcache.MemcacheReply.Value"></a>
+      <a id="&lt;init&gt;(key:String,data:akka.util.ByteString):colossus.protocols.memcache.MemcacheReply.Value"></a>
       <a id="&lt;init&gt;:Value"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Value</span><span class="params">(<span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span>
+        <span class="name">Value</span><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReply$$Value@&lt;init&gt;(data:akka.util.ByteString):colossus.protocols.memcache.MemcacheReply.Value" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReply$$Value@&lt;init&gt;(key:String,data:akka.util.ByteString):colossus.protocols.memcache.MemcacheReply.Value" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -295,6 +295,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.protocols.memcache.MemcacheReply.Value#key" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="key:String"></a>
+      <a id="key:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">key</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheReply$$Value@key:String" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>

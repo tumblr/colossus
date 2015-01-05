@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.memcache.MemcacheClientCodec#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;():colossus.protocols.memcache.MemcacheClientCodec"></a>
+      <a id="&lt;init&gt;(maxSize:colossus.parsing.DataSize):colossus.protocols.memcache.MemcacheClientCodec"></a>
       <a id="&lt;init&gt;:MemcacheClientCodec"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">MemcacheClientCodec</span><span class="params">()</span>
+        <span class="name">MemcacheClientCodec</span><span class="params">(<span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="MemcacheReplyParser$.html">MemcacheReplyParser.DefaultMaxSize</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClientCodec@&lt;init&gt;():colossus.protocols.memcache.MemcacheClientCodec" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClientCodec@&lt;init&gt;(maxSize:colossus.parsing.DataSize):colossus.protocols.memcache.MemcacheClientCodec" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -223,18 +223,18 @@
       <p class="shortcomment cmt">Decode a single object from a bytestream.</p><div class="fullcomment"><div class="comment cmt"><p>Decode a single object from a bytestream.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheClientCodec">MemcacheClientCodec</a> → <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a></dd></dl></div>
     </li><li name="colossus.service.Codec#decodeAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="decodeAll(data:colossus.core.DataBuffer):Seq[Input]"></a>
-      <a id="decodeAll(DataBuffer):Seq[MemcacheReply]"></a>
+      <a id="decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit"></a>
+      <a id="decodeAll(DataBuffer)((MemcacheReply)⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Seq">Seq</span>[<a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>]</span>
+        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="params">(<span name="onDecode">onDecode: (<a href="MemcacheReply.html" class="extype" name="colossus.protocols.memcache.MemcacheReply">MemcacheReply</a>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClientCodec@decodeAll(data:colossus.core.DataBuffer):Seq[Input]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheClientCodec@decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>

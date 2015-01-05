@@ -43,7 +43,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="trundle.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -90,7 +90,7 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.WorkerRef#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(id:Int,metrics:trundle.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef"></a>
+      <a id="&lt;init&gt;(id:Int,metrics:colossus.metrics.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef"></a>
       <a id="&lt;init&gt;:WorkerRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -98,10 +98,10 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="trundle.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span>
+        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WorkerRef@&lt;init&gt;(id:Int,metrics:trundle.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.WorkerRef@&lt;init&gt;(id:Int,metrics:colossus.metrics.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -202,6 +202,26 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerRef#bind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bind(item:colossus.core.WorkerItem):Unit"></a>
+      <a id="bind(WorkerItem):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bind</span><span class="params">(<span name="item">item: <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WorkerRef@bind(item:colossus.core.WorkerItem):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Bind a new worker item to this worker.</p><div class="fullcomment"><div class="comment cmt"><p>Bind a new worker item to this worker.  The item should have been created
+and initialized within this worker to ensure that the worker item's
+lifecycle is single-threaded.
+</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -317,7 +337,7 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.core.WorkerRef#metrics" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="metrics:trundle.LocalCollection"></a>
+      <a id="metrics:colossus.metrics.LocalCollection"></a>
       <a id="metrics:LocalCollection"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -325,10 +345,10 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">metrics</span><span class="result">: <span class="extype" name="trundle.LocalCollection">LocalCollection</span></span>
+        <span class="name">metrics</span><span class="result">: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WorkerRef@metrics:trundle.LocalCollection" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.WorkerRef@metrics:colossus.metrics.LocalCollection" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -419,6 +439,23 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
     </span>
       <p class="shortcomment cmt">The IOSystem to which this Worker belongs
 </p>
+    </li><li name="colossus.core.WorkerRef#unbind" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unbind(workerItemId:Long):Unit"></a>
+      <a id="unbind(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unbind</span><span class="params">(<span name="workerItemId">workerItemId: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WorkerRef@unbind(workerItemId:Long):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>

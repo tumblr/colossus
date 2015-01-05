@@ -47,7 +47,13 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
+to complete the execution of a [Callback] that has been converted from a
+<code>Future</code>.  In almost every case, the executor should be an actor running in
+a Pinned Dispatcher and shound be the same actor that created the original
+Callback, for example, a Colossus worker.</p><p>This type is generally only needed when converting a Future to a Callback,
+or scheduling a Callback for delayed execution.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>

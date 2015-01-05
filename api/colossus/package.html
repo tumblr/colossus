@@ -85,7 +85,9 @@
       <p class="shortcomment cmt">An IO Command is sent to an IO System, which then routes the command to a
 random worker using a round-robin router.</p><div class="fullcomment"><div class="comment cmt"><p>An IO Command is sent to an IO System, which then routes the command to a
 random worker using a round-robin router.  If you want more determinism over
-how items are distributed across workers, just use multiple IO Systems
+how items are distributed across workers, just use multiple IO Systems</p><p>TODO: It may be a better idea to move these into WorkerCommand with a tag
+trait to show they can be accepted by the IOSystem, and then also add
+methods onto the IOSystem to eliminate confusion
 </p></div></div>
     </li><li name="colossus.IOSystem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="IOSystemextendsProductwithSerializable"></a>
@@ -136,7 +138,7 @@ loops.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="JsonMetricSender.html"><span class="name">JsonMetricSender</span></a><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="sys">sys: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> = <span class="symbol"><span class="name"><a href="IOSystem$.html">IOSystem(&quot;json-sender&quot;)</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="trundle.MetricSender">MetricSender</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="JsonMetricSender.html"><span class="name">JsonMetricSender</span></a><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="sys">sys: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> = <span class="symbol"><span class="name"><a href="IOSystem$.html">IOSystem(&quot;json-sender&quot;)</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="colossus.metrics.MetricSender">MetricSender</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../index.html#colossus.package@JsonMetricSenderextendsMetricSenderwithProductwithSerializable" title="Permalink" target="_top">
@@ -168,25 +170,7 @@ loops.
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="colossus.ConnectionPageRenderer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ConnectionPageRenderer"></a>
-      <a id="ConnectionPageRenderer:ConnectionPageRenderer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionPageRenderer$.html"><span class="name">ConnectionPageRenderer</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../index.html#colossus.package@ConnectionPageRenderer" title="Permalink" target="_top">
-        <img src="../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">This object is used in conjunction with the Metrics library to generate an HTMLPage which contains some basic
-Connection information.</p>
-    </li><li name="colossus.IOCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.IOCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IOCommand"></a>
       <a id="IOCommand:IOCommand"></a>
       <h4 class="signature">

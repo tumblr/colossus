@@ -47,14 +47,24 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Callback is a bit like a synchronous Future.  It essentially allows us to
-build a callback in a monadic way before it is handed off to the function
-that actually requires the callback</p><p>So normally if you have a function that requires a callback, the function looks something like:</p><p> def doSomething(param, param, callBack: result =&gt; Unit)</p><p>and then you'd call it like</p><p> doSomething(arg, arg, result =&gt; println(result.toString))</p><p>passing the callback as a parameter.  The problem with this is we really
-want callbacks to behave more like futures (aka a monad), where you get a
-return value that you can hand off to someone else.  The Callback trait does
-this by delaying invocation of the caller function, allowing you to build
-your callback with function composition.</p><p>The big differences from a future are:</p><p>1.  Callbacks are not thread safe at all.  They are entirely intended to stay inside a single worker.  Otherwise just use Futures.</p><p>2.  The execute() method needs to be called once the callback has been
-fully built, which unlike futures requires some part of the code to know when a callback is ready to be invoked</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Callback is a Monad for doing in-thread non-blocking operations.  It is
+essentially a &quot;function builder&quot; that uses function composition to chain
+together a callback function that is eventually passed to another function.</p><p>Normally if you have a function that requires a callback, the function looks something like:</p><pre><span class="kw">def</span> doSomething(param, param, callBack: result <span class="kw">=&gt;</span> <span class="std">Unit</span>)</pre><p>and then you'd call it like </p><pre>doSomething(arg1, arg2, result <span class="kw">=&gt;</span> println(<span class="lit">"got the result"</span>))</pre><p>This is the well-known continuation pattern, and it something we'd like to avoid due to the common occurrance of deeply nested &quot;callback hell&quot;.  Instead, the <code>Callback</code> allows us to define out function as</p><pre><span class="kw">def</span> doSomething(param1, param2): Callback[Result]</pre><p>and call it like </p><pre><span class="kw">val</span> c = doSomething(arg1, arg2)
+c.map{ result <span class="kw">=&gt;</span>
+  println(<span class="lit">"got the result"</span>)
+}.execute()</pre><p>Thus, in practice working with Callbacks is very similar to working with Futures.  The big differences from a future are:</p><p>1.  Callbacks are not thread safe at all.  They are entirely intended to stay inside a single worker.  Otherwise just use Futures.</p><p>2.  The execute() method needs to be called once the callback has been
+fully built, which unlike futures requires some part of the code to know when a callback is ready to be invoked</p><h4> Using Callbacks in Services </h4><p>When building services, particularly when working with service clients, you
+will usually be getting Callbacks back from clients when requests are sent.
+*Do not call <code>execute</code> yourself!* on these Callbacks.  They must be returned
+as part of request processing, and Colossus will invoke the callback itself.</p><h4> Using Callbacks elsewhere </h4><p>If you are using Callbacks in some custom situation outside of services, be
+aware that exceptions thrown inside a <code>map</code> or <code>flatMap</code> are properly caught
+and can be recovered using <code>recover</code> and <code>recoverWith</code>, however exceptions
+thrown in the &quot;final&quot; handler passed to <code>execute</code> are not caught.  This is
+because the final block cannot be mapped on (since it is only passed when
+the callback is executed) and throwing the exception is preferrable to
+suppressing it.</p><p>Any exception that is thrown in this block is however rethrown as a
+<code>CallbackExecutionException</code>.  Therefore, any &quot;trigger&quot; function you wrap
+inside a callback should properly catch this exception.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">

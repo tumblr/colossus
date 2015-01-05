@@ -219,18 +219,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.protocols.redis.RedisCodecProvider#errorResponse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="errorResponse(request:colossus.protocols.redis.Command,reason:Throwable):colossus.service.Completion[colossus.protocols.redis.package.Redis#Output]"></a>
-      <a id="errorResponse(Command,Throwable):Completion[Output]"></a>
+      <a id="errorResponse(request:colossus.protocols.redis.Command,reason:Throwable):colossus.service.Completion[colossus.protocols.redis.ErrorReply]"></a>
+      <a id="errorResponse(Command,Throwable):Completion[ErrorReply]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="../../service/Completion.html" class="extype" name="colossus.service.Completion">Completion</a>[<a href="package$$Redis.html#Output=colossus.protocols.redis.Reply" class="extmbr" name="colossus.protocols.redis.Redis.Output">Output</a>]</span>
+        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="../../service/Completion.html" class="extype" name="colossus.service.Completion">Completion</a>[<a href="ErrorReply.html" class="extype" name="colossus.protocols.redis.ErrorReply">ErrorReply</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package$$RedisCodecProvider$@errorResponse(request:colossus.protocols.redis.Command,reason:Throwable):colossus.service.Completion[colossus.protocols.redis.package.Redis#Output]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisCodecProvider$@errorResponse(request:colossus.protocols.redis.Command,reason:Throwable):colossus.service.Completion[colossus.protocols.redis.ErrorReply]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -380,22 +380,22 @@
       <p class="shortcomment cmt">The Codec which will be used.</p><div class="fullcomment"><div class="comment cmt"><p>The Codec which will be used.</p></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.redis.RedisCodecProvider">RedisCodecProvider</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
     </li><li name="colossus.service.CodecProvider#provideDelegator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="provideDelegator(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],requestTimeout:scala.concurrent.duration.Duration):colossus.service.BasicServiceDelegator[C]"></a>
-      <a id="provideDelegator(Initializer[Redis],ServerRef,WorkerRef,CodecProvider[Redis],Duration):BasicServiceDelegator[Redis]"></a>
+      <a id="provideDelegator(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],config:colossus.service.ServiceConfig):colossus.service.BasicServiceDelegator[C]"></a>
+      <a id="provideDelegator(Initializer[Redis],ServerRef,WorkerRef,CodecProvider[Redis],ServiceConfig):BasicServiceDelegator[Redis]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">provideDelegator</span><span class="params">(<span name="func">func: <a href="../../service/CodecDSL$.html#Initializer[C&lt;:colossus.service.CodecDSL]=colossus.service.ServiceContext[C]=&gt;colossus.service.CodecDSL.HandlerGenerator[C]" class="extmbr" name="colossus.service.CodecDSL.Initializer">Initializer</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>, <span name="server">server: <a href="../../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="provider">provider: <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result">: <a href="../../service/BasicServiceDelegator.html" class="extype" name="colossus.service.BasicServiceDelegator">BasicServiceDelegator</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
+        <span class="name">provideDelegator</span><span class="params">(<span name="func">func: <a href="../../service/CodecDSL$.html#Initializer[C&lt;:colossus.service.CodecDSL]=colossus.service.ServiceContext[C]=&gt;colossus.service.CodecDSL.HandlerGenerator[C]" class="extmbr" name="colossus.service.CodecDSL.Initializer">Initializer</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>, <span name="server">server: <a href="../../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="provider">provider: <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>, <span name="config">config: <a href="../../service/ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>)</span><span class="result">: <a href="../../service/BasicServiceDelegator.html" class="extype" name="colossus.service.BasicServiceDelegator">BasicServiceDelegator</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package$$RedisCodecProvider$@provideDelegator(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],requestTimeout:scala.concurrent.duration.Duration):colossus.service.BasicServiceDelegator[C]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisCodecProvider$@provideDelegator(func:colossus.service.CodecDSL.Initializer[C],server:colossus.core.ServerRef,worker:colossus.core.WorkerRef,provider:colossus.service.CodecProvider[C],config:colossus.service.ServiceConfig):colossus.service.BasicServiceDelegator[C]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Provider of a Delegator using this Codec</p><div class="fullcomment"><div class="comment cmt"><p>Provider of a Delegator using this Codec</p></div><dl class="paramcmts block"><dt class="param">func</dt><dd class="cmt"><p>Function which provides a Delegator for this Service</p></dd><dt class="param">server</dt><dd class="cmt"><p>Server which this Delegator will operate in</p></dd><dt class="param">worker</dt><dd class="cmt"><p>Worker which the Delegator will be bound</p></dd><dt class="param">provider</dt><dd class="cmt"><p>The codecProvider</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>RequestTimeout</p></dd><dt>returns</dt><dd class="cmt"><p>Delegator
+      <p class="shortcomment cmt">Provider of a Delegator using this Codec</p><div class="fullcomment"><div class="comment cmt"><p>Provider of a Delegator using this Codec</p></div><dl class="paramcmts block"><dt class="param">func</dt><dd class="cmt"><p>Function which provides a Delegator for this Service</p></dd><dt class="param">server</dt><dd class="cmt"><p>Server which this Delegator will operate in</p></dd><dt class="param">worker</dt><dd class="cmt"><p>Worker which the Delegator will be bound</p></dd><dt class="param">provider</dt><dd class="cmt"><p>The codecProvider</p></dd><dt>returns</dt><dd class="cmt"><p>Delegator
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
     </li><li name="colossus.service.CodecProvider#provideHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="provideHandler(config:colossus.service.ServiceConfig,worker:colossus.core.WorkerRef)(implicitex:scala.concurrent.ExecutionContext):colossus.service.DSLHandler[C]"></a>

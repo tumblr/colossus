@@ -43,7 +43,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Completion</span><span class="tparams">[<span name="O">O</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="colossus.service.Completion.O">O</span></span>, <span name="tags">tags: <span class="extype" name="trundle.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>, <span name="onwrite">onwrite: <a href="OnWriteAction.html" class="extype" name="colossus.service.OnWriteAction">OnWriteAction</a> = <span class="symbol"><span class="name"><a href="OnWriteAction$.html">DoNothing</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Completion</span><span class="tparams">[<span name="O">+O</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="colossus.service.Completion.O">O</span></span>, <span name="tags">tags: <span class="extype" name="colossus.metrics.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>, <span name="onwrite">onwrite: <a href="OnWriteAction.html" class="extype" name="colossus.service.OnWriteAction">OnWriteAction</a> = <span class="symbol"><span class="name"><a href="OnWriteAction$.html">DoNothing</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.Completion#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(value:O,tags:trundle.TagMap,onwrite:colossus.service.OnWriteAction):colossus.service.Completion[O]"></a>
+      <a id="&lt;init&gt;(value:O,tags:colossus.metrics.TagMap,onwrite:colossus.service.OnWriteAction):colossus.service.Completion[O]"></a>
       <a id="&lt;init&gt;:Completion[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Completion</span><span class="params">(<span name="value">value: <span class="extype" name="colossus.service.Completion.O">O</span></span>, <span name="tags">tags: <span class="extype" name="trundle.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>, <span name="onwrite">onwrite: <a href="OnWriteAction.html" class="extype" name="colossus.service.OnWriteAction">OnWriteAction</a> = <span class="symbol"><span class="name"><a href="OnWriteAction$.html">DoNothing</a></span></span></span>)</span>
+        <span class="name">Completion</span><span class="params">(<span name="value">value: <span class="extype" name="colossus.service.Completion.O">O</span></span>, <span name="tags">tags: <span class="extype" name="colossus.metrics.TagMap">TagMap</span> = <span class="symbol">TagMap.Empty</span></span>, <span name="onwrite">onwrite: <a href="OnWriteAction.html" class="extype" name="colossus.service.OnWriteAction">OnWriteAction</a> = <span class="symbol"><span class="name"><a href="OnWriteAction$.html">DoNothing</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Completion@&lt;init&gt;(value:O,tags:trundle.TagMap,onwrite:colossus.service.OnWriteAction):colossus.service.Completion[O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Completion@&lt;init&gt;(value:O,tags:colossus.metrics.TagMap,onwrite:colossus.service.OnWriteAction):colossus.service.Completion[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -381,7 +381,7 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.service.Completion#tags" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="tags:trundle.TagMap"></a>
+      <a id="tags:colossus.metrics.TagMap"></a>
       <a id="tags:TagMap"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -389,10 +389,10 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">tags</span><span class="result">: <span class="extype" name="trundle.TagMap">TagMap</span></span>
+        <span class="name">tags</span><span class="result">: <span class="extype" name="colossus.metrics.TagMap">TagMap</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Completion@tags:trundle.TagMap" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Completion@tags:colossus.metrics.TagMap" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
