@@ -65,6 +65,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   val latency   = worker.metrics.getOrAdd(Histogram(LATENCY, periods = List(1.second, 1.minute), sampleRate = 0.25))
   val errors    = worker.metrics.getOrAdd(Rate(ERRORS, List(1.second, 1.minute)))
   val requestsPerConnection = worker.metrics.getOrAdd(Histogram(REQPERCON, periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
 
   def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
@@ -109,6 +110,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
       val comp = done.response
       requests.hit(tags = comp.tags)
       latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+      concurrentRequests.decrement()
       push(comp.value) {
         case OutputResult.Success => comp.onwrite match {
           case OnWriteAction.Disconnect => disconnect()
@@ -125,6 +127,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
     requestsPerConnection.add(numRequests)
+    concurrentRequests.delta(- requestBuffer.size)
   }
 
   override def connectionLost(cause : DisconnectError) {
@@ -135,6 +138,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
     numRequests += 1
     val promise = new SyncPromise(request)
     requestBuffer.enqueue(promise)
+    concurrentRequests.increment()
     /**
      * Notice, if the request buffer if full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading

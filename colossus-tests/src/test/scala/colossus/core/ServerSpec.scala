@@ -262,7 +262,7 @@ class ServerSpec extends ColossusSpec {
             name = "highWaterTest",
             settings = ServerSettings(
               port = TEST_PORT,
-              maxConnections = 2,
+              maxConnections = 4,
               lowWatermarkPercentage = 0.00,
               highWatermarkPercentage = 0.50,
               highWaterMaxIdleTime = 50.milliseconds,
@@ -274,7 +274,7 @@ class ServerSpec extends ColossusSpec {
           withServer(server) {
             val idleConnection1 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
             TestUtil.expectServerConnections(server, 1)
-            val idleConnection2 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val idleConnection2 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry, waitForConnected = false)
             Thread.sleep(500) //have to wait a second since that's how often the check it done
             expectConnections(server, 0)
           }

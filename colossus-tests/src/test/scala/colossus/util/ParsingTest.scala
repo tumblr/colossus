@@ -29,6 +29,13 @@ class ParsingSuite extends WordSpec with MustMatchers{
       ByteString(b1.takeAll) must equal(ByteString("fail"))
     }
 
+    "include partial terminus" in {
+      val b1 = DataBuffer(ByteString("hello12world123fail"))
+      val p = new UnsizedParseBuffer(ByteString("123"), true)
+      p.addData(b1) must equal(Complete)
+      p.result must equal(ByteString("hello12world123"))
+      ByteString(b1.takeAll) must equal(ByteString("fail"))
+    }
   }
 
   "SizedParseBuffer" must {

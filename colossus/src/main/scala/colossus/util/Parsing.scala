@@ -87,7 +87,9 @@ class UnsizedParseBuffer(terminus: ByteString, includeTerminusInData: Boolean = 
     } else {
       if (checkIndex != 0) {
         //we got fooled with a partial terminus, now we have to add what we didn't add before
-        (0 until checkIndex).foreach{i => data.putByte(terminus(i))}
+        if (!includeTerminusInData) {
+          (0 until checkIndex).foreach{i => data.putByte(terminus(i))}
+        }
         checkIndex = 0
         checkByte = terminus(0)
       }
