@@ -5,7 +5,7 @@ import akka.util.ByteString
 import colossus.testkit._
 import core._
 
-import scala.util.Success
+import scala.util.{Try, Failure, Success}
 
 
 
@@ -58,12 +58,23 @@ class InputControllerSpec extends ColossusSpec {
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("d")))
       executed must equal(true)
+    }
 
-
-
-
-
-
+    "stream is terminated when disconnected" in {
+      var source: Option[Source[DataBuffer]] = None
+      val (endpoint, con) = createController({input => 
+        source = Some(input.source)
+      })
+      con.receivedData(DataBuffer(ByteString("4\r\n")))
+      source.isDefined must equal(true)
+      val s = source.get
+      endpoint.disrupt()
+      var failed = false
+      s.pullCB().execute {
+        case Failure(t: PipeTerminatedException) => failed = true
+        case other => throw new Exception(s"Invalid result $other")
+      }
+      failed must equal(true)   
     }
 
   }
