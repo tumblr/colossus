@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Service Server</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/serviceserver/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Service Server</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <h2 id="introduction">Introduction</h2>
+
+<p>A service server is a server designed to process discrete requests into
+responses.  Most web servers and databases fall into this category, so the
+majority of use cases for Colossus fall under this paradigm.</p>
+
+<p>Essentially a service meets the following goals:</p>
+
+<ul>
+  <li>A server processes individual requests into responses using a well-defined application-layer protocol</li>
+  <li>A single connection is linear.  Responses are always returned in the order that their respective requests arrive</li>
+  <li>Connections can be (but are not necessarily) pipelined. A server must expect a client to send multiple requests without waiting for any responses.</li>
+</ul>
+
+<p>The service abstraction layer is a fully decoupled system built on top of the
+core Colossus framework.  It allows you to build high-performing non-blocking
+servers and clients that follow the service paradigm.  Essentially the only
+important logic you must handle is the actual processing of requests into
+responses.  Colossus will take care of all the linearization and parallelism.</p>
+
+<p>The service layer actually has two different ways of defining a service, one
+with a heavy functional feel and the other more object-oriented.  Both styles
+are equivalent and ultimately result in the same system being built.  It is
+simply up to you to decide which you feel more comfortable with.</p>
+
+<h2 id="basic-architecture">Basic Architecture</h2>
+
+<p>Since the service layer is built on top of the core layer, you should familiarize yourself with the structure of a <a href="http://tumblr.github.io/colossus/docs/server">Colossus server</a> first.</p>
+
+<p>To build a service server we need 3 components:</p>
+
+<ul>
+  <li>A Delegator - This is a simple class that lets you define the behavior of how new connections are accepted.  One delegator is created per event loop.</li>
+  <li>A Service Handler - This is a sub-class of <code>ConnectionHandler</code> and is the class that handles processing requests into responses.  Just like with any other connection handler, new service handler is instantiated for every accepted connection.</li>
+  <li>A Codec - This class handles translating raw bytes into request objects and vise versa for responses.</li>
+</ul>
+
+<p>Colossus currently ships with server codecs for Http, Redis, and Telnet.  </p>
+
+<h2 id="build-a-service-the-fp-way">Build a Service the FP Way</h2>
+
+<p><em>The <a href="quickstart">quickstart guide</a> has a more introductory approach to building a service.</em></p>
+
+<p>The easiest way to get a simple service up an running is to use the functional DSL.  </p>
+
+<p><em>Notice : the DSL is not totally feature complete.  Currently for more advanced functionality you’ll have to write your own delegator and connection handler, which is described below</em></p>
+
+<p>Using the Http protocol as an example, the general structure of a service looks like:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"service-name"</span><span class="o">,</span> <span class="mi">456</span><span class="o">){</span><span class="n">context</span><span class="k">:</span> <span class="kt">ServiceContext</span><span class="o">[</span><span class="kt">Http</span><span class="o">]</span> <span class="k">=&gt;</span> 
+  <span class="c1">//everything here happens once per event-loop
+</span>  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connecton</span><span class="k">:</span> <span class="kt">ConnectionContext</span><span class="o">[</span><span class="kt">Http</span><span class="o">]</span> <span class="k">=&gt;</span> 
+    <span class="c1">//everything here happens once per connection
+</span>    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="c1">//partial function HttpRequest =&gt; Response[HttpResponse]
+</span>      <span class="k">case</span> <span class="n">req</span> <span class="k">=&gt;</span> <span class="n">req</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello world!"</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This form essentially uses a partial function to map requests to responses, and
+provides a way to add initialization to both event loops and individual
+connections.  For example, let’s add some code to see how things are executed:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"service-name"</span><span class="o">,</span> <span class="mi">456</span><span class="o">){</span><span class="n">context</span><span class="k">:</span> <span class="kt">ServiceContext</span><span class="o">[</span><span class="kt">Http</span><span class="o">]</span> <span class="k">=&gt;</span> 
+  <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"initializing in worker ${context.worker.id}"</span><span class="o">)</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connecton</span><span class="k">:</span> <span class="kt">ConnectionContext</span><span class="o">[</span><span class="kt">Http</span><span class="o">]</span> <span class="k">=&gt;</span> 
+    <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"new connection in worker ${context.worker.id}"</span><span class="o">)</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="c1">//partial function HttpRequest =&gt; Response[HttpResponse]
+</span>      <span class="k">case</span> <span class="n">req</span> <span class="k">=&gt;</span> <span class="n">req</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello world!"</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Assuming we are running an <code>IOSystem</code> with 2 workers, if we start the service
+and open 4 connections to it, we should see in stdout:</p>
+
+<div class="highlight"><pre><code class="plaintext">initializing in worker 1
+initializing in worker 2
+new connection in worker 1
+new connection in worker 2
+new connection in worker 1
+new connection in worker 2</code></pre></div>
+
+<h3 id="clients-and-callbacks">Clients and Callbacks</h3>
+
+<p>One of the most important features of Colossus services are their ability to
+interact with connections to external services without leaving the event
+loop.  This is ideal when your service is simply passing data back and forth
+between clients (of your service) and the external system.</p>
+
+<p>Suppose your service needs to work with a memcache server.  We can open a connection to memecache like this:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Telnet</span><span class="o">](</span><span class="s">"telnet-echo"</span><span class="o">,</span> <span class="mi">456</span><span class="o">){</span><span class="n">context</span> <span class="k">=&gt;</span> 
+  <span class="k">val</span> <span class="n">memcache</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">clientFor</span><span class="o">[</span><span class="kt">Memcache</span><span class="o">](</span><span class="s">"remote-host"</span><span class="o">,</span> <span class="mi">11211</span><span class="o">)</span>
+  <span class="o">//...</span></code></pre></div>
+
+<p>Here we are setting up one memcache connection per delegator, so every
+connection bound to an event loop with share the same client connection.  Of
+course since event loops are single-threaded, there is no need to worry about
+thread-safety or locking a client.</p>
+
+<p>Now in our connection handler, we can do this:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">invalidReply</span><span class="o">(</span><span class="n">reply</span><span class="k">:</span> <span class="kt">MemcacheReply</span><span class="o">)</span> <span class="k">=</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"Invalid reply $reply"</span><span class="o">)</span>
+
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span><span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span><span class="o">{</span>
+      <span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"set"</span><span class="o">,</span> <span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">memcache</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="nc">Set</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">)).</span><span class="n">map</span><span class="o">{</span>
+        <span class="k">case</span> <span class="nc">Stored</span> <span class="k">=&gt;</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"ok"</span><span class="o">)</span>
+        <span class="k">case</span> <span class="n">other</span> <span class="k">=&gt;</span> <span class="n">invalidReply</span><span class="o">(</span><span class="n">other</span><span class="o">)</span>
+      <span class="o">}</span>
+      <span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"get"</span><span class="o">,</span> <span class="n">key</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">memcache</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="nc">Get</span><span class="o">(</span><span class="n">key</span><span class="o">)).</span><span class="n">map</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">Value</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="n">data</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)</span>
+        <span class="k">case</span> <span class="nc">NoValue</span> <span class="k">=&gt;</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"(no value)"</span><span class="o">)</span>
+        <span class="k">case</span> <span class="n">other</span> <span class="k">=&gt;</span> <span class="n">invalidReply</span><span class="o">(</span><span class="n">other</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span></code></pre></div>
+
+<h2 id="building-a-service-the-oo-way">Building a Service the OO Way</h2>
+
+<p>The functional approach is really just a thin DSL for defining a couple classes.
+To directly build a service, we basically need to create classes for our
+delegator and connection handler, and wire them up into a server.</p>
+
+<p>First, we’ll define our handler</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">com.tumblr.colossus._</span>
+<span class="k">import</span> <span class="nn">protocols.Telnet._</span>
+
+<span class="k">class</span> <span class="nc">HelloWorldHandler</span><span class="o">(</span><span class="n">config</span><span class="k">:</span> <span class="kt">ServiceConfig</span><span class="o">,</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> 
+  <span class="k">extends</span> <span class="nc">ServiceServer</span><span class="o">[</span><span class="kt">HttpRequest</span>, <span class="kt">HttpResponse</span><span class="o">](</span><span class="k">new</span> <span class="nc">HttpServerCodec</span><span class="o">,</span> <span class="n">config</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">processRequest</span><span class="o">(</span><span class="n">request</span><span class="k">:</span> <span class="kt">HttpRequest</span><span class="o">)</span><span class="k">:</span> <span class="kt">Response</span><span class="o">[</span><span class="kt">HttpResponse</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello World!"</span><span class="o">)</span>
+  <span class="o">}</span>
+
+  <span class="k">def</span> <span class="n">processFailure</span><span class="o">(</span><span class="n">request</span><span class="k">:</span> <span class="kt">HttpRequest</span><span class="o">,</span> <span class="n">reason</span><span class="k">:</span> <span class="kt">Throwable</span><span class="o">)</span> <span class="k">=</span> <span class="o">{</span>
+    <span class="n">request</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">s</span><span class="s">"Error: $reason"</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p><code>processRequest</code> is the primary method for handling requests, <code>processFailure</code>
+is only used when an uncaught exception is thrown during the processing of a
+request (if process Failure throws and exception the connection is terminated).
+Because <code>ServiceServer</code> inherits <code>ConnectionHandler</code>, you also have the ability
+to override other handling methods to implement custom shutdown or backpressure
+logic.</p>
+
+<p>Implementing a <code>ServiceServer</code> instead of a <code>ConnectionHandler</code> is the only way
+that a service server differs from any other Colossus server.  Thus to complete
+our service, we must define a delegator:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+<span class="k">import</span> <span class="nn">colossus.core.</span><span class="o">{</span><span class="nc">Delegator</span><span class="o">,</span> <span class="nc">ServerRef</span><span class="o">,</span> <span class="nc">WorkerRef</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">colossus.service.ServiceConfig</span>
+<span class="k">import</span> <span class="nn">trundle.MetricAddress</span>
+
+<span class="k">class</span> <span class="nc">HelloWorldDelegator</span><span class="o">(</span><span class="k">val</span> <span class="n">server</span><span class="k">:</span> <span class="kt">ServerRef</span><span class="o">,</span> <span class="k">val</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> 
+  <span class="k">extends</span> <span class="nc">Delegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">config</span> <span class="k">=</span> <span class="nc">ServiceConfig</span><span class="o">(</span>
+    <span class="n">name</span> <span class="k">=</span> <span class="s">"/hello-world"</span><span class="o">,</span>
+    <span class="n">requestTimeout</span> <span class="k">=</span> <span class="mf">100.</span><span class="n">milliseconds</span><span class="o">,</span>
+  <span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">acceptNewConnection</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">HelloWorldHandler</span><span class="o">(</span><span class="n">config</span><span class="o">,</span> <span class="n">worker</span><span class="o">))</span>
+
+<span class="o">}</span></code></pre></div>
+
+<p>Notice that this is a standard delegator and requires nothing from the service
+layer aside from the config.  Similarly, starting the server is the same as
+starting any other Colossus server.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">colossus._</span>
+<span class="k">import</span> <span class="nn">core.Server</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">io_system</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span>
+
+<span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="nc">Server</span><span class="o">(</span>
+  <span class="n">name</span> <span class="k">=</span> <span class="s">"echo-server"</span><span class="o">,</span>
+  <span class="n">port</span> <span class="k">=</span> <span class="mi">4567</span><span class="o">,</span>
+  <span class="n">delegatorFactory</span> <span class="k">=</span> <span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">EchoDelegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span>
+<span class="o">)</span></code></pre></div>
+
+<h2 id="responses-and-completions">Responses and Completions</h2>
+
+<p>When producing a response for a service, we need to deal with two orthoganal situations:</p>
+
+<ul>
+  <li>Handling asynchronous responses, both from Futures and Callbacks</li>
+  <li>Attaching metadata to responses</li>
+</ul>
+
+<p>How we handle these situations is an active area of research in Colossus, and our current solution involves using two types.</p>
+
+<p>A <code>Completion[T]</code> contains a response value of type <code>T</code> as well as metadata such as metrics tags to add and write completion events.</p>
+
+<p>A <code>Response[T]</code> is an algebraic datatype (ADT) with 3 implementations:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">sealed</span> <span class="k">trait</span> <span class="nc">Response</span><span class="o">[</span><span class="kt">O</span><span class="o">]</span>
+<span class="nc">object</span> <span class="nc">Response</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">SyncResponse</span><span class="o">[</span><span class="kt">O</span><span class="o">](</span><span class="n">result</span><span class="k">:</span> <span class="kt">Completion</span><span class="o">[</span><span class="kt">O</span><span class="o">])</span> <span class="k">extends</span> <span class="nc">Response</span><span class="o">[</span><span class="kt">O</span><span class="o">]</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">AsyncResponse</span><span class="o">[</span><span class="kt">O</span><span class="o">](</span><span class="n">result</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">Completion</span><span class="o">[</span><span class="kt">O</span><span class="o">]])</span> <span class="k">extends</span> <span class="nc">Response</span><span class="o">[</span><span class="kt">O</span><span class="o">]</span>
+  <span class="k">case</span> <span class="k">class</span> <span class="nc">CallbackResponse</span><span class="o">[</span><span class="kt">O</span><span class="o">](</span><span class="n">callback</span><span class="k">:</span> <span class="kt">Callback</span><span class="o">[</span><span class="kt">Completion</span><span class="o">[</span><span class="kt">O</span><span class="o">]])</span> <span class="k">extends</span> <span class="nc">Response</span><span class="o">[</span><span class="kt">O</span><span class="o">]</span>
+<span class="o">}</span></code></pre></div>
+
+<p>There are also implicit functions to lift each contained type into a <code>Response</code>.
+So in the above example, our <code>TelnetReply</code> objects are automatically converted
+into <code>SyncResponse[Completion[TelnetReply]]</code> objects.  In the vast majority of cases, you will never
+need to worry about lifting them yourself.</p>
+
+<p>The <code>Response</code> ADT allows you to write handlers like:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">processRequest</span><span class="o">(</span><span class="n">request</span><span class="k">:</span> <span class="kt">TelnetCommand</span><span class="o">)</span> <span class="k">=</span> <span class="n">request</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">toUpperCase</span> <span class="k">match</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="s">"PING"</span> <span class="k">=&gt;</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"PONG"</span><span class="o">)</span>
+  <span class="k">case</span> <span class="s">"GET_FUTURE"</span> <span class="k">=&gt;</span> <span class="o">(</span><span class="n">someActor</span> <span class="o">?</span> <span class="nc">GetAFuture</span><span class="o">).</span><span class="n">mapTo</span><span class="o">[</span><span class="kt">String</span><span class="o">].</span><span class="n">map</span><span class="o">{</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="k">_</span><span class="o">)}</span>
+  <span class="k">case</span> <span class="s">"CACHE_HIT"</span> <span class="k">=&gt;</span> <span class="n">memcacheClient</span><span class="o">.</span><span class="n">sendCB</span><span class="o">(</span><span class="nc">Get</span><span class="o">(</span><span class="s">"cache_key"</span><span class="o">)).</span><span class="n">map</span><span class="o">{</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>So in short, the complete set of types a handler partial function can return (with the built-in implicits in scope) are:</p>
+
+<ul>
+  <li><code>T</code></li>
+  <li><code>Future[T]</code></li>
+  <li><code>Callback[T]</code></li>
+  <li><code>Completion[T]</code></li>
+  <li><code>Future[Completion[T]]</code></li>
+  <li><code>Callback[Completion[T]]</code></li>
+  <li><code>SyncResponse[Completion[T]]</code></li>
+  <li><code>AsyncResponse[Future[Completion[T]]]</code></li>
+  <li><code>CallbackResponse[Callback[Completion[T]]]</code></li>
+</ul>
+
+<p>In most cases you only ever need to worry about returning the first three.</p>
+
+<div class="hint">
+
+As with any implicit lifting, occassionally the compiler can raise a somewhat confusing error.
+
+
+<div class="highlight"><pre><code class="scala"><span class="k">type</span> <span class="kt">mismatch</span><span class="o">;</span>
+<span class="o">[</span><span class="kt">error</span><span class="o">]</span>  <span class="n">found</span>   <span class="k">:</span> <span class="kt">scala.concurrent.Future</span><span class="o">[</span><span class="kt">com.tumblr.colossus.Completion</span><span class="o">[</span><span class="kt">Product</span> <span class="kt">with</span> <span class="kt">Serializable</span><span class="o">]]</span>
+<span class="o">[</span><span class="kt">error</span><span class="o">]</span>  <span class="n">required</span><span class="k">:</span> <span class="kt">com.tumblr.colossus.Response</span><span class="o">[</span><span class="kt">com.tumblr.colossus.protocols.Telnet.Telnet</span><span class="k">#</span><span class="kt">Output</span><span class="o">]</span></code></pre></div>
+
+
+This occurs if you attempt to mix types within a `map` or `flatMap` method:
+
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">become</span><span class="o">[</span><span class="kt">Telnet</span><span class="o">](</span><span class="s">"telnet-echo"</span><span class="o">,</span> <span class="mi">456</span><span class="o">){</span>
+  <span class="k">case</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">{</span><span class="n">a</span><span class="o">}.</span><span class="n">flatMap</span><span class="o">{</span>
+    <span class="c1">//Future[Completion[TelnetReply]]
+</span>    <span class="k">case</span> <span class="s">"a"</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"a"</span><span class="o">)).</span><span class="n">withTags</span><span class="o">(</span><span class="s">"foo"</span> <span class="o">-&gt;</span> <span class="s">"bar"</span><span class="o">)</span> 
+    <span class="c1">//Future[TelnetReply]
+</span>    <span class="k">case</span> <span class="s">"b"</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"b"</span><span class="o">))</span> 
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+
+The solution is to either ensure each case is the same type or indicate the type parameter in the `flatMap` call
+
+
+<div class="highlight"><pre><code class="scala"><span class="c1">//do this
+</span>  <span class="k">case</span> <span class="nc">TelnetReply</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">{</span><span class="n">a</span><span class="o">}.</span><span class="n">flatMap</span><span class="o">[</span><span class="kt">Telnet</span><span class="k">#</span><span class="kt">Completion</span><span class="o">]{</span>
+
+  <span class="c1">//or this
+</span>    <span class="k">case</span> <span class="s">"b"</span> <span class="k">=&gt;</span> <span class="nc">Future</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"b"</span><span class="o">)).</span><span class="n">complete</span></code></pre></div>
+
+
+</div>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#basic-architecture">Basic Architecture</a></li><li><a href="#build-a-service-the-fp-way">Build a Service the FP Way</a></li><li><a href="#building-a-service-the-oo-way">Building a Service the OO Way</a></li><li><a href="#responses-and-completions">Responses and Completions</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2014 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

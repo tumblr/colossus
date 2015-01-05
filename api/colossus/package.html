@@ -1,0 +1,320 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>colossus - colossus</title>
+          <meta name="description" content="colossus - colossus" />
+          <meta name="keywords" content="colossus colossus" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../lib/template.js"></script>
+      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../index.html';
+            var hash = 'colossus.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../lib/package_big.png" />
+        
+        <h1>colossus</h1> <span class="permalink">
+      <a href="../index.html#colossus.package" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">colossus</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.IOCommand" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="IOCommandextendsAnyRef"></a>
+      <a id="IOCommand:IOCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="IOCommand.html"><span class="name">IOCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@IOCommandextendsAnyRef" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">An IO Command is sent to an IO System, which then routes the command to a
+random worker using a round-robin router.</p><div class="fullcomment"><div class="comment cmt"><p>An IO Command is sent to an IO System, which then routes the command to a
+random worker using a round-robin router.  If you want more determinism over
+how items are distributed across workers, just use multiple IO Systems</p><p>TODO: It may be a better idea to move these into WorkerCommand with a tag
+trait to show they can be accepted by the IOSystem, and then also add
+methods onto the IOSystem to eliminate confusion
+</p></div></div>
+    </li><li name="colossus.IOSystem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IOSystemextendsProductwithSerializable"></a>
+      <a id="IOSystem:IOSystem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="IOSystem.html"><span class="name">IOSystem</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@IOSystemextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">An IO System is basically a collection of worker actors.</p><div class="fullcomment"><div class="comment cmt"><p>An IO System is basically a collection of worker actors.  You can attach
+either servers or clients to an IOSystem.</p><p>You may have multiple IOSystems per ActorSystem and actors attached to
+different IOSystems have no rules about cross communication.  The main thing
+to keep in mind is that all actors in a single IOSystem will share event
+loops.
+</p></div></div>
+    </li><li name="colossus.IOSystemConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IOSystemConfigextendsProductwithSerializable"></a>
+      <a id="IOSystemConfig:IOSystemConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="IOSystemConfig.html"><span class="name">IOSystemConfig</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="numWorkers">numWorkers: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@IOSystemConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration used to specify an IOSystem's parameters.</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify an IOSystem's parameters.</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>The name of the IOSystem</p></dd><dt class="param">numWorkers</dt><dd class="cmt"><p>The amount of Worker actors to spawn.  Must be greater than 0.
+</p></dd></dl></div>
+    </li><li name="colossus.JsonMetricSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JsonMetricSenderextendsMetricSenderwithProductwithSerializable"></a>
+      <a id="JsonMetricSender:JsonMetricSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="JsonMetricSender.html"><span class="name">JsonMetricSender</span></a><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="sys">sys: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> = <span class="symbol"><span class="name"><a href="IOSystem$.html">IOSystem(&quot;json-sender&quot;)</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="colossus.metrics.MetricSender">MetricSender</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@JsonMetricSenderextendsMetricSenderwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.JsonMetricSenderActor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JsonMetricSenderActorextendsActorwithActorLogging"></a>
+      <a id="JsonMetricSenderActor:JsonMetricSenderActor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="JsonMetricSenderActor.html"><span class="name">JsonMetricSenderActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@JsonMetricSenderActorextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.IOCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IOCommand"></a>
+      <a id="IOCommand:IOCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="IOCommand$.html"><span class="name">IOCommand</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@IOCommand" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.IOSystem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IOSystem"></a>
+      <a id="IOSystem:IOSystem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="IOSystem$.html"><span class="name">IOSystem</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@IOSystem" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="core"></a>
+      <a id="core:core"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="core/package.html"><span class="name">core</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@core" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="parsing"></a>
+      <a id="parsing:parsing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="parsing/package.html"><span class="name">parsing</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@parsing" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="protocols"></a>
+      <a id="protocols:protocols"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="protocols/package.html"><span class="name">protocols</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@protocols" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="service"></a>
+      <a id="service:service"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="service/package.html"><span class="name">service</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@service" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.task" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="task"></a>
+      <a id="task:task"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="task/package.html"><span class="name">task</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.package@task" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
