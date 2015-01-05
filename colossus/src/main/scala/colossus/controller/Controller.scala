@@ -2,8 +2,8 @@ package colossus
 package controller
 
 import core._
-import service.Codec
-import scala.util.{Try, Success, Failure}
+import colossus.service.{DecodedResult, Codec}
+import scala.util.{Success, Failure}
 import PushResult._
 
 /** trait representing a decoded message that is actually a stream
@@ -27,10 +27,10 @@ sealed trait OutputResult
 object OutputResult {
 
   // the message was successfully written
-  case object Success   extends OutputResult
+  case object Success extends OutputResult
 
   // the message failed, most likely due to the connection closing partway
-  case object Failure   extends OutputResult
+  case object Failure extends OutputResult
 
   // the message was cancelled before it was written (not implemented yet) 
   case object Cancelled extends OutputResult
@@ -234,7 +234,6 @@ extends ConnectionHandler {
 
   /******* INPUT *******/
 
-
   def receivedData(data: DataBuffer) {
     currentSink match {
       case Some(sink) => sink.push(data) match {
@@ -260,12 +259,14 @@ extends ConnectionHandler {
       case None => codec.decode(data) match {
         case Some(message) =>  {
           message match {
-            case s: StreamMessage => {
-              currentSink = Some(s.sink)
+            case DecodedResult.Streamed(msg, sink) => {
+              currentSink = Some(sink)
+              processMessage(msg)
             }
-            case _ => {}
+            case DecodedResult.Static(msg) => {
+              processMessage(msg)
+            }
           }
-          processMessage(message)
           if (data.hasUnreadData) receivedData(data)
         }
         case None => {}

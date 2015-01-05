@@ -5,7 +5,6 @@ import core._
 
 import akka.actor._
 import akka.util.Timeout
-import akka.pattern.ask
 import java.net.InetSocketAddress
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
@@ -16,7 +15,6 @@ import scala.concurrent.duration._
 class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
   import WorkerCommand._
   import ConnectionEvent._
-  import config._
 
   override def preStart() {
     system.workerManager ! IOCommand.BindWorkerItem(handlerFactory(self))
@@ -87,7 +85,6 @@ object AsyncServiceClient {
  * types
  */
 class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
-  import ConnectionEvent._
 
   case class PackagedRequest(request: I, response: Promise[O])
 

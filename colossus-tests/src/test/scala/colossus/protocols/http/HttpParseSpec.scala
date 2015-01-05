@@ -3,13 +3,9 @@ package protocols.http
 
 import core._
 
-
-
 import org.scalatest._
 
 import akka.util.ByteString
-
-import protocols.http._
 
 import parsing._
 import DataSize._

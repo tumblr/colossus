@@ -21,7 +21,7 @@ object DataSize {
   implicit def longToDataSize(l: Long): DataSize = DataSize(l)
 }
 
-/** A ParserSizeTracker can wrap a stream parser to ensure that the object beiing parsed doesn't exceed a certain size.
+/** A ParserSizeTracker can wrap a stream parser to ensure that the object being parsed doesn't exceed a certain size.
  *
  * The size tracker is not exact.  It simply looks at how many bytes are read
  * off the DataBuffer each time the track method is called.  Since in most

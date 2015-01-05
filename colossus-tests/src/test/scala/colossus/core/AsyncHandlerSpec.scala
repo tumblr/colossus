@@ -4,7 +4,6 @@ package colossus
 import testkit._
 import core._
 
-import akka.actor._
 import akka.testkit.TestProbe
 
 import scala.concurrent.duration._

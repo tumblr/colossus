@@ -28,7 +28,7 @@ class JsonMetricSenderActor(io: IOSystem, host: String, port: Int, path: String)
   implicit val timeout = Timeout(1.seconds)
   import context.dispatcher
 
-  val client = AsyncServiceClient(config, new HttpClientCodec)
+  val client = AsyncServiceClient(config, HttpClientCodec.static())
 
   def receive = {
     case Send(map, gtags, timestamp) => {

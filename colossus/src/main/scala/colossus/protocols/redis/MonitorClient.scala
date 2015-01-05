@@ -29,10 +29,10 @@ abstract class RedisMonitorClient extends ClientConnectionHandler {
 
   def receivedData(data: DataBuffer) {
     codec.decode(data).foreach{
-      case StatusReply(bytes) if (bytes == ByteString("OK")) => {
+      case DecodedResult.Static(StatusReply(bytes)) if (bytes == ByteString("OK")) => {
         println("beginning stream")
       }
-      case StatusReply(data) => {
+      case DecodedResult.Static(StatusReply(data)) => {
         val args = parseLine(ByteString(data)) //fix that
         if (args.size > 0 && args(0) != ByteString("MONITOR")) {
           val cmd = args(0).utf8String.toUpperCase

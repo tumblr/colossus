@@ -4,17 +4,11 @@ import testkit._
 import core._
 import service._
 
-import akka.testkit.TestProbe
-
-import metrics.MetricAddress
-
-import scala.util.{Success, Failure}
 import scala.concurrent.duration._
 import akka.util.ByteString
 import java.net.InetSocketAddress
 
 import protocols.redis._
-import UnifiedProtocol._
 import scala.concurrent.Await
 
 

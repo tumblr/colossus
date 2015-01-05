@@ -60,6 +60,20 @@ trait Source[T] extends Transport {
       case None => Callback.successful(init)
     }
   }
+
+  def foldWhile[U](init: U)(cb:  (T, U) => U)(f : U => Boolean) : Callback[U] = {
+    pullCB().flatMap {
+      case Some(i) => {
+        val aggr = cb(i, init)
+        if(f(aggr)){
+              foldWhile(aggr)(cb)(f)
+            }else{
+              Callback.successful(aggr)
+            }
+        }
+      case None => Callback.successful(init)
+      }
+  }
     
 
   def ++(next: Source[T]): Source[T] = new DualSource(this, next)
@@ -73,7 +87,7 @@ object Source {
   def one[T](data: T) = new Source[T] {
     var item: Try[Option[T]] = Success(Some(data))
     def pull(onReady: Try[Option[T]] => Unit) {
-      var t = item
+      val t = item
       if (item.isSuccess) {
         item = Success(None)
       }

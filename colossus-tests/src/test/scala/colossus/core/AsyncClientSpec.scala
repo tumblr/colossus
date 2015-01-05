@@ -1,7 +1,6 @@
 package colossus
 
 import testkit._
-import service._
 import core._
 
 import akka.actor._
@@ -39,9 +38,6 @@ class AsyncClientSpec extends ColossusSpec {
       f(server, client, p2)
     }
   }
-
-      
-    
 
   "Async Client" must {
     "connect to a server" in {

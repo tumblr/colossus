@@ -56,7 +56,11 @@ class ServiceClientSpec extends ColossusSpec {
     do {
       bytes = endpoint.clearBuffer()
       parser.decodeAll(DataBuffer.fromByteString(bytes)){command =>
-        client.receivedData(commandReplies(command).raw)
+        command match {
+          case DecodedResult.Static(cmd) => client.receivedData(commandReplies(cmd).raw)
+          case _ => throw new Exception("shouldn't happen, not streaming")
+        }
+
       }
     } while (bytes.size > 0)
     numCalledBack must equal (commandReplies.size)

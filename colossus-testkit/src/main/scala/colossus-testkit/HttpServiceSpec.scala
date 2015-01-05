@@ -4,9 +4,6 @@ package testkit
 import scala.concurrent.Await
 import akka.util.ByteString
 
-import core._
-import service._
-
 import protocols.http._
 
 import net.liftweb.json._
@@ -32,7 +29,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
 
   def testGet(url: String, expectedBody: String) {
     val req = get(url)
-    val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, ByteString(expectedBody), List(("content-length" -> expectedBody.length.toString)))
+    val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, List(("content-length" -> expectedBody.length.toString)), ByteString(expectedBody))
 
     expectResponse(req, expected)
   }

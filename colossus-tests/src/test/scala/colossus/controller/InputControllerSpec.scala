@@ -7,9 +7,6 @@ import core._
 
 import scala.util.{Try, Failure, Success}
 
-
-
-
 class InputControllerSpec extends ColossusSpec {
   
   import TestController.createController
@@ -17,7 +14,9 @@ class InputControllerSpec extends ColossusSpec {
   "Input Controller" must {
     "decode a stream message" in {
       val expected = ByteString("Hello world!")
+      println(s"size: ${expected.size.toString}")
       val request = ByteString(expected.size.toString) ++ ByteString("\r\n") ++ expected
+      println(request)
       var called = false
       val (endpoint, con) = createController({input => 
         input.source.pullCB().execute{

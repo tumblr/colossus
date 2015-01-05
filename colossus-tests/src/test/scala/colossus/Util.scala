@@ -20,7 +20,7 @@ object RawProtocol {
   import colossus.service._
 
   object RawCodec extends Codec[ByteString, ByteString] {
-    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
+    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(DecodedResult.Static(ByteString(data.takeAll))) else None
     def encode(raw: ByteString) = DataBuffer(raw)
     def reset(){}
   }
