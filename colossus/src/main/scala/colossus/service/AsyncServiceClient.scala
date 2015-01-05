@@ -6,6 +6,7 @@ import core._
 import akka.actor._
 import akka.util.Timeout
 import akka.pattern.ask
+import java.net.InetSocketAddress
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 
@@ -62,6 +63,19 @@ object AsyncServiceClient {
     val gen = new AsyncHandlerGenerator(config, codec)
     val actor = io.actorSystem.actorOf(Props(classOf[ClientProxy], config, io, gen.handlerFactory))
     gen.client(actor)
+  }
+
+  def apply[C <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 100.milliseconds)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] = {
+    val config = ClientConfig(
+      name = provider.name,
+      address = new InetSocketAddress(host, port),
+      requestTimeout = requestTimeout
+    )
+    AsyncServiceClient[C](config)
+  }
+
+  def apply[C <: CodecDSL](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] = {
+    AsyncServiceClient(config, provider.clientCodec())
   }
 }
 
