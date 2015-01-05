@@ -43,6 +43,21 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("109834!")
       parser.parse(d) must equal (Some(109834L))
     }
+    "intUntil with negative" in {
+      val parser = intUntil('!')
+      val d = data("-109834!")
+      parser.parse(d) must equal (Some(-109834L))
+    }
+    "intUntil fail on invalid integer" in {
+      val invalid = Seq("-!", "0-!", "--!", "-1-1!")
+      invalid.foreach { x =>
+        intercept[ParseException] {
+          val parser = intUntil('!')
+          val d = data(x)
+          parser.parse(d)
+        }
+      }
+    }
     "literal" in {
       val parser = literal(ByteString("hello"))
       val d = data("helloasdf")
@@ -113,8 +128,6 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("3:aabbccdd")
       parser.parse(d) must equal (Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
     }
-
-      
   }
 
 }

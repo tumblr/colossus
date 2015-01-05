@@ -425,20 +425,23 @@ object Combinators {
   def intUntil(terminus: Byte): Parser[Long] = new Parser[Long] {
     var current: Long = 0
     var negative = false
+    var firstByte = true
+    var parsedInt = false
     def parse(data: DataBuffer) = {
       var done = false
       while (data.hasUnreadData && !done) {
         val b = data.next
-        if (b == terminus) {
+        if (b == terminus && parsedInt) {
           done = true
-        } else if (b == '-' && current == 0) {
-          //technically this allows "000-345" or "0-0-0-0-----" but whatever
+        } else if (b == '-' && firstByte) {
           negative = true
         } else if (b >= 48 && b <= 57) {
           current = (current * 10) + (b - 48)
+          parsedInt = true
         } else {
           throw new ParseException(s"Invalid character '$b' while parsing integer")
         }
+        firstByte = false
       }
       if (done) {
         if (negative) {
