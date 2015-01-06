@@ -49,7 +49,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
 
   var currentState: Option[State] = None
 
-  
+
   //we store the RegisterServer object and not just the ServerRef because we
   //need to be able to send the delegatorFactory to any new/restarted workers
   var registeredServers = collection.mutable.ArrayBuffer[RegisterServer]()
@@ -85,7 +85,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
     case other => stash() //unstash happens when we enter the running state in waitForWorkers
   }
 
-  
+
 
   def waitForWorkers(state: State, ready: Int): Receive = startingUp orElse {
     case WorkerReady => {
@@ -123,7 +123,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         implicit val timeout = Timeout(50.milliseconds)
         Future
           .traverse(state.workers){worker => (worker ? Worker.ConnectionSummaryRequest).mapTo[Worker.ConnectionSummary]}
-          .map{seqs => 
+          .map{seqs =>
             val summary = Worker.ConnectionSummary(seqs.flatMap{_.infos})
             self ! summary
             rOpt.foreach{requester => requester ! summary}
@@ -153,7 +153,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         registeredServers.foreach{sender ! _}
       }
     }
-      
+
   }
 
   def serverRegistration: Receive = {

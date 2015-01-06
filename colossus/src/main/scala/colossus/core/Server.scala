@@ -15,7 +15,7 @@ import java.net.ServerSocket
 
 import scala.collection.JavaConversions._
 
-/** Contains values for configuring how a Server operates 
+/** Contains values for configuring how a Server operates
  *
  * These are all lower-level configuration settings that are for the most part
  * not concerned with a server's application behavior
@@ -31,9 +31,9 @@ import scala.collection.JavaConversions._
  * @param port Port on which this Server will accept connections
  * @param maxConnections Max number of simultaneous live connections
  * @param lowWatermarkPercentage Percentage of live/max connections which represent a normal state
- * @param highWatermarkPercentage Percentage of live/max connections which represent a high water state.  
+ * @param highWatermarkPercentage Percentage of live/max connections which represent a high water state.
  * @param maxIdleTime Maximum idle time for connections when in non high water conditions
- * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.  
+ * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
  * @param bindingAttemptDuration The polling configuration for binding to a port.  The The [[IOSystem]] will check
   *                               [[PollingDuration.interval]] [[PollingDuration.maximumTries]] times. If the server
@@ -46,10 +46,10 @@ import scala.collection.JavaConversions._
  */
 case class ServerSettings(
   port: Int,
-  maxConnections: Int = 1000, 
-  maxIdleTime: Duration = Duration.Inf, 
-  lowWatermarkPercentage: Double = 0.75, 
-  highWatermarkPercentage: Double = 0.85, 
+  maxConnections: Int = 1000,
+  maxIdleTime: Duration = Duration.Inf,
+  lowWatermarkPercentage: Double = 0.75,
+  highWatermarkPercentage: Double = 0.85,
   highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
   tcpBacklogSize: Option[Int] = None,
   bindingAttemptDuration : PollingDuration = PollingDuration(200 milliseconds, None),

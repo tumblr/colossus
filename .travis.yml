@@ -1,2 +1,3 @@
 language: scala
 jdk: oraclejdk7
+sudo: false

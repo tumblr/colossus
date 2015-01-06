@@ -22,7 +22,7 @@ trait MessageEncoder[T] {
  * codec is stateful and returns a Seq[O]
  */
 trait Codec[Output,Input] {
-  def encode(out: Output): DataBuffer
+  def encode(out: Output): DataReader
   /**
    * Decode a single object from a bytestream.  
    */

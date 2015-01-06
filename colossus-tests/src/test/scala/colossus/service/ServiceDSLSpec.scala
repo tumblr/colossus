@@ -53,9 +53,11 @@ class ServiceDSLSpec extends ColossusSpec {
         val server = Service.become[Raw]("test", TEST_PORT) { 
           case any if (false) => ByteString("WAT")
         }
-        val client = TestClient(system, TEST_PORT)
-        client.send(ByteString("hello"))
-        probe.expectMsgType[UnhandledRequestException]
+        withServer(server) {
+          val client = TestClient(system, TEST_PORT)
+          client.send(ByteString("hello"))
+          probe.expectMsgType[UnhandledRequestException]
+        }
       }
     }
 

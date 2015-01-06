@@ -126,8 +126,3 @@ trait BasicSyncHandler extends ConnectionHandler {
   //def receivedData(data: DataBuffer)
 }
 
-
-
-
-
-
