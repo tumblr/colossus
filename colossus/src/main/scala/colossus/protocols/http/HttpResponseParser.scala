@@ -19,12 +19,15 @@ object HttpResponseParser {
   def apply(size: DataSize = DefaultMaxSize) = maxSize(size, response)
 
   def response: Parser[HttpResponse] = firstLine ~ headers |> {case (version, code) ~ headers =>
-    val clength = headers.collectFirst{case (c,v) if (c == HttpHeaders.ContentLength) => v.toInt}.getOrElse(0)
-    if (clength > 0) {
-      bytes(clength) >> {body => HttpResponse(version, code, body, headers)}
-    } else {
-      const(HttpResponse(version, code, ByteString(), headers))
-    }
+    val clength = headers.collectFirst{case (HttpHeaders.ContentLength,v)  => v.toInt}
+    val encoding = headers.collectFirst{case (HttpHeaders.TransferEncoding,v)  => v.toLowerCase}
+    encoding match { 
+      case None | Some("identity") => clength match {
+        case Some(0) | None => const(HttpResponse(version, code, ByteString(), headers))
+        case Some(n) => bytes(n) >> {body => HttpResponse(version, code, body, headers)}
+      }
+      case Some(other)  => chunkedBody >> {body => HttpResponse(version, code, body, headers)}
+    } 
   }
 
   

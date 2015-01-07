@@ -16,11 +16,13 @@ object HttpRequestParser {
   def apply(size: DataSize = DefaultMaxSize) = maxSize(size, httpRequest)
 
   protected def httpRequest: Parser[HttpRequest] = httpHead |> {head => 
-    if (head.contentLength > 0) {
-      bytes(head.contentLength) >> {body => HttpRequest(head, Some(body))}
-    } else {
-      const(HttpRequest(head, None))
-    }
+    head.singleHeader(HttpHeaders.TransferEncoding) match { 
+      case None | Some("identity") => head.contentLength match {
+        case Some(0) | None => const(HttpRequest(head, None))
+        case Some(n) => bytes(n) >> {body => HttpRequest(head, Some(body))}
+      }
+      case Some(other)  => chunkedBody >> {body => HttpRequest(head, Some(body))}
+    } 
   }
 
   protected def httpHead = firstline ~ headers >> {case method ~ path ~ version ~ headers => 
