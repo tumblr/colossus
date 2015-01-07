@@ -36,11 +36,11 @@ class ActorHandler extends Actor with Stash {
       stash()
     }
   }
-    
+
 
   def waitingForConnected(listener: ActorRef, connectionId: Long): Receive = {
     case Connected => {
-      listener ! Connected 
+      listener ! Connected
       context.become(active(listener, sender(), connectionId))
       unstashAll()
     }
@@ -76,7 +76,7 @@ object ActorHandler {
 
   def apply(address: InetSocketAddress, name: String = "async-client")(implicit io: IOSystem) = {
     val actor = io.actorSystem.actorOf(Props(classOf[ActorHandler]), name = name)
-    io ! IOCommand.Connect(address, worker => new AsyncHandler(actor, worker))
+    io ! IOCommand.BindAndConnectWorkerItem(address, new AsyncHandler(actor))
     actor
   }
 

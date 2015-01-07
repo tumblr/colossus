@@ -1,10 +1,12 @@
 package colossus
 package service
 
+
 import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
+import colossus.controller._
 import colossus.core._
 import colossus.metrics._
 
@@ -84,7 +86,6 @@ trait SharedClient[I,O] extends ClientLike[I,O,Future] {
 }
 
 trait ServiceClientLike[I,O] extends LocalClient[I,O] {
-  def connect()
   def gracefulDisconnect()
   def config: ClientConfig
   def shared: SharedClient[I,O]
@@ -93,7 +94,11 @@ trait ServiceClientLike[I,O] extends LocalClient[I,O] {
 
 object ServiceClient {
 
-  def apply[I,O](codec: Codec[I,O], config: ClientConfig, worker: WorkerRef): ServiceClient[I,O] = new ServiceClient(codec, config, worker)
+  def apply[I,O](codec: Codec[I,O], config: ClientConfig, worker: WorkerRef): ServiceClient[I,O] = {
+    val c = new ServiceClient(codec, config)
+    worker.bind(c)
+    c
+  }
 
 }
 
@@ -110,34 +115,32 @@ class StaleClientException(msg : String) extends Exception(msg)
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
  *
- * Notice - a service client will not connect on it's own, the connect() method
- * must be called.  This is to avoid multiple connection requests when a
- * service client handler is created in the closure of a
- * ConnectionCommand.Connect message. 
- *
- * Therefore, if you are directly creating a client inside a server delegator,
- * you should call connect().  If you are creating the handler as part of a
- * Connect message to a worker or IOSystem, you should not call connect()
+ * Notice - The client will not begin to connect until it is bound to a worker,
+ * so when using the default constructor a service client will not connect on
+ * it's own.  You must either call `bind` on the client or use the constructor
+ * that accepts a worker
  */
 class ServiceClient[I,O](
-  val codec: Codec[I,O], 
-  val config: ClientConfig,
-  val worker: WorkerRef
-) extends ClientConnectionHandler with ServiceClientLike[I,O] {
-  import colossus.IOCommand._
+  codec: Codec[I,O], 
+  val config: ClientConfig
+) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
+
   import colossus.core.WorkerCommand._
   import config._
 
   type ResponseHandler = Try[O] => Unit
 
-  private val periods = List(1.second, 1.minute)
-  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
-  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
-  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
-  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
-  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
+  private lazy val worker = boundWorker.get
 
-  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  //todo: figure out how to make these not lazy
+  private val periods = List(1.second, 1.minute)
+  private lazy val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
+  private lazy val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
+  private lazy val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
+  private lazy val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
+  private lazy val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
+  private lazy val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   case class SourcedRequest(message: I, handler: ResponseHandler) {
     val start: Long = System.currentTimeMillis
@@ -147,10 +150,7 @@ class ServiceClient[I,O](
   private var manuallyDisconnected = false
   private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
-  private val pendingBuffer = mutable.Queue[SourcedRequest]()
-  private var writer: Option[WriteEndpoint] = None
   private var disconnecting: Boolean = false //set to true during graceful disconnect
-  val log = Logging(worker.system.actorSystem, s"client:$address")
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
@@ -159,29 +159,26 @@ class ServiceClient[I,O](
   case class AsyncRequest(request: I, handler: ResponseHandler)
 
   /**
-   * Checks if the underlying WriteEndpoint's status is ConnectionStatus.Connected
-   * @return
-   */
-  def isConnected: Boolean = writer.fold(false){_.status == ConnectionStatus.Connected}
-
-  /**
    *
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
    */
-  def connectionStatus: ConnectionStatus = writer.map{_.status}.getOrElse(
-    if (canReconnect) ConnectionStatus.Connecting else ConnectionStatus.NotConnected
-  )
-
-  def connect() {
-    if(!manuallyDisconnected){
-      worker ! Connect(address, _ => this)
-    }else{
-      throw new StaleClientException("This client has already been manually disconnected, create a new one.")
-    }
+  def connectionStatus: ConnectionStatus = if (isConnected) {
+    ConnectionStatus.Connected 
+  } else if (canReconnect) {
+    ConnectionStatus.Connecting
+  } else {
+    ConnectionStatus.NotConnected
   }
 
-  //todo: this should now auto-connect on binding
-  //override def onBind(){}
+  override def onBind(){
+    super.onBind()
+    if(!manuallyDisconnected){
+      log.info(s"client ${id.get} connecting to $address")
+      worker ! Connect(address, id.get)
+    }else{
+      throw new StaleClientException("This client has already been manually disconnected and cannot be reused, create a new one.")
+    }
+  }
 
   /**
    * Allow any requests in transit to complete, but cancel all pending requests
@@ -189,7 +186,9 @@ class ServiceClient[I,O](
    */
   def gracefulDisconnect() {
     log.info(s"Terminating connection to $address")
-    clearPendingBuffer(new NotConnectedException("Connection is closing"))
+    //clearPendingBuffer(new NotConnectedException("Connection is closing"))
+    //todo, we should maybe make the Cancelled OutputResult take a Throwable
+    purgePending()
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()
@@ -197,11 +196,10 @@ class ServiceClient[I,O](
 
   /**
    * Sent a request to the service, along with a handler for processing the response.
-   *
    */
   private def sendNow(request: I)(handler: ResponseHandler){
     val s = SourcedRequest(request, handler)
-    attemptWrite(s, bufferPending = true)
+    attemptWrite(s)
   }
 
   /** Create a shared interface that is thread safe and returns Futures
@@ -221,23 +219,20 @@ class ServiceClient[I,O](
    */
   def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
 
-  def receivedData(data: DataBuffer) {
+  def processMessage(response: O) {
     val now = System.currentTimeMillis
-    codec.decodeAll(data){response =>
-      try {
-        val source = sentBuffer.dequeue()
-        latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
-        source.handler(Success(response))
-        requests.hit(tags = hpTags)
-      } catch {
-        case e: java.util.NoSuchElementException => {
-          throw new DataException(s"No Request for response ${response.toString}!")
-        }
+    try {
+      val source = sentBuffer.dequeue()
+      latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
+      source.handler(Success(response))
+      requests.hit(tags = hpTags)
+    } catch {
+      case e: java.util.NoSuchElementException => {
+        throw new DataException(s"No Request for response ${response.toString}!")
       }
-      
     }
     checkGracefulDisconnect()
-    checkPendingBuffer()
+    if (paused) resumeWrites()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {
@@ -247,43 +242,36 @@ class ServiceClient[I,O](
     }
   }
 
-  def connected(endpoint: WriteEndpoint) {
-    log.info(s"Connected to $address")
+  override def connected(endpoint: WriteEndpoint) {
+    super.connected(endpoint)
+    log.info(s"${id.get} Connected to $address")
     codec.reset()    
-    writer = Some(endpoint)
     connectionAttempts = 0
     readyForData()
   }
 
   private def purgeBuffers(pendingException : => Throwable) {
-    writer = None
     sentBuffer.foreach{s => 
       errors.hit(tags = hpTags)
       s.handler(Failure(new ConnectionLostException("Connection closed while request was in transit")))
     }
     sentBuffer.clear()
+    purgeOutgoing()
     if (failFast) {
-      clearPendingBuffer(pendingException)
+      purgePending()
     }
   }
-
-  private def clearPendingBuffer(ex : => Throwable) {
-    pendingBuffer.foreach{ s =>
-      droppedRequests.hit(tags = hpTags)
-      s.handler(Failure(ex))
-    }
-    pendingBuffer.clear()
-  }
-
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
+    super.connectionClosed(cause)
     manuallyDisconnected = true
     purgeBuffers(new NotConnectedException("Connection closed"))
   }
 
   override protected def connectionLost(cause : DisconnectError) {
+    super.connectionLost(cause)
     purgeBuffers(new NotConnectedException("Connection lost"))
-    log.warning(s"connection to ${address.toString} lost: $cause")
+    log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
     disconnects.hit(tags = hpTags)
     attemptReconnect()
   }
@@ -300,7 +288,7 @@ class ServiceClient[I,O](
     if(!disconnecting) {
       if(canReconnect) {
         log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
-        worker ! Schedule(config.connectionAttempts.interval, Reconnect(address, this))
+        worker ! Schedule(config.connectionAttempts.interval, Connect(address, id.get))
       }
       else {
         log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
@@ -311,83 +299,35 @@ class ServiceClient[I,O](
   private def canReconnect = config.connectionAttempts.isExpended(connectionAttempts)
 
 
-  private def attemptWrite(s: SourcedRequest, bufferPending: Boolean) {
-    def enqueuePending(s: SourcedRequest) {
-      if (pendingBuffer.size >= pendingBufferSize) {
-        droppedRequests.hit(tags = hpTags)
-        s.handler(Failure(new ClientOverloadedException("Client is overlaoded")))
-      } else {
-        pendingBuffer.enqueue(s)
-      }
-    }
+  private def attemptWrite(s: SourcedRequest) {
     if (disconnecting) {
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
-    } else if (pendingBuffer.size > 0 && bufferPending) {
-      //don't even bother trying to write, we're already backed up
-      enqueuePending(s)
-    } else if (sentBuffer.size >= sentBufferSize) {
-      enqueuePending(s)
-    } else if (requestTimeout.isFinite && System.currentTimeMillis - s.start > requestTimeout.toMillis) {
-      s.handler(Failure(new RequestTimeoutException))
-    } else {
-      writer.map{w =>
-        w.write(codec.encode(s.message)) match {
-          case WriteStatus.Complete | WriteStatus.Partial => {
-            sentBuffer.enqueue(s)
-          }
-          case WriteStatus.Zero => if (bufferPending) {
-            enqueuePending(s)
-          } else {
-            //if this ever happens there is a major problem since in this case
-            //we're only writing if we already checked if the connection is
-            //writable
-            throw new Exception("Zero Write Status on pending!")
-          }
-          case WriteStatus.Failed => {
-            //notice - this would only happen if a write was attempted after a connection closed but before 
-            //the connectionClosed handler method was called, since that unsets the WriteEndpoint
-            if (bufferPending && !failFast) {
-              enqueuePending(s)
-            } else {
-              droppedRequests.hit(tags = hpTags)
-              s.handler(Failure(new NotConnectedException("Write Failure")))
-            }
-          }
-        }
-      }.getOrElse{
-        if (bufferPending && !failFast) {
-          enqueuePending(s)
-        } else {
-          droppedRequests.hit(tags = hpTags)
-          s.handler(Failure(new NotConnectedException("Not Connected")))
-        }
+    } else if (isConnected || !failFast) {
+      val pushed = push(s.message){
+        case OutputResult.Success   => sentBuffer.enqueue(s)
+        case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
+        case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
       }
+      if (pushed) {
+        if (sentBuffer.size >= config.sentBufferSize) {
+          pauseWrites() //writes resumed in processMessage
+        }
+      } else {
+        s.handler(Failure(new ClientOverloadedException("Client is overloaded")))
+      }
+    } else {
+      droppedRequests.hit(tags = hpTags)
+      s.handler(Failure(new NotConnectedException("Not Connected")))
     }
   }
 
   private def checkGracefulDisconnect() {
     if (disconnecting && sentBuffer.size == 0) {
-      writer.foreach{_.disconnect()}
-      writer = None
+      disconnect()
     }
   }
 
-  private def checkPendingBuffer() {
-    writer.foreach{w => 
-      while (pendingBuffer.size > 0 && sentBuffer.size < sentBufferSize && w.isWritable) {
-        val s = pendingBuffer.dequeue()
-        attemptWrite(s, bufferPending = false)
-      }
-    }
-  }
-
-  /*
-   * if any requests are waiting in the pending buffer, attempt to send as many as possible.
-   */
-  def readyForData(){
-    checkPendingBuffer()
-  }
 
   def idleCheck(period: Duration) {
     //TODO: timeout pending requests

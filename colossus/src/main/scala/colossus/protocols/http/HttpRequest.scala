@@ -33,6 +33,8 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   def bytes : ByteString = {
     head.bytes ++ entity.getOrElse(ByteString())
   }
+
+  def withHeader(key: String, value: String) = copy(head = head.withHeader(key, value))
 }
 
 object HttpRequest {

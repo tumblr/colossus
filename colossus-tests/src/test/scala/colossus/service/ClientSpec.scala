@@ -69,6 +69,7 @@ class ClientSpec extends ColossusSpec {
 
     "get connection status" in {
       withAsyncClient { (server, client) => {
+        Thread.sleep(500)
         Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
       }
       }

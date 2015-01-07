@@ -100,9 +100,7 @@ trait ServiceContext[C <: CodecDSL] {
   def receive(receiver: Receive)
 
   def clientFor[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    val client = new ServiceClient(provider.clientCodec(), config, worker)
-    client.connect()
-    client
+    ServiceClient(provider.clientCodec(), config, worker)
   }
 
   def clientFor[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
@@ -149,6 +147,8 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
 
 trait DSLHandler[C <: CodecDSL] extends ServiceServer[C#Input, C#Output] with ConnectionContext[C]
 
+class UnhandledRequestException(message: String) extends Exception(message)
+
 class BasicServiceHandler[C <: CodecDSL]
   (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C]) 
   (implicit ex: ExecutionContext)
@@ -156,7 +156,7 @@ class BasicServiceHandler[C <: CodecDSL]
   with DSLHandler[C] {
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[Completion[C#Output]]]{
-    case other => Callback.successful(provider.errorResponse(other, new Error(s"Unhandled Request $other")))
+    case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
   
   private var currentHandler: PartialHandler[C] = unhandled

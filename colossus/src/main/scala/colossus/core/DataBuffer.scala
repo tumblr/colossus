@@ -5,14 +5,23 @@ import akka.util.ByteString
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
+/**
+ * A DataReader is the result of codec's encode operation.  It can either
+ * return a DataBuffer, which contains the entire encoded object at once, or it
+ * can return a DataStream, which has a Sink for streaming the encoded object.
+ */
+sealed trait DataReader
+
+case class DataStream(source: controller.Source[DataBuffer]) extends DataReader
+
 /** A thin wrapper around a NIO ByteBuffer with data to read
  *
  * DataBuffers are the primary way that data is read from and written to a
  * connection.  DataBuffers are mutable and not thread safe.  They can only be
  * read from once and cannot be reset.
- * 
+ *
  */
-case class DataBuffer(data: ByteBuffer) extends AnyVal {
+case class DataBuffer(data: ByteBuffer) extends DataReader {
   /** Get the next byte, removing it from the buffer
    *
    * WARNING : This method will throw an exception if no data is left.  It is
@@ -22,10 +31,10 @@ case class DataBuffer(data: ByteBuffer) extends AnyVal {
    * @return the next byte in the buffer
    */
   def next(): Byte = data.get
-  
+
 
   /** Get some bytes
-   * @param n how many bytes you want.  
+   * @param n how many bytes you want.
    * @return an filled array of size min(n, remaining)
    */
   def take(n: Int): Array[Byte] = {
@@ -36,7 +45,7 @@ case class DataBuffer(data: ByteBuffer) extends AnyVal {
   }
 
   /** Returns an array containing all of the unread data in this Databuffer */
-  def takeAll: Array[Byte] = take(remaining)    
+  def takeAll: Array[Byte] = take(remaining)
 
   /** Copy the unread data in this buffer to a new buffer
    *
@@ -77,7 +86,7 @@ case class DataBuffer(data: ByteBuffer) extends AnyVal {
 
   /** Returns true if this DataBuffer still has unread data, false otherwise */
   def hasNext = data.hasRemaining
-  
+
   /** Returns true if this DataBuffer still has unread data, false otherwise */
   def hasUnreadData = data.hasRemaining
 

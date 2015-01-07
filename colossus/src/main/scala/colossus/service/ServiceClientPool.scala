@@ -20,7 +20,6 @@ class ServiceClientPool[I,O, T <: ServiceClient[I, O]](val commonConfig: ClientC
       address = address
     )
     val client = creator(config, worker)
-    client.connect()
     client
   }
 

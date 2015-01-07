@@ -2,8 +2,6 @@ package colossus
 package protocols.redis
 
 
-import UnifiedProtocol._
-
 import org.scalatest._
 
 import akka.util.ByteString

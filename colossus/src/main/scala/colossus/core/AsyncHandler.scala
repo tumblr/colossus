@@ -15,18 +15,18 @@ trait WatchedHandler extends ConnectionHandler {
 }
 
 //the sender (the worker
-case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHandler with ClientConnectionHandler {
+case class AsyncHandler(handler: ActorRef) extends WatchedHandler with ClientConnectionHandler {
   import ConnectionCommand._
   import ConnectionEvent._
 
-  implicit val sender = worker.worker
+  implicit lazy val sender = boundWorker.get.worker
 
   private var endpointOpt: Option[WriteEndpoint] = None
   def endpoint = endpointOpt.getOrElse(throw new Exception("Attempted to use non-connected endpoint"))
   def watchedActor = handler
   def receivedData(data: DataBuffer) {
     handler ! ReceivedData(ByteString(data.takeAll))
-  
+
   }
 
   override def onBind(){
@@ -58,7 +58,7 @@ case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHan
     if (sender == handler) {
       message match {
         case Write(data, ackLevel) => {
-          val (send, status) = endpointOpt.map{e => 
+          val (send, status) = endpointOpt.map{e =>
             val status = e.write(DataBuffer(data))
             val send = if ((status == Complete || status == Partial) && ackLevel == AckSuccess) {
               true
@@ -73,7 +73,7 @@ case class AsyncHandler(handler: ActorRef, worker: WorkerRef) extends WatchedHan
           }.getOrElse{ (ackLevel == AckAll || ackLevel == AckFailure, Failed)}
           if (send) {
             handler ! WriteAck(status)
-          }        
+          }
         }
         case Disconnect => endpointOpt.foreach{_.disconnect()}
       }
@@ -99,9 +99,9 @@ object AsyncHandler {
   def serverHandler(handler: ActorRef, worker: WorkerRef)(implicit fact: ActorRefFactory): AsyncHandler = {
     val actor = fact.actorOf(Props[ActorHandler])
     actor ! ActorHandler.RegisterListener(handler)
-    AsyncHandler(actor, worker)
+    AsyncHandler(actor)
   }
-    
+
 }
 
 /**
@@ -127,7 +127,7 @@ object ConnectionEvent {
   //maybe include an id or something
   case class WriteAck(status: WriteStatus) extends ConnectionEvent
   case class ConnectionTerminated(cause : DisconnectCause) extends ConnectionEvent
-  
+
   //for server connections, Connected is send immediately after Bound.  For
   //clients, the messages are more semantic, Bound is sent immediately while
   //connected only when the connection is fully established
@@ -154,7 +154,7 @@ object ConnectionCommand {
 /**
  * AckLevel is used in Asynchronous write messages to determine how to react to
  * writes.  This is useful when interacting with a connection from an actor and
- * needing to handle backpressure when writing large amounts of data.  
+ * needing to handle backpressure when writing large amounts of data.
  *
  * If AckFailure is selected, WriteStatus's of "Partial" (data partially
  * written but buffered, next write will fail), "Zero" (no data was written,

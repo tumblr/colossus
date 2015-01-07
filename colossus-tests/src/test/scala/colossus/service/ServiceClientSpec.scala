@@ -20,6 +20,8 @@ import scala.concurrent.Await
 
 import RawProtocol._
 
+import org.scalatest.Tag
+
 class ServiceClientSpec extends ColossusSpec {
 
   def newClient(failFast: Boolean = false, maxSentSize: Int = 10): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
@@ -33,10 +35,9 @@ class ServiceClientSpec extends ColossusSpec {
       sentBufferSize = maxSentSize, 
       failFast = failFast
     )
-    val client = new RedisClient(config, worker)
-    client.bind(1, worker)
-    client.connect()
-    workerProbe.expectMsgType[IOCommand.Connect](50.milliseconds)
+    val client = new RedisClient(config)
+    client.setBind(1, worker)
+    workerProbe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = new MockWriteEndpoint(30, workerProbe, Some(client))
     client.connected(endpoint)
     (endpoint, client, workerProbe)
@@ -46,8 +47,8 @@ class ServiceClientSpec extends ColossusSpec {
     var numCalledBack = 0
     commandReplies.foreach{case (command, reply) =>
       client.send(command).map{ r =>
-          numCalledBack += 1
-          r must equal(reply)
+        numCalledBack += 1
+        r must equal(reply)
       }.execute()
     }
 
@@ -96,6 +97,7 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
     "send big command" in {
+      //command is exactly the size of the write buffer
       val command = Command(CMD_GET, "123456789012345678901234567890")
       val raw = command.raw
       val (endpoint, client, probe) = newClient()
@@ -117,15 +119,14 @@ class ServiceClientSpec extends ColossusSpec {
       val cb2 = client.send(command2)
       cb.execute()
       cb2.execute()
-      endpoint.numWrites must equal(2)
+      endpoint.numWrites must equal(1)
       endpoint.writeCalls(0) must equal(raw.slice(0, 30))
-      endpoint.writeCalls(1) must equal(ByteString())
+      endpoint.clearBuffer()
+      endpoint.numWrites must equal(3)
       endpoint.clearBuffer()
       endpoint.numWrites must equal(4)
-      endpoint.clearBuffer()
-      endpoint.numWrites must equal(5)
-      endpoint.writeCalls(2) must equal(raw.slice(30, raw.size))
-      endpoint.writeCalls(3) ++ endpoint.writeCalls(4) must equal(command2.raw)
+      endpoint.writeCalls(1) must equal(raw.slice(30, raw.size))
+      endpoint.writeCalls(2) ++ endpoint.writeCalls(3) must equal(command2.raw)
 
     }
 
@@ -225,8 +226,7 @@ class ServiceClientSpec extends ColossusSpec {
         case Success(r) => response2 = Some(r)
         case Failure(nope) => throw new Exception("NOPE2")
       }
-      endpoint.numWrites must equal(2)
-      endpoint.writeCalls(1) must equal(ByteString())
+      endpoint.numWrites must equal(1)
       while (endpoint.clearBuffer().size > 0) {}
       client.receivedData(reply1.raw)
       client.receivedData(reply2.raw)
@@ -247,7 +247,7 @@ class ServiceClientSpec extends ColossusSpec {
           case _ => throw new Exception("Executed!")
         }
       }
-      endpoint.numWrites must equal (2)
+      endpoint.numWrites must equal (1)
       var failed = false
       client.send(shouldFail).execute{
         case Success(_) => throw new Exception("Didn't fail?!?!")
@@ -278,8 +278,8 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.numWrites must equal(0)
       endpoint.connection_status = ConnectionStatus.NotConnected
       cb.execute{
-        case Success(wat) => throw new Exception("NOPE")
-        case Failure(yay) => failed = true
+        case Success(wat) => println("HERE");throw new Exception("NOPE")
+        case Failure(yay) => println("THER");failed = true
       }
       failed must equal(true)
     }
@@ -327,11 +327,11 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.clearBuffer()
       client.gracefulDisconnect()
       endpoint.disconnectCalled must equal(false)
-      intercept[NotConnectedException] {
+      intercept[CallbackExecutionException] {
         client.send(cmd2).execute{
           case Success(StatusReply(msg)) => {}
-          case Failure(nope) => throw nope
-          case _ => throw new Exception("Bad Response")
+          case Failure(nope: NotConnectedException) => throw nope
+          case _ => {}
         }
       }
       client.receivedData(rep1.raw)
@@ -355,24 +355,6 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectNoMsg(50.milliseconds)
     }
 
-    //TODO:  I need to be a real test.  I'm confused.  Do I call connect? or connected(endpoint). What is the right API?
-    "not allow a disconnected client to reconnect" in {
-      val (endpoint, client, probe) = newClient(true, 10)
-      endpoint.disconnect()
-      val newEndpoint = new MockWriteEndpoint(30, probe, Some(client))
-      intercept[StaleClientException]{
-        client.connect()
-      }
-    }
-
-    "not allow a gracefully disconnected client to reconnect" in {
-      val (endpoint, client, probe) = newClient(true, 10)
-      client.gracefulDisconnect()
-      val newEndpoint = new MockWriteEndpoint(30, probe, Some(client))
-      intercept[StaleClientException]{
-        client.connect()
-      }
-    }
 
     "get a shared interface" in {
       val (endpoint, client, probe) = newClient(true, 10)
@@ -415,14 +397,15 @@ class ServiceClientSpec extends ColossusSpec {
         }
       }
     }
-    "not attempt reconnect when autoReconnect is false" in {
+    "not attempt reconnect when autoReconnect is false" taggedAs(Tag("wat")) in {
       withIOSystem{ implicit io => 
         val server = Service.become[Raw]("rawwww", TEST_PORT) {
           case foo => Callback.successful(foo.onWrite(OnWriteAction.Disconnect))
         }
         withServer(server) {
           val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
-          client.send(ByteString("blah"))
+          import server.system.actorSystem.dispatcher
+          client.send(ByteString("blah")).onComplete(println)
           TestUtil.expectServerConnections(server, 0)
         }
       }

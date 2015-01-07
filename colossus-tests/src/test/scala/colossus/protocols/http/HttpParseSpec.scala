@@ -198,6 +198,15 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       parser.parse(data) must equal(Some(req))
       data.remaining must equal(0)
     }
+
+    "parse a request with chunked transfer encoding" in {
+      val req = s"GET /foo HTTP/1.1\r\nsomething:value\r\ntransfer-encoding: chunked\r\n\r\n3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n"
+      val data = DataBuffer(ByteString(req))
+      val parser = requestParser
+      val parsed = parser.parse(data).get
+      parsed.entity must equal(Some(ByteString("foo123456789abcde")))
+      data.remaining must equal(0)
+    }
     
       
 

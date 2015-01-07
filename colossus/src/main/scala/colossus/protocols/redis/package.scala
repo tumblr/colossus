@@ -1,7 +1,7 @@
 package colossus
 package protocols
 
-import core._
+import colossus.parsing.DataSize
 import service._
 
 import akka.util.{ByteString, ByteStringBuilder}
@@ -26,10 +26,9 @@ package object redis {
     val name = "redis"
   }
 
-  class RedisClient(config: ClientConfig, worker: WorkerRef) extends ServiceClient(
-    codec     = new RedisClientCodec,
-    config    = config,
-    worker    = worker
+  class RedisClient(config: ClientConfig, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) extends ServiceClient(
+    codec     = new RedisClientCodec(maxSize),
+    config    = config
   ) {
     import UnifiedProtocol._
     def info: Callback[Map[String, String]] = send(Command(CMD_INFO)).mapTry{_.flatMap{

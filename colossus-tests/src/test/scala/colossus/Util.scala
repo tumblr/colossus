@@ -20,7 +20,7 @@ object RawProtocol {
   import colossus.service._
 
   object RawCodec extends Codec[ByteString, ByteString] {
-    def decode(data: DataBuffer) = Some(ByteString(data.takeAll))
+    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
     def encode(raw: ByteString) = DataBuffer(raw)
     def reset(){}
   }
@@ -51,7 +51,7 @@ object TestClient {
       name = "/test",
       requestTimeout = 100.milliseconds,
       address = new InetSocketAddress("localhost", port),
-      pendingBufferSize = 0,
+      pendingBufferSize = 10,
       failFast = true,
       connectionAttempts = connectionAttempts
     )
@@ -62,7 +62,7 @@ object TestClient {
     client
   }
 
-  def waitForConnected[I,O](client: AsyncServiceClient[I,O], maxTries: Int = 5) {
+  def waitForConnected[I,O](client: AsyncServiceClient[I,O], maxTries: Int = 10) {
     waitForStatus(client, ConnectionStatus.Connected, maxTries)
   }
 
@@ -70,7 +70,7 @@ object TestClient {
     var tries = maxTries
     var last = Await.result(client.connectionStatus, 500.milliseconds)
     while (last != status) {
-      Thread.sleep(50)
+      Thread.sleep(100)
       tries -= 1
       if (tries == 0) {
         throw new Exception(s"Test client failed to achieve status $status, last status was $last")

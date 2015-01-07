@@ -31,7 +31,7 @@ class IOSystemSpec extends ColossusSpec {
         val server = Service.serve[Telnet]("test", 15151){_.handle{_.become{case _ => TelnetReply("ASDF")}}}
         waitForServer(server)
 
-        sys.connect(new InetSocketAddress("localhost", 15151), _ => new MyHandler)
+        sys.connect(new InetSocketAddress("localhost", 15151), new MyHandler)
         probe.expectMsg(200.milliseconds, "CONNECTED")
 
       }

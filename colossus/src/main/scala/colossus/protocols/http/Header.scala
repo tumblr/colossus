@@ -58,6 +58,7 @@ object HttpHeaders {
   val Connection        = "connection"
   val SetCookie         = "set-cookie"
   val CookieHeader      = "cookie"
+  val TransferEncoding  = "transfer-encoding"
 }
 
 case class Cookie(name: String, value: String, expiration: Option[DateTime])
@@ -105,7 +106,12 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   }
 
 
-  val contentLength: Int = headers.collectFirst{case (ContentLength, l) => l.toInt}.getOrElse(0)
+  /** Returns the value of the content-length header, if it exists.
+   * 
+   * Be aware that lacking this header may or may not be a valid request,
+   * depending if the "transfer-encoding" header is set to "chunked"
+   */
+  val contentLength: Option[Int] = headers.collectFirst{case (ContentLength, l) => l.toInt}
 
 
   lazy val cookies: List[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
@@ -142,6 +148,7 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
 object HttpHead {
 
   import java.net.URI
+  //todo, this throws exceptions on malformed URLS, should catch and return 400 instead
   def parseParameters(q: String): Map[String, String] = {
     if (q != null && q.length > -1) {
       val params = scala.collection.mutable.HashMap[String, String]()
