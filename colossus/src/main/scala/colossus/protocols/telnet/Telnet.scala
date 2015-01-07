@@ -21,7 +21,7 @@ package object telnet {
   implicit object TelnetProvider extends CodecProvider[Telnet] {
     def provideCodec() = TelnetServerCodec
 
-    def errorResponse(request: TelnetCommand, reason: Throwable) = Completion(TelnetReply(s"Error: $reason"))
+    def errorResponse(request: TelnetCommand, reason: Throwable) = TelnetReply(s"Error: $reason")
   }
 
   case class TelnetCommand(args: List[String])

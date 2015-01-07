@@ -2,8 +2,8 @@ package colossus
 
 import testkit._
 import core._
-import service.{Service, AsyncServiceClient, Completion}
-import Completion.Implicits._
+import service.{Service, AsyncServiceClient, Callback}
+import Callback.Implicits._
 
 import akka.actor._
 import akka.testkit.TestProbe

@@ -23,7 +23,7 @@ trait DefaultHandler extends CodecDSL {self =>
 
 object CodecDSL {
 
-  type PartialHandler[C <: CodecDSL] = PartialFunction[C#Input, Callback[Completion[C#Output]]]
+  type PartialHandler[C <: CodecDSL] = PartialFunction[C#Input, Callback[C#Output]]
 
   type HandlerGenerator[C <: CodecDSL] = ConnectionContext[C] => Unit
 
@@ -51,7 +51,7 @@ trait CodecProvider[C <: CodecDSL] {
    * @param reason The resulting failure
    * @return A response which represents the failure encoded with the Codec
    */
-  def errorResponse(request: C#Input, reason: Throwable): Completion[C#Output]
+  def errorResponse(request: C#Input, reason: Throwable): C#Output
 
   /**
    * Provider of a ConnectionHandler using this Codec
@@ -85,7 +85,7 @@ trait ClientCodecProvider[C <: CodecDSL] {
 
 trait ConnectionContext[C <: CodecDSL] {
   def become(p: PartialHandler[C])
-  def process(f: C#Input => Callback[Completion[C#Output]]){
+  def process(f: C#Input => Callback[C#Output]){
     become{case all => f(all)}
   }
   def disconnect()
@@ -155,7 +155,7 @@ class BasicServiceHandler[C <: CodecDSL]
   extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
   with DSLHandler[C] {
 
-  protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[Completion[C#Output]]]{
+  protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
   
@@ -165,11 +165,11 @@ class BasicServiceHandler[C <: CodecDSL]
     currentHandler = handler
   }
 
-  protected def fullHandler: PartialFunction[C#Input, Callback[Completion[C#Output]]] = currentHandler orElse unhandled
+  protected def fullHandler: PartialFunction[C#Input, Callback[C#Output]] = currentHandler orElse unhandled
   
-  protected def processRequest(i: C#Input): Callback[Completion[C#Output]] = fullHandler(i)
+  protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)
   
-  protected def processFailure(request: C#Input, reason: Throwable): Completion[C#Output] = provider.errorResponse(request, reason)
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = provider.errorResponse(request, reason)
 
 }
 

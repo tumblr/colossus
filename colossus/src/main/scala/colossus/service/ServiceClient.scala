@@ -123,7 +123,7 @@ class StaleClientException(msg : String) extends Exception(msg)
 class ServiceClient[I,O](
   codec: Codec[I,O], 
   val config: ClientConfig
-) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
+)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
 
   import colossus.core.WorkerCommand._
   import config._
