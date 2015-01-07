@@ -58,6 +58,25 @@ class CombinatorSuite extends WordSpec with MustMatchers{
         }
       }
     }
+    "intUntil with hex base" in {
+      val parser = intUntil('!', 16)
+      parser.parse(data("3A3f!")) must equal(Some(0x3A3F))
+    }
+    "intUntil fails on invalid letter in hex" in {
+      intercept[ParseException] {
+        val parser = intUntil('!')
+        parser.parse(data("32G"))
+      }
+    }
+    "intUntil fails on invalid base" in {
+      intercept[Exception] {
+        val parser = intUntil('!', 17)
+      }
+      intercept[Exception] {
+        val parser = intUntil('!', 0)
+      }
+
+    }
     "literal" in {
       val parser = literal(ByteString("hello"))
       val d = data("helloasdf")

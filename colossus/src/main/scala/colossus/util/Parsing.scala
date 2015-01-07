@@ -422,37 +422,48 @@ object Combinators {
    * Parses the ASCII representation of an integer, keeps going until the
    * terminus is encountered
    */
-  def intUntil(terminus: Byte): Parser[Long] = new Parser[Long] {
-    var current: Long = 0
-    var negative = false
-    var firstByte = true
-    var parsedInt = false
-    def parse(data: DataBuffer) = {
-      var done = false
-      while (data.hasUnreadData && !done) {
-        val b = data.next
-        if (b == terminus && parsedInt) {
-          done = true
-        } else if (b == '-' && firstByte) {
-          negative = true
-        } else if (b >= 48 && b <= 57) {
-          current = (current * 10) + (b - 48)
-          parsedInt = true
+  def intUntil(terminus: Byte, base: Int = 10): Parser[Long] = {
+    require(base > 0 && base < 17, s"Unsupported integer base $base")
+    val numeric_upper = math.min(10, base)
+    val alpha_upper = math.max(0, base - 10)
+    new Parser[Long] {
+      var current: Long = 0
+      var negative = false
+      var firstByte = true
+      var parsedInt = false
+      def parse(data: DataBuffer) = {
+        var done = false
+        while (data.hasUnreadData && !done) {
+          val b = data.next
+          if (b == terminus && parsedInt) {
+            done = true
+          } else if (b == '-' && firstByte) {
+            negative = true
+          } else if (b >= '0' && b <= '0' + numeric_upper) {
+            current = (current * base) + (b - '0')
+            parsedInt = true
+          } else if (base > 10 && b >= 'a'  && b <= 'a' + alpha_upper) {
+            current = (current * base) + (b - 'a' + 10)
+            parsedInt = true
+          } else if (base > 10 && b >= 'A'  && b <= 'A' + alpha_upper) {
+            current = (current * base) + (b - 'A' + 10)
+            parsedInt = true
+          } else {
+            throw new ParseException(s"Invalid character '${b.toChar}' ($b) while parsing integer")
+          }
+          firstByte = false
+        }
+        if (done) {
+          if (negative) {
+            current = -current
+          }
+          val res = Some(current)
+          current = 0
+          negative = false
+          res
         } else {
-          throw new ParseException(s"Invalid character '$b' while parsing integer")
+          None
         }
-        firstByte = false
-      }
-      if (done) {
-        if (negative) {
-          current = -current
-        }
-        val res = Some(current)
-        current = 0
-        negative = false
-        res
-      } else {
-        None
       }
     }
   }

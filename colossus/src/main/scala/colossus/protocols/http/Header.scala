@@ -58,6 +58,7 @@ object HttpHeaders {
   val Connection        = "connection"
   val SetCookie         = "set-cookie"
   val CookieHeader      = "cookie"
+  val TransferEncoding  = "transfer-encoding"
 }
 
 case class Cookie(name: String, value: String, expiration: Option[DateTime])
@@ -105,7 +106,12 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   }
 
 
-  val contentLength: Int = headers.collectFirst{case (ContentLength, l) => l.toInt}.getOrElse(0)
+  /** Returns the value of the content-length header, if it exists.
+   * 
+   * Be aware that lacking this header may or may not be a valid request,
+   * depending if the "transfer-encoding" header is set to "chunked"
+   */
+  val contentLength: Option[Int] = headers.collectFirst{case (ContentLength, l) => l.toInt}
 
 
   lazy val cookies: List[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
