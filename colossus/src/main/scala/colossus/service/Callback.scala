@@ -324,6 +324,10 @@ object Callback {
     val trigger: (Try[I] => Unit) => Unit = x => executor.executor ! CallbackExec(() => cb.execute(x), Some(in))
     UnmappedCallback(trigger)
   }
+
+  object Implicits {
+    implicit def objectToSuccessfulCallback[T](obj: T): Callback[T] = Callback.successful(obj)
+  }
       
   
 }

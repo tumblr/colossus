@@ -8,6 +8,8 @@ import service._
 
 import org.scalatest.exceptions.TestFailedException
 
+import Callback.Implicits._
+
 object TestService {
   def apply()(implicit io: IOSystem) = Service.serve[Redis]("localhost", 3535){context => 
     context.handle{connection =>
