@@ -5,7 +5,7 @@ import core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 
-case class HttpResponse(version: HttpVersion, code: HttpCode, data: ByteString, headers: List[(String, String)] = Nil) {
+case class HttpResponse(version: HttpVersion, code: HttpCode, data: ByteString, headers: Seq[(String, String)] = Nil) {
 
   import HttpParse._
 
@@ -34,7 +34,7 @@ case class HttpResponse(version: HttpVersion, code: HttpCode, data: ByteString, 
     case _ => false
   }
 
-  def withHeader(key: String, value: String) = copy(headers = (key, value) :: headers)
+  def withHeader(key: String, value: String) = copy(headers = (key, value) +: headers)
   
 
   //override def toString = code.toString + ":" + data.utf8String
