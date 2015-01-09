@@ -82,27 +82,26 @@ object Cookie {
   }
 }
 
-case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: List[(String, String)]) {
+case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) {
   import HttpHead._
   import HttpHeaders._
-  import HttpParse._
 
   val (host, port, path, query) = parseURL(url)
   val parameters = parseParameters(query)
 
 
   def withHeader(header: String, value: String): HttpHead = {
-    copy(headers = (header -> value) :: headers)
+    copy(headers = (header -> value) +: headers)
   }
 
   def singleHeader(name: String): Option[String] = {
     val l = name.toLowerCase
-    headers.collectFirst{ case (n, v) if (n == l) => v}
+    headers.collectFirst{ case (`l`, v) => v}
   }
 
-  def multiHeader(name: String): List[String] = {
+  def multiHeader(name: String): Seq[String] = {
     val l = name.toLowerCase
-    headers.collect{ case (n, v) if (n == l) => v}
+    headers.collect{ case (`l`, v) => v}
   }
 
 
@@ -114,7 +113,7 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   val contentLength: Option[Int] = headers.collectFirst{case (ContentLength, l) => l.toInt}
 
 
-  lazy val cookies: List[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
+  lazy val cookies: Seq[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
 
 
 
