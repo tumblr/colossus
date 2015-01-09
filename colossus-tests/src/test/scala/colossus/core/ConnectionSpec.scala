@@ -14,9 +14,8 @@ class ConnectionSpec extends ColossusSpec {
       m.bytesAvailable must equal(5)
       m.readsEnabled must equal(true)
       m.writeReadyEnabled must equal(false)
-      m.bufferCleared must equal (false)
-      m.writeCalls.size must equal(1)
-      m.writeCalls.head must equal(ByteString("hello"))
+      m.expectBufferNotCleared
+      m.expectOneWrite(ByteString("hello"))
     }
 
     "partially buffer large data on overwrite" in {
@@ -25,16 +24,13 @@ class ConnectionSpec extends ColossusSpec {
       m.bytesAvailable must equal(0)
       m.readsEnabled must equal(true)
       m.writeReadyEnabled must equal(true)
-      m.bufferCleared must equal(false)
-      m.writeCalls.size must equal(1)
-      m.writeCalls.head must equal(ByteString("a1a2a3a4a5"))
+      m.expectBufferNotCleared()
+      m.expectOneWrite(ByteString("a1a2a3a4a5"))
       m.clearBuffer()
-      m.handleWrite()
       m.readsEnabled must equal(true)
       m.writeReadyEnabled must equal(false)
-      m.bufferCleared must equal(true)
-      m.writeCalls.size must equal(2)
-      m.writeCalls(1) must equal(ByteString("b1b2b3b4b5"))
+      m.expectBufferCleared()
+      m.expectOneWrite(ByteString("b1b2b3b4b5"))
     }
 
     "reject write calls when data is partially buffered" in {

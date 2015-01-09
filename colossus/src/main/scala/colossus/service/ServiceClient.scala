@@ -184,7 +184,7 @@ class ServiceClient[I,O](
    * Allow any requests in transit to complete, but cancel all pending requests
    * and don't allow any new ones
    */
-  def gracefulDisconnect() {
+  override def gracefulDisconnect() {
     log.info(s"Terminating connection to $address")
     //clearPendingBuffer(new NotConnectedException("Connection is closing"))
     //todo, we should maybe make the Cancelled OutputResult take a Throwable
@@ -324,7 +324,7 @@ class ServiceClient[I,O](
 
   private def checkGracefulDisconnect() {
     if (disconnecting && sentBuffer.size == 0) {
-      disconnect()
+      super.gracefulDisconnect()
     }
   }
 

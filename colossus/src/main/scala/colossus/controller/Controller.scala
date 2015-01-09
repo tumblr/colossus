@@ -21,6 +21,9 @@ case class ControllerConfig(
   outputBufferSize: Int
 )
 
+//used to terminate input streams when a connection is closing
+class DisconnectingException(message: String) extends Exception(message)
+
 //passed to the onWrite handler to indicate the status of the write for a
 //message
 sealed trait OutputResult
@@ -42,6 +45,8 @@ extends ConnectionHandler {
   private var endpoint: Option[WriteEndpoint] = None
   def isConnected = endpoint.isDefined
 
+  //TODO: all of this would probably be cleaner with some kind of state machine
+
   //represents a message queued for writing
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
   //the queue of items waiting to be written.
@@ -59,7 +64,13 @@ extends ConnectionHandler {
 
   //whether or not we should be pulling items out of the queue to write, this can be set
   //to fale through pauseWrites
-  private var enabled = true
+  private var writesEnabled = true
+
+  //we need to keep track of this outside the write-endpoint in case the endpoint changes
+  private var readsEnabled = true
+
+  //set to true when graceful disconnect has been initiated
+  private var disconnecting = false
 
   def connected(endpt: WriteEndpoint) {
     if (endpoint.isDefined) {
@@ -97,7 +108,9 @@ extends ConnectionHandler {
    * @param postWrite called either when writing has completed or failed
    */
   protected def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
-    if (waitingToSend.size < controllerConfig.outputBufferSize) {
+    if (disconnecting) {
+      false
+    } else if (waitingToSend.size < controllerConfig.outputBufferSize) {
       waitingToSend.add(QueuedItem(item, postWrite))
       checkQueue() 
       true
@@ -138,26 +151,57 @@ extends ConnectionHandler {
 
   /**
    * Pauses writing of the next item in the queue.  If there is currently a
-   * message in the process of writing, it will be unaffected
+   * message in the process of writing, it will be unaffected.  New messages
+   * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    enabled = false
+    writesEnabled = false
   }
 
   /**
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
   protected def resumeWrites() {
-    enabled = true
+    writesEnabled = true
     checkQueue()
   }
 
-  protected def paused = !enabled
+  protected def pauseReads() {
+    readsEnabled = false
+    endpoint.foreach{_.disableReads()}
+  }
+
+  protected def resumeReads {
+    readsEnabled = true
+    endpoint.foreach{_.enableReads()}
+  }
+
+  //todo: rename
+  protected def paused = !writesEnabled
 
   def disconnect() {
     //this has to be public to be used for clients
     endpoint.foreach{_.disconnect()}
     endpoint = None
+  }
+
+  /**
+   * stops reading from the connection and accepting new writes, but waits for
+   * pending/ongoing write operations to complete before disconnecting
+   */
+  def gracefulDisconnect() {
+    endpoint.foreach{_.disableReads()}
+    disconnecting = true
+    //maybe wait instead for the message to finish? probably not
+    currentSink.foreach{_.terminate(new DisconnectingException("Connection is closing"))}
+    currentTrigger.foreach{_.cancel()}
+    checkGracefulDisconnect()
+  }
+
+  private def checkGracefulDisconnect() {
+    if (disconnecting && waitingToSend.size == 0 && currentlyWriting.isEmpty && currentStream.isEmpty) {
+      endpoint.foreach{_.disconnect()}
+    }
   }
 
   // == PRIVATE MEMBERS ==
@@ -170,7 +214,7 @@ extends ConnectionHandler {
    * if the stream has multiple databuffers to immediately write
    */
   private def checkQueue() {
-    while (enabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && endpoint.isDefined) {
+    while (writesEnabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && endpoint.isDefined) {
       val queued = waitingToSend.remove()
       codec.encode(queued.item) match {
         case DataStream(sink) => {
@@ -191,6 +235,7 @@ extends ConnectionHandler {
         }
       }
     }
+    checkGracefulDisconnect()
   }
       
 

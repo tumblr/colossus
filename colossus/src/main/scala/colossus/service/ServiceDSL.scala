@@ -89,6 +89,7 @@ trait ConnectionContext[C <: CodecDSL] {
     become{case all => f(all)}
   }
   def disconnect()
+  def gracefulDisconnect()
 
   implicit val callbackExecutor: CallbackExecutor
 }
