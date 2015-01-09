@@ -134,7 +134,7 @@ case class ServerState(connectionVolumeState : ConnectionVolumeState, serverStat
  * In this state, the server will more aggressively timeout and close idle
  * connections.  Effectively what this means is that when the Server polls its
  * connections in the Highwater state, any connection that is seen as idle for
- * longer than TimeoutConfig.highWaterMaxIdleTime will be reaped.  It does this
+ * longer than ServerSettings.highWaterMaxIdleTime will be reaped.  It does this
  * in an effort to free up space.
  *
  * The Server will return back to its normal state when the connection ratio
@@ -377,13 +377,16 @@ object ServerStatus {
 }
 
 /**
- * Servers can be thought of as applications, as they provide Delegators and ConnectionHandlers which contain
- * application logic.  Servers are the objects that are directly interface with the Workers and provide them with the
- * Delegators and Handlers.  A Server will be "registered" with the Workers, and after a successful registration, it will
- * then bind to the specified ports and be ready to accept incoming requests.
+ * Servers can be thought of as applications, as they provide Delegators and
+ * ConnectionHandlers which contain application logic.  Servers are the objects
+ * that are directly interface with the Workers and provide them with the
+ * Delegators and Handlers.  A Server will be "registered" with the Workers,
+ * and after a successful registration, it will then bind to the specified
+ * ports and be ready to accept incoming requests.
  *
- * Also this includes all of the messages that Server will respond to.  Some of these can cause actions, others
- * are for when some internal event happens and the Server is notified.
+ * Also this includes all of the messages that Server will respond to.  Some of
+ * these can cause actions, others are for when some internal event happens and
+ * the Server is notified.
  *
  */
 object Server {
