@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 
 import protocols.telnet._
 import service._
+import Callback.Implicits._
 
 import RawProtocol.{RawCodec, Raw}
 

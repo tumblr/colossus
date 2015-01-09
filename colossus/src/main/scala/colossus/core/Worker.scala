@@ -155,6 +155,13 @@ case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system
   def unbind(workerItemId: Long) {
     worker ! WorkerCommand.UnbindWorkerItem(workerItemId)
   }
+
+  /**
+   * The representation of this worker as a [CallbackExecutor].  Bring this
+   * into scope to easily convert Futures into Callbacks.  This uses the
+   * default dispatcher of the worker's underlying ActorSystem.
+   */
+  implicit val callbackExecutor = service.CallbackExecutor(system.actorSystem.dispatcher, worker)
 }
 
 /**
