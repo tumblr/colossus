@@ -13,6 +13,7 @@ import java.net.InetSocketAddress
 
 import protocols.redis._
 import metrics._
+import Callback.Implicits._
 
 object RedisTest {
 
