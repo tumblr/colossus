@@ -57,16 +57,14 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
   val log = Logging(worker.system.actorSystem, name.toString())
 
-  val REQUESTS  = name / "requests"
-  val LATENCY   = name / "latency"
-  val ERRORS    = name / "errors"
-  val REQPERCON = name / "requests_per_connection"
-
-  val requests  = worker.metrics.getOrAdd(Rate(REQUESTS, List(1.second, 1.minute)))
-  val latency   = worker.metrics.getOrAdd(Histogram(LATENCY, periods = List(1.second, 1.minute), sampleRate = 0.25))
-  val errors    = worker.metrics.getOrAdd(Rate(ERRORS, List(1.second, 1.minute)))
-  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(REQPERCON, periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val requests  = worker.metrics.getOrAdd(Rate(name / "requests", List(1.second, 1.minute)))
+  val latency   = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(1.second, 1.minute), sampleRate = 0.25))
+  val errors    = worker.metrics.getOrAdd(Rate(name / "errors", List(1.second, 1.minute)))
+  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(name / "requests_per_connection", periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
   val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
+
+  //set to true when graceful disconnect has been triggered
+  private var disconnecting = false
 
   def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
@@ -119,6 +117,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
       }
       //todo: deal with output-controller full
     }
+    checkGracefulDisconnect()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {}
@@ -170,6 +169,22 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   def schedule(in: FiniteDuration, message: Any) {
     id.foreach{i => 
       worker ! Schedule(in, Message(i, message))
+    }
+  }
+
+  /**
+   * Terminate the connection, but allow any outstanding requests to complete
+   * (or timeout) before disconnecting
+   */
+  override def gracefulDisconnect() {
+    pauseReads()
+    disconnecting = true
+
+  }
+
+  private def checkGracefulDisconnect() {
+    if (disconnecting && requestBuffer.size == 0) {
+      super.gracefulDisconnect()
     }
   }
 

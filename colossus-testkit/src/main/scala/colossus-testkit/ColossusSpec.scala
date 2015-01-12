@@ -107,6 +107,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
       val server = Server(config)
       waitForServer(server, waitTime)
       f(io, server)
+      end(server)
     }
   }
 

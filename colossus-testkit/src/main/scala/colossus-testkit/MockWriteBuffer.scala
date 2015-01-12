@@ -3,21 +3,23 @@ package testkit
 
 import core._
 
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 
-import org.scalatest
+import org.scalatest._
 
 /**
  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
  */
-class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = None) extends WriteBuffer {
+class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] = None) extends WriteBuffer {
   var bytesAvailable = maxWriteSize
-  var bufferCleared = false
-  var writeCalls = collection.mutable.ArrayBuffer[ByteString]()
-  var numCallsSinceClear = 0
+  private var writeCalls = collection.mutable.Queue[ByteString]()
   var connection_status: ConnectionStatus = ConnectionStatus.Connected
 
+  private var bufferCleared = false
+
   protected def setKeyInterest(){}
+
+  private val writtenData = new ByteStringBuilder
 
   def onBufferClear(){
     bufferCleared = true
@@ -28,28 +30,47 @@ class MockWriteBuffer(maxWriteSize: Int, handler: Option[ConnectionHandler] = No
       throw new java.nio.channels.ClosedChannelException
     }
     val written = math.min(data.size, bytesAvailable)
-    writeCalls.append(ByteString(data.take(written)))
-    numCallsSinceClear += 1
+    val to_write = ByteString(data.take(written))
+    writeCalls.enqueue(to_write)
+    writtenData.append(to_write)
+
     bytesAvailable -= written
     written
   }
+
   def clearBuffer() = {
     bytesAvailable = maxWriteSize
-    val dataSinceClear = if (numCallsSinceClear > 0) {
-      writeCalls.takeRight(numCallsSinceClear).reduce{_ ++ _}
-    } else {
-      ByteString()
+    if (writeReadyEnabled) {
+      handleWrite()
     }
-    numCallsSinceClear = 0
-    handler.foreach{_ =>
-      if (writeReadyEnabled) {
-        handleWrite()
-      }
-    }
-    dataSinceClear
+    val written = writtenData.result
+    writtenData.clear()
+    written
   }
 
-  def numWrites = writeCalls.size
+  def expectWrite(data: ByteString) {
+    assert(writeCalls.size > 0, "expected write, but no write occurred")
+    val call = writeCalls.dequeue()
+    assert(call == data, s"expected '${data.utf8String}', got '${call.utf8String}'")
+  }
+
+  def expectOneWrite(data: ByteString) {
+    assert(writeCalls.size == 1, s"expected exactly one write, but ${writeCalls.size} writes occurred")
+    expectWrite(data)
+  }
+
+  def expectNoWrite() {
+    assert(writeCalls.size == 0, s"Expected no write, but data '${writeCalls.head.utf8String}' was written")
+  }
+
+  def expectBufferCleared() {
+    assert(bufferCleared == true, "Expected write buffer to be cleared, but it was no")
+    bufferCleared = false
+  }
+
+  def expectBufferNotCleared() {
+    assert(bufferCleared == false, "Expected write buffer to not be cleared, but it was")
+  }
 
     
 }

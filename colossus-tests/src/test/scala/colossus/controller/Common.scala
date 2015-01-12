@@ -41,11 +41,17 @@ class TestController(processor: TestInput => Unit) extends Controller[TestInput,
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
+  def processMessage(message: TestInput) {
+    processor(message)
+  }
+
+
+  //these methods just expose protected versions
   def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
     push(message)(onPush)
   }
-  def processMessage(message: TestInput) {
-    processor(message)
+  def testGracefulDisconnect() {
+    gracefulDisconnect()
   }
 }
 

@@ -1,8 +1,8 @@
 package colossus
+package service
 
 import testkit._
 import core._
-import service._
 import Callback.Implicits._
 
 import scala.concurrent.duration._
@@ -11,7 +11,6 @@ import java.net.InetSocketAddress
 
 import protocols.redis._
 import scala.concurrent.Await
-
 
 class ServiceServerSpec extends ColossusSpec {
 
@@ -47,6 +46,28 @@ class ServiceServerSpec extends ColossusSpec {
             case e: ErrorReply => {}
             case other => throw new Exception(s"Non-error reply: $other")
           }
+        }
+      }
+    }
+
+    "graceful disconnect" in {
+      withIOSystem{implicit io => 
+        val server = Service.serve[Redis]("test", TEST_PORT){_.handle{con => con.become{
+          case x if (x.command == "DIE") => {
+            con.gracefulDisconnect()
+            StatusReply("BYE")
+          }
+          case other => {
+            import con.callbackExecutor
+            Callback.schedule(100.milliseconds)(StatusReply("FOO"))
+          }
+        }}}
+        withServer(server) {
+          val client = AsyncServiceClient[Redis]("localhost", TEST_PORT)
+          val r1 = client.send(Command("TEST"))
+          val r2 = client.send(Command("DIE"))
+          Await.result(r1, 1.second) must equal(StatusReply("FOO"))
+          Await.result(r2, 1.second) must equal(StatusReply("BYE"))
         }
       }
     }

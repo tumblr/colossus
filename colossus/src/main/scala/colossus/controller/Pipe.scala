@@ -116,6 +116,10 @@ class Trigger {
   def trigger() {
     callback.foreach{f => f()}
   }
+
+  def cancel() {
+    callback = None
+  }
 }
 
 sealed trait PushResult
