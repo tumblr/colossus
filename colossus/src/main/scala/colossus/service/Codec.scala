@@ -4,9 +4,7 @@ package service
 import colossus.controller.Sink
 import core._
 
-import scala.concurrent.{ExecutionContext, Future}
 import java.nio.ByteBuffer
-import metrics._
 
 trait MessageDecoder[T] {
   def decode(buffer: ByteBuffer, len: Int): Seq[T]
