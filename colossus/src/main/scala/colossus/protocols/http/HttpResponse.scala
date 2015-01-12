@@ -8,16 +8,16 @@ import colossus.core.DataBuffer
 trait HttpResponseHeader {
   def version : HttpVersion
   def code : HttpCode
-  def headers : List[(String, String)]
+  def headers : Seq[(String, String)]
 
   def getHeader(key : String) = HttpHeaderUtils.getHeader(headers, key)
 
   def getHeader(key : String, orElse : String) = HttpHeaderUtils.getHeader(headers, key, orElse)
 }
 
-case class HttpResponse(version : HttpVersion, code : HttpCode, headers : List[(String, String)] = Nil, data : ByteString) extends HttpResponseHeader {
+case class HttpResponse(version : HttpVersion, code : HttpCode, headers : Seq[(String, String)] = Nil, data : ByteString) extends HttpResponseHeader {
 
-  def withHeader(key: String, value: String) = copy(headers = (key, value) :: headers)
+  def withHeader(key: String, value: String) = copy(headers = headers :+ (key, value))
 
   override def equals(other: Any) = other match {
     case HttpResponse(v, c, h, b) => v == version && c == code && b == data && h.toSet == headers.toSet
@@ -32,8 +32,9 @@ object HttpResponse {
   }
 }
 
-case class StreamingHttpResponse(version : HttpVersion, code : HttpCode, headers : List[(String, String)] = Nil, stream : Source[DataBuffer]) extends HttpResponseHeader {
-  def withHeader(key: String, value: String) = copy(headers = (key, value) :: headers)
+case class StreamingHttpResponse(version : HttpVersion, code : HttpCode, headers : Seq[(String, String)] = Nil, stream : Source[DataBuffer]) extends HttpResponseHeader {
+  def withHeader(key: String, value: String) = copy(headers = headers :+ (key, value))
+  
 
   override def equals(other: Any) = other match {
     case StreamingHttpResponse(v, c, h, s) => v == version && c == code && h.toSet == headers.toSet
