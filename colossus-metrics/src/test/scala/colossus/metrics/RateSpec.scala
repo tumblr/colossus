@@ -1,9 +1,9 @@
 package colossus.metrics
 
-import org.scalatest._
 import akka.testkit._
 
 import scala.concurrent.duration._
+
 class RateSpec extends MetricIntegrationSpec {
 
   "Basic Rate" must {

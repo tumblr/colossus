@@ -11,8 +11,6 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
 
-import org.scalatest._
-
 class ServerSpec extends ColossusSpec {
 
   def expectConnections(server: ServerRef, num: Int) {

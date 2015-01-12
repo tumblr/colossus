@@ -1,7 +1,7 @@
 package colossus
 package protocols.redis
 
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 
   object UnifiedProtocol {
     val RN          = ByteString("\r\n")

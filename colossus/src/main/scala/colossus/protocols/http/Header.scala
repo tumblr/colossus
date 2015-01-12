@@ -1,9 +1,6 @@
 package colossus
 package protocols.http
 
-import core._
-import service._
-
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
 
@@ -60,6 +57,20 @@ object HttpHeaders {
   val CookieHeader      = "cookie"
   val TransferEncoding  = "transfer-encoding"
 }
+
+//TODO: support for pulling values as types other than String
+object HttpHeaderUtils {
+
+  def getHeader(headers : Seq[(String, String)], key : String) : Option[String] = {
+    headers.collectFirst{case (`key`, value) => value}
+  }
+
+  def getHeader(headers : Seq[(String, String)], key : String, orElse : String) : String = {
+    headers.collectFirst{case (`key`, value) => value}.getOrElse(orElse)
+  }
+
+}
+
 
 case class Cookie(name: String, value: String, expiration: Option[DateTime])
 

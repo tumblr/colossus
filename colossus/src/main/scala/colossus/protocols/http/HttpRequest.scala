@@ -8,9 +8,8 @@ import akka.util.ByteString
 case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   import head._
   import HttpCodes._
-  import HttpParse._
 
-  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = HttpResponse(version, code, ByteString(data), headers)
+  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = HttpResponse(version, code, headers, ByteString(data))
 
   def ok(data: String, headers: List[(String, String)] = Nil)              = respond(OK, data, headers)
   def notFound(data: String = "", headers: List[(String, String)] = Nil)   = respond(NOT_FOUND, data, headers)

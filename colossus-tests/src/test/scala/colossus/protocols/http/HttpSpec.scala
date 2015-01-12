@@ -1,6 +1,7 @@
 package colossus
 
 
+import colossus.core.DataBuffer
 import org.scalatest._
 
 import akka.util.ByteString
@@ -43,9 +44,16 @@ class HttpSpec extends WordSpec with MustMatchers{
   "http response" must {
     "encode basic response" in {
       val content = "Hello World!"
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, ByteString(content))
-      val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n${content}"
-      ByteString(response.bytes.takeAll).utf8String must equal (expected)
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Nil, ByteString(content))
+      val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
+      val res = HttpResponseDataReader(response)
+      res match {
+        case x : DataBuffer => {
+          val received = ByteString(x.takeAll).utf8String
+          received must equal (expected)
+        }
+        case y => throw new Exception(s"expected a DataBuffer, received a $y instead")
+      }
     }
   }
 }

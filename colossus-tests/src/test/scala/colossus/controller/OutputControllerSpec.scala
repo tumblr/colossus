@@ -1,11 +1,8 @@
 package colossus
 package controller
 
-import scala.util.{Try, Success, Failure}
 import core._
 import testkit._
-import service.Codec
-import org.scalatest._
 import akka.util.ByteString
 
 

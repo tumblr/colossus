@@ -1,6 +1,7 @@
 package colossus
 package service
 
+import colossus.controller.Sink
 import core._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,6 +16,18 @@ trait MessageEncoder[T] {
   def encode(t: T): ByteBuffer
 }
 
+
+sealed trait DecodedResult[+T]
+
+object DecodedResult {
+
+  case class Static[T](value : T) extends DecodedResult[T] //this is what is formerly the Some(Input) in a Codec
+  case class Streamed[T](t : T, s : Sink[DataBuffer]) extends DecodedResult[T]
+
+  def static[T](value : Option[T]) : Option[DecodedResult[T]] = value.map(x => Static(x))
+
+}
+
 /**
  * A Codec is a stateful object for converting requests/responses to/from DataBuffers.
  * IMPORTANT - when decoding, a codec must be able to handle both partial
@@ -22,30 +35,36 @@ trait MessageEncoder[T] {
  * codec is stateful and returns a Seq[O]
  */
 trait Codec[Output,Input] {
+
+  type Decoded = DecodedResult[Input]
+
   def encode(out: Output): DataReader
   /**
    * Decode a single object from a bytestream.  
    */
-  def decode(data: DataBuffer): Option[Input]
+  def decode(data: DataBuffer): Option[Decoded]
 
-  def decodeAll(data: DataBuffer)(onDecode : Input => Unit) { if (data.hasUnreadData){
-    var done: Option[Input] = None
+  def decodeAll(data: DataBuffer)(onDecode : Decoded => Unit) { if (data.hasUnreadData){
+    var done: Option[Decoded] = None
     do {
       done = decode(data)
       done.foreach{onDecode}
     } while (done.isDefined && data.hasUnreadData)
   }}
 
-  def mapInput[U](oMapper: Input => U): Codec[Output,U] = {
+  //not used
+  def mapInput[U](iMapper: Option[Decoded] => Option[DecodedResult[U]]): Codec[Output,U] = {
     val in = this
     new Codec[Output, U]{
       def encode(output: Output) = in.encode(output)
-      def decode(data: DataBuffer) = in.decode(data).map{i => oMapper(i)}
+      def decode(data: DataBuffer) = iMapper(in.decode(data))
       def reset() {
         in.reset()
       }
     }
   }
+
+  //not used
   def mapOutput[U](iMapper: U => Output): Codec[U,Input] = {
     val in = this
     new Codec[U, Input] {

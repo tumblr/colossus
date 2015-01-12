@@ -7,9 +7,6 @@ import core._
 
 import scala.util.{Try, Failure, Success}
 
-
-
-
 class InputControllerSpec extends ColossusSpec {
   
   import TestController.createController
