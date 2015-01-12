@@ -19,13 +19,13 @@ class CodecSpec extends WordSpec with MustMatchers {
       val data = DataBuffer.fromByteString(ByteString("hello"))
       var build: List[String] = Nil
       c.decodeAll(data){
-        case DecodedResult.Static(x) => build = x.value :: build
+        case DecodedResult.Static(x) => build = x :: build
         case _ => throw new Exception("expecting non streamed result")
       }
       build must equal(List("hello"))
       build = Nil
       c.decodeAll(data){
-        case DecodedResult.Static(x) => build = x.value :: build
+        case DecodedResult.Static(x) => build = x :: build
         case _ => throw new Exception("expecting non streamed result")
       }
       build must equal(Nil)

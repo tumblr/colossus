@@ -30,7 +30,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" -> "*/*",
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
-        ).reverse
+        )
       ), None)        
       
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
@@ -49,7 +49,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" -> "*/*",
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
-        ).reverse
+        )
       ), None)        
 
       (0 until req.length).foreach{splitIndex =>
@@ -77,7 +77,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "host" -> "api.foo.bar:444",
           "accept" ->  "*/*",
           "content-length" -> len.toString
-        ).reverse
+        )
       ), Some(body))        
 
       val parser = requestParser
@@ -95,7 +95,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "host" -> "api.foo.bar:444",
           "accept" -> "*/*",
           "content-length" -> "0"
-        ).reverse
+        )
       ), None)        
 
       val parser = requestParser

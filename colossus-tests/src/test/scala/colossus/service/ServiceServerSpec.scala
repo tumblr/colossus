@@ -3,6 +3,7 @@ package colossus
 import testkit._
 import core._
 import service._
+import Callback.Implicits._
 
 import scala.concurrent.duration._
 import akka.util.ByteString

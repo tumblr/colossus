@@ -37,9 +37,8 @@ package object http {
       case other => toStreamed(request.error(reason.toString))
     }
 
-    private def toStreamed(c : Completion[HttpResponse]) : Completion[StreamingHttpResponse] = {
-      val streamed = StreamingHttpResponse.fromStatic(c.value)
-      c.copy(value = streamed)
+    private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
+      StreamingHttpResponse.fromStatic(response)
     }
 
   }

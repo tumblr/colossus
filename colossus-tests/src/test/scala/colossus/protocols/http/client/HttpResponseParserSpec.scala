@@ -62,7 +62,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         List("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate"),
         ByteString(""))
 
-      val expected = DecodedResult.Static(sent.copy(headers = ("content-length"->"0") :: sent.headers))
+      val expected = DecodedResult.Static(sent.copy(headers = ("content-length"->"0") +: sent.headers))
 
       val serverProtocol = HttpServerCodec.static
       val clientProtocol = HttpClientCodec.static()
@@ -83,7 +83,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         List("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate"),
         ByteString("{some : json}"))
 
-      val expected = DecodedResult.Static(sent.copy(headers = ("content-length"->size.toString) :: sent.headers ))
+      val expected = DecodedResult.Static(sent.copy(headers = ("content-length"->size.toString) +: sent.headers ))
 
       val serverProtocol = HttpServerCodec.static
       val clientProtocol = HttpClientCodec.static()

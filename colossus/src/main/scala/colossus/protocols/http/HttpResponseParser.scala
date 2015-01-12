@@ -57,7 +57,7 @@ object HttpResponseParser {
     }
 
 
-  protected def getContentLength(headers : List[(String, String)]) : Option[Int] = {
+  protected def getContentLength(headers : Seq[(String, String)]) : Option[Int] = {
     getHeader(headers, HttpHeaders.ContentLength).map(_.toInt)
   }
 

@@ -38,6 +38,11 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("abcdefgh")
       parser.parse(d) must equal (Some(Vector(bstr("ab"), bstr("cd"), bstr("ef"))))
     }
+    "repeatUntil" in {
+      val parser = repeatUntil(bytes(2), '!')
+      val d = data("abcdef!")
+      parser.parse(d) must equal (Some(Vector(bstr("ab"), bstr("cd"), bstr("ef"))))
+    }
     "intUntil" in {
       val parser = intUntil('!')
       val d = data("109834!")
@@ -112,7 +117,6 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val parser = stringUntil('4', toLower = true)
       val d = data(" abc DeF ghi 4ghghg")
       parser.parse(d) must equal(Some(" abc def ghi "))
-
     }
 
   }
