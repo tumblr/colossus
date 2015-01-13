@@ -175,6 +175,7 @@ our pattern matching.  So let's create the connection.
 
 {% highlight scala %}
 import protocols.redis._
+import akka.util.ByteString
 
 Service.serve[Http]("http-service", 9000){ context =>
   val redis = context.clientFor[Redis]("localhost", 6379)
@@ -195,7 +196,7 @@ implicit val io = IOSystem()
 
 Service.serve[Http]("http-service", 9000){ context =>
   val redis = context.clientFor[Redis]("localhost", 6379)
-  context.handle{ connection => 
+  context.handle{ connection =>
     connection.become {
       case request @ Get on Root => request.ok("Hello World!")
       case request @ Get on Root / "get" / key => request.notImplemented("soooon")
@@ -209,7 +210,7 @@ Service.serve[Http]("http-service", 9000){ context =>
 So now let's fill in our get route.  Using the redis client is easy:
 
 {% highlight scala %}
-case request @ Get on Root / "get" / key => redis.send(Commands.Get(key)).map{
+case request @ Get on Root / "get" / key => redis.send(Commands.Get(ByteString(key))).map{
   case BulkReply(data) => request.ok(data.utf8String)
   case NilReply => request.notFound("(nil)")
 }
@@ -239,7 +240,7 @@ using Callbacks has a significant impact on performance.
 Implementing the `Set` route is similar:
 
 {% highlight scala %}
-case request @ Get on Root / "set" / key / value => redis.send(Commands.Set(key, value)).map{
+case request @ Get on Root / "set" / key / value => redis.send(Commands.Set(ByteString(key), ByteString(value))).map{
   case StatusReply(msg) => request.ok(msg)
 }
 {% endhighlight %}
@@ -251,6 +252,6 @@ And there we have it, a fully functional service with almost no boilerplate.
 
 The rest of docs provide more detail about how all this works and how to
 leverage more advanced features, particularly the section on [building a
-service server](../serviceserver).  Also be sure to check out the 
+service server](../serviceserver).  Also be sure to check out the
 [examples]({{site.github_examples_url}}) sub-project in the Colossus repo.
 
