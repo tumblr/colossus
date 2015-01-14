@@ -5,8 +5,6 @@ import core._
 
 import akka.util.{ByteString, ByteStringBuilder}
 
-import org.scalatest._
-
 /**
  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
  */

@@ -5,14 +5,11 @@ import akka.util.ByteString
 import colossus.controller.{FiniteBytePipe, Source}
 import colossus.core.DataBuffer
 
-trait HttpResponseHeader {
+trait HttpResponseHeader extends HttpHeaderUtils{
   def version : HttpVersion
   def code : HttpCode
   def headers : Seq[(String, String)]
 
-  def getHeader(key : String) = HttpHeaderUtils.getHeader(headers, key)
-
-  def getHeader(key : String, orElse : String) = HttpHeaderUtils.getHeader(headers, key, orElse)
 }
 
 case class HttpResponse(version : HttpVersion, code : HttpCode, headers : Seq[(String, String)] = Nil, data : ByteString) extends HttpResponseHeader {

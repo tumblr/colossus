@@ -59,16 +59,23 @@ object HttpHeaders {
 }
 
 //TODO: support for pulling values as types other than String
-object HttpHeaderUtils {
+trait HttpHeaderUtils {
 
-  def getHeader(headers : Seq[(String, String)], key : String) : Option[String] = {
+  def headers : Seq[(String, String)]
+
+  def getHeader(key : String) : Option[String] = {
     headers.collectFirst{case (`key`, value) => value}
   }
 
-  def getHeader(headers : Seq[(String, String)], key : String, orElse : String) : String = {
+  def getHeader(key : String, orElse : String) : String = {
     headers.collectFirst{case (`key`, value) => value}.getOrElse(orElse)
   }
 
+  def getContentLength : Option[Int] = {
+    getHeader(HttpHeaders.ContentLength).map(_.toInt)
+  }
+
+  def getEncoding : TransferEncoding = getHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
 }
 
 
@@ -90,6 +97,37 @@ object Cookie {
   val CookieExpirationFormat = org.joda.time.format.DateTimeFormat.forPattern("E, dd MMM yyyy HH:mm:ss z")
   def parseCookieExpiration(str: String): DateTime = {
     org.joda.time.DateTime.parse(str, CookieExpirationFormat )
+  }
+}
+
+sealed trait TransferEncoding {
+  def value : String
+}
+
+object TransferEncoding {
+  case object Identity extends TransferEncoding {
+    val value = "identity"
+  }
+
+  case object Chunked extends TransferEncoding {
+    val value = "chunked"
+  }
+
+  case object Gzip extends TransferEncoding {
+    val value = "gzip"
+  }
+
+  case object Deflate extends TransferEncoding {
+    val value = "deflate"
+  }
+
+  case object Compressed extends TransferEncoding {
+    val value = "compressed"
+  }
+
+  private val all = Seq(Identity, Chunked, Gzip, Deflate, Compressed)
+  def unapply(str : String) : Option[TransferEncoding] = {
+    all.find(_.value == str.toLowerCase)
   }
 }
 

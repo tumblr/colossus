@@ -1,8 +1,6 @@
 package colossus
 package protocols.http
 
-import service._
-
 import akka.util.ByteString
 
 case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {

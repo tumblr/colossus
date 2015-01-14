@@ -22,10 +22,27 @@ object Copier {
   }
 }
 
+//hrm....
+object ReflexiveCopiers{
+
+  trait Reflect[T] {
+    def copy(t : T) : T = t
+  }
+
+  implicit object StringReflect extends Copier[String] with Reflect[String]
+  implicit object IntReflect extends Copier[Int] with Reflect[Int]
+  implicit object LongReflect extends Copier[Long] with Reflect[Long]
+  implicit object ShortReflect extends Copier[Short] with Reflect[Short]
+  implicit object FloatReflect extends Copier[Float] with Reflect[Float]
+  implicit object DoubleReflect extends Copier[Double] with Reflect[Double]
+}
+
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
   //all subsequent pull and pushes to return an Error
   def terminate(reason: Throwable)
+
+  def terminated : Boolean
 }
 
 /**
@@ -96,6 +113,8 @@ object Source {
     def terminate(reason: Throwable) {
       item = Failure(reason)
     }
+
+    def terminated = item.isFailure
   }
 }
 
@@ -105,7 +124,13 @@ object Source {
  * streams.  It provides backpressure feedback for both the write and read
  * ends.
  */
-trait Pipe[T] extends Sink[T] with Source[T]
+trait Pipe[T, U] extends Sink[T] with Source[U] {
+
+  def join[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = PipeCombinator.join(this, pipe)(f)
+
+  def ->>[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = join(pipe)(f)
+}
+
 
 class Trigger {
   private var callback: Option[() => Unit] = None
@@ -133,7 +158,7 @@ object PushResult {
 }
 
 //a pipe designed to accept a fixed number of bytes
-class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
+class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer, DataBuffer] {
   import PushResult._
 
   private val internal = new InfinitePipe[DataBuffer](maxSize)
@@ -175,6 +200,8 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
   def terminate(reason: Throwable) {
     internal.terminate(reason: Throwable)
   }
+
+  override def terminated: Boolean = internal.terminated
 }
 
 /**
@@ -202,6 +229,8 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     a.terminate(reason)
     b.terminate(reason)
   }
+
+  override def terminated: Boolean = a.terminated && b.terminated
 }
 
 
@@ -213,7 +242,7 @@ class PipeClosedException extends Exception("Pipe Closed") with PipeException
 
 //object EndOfStream extends Exception("End of Stream")
 
-class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
+class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T, T] {
   import PushResult._
 
   val queue = new java.util.LinkedList[T]
