@@ -280,14 +280,22 @@ extends ConnectionHandler {
   /******* INPUT *******/
 
   def receivedData(data: DataBuffer) {
+
+    def resetSink(buffer : DataBuffer) {
+      currentSink = None
+      //recurse since the databuffer may still contain data for the next request
+      if(buffer.hasUnreadData) receivedData(buffer)
+    }
+
+    def processAndContinue(msg : Input, buffer : DataBuffer) {
+      processMessage(msg)
+      if(buffer.hasUnreadData) receivedData(buffer)
+    }
+
     currentSink match {
       case Some(sink) => sink.push(data) match {
         case Success(Ok) => {}
-        case Success(Done) => {
-          currentSink = None
-          //recurse since the databuffer may still contain data for the next request
-          if (data.hasUnreadData) receivedData(data)
-        }
+        case Success(Done) => resetSink(data)
         case Success(Full(trigger)) => {
           endpoint.get.disableReads()
           trigger.fill{() =>
@@ -297,23 +305,19 @@ extends ConnectionHandler {
           }
           currentTrigger = Some(trigger)
         }
-        case Failure(reason) => {
-          //todo: what to do here?
+        //TODO: are the following 2 cases really exceptions..seems like they are part of the normal control flow from a controller's POV
+        case Failure(a : PipeTerminatedException) => resetSink(data)
+        case Failure(a : PipeClosedException) => resetSink(data)
+        case Failure(t : Throwable) => {
+          //todo: when a non expected failure occurs?
         }
       }
       case None => codec.decode(data) match {
-        case Some(message) =>  {
-          message match {
-            case DecodedResult.Streamed(msg, sink) => {
-              currentSink = Some(sink)
-              processMessage(msg)
-            }
-            case DecodedResult.Static(msg) => {
-              processMessage(msg)
-            }
-          }
-          if (data.hasUnreadData) receivedData(data)
+        case Some(DecodedResult.Streamed(msg, sink)) => {
+          currentSink = Some(sink)
+          processAndContinue(msg, data)
         }
+        case Some(DecodedResult.Static(msg)) => processAndContinue(msg, data)
         case None => {}
       }
     }

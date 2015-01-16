@@ -1,13 +1,14 @@
 package colossus
 package controller
 
+import colossus.testkit.CallbackMatchers
 import org.scalatest._
 
 import akka.util.ByteString
 import core.DataBuffer
 import scala.util.{Success, Failure}
 
-class PipeSpec extends WordSpec with MustMatchers {
+class PipeSpec extends WordSpec with MustMatchers with CallbackMatchers {
 
   implicit object IntCopier extends Copier[Int] {
     def copy(i: Int) = i
@@ -158,7 +159,6 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
         case Success(x) if x < 10 => {executed = true}
         case other => {
-          println("FAIL")
           throw new Exception(s"bad end value $other")
         }
 
@@ -179,7 +179,6 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
         case Success(10) => {executed = true}
          case other => {
-          println("FAIL")
           throw new Exception(s"bad end value $other")
          }
       }
@@ -202,6 +201,24 @@ class PipeSpec extends WordSpec with MustMatchers {
       val data = DataBuffer(ByteString("1234567890"))
       pipe.push(data) must equal(Success(PushResult.Done))
       data.remaining must equal(3)
+    }
+
+    "not allow negatively sized pipes" in {
+      intercept[IllegalArgumentException] {
+        new FiniteBytePipe(-1, 1)
+      }
+    }
+
+    "immediately close 0 sized pipes" in {
+      val pipe = new FiniteBytePipe(0, 4)
+      val data = DataBuffer(ByteString("1234567890"))
+      pipe.push(data) must equal(Success(PushResult.Done))
+      data.remaining must equal(10)
+      //this works..because the CB will never fire if the pipe is not closed
+      pipe.pullCB() must evaluateTo { x : Option[DataBuffer]=>
+        x must be (None)
+      }
+
     }
   }
 

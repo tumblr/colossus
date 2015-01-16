@@ -48,6 +48,13 @@ object StreamingHttpResponse {
     pipe.push(data)
     StreamingHttpResponse(response.version, response.code, response.headers, pipe)
   }
+
+  def fromValue[T : ByteStringLike](version : HttpVersion = HttpVersion.`1.1`, code : HttpCode, headers :Seq[(String, String)] = Nil, value : T) : StreamingHttpResponse = {
+    val byteString = implicitly[ByteStringLike[T]].toByteString(value)
+    val strippedHeaders = headers.filterNot{_._1 == HttpHeaders.ContentLength}
+    val finalHeaders = strippedHeaders :+ (HttpHeaders.ContentLength, byteString.size.toString)
+    StreamingHttpResponse(version, code, finalHeaders, Source.one(DataBuffer(byteString)))
+  }
 }
 
 trait ByteStringLike[T] {
@@ -60,6 +67,10 @@ trait ByteStringConverters {
 
   implicit object ByteStringLikeString extends ByteStringLike[String] {
     override def toByteString(t: String): ByteString = ByteString(t)
+  }
+
+  implicit object ByteStringLikeByteString extends ByteStringLike[ByteString] {
+    override def toByteString(t: ByteString): ByteString = t
   }
 }
 

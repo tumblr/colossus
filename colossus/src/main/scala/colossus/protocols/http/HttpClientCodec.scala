@@ -13,7 +13,7 @@ trait HttpClientCodec[T <: HttpResponseHeader, U <: HttpResponseHeader] extends 
 
   override def encode(out: HttpRequest): DataBuffer = DataBuffer(out.bytes)
 
-  override def decode(data: DataBuffer): Option[Decoded]
+  override def decode(data: DataBuffer): Option[DecodedResult[T]]
 
   override def reset(): Unit = { parser.reset() }
 
@@ -25,7 +25,7 @@ object HttpClientCodec {
     new HttpClientCodec[HttpResponse, HttpResponse] {
       val parser: HttpResponseParser[HttpResponse] = HttpResponseParser.static(maxSize)
 
-      override def decode(data: DataBuffer): Option[Decoded] = {
+      override def decode(data: DataBuffer): Option[DecodedResult[HttpResponse]] = {
         parser.parse(data).map(DecodedResult.Static(_))
       }
     }
@@ -36,7 +36,7 @@ object HttpClientCodec {
     new HttpClientCodec[StreamingHttpResponse, StreamingHttpResponseHeaderStub] {
       val parser: HttpResponseParser[StreamingHttpResponseHeaderStub] = HttpResponseParser.streaming(maxSize, streamingQueueSize)
 
-      override def decode(data: DataBuffer): Option[Decoded] = {
+      override def decode(data: DataBuffer): Option[DecodedResult[StreamingHttpResponse]] = {
         parser.parse(data).map{ x=>
           val rs = x.getEncoding match {
             case TransferEncoding.Chunked => createChunkedReponse(x)

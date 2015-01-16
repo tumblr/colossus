@@ -88,7 +88,6 @@ object StreamedResponseBuilder extends HttpResponseDataReaderBuilder {
     builder.sizeHint(100)
     appendHeaderBytes(response, builder)
     builder append NEWLINE
-    builder append NEWLINE
 
     val headerSource: Source[DataBuffer] = Source.one(DataBuffer(builder.result()))
     DataStream(new DualSource[DataBuffer](headerSource, response.stream))
