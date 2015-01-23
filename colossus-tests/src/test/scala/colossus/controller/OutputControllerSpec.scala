@@ -20,6 +20,18 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.expectOneWrite(data)
 
     }
+    "push multiple messages" in {
+      val (endpoint, controller) = createController()
+      val data = ByteString("Hello World!")
+      val message = TestOutput(Source.one(DataBuffer(data)))
+      controller.testPush(message){_ must equal (OutputResult.Success)}
+      endpoint.expectOneWrite(data)
+
+      val message2 = TestOutput(Source.one(DataBuffer(data)))
+      controller.testPush(message2){_ must equal (OutputResult.Success)}
+      endpoint.expectOneWrite(data)
+
+    }
 
     "drain output buffer on graceful disconnect" in {
       val (endpoint, controller) = createController()

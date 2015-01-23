@@ -218,8 +218,8 @@ extends ConnectionHandler {
       val queued = waitingToSend.remove()
       codec.encode(queued.item) match {
         case DataStream(sink) => {
-          drain(sink)
           currentStream = Some((queued, sink))
+          drain(sink)
         }
         case d: DataBuffer => endpoint.get.write(d) match {
           case WriteStatus.Complete => {
@@ -251,7 +251,7 @@ extends ConnectionHandler {
         case _ => {} //todo: maybe do something on Failure?
       }
       case Success(None) => {
-        currentStream.foreach{case (q, s) => 
+        currentStream.foreach{case (q, s) =>
           q.postWrite(OutputResult.Success)
         }
         currentStream = None
