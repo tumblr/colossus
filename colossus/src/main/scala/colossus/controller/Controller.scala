@@ -218,8 +218,8 @@ extends ConnectionHandler {
       val queued = waitingToSend.remove()
       codec.encode(queued.item) match {
         case DataStream(sink) => {
-          drain(sink)
           currentStream = Some((queued, sink))
+          drain(sink)
         }
         case d: DataBuffer => endpoint.get.write(d) match {
           case WriteStatus.Complete => {
@@ -251,7 +251,7 @@ extends ConnectionHandler {
         case _ => {} //todo: maybe do something on Failure?
       }
       case Success(None) => {
-        currentStream.foreach{case (q, s) => 
+        currentStream.foreach{case (q, s) =>
           q.postWrite(OutputResult.Success)
         }
         currentStream = None
@@ -295,7 +295,7 @@ extends ConnectionHandler {
     currentSink match {
       case Some(sink) => sink.push(data) match {
         case Success(Ok) => {}
-        case Success(Done) => resetSink(data)
+        case Success(Done) => resetSink(data) //should we have some kind of hook exposed here to signal when a client has finished streaming something?  
         case Success(Full(trigger)) => {
           endpoint.get.disableReads()
           trigger.fill{() =>
