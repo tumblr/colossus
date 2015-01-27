@@ -1,19 +1,17 @@
 package colossus.metrics
 
 import akka.actor._
+import colossus.metrics.senders.MetricsLogger
 
 /**
  * Simple sender that just prints the stats to the log
  */
-class LoggerSenderActor(verbose: Boolean = false) extends Actor with ActorLogging {
+class LoggerSenderActor extends Actor with ActorLogging with  MetricsLogger {
 
   def receive = {
     case s: MetricSender.Send => {
-      val frags = s.fragments
-      if (verbose) {
-        frags.foreach{stat => log.info(OpenTsdbFormatter.format(stat, s.timestamp).stripLineEnd)}
-      }
-      log.info(s"Logged ${frags.size} stats")
+      logMetrics(s)
+      log.info(s"Logged ${s.metrics.size} stats")
     }
   }
 
@@ -27,8 +25,8 @@ class LoggerSenderActor(verbose: Boolean = false) extends Actor with ActorLoggin
 
 }
 
-case class LoggerSender(verbose: Boolean = false) extends MetricSender {
+object LoggerSender extends MetricSender {
   def name = "logger"
-  def props = Props(classOf[LoggerSenderActor], verbose)
+  def props = Props(classOf[LoggerSenderActor])
 }
 

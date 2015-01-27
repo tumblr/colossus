@@ -1,12 +1,13 @@
 package colossus.metrics
 
 import akka.actor._
+import colossus.metrics.senders.MetricsLogger
 import scala.concurrent.duration._
 
 import java.net._
 
 //TODO : OH jeez don't use raw socket
-class OpenTsdbSenderActor(val host: String, val port: Int) extends Actor with ActorLogging{
+class OpenTsdbSenderActor(val host: String, val port: Int) extends Actor with ActorLogging with MetricsLogger{
 
   val address = new InetSocketAddress(host, port)
   val timeout = 500
@@ -34,7 +35,10 @@ class OpenTsdbSenderActor(val host: String, val port: Int) extends Actor with Ac
   }
 
   def accepting: Receive = {
-    case s: MetricSender.Send => put(s.fragments, s.timestamp)
+    case s: MetricSender.Send => {
+      logMetrics(s)
+      put(s.fragments, s.timestamp)
+    }
   }
 
   override def postRestart(reason: Throwable) {
