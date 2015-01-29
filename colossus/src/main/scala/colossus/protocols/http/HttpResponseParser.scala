@@ -13,7 +13,7 @@ import DataSize._
 
 object HttpResponseParser {
 
-  val DefaultMaxSize: DataSize = 1.MB
+  val DefaultMaxSize: DataSize = 10.MB
 
   val DefaultQueueSize : Int = 100
 
