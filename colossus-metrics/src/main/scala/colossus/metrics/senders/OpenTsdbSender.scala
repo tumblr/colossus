@@ -18,6 +18,10 @@ class OpenTsdbSenderActor(val host: String, val port: Int) extends Actor with Ac
 
   val socket = new Socket
 
+  override def postStop(): Unit = {
+    socket.close()
+  }
+
   def put(stats: Seq[MetricFragment], ts: Long) {
     val os = socket.getOutputStream
     val now = ts / 1000
