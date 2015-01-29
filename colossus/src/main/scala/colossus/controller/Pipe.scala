@@ -160,6 +160,7 @@ object PushResult {
 //a pipe designed to accept a fixed number of bytes
 class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer, DataBuffer] {
   import PushResult._
+  require(totalBytes >= 0, "A FiniteBytePipe must accept 0 or more bytes")
 
   private val internal = new InfinitePipe[DataBuffer](maxSize)
 
@@ -167,6 +168,9 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer, Da
 
   def remaining = totalBytes - taken
 
+  if(totalBytes == 0){
+    internal.complete()
+  }
 
   def push(data: DataBuffer): Try[PushResult] = {
     if (taken == totalBytes) {

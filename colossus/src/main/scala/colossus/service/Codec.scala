@@ -34,16 +34,14 @@ object DecodedResult {
  */
 trait Codec[Output,Input] {
 
-  type Decoded = DecodedResult[Input]
-
   def encode(out: Output): DataReader
   /**
    * Decode a single object from a bytestream.  
    */
-  def decode(data: DataBuffer): Option[Decoded]
+  def decode(data: DataBuffer): Option[DecodedResult[Input]]
 
-  def decodeAll(data: DataBuffer)(onDecode : Decoded => Unit) { if (data.hasUnreadData){
-    var done: Option[Decoded] = None
+  def decodeAll(data: DataBuffer)(onDecode : DecodedResult[Input] => Unit) { if (data.hasUnreadData){
+    var done: Option[DecodedResult[Input]] = None
     do {
       done = decode(data)
       done.foreach{onDecode}
@@ -51,7 +49,7 @@ trait Codec[Output,Input] {
   }}
 
   //not used
-  def mapInput[U](iMapper: Option[Decoded] => Option[DecodedResult[U]]): Codec[Output,U] = {
+  def mapInput[U](iMapper: Option[DecodedResult[Input]] => Option[DecodedResult[U]]): Codec[Output,U] = {
     val in = this
     new Codec[Output, U]{
       def encode(output: Output) = in.encode(output)

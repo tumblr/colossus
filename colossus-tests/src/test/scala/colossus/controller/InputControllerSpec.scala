@@ -81,7 +81,7 @@ class InputControllerSpec extends ColossusSpec {
 
   }
 
-  
+
 
 
 }

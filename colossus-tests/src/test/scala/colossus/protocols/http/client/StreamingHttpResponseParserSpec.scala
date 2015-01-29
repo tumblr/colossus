@@ -1,12 +1,14 @@
 package colossus.protocols.http.client
 
 import akka.util.ByteString
-import colossus.core.DataBuffer
+import colossus.controller.Source
+import colossus.core.{DataBuffer, DataStream, DataReader}
 import colossus.protocols.http._
-import colossus.service.DecodedResult
+import colossus.service.{Callback, DecodedResult}
+import colossus.testkit.CallbackMatchers
 import org.scalatest.{WordSpec, MustMatchers, TryValues, OptionValues}
 
-class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with TryValues with OptionValues {
+class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with TryValues with OptionValues with CallbackMatchers {
 
 
   "StreamingHttpResponseParser" must {
@@ -27,7 +29,10 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
 
       decodedResponse match {
         case Some(DecodedResult.Streamed(res, s)) => {
-          res.stream.pullCB().execute { x => ByteString(x.success.value.value.takeAll) must equal(content)
+          s.push(bytes)
+          res.stream.pullCB() must evaluateTo { x : Option[DataBuffer] =>
+            ByteString(x.value.takeAll) must equal (ByteString(content))
+            bytes.hasUnreadData must be (false)
           }
         }
         case _ => throw new Exception("expected some")
@@ -38,12 +43,17 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
     "parse a stream with chunked transfer encoding" in {
       val res = "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n"
 
-      val p = HttpClientCodec.streaming()
-      val parsed: DecodedResult[StreamingHttpResponse] = p.decode(DataBuffer(ByteString(res))).get
+      val buffer = DataBuffer(ByteString(res))
 
+      val p = HttpClientCodec.streaming()
+      val parsed: DecodedResult[StreamingHttpResponse] = p.decode(buffer).get
       parsed match {
         case DecodedResult.Streamed(x, s) => {
-          x.stream.pullCB().execute(x => ByteString(x.success.value.value.takeAll) must equal ("foo123456789abcde"))
+          s.push(buffer)
+          x.stream.pullCB() must evaluateTo { y : Option[DataBuffer] =>
+            ByteString(y.value.takeAll) must equal (ByteString("foo123456789abcde"))
+            buffer.hasUnreadData must be (false)
+          }
         }
         case _ => throw new Exception("expected some")
       }
@@ -59,8 +69,12 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
 
       parsed match {
         case DecodedResult.Streamed(x, s) => {
-          s.push(DataBuffer(ByteString(body)))
-          x.stream.pullCB().execute(x => ByteString(x.success.value.value.takeAll) must equal (ByteString("foo123456789abcde")))
+          val buffer = DataBuffer(ByteString(body))
+          s.push(buffer)
+          x.stream.pullCB() must evaluateTo{ x : Option[DataBuffer] =>
+            ByteString(x.value.takeAll) must equal (ByteString("foo123456789abcde"))
+            buffer.hasUnreadData must be (false)
+          }
         }
         case _ => throw new Exception("expected some")
       }
@@ -75,8 +89,6 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
       val p = HttpClientCodec.streaming()
       val parsed: DecodedResult[StreamingHttpResponse] = p.decode(DataBuffer(ByteString(res))).get
 
-      var callbackExecuted = false
-
       parsed match {
         case DecodedResult.Streamed(x, s) => {
           s.push(DataBuffer(ByteString(body)))
@@ -85,18 +97,53 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
           }
           val last = DataBuffer(ByteString("de\r\n0\r\n\r\nHTTP"))
           s.push(last)
-          x.stream.pullCB().execute { x =>
-            ByteString(x.success.value.value.takeAll) must equal(ByteString("foo123456789abcde"))
+          x.stream.pullCB() must evaluateTo { x : Option[DataBuffer] =>
+            ByteString(x.value.takeAll) must equal(ByteString("foo123456789abcde"))
             last.hasUnreadData must equal(true)
-            callbackExecuted = true
           }
-
         }
         case _ => throw new Exception("expected some")
       }
 
-      callbackExecuted must equal (true)
     }
+    "decode a response that was encoded by colossus with no body" in {
+      validateEncodedStreamingHttpResponse(ByteString(""))
+    }
+
+    "decode a response that was encoded by colossus with a body" in {
+      validateEncodedStreamingHttpResponse(ByteString("body bytes!"))
+    }
+
   }
 
+  private def validateEncodedStreamingHttpResponse(body : ByteString){
+    val res = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK,
+      Vector("a"->"b", "content-length"->body.size.toString), Source.one(DataBuffer(body)))
+    val clientProtocol = HttpClientCodec.streaming()
+    val serverProtocol =  HttpServerCodec.streaming
+
+    val encodedResponse: DataReader = serverProtocol.encode(res)
+    encodedResponse mustBe a [DataStream]
+
+    val source : Source[DataBuffer] = encodedResponse.asInstanceOf[DataStream].source
+    val folded = source.fold(ByteString(""))((buffer, bytes) => bytes ++ ByteString(buffer.takeAll))
+
+    folded must evaluateTo { x : ByteString =>
+      val buffer = DataBuffer(x)
+      val decoded: Option[DecodedResult[StreamingHttpResponse]] = clientProtocol.decode(buffer)
+      decoded match {
+        case Some(DecodedResult.Streamed(resp, s)) => {
+          s.push(buffer)
+          resp must equal (res)
+          val f2: Callback[ByteString] = resp.stream.fold(ByteString(""))((buffer, bytes) => bytes ++ ByteString(buffer.takeAll))
+          f2 must evaluateTo{x : ByteString =>
+             x must equal(body)
+          }
+        }
+        case _ => throw new Exception("expected streamed http response")
+      }
+    }
+  }
 }
+
+
