@@ -32,19 +32,17 @@ object RedisTest {
 class ClientSpec extends ColossusSpec {
 
   def withAsyncClient(f: (ServerRef, AsyncServiceClient[Command, Reply]) => Any) = {
-    implicit val io = IOSystem("test", 2)
-    val server = RedisTest.server(TEST_PORT)
-    waitForServer(server)
-    val config = ClientConfig(
-      address = new InetSocketAddress("localhost", TEST_PORT),
-      requestTimeout = Duration.Inf,
-      name = MetricAddress.Root / "test-client"
-    )
-    val client = AsyncServiceClient(config, new RedisClientCodec)
-    try {
-      f(server, client)
-    } finally {
-      shutdownIOSystem(io)
+    withIOSystem{ implicit io => 
+      val server = RedisTest.server(TEST_PORT)
+      withServer(server) {
+        val config = ClientConfig(
+          address = new InetSocketAddress("localhost", TEST_PORT),
+          requestTimeout = Duration.Inf,
+          name = MetricAddress.Root / "test-client"
+        )
+        val client = AsyncServiceClient(config, new RedisClientCodec)
+        f(server, client)
+      }
     }
   }
 
