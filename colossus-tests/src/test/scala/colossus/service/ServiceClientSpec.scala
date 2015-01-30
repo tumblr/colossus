@@ -35,7 +35,8 @@ class ServiceClientSpec extends ColossusSpec {
       sentBufferSize = maxSentSize, 
       failFast = failFast
     )
-    val client = new RedisClient(config)
+    val client = new RedisClient(config, worker)
+    workerProbe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
     client.setBind(1, worker)
     workerProbe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = new MockWriteEndpoint(30, workerProbe, Some(client))

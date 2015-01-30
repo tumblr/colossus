@@ -92,7 +92,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
-        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
@@ -113,7 +113,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
           probe.expectNoMsg(200.milliseconds)
         }
       }
@@ -135,7 +135,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem{ implicit io =>
         import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
           probe.expectMsg(200.milliseconds, "UNBOUND")
         }
       }

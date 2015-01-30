@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 /**
  * This correctly routes messages to the right worker and handler
  */
-class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
+class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => WorkerRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
   import WorkerCommand._
   import ConnectionEvent._
 
@@ -93,8 +93,9 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
    */
   class AsyncHandler(
     config: ClientConfig,
-    val caller: ActorRef
-  ) extends ServiceClient[I,O](codec, config) with WatchedHandler {
+    val caller: ActorRef,
+    worker: WorkerRef
+  ) extends ServiceClient[I,O](codec, config, worker) with WatchedHandler {
     val watchedActor = caller
 
     override def onBind() {
@@ -138,6 +139,6 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     }
   }
 
-  val handlerFactory: ActorRef => ConnectionHandler = caller => new AsyncHandler(config, caller)
+  val handlerFactory: ActorRef => WorkerRef =>  ConnectionHandler = caller => worker => new AsyncHandler(config, caller, worker)
 
 }
