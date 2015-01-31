@@ -190,16 +190,23 @@ extends ConnectionHandler {
    * pending/ongoing write operations to complete before disconnecting
    */
   def gracefulDisconnect() {
-    endpoint.foreach{_.disableReads()}
+    if (currentSink.isEmpty) {
+      endpoint.foreach{_.disableReads()}
+    }
     disconnecting = true
     //maybe wait instead for the message to finish? probably not
-    currentSink.foreach{_.terminate(new DisconnectingException("Connection is closing"))}
-    currentTrigger.foreach{_.cancel()}
     checkGracefulDisconnect()
   }
 
   private def checkGracefulDisconnect() {
-    if (disconnecting && waitingToSend.size == 0 && currentlyWriting.isEmpty && currentStream.isEmpty) {
+    if (
+      disconnecting && 
+      waitingToSend.size == 0 && 
+      currentlyWriting.isEmpty && 
+      currentStream.isEmpty && 
+      currentSink.isEmpty &&
+      currentTrigger.isEmpty
+    ) {
       endpoint.foreach{_.disconnect()}
     }
   }
@@ -284,7 +291,7 @@ extends ConnectionHandler {
     def resetSink(buffer : DataBuffer) {
       currentSink = None
       //recurse since the databuffer may still contain data for the next request
-      if(buffer.hasUnreadData) receivedData(buffer)
+      if(buffer.hasUnreadData && !disconnecting) receivedData(buffer)
     }
 
     def processAndContinue(msg : Input, buffer : DataBuffer) {
@@ -295,7 +302,15 @@ extends ConnectionHandler {
     currentSink match {
       case Some(sink) => sink.push(data) match {
         case Success(Ok) => {}
-        case Success(Done) => resetSink(data) //should we have some kind of hook exposed here to signal when a client has finished streaming something?  
+        case Success(Done) => {
+          resetSink(data) //should we have some kind of hook exposed here to signal when a client has finished streaming something?  
+          if (disconnecting) {
+            //gracefulDisconnect was called, so we allowed the connection to
+            //finish reading in the stream, but now that it's done, disable
+            //reads
+            endpoint.foreach{_.disableReads()}
+          }
+        }
         case Success(Full(trigger)) => {
           endpoint.get.disableReads()
           trigger.fill{() =>
