@@ -176,7 +176,7 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer, Da
     if (taken == totalBytes) {
       Success(Done)
     } else if (remaining > data.remaining) {
-      taken += data.size
+      taken += data.remaining
       internal.push(data) 
     } else {
       val partial = if (remaining == data.remaining) {

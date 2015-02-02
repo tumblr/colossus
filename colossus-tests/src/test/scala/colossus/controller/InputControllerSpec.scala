@@ -7,11 +7,12 @@ import core._
 
 import scala.util.{Try, Failure, Success}
 
-class InputControllerSpec extends ColossusSpec {
+class InputControllerSpec extends ColossusSpec with CallbackMatchers{
   
   import TestController.createController
 
   "Input Controller" must {
+
     "decode a stream message" in {
       val expected = ByteString("Hello world!")
       val request = ByteString(expected.size.toString) ++ ByteString("\r\n") ++ expected
@@ -41,6 +42,7 @@ class InputControllerSpec extends ColossusSpec {
       con.receivedData(DataBuffer(ByteString("a")))
       con.receivedData(DataBuffer(ByteString("b")))
       endpoint.readsEnabled must equal(true)
+      //this last piece should fill up the pipe
       con.receivedData(DataBuffer(ByteString("c")))
       endpoint.readsEnabled must equal(false)
 
@@ -51,13 +53,16 @@ class InputControllerSpec extends ColossusSpec {
           throw new Exception(s"bad result $other")
         }
       }
+      //we have begun execution of the fold, which should drain the pipe, but
+      //execution should not yet be complete
       executed must equal(false)
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("d")))
+      //now it should be done
       executed must equal(true)
     }
 
-    "stream is terminated when disconnected" in {
+    "stream is terminated when connection disrupted" in {
       var source: Option[Source[DataBuffer]] = None
       val (endpoint, con) = createController({input => 
         source = Some(input.source)
@@ -78,6 +83,30 @@ class InputControllerSpec extends ColossusSpec {
       wrong must equal(false)
       failed must equal(true)   
     }
+
+    "input stream allowed to complete during graceful disconnect" in {
+      var source: Option[Source[DataBuffer]] = None
+      val (endpoint, con) = createController({input => 
+        source = Some(input.source)
+      })
+      endpoint.readsEnabled must equal(true)
+      con.receivedData(DataBuffer(ByteString("4\r\nab")))
+      source.get.pullCB().map{buf => ByteString(buf.get.takeAll)} must evaluateTo{b: ByteString => 
+        b must equal(ByteString("ab"))
+      }
+      con.testGracefulDisconnect()
+      //input stream is not done, so reads should still be enabled
+      endpoint.readsEnabled must equal(true)
+      con.receivedData(DataBuffer(ByteString("cd")))
+      source.get.pullCB().map{buf => ByteString(buf.get.takeAll)} must evaluateTo{b: ByteString => 
+        b must equal(ByteString("cd"))
+      }
+      //the stream should have finished, so now reads should be disabled
+      endpoint.readsEnabled must equal(false)
+
+    }
+        
+      
 
   }
 
