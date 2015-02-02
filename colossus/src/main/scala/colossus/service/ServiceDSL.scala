@@ -3,6 +3,7 @@ package service
 
 import core._
 
+import akka.actor.ActorRef
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
@@ -88,8 +89,11 @@ trait ConnectionContext[C <: CodecDSL] {
   def process(f: C#Input => Callback[C#Output]){
     become{case all => f(all)}
   }
+  def receive(receiver: PartialFunction[Any, Unit])
+  def sender(): ActorRef
   def disconnect()
   def gracefulDisconnect()
+  def connectionId: Long
 
   implicit val callbackExecutor: CallbackExecutor
 }
@@ -149,6 +153,7 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
 trait DSLHandler[C <: CodecDSL] extends ServiceServer[C#Input, C#Output] with ConnectionContext[C]
 
 class UnhandledRequestException(message: String) extends Exception(message)
+class ReceiveException(message: String) extends Exception(message)
 
 class BasicServiceHandler[C <: CodecDSL]
   (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C]) 
@@ -159,13 +164,33 @@ class BasicServiceHandler[C <: CodecDSL]
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
+
+  protected def unhandledReceive: Receive = {
+    case _ => {}
+  }
   
   private var currentHandler: PartialHandler[C] = unhandled
+  private var currentMessageReceiver: Receive = unhandledReceive
+  private var currentSender: Option[ActorRef] = None
+
+  def connectionId = id.get // :(
 
   def become(handler: PartialHandler[C]) {
     currentHandler = handler
   }
 
+  def sender() = currentSender.getOrElse(throw new ReceiveException("cannot call sender outside of receive"))
+
+  def receive(handler: PartialFunction[Any, Unit]) {
+    currentMessageReceiver = handler
+  }
+
+  def receivedMessage(message: Any, sender: ActorRef) {
+    currentSender = Some(sender)
+    (currentMessageReceiver orElse unhandledReceive)(message)
+    currentSender = None
+  }
+    
   protected def fullHandler: PartialFunction[C#Input, Callback[C#Output]] = currentHandler orElse unhandled
   
   protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)

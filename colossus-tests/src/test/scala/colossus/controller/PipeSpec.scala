@@ -220,6 +220,21 @@ class PipeSpec extends WordSpec with MustMatchers with CallbackMatchers {
       }
 
     }
+
+    "properly calculates bytes remaining" in {
+      //arose from a bug where the pipe was using the buffer's total length
+      //instead of how many bytes were readable
+      val pipe = new FiniteBytePipe(4, 4)
+      val data = DataBuffer(ByteString("1234567"))
+      data.take(5)
+      pipe.push(data) must equal(Success(PushResult.Ok))
+      val data2 = DataBuffer(ByteString("abcdefg"))
+      pipe.push(data2) must equal(Success(PushResult.Done))
+      pipe.fold(ByteString()){(buf, build) => build ++ ByteString(buf.takeAll)} must evaluateTo{bstr: ByteString =>
+        bstr must equal(ByteString("67ab"))
+      }
+    }
+
   }
 
   /*
