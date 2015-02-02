@@ -4,7 +4,6 @@ package service
 import core._
 import controller._
 
-import akka.actor._
 import akka.event.Logging
 import metrics._
 
@@ -119,8 +118,6 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
     }
     checkGracefulDisconnect()
   }
-
-  def receivedMessage(message: Any, sender: ActorRef) {}
 
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
