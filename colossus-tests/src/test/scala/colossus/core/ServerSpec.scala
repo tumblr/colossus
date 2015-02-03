@@ -2,6 +2,7 @@ package colossus
 
 import testkit._
 import core._
+import service.AsyncServiceClient
 
 import akka.actor._
 import akka.agent._
@@ -109,6 +110,16 @@ class ServerSpec extends ColossusSpec {
           val failedServer = Server(cfg)
           serverProbe.watch(failedServer.server)
           serverProbe.expectTerminated(failedServer.server)
+        }
+      }
+
+      "shutdown all associated connections when shutdown" in {
+        var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
+        withIOSystem{implicit io =>
+          withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
+            client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
+          }
+          TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
         }
       }
 
