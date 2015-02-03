@@ -113,7 +113,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "shutdown all associated connections when shutdown" in {
+      "shutdown all associated connections when shutdown" taggedAs(org.scalatest.Tag("test")) in {
         var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
         withIOSystem{implicit io =>
           withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
