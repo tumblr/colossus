@@ -38,7 +38,8 @@ class AsyncServiceClientSpec extends ColossusSpec {
         val config = ClientConfig(
           address = new InetSocketAddress("localhost", TEST_PORT),
           requestTimeout = Duration.Inf,
-          name = MetricAddress.Root / "test-client"
+          name = MetricAddress.Root / "test-client",
+          connectionAttempts = PollingDuration.NoRetry
         )
         val client = AsyncServiceClient(config, new RedisClientCodec)
         f(server, client)
@@ -84,6 +85,7 @@ class AsyncServiceClientSpec extends ColossusSpec {
 
     "shutdown when connection is unbound" taggedAs(org.scalatest.Tag("test")) in {
       withAsyncClient { (server, client) =>
+        Await.result(client.send(Command("GET", "foo")), 5000.milliseconds) must equal(StatusReply("echo"))
         end(server)
         intercept[Exception] {
           Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
