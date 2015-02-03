@@ -38,9 +38,16 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
     case Bound(wat) => {
       println(s"RECEIVED BOUND AGAIN! $connectionId vs $wat")
     }
+    //case Unbound
     case Connected => {} //we ignore this because there's nothing to do with it.  Maybe add a callback in the future
     case AsyncServiceClient.Disconnect => self ! PoisonPill //the worker is watching us and will close the underlying connection
     case x => worker ! Message(connectionId, x)
+  }
+
+  def dead: Receive = {
+    case AsyncServiceClient.GetConnectionStatus(promise) => {
+      promise.success(ConnectionStatus.NotConnected)
+    }
   }
 
 }
@@ -101,6 +108,11 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     override def onBind() {
       super.onBind()
       caller.!(ConnectionEvent.Bound(id.get))(boundWorker.get.worker)
+    }
+
+    override def onUnbind() {
+      super.onUnbind()
+      caller.!(ConnectionEvent.Unbound)()
     }
 
     override def receivedMessage(message: Any, sender: ActorRef) {
