@@ -366,9 +366,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   def unregisterServer(handler: ActorRef) {
     if (delegators contains handler) {
       val delegator = delegators(handler)
-      log.info(s"unregistering server ${delegator.server.name}")
+      val closed = connections.collect{
+        case (_, s: ServerConnection) if (s.server == delegator.server) => {
+          unregisterConnection(s, DisconnectCause.Terminated)
+        }
+      }
       delegators -= handler
       delegator.onShutdown()
+      log.info(s"unregistering server ${delegator.server.name} (terminating ${closed.size} associated connections)")
     } else {
       log.warning(s"Attempted to unregister unknown server actor ${handler.path.toString}")
     }
