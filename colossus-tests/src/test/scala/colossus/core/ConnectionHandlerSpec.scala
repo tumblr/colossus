@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import akka.util.ByteString
 
 import ConnectionEvent._
+import RawProtocol._
 
 class Handler(listener: ActorRef) extends Actor {
   def receive = {
@@ -81,23 +82,36 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
   "Client Connection Handler" must {
 
+    class MyHandler(probe: ActorRef, sendBind: Boolean, sendUnbind: Boolean, disconnect: Boolean = false) extends BasicSyncHandler with ClientConnectionHandler{
+      override def onBind() {
+        if (sendBind) probe ! "BOUND"
+      }
+      override def onUnbind() {
+        if (sendUnbind) probe ! "UNBOUND"
+      }
+
+      override def connected(endpoint: WriteEndpoint) {
+        if (disconnect) endpoint.disconnect()
+      }
+
+      override def connectionTerminated(cause: DisconnectCause) {
+        println(s"TERMINATED: $cause")
+      }
+
+      def receivedData(data: DataBuffer){}
+      def connectionFailed(){}
+    }
+
     "bind to worker" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler{
-        override def onBind() {
-          probe.ref ! "BOUND"
-        }
-        def receivedData(data: DataBuffer){}
-        def connectionFailed(){}
-      }
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
-        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, false))
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
 
-    "not automatically unbind" in {
+    "automatically unbind on manual disconnect" in {
       val probe = TestProbe()
       class MyHandler extends BasicSyncHandler with ClientConnectionHandler{
         override def onUnbind() {
@@ -111,34 +125,54 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
-          probe.expectNoMsg(200.milliseconds)
+          probe.expectMsg(250.milliseconds, "UNBOUND")
         }
       }
     }
 
-    "automatically unbind with AutoUnbindHandler mixin" in {
+    "automatically unbind on disrupted connection" taggedAs(org.scalatest.Tag("wat")) in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with AutoUnbindHandler{
+      withIOSystem{ implicit io =>
+        val server = Service.become[Raw]("test", TEST_PORT){case x => x}
+        withServer(server) {
+          io ! IOCommand.BindAndConnectWorkerItem(
+            new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
+          )
+          probe.expectMsg(500.milliseconds, "BOUND")
+        }
+        end(server)
+        probe.expectMsg(500.milliseconds, "UNBOUND")
+      }
+
+    }
+
+    "automatically unbind on failure to connect" in {
+
+    }
+
+    "NOT automatically unbind with ManualUnbindHandler mixin on disrupted connection" in {
+      val probe = TestProbe()
+      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with ManualUnbindHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
 
-        override def connected(endpoint: WriteEndpoint) {
-          endpoint.disconnect()
-        }
         def receivedData(data: DataBuffer){}
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
-          probe.expectMsg(200.milliseconds, "UNBOUND")
+          probe.expectNoMsg(200.milliseconds)
         }
+        probe.expectNoMsg(200.milliseconds)
       }
+    }
+
+    "NOT automatically unbind on failed connection with ManualUnbindHandler" ignore {
+
     }
   }
 

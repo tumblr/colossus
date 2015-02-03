@@ -332,12 +332,34 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       handler.connected(connection)
   }
 
+  /** Removes a closed connection and possibly unbinds the associated Connection Handler
+    * 
+    * In general, the only time we don't want to unbind the handler is when the
+    * connection is a client connection with the ManualUnbindHandler mixed in
+    * and the disconnect cause is an error.  This allows the client to possibly
+    * reconnect and still receive messages.
+    *
+    * Here's the table 
+    *
+    *   Server/Client   ManualUnbindHandler   DisconnectError   Unbind?
+    *         S                 -                   -             Y
+    *         C                 N                   -             Y
+    *         C                 Y                   N             Y
+    *         C                 Y                   Y             N
+    *
+    * It may be the case in the future that we want the ManualUnbindHandler to
+    * cause the handler to stay bound even on non-error disconnects, but for
+    * now the only reason that mixin exists is for ServiceClient reconnections,
+    * so it makes sense for now to err on the side of caution and not risk a
+    * leak of bound WorkerItems
+    */
   def unregisterConnection(con: Connection, cause : DisconnectCause) {
     connections -= con.id
     con.close(cause)
     numConnections.decrement()
-    if (con.unbindHandlerOnClose) {
-      workerItems.unbind(con.handler)
+    (con.handler, cause) match {
+      case (m: ManualUnbindHandler, d: DisconnectError) => {}
+      case _ => workerItems.unbind(con.handler)
     }
   }
 
