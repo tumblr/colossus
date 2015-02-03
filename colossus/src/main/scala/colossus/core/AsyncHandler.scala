@@ -33,6 +33,10 @@ case class AsyncHandler(handler: ActorRef) extends WatchedHandler with ClientCon
     handler ! Bound(id.get)
   }
 
+  override def onUnbind() {
+    handler ! Unbound
+  }
+
 
   def connected(e: WriteEndpoint) {
     endpointOpt = Some(e)
@@ -136,6 +140,8 @@ object ConnectionEvent {
   case object Connected extends ConnectionEvent
   //for client connections
   case object ConnectionFailed extends ClientConnectionEvent
+
+  case object Unbound extends ConnectionEvent
 }
 
 
