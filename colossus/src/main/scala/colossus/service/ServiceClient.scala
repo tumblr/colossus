@@ -92,16 +92,6 @@ trait ServiceClientLike[I,O] extends LocalClient[I,O] {
 }
 
 
-object ServiceClient {
-
-  def apply[I,O](codec: Codec[I,O], config: ClientConfig, worker: WorkerRef): ServiceClient[I,O] = {
-    val c = new ServiceClient(codec, config)
-    worker.bind(c)
-    c
-  }
-
-}
-
 /**
  * This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
  * To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
@@ -122,24 +112,24 @@ class StaleClientException(msg : String) extends Exception(msg)
  */
 class ServiceClient[I,O](
   codec: Codec[I,O], 
-  val config: ClientConfig
-)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O]{
+  val config: ClientConfig,
+  val worker: WorkerRef
+)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
 
   type ResponseHandler = Try[O] => Unit
 
-  private lazy val worker = boundWorker.get
-
   //todo: figure out how to make these not lazy
   private val periods = List(1.second, 1.minute)
-  private lazy val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
-  private lazy val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
-  private lazy val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
-  private lazy val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
-  private lazy val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
-  private lazy val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
+  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
+  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
+  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
+  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
+  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   case class SourcedRequest(message: I, handler: ResponseHandler) {
@@ -157,6 +147,8 @@ class ServiceClient[I,O](
   private val hTags: TagMap = Map("client_host" -> address.getHostName)
 
   case class AsyncRequest(request: I, handler: ResponseHandler)
+
+  worker.bind(this)
 
   /**
    *
