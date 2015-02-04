@@ -24,7 +24,11 @@ import org.scalatest.Tag
 
 class ServiceClientSpec extends ColossusSpec {
 
-  def newClient(failFast: Boolean = false, maxSentSize: Int = 10): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
+  def newClient(
+    failFast: Boolean = false, 
+    maxSentSize: Int = 10, 
+    connectionAttempts: PollingDuration = PollingDuration(1.second, None)
+  ): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
     val (workerProbe, worker) = FakeIOSystem.fakeWorkerRef
     val config = ClientConfig(
@@ -33,7 +37,8 @@ class ServiceClientSpec extends ColossusSpec {
       MetricAddress.Root / "test", 
       pendingBufferSize = 100, 
       sentBufferSize = maxSentSize, 
-      failFast = failFast
+      failFast = failFast,
+      connectionAttempts = connectionAttempts
     )
     val client = new RedisClient(config, worker)
     workerProbe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
@@ -352,7 +357,13 @@ class ServiceClientSpec extends ColossusSpec {
       client.gracefulDisconnect()
       endpoint.connection_status = ConnectionStatus.NotConnected
       endpoint.disrupt()
-      probe.expectNoMsg(50.milliseconds)
+      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
+    }
+
+    "unbind from the worker when not attempting to reconnect" in {
+      val (endpoint, client, probe) = newClient(true, 10, connectionAttempts = PollingDuration.NoRetry)
+      endpoint.disrupt()
+      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
     }
 
 

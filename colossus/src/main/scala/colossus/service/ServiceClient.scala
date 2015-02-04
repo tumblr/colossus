@@ -284,7 +284,11 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       }
       else {
         log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
+        worker.unbind(id.get)
       }
+    } else {
+      //todo I think there's a bug here, pending requests aren't properly failed
+      worker.unbind(id.get)
     }
   }
 
