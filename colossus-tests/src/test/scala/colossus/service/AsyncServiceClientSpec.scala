@@ -17,7 +17,7 @@ import RawProtocol._
 
 class AsyncServiceClientSpec extends ColossusSpec {
 
-  def server()(implicit sys: IOSystem): ServerRef = {
+  def makeServer()(implicit sys: IOSystem): ServerRef = {
     Service.serve[Raw]("redis-test", TEST_PORT){_.handle{_.become{
       case x => x
     }}}
@@ -26,7 +26,7 @@ class AsyncServiceClientSpec extends ColossusSpec {
   "AsyncServiceClient" must {
     "send a command" in {
       withIOSystem{ implicit io =>
-        withServer(server()) {
+        withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
           Await.result(client.send(ByteString("foo")), 500.milliseconds) must equal(ByteString("foo"))
         }
@@ -35,36 +35,34 @@ class AsyncServiceClientSpec extends ColossusSpec {
 
     "get connection status" in {
       withIOSystem{ implicit io =>
-        withServer(server()) {
+        withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
-          Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
+          TestClient.waitForStatus(client, ConnectionStatus.Connected)
         }
       }
     }
 
     "disconnect from server" in {
       withIOSystem{ implicit io =>
-        withServer(server()) {
+        val server = makeServer()
+        withServer(server) {
           val client = TestClient(io, TEST_PORT)
           Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
           client.disconnect()
-          intercept[Exception] {
-            Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
-          }
+          TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+          TestUtil.expectServerConnections(server, 0)
         }
       }
     }
 
-    "shutdown when connection is unbound" taggedAs(org.scalatest.Tag("test")) in {
+    "shutdown when connection is unbound" in {
       var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
       withIOSystem{ implicit io =>
-        withServer(server()) {
-          client = Some(TestClient(io, TEST_PORT))
+        withServer(makeServer()) {
+          client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
           Await.result(client.get.send(ByteString("foo")), 500.milliseconds) must equal(ByteString("foo"))
         }
-        intercept[Exception] {
-          Await.result(client.get.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
-        }
+        TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
       }
     }
 

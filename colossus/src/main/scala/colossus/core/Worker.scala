@@ -396,11 +396,18 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           con.handleConnected()
         } catch {
           case c: java.net.ConnectException => {
+            //TODO consider rolling in connection failure as a disconnect cause
             con.clientHandler.connectionFailed()
+            if (!con.clientHandler.isInstanceOf[ManualUnbindHandler]) {
+              workerItems.unbind(con.clientHandler)
+            }
           }
           case t: Throwable => {
             log.error(s"Unexpected exception occurred while completing connection: ${t.getMessage}")
             con.clientHandler.connectionFailed()
+            if (!con.clientHandler.isInstanceOf[ManualUnbindHandler]) {
+              workerItems.unbind(con.clientHandler)
+            }
           }
         }
         it.remove()

@@ -114,7 +114,7 @@ class ServerSpec extends ColossusSpec {
       }
 
       //this test won't pass until the AsyncServiceClient retry loop is fixed
-      "shutdown all associated connections when shutdown" taggedAs(org.scalatest.Tag("test")) ignore {
+      "shutdown all associated connections when shutdown"  in {
         var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
         withIOSystem{implicit io =>
           withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
@@ -140,9 +140,7 @@ class ServerSpec extends ColossusSpec {
 
       }
 
-      "shutting down a system kills client connections"  ignore {
-
-
+      "shutting down a system kills client connections"  in {
         implicit val io = IOSystem("test-system", 2)
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
         val probe = TestProbe()
@@ -181,7 +179,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "open up spot when connection closes" ignore {
+      "open up spot when connection closes" taggedAs(org.scalatest.Tag("test")) in {
         val settings = ServerSettings(
           port = TEST_PORT,
           maxConnections = 1
@@ -205,7 +203,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "close connection when worker rejects" ignore {
+      "close connection when worker rejects" in {
         class AngryDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
           def acceptNewConnection = None // >:(
         }
