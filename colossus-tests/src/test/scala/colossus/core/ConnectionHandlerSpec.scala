@@ -13,6 +13,7 @@ import scala.concurrent.duration._
 import akka.util.ByteString
 
 import ConnectionEvent._
+import RawProtocol._
 
 class Handler(listener: ActorRef) extends Actor {
   def receive = {
@@ -66,14 +67,20 @@ class ConnectionHandlerSpec extends ColossusSpec {
       val probe = TestProbe()
       class MyHandler extends BasicSyncHandler {
         override def onUnbind() {
+          println("UNBINDING!!!!!!!")
           probe.ref ! "UNBOUND"
+        }
+
+        override def connectionTerminated(cause: DisconnectCause) {
+          println(s"Terminated: $cause")
         }
         def receivedData(data: DataBuffer){}
       }
       withIOSystemAndServer(Delegator.basic(() => new MyHandler)){ (io, server) => {
-          val c = TestClient(io, TEST_PORT)
+          val c = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
           c.disconnect()
-          probe.expectMsg(100.milliseconds, "UNBOUND")
+          TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
+          probe.expectMsg(500.milliseconds, "UNBOUND")
         }
       }
     }
@@ -81,23 +88,36 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
   "Client Connection Handler" must {
 
+    class MyHandler(probe: ActorRef, sendBind: Boolean, sendUnbind: Boolean, disconnect: Boolean = false) extends BasicSyncHandler with ClientConnectionHandler{
+      override def onBind() {
+        if (sendBind) probe ! "BOUND"
+      }
+      override def onUnbind() {
+        if (sendUnbind) probe ! "UNBOUND"
+      }
+
+      override def connected(endpoint: WriteEndpoint) {
+        if (disconnect) endpoint.disconnect()
+      }
+
+      override def connectionTerminated(cause: DisconnectCause) {
+        println(s"TERMINATED: $cause")
+      }
+
+      def receivedData(data: DataBuffer){}
+      def connectionFailed(){}
+    }
+
     "bind to worker" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler{
-        override def onBind() {
-          probe.ref ! "BOUND"
-        }
-        def receivedData(data: DataBuffer){}
-        def connectionFailed(){}
-      }
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
-        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, false))
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
 
-    "not automatically unbind" in {
+    "automatically unbind on manual disconnect" in {
       val probe = TestProbe()
       class MyHandler extends BasicSyncHandler with ClientConnectionHandler{
         override def onUnbind() {
@@ -111,34 +131,74 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
-          probe.expectNoMsg(200.milliseconds)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+          probe.expectMsg(250.milliseconds, "UNBOUND")
         }
       }
     }
 
-    "automatically unbind with AutoUnbindHandler mixin" in {
+    "automatically unbind on disrupted connection" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with AutoUnbindHandler{
+      withIOSystem{ implicit io =>
+        val server = Service.become[Raw]("test", TEST_PORT){case x => x}
+        withServer(server) {
+          io ! IOCommand.BindAndConnectWorkerItem(
+            new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
+          )
+          probe.expectMsg(500.milliseconds, "BOUND")
+        }
+        end(server)
+        probe.expectMsg(500.milliseconds, "UNBOUND")
+      }
+
+    }
+
+    "automatically unbind on failure to connect" in {
+      val probe = TestProbe()
+      withIOSystem{ implicit io =>
+        io ! IOCommand.BindAndConnectWorkerItem(
+          new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
+        )
+        probe.expectMsg(250.milliseconds, "BOUND")
+        probe.expectMsg(250.milliseconds, "UNBOUND")
+      }
+    }
+
+    "NOT automatically unbind with ManualUnbindHandler mixin on disrupted connection" in {
+      val probe = TestProbe()
+      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with ManualUnbindHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
 
-        override def connected(endpoint: WriteEndpoint) {
-          endpoint.disconnect()
-        }
         def receivedData(data: DataBuffer){}
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        import RawProtocol._
         withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), new MyHandler)
-          probe.expectMsg(200.milliseconds, "UNBOUND")
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+          probe.expectNoMsg(200.milliseconds)
         }
+        probe.expectNoMsg(200.milliseconds)
       }
+    }
+
+    "NOT automatically unbind on failed connection with ManualUnbindHandler" in {
+      val probe = TestProbe()
+      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with ManualUnbindHandler{
+        override def onUnbind() {
+          probe.ref ! "UNBOUND"
+        }
+
+        def receivedData(data: DataBuffer){}
+        def connectionFailed(){}
+      }
+      withIOSystem{ implicit io =>
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+        probe.expectNoMsg(200.milliseconds)
+      }
+
     }
   }
 

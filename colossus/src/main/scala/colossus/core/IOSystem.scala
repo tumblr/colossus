@@ -102,7 +102,7 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    * @return The Task's ActorRef
    */
   def run(t: Task): ActorRef = {
-    workerManager ! IOCommand.BindWorkerItem(t)
+    workerManager ! IOCommand.BindWorkerItem(_ => t)
     t.proxy
   }
 
@@ -112,7 +112,7 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
    * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
    *                to the handler.
    */
-  def connect(address: InetSocketAddress, handler: ClientConnectionHandler) {
+  def connect(address: InetSocketAddress, handler: WorkerRef => ClientConnectionHandler) {
     workerManager ! BindAndConnectWorkerItem(address, handler)
   }
 }
@@ -138,12 +138,12 @@ object IOCommand {
    * specific worker and can only be used on a WorkerItem already bound to that
    * worker
    */
-  case class BindAndConnectWorkerItem(address: InetSocketAddress, item: WorkerItem) extends IOCommand
+  case class BindAndConnectWorkerItem(address: InetSocketAddress, item: WorkerRef => WorkerItem) extends IOCommand
 
   /**
    * Bind a [WorkerItem] to a Worker.  Multiple Bind messages are round
    * robined across workers in an IOSystem
    */
-  case class BindWorkerItem(item: WorkerItem) extends IOCommand
+  case class BindWorkerItem(item: WorkerRef => WorkerItem) extends IOCommand
 
 }

@@ -20,7 +20,7 @@ class WorkerItemSpec extends ColossusSpec {
           }
           def receivedMessage(message: Any, sender: ActorRef){}
         }
-        io ! IOCommand.BindWorkerItem(new MyItem)
+        io ! IOCommand.BindWorkerItem(_ => new MyItem)
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
@@ -35,9 +35,9 @@ class WorkerItemSpec extends ColossusSpec {
           def receivedMessage(message: Any, sender: ActorRef){}
         }
         val item = new MyItem
-        io ! IOCommand.BindWorkerItem(item)
+        io ! IOCommand.BindWorkerItem(_ => item)
         probe.expectMsg(100.milliseconds, "BOUND")
-        io ! IOCommand.BindWorkerItem(item)
+        io ! IOCommand.BindWorkerItem(_ => item)
         probe.expectNoMsg(100.milliseconds)
       }       
 
@@ -57,7 +57,7 @@ class WorkerItemSpec extends ColossusSpec {
           }
         }
         val item = new MyItem
-        io ! IOCommand.BindWorkerItem(item)
+        io ! IOCommand.BindWorkerItem(_ => item)
         probe.expectMsg(100.milliseconds, "PONG")
       }       
     }
@@ -77,7 +77,7 @@ class WorkerItemSpec extends ColossusSpec {
           }
         }
         val item = new MyItem
-        io ! IOCommand.BindWorkerItem(item)
+        io ! IOCommand.BindWorkerItem(_ => item)
         probe.expectNoMsg(100.milliseconds)
       }
     }

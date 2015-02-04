@@ -2,6 +2,7 @@ package colossus
 package protocols
 
 import colossus.parsing.DataSize
+import core.WorkerRef
 import service._
 
 package object http {
@@ -54,18 +55,21 @@ package object http {
     def name = "streamingHttp"
   }
 
-  class HttpClient(config : ClientConfig, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
+  class HttpClient(config : ClientConfig, worker: WorkerRef, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
     extends ServiceClient[HttpRequest, HttpResponse](
       codec = HttpClientCodec.static(maxSize),
-      config = config
+      config = config,
+      worker = worker
     )
 
   class StreamingHttpClient(config : ClientConfig,
+                            worker : WorkerRef,
                             maxSize : DataSize = HttpResponseParser.DefaultMaxSize,
                             streamBufferSize : Int = HttpResponseParser.DefaultQueueSize)
     extends ServiceClient[HttpRequest, StreamingHttpResponse](
       codec = HttpClientCodec.streaming(maxSize, streamBufferSize),
-      config = config
+      config = config,
+      worker = worker
     )
 
 }
