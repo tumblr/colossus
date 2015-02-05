@@ -203,8 +203,8 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
   def isTimedOut(time: Long) = false
 
   def unbindHandlerOnClose = handler match {
-    case u: AutoUnbindHandler => true
-    case _ => false
+    case u: ManualUnbindHandler => false
+    case _ => true
   }
 
 

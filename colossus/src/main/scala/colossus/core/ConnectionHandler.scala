@@ -85,12 +85,13 @@ trait ClientConnectionHandler extends ConnectionHandler {
 }
 
 /**
- * A Simple mixin trait that will cause the worker to automatically unbind this
- * handler if the connection it's attached to is closed.  This is generally a
- * good idea if the handler is not going to attempt any connection retry logic
- * or is not setup to receive any actor messages
+ * A Simple mixin trait that will cause the worker to not automatically unbind
+ * this handler if the connection it's attached to is closed.  This mixin is
+ * required if a connection handler wants to handle retry logic, since this
+ * trait will allow it to continue to receive messages during the reconnection
+ * process and bind to another connection
  */
-trait AutoUnbindHandler extends ClientConnectionHandler
+trait ManualUnbindHandler extends ClientConnectionHandler
 
 /**
  * Convenience implementation of ConnectionHandler which provides implementations for all of
