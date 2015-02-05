@@ -67,7 +67,6 @@ class ConnectionHandlerSpec extends ColossusSpec {
       val probe = TestProbe()
       class MyHandler extends BasicSyncHandler {
         override def onUnbind() {
-          println("UNBINDING!!!!!!!")
           probe.ref ! "UNBOUND"
         }
 

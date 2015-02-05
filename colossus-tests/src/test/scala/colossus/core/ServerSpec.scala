@@ -179,7 +179,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "open up spot when connection closes" taggedAs(org.scalatest.Tag("test")) in {
+      "open up spot when connection closes" in {
         val settings = ServerSettings(
           port = TEST_PORT,
           maxConnections = 1
