@@ -10,8 +10,12 @@ import akka.util.Timeout
 import MetricAddress.Root
 
 
-case class MetricSystem(namespace: MetricAddress, clock: ActorRef, database: ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
-  
+case class MetricSystemId(id: Long)
+
+
+case class MetricSystem(id: MetricSystemId, namespace: MetricAddress, clock: ActorRef, database: ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
+
+
   def query(filter: MetricFilter): MetricMap = snapshot().filter(filter)  
 
   def query(queryString: String): MetricMap = query(MetricFilter(queryString))
@@ -28,21 +32,22 @@ case class MetricSystem(namespace: MetricAddress, clock: ActorRef, database: Act
 }
 
 object MetricSystem {
-  def apply(namespace: MetricAddress, tickPeriod: FiniteDuration = 1.second)
+  def apply(namespace: MetricAddress, tickPeriod: FiniteDuration = 1.second, collectSystemMetrics: Boolean = true)
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
-    val clock = system.actorOf(Props(classOf[MetricClock], tickPeriod), name =  s"${namespace.idString}-clock")
+    val id = MetricSystemId(System.nanoTime)
+    val clock = system.actorOf(Props(classOf[MetricClock], id, tickPeriod), name =  s"${namespace.idString}-clock")
     val snap = Agent[MetricMap](Map())
-    val db = system.actorOf(Props(classOf[MetricDatabase], namespace, snap))
+    val db = system.actorOf(Props(classOf[MetricDatabase], id, namespace, snap, collectSystemMetrics))
 
-    val metrics = MetricSystem(namespace, clock, db, snap, tickPeriod)
+    val metrics = MetricSystem(id, namespace, clock, db, snap, tickPeriod)
 
     metrics
   }
 
   def deadSystem(implicit system: ActorSystem) = {
     import ExecutionContext.Implicits.global //this is ok since we're using it to create an agent that's never used
-    MetricSystem(Root / "DEAD", system.deadLetters, system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
+    MetricSystem(MetricSystemId(System.nanoTime), Root / "DEAD", system.deadLetters, system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
   }
 
   object Global {

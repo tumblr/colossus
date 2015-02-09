@@ -2,6 +2,9 @@ package colossus.metrics
 
 import org.scalatest._
 
+
+import akka.actor._
+import scala.concurrent.duration._
 import MetricAddress._
 
 class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
@@ -18,12 +21,36 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "MetricSystem" must {
     "allow multiple systems to start without any conflicts" in {
-      import akka.actor._
       implicit val sys = ActorSystem("metrics")
       val m1 = MetricSystem("/sys1")
       val m2 = MetricSystem("/sys2")
       //no exceptions means the test passed
       sys.shutdown()
+    }
+
+
+    "two metric systems don't react to each other's ticks" in {
+      implicit val sys = ActorSystem("metrics")
+      val m1 = MetricSystem("/sys1", tickPeriod = 20.milliseconds, collectSystemMetrics = false)
+      val m2 = MetricSystem("/sys2", tickPeriod = 150.milliseconds, collectSystemMetrics = false)
+      val m1col = m1.sharedCollection()
+      val m1counter = m1col.getOrAdd(Counter("/foo"))
+      m1counter.increment()
+      m1counter.increment()
+      m1counter.increment()
+
+      val m2col = m2.sharedCollection()
+      val m2counter = m2col.getOrAdd(Counter("/bar"))
+      m2counter.increment()
+      m2counter.increment()
+
+      Thread.sleep(100)
+      m1.snapshot() must equal(Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
+      m2.snapshot() must equal(Map())
+      Thread.sleep(500)
+      m2.snapshot() must equal(Map(Root / "bar" -> Map(TagMap.Empty -> 2)))
+      sys.shutdown()
+      
     }
   }
 

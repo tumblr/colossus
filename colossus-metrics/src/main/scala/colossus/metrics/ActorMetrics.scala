@@ -20,7 +20,7 @@ trait ActorMetrics extends Actor with ActorLogging {
       case UnknownMetric => log.error(s"Event for unknown Metric: $m")
       case InvalidEvent => log.error(s"Invalid event $m")
     }
-    case Tick(v) => {
+    case Tick(id, v) if (id == metricSystem.id) => {
       val agg = metrics.aggregate
       metrics.tick(metricSystem.tickPeriod)
       metricSystem.database ! Tock(agg, v)
