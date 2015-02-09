@@ -31,4 +31,7 @@ object HttpRequest {
     //val head = HttpHead(method, url, HttpVersion.`1.1`, Map(HttpHeaders.ContentLength -> List(bodybytes.map{_.size.toString}.getOrElse("0"))))
     HttpRequest(head, bodybytes)
   }
+
+
+  def get(url: String) = HttpRequest(HttpMethod.Get, url, None)
 }

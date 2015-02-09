@@ -74,4 +74,23 @@ class ServiceServerSpec extends ColossusSpec {
 
   }
 
+  "Streaming Service" must {
+
+    import protocols.http._
+
+    "Serve a basic response as a stream" taggedAs(org.scalatest.Tag("Test")) in {
+      withIOSystem{implicit io =>
+        val server = Service.become[StreamingHttp]("stream-test", TEST_PORT) {
+          case req => StreamingHttpResponse.fromStatic(req.ok("Hello World"))
+        }
+        withServer(server) { 
+          val client = AsyncServiceClient[Http]("localhost", TEST_PORT)
+          Await.result(client.send(HttpRequest.get("/")), 1.second).data must equal(ByteString("Hello World"))
+        }
+      }
+    }
+  }
+
+      
+
 }
