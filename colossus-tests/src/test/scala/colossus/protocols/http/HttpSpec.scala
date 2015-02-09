@@ -1,7 +1,7 @@
 package colossus
 
 
-import colossus.core.DataBuffer
+import colossus.core.{DataBuffer, DataStream}
 import org.scalatest._
 
 import akka.util.ByteString
@@ -54,6 +54,13 @@ class HttpSpec extends WordSpec with MustMatchers{
         }
         case y => throw new Exception(s"expected a DataBuffer, received a $y instead")
       }
+    }
+
+    "encode a basic response as a stream" in {
+      val content = "Hello World!"
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Nil, ByteString(content))
+      val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
+      val stream: DataStream = StreamedResponseBuilder(StreamingHttpResponse.fromStatic(response))
     }
   }
 }

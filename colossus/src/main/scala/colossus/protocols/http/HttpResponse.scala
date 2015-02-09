@@ -46,7 +46,9 @@ object StreamingHttpResponse {
     val data = new DataBuffer(buffer)
     val pipe = new FiniteBytePipe(response.data.size, HttpResponseParser.DefaultQueueSize)
     pipe.push(data)
-    StreamingHttpResponse(response.version, response.code, response.headers, pipe)
+    val strippedHeaders = response.headers.filterNot{_._1 == HttpHeaders.ContentLength}
+    val finalHeaders = strippedHeaders :+ (HttpHeaders.ContentLength, response.data.size.toString)
+    StreamingHttpResponse(response.version, response.code, finalHeaders, pipe)
   }
 
   def fromValue[T : ByteStringLike](version : HttpVersion = HttpVersion.`1.1`, code : HttpCode, headers :Seq[(String, String)] = Nil, value : T) : StreamingHttpResponse = {
