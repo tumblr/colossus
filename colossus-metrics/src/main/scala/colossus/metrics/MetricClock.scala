@@ -6,22 +6,24 @@ import akka.agent.Agent
 import scala.concurrent.duration._
 
 
-class MetricDatabase(namespace: MetricAddress, snapshot: Agent[MetricMap]) extends Actor with ActorLogging {
+class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapshot: Agent[MetricMap], collectSystemMetrics: Boolean) extends Actor with ActorLogging {
   import MetricClock._
   import MetricDatabase._
 
   val systemMetrics = new SystemMetricsCollector(namespace)
 
+  def blankMap(): MetricMap = if (collectSystemMetrics) systemMetrics.metrics else Map()
+
   var latestTick = 0L
-  var build: MetricMap = systemMetrics.metrics
+  var build: MetricMap = blankMap() 
   var metrics = systemMetrics.metrics
 
   def receive = {
-    case Tick(v) => {
+    case Tick(id, v) if (id == systemId) => {
       latestTick = v
       metrics = build
       snapshot.alter(_ => metrics)
-      build = systemMetrics.metrics
+      build = blankMap()
     }
     case Tock(m, v) => if (v >= latestTick) {
       build = build << m
@@ -51,7 +53,7 @@ object MetricDatabase {
 }
 
 
-class MetricClock(period: FiniteDuration) extends Actor with ActorLogging {
+class MetricClock(systemId: MetricSystemId, period: FiniteDuration) extends Actor with ActorLogging {
   import context.dispatcher
   import MetricClock._
   
@@ -65,13 +67,13 @@ class MetricClock(period: FiniteDuration) extends Actor with ActorLogging {
   def receive = {
     case SendTick => {
       tickNum += 1
-      context.system.eventStream.publish(Tick(tickNum))
+      context.system.eventStream.publish(Tick(systemId, tickNum))
     }
   }
 
 }
 object MetricClock {
-  case class Tick(value: Long)
+  case class Tick(systemId: MetricSystemId, value: Long)
   case class Tock(metrics: MetricMap, tick: Long)
 }
 
