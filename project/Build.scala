@@ -16,7 +16,7 @@ object ColossusBuild extends Build {
     organization := "com.tumblr",
     scalaVersion  := "2.11.4",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
-    version                   := "0.6.0-M1",
+    version                   := "0.6.0-M2",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(
@@ -57,7 +57,7 @@ object ColossusBuild extends Build {
   lazy val RootProject = Project(id="root", base=file("."))
       .settings(noPubSettings:_*)
       .dependsOn(ColossusProject)
-      .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject)
+      .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject)
 
   lazy val ColossusProject: Project = Project(id="colossus", base=file("colossus"))
       .settings(ColossusSettings:_*)

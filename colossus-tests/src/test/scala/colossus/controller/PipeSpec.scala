@@ -1,13 +1,14 @@
 package colossus
 package controller
 
+import colossus.testkit.CallbackMatchers
 import org.scalatest._
 
 import akka.util.ByteString
 import core.DataBuffer
 import scala.util.{Success, Failure}
 
-class PipeSpec extends WordSpec with MustMatchers {
+class PipeSpec extends WordSpec with MustMatchers with CallbackMatchers {
 
   implicit object IntCopier extends Copier[Int] {
     def copy(i: Int) = i
@@ -23,22 +24,22 @@ class PipeSpec extends WordSpec with MustMatchers {
     "fail to push when pipe is full" in {
       val pipe = new InfinitePipe[Int](2)
       pipe.push(1) must equal(Success(PushResult.Ok))
-      pipe.push(1) mustBe an[Success[PushResult.Full]]
-      pipe.push(1) mustBe an[Failure[PushResult]]
+      pipe.push(1) mustBe an[Success[_]]
+      pipe.push(1) mustBe an[Failure[_]]
     }
 
     "fail to push when pipe has been completed" in {
       val pipe = new InfinitePipe[Int](2)
       pipe.push(1) must equal(Success(PushResult.Ok))
       pipe.complete()
-      pipe.push(1) mustBe an[Failure[PushResult]]
+      pipe.push(1) mustBe an[Failure[_]]
     }
 
     "fail to push when pipe has been terminated" in {
       val pipe = new InfinitePipe[Int](2)
       pipe.push(1) must equal(Success(PushResult.Ok))
       pipe.terminate(new Exception("sadfsadf"))
-      pipe.push(1) mustBe an[Failure[PushResult]]
+      pipe.push(1) mustBe an[Failure[_]]
     }
 
     "pull an item already pushed" in {
@@ -84,7 +85,7 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.push(1) must equal(Success(PushResult.Ok))
       val r = pipe.push(1) 
       var triggered = false
-      r mustBe an[Success[PushResult.Full]]
+      r mustBe an[Success[_]]
       r.asInstanceOf[Success[PushResult.Full]].get.trigger.fill{() => triggered = true}
       pipe.pull{_ => ()}
       triggered must equal(true)
@@ -113,7 +114,7 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.push(2) must equal(Success(PushResult.Ok))
       pipe.terminate(new Exception("asdf"))
       var pulled = false
-      pipe.pull{r => pulled = true; r mustBe an[Failure[Int]]}
+      pipe.pull{r => pulled = true; r mustBe an[Failure[_]]}
 
       pulled mustBe true
     }
@@ -152,10 +153,46 @@ class PipeSpec extends WordSpec with MustMatchers {
       executed must equal(true)
     }
 
-        
+    "foldWhile folds before terminal condition is met" in {
+      val pipe = new InfinitePipe[Int](20)
+      var executed = false
+      pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
+        case Success(x) if x < 10 => {executed = true}
+        case other => {
+          throw new Exception(s"bad end value $other")
+        }
 
-      
+      }
+      //the first 4 pushes should bring our total to 8
+      (1 to 4).foreach { i =>
+        executed must equal(false)
+        pipe.push(2)
+      }
 
+      pipe.complete()
+      executed must equal(true)
+    }
+
+    "foldWhile stops folding after terminal condition" in {
+      val pipe = new InfinitePipe[Int](20)
+      var executed = false
+      pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
+        case Success(10) => {executed = true}
+         case other => {
+          throw new Exception(s"bad end value $other")
+         }
+      }
+       //the first 4 pushes should bring our total to 8
+       (1 to 4).foreach { i =>
+         executed must equal(false)
+         pipe.push(2)
+       }
+        (1 to 4).foreach { i =>
+          pipe.push(2)
+        }
+        pipe.complete()
+        executed must equal(true)
+    }
   }
 
   "FiniteBytePipe" must {
@@ -165,6 +202,39 @@ class PipeSpec extends WordSpec with MustMatchers {
       pipe.push(data) must equal(Success(PushResult.Done))
       data.remaining must equal(3)
     }
+
+    "not allow negatively sized pipes" in {
+      intercept[IllegalArgumentException] {
+        new FiniteBytePipe(-1, 1)
+      }
+    }
+
+    "immediately close 0 sized pipes" in {
+      val pipe = new FiniteBytePipe(0, 4)
+      val data = DataBuffer(ByteString("1234567890"))
+      pipe.push(data) must equal(Success(PushResult.Done))
+      data.remaining must equal(10)
+      //this works..because the CB will never fire if the pipe is not closed
+      pipe.pullCB() must evaluateTo { x : Option[DataBuffer]=>
+        x must be (None)
+      }
+
+    }
+
+    "properly calculates bytes remaining" in {
+      //arose from a bug where the pipe was using the buffer's total length
+      //instead of how many bytes were readable
+      val pipe = new FiniteBytePipe(4, 4)
+      val data = DataBuffer(ByteString("1234567"))
+      data.take(5)
+      pipe.push(data) must equal(Success(PushResult.Ok))
+      val data2 = DataBuffer(ByteString("abcdefg"))
+      pipe.push(data2) must equal(Success(PushResult.Done))
+      pipe.fold(ByteString()){(buf, build) => build ++ ByteString(buf.takeAll)} must evaluateTo{bstr: ByteString =>
+        bstr must equal(ByteString("67ab"))
+      }
+    }
+
   }
 
   /*

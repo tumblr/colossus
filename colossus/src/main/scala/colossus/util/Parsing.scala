@@ -21,7 +21,7 @@ object DataSize {
   implicit def longToDataSize(l: Long): DataSize = DataSize(l)
 }
 
-/** A ParserSizeTracker can wrap a stream parser to ensure that the object beiing parsed doesn't exceed a certain size.
+/** A ParserSizeTracker can wrap a stream parser to ensure that the object being parsed doesn't exceed a certain size.
  *
  * The size tracker is not exact.  It simply looks at how many bytes are read
  * off the DataBuffer each time the track method is called.  Since in most
@@ -539,11 +539,11 @@ object Combinators {
    * @param terminus the byte to singal to stop repeating
    * @return the parsed sequence
    */
-  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[List[T]] = new Parser[List[T]]{
-    var build: List[T] = Nil
+  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[Seq[T]] = new Parser[Seq[T]]{
+    var build: Vector[T] = Vector()
     var checkNext = true
     var done = false
-    def parse(data: DataBuffer): Option[List[T]] = {
+    def parse(data: DataBuffer): Option[Vector[T]] = {
       while (data.hasNext && !done) {
         if (checkNext) {
           checkNext = false
@@ -553,14 +553,14 @@ object Combinators {
           } else {
             val r = parser.parse(DataBuffer(ByteString(b)))
             if (r.isDefined) {
-              build = r.get :: build
+              build = build :+ r.get
               checkNext = true
             }
           }
         } else {
           val r = parser.parse(data)
           if (r.isDefined) {
-            build = r.get :: build
+            build = build :+ r.get
             checkNext = true
           }
         }
@@ -569,7 +569,7 @@ object Combinators {
         done = false
         checkNext = true
         val res = Some(build)
-        build = Nil
+        build = Vector()
         res
       } else {
         None

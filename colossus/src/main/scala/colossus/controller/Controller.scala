@@ -2,8 +2,8 @@ package colossus
 package controller
 
 import core._
-import service.Codec
-import scala.util.{Try, Success, Failure}
+import colossus.service.{DecodedResult, Codec}
+import scala.util.{Success, Failure}
 import PushResult._
 
 /** trait representing a decoded message that is actually a stream
@@ -21,16 +21,19 @@ case class ControllerConfig(
   outputBufferSize: Int
 )
 
+//used to terminate input streams when a connection is closing
+class DisconnectingException(message: String) extends Exception(message)
+
 //passed to the onWrite handler to indicate the status of the write for a
 //message
 sealed trait OutputResult
 object OutputResult {
 
   // the message was successfully written
-  case object Success   extends OutputResult
+  case object Success extends OutputResult
 
   // the message failed, most likely due to the connection closing partway
-  case object Failure   extends OutputResult
+  case object Failure extends OutputResult
 
   // the message was cancelled before it was written (not implemented yet) 
   case object Cancelled extends OutputResult
@@ -41,6 +44,8 @@ extends ConnectionHandler {
 
   private var endpoint: Option[WriteEndpoint] = None
   def isConnected = endpoint.isDefined
+
+  //TODO: all of this would probably be cleaner with some kind of state machine
 
   //represents a message queued for writing
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
@@ -59,7 +64,13 @@ extends ConnectionHandler {
 
   //whether or not we should be pulling items out of the queue to write, this can be set
   //to fale through pauseWrites
-  private var enabled = true
+  private var writesEnabled = true
+
+  //we need to keep track of this outside the write-endpoint in case the endpoint changes
+  private var readsEnabled = true
+
+  //set to true when graceful disconnect has been initiated
+  private var disconnecting = false
 
   def connected(endpt: WriteEndpoint) {
     if (endpoint.isDefined) {
@@ -97,7 +108,9 @@ extends ConnectionHandler {
    * @param postWrite called either when writing has completed or failed
    */
   protected def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
-    if (waitingToSend.size < controllerConfig.outputBufferSize) {
+    if (disconnecting) {
+      false
+    } else if (waitingToSend.size < controllerConfig.outputBufferSize) {
       waitingToSend.add(QueuedItem(item, postWrite))
       checkQueue() 
       true
@@ -138,26 +151,64 @@ extends ConnectionHandler {
 
   /**
    * Pauses writing of the next item in the queue.  If there is currently a
-   * message in the process of writing, it will be unaffected
+   * message in the process of writing, it will be unaffected.  New messages
+   * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    enabled = false
+    writesEnabled = false
   }
 
   /**
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
   protected def resumeWrites() {
-    enabled = true
+    writesEnabled = true
     checkQueue()
   }
 
-  protected def paused = !enabled
+  protected def pauseReads() {
+    readsEnabled = false
+    endpoint.foreach{_.disableReads()}
+  }
+
+  protected def resumeReads {
+    readsEnabled = true
+    endpoint.foreach{_.enableReads()}
+  }
+
+  //todo: rename
+  protected def paused = !writesEnabled
 
   def disconnect() {
     //this has to be public to be used for clients
     endpoint.foreach{_.disconnect()}
     endpoint = None
+  }
+
+  /**
+   * stops reading from the connection and accepting new writes, but waits for
+   * pending/ongoing write operations to complete before disconnecting
+   */
+  def gracefulDisconnect() {
+    if (currentSink.isEmpty) {
+      endpoint.foreach{_.disableReads()}
+    }
+    disconnecting = true
+    //maybe wait instead for the message to finish? probably not
+    checkGracefulDisconnect()
+  }
+
+  private def checkGracefulDisconnect() {
+    if (
+      disconnecting && 
+      waitingToSend.size == 0 && 
+      currentlyWriting.isEmpty && 
+      currentStream.isEmpty && 
+      currentSink.isEmpty &&
+      currentTrigger.isEmpty
+    ) {
+      endpoint.foreach{_.disconnect()}
+    }
   }
 
   // == PRIVATE MEMBERS ==
@@ -170,12 +221,12 @@ extends ConnectionHandler {
    * if the stream has multiple databuffers to immediately write
    */
   private def checkQueue() {
-    while (enabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && endpoint.isDefined) {
+    while (writesEnabled && currentlyWriting.isEmpty && currentStream.isEmpty && waitingToSend.size > 0 && endpoint.isDefined) {
       val queued = waitingToSend.remove()
       codec.encode(queued.item) match {
         case DataStream(sink) => {
-          drain(sink)
           currentStream = Some((queued, sink))
+          drain(sink)
         }
         case d: DataBuffer => endpoint.get.write(d) match {
           case WriteStatus.Complete => {
@@ -191,6 +242,7 @@ extends ConnectionHandler {
         }
       }
     }
+    checkGracefulDisconnect()
   }
       
 
@@ -206,7 +258,7 @@ extends ConnectionHandler {
         case _ => {} //todo: maybe do something on Failure?
       }
       case Success(None) => {
-        currentStream.foreach{case (q, s) => 
+        currentStream.foreach{case (q, s) =>
           q.postWrite(OutputResult.Success)
         }
         currentStream = None
@@ -234,15 +286,30 @@ extends ConnectionHandler {
 
   /******* INPUT *******/
 
-
   def receivedData(data: DataBuffer) {
+
+    def resetSink(buffer : DataBuffer) {
+      currentSink = None
+      //recurse since the databuffer may still contain data for the next request
+      if(buffer.hasUnreadData && !disconnecting) receivedData(buffer)
+    }
+
+    def processAndContinue(msg : Input, buffer : DataBuffer) {
+      processMessage(msg)
+      if(buffer.hasUnreadData) receivedData(buffer)
+    }
+
     currentSink match {
       case Some(sink) => sink.push(data) match {
         case Success(Ok) => {}
         case Success(Done) => {
-          currentSink = None
-          //recurse since the databuffer may still contain data for the next request
-          if (data.hasUnreadData) receivedData(data)
+          resetSink(data) //should we have some kind of hook exposed here to signal when a client has finished streaming something?  
+          if (disconnecting) {
+            //gracefulDisconnect was called, so we allowed the connection to
+            //finish reading in the stream, but now that it's done, disable
+            //reads
+            endpoint.foreach{_.disableReads()}
+          }
         }
         case Success(Full(trigger)) => {
           endpoint.get.disableReads()
@@ -253,21 +320,19 @@ extends ConnectionHandler {
           }
           currentTrigger = Some(trigger)
         }
-        case Failure(reason) => {
-          //todo: what to do here?
+        //TODO: are the following 2 cases really exceptions..seems like they are part of the normal control flow from a controller's POV
+        case Failure(a : PipeTerminatedException) => resetSink(data)
+        case Failure(a : PipeClosedException) => resetSink(data)
+        case Failure(t : Throwable) => {
+          //todo: when a non expected failure occurs?
         }
       }
       case None => codec.decode(data) match {
-        case Some(message) =>  {
-          message match {
-            case s: StreamMessage => {
-              currentSink = Some(s.sink)
-            }
-            case _ => {}
-          }
-          processMessage(message)
-          if (data.hasUnreadData) receivedData(data)
+        case Some(DecodedResult.Streamed(msg, sink)) => {
+          currentSink = Some(sink)
+          processAndContinue(msg, data)
         }
+        case Some(DecodedResult.Static(msg)) => processAndContinue(msg, data)
         case None => {}
       }
     }

@@ -5,7 +5,6 @@ import core._
 
 import akka.actor._
 import akka.util.Timeout
-import akka.pattern.ask
 import java.net.InetSocketAddress
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
@@ -13,10 +12,9 @@ import scala.concurrent.duration._
 /**
  * This correctly routes messages to the right worker and handler
  */
-class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
+class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => WorkerRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
   import WorkerCommand._
   import ConnectionEvent._
-  import config._
 
   override def preStart() {
     system.workerManager ! IOCommand.BindWorkerItem(handlerFactory(self))
@@ -40,9 +38,27 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
     case Bound(wat) => {
       println(s"RECEIVED BOUND AGAIN! $connectionId vs $wat")
     }
+    case Unbound => context.become(dead)
     case Connected => {} //we ignore this because there's nothing to do with it.  Maybe add a callback in the future
-    case AsyncServiceClient.Disconnect => self ! PoisonPill //the worker is watching us and will close the underlying connection
+    case AsyncServiceClient.Disconnect => {
+      worker ! Disconnect(connectionId)
+      context.become(dying)
+    }
+    //case Worker.MessageDeliveryFailed   <--- add that in later
     case x => worker ! Message(connectionId, x)
+  }
+
+  def dying: Receive = {
+    case Unbound => context.become(dead)
+    case AsyncServiceClient.GetConnectionStatus(promise) => {
+      promise.success(ConnectionStatus.Connected)  //we have to fulfill this since it will never reach the handler
+    }
+  }
+
+  def dead: Receive = {
+    case AsyncServiceClient.GetConnectionStatus(promise) => {
+      promise.success(ConnectionStatus.NotConnected)
+    }
   }
 
 }
@@ -50,6 +66,17 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 trait AsyncServiceClient[I,O] extends SharedClient[I,O] {
   def connectionStatus: Future[ConnectionStatus]
   def disconnect()
+
+  /** Kills the proxy actor and terminates the underlying connection.  
+   * This is different from disconnect because disconnect will not kill the
+   * proxy actor (useful for verifying that a connection has terminated.  Once
+   * this method has been called, any future calls to connectionStatus will
+   * return a Future that never completes
+   *
+   * maybe there's a better way to do this, but AsyncServiceClient isn't used
+   * much outside of tests, so we need some more use cases
+   */
+  def kill()
 }
 
 object AsyncServiceClient {
@@ -87,7 +114,6 @@ object AsyncServiceClient {
  * types
  */
 class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
-  import ConnectionEvent._
 
   case class PackagedRequest(request: I, response: Promise[O])
 
@@ -96,13 +122,19 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
    */
   class AsyncHandler(
     config: ClientConfig,
-    val caller: ActorRef
-  ) extends ServiceClient[I,O](codec, config) with WatchedHandler {
+    val caller: ActorRef,
+    worker: WorkerRef
+  ) extends ServiceClient[I,O](codec, config, worker) with WatchedHandler {
     val watchedActor = caller
 
     override def onBind() {
       super.onBind()
       caller.!(ConnectionEvent.Bound(id.get))(boundWorker.get.worker)
+    }
+
+    override def onUnbind() {
+      super.onUnbind()
+      caller.!(ConnectionEvent.Unbound)()
     }
 
     override def receivedMessage(message: Any, sender: ActorRef) {
@@ -128,6 +160,10 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     }
 
     def disconnect() {
+      proxy ! AsyncServiceClient.Disconnect
+    }
+
+    def kill() {
       proxy ! PoisonPill
     }
 
@@ -135,12 +171,13 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     //completes.  This isn't terrible but we should think of something more
     //meaningful
     def connectionStatus: Future[ConnectionStatus] = {
+      import scala.concurrent.ExecutionContext.Implicits.global
       val s = AsyncServiceClient.GetConnectionStatus()
       proxy ! s
       s.promise.future
     }
   }
 
-  val handlerFactory: ActorRef => ConnectionHandler = caller => new AsyncHandler(config, caller)
+  val handlerFactory: ActorRef => WorkerRef =>  ConnectionHandler = caller => worker => new AsyncHandler(config, caller, worker)
 
 }

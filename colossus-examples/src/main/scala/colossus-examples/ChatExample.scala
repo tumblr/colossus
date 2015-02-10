@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.util.ByteString
 import colossus.IOSystem
 import colossus.core._
-import colossus.service.Codec
+import colossus.service.{Codec, DecodedResult}
 import colossus.controller._
 import java.net.InetSocketAddress
 
@@ -35,7 +35,7 @@ class ChatCodec extends Codec[ChatMessage, String]{
 
   val parser = stringUntil('\r') <~ byte
 
-  def decode(data: DataBuffer): Option[String] = parser.parse(data)
+  def decode(data: DataBuffer): Option[DecodedResult[String]] = parser.parse(data).map{DecodedResult.Static(_)}
 
   def encode(message: ChatMessage): DataReader = DataBuffer(ByteString(message.formatted))
 

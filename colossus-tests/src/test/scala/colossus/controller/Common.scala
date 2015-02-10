@@ -2,7 +2,7 @@ package colossus
 package controller
 
 import core._
-import service.Codec
+import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
 
@@ -20,9 +20,14 @@ case class TestOutput(data: Source[DataBuffer])
 
 class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{    
   import parsing.Combinators._
-  val parser = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num, pipeSize))}
+  val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num, pipeSize))}
 
-  def decode(data: DataBuffer): Option[TestInput] = parser.parse(data)
+  def decode(data: DataBuffer): Option[DecodedResult[TestInput]] = {
+    val res = parser.parse(data)
+    res.map { x =>
+      DecodedResult.Streamed(x, x.source)
+    }
+  }
 
   //TODO: need to add support for pipe combinators, eg A ++ B
   def encode(out: TestOutput) = DataStream(out.data)
@@ -36,11 +41,17 @@ class TestController(processor: TestInput => Unit) extends Controller[TestInput,
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
+  def processMessage(message: TestInput) {
+    processor(message)
+  }
+
+
+  //these methods just expose protected versions
   def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
     push(message)(onPush)
   }
-  def processMessage(message: TestInput) {
-    processor(message)
+  def testGracefulDisconnect() {
+    gracefulDisconnect()
   }
 }
 

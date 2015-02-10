@@ -22,10 +22,27 @@ object Copier {
   }
 }
 
+//hrm....
+object ReflexiveCopiers{
+
+  trait Reflect[T] {
+    def copy(t : T) : T = t
+  }
+
+  implicit object StringReflect extends Copier[String] with Reflect[String]
+  implicit object IntReflect extends Copier[Int] with Reflect[Int]
+  implicit object LongReflect extends Copier[Long] with Reflect[Long]
+  implicit object ShortReflect extends Copier[Short] with Reflect[Short]
+  implicit object FloatReflect extends Copier[Float] with Reflect[Float]
+  implicit object DoubleReflect extends Copier[Double] with Reflect[Double]
+}
+
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
   //all subsequent pull and pushes to return an Error
   def terminate(reason: Throwable)
+
+  def terminated : Boolean
 }
 
 /**
@@ -60,6 +77,20 @@ trait Source[T] extends Transport {
       case None => Callback.successful(init)
     }
   }
+
+  def foldWhile[U](init: U)(cb:  (T, U) => U)(f : U => Boolean) : Callback[U] = {
+    pullCB().flatMap {
+      case Some(i) => {
+        val aggr = cb(i, init)
+        if(f(aggr)){
+              foldWhile(aggr)(cb)(f)
+            }else{
+              Callback.successful(aggr)
+            }
+        }
+      case None => Callback.successful(init)
+      }
+  }
     
 
   def ++(next: Source[T]): Source[T] = new DualSource(this, next)
@@ -73,7 +104,7 @@ object Source {
   def one[T](data: T) = new Source[T] {
     var item: Try[Option[T]] = Success(Some(data))
     def pull(onReady: Try[Option[T]] => Unit) {
-      var t = item
+      val t = item
       if (item.isSuccess) {
         item = Success(None)
       }
@@ -82,6 +113,8 @@ object Source {
     def terminate(reason: Throwable) {
       item = Failure(reason)
     }
+
+    def terminated = item.isFailure
   }
 }
 
@@ -91,7 +124,13 @@ object Source {
  * streams.  It provides backpressure feedback for both the write and read
  * ends.
  */
-trait Pipe[T] extends Sink[T] with Source[T]
+trait Pipe[T, U] extends Sink[T] with Source[U] {
+
+  def join[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = PipeCombinator.join(this, pipe)(f)
+
+  def ->>[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = join(pipe)(f)
+}
+
 
 class Trigger {
   private var callback: Option[() => Unit] = None
@@ -101,6 +140,10 @@ class Trigger {
 
   def trigger() {
     callback.foreach{f => f()}
+  }
+
+  def cancel() {
+    callback = None
   }
 }
 
@@ -115,8 +158,9 @@ object PushResult {
 }
 
 //a pipe designed to accept a fixed number of bytes
-class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
+class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer, DataBuffer] {
   import PushResult._
+  require(totalBytes >= 0, "A FiniteBytePipe must accept 0 or more bytes")
 
   private val internal = new InfinitePipe[DataBuffer](maxSize)
 
@@ -124,12 +168,15 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
 
   def remaining = totalBytes - taken
 
+  if(totalBytes == 0){
+    internal.complete()
+  }
 
   def push(data: DataBuffer): Try[PushResult] = {
     if (taken == totalBytes) {
       Success(Done)
     } else if (remaining > data.remaining) {
-      taken += data.size
+      taken += data.remaining
       internal.push(data) 
     } else {
       val partial = if (remaining == data.remaining) {
@@ -157,6 +204,8 @@ class FiniteBytePipe(totalBytes: Long, maxSize: Int) extends Pipe[DataBuffer] {
   def terminate(reason: Throwable) {
     internal.terminate(reason: Throwable)
   }
+
+  override def terminated: Boolean = internal.terminated
 }
 
 /**
@@ -184,6 +233,8 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     a.terminate(reason)
     b.terminate(reason)
   }
+
+  override def terminated: Boolean = a.terminated && b.terminated
 }
 
 
@@ -195,7 +246,7 @@ class PipeClosedException extends Exception("Pipe Closed") with PipeException
 
 //object EndOfStream extends Exception("End of Stream")
 
-class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T] {
+class InfinitePipe[T : Copier](maxSize: Int) extends Pipe[T, T] {
   import PushResult._
 
   val queue = new java.util.LinkedList[T]

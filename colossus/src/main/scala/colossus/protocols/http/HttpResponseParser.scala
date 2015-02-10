@@ -13,39 +13,58 @@ import DataSize._
 
 object HttpResponseParser {
 
+  val DefaultMaxSize: DataSize = 10.MB
 
-  val DefaultMaxSize: DataSize = 1.MB
+  val DefaultQueueSize : Int = 100
 
-  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, response)
+  //not totally in love with this extra object allocation, but feel its more straightforward than extractors
+  case class ParsedHeaders(headers : Seq[(String, String)]) extends HttpHeaderUtils
 
-  def response: Parser[HttpResponse] = firstLine ~ headers |> {case (version, code) ~ headers =>
-    val clength = headers.collectFirst{case (HttpHeaders.ContentLength,v)  => v.toInt}
-    val encoding = headers.collectFirst{case (HttpHeaders.TransferEncoding,v)  => v.toLowerCase}
-    encoding match { 
-      case None | Some("identity") => clength match {
-        case Some(0) | None => const(HttpResponse(version, code, ByteString(), headers))
-        case Some(n) => bytes(n) >> {body => HttpResponse(version, code, body, headers)}
-      }
-      case Some(other)  => chunkedBody >> {body => HttpResponse(version, code, body, headers)}
-    } 
+  def static(size: DataSize = DefaultMaxSize) : HttpResponseParser[HttpResponse] = {
+    new HttpResponseParser[HttpResponse](() => maxSize(size, staticResponse))
   }
 
-  
+  def streaming(size : DataSize = DefaultMaxSize, streamBufferSize : Int = DefaultQueueSize) : HttpResponseParser[StreamingHttpResponseHeaderStub] = {
+    new HttpResponseParser[StreamingHttpResponseHeaderStub](() => maxSize(size, streamedResponse(streamBufferSize)))
+  }
+
+  def staticResponse: Parser[HttpResponse] = firstLine ~ headers |> {case (version, code) ~ headers =>
+    val pHeaders = ParsedHeaders(headers)
+    val clength =  pHeaders.getContentLength
+    val encoding = pHeaders.getEncoding
+    encoding match {
+      case TransferEncoding.Identity => clength match {
+        case Some(0) | None => const(HttpResponse(version, code, headers, ByteString()))
+        case Some(n) => bytes(n) >> {body => HttpResponse(version, code, headers, body)}
+      }
+      case _  => chunkedBody >> {body => HttpResponse(version, code, headers, body)}
+    }
+  }
+
+  private def streamedResponse(streamBufferSize : Int) : Parser[StreamingHttpResponseHeaderStub] =
+    firstLine ~ headers >> {case (version, code) ~ headers =>
+      StreamingHttpResponseHeaderStub(version, code, headers)
+    }
+
   protected def firstLine: Parser[(HttpVersion, HttpCode)] = version ~ code >> {case v ~ c => (HttpVersion(v), HttpCodes(c.toInt))}
-  
+
   protected def version = stringUntil(' ')
-  
+
   protected def code = intUntil(' ') <~ stringUntil('\r') <~ byte
 
 }
 
+class HttpResponseParser[T <: HttpResponseHeader](f : () => Parser[T]) {
 
+  private def parser : Parser[T] = f()
 
-class HttpResponseParser(maxSize: DataSize = 1.MB) {
-  private def parser = HttpResponseParser(maxSize)
-  var p = parser
-  def parse(data: DataBuffer): Option[HttpResponse] = p.parse(data)
-  def reset(){ 
-    p = parser
+  private var current : Parser[T] = parser
+
+  def parse(data : DataBuffer) : Option[T] = current.parse(data)
+
+  def reset() {
+    current = parser
   }
 }
+
+case class StreamingHttpResponseHeaderStub(version : HttpVersion, code : HttpCode, headers : Seq[(String, String)]) extends HttpResponseHeader

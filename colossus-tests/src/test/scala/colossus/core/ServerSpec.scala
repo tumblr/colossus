@@ -2,6 +2,7 @@ package colossus
 
 import testkit._
 import core._
+import service.AsyncServiceClient
 
 import akka.actor._
 import akka.agent._
@@ -10,8 +11,6 @@ import akka.testkit.TestProbe
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
-
-import org.scalatest._
 
 class ServerSpec extends ColossusSpec {
 
@@ -114,6 +113,17 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
+      //this test won't pass until the AsyncServiceClient retry loop is fixed
+      "shutdown all associated connections when shutdown"  in {
+        var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
+        withIOSystem{implicit io =>
+          withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
+            client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
+          }
+          TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
+        }
+      }
+
       "shutdown when a delegator surpasses the allotted duration" in {
         val slowDelegator : Delegator.Factory = (s, w) => {
           Thread.sleep(400)
@@ -131,8 +141,6 @@ class ServerSpec extends ColossusSpec {
       }
 
       "shutting down a system kills client connections"  in {
-
-
         implicit val io = IOSystem("test-system", 2)
         val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
         val probe = TestProbe()

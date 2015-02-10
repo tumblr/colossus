@@ -4,7 +4,6 @@ package service
 import core._
 import controller._
 
-import akka.actor._
 import akka.event.Logging
 import metrics._
 
@@ -46,26 +45,25 @@ class DroppedReply extends Error("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O](codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext) 
+abstract class ServiceServer[I,O]
+  (codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)
+  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
 extends Controller[I,O](codec, ControllerConfig(50)) {
   import ServiceServer._
   import WorkerCommand._
   import config._
-  import Response._
 
   implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
   val log = Logging(worker.system.actorSystem, name.toString())
 
-  val REQUESTS  = name / "requests"
-  val LATENCY   = name / "latency"
-  val ERRORS    = name / "errors"
-  val REQPERCON = name / "requests_per_connection"
-
-  val requests  = worker.metrics.getOrAdd(Rate(REQUESTS, List(1.second, 1.minute)))
-  val latency   = worker.metrics.getOrAdd(Histogram(LATENCY, periods = List(1.second, 1.minute), sampleRate = 0.25))
-  val errors    = worker.metrics.getOrAdd(Rate(ERRORS, List(1.second, 1.minute)))
-  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(REQPERCON, periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val requests  = worker.metrics.getOrAdd(Rate(name / "requests", List(1.second, 1.minute)))
+  val latency   = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(1.second, 1.minute), sampleRate = 0.25))
+  val errors    = worker.metrics.getOrAdd(Rate(name / "errors", List(1.second, 1.minute)))
+  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(name / "requests_per_connection", periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
   val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
+
+  //set to true when graceful disconnect has been triggered
+  private var disconnecting = false
 
   def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
@@ -77,11 +75,11 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
 
     def isTimedOut(time: Long) = !isComplete && (time - creationTime) > requestTimeout.toMillis
 
-    private var _response: Option[Completion[O]] = None
+    private var _response: Option[O] = None
     def isComplete = _response.isDefined
     def response = _response.getOrElse(throw new Exception("Attempt to use incomplete response"))
 
-    def complete(response: Completion[O]) {
+    def complete(response: O) {
       _response = Some(response)
       checkBuffer()
     }
@@ -108,21 +106,18 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
     while (isConnected && requestBuffer.size > 0 && requestBuffer.head.isComplete) {
       val done = requestBuffer.dequeue()
       val comp = done.response
-      requests.hit(tags = comp.tags)
-      latency.add(tags = comp.tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+      val tags = tagDecorator.tagsFor(done.request, comp)
+      requests.hit(tags = tags)
+      latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
       concurrentRequests.decrement()
-      push(comp.value) {
-        case OutputResult.Success => comp.onwrite match {
-          case OnWriteAction.Disconnect => disconnect()
-          case OnWriteAction.DoNothing => {}
-        }
+      push(comp) {
+        case OutputResult.Success => {}
         case _ => println("dropped reply")
       }
       //todo: deal with output-controller full
     }
+    checkGracefulDisconnect()
   }
-
-  def receivedMessage(message: Any, sender: ActorRef) {}
 
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
@@ -140,42 +135,32 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
     requestBuffer.enqueue(promise)
     concurrentRequests.increment()
     /**
-     * Notice, if the request buffer if full we're still adding to it, but by skipping
+     * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
      */
-    val response: Response[O] = if (requestBuffer.size < requestBufferSize) {
+    val response: Callback[O] = if (requestBuffer.size < requestBufferSize) {
       try {
         processRequest(request) 
       } catch {
         case t: Throwable => {
-          handleFailure(request, t)
+          Callback.successful(handleFailure(request, t))
         }
       }
     } else {
-      handleFailure(request, new RequestBufferFullException)
+      Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
-    val cb: Callback[Completion[O]] = response match {
-      case SyncResponse(s) => Callback.successful(s)
-      case AsyncResponse(a) => Callback.fromFuture(a)
-      case CallbackResponse(c) => c
-    }
-    cb.execute{
+    response.execute{
       case Success(res) => promise.complete(res)
       case Failure(err) => promise.complete(handleFailure(promise.request, err))
     }
   }
 
-  private def handleFailure(request: I, reason: Throwable): Completion[O] = {
+  private def handleFailure(request: I, reason: Throwable): O = {
     addError(reason)
     if (logErrors) {
       log.error(s"Error processing request: $request: $reason")
     }
     processFailure(request, reason)
-  }
-
-  private def handleOnWrite(w: OnWriteAction) = w match {
-    case OnWriteAction.Disconnect => disconnect()
-    case _ => {}
   }
 
   def schedule(in: FiniteDuration, message: Any) {
@@ -184,15 +169,28 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
     }
   }
 
-  //this is just to make some request processing methods cleaner
-  def respond(f: => Response[O]): Response[O] = f
+  /**
+   * Terminate the connection, but allow any outstanding requests to complete
+   * (or timeout) before disconnecting
+   */
+  override def gracefulDisconnect() {
+    pauseReads()
+    disconnecting = true
+
+  }
+
+  private def checkGracefulDisconnect() {
+    if (disconnecting && requestBuffer.size == 0) {
+      super.gracefulDisconnect()
+    }
+  }
 
   // ABSTRACT MEMBERS
 
-  protected def processRequest(request: I): Response[O]
+  protected def processRequest(request: I): Callback[O]
 
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
-  protected def processFailure(request: I, reason: Throwable): Completion[O]
+  protected def processFailure(request: I, reason: Throwable): O
 
 }
 

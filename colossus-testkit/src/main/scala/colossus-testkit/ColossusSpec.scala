@@ -35,7 +35,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
    * @param f
    */
   def withIOSystem(f: IOSystem => Any) {
-    val sys = IOSystem("test-system", 2)
+    val sys = IOSystem("test-system-" + System.currentTimeMillis.toString, 2)
     try {
       f(sys)
     } finally {
@@ -107,6 +107,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
       val server = Server(config)
       waitForServer(server, waitTime)
       f(io, server)
+      end(server)
     }
   }
 

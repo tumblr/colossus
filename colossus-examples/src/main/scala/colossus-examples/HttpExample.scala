@@ -5,12 +5,12 @@ import colossus.IOSystem
 import colossus.core.ServerRef
 import colossus.protocols.http._
 import colossus.protocols.redis._
-import colossus.service.{LocalClient, Service, Response}
+import colossus.service.{Callback, LocalClient, Service}
 import java.net.InetSocketAddress
 
 import UrlParsing._
 import HttpMethod._
-import UnifiedProtocol._
+import Callback.Implicits._
 
 
 object HttpExample {
@@ -23,7 +23,7 @@ object HttpExample {
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
-    val handler: PartialFunction[HttpRequest, Response[HttpResponse]] = {
+    val handler: PartialFunction[HttpRequest, Callback[HttpResponse]] = {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "get"  / key => redis.send(Commands.Get(ByteString(key))).map{

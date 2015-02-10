@@ -117,22 +117,28 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
 }
 
 /**
- * Class representing the state of the server.  Currently the only reported status is the ConnectionVolumeState.
+ * Represents the current state of a Server.
+ *
  * @param connectionVolumeState Represents if the a Server's connections are normal or in highwater
  * @param serverStatus Represents the Server's current status
  */
 case class ServerState(connectionVolumeState : ConnectionVolumeState, serverStatus : ServerStatus)
 
 /**
- * ConnectionVolumeState indicates whether or not if the Server is operating with a normal workload, which is represented
- * by the current ratio of used / available connections being beneath the TimeoutConfig.highWatermarkPercentage amount.
- * Once this ratio is breached, the state will be changed to the HighWater state.
+ * ConnectionVolumeState indicates whether or not if the Server is operating
+ * with a normal workload, which is represented by the current ratio of used /
+ * available connections being beneath the
+ * ServerSettings.highWatermarkPercentage amount.  Once this ratio is breached,
+ * the state will be changed to the HighWater state.
  *
- * In this state, the server will more aggressively timeout and close idle connections.  Effectively what this means is that
- * when the Server polls its connections in the Highwater state, any connection that is seen as idle for longer than TimeoutConfig.highWaterMaxIdleTime
- * will be reaped.  It does this in an effort to free up space.
+ * In this state, the server will more aggressively timeout and close idle
+ * connections.  Effectively what this means is that when the Server polls its
+ * connections in the Highwater state, any connection that is seen as idle for
+ * longer than ServerSettings.highWaterMaxIdleTime will be reaped.  It does this
+ * in an effort to free up space.
  *
- * The Server will return back to its normal state when the connection ratio recedes past the lowWater mark.
+ * The Server will return back to its normal state when the connection ratio
+ * recedes past the lowWater mark.
  */
 sealed trait ConnectionVolumeState
 
@@ -358,7 +364,10 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 }
 
 /**
- * Represents the startup status of the server.  Can be either Initializing, Binding and Bound.
+ * Represents the startup status of the server.
+ * - `Initializing` : The server was just started and is registering with the IOSystem
+ * - `Binding` : The server is registered and in the process of binding to its port
+ * - `Bound` : The server is actively listening on the port and accepting connections
  */
 sealed trait ServerStatus
 object ServerStatus {
@@ -368,13 +377,16 @@ object ServerStatus {
 }
 
 /**
- * Servers can be thought of as applications, as they provide Delegators and ConnectionHandlers which contain
- * application logic.  Servers are the objects that are directly interface with the Workers and provide them with the
- * Delegators and Handlers.  A Server will be "registered" with the Workers, and after a successful registration, it will
- * then bind to the specified ports and be ready to accept incoming requests.
+ * Servers can be thought of as applications, as they provide Delegators and
+ * ConnectionHandlers which contain application logic.  Servers are the objects
+ * that are directly interface with the Workers and provide them with the
+ * Delegators and Handlers.  A Server will be "registered" with the Workers,
+ * and after a successful registration, it will then bind to the specified
+ * ports and be ready to accept incoming requests.
  *
- * Also this includes all of the messages that Server will respond to.  Some of these can cause actions, others
- * are for when some internal event happens and the Server is notified.
+ * Also this includes all of the messages that Server will respond to.  Some of
+ * these can cause actions, others are for when some internal event happens and
+ * the Server is notified.
  *
  */
 object Server {

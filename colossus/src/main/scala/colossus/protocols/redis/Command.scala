@@ -111,8 +111,6 @@ object Commands {
 
 object Command {
   
-  import UnifiedProtocol._
-
   def apply(args: String*): Command = {
     Command(args.head, args.tail.toSeq.map{ByteString(_)})
   }

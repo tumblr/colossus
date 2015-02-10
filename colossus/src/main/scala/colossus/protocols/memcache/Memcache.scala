@@ -172,15 +172,16 @@ class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize
   private var parser = new MemcacheReplyParser(maxSize)//(NoCompressor) //config
 
   def encode(cmd: MemcacheCommand): DataBuffer = DataBuffer(cmd.bytes(NoCompressor))
-  def decode(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
+  def decode(data: DataBuffer): Option[DecodedResult[MemcacheReply]] = DecodedResult.static(parser.parse(data))
   def reset(){
     parser = new MemcacheReplyParser(maxSize)//(NoCompressor)
   }
 }
 
-class MemcacheClient(config: ClientConfig, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
+class MemcacheClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
   extends ServiceClient[MemcacheCommand, MemcacheReply](
     codec   = new MemcacheClientCodec(maxSize),
-    config  = config
+    config  = config,
+    worker  = worker
   )
 

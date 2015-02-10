@@ -14,7 +14,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
           val url = ""
           val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
           request match {
-            case req @ Get on Root => true
+            case req @ Get on Root => {}
             case _ => fail()
           }
       }

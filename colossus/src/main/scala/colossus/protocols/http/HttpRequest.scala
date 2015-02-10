@@ -1,27 +1,13 @@
 package colossus
 package protocols.http
 
-import service._
-
 import akka.util.ByteString
 
 case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   import head._
   import HttpCodes._
-  import HttpParse._
-  import Response._
 
-  def complete(response: HttpResponse): Completion[HttpResponse] = {
-    val tags = Map("status_code" -> response.code.code.toString)
-    
-    if (head.version == HttpVersion.`1.0` /*|| head.headers.get(HttpHeaders.Connection).exists{_ == "close"} */) {
-      new Completion(response, onwrite = OnWriteAction.Disconnect, tags = tags)
-    } else {
-      Completion(response, tags = tags)
-    }
-  }
-
-  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = complete(HttpResponse(version, code, ByteString(data), headers))
+  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = HttpResponse(version, code, headers, ByteString(data))
 
   def ok(data: String, headers: List[(String, String)] = Nil)              = respond(OK, data, headers)
   def notFound(data: String = "", headers: List[(String, String)] = Nil)   = respond(NOT_FOUND, data, headers)
@@ -45,4 +31,7 @@ object HttpRequest {
     //val head = HttpHead(method, url, HttpVersion.`1.1`, Map(HttpHeaders.ContentLength -> List(bodybytes.map{_.size.toString}.getOrElse("0"))))
     HttpRequest(head, bodybytes)
   }
+
+
+  def get(url: String) = HttpRequest(HttpMethod.Get, url, None)
 }

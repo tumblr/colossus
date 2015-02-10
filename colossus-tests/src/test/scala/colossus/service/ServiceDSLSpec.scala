@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 
 import protocols.telnet._
 import service._
+import Callback.Implicits._
 
 import RawProtocol.{RawCodec, Raw}
 
@@ -57,6 +58,32 @@ class ServiceDSLSpec extends ColossusSpec {
           val client = TestClient(system, TEST_PORT)
           client.send(ByteString("hello"))
           probe.expectMsgType[UnhandledRequestException]
+        }
+      }
+    }
+
+    "receive connection messages" in {
+      val probe = TestProbe()
+      withIOSystem{ implicit system =>
+        val server = Service.serve[Raw]("test", TEST_PORT) { context =>
+          context.handle{ connection =>
+            connection.receive{
+              case "PING" => {
+                probe.ref ! "PONG"
+              }
+            }
+            connection.become{
+              case x if (x == ByteString("PING")) => {
+                context.worker.worker ! core.WorkerCommand.Message(connection.connectionId, "PING")
+                Callback.successful(ByteString("WHATEVER"))
+              }
+            }
+          }
+        }
+        withServer(server) {
+          val client = TestClient(system, TEST_PORT)
+          client.send(ByteString("PING"))
+          probe.expectMsg(250.milliseconds, "PONG")
         }
       }
     }
