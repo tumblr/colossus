@@ -29,10 +29,12 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
     }
 
 
-    "two metric systems don't react to each other's ticks" in {
+    "two metric systems don't react to each other's ticks" taggedAs(org.scalatest.Tag("test")) in {
       implicit val sys = ActorSystem("metrics")
-      val m1 = MetricSystem("/sys1", tickPeriod = 20.milliseconds, collectSystemMetrics = false)
-      val m2 = MetricSystem("/sys2", tickPeriod = 150.milliseconds, collectSystemMetrics = false)
+      //set the tick period to something really high so we can control the ticks ourselves
+      val m1 = MetricSystem("/sys1", tickPeriod = 10.days, collectSystemMetrics = false)
+      val m2 = MetricSystem("/sys2", tickPeriod = 10.days, collectSystemMetrics = false)
+
       val m1col = m1.sharedCollection()
       val m1counter = m1col.getOrAdd(Counter("/foo"))
       m1counter.increment()
@@ -44,10 +46,20 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       m2counter.increment()
       m2counter.increment()
 
-      Thread.sleep(100)
+      //first tick triggers collectors to send metrics, second tick tells
+      //MetricDatabase to publish the snapshot from the previous tick
+      sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
+      Thread.sleep(150)
+      sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
+      Thread.sleep(50)
       m1.snapshot() must equal(Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
       m2.snapshot() must equal(Map())
-      Thread.sleep(500)
+
+      sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
+      Thread.sleep(150)
+      sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
+      Thread.sleep(50)
+
       m2.snapshot() must equal(Map(Root / "bar" -> Map(TagMap.Empty -> 2)))
       sys.shutdown()
       
