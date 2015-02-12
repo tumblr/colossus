@@ -6,6 +6,8 @@ import colossus.service.{DecodedResult, Codec}
 import scala.util.{Success, Failure}
 import PushResult._
 
+import service.NotConnectedException
+
 /** trait representing a decoded message that is actually a stream
  * 
  * When a codec decodes a message that contains a stream (perhaps an http
@@ -29,12 +31,20 @@ sealed trait ConnectionState
 sealed trait AliveState extends ConnectionState {
   def endpoint: WriteEndpoint
 }
+
+object AliveState {
+  def unapply(state: ConnectionState): Option[WriteEndpoint] = state match {
+    case a: AliveState => Some(a.endpoint)
+    case _ => None
+  }
+}
+
 object ConnectionState {
   case object NotConnected extends ConnectionState
   case class Connected(endpoint: WriteEndpoint) extends ConnectionState with AliveState
   case class Disconnecting(endpoint: WriteEndpoint) extends ConnectionState with AliveState
 }
-class InvalidConnectionStateException(state: OutputState) extends Exception(s"Invalid connection State: $state")
+class InvalidConnectionStateException(state: ConnectionState) extends Exception(s"Invalid connection State: $state")
 
 sealed trait InputState
 object InputState {
@@ -47,7 +57,7 @@ object InputState {
 
   case object Terminated extends InputState //used when disconnecting, indicates we are not planning on doing aything more
 }
-class InvalidInputStateException(state: OutputState) extends Exception(s"Invalid Input State: $state")
+class InvalidInputStateException(state: InputState) extends Exception(s"Invalid Input State: $state")
 
 
 //not being used yet
@@ -67,22 +77,23 @@ class InvalidOutputStateException(state: OutputState) extends Exception(s"Invali
 trait MasterController[Input, Output] extends ConnectionHandler {
   protected def state: ConnectionState
   protected def codec: Codec[Output, Input]
-  protected def config: ControllerConfig
+  protected def controllerConfig: ControllerConfig
 
   //needs to be called after various actions complete to check if it's ok to disconnect
-  def checkTermination()
+  private[controller] def checkControllerGracefulDisconnect()
 }
 
 trait InputController[Input, Output] extends MasterController[Input, Output] {
   import InputState._
 
-  private var inputState: InputState = Decoding
+  private[controller] var inputState: InputState = Decoding
 
   //we need to keep track of this outside the write-endpoint in case the endpoint changes
   //maybe not
-  private var readsEnabled = true
+  private var _readsEnabled = true
+  def readsEnabled = _readsEnabled
 
-  def inputOnClosed() {
+  private[controller] def inputOnClosed() {
     inputState match {
       case ReadingStream(sink) => {
         sink.terminate(new Exception("Connection Closed"))
@@ -96,14 +107,29 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
     inputState = Terminated
   }
 
-  protected def pauseReads() {
-    readsEnabled = false
-    endpoint.foreach{_.disableReads()}
+  private[controller] def inputGracefulDisconnect() {
+    if (inputState == Decoding) {
+      pauseReads()
+      inputState = Terminated
+    }
   }
 
-  protected def resumeReads {
-    readsEnabled = true
-    endpoint.foreach{_.enableReads()}
+  protected def pauseReads() {
+    state match {
+      case AliveState(endpoint) => {
+        _readsEnabled = false
+        endpoint.disableReads()
+      }
+    }
+  }
+
+  protected def resumeReads() {
+    state match {
+      case AliveState(endpoint) => {
+        _readsEnabled = true
+        endpoint.enableReads()
+      }
+    }
   }
 
 
@@ -126,14 +152,16 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
       case ReadingStream(sink) => sink.push(data) match {
         case Success(Ok) => {}
         case Success(Done) => state match{
-          case ConnectionState.Disconnecting(_) {
+          case ConnectionState.Disconnecting(_) => {
             //gracefulDisconnect was called, so we allowed the connection to
             //finish reading in the stream, but now that it's done, disable
             //reads and drop any data still in the buffer
-            endpoint.foreach{_.disableReads()}
+            pauseReads()
+            inputState = Terminated
+          }
           case ConnectionState.Connected(_) => {
             inputState = Decoding
-            if(buffer.hasUnreadData) receivedData(buffer)
+            if(data.hasUnreadData) receivedData(data)
           }
           case other => throw new InvalidConnectionStateException(other)
         }
@@ -142,7 +170,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
             a.endpoint.disableReads()
             trigger.fill{() =>
               //todo: maybe do something if endpoint disappears before trigger is called.  Also maybe need to cancel trigger?
-              a.endpoint.foreach{_.enableReads()}
+              resumeReads()
               inputState = ReadingStream(sink)
             }
             inputState = BlockedStream(sink, trigger)
@@ -157,12 +185,13 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
           //this only happens on infinite pipes
           //TODO:  this should not be an exception/failure
           inputState = Decoding
-          if(buffer.hasUnreadData) receivedData(buffer)
+          if(data.hasUnreadData) receivedData(data)
         }
         case Failure(t : Throwable) => {
           //todo: when a non expected failure occurs?
           //this can be probably merged with pipe-terminated
           inputState = Terminated
+          throw t //basically gotta kill the connection
         }
       }
       case other => throw new InvalidInputStateException(other)
@@ -175,24 +204,35 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 }
 
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
+  import OutputState._
 
-  private var outputState: OutputState = Idle
+  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
+
+  private[controller] var outputState: OutputState = Idle
 
   //whether or not we should be pulling items out of the queue to write, this
   //can be set to false through pauseWrites
-  private var writesEnabled = true
+  private var _writesEnabled = true
+  def writesEnabled = _writesEnabled
 
   //represents a message queued for writing
   //the queue of items waiting to be written.
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
 
-  def outputOnClosed() {
-    //FIX
-    currentStream.foreach{case (item, source) =>
-      source.terminate(new Exception("Connection Closed"))
-      currentStream = None
+  private[controller] def outputOnClosed() {
+    outputState match {
+      case Streaming(source, post) => {
+        source.terminate(new NotConnectedException("Connection Closed"))
+        post(OutputResult.Failure)
+      }
+      case _ => {}
     }
+  }
 
+  private[controller] def outputGracefulDisconnect() {
+    if (outputState == Idle) {
+      outputState = Terminated
+    }
   }
 
   /** Push a message to be written
@@ -217,11 +257,14 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   protected def purgeOutgoing() {
     outputState match {
       case Writing(postWrite) => postWrite(OutputResult.Failure)
-      case Streaming(source) => source.terminate(new service.NotConnectedException("Connection closed"))
+      case Streaming(source, post) => {
+        source.terminate(new service.NotConnectedException("Connection closed"))
+        post(OutputResult.Failure)
+      }
       case _ => {}
     }
     outputState = state match {
-      case d: Disconnecting => Terminated
+      case d: ConnectionState.Disconnecting => Terminated
       case _ => Idle
     }
   }
@@ -249,14 +292,14 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    writesEnabled = false
+    _writesEnabled = false
   }
 
   /**
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
   protected def resumeWrites() {
-    writesEnabled = true
+    _writesEnabled = true
     checkQueue()
   }
 
@@ -267,20 +310,21 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   private def checkQueue() {
     def go(endpoint: WriteEndpoint) {
-      while (writesEnabled && outputState == Idle && waitingToSend.size > 0) {
+      while (_writesEnabled && outputState == Idle && waitingToSend.size > 0) {
         val queued = waitingToSend.remove()
         codec.encode(queued.item) match {
           case DataStream(sink) => {
             outputState = Streaming(sink, queued.postWrite)
             drain(sink)
           }
-          case d: DataBuffer => endpoint.get.write(d) match {
+          case d: DataBuffer => endpoint.write(d) match {
             case WriteStatus.Complete => {
               queued.postWrite(OutputResult.Success)
             }
             case WriteStatus.Failed | WriteStatus.Zero => {
               //this probably shouldn't occur since we already check if the connection is writable
               queued.postWrite(OutputResult.Failure)
+              throw new Exception(s"Invalid write status")
             }
             case WriteStatus.Partial => {
               outputState = Writing(queued.postWrite)
@@ -290,11 +334,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       }
     }
     state match {
-      case ConnectionState.Connected(e) => go(e)
-      case ConnectionState.Disconnecting(e) => go(e)
+      case a: AliveState => go(a.endpoint)
       case _ => {}
     }
-    checkGracefulDisconnect()
+    checkControllerGracefulDisconnect()
   }
       
 
@@ -305,23 +348,33 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   private def drain(source: Source[DataBuffer]) {
     source.pull{
-      case Success(Some(data)) => endpoint.get.write(data) match {
-        case WriteStatus.Complete => drain(source)
-        case _ => {} //todo: maybe do something on Failure?
-      }
-      case Success(None) => {
-        outputState match {
-          case Streaming(s, postWrite) => {
-            postWrite(OutputResult.Success)
-            outputState = Idle
-            checkQueue()
+      case Success(Some(data)) => state match {
+        case AliveState(endpoint) => endpoint.write(data) match {
+          case WriteStatus.Complete => drain(source)
+          case WriteStatus.Failed  => {
+            source.terminate(new NotConnectedException("Connection closed during streaming"))
           }
-          case other => throw new InvalidOutputStateException(other)
+          case WriteStatus.Zero => {
+            throw new Exception("Invalid write status")
+          }
+          case WriteStatus.Partial =>{} //don't do anything, draining will resume in readyForData
+        }
+        case other => {
+          source.terminate(new NotConnectedException("Connection closed during streaming"))
         }
       }
+      case Success(None) => outputState match {
+        case Streaming(s, postWrite) => {
+          postWrite(OutputResult.Success)
+          outputState = Idle
+          checkQueue()
+        }
+        case other => throw new InvalidOutputStateException(other)
+      }
       case Failure(err) => {
-        //TODO: what to do here?
-
+        //if we can't finish writing the current stream, not much else we can
+        //do except close the connection
+        throw err
       }
     }
   }
@@ -364,7 +417,7 @@ object OutputResult {
 }
 
 abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig) 
-extends ConnectionHandler {
+extends InputController[Input, Output] with OutputController[Input, Output] {
   import ConnectionState._
 
   protected var state: ConnectionState = NotConnected
@@ -373,7 +426,7 @@ extends ConnectionHandler {
   def connected(endpt: WriteEndpoint) {
     state match {
       case NotConnected => state = Connected(endpt)
-      case other => throw new Exception(s"Received connected event in $other state")
+      case other => throw new InvalidConnectionStateException(other)
     }
   }
 
@@ -391,17 +444,14 @@ extends ConnectionHandler {
     onClosed()
   }
 
-  /****** OUTPUT ******/
-
-
-
-  //todo: rename
-  protected def paused = !writesEnabled
-
   def disconnect() {
     //this has to be public to be used for clients
-    endpoint.foreach{_.disconnect()}
-    endpoint = None
+    state match {
+      case AliveState(endpoint) => {
+        endpoint.disconnect()
+      }
+      case _ => {}
+    }
   }
 
   /**
@@ -409,15 +459,19 @@ extends ConnectionHandler {
    * pending/ongoing write operations to complete before disconnecting
    */
   def gracefulDisconnect() {
-    if (currentSink.isEmpty) {
-      endpoint.foreach{_.disableReads()}
+    state match {
+      case Connected(e) => {
+        state = Disconnecting(e)
+      }
+      case Disconnecting(e) => {}
+      case other => throw new InvalidConnectionStateException(other)
     }
-    disconnecting = true
-    //maybe wait instead for the message to finish? probably not
-    checkGracefulDisconnect()
+    inputGracefulDisconnect()
+    outputGracefulDisconnect()
+    checkControllerGracefulDisconnect()
   }
 
-  private def checkGracefulDisconnect() {
+  private[controller] def checkControllerGracefulDisconnect() {
     (state, inputState, outputState) match {
       case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated) => {
         endpoint.disconnect()

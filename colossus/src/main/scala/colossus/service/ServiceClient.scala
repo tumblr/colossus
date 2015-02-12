@@ -224,7 +224,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       }
     }
     checkGracefulDisconnect()
-    if (paused) resumeWrites()
+    if (!writesEnabled) resumeWrites()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {
