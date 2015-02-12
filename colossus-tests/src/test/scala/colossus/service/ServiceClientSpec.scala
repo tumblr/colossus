@@ -194,7 +194,7 @@ class ServiceClientSpec extends ColossusSpec {
       response must equal(Some(reply))
     }
 
-    "fail pending requests on disconnect with failFast" in {
+    "fail pending requests on disconnect with failFast" taggedAs(org.scalatest.Tag("test")) in {
       val command1 = Command(CMD_GET, "123456789012345678901234567890")
       val command2 = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true)
@@ -208,7 +208,7 @@ class ServiceClientSpec extends ColossusSpec {
         case Success(wat) => throw new Exception("NOPE2")
         case Failure(yay) => failed2 = true
       }
-      endpoint.disconnect()
+      endpoint.disrupt()
       failed must equal(true)
       failed2 must equal(true)
     }

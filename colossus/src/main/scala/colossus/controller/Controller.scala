@@ -59,21 +59,16 @@ trait MasterController[Input, Output] extends ConnectionHandler {
 }
 
 
-//passed to the onWrite handler to indicate the status of the write for a
-//message
-sealed trait OutputResult
-object OutputResult {
 
-  // the message was successfully written
-  case object Success extends OutputResult
-
-  // the message failed, most likely due to the connection closing partway
-  case object Failure extends OutputResult
-
-  // the message was cancelled before it was written (not implemented yet) 
-  case object Cancelled extends OutputResult
-}
-
+/**
+ * A Controller is a Connection handler that is designed to work with
+ * connections involving decoding raw bytes into input messages and encoding
+ * output messages into bytes.
+ *
+ * Unlike a service, which pairs an input "request" message with an output
+ * "response" message, the controller make no such pairing.  Thus a controller
+ * can be thought of as a duplex stream of messages.
+ */
 abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig) 
 extends InputController[Input, Output] with OutputController[Input, Output] {
   import ConnectionState._

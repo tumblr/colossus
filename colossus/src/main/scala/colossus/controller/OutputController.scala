@@ -10,13 +10,43 @@ import service.NotConnectedException
 
 sealed trait OutputState 
 object OutputState{
-  case object Idle extends OutputState
-  //using postWrite instead of queued item to avoid type param
+
+  /**
+   * The controller is not in the middle of writing a message and is actively
+   * dequeuing pending messages.  This is the normal state when it is writing
+   * non-streamed messages and the entire message is written in one call to
+   * write
+   */
+  case object Dequeueing extends OutputState
+
+  /**
+   * The controller is in the middle of writing a single message.  This state
+   * only occurs when the message was too large to write in one call, and we're
+   * waiting for the socket's underlying buffer to clear out before writing the
+   * rest
+   */
   case class Writing(postWrite: OutputResult => Unit) extends OutputState
+  
+  /**
+   * The controller is currently streaming out a streamed message.  This state
+   * does not keep track of whether the underlying socket buffer is full or
+   * not.
+   */
   case class Streaming(source: Source[DataBuffer], postWrite: OutputResult => Unit) extends OutputState
 
+  /**
+   * In this state, the controller is effectively disabled.  This generally
+   * only occurs once the underlying connection has been disconnected.  Be
+   * aware that it is possible for a controller to re-establish a connection,
+   * so Terminated is not necessarily an end state.
+   */
   case object Terminated extends OutputState //only used when disconnecting
 }
+
+/**
+ * This is thrown anytime we hit a state that shouldn't be possible.  If this
+ * is ever thrown, there is a bug!
+ */
 class InvalidOutputStateException(state: OutputState) extends Exception(s"Invalid Output State: $state")
 
 
@@ -45,7 +75,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
 
-  private[controller] var outputState: OutputState = Idle
+  private[controller] var outputState: OutputState = Dequeueing
 
   //whether or not we should be pulling items out of the queue to write, this
   //can be set to false through pauseWrites
@@ -56,8 +86,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   //the queue of items waiting to be written.
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
 
+  def queueSize = waitingToSend.size()
+
   private[controller] def outputOnConnected() {
-    outputState = Idle
+    outputState = Dequeueing
     checkQueue()
   }
 
@@ -67,13 +99,16 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         source.terminate(new NotConnectedException("Connection Closed"))
         post(OutputResult.Failure)
       }
+      case Writing(post) => {
+        post(OutputResult.Failure)
+      }
       case _ => {}
     }
     outputState = Terminated
   }
 
   private[controller] def outputGracefulDisconnect() {
-    if (outputState == Idle) {
+    if (outputState == Dequeueing) {
       outputState = Terminated
     }
   }
@@ -116,7 +151,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
     outputState = state match {
       case d: ConnectionState.Disconnecting => Terminated
-      case _ => Idle
+      case _ => Dequeueing
     }
   }
 
@@ -161,7 +196,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   private def checkQueue() {
     def go(endpoint: WriteEndpoint) {
-      while (_writesEnabled && outputState == Idle && waitingToSend.size > 0) {
+      while (_writesEnabled && outputState == Dequeueing && waitingToSend.size > 0) {
         val queued = waitingToSend.remove()
         codec.encode(queued.item) match {
           case DataStream(sink) => {
@@ -220,7 +255,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case Success(None) => outputState match {
         case Streaming(s, postWrite) => {
           postWrite(OutputResult.Success)
-          outputState = Idle
+          outputState = Dequeueing
           checkQueue()
         }
         case other => throw new InvalidOutputStateException(other)
@@ -243,7 +278,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case Streaming(sink, post) => drain(sink)
       case Writing(post) => {
         post(OutputResult.Success)
-        outputState = Idle
+        outputState = Dequeueing
         checkQueue()
       }
       case other => throw new InvalidOutputStateException(other)

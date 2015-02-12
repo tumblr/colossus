@@ -8,15 +8,31 @@ import PushResult._
 
 sealed trait InputState
 object InputState {
-  //notice there is no idle state, we always default to decoding since that's
-  //what we do when we receive the first bytes of a new message
   
+  /**
+   * The controller is waiting for more data to begin or continue decoding a message
+   */
   case object Decoding extends InputState
+
+  /**
+   * The controller decoded a stream message and is routing incoming data into the stream
+   */
   case class ReadingStream(sink: Sink[DataBuffer]) extends InputState
+
+  /**
+   * The controller is routing data into a stream, but the stream has indicated
+   * that it's full, so we're waiting for the continueTrigger to be called,
+   * which will resume reading in data
+   */
   case class BlockedStream(sink: Sink[DataBuffer], continueTrigger: Trigger) extends InputState
 
-  case object Terminated extends InputState //used when disconnecting, indicates we are not planning on doing aything more
+  /**
+   * The controller enters this state only during disconnects.  It indicates that we're no longer accepting new data
+   */
+  case object Terminated extends InputState
 }
+
+
 class InvalidInputStateException(state: InputState) extends Exception(s"Invalid Input State: $state")
 
 
