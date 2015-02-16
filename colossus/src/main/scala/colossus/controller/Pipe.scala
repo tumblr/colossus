@@ -134,7 +134,18 @@ trait Pipe[T, U] extends Sink[T] with Source[U] {
 }
 
 
+/**
+ * When a user attempts to push a value into a pipe, and the pipe either fills
+ * or was already full, a Trigger is returned in the PushResult.  This is
+ * essentially just a fillable callback function that is called when the pipe
+ * either becomes empty or is closed or terminated
+ *
+ * Notice that when the trigger is executed we don't include any information
+ * about the state of the pipe.  The handler can just try pushing again to
+ * determine if the pipe is dead or not.
+ */
 class Trigger {
+
   private var callback: Option[() => Unit] = None
   def fill(cb: () => Unit) {
     callback = Some(cb)
@@ -144,9 +155,15 @@ class Trigger {
     callback.foreach{f => f()}
   }
 
+  /**
+   * Cancels execution of the trigger.  The pusher should only do this when they're about to terminate the stream.
+   *
+   * TODO: might be a better way to handle this, but it would probably imply we'd need to know who terminated the stream
+   */
   def cancel() {
     callback = None
   }
+
 }
 
 sealed trait PushResult
@@ -157,14 +174,17 @@ object PushResult {
   //the item was successfully pushed and is ready for more data
   case object Ok extends Pushed
 
-  //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when we're ready
+  //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when it's ready
   case class Filled(trigger: Trigger) extends Pushed
 
-  //The pipe has been manually closed (without error) and is not accepting  any more items
-  case object Closed extends NotPushed
+  //the item was successfully pushed but that's the last one, future pushes will return Closed
+  case object Complete extends Pushed
 
-  //The Pipe is currently full and will remain full until the previously returned trigger is activated
-  case object Full extends NotPushed
+  //the item was not pushed because the pipe is already full
+  case class Full(trigger: Trigger) extends NotPushed
+
+  //The pipe has been manually closed (without error) and is not accepting any more items
+  case object Closed extends NotPushed
 
   //The pipe has been terminated or some other error has occurred
   case class Error(reason: Throwable) extends NotPushed
@@ -175,7 +195,7 @@ object PushResult {
  * BE AWARE: when pushing buffers into this pipe, if the pipe completes, the
  * buffer may still contain unread data meant for another consumer
  */
-class FiniteBytePipe(totalBytes: Long) extends InfinitePipe[DataBuffer, DataBuffer] {
+class FiniteBytePipe(totalBytes: Long) extends InfinitePipe[DataBuffer] {
   require(totalBytes >= 0, "A FiniteBytePipe must accept 0 or more bytes")
 
   private var taken = 0L
@@ -185,10 +205,10 @@ class FiniteBytePipe(totalBytes: Long) extends InfinitePipe[DataBuffer, DataBuff
     complete()
   }
 
-  def push(data: DataBuffer): PushResult = {
+  override def push(data: DataBuffer): PushResult = {
     //notice we're only dong these checks to avoid the databuffer copying,
     //won't need this when we get slices
-    if (!terminated && !isFull) {
+    if (!terminated && !isFull && !isClosed) {
       if (taken == totalBytes) {
         throw new Exception("All bytes have been read but pipe is not closed!") //this should never happen
       } else {
@@ -196,17 +216,26 @@ class FiniteBytePipe(totalBytes: Long) extends InfinitePipe[DataBuffer, DataBuff
           data
         } else {
           //TODO: need databuffer slices to avoid copying here
-          DataBuffer(ByteString(data.take(math.min(remaining, Int.MaxValue).toInt)))
+          DataBuffer(ByteString(data.take(remaining.toInt)))
         }
-        val res = internal.push(partial) 
-        if (res == PushResult.Ok) {
-          taken += partial.remaining
+        //need to get this value here, since remaining might be 0 after call
+        val toAdd = partial.remaining
+        val res = super.push(partial) 
+        if (res.isInstanceOf[PushResult.Pushed]) {
+          taken += toAdd
           if (taken == totalBytes) {
             complete()
+            PushResult.Complete
+          } else {
+            res
           }
+        } else {
+          res
         }
-        res
       }
+    } else {
+      //lazy but effective, just push an empty buffer since it will be rejected anyway with the correct response
+      super.push(DataBuffer(ByteString()))
     }
   }
 
@@ -245,6 +274,16 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
 
 sealed trait PipeException extends Throwable
 class PipeTerminatedException(reason: Throwable) extends Exception("Pipe Terminated", reason) with PipeException
+class PipeStateException(message: String) extends Exception(message) with PipeException
+
+/**
+ * This is a special exception that Input/Output controllers look for when
+ * error handling pipes.  In most cases they will log the error that terminated
+ * the pipe, but for this one exception, the failure will be silent.  This is
+ * basically for situations where a certain amount of data is expected but for
+ * some reason the receiver decides to cancel for some business-logic reason.
+ */
+class PipeCancelledException extends Exception("Pipe Cancelled") with PipeException
 
 class InfinitePipe[T] extends Pipe[T, T] {
 
@@ -255,13 +294,19 @@ class InfinitePipe[T] extends Pipe[T, T] {
   case class Dead(reason: Throwable) extends State
 
   //Full is the default state because we can only push once we've received a callback from pull
-  private var state: State = Full(new trigger)
+  private var state: State = Full(new Trigger)
 
-  def terminated = state.isInstanceOf[Dead]
-  def full = state.isInstanceOf[Full]
+  def terminated  = state.isInstanceOf[Dead]
+  def isFull      = state.isInstanceOf[Full]
+  def isClosed    = state == Closed
 
-  /**
-   * @return true if pipe can accept more data, false if this push filled the pipe
+  /** Attempt to push a value into the pipe.
+   *
+   * The value will only be successfully pushed only if there has already a
+   * been a request for data on the pulling side.  In other words, the pipe
+   * will never interally queue a value.
+   * 
+   * @return the result of the push
    * @throws PipeException when pushing to a full pipe
    */
   def push(item: T): PushResult = state match {
@@ -269,22 +314,30 @@ class InfinitePipe[T] extends Pipe[T, T] {
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
     case Pulling(cb)  => {
-      state = Full(new Trigger)
+      state = Full(new Trigger) //maybe create a new state here might be some weirdness if the puller pushes to the pipe
       cb(Success(Some(item)))
-      //notice that the callback may (and probably will) call "pull" in its execution.  This we can expect the state to have change after calling it
+      //notice that the callback may (and probably will) call "pull" in its
+      //execution.  Thus we can expect the state to have changed here
       state match {
-        case
+        case Full(trig)   => PushResult.Filled(trig)    //cb didn't call "pull"
+        case Dead(reason) => PushResult.Error(reason)   //cb terminated the pipe
+        case Closed       => PushResult.Complete        //cb closed the pipe
+        case Pulling(_)   => PushResult.Ok              //cb called pull
+      }
     }
   }
   
-  //notice that whenReady is only called at most once.  This is done so the
-  //consumer must explicitly call pull every time it needs more data, so can
-  //properly apply backpressure
+  /** Request the next value from the pipe
+   * 
+   * Only one value can be requested at a time.  Also there can only be one
+   * outstanding request at a time.
+   *
+   */
   // NOTE - whenReady's parameter has type Try[Option[T]] instead of some kind of ADT to be compatible with Callbacks
   def pull(whenReady: Try[Option[T]] => Unit): Unit = state match {
     case Dead(reason)  => whenReady(Failure(reason))
     case Closed        => whenReady(Success(None))
-    case Pulling(_)    => whenReady(Failure(new Exception("Pipe already being pulled")))
+    case Pulling(_)    => whenReady(Failure(new PipeStateException("Pipe already being pulled")))
     case Full(trig)    => {
       state = Pulling(whenReady)
       trig.trigger()
@@ -296,7 +349,7 @@ class InfinitePipe[T] extends Pipe[T, T] {
     val oldstate = state
     state = Closed
     oldstate match {
-      case Full(trig)   => trig.cancel()
+      case Full(trig)   => trig.trigger()
       case Pulling(cb)  => cb(Success(None))
       case Dead(reason) => throw new PipeTerminatedException(reason) 
       case _ => {}
@@ -305,12 +358,12 @@ class InfinitePipe[T] extends Pipe[T, T] {
 
   def terminate(reason: Throwable) {
     val oldstate = state
-    state = Dead(reason)
+    state = Dead(new PipeTerminatedException(reason))
     oldstate match {
-      case Full(trig)   => trig.cancel()
-      case Pulling(cb)  => cb(Failure(new PipeTerminatedException(reason)))
-      case Dead(r)      => throw new Exception("Cannot terminate a pipe that has already been terminated")
-      case Closed       => {} //meh
+      case Full(trig)   => trig.trigger()
+      case Pulling(cb)  => cb(Failure(reason))
+      case Dead(r)      => throw new PipeStateException("Cannot terminate a pipe that has already been terminated")
+      case Closed       => {} //don't think there's anything to do here
     }
   }
 

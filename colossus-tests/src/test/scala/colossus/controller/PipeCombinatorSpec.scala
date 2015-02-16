@@ -7,6 +7,7 @@ import scala.util.{Failure, Success}
 class PipeCombinatorSpec extends WordSpec with MustMatchers with OptionValues with TryValues{
 
   "PipeCombinator" must {
+  /*
 
     "combine 2 pipes with a map function" in {
 
@@ -81,6 +82,7 @@ class PipeCombinatorSpec extends WordSpec with MustMatchers with OptionValues wi
         case _ => throw new Exception("expected None")
       }
     }
+    */
   }
 
 }

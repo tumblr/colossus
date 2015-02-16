@@ -56,6 +56,12 @@ trait MasterController[Input, Output] extends ConnectionHandler {
 
   //needs to be called after various actions complete to check if it's ok to disconnect
   private[controller] def checkControllerGracefulDisconnect()
+
+  //Right now in some cases the Input or Outut Controller decide to kill the
+  //whole connection.  We should eventually make this configurable such that we
+  //can kill one half of the controller without automatically killing the whole
+  //thing
+  def disconnect()
 }
 
 

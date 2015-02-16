@@ -16,9 +16,11 @@ object PipeCombinator {
 
       pipeData()
 
-      override def push(item: SRCIN): Try[PushResult] = input.push(item)
+      override def push(item: SRCIN): PushResult = input.push(item)
 
       override def pull(onReady: (Try[Option[SNKOUT]]) => Unit){ output.pull(onReady) }
+
+      def isFull = input.isFull
 
       def pipeData() {
         input.pull {
@@ -44,24 +46,25 @@ object PipeCombinator {
           pipeData()
         }else{
           val next  = queue.remove()
-          val results: Try[PushResult] = output.push(next)
-          results match {
-            case Success(PushResult.Done) => {
+          output.push(next) match {
+            case PushResult.Complete => {
               input.complete()
             }
-            case Success(PushResult.Full(t)) => {
+            case PushResult.Full(t) => {
+              //this should never happen since we catch it in Filled
+              throw new Exception("tried to push when already full")
+            }
+            case PushResult.Filled(t) => {
               t.fill(pushToSink)
             }
-            case Success(PushResult.Ok) => {
+            case PushResult.Ok => {
               pushToSink()
             }
-            case Failure(a : PipeTerminatedException) => {
-              terminatePipe(input, a.getCause)
+            case PushResult.Closed => {
+              //this should never happen
+              terminatePipe(input, new Exception("Output Pipe unexpectedly closed"))
             }
-            case Failure(a : PipeClosedException) => {
-              input.complete()
-            }
-            case Failure(a) => {
+            case PushResult.Error(a) => {
               terminatePipe(input, a)
             }
           }

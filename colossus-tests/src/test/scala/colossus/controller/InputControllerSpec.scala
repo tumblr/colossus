@@ -39,11 +39,8 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("4\r\n")))
       source.isDefined must equal(true)
-      con.receivedData(DataBuffer(ByteString("a")))
-      con.receivedData(DataBuffer(ByteString("b")))
       endpoint.readsEnabled must equal(true)
-      //this last piece should fill up the pipe
-      con.receivedData(DataBuffer(ByteString("c")))
+      con.receivedData(DataBuffer(ByteString("a")))
       endpoint.readsEnabled must equal(false)
 
       var executed = false
@@ -57,6 +54,8 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       //execution should not yet be complete
       executed must equal(false)
       endpoint.readsEnabled must equal(true)
+      con.receivedData(DataBuffer(ByteString("b")))
+      con.receivedData(DataBuffer(ByteString("c")))
       con.receivedData(DataBuffer(ByteString("d")))
       //now it should be done
       executed must equal(true)
@@ -84,25 +83,27 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       failed must equal(true)   
     }
 
-    "input stream allowed to complete during graceful disconnect" in {
+    "input stream allowed to complete during graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
       var source: Option[Source[DataBuffer]] = None
       val (endpoint, con) = createController({input => 
         source = Some(input.source)
       })
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("4\r\nab")))
-      source.get.pullCB().map{buf => ByteString(buf.get.takeAll)} must evaluateTo{b: ByteString => 
-        b must equal(ByteString("ab"))
+      endpoint.readsEnabled must equal(false)
+      var total = 0
+      source.get.fold(0){(buf, len) => len + buf.size}.execute{
+        case Success(l) => total = l
+        case Failure(err) => throw err
       }
+      endpoint.readsEnabled must equal(true)
       con.testGracefulDisconnect()
       //input stream is not done, so reads should still be enabled
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("cd")))
-      source.get.pullCB().map{buf => ByteString(buf.get.takeAll)} must evaluateTo{b: ByteString => 
-        b must equal(ByteString("cd"))
-      }
       //the stream should have finished, so now reads should be disabled
       endpoint.readsEnabled must equal(false)
+      total must equal(4)
 
     }
         
