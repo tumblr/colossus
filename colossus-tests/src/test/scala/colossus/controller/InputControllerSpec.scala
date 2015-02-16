@@ -83,7 +83,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       failed must equal(true)   
     }
 
-    "input stream allowed to complete during graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "input stream allowed to complete during graceful disconnect" in {
       var source: Option[Source[DataBuffer]] = None
       val (endpoint, con) = createController({input => 
         source = Some(input.source)

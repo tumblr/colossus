@@ -12,7 +12,7 @@ object PipeCombinator {
 
       import scala.collection.JavaConverters._
 
-      private var queue : java.util.Queue[SNKIN] = new util.LinkedList[SNKIN]()
+      private var queue  = new util.LinkedList[SNKIN]()
 
       pipeData()
 
@@ -51,8 +51,8 @@ object PipeCombinator {
               input.complete()
             }
             case PushResult.Full(t) => {
-              //this should never happen since we catch it in Filled
-              throw new Exception("tried to push when already full")
+              queue.addFirst(next)
+              t.fill(pushToSink)
             }
             case PushResult.Filled(t) => {
               t.fill(pushToSink)
