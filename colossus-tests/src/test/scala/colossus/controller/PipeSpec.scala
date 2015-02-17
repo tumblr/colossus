@@ -12,10 +12,6 @@ import PushResult._
 
 class PipeSpec extends WordSpec with MustMatchers with CallbackMatchers {
 
-  implicit object IntCopier extends Copier[Int] {
-    def copy(i: Int) = i
-  }
-  
   "InfinitePipe" must {
 
     "push an item after pull request" in {

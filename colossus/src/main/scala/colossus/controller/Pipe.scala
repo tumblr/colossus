@@ -7,36 +7,6 @@ import scala.util.{Try, Success, Failure}
 
 import service.{Callback, UnmappedCallback}
 
-/**
- * This trait is mostly intended for ByteBuffers which need to be copied to the
- * heap if they need to be buffered, basically in every other case copy can just return itself
- */
-trait Copier[T] {
-  def copy(item: T): T
-}
-
-object Copier {
-
-  implicit object DataBufferCopier extends Copier[DataBuffer] {
-    def copy(d: DataBuffer) = d.takeCopy
-  }
-}
-
-//hrm....
-object ReflexiveCopiers{
-
-  trait Reflect[T] {
-    def copy(t : T) : T = t
-  }
-
-  implicit object StringReflect extends Copier[String] with Reflect[String]
-  implicit object IntReflect extends Copier[Int] with Reflect[Int]
-  implicit object LongReflect extends Copier[Long] with Reflect[Long]
-  implicit object ShortReflect extends Copier[Short] with Reflect[Short]
-  implicit object FloatReflect extends Copier[Float] with Reflect[Float]
-  implicit object DoubleReflect extends Copier[Double] with Reflect[Double]
-}
-
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
   //all subsequent pull and pushes to return an Error
