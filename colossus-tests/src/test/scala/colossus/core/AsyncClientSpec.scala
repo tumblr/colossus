@@ -20,7 +20,7 @@ class AsyncClientSpec extends ColossusSpec {
     import protocols.telnet._
     import service._
     import Callback.Implicits._
-    Service.become[Telnet]("test", TEST_PORT) {
+    Service.become[Telnet]("test-" + System.nanoTime().toString, TEST_PORT) {
       case TelnetCommand(c :: tail) => {
         println("HERE")
         TelnetReply(c)

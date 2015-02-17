@@ -224,7 +224,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       }
     }
     checkGracefulDisconnect()
-    if (paused) resumeWrites()
+    if (!writesEnabled) resumeWrites()
   }
 
   def receivedMessage(message: Any, sender: ActorRef) {
@@ -237,9 +237,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   override def connected(endpoint: WriteEndpoint) {
     super.connected(endpoint)
     log.info(s"${id.get} Connected to $address")
-    codec.reset()    
     connectionAttempts = 0
-    readyForData()
   }
 
   private def purgeBuffers(pendingException : => Throwable) {
@@ -310,7 +308,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
           pauseWrites() //writes resumed in processMessage
         }
       } else {
-        s.handler(Failure(new ClientOverloadedException("Client is overloaded")))
+        s.handler(Failure(new ClientOverloadedException(s"Error sending ${s.message}: Client is overloaded")))
       }
     } else {
       droppedRequests.hit(tags = hpTags)

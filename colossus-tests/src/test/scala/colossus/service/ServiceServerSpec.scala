@@ -50,7 +50,7 @@ class ServiceServerSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect" in {
+    "graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{implicit io => 
         val server = Service.serve[Redis]("test", TEST_PORT){_.handle{con => con.become{
           case x if (x.command == "DIE") => {
