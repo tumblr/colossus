@@ -4,10 +4,31 @@ package service
 import core._
 
 import akka.actor._
-import akka.util.Timeout
+import akka.util.{ByteString, Timeout}
 import java.net.InetSocketAddress
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
+
+sealed trait ConnectionEvent
+sealed trait ClientConnectionEvent extends ConnectionEvent
+object ConnectionEvent {
+  case class ReceivedData(data: ByteString) extends ConnectionEvent
+  case object ReadyForData extends ConnectionEvent
+  //maybe include an id or something
+  case class WriteAck(status: WriteStatus) extends ConnectionEvent
+  case class ConnectionTerminated(cause : DisconnectCause) extends ConnectionEvent
+
+  //for server connections, Connected is send immediately after Bound.  For
+  //clients, the messages are more semantic, Bound is sent immediately while
+  //connected only when the connection is fully established
+  case class Bound(id: Long) extends ConnectionEvent
+
+  case object Connected extends ConnectionEvent
+  //for client connections
+  case object ConnectionFailed extends ClientConnectionEvent
+
+  case object Unbound extends ConnectionEvent
+}
 
 /**
  * This correctly routes messages to the right worker and handler

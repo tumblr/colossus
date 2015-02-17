@@ -33,9 +33,6 @@ object Main extends App {
   //an echo server built only on the core layer
   val echoServer = EchoExample.start(9003)
 
-  //a simple firehose using the Actor API
-  val streamServer = StreamExample.start(9004)
-
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
 

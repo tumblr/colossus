@@ -93,6 +93,16 @@ trait ClientConnectionHandler extends ConnectionHandler {
  */
 trait ManualUnbindHandler extends ClientConnectionHandler
 
+
+/**
+ * A Watched handler allows an actor to be tied to a connection.  The worker
+ * will watch the actor, and on termination will shutdown the connection
+ * associated with the actor
+ */
+trait WatchedHandler extends ConnectionHandler {
+  def watchedActor: ActorRef
+}
+
 /**
  * Convenience implementation of ConnectionHandler which provides implementations for all of
  * the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
