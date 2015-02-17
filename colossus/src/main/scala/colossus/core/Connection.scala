@@ -74,6 +74,11 @@ trait WriteEndpoint {
    * Re-enable reads, if they were previously disabled
    */
   def enableReads()
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
+   */
+  def lastTimeDataWritten: Long
 }
 
 private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
@@ -179,7 +184,7 @@ private[core] class ServerConnection(id: Long, key: SelectionKey, channel: Socke
     super.close(cause)
   }
 
-  def isTimedOut(time: Long) = server.maxIdleTime != Duration.Inf && time - lastTimeDataReceived > server.maxIdleTime.toMillis
+  def isTimedOut(time: Long) = server.maxIdleTime != Duration.Inf && time - math.max(lastTimeDataReceived, lastTimeDataWritten) > server.maxIdleTime.toMillis
 
   def unbindHandlerOnClose = true
 
@@ -200,7 +205,7 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
     handler.connected(this)
   }
 
-  def isTimedOut(time: Long) = false
+  def isTimedOut(time: Long) = handler.maxIdleTime != Duration.Inf && time - math.max(lastTimeDataReceived, lastTimeDataWritten) > handler.maxIdleTime.toMillis
 
   def unbindHandlerOnClose = handler match {
     case u: ManualUnbindHandler => false
