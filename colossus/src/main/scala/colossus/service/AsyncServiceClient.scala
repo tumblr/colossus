@@ -84,7 +84,10 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
 }
 
-trait AsyncServiceClient[I,O] extends SharedClient[I,O] {
+trait AsyncServiceClient[I,O]  {
+  
+  def send(request: I): Future[O]
+
   def connectionStatus: Future[ConnectionStatus]
   def disconnect()
 

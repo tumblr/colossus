@@ -367,15 +367,6 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
 
-    "get a shared interface" in {
-      val (endpoint, client, probe) = newClient(true, 10)
-      val shared = client.shared
-      val cmd1 = Command(CMD_GET, "foo")
-      val f = shared.send(cmd1)
-      //probe.expectMsg(Message(1, AsyncRequest
-      probe.expectMsgType[WorkerCommand.Message](50.milliseconds)
-    }
-
     //blocked on https://github.com/tumblr/colossus/issues/19
     "attempts to reconnect when server closes connection" in {
       //try it for real (reacting to a bug with NIO interaction)

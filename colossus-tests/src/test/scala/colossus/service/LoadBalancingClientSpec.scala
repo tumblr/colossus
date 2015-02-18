@@ -27,15 +27,8 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       requestTimeout = 1.second
     )
     val r = customReturn.getOrElse(Success(address.getPort))
-    val m = mock[SharedClient[String, Int]]
-    //future.fromTry not in scala 2.10
-    when(m.send("hey")).thenReturn(r match {
-      case Success(r) => Future.successful(r)
-      case Failure(err) => Future.failed(err)
-    })
     val c = mock[ServiceClient[String, Int]]
     when(c.send("hey")).thenReturn(Callback.complete(r))
-    when(c.shared).thenReturn(m)
     when(c.config).thenReturn(config)
     c        
   }
@@ -99,50 +92,6 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
         }
       }
     }
-
-    "fail to get a shared interface when not bound to a worker" in {
-      val (probe, worker) = FakeIOSystem.fakeWorkerRef
-      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2 )
-      intercept[LoadBalancingClientException] {
-        val shared = l.shared
-      }
-    }
-
-    "get a shared interface when bound" in {
-      val (probe, worker) = FakeIOSystem.fakeWorkerRef
-      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
-      l.setBind(1, worker)
-      val shared = l.shared
-    }
-
-    "send messages in shared interface" in {
-      val (probe, worker) = FakeIOSystem.fakeWorkerRef
-      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2)
-      l.setBind(1, worker)
-      val shared = l.shared
-      shared.send("hey")
-      probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
-      probe.expectMsgPF(100.milliseconds) {
-        case WorkerCommand.Message(1, l.Send("hey", _)) => true
-      }
-    }
-
-    "correctly receive messages from shared interface" in {
-      val num = 5
-      val ops = (1 to num).permutations.toList.size //lazy factorial
-      val clients = addrs(num)
-      val (probe, worker) = FakeIOSystem.fakeWorkerRef
-      val l = new LoadBalancingClient[String,Int](worker, mockGenerator, maxTries = 2, initialClients = clients)
-      l.setBind(1, worker)
-      val shared = l.shared
-      (1 to ops).foreach{i => 
-        l.receivedMessage(l.Send("hey", Promise()), probe.ref)
-      }
-      l.currentClients.foreach{c =>
-        verify(c, times(ops / num)).send("hey")
-      }
-    }
-
 
     "close removed connection on update" in {
       val (probe, worker) = FakeIOSystem.fakeWorkerRef

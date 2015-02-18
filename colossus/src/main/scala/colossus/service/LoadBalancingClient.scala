@@ -77,7 +77,7 @@ class LoadBalancingClient[I,O] (
   generator: InetSocketAddress => ServiceClient[I,O], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends LocalClient[I,O] with WorkerItem {
+) extends ServiceClientLike[I,O] with WorkerItem {
 
 
   private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
@@ -136,11 +136,16 @@ class LoadBalancingClient[I,O] (
     }
     regeneratePermutations()
   }
+
+  def gracefulDisconnect() {
+    clients.foreach{_.gracefulDisconnect()}
+    clients.clear()
+  }
       
 
   def send(request: I): Callback[O] = {
     val retryList =  permutations.next().take(maxTries)
-    def go(next: LocalClient[I,O], list: List[LocalClient[I, O]]): Callback[O] = next.send(request).recoverWith{
+    def go(next: ServiceClientLike[I,O], list: List[ServiceClientLike[I, O]]): Callback[O] = next.send(request).recoverWith{
       case err => list match {
         case head :: tail => go(head, tail)
         case Nil => Callback.failed(new SendFailedException(retryList.size, err))
@@ -158,21 +163,6 @@ class LoadBalancingClient[I,O] (
       case Send(request, promise) => send(request).execute(promise.complete)
     }
   }
-
-  /**
-   * Returns a shared version of the client that can be used across threads,
-   * inside futures, etc.
-   *
-   * TODO: There is probably room to generalize some of this plumbing
-   */
-  def shared(implicit ex: ExecutionContext): SharedClient[I,O] = binding.map{binding => new SharedClient[I,O] {
-    
-    def send(request: I): Future[O] = {
-      val promise = Promise[O]()
-      binding.send(Send(request, promise))
-      promise.future      
-    }
-  }}.getOrElse(throw new LoadBalancingClientException("Attempted to get shared interface from unbound load balancer"))
 
 }
 

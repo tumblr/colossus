@@ -70,25 +70,9 @@ class RequestTimeoutException extends ServiceClientException("Request Timed out"
  */
 class DataException(message: String) extends ServiceClientException(message)
 
-/**
- * The ClientLike trait is intended to be an interface for anything that you
- * can connect to and send messages.  It may be a single connection (as it is
- * with ServiceClient) or may be a pool of connections
- */
-trait ClientLike[I,O,M[_]] {
-  def send(request: I): M[O]
-}
-
-trait LocalClient[I,O] extends ClientLike[I,O,Callback]{
-}
-
-trait SharedClient[I,O] extends ClientLike[I,O,Future] {
-}
-
-trait ServiceClientLike[I,O] extends LocalClient[I,O] {
+trait ServiceClientLike[I,O]  {
   def gracefulDisconnect()
-  def config: ClientConfig
-  def shared: SharedClient[I,O]
+  def send(request: I): Callback[O]
 }
 
 
@@ -122,7 +106,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
 
   type ResponseHandler = Try[O] => Unit
 
-  //todo: figure out how to make these not lazy
   private val periods = List(1.second, 1.minute)
   private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
   private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
@@ -145,8 +128,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
   private val hTags: TagMap = Map("client_host" -> address.getHostName)
-
-  case class AsyncRequest(request: I, handler: ResponseHandler)
 
   worker.bind(this)
 
@@ -194,17 +175,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
     attemptWrite(s)
   }
 
-  /** Create a shared interface that is thread safe and returns Futures
-   */
-  def shared: SharedClient[I,O] = new SharedClient[I,O] {
-    def send(request: I): Future[O] = {
-      val promise = Promise[O]()
-      val handler = {response: Try[O] => promise.complete(response);()}
-      id.map{id => worker ! Message(id, (AsyncRequest(request, handler)))}.getOrElse(promise.failure(new NotConnectedException("Not Bound to worker")))
-      promise.future
-    }
-  }
-
   /**
    * Create a callback for sending a request.  this allows you to do something like
    * service.sendCB("request"){response => "YAY"}.map{str => println(str)}.execute()
@@ -227,12 +197,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
     if (!writesEnabled) resumeWrites()
   }
 
-  def receivedMessage(message: Any, sender: ActorRef) {
-    message match {
-      case AsyncRequest(request, handler) => sendNow(request)(handler)
-      case other => throw new Exception(s"Received invalid message $other")
-    }
-  }
+  def receivedMessage(message: Any, sender: ActorRef) {}
 
   override def connected(endpoint: WriteEndpoint) {
     super.connected(endpoint)

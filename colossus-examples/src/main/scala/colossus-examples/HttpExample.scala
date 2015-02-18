@@ -5,7 +5,7 @@ import colossus.IOSystem
 import colossus.core.ServerRef
 import colossus.protocols.http._
 import colossus.protocols.redis._
-import colossus.service.{Callback, LocalClient, Service}
+import colossus.service.{Callback, Service, ServiceClient}
 import java.net.InetSocketAddress
 
 import UrlParsing._
@@ -19,7 +19,7 @@ object HttpExample {
    * Here we're demonstrating a common way of breaking out the business logic
    * from the server setup, which makes functional testing easy
    */
-  class HttpRoutes(redis: LocalClient[Command, Reply]) {
+  class HttpRoutes(redis: ServiceClient[Command, Reply]) {
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
