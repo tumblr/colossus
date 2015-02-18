@@ -123,7 +123,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
       port = port,
       id = id,
       timeOpen = now - startTime,
-      timeIdle = now - lastTimeDataReceived,
+      readIdle = now - lastTimeDataReceived,
+      writeIdle = now - lastTimeDataWritten,
       bytesSent = bytesSent,
       bytesReceived = bytesReceived
     )
@@ -152,7 +153,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   def consoleString = {
     val now = System.currentTimeMillis
     val age = now - startTime
-    val idle = now - _lastTimeDataReceived
+    val idle = timeIdle(now)
     s"$id: $host:  age: $age idle: $idle"
   }
 
