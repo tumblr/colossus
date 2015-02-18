@@ -82,6 +82,11 @@ trait ClientConnectionHandler extends ConnectionHandler {
    * Event handler for when a connection failed.
    */
   def connectionFailed()
+
+  /**
+   * If no data is either sent or received in this amount of time, the connection is closed.  Defaults to Duration.Inf but handlers can override it
+   */
+  def maxIdleTime : Duration = Duration.Inf
 }
 
 /**

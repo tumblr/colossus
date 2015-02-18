@@ -27,6 +27,9 @@ import scala.util.{Failure, Success, Try}
  * @param failFast  When a failure is detected, immediately fail all pending requests.
  * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
  *                           and for connection lost events.
+ * @param idleTime How long the connection can remain idle (both sending and
+ *        receiving data) before it is closed.  This should be significantly higher
+ *        than requestTimeout.
  *
  */
 case class ClientConfig(
@@ -36,7 +39,8 @@ case class ClientConfig(
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 20,
   failFast: Boolean = false,
-  connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)
+  connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None),
+  idleTimeout: Duration = Duration.Inf
 )
 
 class ServiceClientException(message: String) extends Exception(message)
@@ -121,6 +125,9 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   import config._
 
   type ResponseHandler = Try[O] => Unit
+
+  override val maxIdleTime = config.idleTimeout
+
 
   //todo: figure out how to make these not lazy
   private val periods = List(1.second, 1.minute)

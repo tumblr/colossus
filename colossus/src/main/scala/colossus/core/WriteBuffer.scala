@@ -59,12 +59,20 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //this is only filled when we only partially wrote data
   private var partialBuffer: Option[DataBuffer] = None
 
+  //technically this value is wrong when first constructed, but since this is
+  //only used in determining idle time, initializing it to the current time
+  //simplifies the calculations
+  private var _lastTimeDataWritten: Long = System.currentTimeMillis
+
+  def lastTimeDataWritten = _lastTimeDataWritten
+
   def isDataBuffered: Boolean = partialBuffer.isDefined
 
   private def writeRaw(raw: DataBuffer): WriteStatus = {
     try {
       val wrote = channelWrite(raw)
       _bytesSent += wrote
+      _lastTimeDataWritten = System.currentTimeMillis
       if (raw.hasUnreadData) {
         //we must take a copy of the buffer since it will be repurposed
         partialBuffer = Some(raw.takeCopy)
