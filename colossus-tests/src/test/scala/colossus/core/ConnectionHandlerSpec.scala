@@ -12,39 +12,10 @@ import java.net.InetSocketAddress
 import scala.concurrent.duration._
 import akka.util.ByteString
 
-import ConnectionEvent._
 import RawProtocol._
 
-class Handler(listener: ActorRef) extends Actor {
-  def receive = {
-    case m => listener ! m
-  }
-}
-  
-class AsyncDelegator(props: Props, server: ServerRef, worker: WorkerRef)(implicit factory: ActorRefFactory) extends Delegator(server, worker) {
-  implicit val w = worker.worker
-  def acceptNewConnection = Some(AsyncHandler(factory.actorOf(props)))
-}
-object AsyncDelegator {
-  def factorize(props: Props)(implicit system: ActorSystem): Delegator.Factory = {
-    (server, worker) => new AsyncDelegator(props, server, worker)
-  }
-}
 
 class ConnectionHandlerSpec extends ColossusSpec {
-
-  def withHandlerServer(f :(ServerRef, AsyncServiceClient[ByteString, ByteString], TestProbe) => Any) = {
-
-    val probe = TestProbe()
-    val props = Props(classOf[Handler], probe.ref)
-    withIOSystemAndServer(AsyncDelegator.factorize(props)) { (io, server) => {
-      val c = TestClient(server.system, TEST_PORT)
-      probe.expectMsg(ConnectionEvent.Bound(1))
-      probe.expectMsg(ConnectionEvent.Connected)
-      f(server, c, probe)
-      }
-    }
-  }
 
   "Server Connection Handler" must {
     "bind to worker on creation" in {
@@ -202,38 +173,5 @@ class ConnectionHandlerSpec extends ColossusSpec {
   }
 
 
-  "Async Server Handler" must {
-    "receive connected event" in {
-      withHandlerServer { (server, con, probe) =>
-        //nop
-      }
-    }
-
-    "receive connection lost event" in {
-      withHandlerServer { (io, con, probe) => {
-        con.disconnect()
-        probe.expectMsgType[ConnectionEvent.ConnectionTerminated]
-      }
-
-      }
-    }
-
-    "receive data event" in {
-      withHandlerServer { (server, con, probe) => {
-        con.send(ByteString("HELLO WORLD"))
-        probe.expectMsgPF(100.milliseconds) {
-          case ConnectionEvent.ReceivedData(data) if data == ByteString("HELLO WORLD") => true
-        }
-      }
-      }
-    }
-    "send data back to client" in {
-      withHandlerServer { (server, con, probe) => {
-        con.send(ByteString("ECHO"))
-        probe.expectMsg(ReceivedData(ByteString("ECHO")))
-      }
-      }
-    }
-  }
 }
 
