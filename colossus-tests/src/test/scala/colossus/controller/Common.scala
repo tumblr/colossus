@@ -20,7 +20,7 @@ case class TestOutput(data: Source[DataBuffer])
 
 class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{    
   import parsing.Combinators._
-  val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num, pipeSize))}
+  val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num))}
 
   def decode(data: DataBuffer): Option[DecodedResult[TestInput]] = {
     val res = parser.parse(data)

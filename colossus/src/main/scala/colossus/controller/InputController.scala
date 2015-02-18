@@ -2,9 +2,7 @@ package colossus
 package controller
 
 import core._
-import colossus.service.{DecodedResult}
-import scala.util.{Success, Failure}
-import PushResult._
+import colossus.service.{DecodedResult, NotConnectedException}
 
 sealed trait InputState
 object InputState {
@@ -40,6 +38,12 @@ class InvalidInputStateException(state: InputState) extends Exception(s"Invalid 
  * The InputController maintains all state dealing with reading in messages in
  * a controller.  It handles decoding messages and properly routing data into
  * stream
+ *
+ * When pushing data into a stream, the controller has some very specific behavior regarding the PushResult from the stream.
+ * - Terminating the stream at any point kills the connection
+ * - Closing a stream outside of a pull callback will kill the connection without logging the error
+ * - Closing a stream inside of a pull callback will complete the stream and the controller will resset
+ * 
  */
 trait InputController[Input, Output] extends MasterController[Input, Output] {
   import InputState._
@@ -54,10 +58,10 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   private[controller] def inputOnClosed() {
     inputState match {
       case ReadingStream(sink) => {
-        sink.terminate(new Exception("Connection Closed"))
+        sink.terminate(new NotConnectedException("Connection Closed"))
       }
       case BlockedStream(sink, trigger) => {
-        sink.terminate(new Exception("Connection Closed"))
+        sink.terminate(new NotConnectedException("Connection Closed"))
         trigger.cancel()
       }
       case _ => {}
@@ -112,8 +116,8 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
         case None => {} //nothing to do here, just waiting for MOAR DATA
       }
       case ReadingStream(sink) => sink.push(data) match {
-        case Success(Ok) => {}
-        case Success(Done) => state match{
+        case PushResult.Ok => {}
+        case PushResult.Complete => state match{
           case ConnectionState.Disconnecting(_) => {
             //gracefulDisconnect was called, so we allowed the connection to
             //finish reading in the stream, but now that it's done, disable
@@ -127,30 +131,38 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
           }
           case other => throw new InvalidConnectionStateException(other)
         }
-        case Success(Full(trigger)) => state match {
+        case PushResult.Full(trigger) => state match {
           case a: AliveState => {
             a.endpoint.disableReads()
+            val copied = data.takeCopy
             trigger.fill{() =>
-              //todo: maybe do something if endpoint disappears before trigger is called.  Also maybe need to cancel trigger?
               resumeReads()
               inputState = ReadingStream(sink)
+              receivedData(copied)
             }
             inputState = BlockedStream(sink, trigger)
           }
           case other => throw new InvalidConnectionStateException(other)
         }
-        case Failure(a : PipeTerminatedException) => {
-          //disconnect
-          inputState = Terminated
-          //we might not want to throw exceptions here, since terminating a pipe is normal behavior....maybe?
+        case PushResult.Filled(trigger) => state match {
+          case a: AliveState => {
+            a.endpoint.disableReads()
+            trigger.fill{() => 
+              resumeReads()
+              inputState = ReadingStream(sink)
+            }
+          }
+          case other => throw new InvalidConnectionStateException(other)
         }
-        case Failure(a : PipeClosedException) => {
-          //this only happens on infinite pipes...maybe also on finite pipes, but not yet
-          //TODO:  this should not be an exception/failure
-          inputState = Decoding
-          if(data.hasUnreadData) receivedData(data)
+        case PushResult.Closed => {
+          //TODO: This result indicates the receiver closed the pipe early,
+          //since otherwise we already would have gotten the Complete state.
+          //So this result would only happen if the receiever expected more data, but abruptly closed the pipe.
+          //Seems like the only solution here is to close the connection since
+          //we no longer have any place to put this data.  But this might need more thought
+          disconnect()
         }
-        case Failure(t : Throwable) => {
+        case PushResult.Error(t : Throwable) => {
           inputState = Terminated
           throw t //basically gotta kill the connection
         }
