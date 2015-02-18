@@ -47,7 +47,7 @@ object HttpClientCodec {
       }
 
       private def createChunkedReponse(headers : StreamingHttpResponseHeaderStub) : ResponseAndSink = {
-        val combinator = StreamingHttpChunkPipe(new InfinitePipe[DataBuffer](streamingQueueSize), new InfinitePipe[DataBuffer](streamingQueueSize)) //uergh...this terrifies me
+        val combinator = StreamingHttpChunkPipe(new InfinitePipe[DataBuffer], new InfinitePipe[DataBuffer])
         val res = StreamingHttpResponse(headers.version, headers.code, headers.headers, combinator)
         ResponseAndSink(res, combinator)
       }
@@ -60,7 +60,7 @@ object HttpClientCodec {
 
       private def createNonChunkedPipe(headers : StreamingHttpResponseHeaderStub) : Pipe[DataBuffer, DataBuffer] = {
         val length = headers.getContentLength.getOrElse(0)
-        new FiniteBytePipe(length, streamingQueueSize)
+        new FiniteBytePipe(length)
       }
     }
   }

@@ -1,7 +1,7 @@
 package colossus.protocols.http.client
 
 import akka.util.ByteString
-import colossus.controller.Source
+import colossus.controller._
 import colossus.core.{DataBuffer, DataStream, DataReader}
 import colossus.protocols.http._
 import colossus.service.{Callback, DecodedResult}
@@ -29,7 +29,10 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
 
       decodedResponse match {
         case Some(DecodedResult.Streamed(res, s)) => {
-          s.push(bytes)
+          s.push(bytes) match {
+            case PushResult.Full(trig) => trig.fill{() => s.push(bytes)}
+            case _ => throw new Exception("wrong result")
+          }
           res.stream.pullCB() must evaluateTo { x : Option[DataBuffer] =>
             ByteString(x.value.takeAll) must equal (ByteString(content))
             bytes.hasUnreadData must be (false)
@@ -133,7 +136,11 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
       val decoded: Option[DecodedResult[StreamingHttpResponse]] = clientProtocol.decode(buffer)
       decoded match {
         case Some(DecodedResult.Streamed(resp, s)) => {
-          s.push(buffer)
+          s.push(buffer) match {
+            case PushResult.Closed => {}
+            case PushResult.Full(trig) => trig.fill{() => s.push(buffer)}
+            case other => throw new Exception(s"wrong push result $other")
+          }
           resp must equal (res)
           val f2: Callback[ByteString] = resp.stream.fold(ByteString(""))((buffer, bytes) => bytes ++ ByteString(buffer.takeAll))
           f2 must evaluateTo{x : ByteString =>
