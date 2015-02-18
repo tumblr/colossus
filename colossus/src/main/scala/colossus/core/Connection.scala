@@ -74,6 +74,11 @@ trait WriteEndpoint {
    * Re-enable reads, if they were previously disabled
    */
   def enableReads()
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
+   */
+  def lastTimeDataWritten: Long
 }
 
 private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
@@ -101,6 +106,11 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   def isTimedOut(time: Long): Boolean
   def unbindHandlerOnClose: Boolean
 
+  def timeIdle(currentTime: Long) = currentTime - math.max(lastTimeDataReceived, lastTimeDataWritten)
+
+  protected def isTimedOut(maxIdleTime: Duration, currentTime: Long): Boolean = {
+    maxIdleTime != Duration.Inf && timeIdle(currentTime) > maxIdleTime.toMillis
+  }
 
   protected val channel = _channel
   val worker = sender
@@ -113,7 +123,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
       port = port,
       id = id,
       timeOpen = now - startTime,
-      timeIdle = now - lastTimeDataReceived,
+      readIdle = now - lastTimeDataReceived,
+      writeIdle = now - lastTimeDataWritten,
       bytesSent = bytesSent,
       bytesReceived = bytesReceived
     )
@@ -142,7 +153,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   def consoleString = {
     val now = System.currentTimeMillis
     val age = now - startTime
-    val idle = now - _lastTimeDataReceived
+    val idle = timeIdle(now)
     s"$id: $host:  age: $age idle: $idle"
   }
 
@@ -179,7 +190,7 @@ private[core] class ServerConnection(id: Long, key: SelectionKey, channel: Socke
     super.close(cause)
   }
 
-  def isTimedOut(time: Long) = server.maxIdleTime != Duration.Inf && time - lastTimeDataReceived > server.maxIdleTime.toMillis
+  def isTimedOut(time: Long) = isTimedOut(server.maxIdleTime, time)
 
   def unbindHandlerOnClose = true
 
@@ -200,7 +211,7 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
     handler.connected(this)
   }
 
-  def isTimedOut(time: Long) = false
+  def isTimedOut(time: Long) = isTimedOut(handler.maxIdleTime, time)
 
   def unbindHandlerOnClose = handler match {
     case u: ManualUnbindHandler => false
