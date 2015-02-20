@@ -12,11 +12,9 @@ class HttpResponseSpec extends WordSpec with MustMatchers with TryValues with Op
 
     "be constuctable from a ByteStringLike" in {
 
-      import ByteStringConverters._
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Vector(), "test conversion")
 
-      val response = HttpResponse.fromValue(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Nil, "test conversion")
-
-      val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Nil, ByteString("test conversion"))
+      val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Vector(), ByteString("test conversion"))
 
       response must equal(expected)
 
@@ -28,28 +26,29 @@ class HttpResponseSpec extends WordSpec with MustMatchers with TryValues with Op
     "be constructable from a StaticHttpResponse" in {
 
       val payload = "look ma, no hands!"
-      val res = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Nil, ByteString(payload))
+      val res = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(payload))
 
       val streamed = StreamingHttpResponse.fromStatic(res)
 
-      streamed.stream.pullCB() must evaluateTo{x : Option[DataBuffer] =>
-        ByteString(x.value.takeAll) must equal(res.data)
+      streamed.body.get.pullCB() must evaluateTo{x : Option[DataBuffer] =>
+        ByteString(x.value.takeAll) must equal(res.body.get)
       }
     }
 
     "be constuctable from a ByteStringLike" in {
 
-      import ByteStringConverters._
-
       val payload = "look ma, no hands!"
 
-      val expected = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector("content-length"->"18"), Source.one(DataBuffer(ByteString("test conversion"))))
+      val expected = StreamingHttpResponse(
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("content-length"->"18")), 
+        Some(Source.one(DataBuffer(ByteString("test conversion"))))
+      )
 
-      val response = StreamingHttpResponse.fromValue(HttpVersion.`1.1`, HttpCodes.OK, Nil, payload)
+      val response = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), payload)
 
-      response must equal(expected)
+      response.head must equal(expected.head)
 
-      response.stream.pullCB() must evaluateTo{x : Option[DataBuffer] =>
+      response.body.get.pullCB() must evaluateTo{x : Option[DataBuffer] =>
         ByteString(x.value.takeAll) must equal(ByteString(payload))
       }
 

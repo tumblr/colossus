@@ -85,7 +85,7 @@ class ServiceServerSpec extends ColossusSpec {
         }
         withServer(server) { 
           val client = AsyncServiceClient[Http]("localhost", TEST_PORT)
-          Await.result(client.send(HttpRequest.get("/")), 1.second).data must equal(ByteString("Hello World"))
+          Await.result(client.send(HttpRequest.get("/")), 1.second).body.get must equal(ByteString("Hello World"))
         }
       }
     }

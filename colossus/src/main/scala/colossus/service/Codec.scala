@@ -20,7 +20,7 @@ sealed trait DecodedResult[+T]
 object DecodedResult {
 
   case class Static[T](value : T) extends DecodedResult[T] //this is what is formerly the Some(Input) in a Codec
-  case class Streamed[T](t : T, s : Sink[DataBuffer]) extends DecodedResult[T]
+  case class Stream[T](value : T, s : Sink[DataBuffer]) extends DecodedResult[T]
 
   def static[T](value : Option[T]) : Option[DecodedResult[T]] = value.map(x => Static(x))
 

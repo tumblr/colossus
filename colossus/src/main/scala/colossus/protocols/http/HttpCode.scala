@@ -7,6 +7,10 @@ case class HttpCode(code: Int, description: String) {
   val headerSegment = s"$code $description"
   val headerBytes = ByteString(headerSegment)
 }
+object HttpCode {
+  def apply(code: Int): HttpCode = HttpCodes(code)
+}
+
 object HttpCodes {
   //100
   val CONTINUE = HttpCode(100, "Continue")

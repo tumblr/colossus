@@ -37,18 +37,39 @@ object Main extends App {
   val chatServer = ChatExample.start(9005)
 
 
+  import core.DataBuffer
   import service._
   import protocols.http._
+  import HttpMethod._
+  import UrlParsing._
+  import controller._
+  import akka.util.ByteString
+  import Callback.Implicits._
 
   Service.serve[StreamingHttp]("stream-proxy", 9090){ context =>
     context.handle{ connection =>
       connection.become {
-        case req => {
+        case req @ Get on Root => {
           val client = context.clientFor[StreamingHttp]("localhost", 9001)
-          client.send(HttpRequest.get("/")).map{c =>
+          client.send(HttpRequest.get("/")).map{response =>
             client.gracefulDisconnect()
-            c
+            response
           }
+        }
+        case req @ Get on Root / "x" / Integer(num) => {
+          class NumberGenerator extends Generator[DataBuffer] {
+            private var current = 0
+            def generate(): Option[DataBuffer] = {
+              current += 1
+              if (current == num) None else Some(DataBuffer(ByteString(current.toString)))
+            }
+          }
+          val pipe = new ChunkEncodingPipe
+          pipe.feed(new NumberGenerator, true)
+          StreamingHttpResponse(
+            HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("Transfer-Encoding" -> "chunked")),
+            Some(pipe)
+          )
         }
       }
     }

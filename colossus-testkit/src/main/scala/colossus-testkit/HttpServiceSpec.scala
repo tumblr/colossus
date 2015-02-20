@@ -15,8 +15,13 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
   def expectCode(request: HttpRequest, expectedResponseCode: HttpCode) {
     withClient{client =>
       val resp = Await.result(client.send(request), requestTimeout)
-      val msg = request.head.method + " " + request.head.url + ": Code " + resp.code + " did not match " + expectedResponseCode + ". Body: " + resp.data.utf8String
-      assert(resp.code == expectedResponseCode, msg)
+      val msg = request.head.method + 
+        " " + request.head.url + ": Code " +
+        resp.head.code + " did not match " + 
+        expectedResponseCode + ". Body: "  +
+        resp.body.map{_.utf8String}.getOrElse("(none)")
+      assert(resp.head.code == expectedResponseCode, msg)
+
     }
   }
 
@@ -29,7 +34,10 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
 
   def testGet(url: String, expectedBody: String) {
     val req = get(url)
-    val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, List(("content-length" -> expectedBody.length.toString)), ByteString(expectedBody))
+    val expected = HttpResponse(
+      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(("content-length" -> expectedBody.length.toString))), 
+      Some(ByteString(expectedBody))
+    )
 
     expectResponse(req, expected)
   }
@@ -61,7 +69,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
   def expectJson[T : Manifest](request : HttpRequest, expectedJson : T) {
     withClient{ client =>
       val resp = Await.result(client.send(request), requestTimeout)
-      val parsed = parse(resp.data.utf8String).extract[T]
+      val parsed = parse(resp.body.get.utf8String).extract[T]
       parsed must equal(expectedJson)
     }
   }
