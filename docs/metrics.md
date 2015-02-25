@@ -171,4 +171,31 @@ Currently metric reporting is mostly focused on reporting to OpenTSDB.  To setup
 * A MetricSender - this is the object that encodes metrics to be sent
 * A set of metric filters - These are used to select and aggregate which metrics to send
 
+In addition to OpenTSDB, metrics may also be logged to file. To use logging, change the MetricSystem to use
+a LoggingSender as the metrics reporter:
+
+{% highlight scala %}
+
+import akka.actor._
+import metrics._
+import scala.concurrent.duration._
+
+implicit val actor_system = ActorSystem()
+
+//create the metric system
+val metric_system = MetricSystem("/my-service")
+
+//create the config, providing LoggerSender as the MetricSender
+val metric_config = MetricReporterConfig(LoggerSender)
+
+//set this as the reporting for the metric system
+metric_system.report(metric_config)
+
+//get a collection
+val collection = metric_system.sharedCollection
+
+//proceed as normal
+
+{% end highlight %}
+
 
