@@ -26,9 +26,9 @@ class LoggerSenderActor(override val formatter:Formatter) extends Actor with Act
 }
 
 class LoggerSender(val formatter:Formatter) extends MetricSender {
-  override def name: String = "logger"
+  def name: String = "logger"
 
-  override def props: Props = Props(classOf[LoggerSenderActor], formatter)
+  def props: Props = Props(classOf[LoggerSenderActor], formatter)
 }
 
 object LoggerSender extends MetricSender {

@@ -11,7 +11,7 @@ case class MetricSystemId(id: Long)
 
 /**
  * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
- * you only want to thave one MetricSystem per application.
+ * you only want to have one MetricSystem per application.
  *
  * Metrics are generated periodically by a Tick message published on the global event bus. By default this happens once
  * per second, but it can be configured to any time interval. So while events are being collected as they occur,
