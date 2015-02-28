@@ -157,6 +157,21 @@ class CallbackSpec extends ColossusSpec {
       val c1 = Callback(func).map{x => a = true;x}.flatMap{i => throw new Exception("LISTEN")}.map{_ => b = true}.execute()
       a must equal(true)
       b must equal(false)
+
+      //double flatmap
+      //from unmapped callback
+      val d = Callback(func).flatMap[Int]{i => throw new Exception("HEY")}.flatMap{i => throw new Exception("B")}.map{_ => j = true}.execute()
+    }
+
+    "failure is propagated through maps and flatMaps" in {
+      var res: Option[Try[Int]] = None
+      val x = Callback.failed(new Exception("HEY")).flatMap{_ => Callback.successful(3)}.flatMap{i => Callback.successful(i)}.execute {r =>
+        res = Some(r)
+      }
+
+      res.get mustBe a[Failure[_]]
+        
+
     }
       
 
