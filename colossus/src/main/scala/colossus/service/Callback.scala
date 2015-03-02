@@ -115,12 +115,15 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
   //new callback takes in the built handler function and not this one
   //notice the order of execution is handler(this callback) => f(the mapping) => cb (the handler function built after this call)
   def flatMap[U](f: O => Callback[U]): Callback[U] = {
-    val newTrigger: (Try[U] => Unit) => Unit = cb => trigger(i => handler(i).map{v => 
-      Try(f(v)) match {
-        case Success(callback) => callback.execute(cb)
-        case Failure(err) => cb(Failure(err))
+    val newTrigger: (Try[U] => Unit) => Unit = cb => trigger(i => handler(i) match {
+      case Success(value) => { 
+        Try(f(value)) match {
+          case Success(callback) => callback.execute(cb)
+          case Failure(err) => cb(Failure(err))
+        }
       }
-    }.get) //this get is needed to avoid suppressing thrown exceptions in the final execute block
+      case Failure(err) => cb(Failure(err))
+    })
     UnmappedCallback(newTrigger)
   }
   def map[U](f: O => U): Callback[U] = MappedCallback(trigger, {i: Try[I] => handler(i).flatMap(v => Try(f(v)))})
@@ -157,12 +160,15 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
 case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callback[I]{
   def map[O](f: I => O): Callback[O] = MappedCallback(trigger, (i: Try[I]) => i.map(f))
   def flatMap[O](f: I => Callback[O]): Callback[O] = {
-    val newTrigger: (Try[O] => Unit) => Unit = cb => trigger(ti => ti.map{i =>
-      Try(f(i)) match {
-        case Success(callback) => callback.execute(cb)
-        case Failure(err) => cb(Failure(err))
+    val newTrigger: (Try[O] => Unit) => Unit = cb => trigger{
+      case Success(value) => {
+        Try(f(value)) match {
+          case Success(callback) => callback.execute(cb)
+          case Failure(err) => cb(Failure(err))
+        }
       }
-    }.get)
+      case Failure(err) => cb(Failure(err))
+    }
     UnmappedCallback(newTrigger)
   }
 
