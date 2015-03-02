@@ -336,6 +336,12 @@ object Combinators {
     }
   }
 
+  def short: Parser[Short] = bytes(2) >> {b => b.asByteBuffer.getShort}
+
+  def int: Parser[Int] = bytes(4) >> {b => b.asByteBuffer.getInt}
+
+  def long: Parser[Long] = bytes(8) >> {b => b.asByteBuffer.getLong}
+
   /** Parse a series of ascii strings seperated by a single-byte delimiter and terminated by a byte
    *
    */
