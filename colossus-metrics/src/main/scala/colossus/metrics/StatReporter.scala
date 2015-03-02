@@ -15,6 +15,14 @@ trait TagGenerator {
   def tags: TagMap
 }
 
+/**
+ * Configuration class for the metric reporter
+ * @param metricSender A [[MetricSender]] instance that the reporter will use to send metrics
+ * @param globalTags
+ * @param filters
+ * @param frequency
+ * @param includeHostInGlobalTags
+ */
 case class MetricReporterConfig(
   metricSender: MetricSender,
   globalTags: Option[TagGenerator] = None,
