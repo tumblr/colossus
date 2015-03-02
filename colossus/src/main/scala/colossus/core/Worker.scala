@@ -263,7 +263,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
 
   //start the connection process for either a new client or a reconnecting client
-  //FIXME: https://github.com/tumblr/colossus/issues/19
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
     val channel = SocketChannel.open()
     channel.configureBlocking(false)
@@ -312,7 +311,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       case Connect(address, id) => {
         getWorkerItem(id).map{
-          case handler: ClientConnectionHandler => clientConnect(address, handler)
+          case handler: ClientConnectionHandler => try {
+            clientConnect(address, handler)
+          } catch {
+            case t: Throwable => {
+              log.error(s"Failed to establish connection to $address: $t")
+              handler.connectionFailed()
+            }
+          }
           case other => log.error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
         }.getOrElse {
           log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
