@@ -539,7 +539,7 @@ object Combinators {
    * @param terminus the byte to singal to stop repeating
    * @return the parsed sequence
    */
-  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[Seq[T]] = new Parser[Seq[T]]{
+  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[Vector[T]] = new Parser[Vector[T]]{
     var build: Vector[T] = Vector()
     var checkNext = true
     var done = false
@@ -572,6 +572,43 @@ object Combinators {
         build = Vector()
         res
       } else {
+        None
+      }
+    }
+  }
+
+  /**
+   * uses the parser but then immediately resets the databuffer to its position
+   * before the parser was invoked.  This is useful is you need to parse
+   * incoming data, but leave the data itself untouched, or for look-ahead
+   * parsing, but be aware of the performance implications of possibly reading
+   * the same segment of data multiple times.
+   */
+   /*
+    NOTE - this is commented out because right now in all cases we need to know
+    how much data was peeked, so instead we're using peek on the databuffer and
+    regular parsers inside of the peek, 
+  def peek[T](p: Parser[T]): Parser[T] = new Parser[(T] {
+    def parse(data: DataBuffer): Option[T] = data.peek{buf => p.parse(data)}
+  }
+  */
+
+  /**
+   * creates a parser that will skip over n bytes.  You generally only want to do this inside a peek parser
+   */
+  def skip[T](n: Int): Parser[Unit] = new Parser[Unit] {
+    private var left = n
+    private def reset() {
+      left = n
+    }
+    def parse(data: DataBuffer): Option[Unit] = {
+      if (data.remaining >= left) {
+        data.skip(left)
+        reset()
+        Some(Unit)
+      } else {
+        left -= data.remaining
+        data.skipAll
         None
       }
     }

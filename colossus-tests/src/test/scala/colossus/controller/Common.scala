@@ -25,7 +25,7 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   def decode(data: DataBuffer): Option[DecodedResult[TestInput]] = {
     val res = parser.parse(data)
     res.map { x =>
-      DecodedResult.Streamed(x, x.source)
+      DecodedResult.Stream(x, x.source)
     }
   }
 

@@ -29,6 +29,22 @@ trait Sink[T] extends Transport {
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete()
 
+  def feed(from: Source[T], linkState: Boolean) {
+    def tryPush(item: T): Unit = push(item) match {
+      case PushResult.Ok            => feed(from, linkState)
+      case PushResult.Closed        => from.terminate(new Exception("This is probably not what we want to do"))
+      case PushResult.Complete      => from.terminate(new Exception("This is probably not what we want to do"))
+      case PushResult.Full(trig)    => trig.fill(() => tryPush(item))
+      case PushResult.Filled(trig)  => trig.fill(() => tryPush(item))
+      case PushResult.Error(reason) => from.terminate(reason)
+    }
+    from.pull{
+      case Success(Some(item)) => tryPush(item)
+      case Success(None)       => if (linkState) complete()
+      case Failure(err)        => if (linkState) terminate(err)
+    }
+  }
+
 }
 
 /**
@@ -67,9 +83,29 @@ trait Source[T] extends Transport {
 
   def ++(next: Source[T]): Source[T] = new DualSource(this, next)
 
-  //notice that Source has no equivalent of complete.  This is because we never
-  //have a situation where a Source non-erroneously doesn't read the entire
-  //stream
+}
+
+abstract class Generator[T] extends Source[T] {
+  
+  private var _terminated: Option[Throwable] = None
+
+  def terminated = _terminated.isDefined
+
+  def terminate(reason: Throwable) {
+    _terminated = Some(reason)
+  }
+
+  def generate(): Option[T]
+
+  def pull(f: Try[Option[T]] => Unit) {
+    _terminated.map{t => f(Failure(new PipeTerminatedException(t)))}.getOrElse {
+      f(Success(generate()))
+    }
+  }
+}
+
+class IteratorGenerator[T](iterator: Iterator[T]) extends Generator[T] {
+  def generate() = if (iterator.hasNext) Some(iterator.next) else None
 }
 
 object Source {
@@ -270,6 +306,8 @@ class InfinitePipe[T] extends Pipe[T, T] {
   def isFull      = state.isInstanceOf[Full]
   def isClosed    = state == Closed
 
+  def isPushable  = state.isInstanceOf[Pulling]
+
   /** Attempt to push a value into the pipe.
    *
    * The value will only be successfully pushed only if there has already a
@@ -295,6 +333,14 @@ class InfinitePipe[T] extends Pipe[T, T] {
         case Pulling(_)   => PushResult.Ok              //cb called pull
       }
     }
+  }
+
+  //this is useful for inherited pipes that need to do some processing on a value before it is pushed
+  protected def whenPushable(f: => PushResult): PushResult = if (isPushable) f else state match {
+    case Full(trig)   => PushResult.Full(trig)
+    case Dead(reason) => PushResult.Error(reason)
+    case Closed       => PushResult.Closed
+    case Pulling(cb)  => throw new PipeStateException("This should never happen")
   }
   
   /** Request the next value from the pipe
@@ -326,12 +372,15 @@ class InfinitePipe[T] extends Pipe[T, T] {
     }
   }
 
+  //notice in all these cases, we are not storing a PipeTerminatedException,
+  //but creating it on the spot every time so that the stack traces are more
+  //accurate
   def terminate(reason: Throwable) {
     val oldstate = state
     state = Dead(new PipeTerminatedException(reason))
     oldstate match {
       case Full(trig)   => trig.trigger()
-      case Pulling(cb)  => cb(Failure(reason))
+      case Pulling(cb)  => cb(Failure(new PipeTerminatedException(reason)))
       case Dead(r)      => throw new PipeStateException("Cannot terminate a pipe that has already been terminated")
       case Closed       => {} //don't think there's anything to do here
     }

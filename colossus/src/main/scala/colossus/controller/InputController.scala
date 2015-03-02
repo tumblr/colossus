@@ -108,7 +108,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 
     inputState match {
       case Decoding => codec.decode(data) match {
-        case Some(DecodedResult.Streamed(msg, sink)) => {
+        case Some(DecodedResult.Stream(msg, sink)) => {
           inputState = ReadingStream(sink)
           processAndContinue(msg, data)
         }

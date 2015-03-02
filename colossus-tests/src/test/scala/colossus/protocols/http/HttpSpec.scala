@@ -1,12 +1,12 @@
 package colossus
+package protocols.http
 
 
-import colossus.core.{DataBuffer, DataStream}
+import core._
 import org.scalatest._
 
 import akka.util.ByteString
 
-import protocols.http._
 
 class HttpSpec extends WordSpec with MustMatchers{
 
@@ -44,9 +44,9 @@ class HttpSpec extends WordSpec with MustMatchers{
   "http response" must {
     "encode basic response" in {
       val content = "Hello World!"
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Nil, ByteString(content))
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
-      val res = HttpResponseDataReader(response)
+      val res = response.encode()
       res match {
         case x : DataBuffer => {
           val received = ByteString(x.takeAll).utf8String
@@ -58,9 +58,9 @@ class HttpSpec extends WordSpec with MustMatchers{
 
     "encode a basic response as a stream" in {
       val content = "Hello World!"
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Nil, ByteString(content))
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
-      val stream: DataStream = StreamedResponseBuilder(StreamingHttpResponse.fromStatic(response))
+      val stream: DataReader = StreamingHttpResponse.fromStatic(response).encode()
     }
   }
 }
