@@ -119,6 +119,28 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(d) must equal(Some(" abc def ghi "))
     }
 
+    "short" in {
+      val parser = short
+      val data = DataBuffer(ByteString(0x1D, 0x76, 0x82, 0x71, 0x55, 0xC2, 0x12, 0x00)) //6 extra bytes
+      parser.parse(data) must equal(Some(7542))
+      data.remaining must equal(6)
+    }
+
+    "int" in {
+      val parser = int
+      val data = DataBuffer(ByteString(0x00, 0x0B, 0x82, 0x71, 0x55, 0xC2, 0x12, 0x00)) //4 extra bytes
+      parser.parse(data) must equal(Some(754289))
+      data.remaining must equal(4)
+    }
+
+    "long" in {
+      val parser = long
+      val data = DataBuffer(ByteString(0x01, 0x0B, 0xF4, 0x3A, 0xE2, 0x64, 0x13, 0xBE))
+      parser.parse(data) must equal(Some(75422352525235134L))
+      data.remaining must equal(0)
+    }
+
+
   }
 
   "combinators" must {

@@ -2,8 +2,6 @@ package colossus
 package protocols.http
 
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.controller.Pipe
-import colossus.core.DataBuffer
 
 import parsing._
 import Combinators._
