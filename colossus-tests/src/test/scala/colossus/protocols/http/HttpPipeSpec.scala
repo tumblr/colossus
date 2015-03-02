@@ -45,7 +45,7 @@ class HttpPipeSuite extends WordSpec with MustMatchers{
 
     }
 
-    "terminate the pipe on parsing exception" ignore {
+    "terminate the pipe on parsing exception" in {
       val p = new ChunkPassThroughPipe
       val c = foldTester(p)
       p.push(DataBuffer(badChunkedBody)) mustBe a[PushResult.Error]

@@ -5,11 +5,13 @@ import colossus.controller._
 import colossus.core.{DataBuffer, DataStream, DataReader}
 import colossus.protocols.http._
 import colossus.service.{Callback, DecodedResult}
-import colossus.testkit.CallbackMatchers
+import colossus.testkit.{PipeFoldTester, CallbackMatchers}
 import org.scalatest.{WordSpec, MustMatchers, TryValues, OptionValues}
 import scala.util.{Try, Success, Failure}
 
 class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with TryValues with OptionValues with CallbackMatchers {
+
+
 
 
   "StreamingHttpResponseParser" must {
@@ -50,45 +52,14 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
       val head = ByteString("HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n")
       val body = ByteString("3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n")
       val res = head ++ body
-
       val buffer = DataBuffer(res)
-
-      val p = new StreamingHttpClientCodec()
-      val parsed: DecodedResult[StreamingHttpResponse] = p.decode(buffer).get
-      parsed match {
-        case DecodedResult.Stream(response, sink) => {
-          var pulled = ByteString("WRONG")
-          response.body.get.fold(ByteString()){(dataBuffer, build) => build ++ ByteString(dataBuffer.takeAll)}.execute{
-            case Success(data) => pulled = data
-            case Failure(err) => throw err
-          }
-          sink.push(buffer) must equal(PushResult.Complete)
-          pulled must equal(body)
-        }
-        case _ => throw new Exception("Expected Stream")
-      }
-
-
+      expectStreamBody(buffer, Some(body), false)
     }
 
-    "parse a stream with chunked transfer encoding" ignore {
+    "parse a stream with chunked transfer encoding" in {
       val res = "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n"
-
       val buffer = DataBuffer(ByteString(res))
-
-      val p = new StreamingHttpClientCodec(dechunk = true)
-      val parsed: DecodedResult[StreamingHttpResponse] = p.decode(buffer).get
-      parsed match {
-        case DecodedResult.Stream(x, s) => {
-          //var actual = ByteString("WRONG")
-          s.push(buffer)
-          x.body.get.pullCB() must evaluateTo { y : Option[DataBuffer] =>
-            ByteString(y.value.takeAll) must equal (ByteString("foo123456789abcde"))
-            buffer.hasUnreadData must be (false)
-          }
-        }
-        case _ => throw new Exception("expected some")
-      }
+      expectStreamBody(buffer, Some(ByteString("foo123456789abcde")), true)
     }
 
     "parse a stream with chunked transfer encoding across multiple packets" ignore {
@@ -138,48 +109,57 @@ class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with Tr
       }
 
     }
-    "decode a response that was encoded by colossus with no body" ignore {
-      validateEncodedStreamingHttpResponse(ByteString(""))
+    "decode a response that was encoded by colossus with no body" in {
+      validateEncodedStreamingHttpResponse(None)
     }
 
-    "decode a response that was encoded by colossus with a body" ignore {
-      validateEncodedStreamingHttpResponse(ByteString("body bytes!"))
+    "decode a response that was encoded by colossus with a body" in {
+      validateEncodedStreamingHttpResponse(Some(ByteString("body bytes!")))
     }
 
   }
 
-  private def validateEncodedStreamingHttpResponse(body : ByteString){
+  ////////////////////////// HELPER METHODS ///////////////////////
+
+  private def expectStreamBody(raw: DataBuffer, body: Option[ByteString], dechunk: Boolean) {
+    val codec = new StreamingHttpClientCodec(dechunk)
+    codec.decode(raw) match {
+      case Some(DecodedResult.Stream(response, sink)) => response.body match{
+        case Some(source) => {
+          val expected = body.getOrElse(throw new Exception(s"Expected no body, but got one"))
+          val t = new PipeFoldTester(source.fold(ByteString())(PipeFoldTester.byteFolder))
+          sink.push(raw)
+          t.expect(expected)
+        }
+        case None => if (body.isDefined) {
+          throw new Exception("expected body but got none")
+        }
+      }
+      case Some(DecodedResult.Static(StreamingHttpResponse(head, None))) => if (body.isDefined) {
+        throw new Exception("expected body but got none(static)")
+      }
+      case other => throw new Exception(s"Invalid parse result $other")
+    }
+  }
+
+  private def validateEncodedStreamingHttpResponse(body : Option[ByteString]){
     val res = StreamingHttpResponse(
-      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("a"->"b", "content-length"->body.size.toString)), 
-      Some(Source.one(DataBuffer(body)))
+      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("a"->"b", "content-length"->body.map{_.size.toString}.getOrElse("0"))), 
+      body.map{bod => Source.one(DataBuffer(bod))}
     )
     val clientProtocol = new StreamingHttpClientCodec
     val serverProtocol = new StreamingHttpServerCodec
 
     val encodedResponse: DataReader = serverProtocol.encode(res)
-    encodedResponse mustBe a [DataStream]
 
-    val source : Source[DataBuffer] = encodedResponse.asInstanceOf[DataStream].source
-    val folded = source.fold(ByteString(""))((buffer, bytes) => bytes ++ ByteString(buffer.takeAll))
+    val folded: Callback[ByteString] = encodedResponse match {
+      case DataStream(source) => source.fold(ByteString())(PipeFoldTester.byteFolder)
+      case d: DataBuffer => Callback.successful(ByteString(d.takeAll))
+    }
 
     folded must evaluateTo { x : ByteString =>
       val buffer = DataBuffer(x)
-      val decoded: Option[DecodedResult[StreamingHttpResponse]] = clientProtocol.decode(buffer)
-      decoded match {
-        case Some(DecodedResult.Stream(resp, s)) => {
-          s.push(buffer) match {
-            case PushResult.Closed => {}
-            case PushResult.Full(trig) => trig.fill{() => s.push(buffer)}
-            case other => throw new Exception(s"wrong push result $other")
-          }
-          resp must equal (res)
-          val f2: Callback[ByteString] = resp.body.get.fold(ByteString("")){(buffer, bytes) => bytes ++ ByteString(buffer.takeAll)}
-          f2 must evaluateTo{x : ByteString =>
-             x must equal(body)
-          }
-        }
-        case _ => throw new Exception("expected streamed http response")
-      }
+      expectStreamBody(buffer, body, true)
     }
   }
 }
