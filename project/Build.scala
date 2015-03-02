@@ -5,7 +5,7 @@ import com.typesafe.sbt.pgp.PgpKeys._
 
 object ColossusBuild extends Build {
 
-  val AKKA_VERSION            = "2.3.6"
+  val AKKA_VERSION            = "2.3.9"
   val SCALATEST_VERSION       = "2.2.0"
 
   val GeneralSettings = Seq[Setting[_]](
@@ -14,8 +14,8 @@ object ColossusBuild extends Build {
     compile <<= (compile in Compile) dependsOn (compile in Test),
     
     organization := "com.tumblr",
-    scalaVersion  := "2.11.4",
-    crossScalaVersions := Seq("2.10.4", "2.11.2"),
+    scalaVersion  := "2.11.5",
+    crossScalaVersions := Seq("2.10.4", "2.11.5"),
     version                   := "0.6.0-M3",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
