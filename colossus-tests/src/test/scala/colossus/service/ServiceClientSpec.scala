@@ -366,6 +366,22 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
     }
 
+    "graceful disconnect inside a callback" in {
+      val (endpoint, client, probe) = newClient(true, 10, connectionAttempts = PollingDuration.NoRetry)
+      val cmd = Command("BAH")
+      val reply = StatusReply("WAT")
+      client.send(Command("BAH")).map{r =>
+        client.gracefulDisconnect()
+        r
+      }.execute()
+      endpoint.expectOneWrite(cmd.raw)
+      client.receivedData(reply.raw)
+      endpoint.connection_status = ConnectionStatus.NotConnected
+    }
+
+
+      
+
 
     //blocked on https://github.com/tumblr/colossus/issues/19
     "attempts to reconnect when server closes connection" in {
