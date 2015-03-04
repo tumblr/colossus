@@ -1,7 +1,7 @@
 package colossus
+package core
 
 import testkit._
-import core._
 import service.AsyncServiceClient
 
 import akka.actor._
@@ -307,6 +307,26 @@ class ServerSpec extends ColossusSpec {
 
         alive() must equal(0)
 
+      }
+
+      "attempt to re-register connection if refused by worker" in {
+        val (sys, mprobe) = FakeIOSystem.withManagerProbe()
+        val config = EchoServerConfig
+        val server = Server(config)(sys)
+        val workerRouterProbe = TestProbe()
+        mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
+        server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
+        withIOSystem { implicit io =>
+          val c = TestClient(io, TEST_PORT,connectionAttempts = PollingDuration.NoRetry)
+          (1 to Server.MaxConnectionRegisterAttempts).foreach{i =>
+            val msg = workerRouterProbe.receiveOne(100.milliseconds).asInstanceOf[Worker.NewConnection]
+            msg.attempt must equal(i)
+            server.server ! Server.ConnectionRefused(msg.sc, msg.attempt)
+          }
+          TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
+        }
+        server.shutdown()
+        sys.shutdown()
       }
   }
 

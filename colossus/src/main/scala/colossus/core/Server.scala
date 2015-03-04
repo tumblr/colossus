@@ -269,6 +269,13 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       closed.hit(tags = Map("cause" -> cause.toString))
       updateServerConnectionState()
     }
+    case ConnectionRefused(sc, attempt) => if (attempt >= Server.MaxConnectionRegisterAttempts) {
+      log.error(s"Failed to register new connection $attempt times, closing")
+      sc.close()
+      self ! ConnectionClosed(0, DisconnectCause.Error(new Server.MaxConnectionRegisterException))
+    } else {
+      router ! Worker.NewConnection(sc, attempt + 1)
+    }
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
     case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
   }
@@ -390,8 +397,18 @@ object ServerStatus {
  *
  */
 object Server {
+
+  val MaxConnectionRegisterAttempts = 3
+  class MaxConnectionRegisterException extends Exception("Maximum number of connection register attempts reached")
+
   case object Select
   case class ConnectionClosed(id: Long, cause : RootDisconnectCause)
+
+  /** Sent from a worker to the server when the server is not registered with the worker.
+   * 
+   * This generally happens when a worker has just been killed and restarted.  See Server.MaxConnectionRegisterAttempts
+   */
+  case class ConnectionRefused(channel: SocketChannel, attempt: Int)
 
   sealed trait ServerCommand
   case class Shutdown(killConnections: Boolean) extends ServerCommand
