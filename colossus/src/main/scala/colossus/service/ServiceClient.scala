@@ -288,7 +288,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   }
 
   private def checkGracefulDisconnect() {
-    if (disconnecting && sentBuffer.size == 0) {
+    if (isConnected && disconnecting && sentBuffer.size == 0) {
       super.gracefulDisconnect()
     }
   }
