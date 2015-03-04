@@ -222,7 +222,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           log.error(s"delegator message $message for unknown server ${server.name}")
         }
     }
-    case NewConnection(sc) => delegators.get(sender()).map{delegator =>
+    case NewConnection(sc, attempt) => delegators.get(sender()).map{delegator =>
       delegator.createConnectionHandler.map{handler =>
         registerConnection(sc, delegator.server, handler)
       }.getOrElse{
@@ -232,6 +232,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
     }.getOrElse{
       //TODO: do something with the connection
+      sender ! Server.ConnectionRefused(sc, attempt)
       log.error("Received connection from unregistered server!!!")
     }
     case Terminated(handler) => {
@@ -518,7 +519,13 @@ object Worker {
   private[core] case object CheckIdleConnections
 
   case class ConnectionSummary(infos: Seq[ConnectionInfo])
-  private[core] case class NewConnection(sc: SocketChannel)
+
+  /** Sent from Servers
+   * @param sc the underlying socketchannel of the connection
+   * @param attempt used when a worker refuses a connection, which can happen if a worker has just restarted and hasn't yet re-registered servers
+   */
+  private[core] case class NewConnection(sc: SocketChannel, attempt: Int = 1)
+
   /**
    * Send a message to the delegator belonging to the server
    */
