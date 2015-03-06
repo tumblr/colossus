@@ -6,6 +6,7 @@ import core.WorkerRef
 import service._
 
 import akka.util.ByteString
+import scala.concurrent.ExecutionContext
 
 package object http {
 
@@ -13,13 +14,18 @@ package object http {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
+  trait BaseHttp extends CodecDSL {
+    type Input <: HttpRequest
+    type Output <: BaseHttpResponse
+  }
 
-  trait Http extends CodecDSL {
+
+  trait Http extends BaseHttp {
     type Input = HttpRequest
     type Output = HttpResponse
   }
 
-  trait StreamingHttp extends CodecDSL {
+  trait StreamingHttp extends BaseHttp {
     type Input = HttpRequest
     type Output = StreamingHttpResponse
   }
@@ -31,15 +37,35 @@ package object http {
       case other => request.error(reason.toString)
     }
 
+    override def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[Http] = {
+      new HttpServiceHandler(config, worker, this)
+    }
+
   }
 
   implicit object DefaultHttpProvider extends HttpProvider
+
+  class HttpServiceHandler[D <: BaseHttp](config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[D])(implicit ex: ExecutionContext) 
+  extends BasicServiceHandler(config, worker, provider) {
+
+    override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
+      if (response.head.version == HttpVersion.`1.0`) {
+        gracefulDisconnect()
+      }
+      response
+    }
+    
+  }
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
     def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
       case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
       case other => toStreamed(request.error(reason.toString))
+    }
+
+    override def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
+      new HttpServiceHandler(config, worker, this)
     }
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
