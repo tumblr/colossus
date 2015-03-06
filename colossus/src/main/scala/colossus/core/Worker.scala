@@ -189,7 +189,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       if (timedOut.size > 0) {
         log.debug(s"Terminated ${timedOut.size} idle connections")
-        //TODO: Tick Metric
       }
     }
     case WorkerManager.RegisterServer(server, factory, timesTried) => if (!delegators.contains(server.server)){
@@ -231,7 +230,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString))
       }
     }.getOrElse{
-      //TODO: do something with the connection
       sender ! Server.ConnectionRefused(sc, attempt)
       log.error("Received connection from unregistered server!!!")
     }
