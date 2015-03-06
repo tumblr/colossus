@@ -226,6 +226,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
     super.connectionClosed(cause)
     manuallyDisconnected = true
+    disconnects.hit(tags = hpTags + ("cause" -> cause.toString))
     purgeBuffers(new NotConnectedException("Connection closed"))
   }
 
@@ -233,7 +234,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
     super.connectionLost(cause)
     purgeBuffers(new NotConnectedException("Connection lost"))
     log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
-    disconnects.hit(tags = hpTags)
+    disconnects.hit(tags = hpTags + ("cause" -> cause.toString))
     attemptReconnect()
   }
 

@@ -144,7 +144,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops", List(1.second))
   val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
   val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections", List(1.second, 60.seconds))
-  val timedOutIdleConnections = metrics getOrAdd Rate(io.namespace / "worker" / "timed_out_idle_connections", List(1.second, 60.seconds))
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -190,7 +189,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       if (timedOut.size > 0) {
         log.debug(s"Terminated ${timedOut.size} idle connections")
-        timedOutIdleConnections.hit(num = timedOut.size)
       }
     }
     case WorkerManager.RegisterServer(server, factory, timesTried) => if (!delegators.contains(server.server)){
