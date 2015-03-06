@@ -62,6 +62,29 @@ class ServerSpec extends ColossusSpec {
         remainingServers.head.name.toString mustBe "/echo1"
       }
     }
+
+    "expose ConnectionSummary data" in {
+      val settings = ServerSettings(
+        port = TEST_PORT,
+        maxConnections = 5000
+      )
+
+      withIOSystemAndServer(simpleEchoDelegator, Some(settings)) {(io, server) => {
+
+        import scala.concurrent.ExecutionContext.Implicits.global
+
+        val c1 = TestClient(server.system, TEST_PORT)
+        expectConnections(server, 1)
+        val c2 = TestClient(server.system, TEST_PORT)
+        val res = Await.result(io.connectionSummary, 2000.milliseconds)
+        res.infos.size mustBe 4 //2 connections for each client since there are both clients and servers
+        res.infos.count(_.domain == "client") mustBe 2
+        res.infos.count(_.domain == "/async-test") mustBe 2
+        c1.disconnect()
+        c2.disconnect()
+      }
+      }
+    }
   }
 
   "Server" must {
