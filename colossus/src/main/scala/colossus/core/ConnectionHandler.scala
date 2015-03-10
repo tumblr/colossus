@@ -21,7 +21,7 @@ trait ConnectionHandler extends WorkerItem {
   def receivedData(data: DataBuffer)
 
   /**
-   * Called from Worker when a connection has been terminated either by and error or by normal means.
+   * Called from Worker when a connection has been terminated either by an error or by normal means.
    * @param cause why the connection was terminated
    */
   def connectionTerminated(cause : DisconnectCause) {

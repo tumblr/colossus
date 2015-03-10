@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
  * @param failFast  When a failure is detected, immediately fail all pending requests.
  * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
  *                           and for connection lost events.
- * @param idleTime How long the connection can remain idle (both sending and
+ * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
  *
@@ -183,7 +183,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
 
   /**
    * Create a callback for sending a request.  this allows you to do something like
-   * service.sendCB("request"){response => "YAY"}.map{str => println(str)}.execute()
+   * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
   def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
 
