@@ -20,33 +20,50 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
   "HttpResponseParser" must {
 
     "parse a basic response" in {
-      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
-      val parser = new HttpResponseParser(res.size.bytes)
+      val res = ByteString("HTTP/1.1 204 NO_CONTENT\r\n\r\n")
+      val parser = HttpResponseParser.static(res.size.bytes)
       val data = DataBuffer(res)
-      parser.parse(data) must equal(Some(Static(HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector()), None))))
+      parser.parse(data) must equal(Some(Static(HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.NO_CONTENT, Vector()), None))))
       data.remaining must equal(0)
     }
 
 
-    "parse a response with no body" in {
+    "parse a 200 response with content-length 0" in {
 
-      val res = "HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\n\r\n"
-      val parser = new HttpResponseParser()
+      val res = "HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\ncontent-length: 0\r\n\r\n"
+      val parser = HttpResponseParser.static()
 
       val expected = Static(HttpResponse(
         HttpVersion.`1.1`,
         HttpCodes.OK,
-        Vector("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate")
+        Vector("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate", "content-length"->"0")
       ))
-      parser.parse(DataBuffer(ByteString(res))).toList must equal(List(expected))
+      parser.parse(DataBuffer(ByteString(res))) must equal(Some(expected))
+    }
 
+    "parse a 200 response with body and no content-length" in {
+
+      val body = "hello world"
+      val res = s"HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\n\r\n${body}"
+      val parser = HttpResponseParser.static()
+
+      val expected = Static(HttpResponse(
+        HttpResponseHead(
+          HttpVersion.`1.1`,
+          HttpCodes.OK,
+          Vector("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate")
+        ),
+        Some(ByteString(body))
+      ))
+      parser.parse(DataBuffer(ByteString(res))) must equal(None)
+      parser.endOfStream() must equal(Some(expected))
     }
 
     "parse a response with a body" in {
       val content = "{some : json}"
       val size = content.getBytes.size
       val res = s"HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\nContent-Length: $size\r\n\r\n{some : json}"
-      val parser = new HttpResponseParser()
+      val parser = HttpResponseParser.static()
 
       val expected = Static(HttpResponse(HttpVersion.`1.1`,
         HttpCodes.OK,
@@ -102,14 +119,14 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
     }
 
     "accept a response under the size limit" in {
-      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
-      val parser = new HttpResponseParser(res.size.bytes)
-      parser.parse(DataBuffer(res)) must equal(Some(Static(HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector()))))
+      val res = ByteString("HTTP/1.1 304 NOT_MODIFIED\r\n\r\n")
+      val parser = HttpResponseParser.static(res.size.bytes)
+      parser.parse(DataBuffer(res)) must equal(Some(Static(HttpResponse(HttpVersion.`1.1`, HttpCodes.NOT_MODIFIED, Vector()))))
     }
 
     "reject a response over the size limit" in {
       val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
-      val parser = new HttpResponseParser((res.size - 1).bytes)
+      val parser = HttpResponseParser.static((res.size - 1).bytes)
       intercept[ParseException] {
         parser.parse(DataBuffer(res))
       }
@@ -117,7 +134,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
     "parse a response with chunked transfer encoding" in {
       val res = "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n"
-      val parser = new HttpResponseParser
+      val parser = HttpResponseParser.static()
 
       val parsed = parser.parse(DataBuffer(ByteString(res))).get
       parsed.value.body.get must equal (ByteString("foo123456789abcde"))

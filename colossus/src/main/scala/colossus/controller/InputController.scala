@@ -57,6 +57,18 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 
   private[controller] def inputOnClosed() {
     inputState match {
+      case Decoding => {
+        //this only occurs if a codec depends on the connection closing to
+        //know when a message is fully received (eg http with no
+        //content-length)
+        codec.endOfStream().foreach{
+          case DecodedResult.Static(fin) => processMessage(fin)
+          case DecodedResult.Stream(fin, sink) => {
+            processMessage(fin)
+            sink.terminate(new NotConnectedException("Connection Closed"))
+          }
+        }
+      }
       case ReadingStream(sink) => {
         sink.terminate(new NotConnectedException("Connection Closed"))
       }
