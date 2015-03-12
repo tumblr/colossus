@@ -127,7 +127,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * whether a message should be pushed based on connection state.
    *
    * @param item the message to push
-   * @param createdMillis the timestamp of when the message was created
+   * @param createdMillis the timestamp of when the message was created, defaults to now if not specified
    * @param postWrite called either when writing has completed or failed
    *
    * @return true if the message was successfully enqueued, false if the queue is full

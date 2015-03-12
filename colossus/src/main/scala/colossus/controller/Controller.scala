@@ -17,6 +17,12 @@ trait StreamMessage {
   def sink: Sink[DataBuffer]
 }
 
+/**
+ * Configuration for the controller
+ *
+ * @param outputBufferSize the maximum number of outbound messages that can be queued for sending at once
+ * @param sendTimeout if a queued outbound message becomes older than this it will be cancelled
+ */
 case class ControllerConfig(
   outputBufferSize: Int,
   sendTimeout: Duration
