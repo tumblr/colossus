@@ -16,6 +16,8 @@ import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
+import com.github.nscala_time.time.Imports.DateTime
+
 
 /**
  * Configuration used to specify a Client's parameters
@@ -103,7 +105,7 @@ class ServiceClient[I,O](
   val config: ClientConfig,
   val worker: WorkerRef
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
@@ -270,7 +272,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
-      val pushed = push(s.message){
+      val pushed = push(s.message, s.start){
         case OutputResult.Success   => sentBuffer.enqueue(s)
         case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
         case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
@@ -295,7 +297,8 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   }
 
 
-  def idleCheck(period: Duration) {
-    //TODO: timeout pending requests
+  override def idleCheck(period: Duration) {
+    // note: be careful, idleCheck could be defined in multiple super classes so check what super works out as :)
+    super.idleCheck(period)
   }
 }

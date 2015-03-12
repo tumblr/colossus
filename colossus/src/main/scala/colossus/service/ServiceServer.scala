@@ -7,7 +7,6 @@ import controller._
 import akka.event.Logging
 import metrics._
 
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
@@ -48,7 +47,7 @@ class DroppedReply extends Error("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[I,O](codec, ControllerConfig(50)) {
+extends Controller[I,O](codec, ControllerConfig(50, config.requestTimeout)) {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -89,7 +88,9 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
   private val requestBuffer = collection.mutable.Queue[SyncPromise]()
   private var numRequests = 0
 
-  def idleCheck(period: Duration) {
+  override def idleCheck(period: Duration) {
+    super.idleCheck(period)
+
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.head.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
@@ -111,7 +112,7 @@ extends Controller[I,O](codec, ControllerConfig(50)) {
       requests.hit(tags = tags)
       latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
       concurrentRequests.decrement()
-      push(comp) {
+      push(comp, done.creationTime) {
         case OutputResult.Success => {}
         case _ => println("dropped reply")
       }

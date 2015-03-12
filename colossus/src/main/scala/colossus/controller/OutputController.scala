@@ -2,7 +2,7 @@ package colossus
 package controller
 
 import core._
-import colossus.service.{DecodedResult, Codec}
+import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
 
 import service.NotConnectedException
@@ -73,7 +73,11 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
 
-  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
+  private val sendTimeoutMillis: Long = controllerConfig.sendTimeout.toMillis
+
+  case class QueuedItem(item: Output, postWrite: OutputResult => Unit, creationTimeMillis: Long) {
+    def isTimedOut(now: Long) = now > (creationTimeMillis + sendTimeoutMillis)
+  }
 
   private[controller] var outputState: OutputState = Dequeueing
 
@@ -84,6 +88,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   //represents a message queued for writing
   //the queue of items waiting to be written.
+  // this is intentionally a j.u.LinkedList instead of s.Queue for performance reasons
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
 
   def queueSize = waitingToSend.size()
@@ -122,14 +127,15 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * whether a message should be pushed based on connection state.
    *
    * @param item the message to push
+   * @param createdMillis the timestamp of when the message was created
    * @param postWrite called either when writing has completed or failed
    *
    * @return true if the message was successfully enqueued, false if the queue is full
    */
-  protected def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
+  protected def push(item: Output, createdMillis: Long = System.currentTimeMillis)(postWrite: OutputResult => Unit): Boolean = {
     if (waitingToSend.size < controllerConfig.outputBufferSize) {
-      waitingToSend.add(QueuedItem(item, postWrite))
-      checkQueue() 
+      waitingToSend.add(QueuedItem(item, postWrite, createdMillis))
+      checkQueue()
       true
     } else {
       false
@@ -283,6 +289,15 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       }
       case other => throw new InvalidOutputStateException(other)
     }
+  }
+
+  def idleCheck(period: Duration): Unit = {
+    val time = System.currentTimeMillis
+    while (waitingToSend.size > 0 && waitingToSend.peek.isTimedOut(time)) {
+      val expired = waitingToSend.removeFirst()
+      expired.postWrite(OutputResult.Cancelled)
+    }
+
   }
 
 }

@@ -4,6 +4,8 @@ package controller
 import core._
 import service.Codec
 
+import scala.concurrent.duration.Duration
+
 /** trait representing a decoded message that is actually a stream
  * 
  * When a codec decodes a message that contains a stream (perhaps an http
@@ -16,7 +18,8 @@ trait StreamMessage {
 }
 
 case class ControllerConfig(
-  outputBufferSize: Int
+  outputBufferSize: Int,
+  sendTimeout: Duration
 )
 
 //used to terminate input streams when a connection is closing
