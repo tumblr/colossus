@@ -123,8 +123,12 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
+  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
+
   case class SourcedRequest(message: I, handler: ResponseHandler) {
     val start: Long = System.currentTimeMillis
+
+    def isTimedOut(now: Long) = now > (start + responseTimeoutMillis)
   }
 
 
@@ -298,7 +302,11 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
 
 
   override def idleCheck(period: Duration) {
-    // note: be careful, idleCheck could be defined in multiple super classes so check what super works out as :)
     super.idleCheck(period)
+
+    if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
+      // the oldest sent message has expired with no response - shutdown the connection
+
+    }
   }
 }
