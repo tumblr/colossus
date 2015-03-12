@@ -296,9 +296,4 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
     }
   }
 
-
-  override def idleCheck(period: Duration) {
-    // note: be careful, idleCheck could be defined in multiple super classes so check what super works out as :)
-    super.idleCheck(period)
-  }
 }

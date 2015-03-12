@@ -100,9 +100,7 @@ extends Controller[I,O](codec, ControllerConfig(50, config.requestTimeout)) {
   }
     
   /**
-   * This is the only function that actually writes to the channel.  It will
-   * write any queued responses until it hits an incomplete promise (or the
-   * write buffer fills up)
+   * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
     while (isConnected && requestBuffer.size > 0 && requestBuffer.head.isComplete) {
