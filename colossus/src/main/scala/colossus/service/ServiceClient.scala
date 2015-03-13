@@ -306,7 +306,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
 
     if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
       // the oldest sent message has expired with no response - shutdown the connection
-
+      disconnect()
     }
   }
 }

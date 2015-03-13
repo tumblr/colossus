@@ -27,13 +27,14 @@ class ServiceClientSpec extends ColossusSpec {
   def newClient(
     failFast: Boolean = false, 
     maxSentSize: Int = 10, 
-    connectionAttempts: PollingDuration = PollingDuration(1.second, None)
+    connectionAttempts: PollingDuration = PollingDuration(1.second, None),
+    requestTimeout: Duration = 10.seconds
   ): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
     val (workerProbe, worker) = FakeIOSystem.fakeWorkerRef
     val config = ClientConfig(
       address, 
-      10.seconds, 
+      requestTimeout,
       MetricAddress.Root / "test", 
       pendingBufferSize = 100, 
       sentBufferSize = maxSentSize, 
@@ -452,10 +453,24 @@ class ServiceClientSpec extends ColossusSpec {
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
       }
-
-
     }
 
+    "shutdown the connection when an in-flight request times out" in {
+      val command = Command(CMD_GET, "foo")
+      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds, connectionAttempts = PollingDuration.NoRetry)
+      var failed = true
+      val cb = client.send(command).map{
+        case wat => failed = false
+      }
+      endpoint.expectNoWrite()
+      cb.execute()
+
+      Thread.sleep(1000)
+      client.idleCheck(100.milliseconds)
+
+      failed must equal(true)
+      assert(client.connectionStatus == ConnectionStatus.NotConnected)
+    }
 
   }
 }
