@@ -149,7 +149,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
    */
   def connectionStatus: ConnectionStatus = if (isConnected) {
     ConnectionStatus.Connected 
-  } else if (canReconnect) {
+  } else if (canReconnect && !manuallyDisconnected) {
     ConnectionStatus.Connecting
   } else {
     ConnectionStatus.NotConnected
