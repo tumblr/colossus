@@ -22,24 +22,34 @@ object ResponseResult {
 object HttpResponseParser  {
   val DefaultMaxSize: DataSize = 10.MB
 
+  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
+
+  def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
+
+
   //TODO: eliminate duplicate code
   //TODO: Dechunk on static
 
-  def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
+  protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
     parsedHead.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.contentLength match {
-        case Some(0) | None => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
-        case Some(n) => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
       }
       case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
     }
   }
 
-  def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
+  protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
     parsedHead.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.contentLength match {
-        case Some(0) | None => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         case Some(n) => streamingResponse(parsedHead, Some(n), false)
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        //TODO: adding support for this requires upcoming changes to stream termination error handling
+        case None => throw new ParseException("Infinite non-chunked responses not supported") 
       }
       case _  => streamingResponse(parsedHead, None, dechunk)
     }
@@ -63,35 +73,6 @@ object HttpResponseParser  {
   protected def code = intUntil(' ') <~ stringUntil('\r') <~ byte >> {c => HttpCode(c.toInt)}
 
 }
-
-/** The base class used for both the static and streaming response parsers
- * @tparam D This simply lets the static version have its return type DecodedResult.Static
- * @tparam T The type of HttpResponse the parser will return
- */
-class BaseHttpResponseParser[D[_] <: DecodedResult[_], T <: BaseHttpResponse](parserFactory:() => Parser[D[T]]) {
-
-  private var current : Parser[D[T]] = parserFactory()
-
-  def parse(data : DataBuffer) : Option[D[T]] = current.parse(data)
-
-  def reset() {
-    current = parserFactory()
-  }
-}
-
-class HttpResponseParser(maxResponseSize: DataSize = HttpResponseParser.DefaultMaxSize) 
-  extends BaseHttpResponseParser[DecodedResult.Static, HttpResponse](() => maxSize(maxResponseSize, HttpResponseParser.staticBody(true)))
-
-
-/**
- * @param dechunkBody if a response is sent using chunked transfer-encoding,
- * the chunk headers will be removed from the data before being pushed into the
- * pipe.  This should genrally be set to true if you are directly processing
- * the incoming data, and should be false if you are going to be proxying the
- * response somewhere else.
- */
-class StreamingHttpResponseParser(dechunkBody: Boolean) 
-  extends BaseHttpResponseParser[DecodedResult, StreamingHttpResponse](() => HttpResponseParser.streamBody(dechunkBody))
 
 object HttpChunk {
   

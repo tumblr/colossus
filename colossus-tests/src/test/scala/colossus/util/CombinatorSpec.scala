@@ -140,6 +140,35 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       data.remaining must equal(0)
     }
 
+    "bytesUntilEOS" in {
+      val parser = bytesUntilEOS
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(ByteString(1, 2, 3, 4, 5, 6)))
+    }
+
+    "bytesUntilEOS as map subject" in {
+      val parser = bytesUntilEOS >> {bytes => bytes.size}
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(6))
+    }
+
+    "bytesUntilEOS as flatMap object" in {
+      //notice that using this parser as the subject makes no sense
+      val parser = bytes(3) |> {bytes => bytesUntilEOS}
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(ByteString(4,5,6)))
+    }
+      
+
 
   }
 

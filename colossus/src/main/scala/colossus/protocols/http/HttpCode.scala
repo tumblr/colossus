@@ -3,6 +3,11 @@ package protocols.http
 
 import akka.util.ByteString
 
+/**
+ * This trait mixed in to any codes that do not allow a body in the response
+ */
+trait NoBodyCode
+
 case class HttpCode(code: Int, description: String) {
   val headerSegment = s"$code $description"
   val headerBytes = ByteString(headerSegment)
@@ -13,15 +18,15 @@ object HttpCode {
 
 object HttpCodes {
   //100
-  val CONTINUE = HttpCode(100, "Continue")
-  val SWITCHING_PROTOCOLS = HttpCode(101, "Switching Protocols")
-  val PROCESSING = HttpCode(102, "Processing")
+  val CONTINUE              = new HttpCode(100, "Continue") with NoBodyCode
+  val SWITCHING_PROTOCOLS   = new HttpCode(101, "Switching Protocols") with NoBodyCode
+  val PROCESSING            = new HttpCode(102, "Processing") with NoBodyCode
   //200
   val OK = HttpCode(200, "OK")
   val CREATED = HttpCode(201, "Created")
   val ACCEPTED = HttpCode(202, "Accepted")
   val NON_AUTHORITATIVE_INFORMATION = HttpCode(203, "Non-Authoritative Information")
-  val NO_CONTENT = HttpCode(204, "No Content")
+  val NO_CONTENT = new HttpCode(204, "No Content") with NoBodyCode
   val RESET_CONTENT = HttpCode(205, "Reset Content")
   val PARTIAL_CONTENT = HttpCode(206, "Partial Content")
   val MULTI_STATUS = HttpCode(207, "Multi-Status")
@@ -32,7 +37,7 @@ object HttpCodes {
   val MOVED_PERMANENTLY = HttpCode(301, "Moved Permanently")
   val FOUND = HttpCode(302, "Found")
   val SEE_OTHER = HttpCode(303, "See Other")
-  val NOT_MODIFIED = HttpCode(304, "Not Modified")
+  val NOT_MODIFIED = new HttpCode(304, "Not Modified") with NoBodyCode
   val USE_PROXY = HttpCode(305, "Use Proxy")
   val TEMPORARY_REDIRECT = HttpCode(307, "Temporary Redirect")
   val PERMANENT_REDIRECT = HttpCode(308, "Permanent Redirect")

@@ -22,11 +22,13 @@ class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[Dec
     parser = parserFactory()
   }
 
+  override def endOfStream() = parser.endOfStream()
+
 }
 
 class HttpClientCodec(maxResponseSize: DataSize = 1.MB) 
-  extends BaseHttpClientCodec[HttpResponse](() => Combinators.maxSize(maxResponseSize, HttpResponseParser.staticBody(true)))
+  extends BaseHttpClientCodec[HttpResponse](() => HttpResponseParser.static(maxResponseSize))
 
 class StreamingHttpClientCodec(dechunk: Boolean = false)
-  extends BaseHttpClientCodec[StreamingHttpResponse](() => HttpResponseParser.streamBody(dechunk))
+  extends BaseHttpClientCodec[StreamingHttpResponse](() => HttpResponseParser.stream(dechunk))
 

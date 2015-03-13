@@ -172,6 +172,18 @@ object Combinators {
   trait Parser[+T] {
     def parse(data: DataBuffer): Option[T]
 
+    /**
+     * This can be optionally implemented if a parser is able to return a
+     * partial value or for situations where the end of the stream signals a
+     * complete response
+     *
+     * Only the unknownLengthBytes parser currently uses this.  It is currently
+     * undefined if calling this resets a parser's state.  ">>" also uses it, but not |>
+     */
+    def endOfStream(): Option[T] = {
+      None
+    }
+
     def ~[B](b: Parser[B]): Parser[~[T,B]] = {
       val a = this
       new Parser[~[T,B]] {
@@ -216,6 +228,7 @@ object Combinators {
       val orig = this
       new Parser[B]{
         def parse(data: DataBuffer) = orig.parse(data).map{r => f(r)}
+        override def endOfStream() = orig.endOfStream().map(f)
       }
     }
     def map[B](f: T => B): Parser[B] = >>(f)
@@ -236,6 +249,8 @@ object Combinators {
             }
           }
         }
+
+        override def endOfStream() = mapped.flatMap{_.endOfStream}
       }
     }
     def flatMap[B](f: T => Parser[B]): Parser[B] = |>(f)
@@ -278,6 +293,7 @@ object Combinators {
   def maxSize[T](size: DataSize, parser: Parser[T]): Parser[T] = new Parser[T] {
     val tracker = new ParserSizeTracker(Some(size))
     def parse(data: DataBuffer) = tracker.track(data)(parser.parse(data))
+    override def endOfStream() = parser.endOfStream()
   }
 
   /**
@@ -617,6 +633,24 @@ object Combinators {
         data.skipAll
         None
       }
+    }
+  }
+
+  /** Read in an unknown number of bytes, ended only when endOfStream is called
+   *
+   * be aware this parser has no max size and will read in data forever if endOfStream is never called
+   */
+  def bytesUntilEOS: Parser[ByteString] = new Parser[ByteString] {
+    var builder = new ByteStringBuilder
+    def parse(data: DataBuffer) = {
+      builder.putBytes(data.takeAll)
+      None
+    }
+
+    override def endOfStream() = {
+      val res = builder.result
+      builder = new ByteStringBuilder //probably not required, we should probably formalize that this parser will never be used again once this is called
+      Some(res)
     }
   }
 
