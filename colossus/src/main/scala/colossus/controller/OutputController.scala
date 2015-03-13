@@ -73,10 +73,8 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
 
-  private val sendTimeoutMillis: Long = controllerConfig.sendTimeout.toMillis
-
   case class QueuedItem(item: Output, postWrite: OutputResult => Unit, creationTimeMillis: Long) {
-    def isTimedOut(now: Long) = now > (creationTimeMillis + sendTimeoutMillis)
+    def isTimedOut(now: Long) = controllerConfig.sendTimeout.isFinite && now > (creationTimeMillis + controllerConfig.sendTimeout.toMillis)
   }
 
   private[controller] var outputState: OutputState = Dequeueing
