@@ -38,7 +38,7 @@ class ServiceServerSpec extends ColossusSpec {
           val clientConfig = ClientConfig(
             name = "/test-client",
             address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = Duration.Inf,
+            requestTimeout = 500.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
           val client = AsyncServiceClient(clientConfig, new RedisClientCodec)

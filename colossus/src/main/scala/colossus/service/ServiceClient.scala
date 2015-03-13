@@ -16,6 +16,8 @@ import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
+import com.github.nscala_time.time.Imports.DateTime
+
 
 /**
  * Configuration used to specify a Client's parameters
@@ -27,7 +29,7 @@ import scala.util.{Failure, Success, Try}
  * @param failFast  When a failure is detected, immediately fail all pending requests.
  * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
  *                           and for connection lost events.
- * @param idleTime How long the connection can remain idle (both sending and
+ * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
  *
@@ -103,7 +105,7 @@ class ServiceClient[I,O](
   val config: ClientConfig,
   val worker: WorkerRef
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
@@ -183,7 +185,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
 
   /**
    * Create a callback for sending a request.  this allows you to do something like
-   * service.sendCB("request"){response => "YAY"}.map{str => println(str)}.execute()
+   * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
   def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
 
@@ -270,7 +272,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
-      val pushed = push(s.message){
+      val pushed = push(s.message, s.start){
         case OutputResult.Success   => sentBuffer.enqueue(s)
         case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
         case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
@@ -294,8 +296,4 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
     }
   }
 
-
-  def idleCheck(period: Duration) {
-    //TODO: timeout pending requests
-  }
 }
