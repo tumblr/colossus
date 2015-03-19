@@ -46,10 +46,21 @@ object Main extends App {
 
   implicit val io = IOSystem()
 
-  Service.become[Telnet]("hello-world" , 10010) {
-    case TelnetCommand("exit" :: Nil) => TelnetReply("Bye!").onWrite(OnWriteAction.Disconnect)
-    case TelnetCommand("say" :: text :: Nil) => TelnetReply(text)
-    case other => TelnetReply(other.toString)
+  Service.serve[Telnet]("hello-world" , 10010) { context => 
+    context.handle{ connection => 
+      connection.become {
+        case TelnetCommand("say" :: text :: Nil) => {
+          Callback.successful(TelnetReply(text))
+        }
+        case TelnetCommand("exit" :: Nil) => {
+          connection.gracefulDisconnect()
+          Callback.successful(TelnetReply("Bye!"))
+        }
+        case other => {
+          Callback.failed(new IllegalArgumentException($"Invalid command $other"))
+        }
+      }
+    }
   }
 
 }
@@ -98,46 +109,40 @@ We defined the `IOSystem` as `implicit` because it is a dependency for the next
 line, which is where we actually spin up our service:
 
 {% highlight scala %}
-Service.become[Telnet]("hello-world" , 10010) {
+Service.serve[Telnet]("hello-world" , 10010) { context => 
 {% endhighlight %}
 
-This is using the Service functional DSL to start a server on port 10010 using
-the telnet protocol.  Every service is built around a protocol using a
-**codec**.  Codecs do the job of turning raw incoming bytes into immutable
-request objects, and vise versa for turning response objects into raw bytes.
-So for the telnet protocol, your service only has to worry about taking a
-`TelnetCommand` and turning it into a `TelnetReply`.
+This starts a server on port 10010 using the telnet protocol.  Every service is
+built around a protocol using a **codec**.  Codecs do the job of turning raw
+incoming bytes into immutable request objects, and vise versa for turning
+response objects into raw bytes.  So for the telnet protocol, your service only
+has to worry about taking a `TelnetCommand` and turning it into a
+`TelnetReply`.
 
-`Service.become` is the simplest form of starting a service, and requires a
-pattern-matching expression as its body.  This is perfect for simple, stateless
-services like this one, but there are other methods available for more
-sophisticated situations.
+The `context` is a reference to the current event loop.  Here we don't need it,
+but it provides the interface for interacting directly with the event loop.
 
 This brings us to the actual logic of the service:
 
 {% highlight scala %}
-case TelnetCommand("exit" :: Nil) => TelnetReply("Bye!").onWrite(OnWriteAction.Disconnect)
-case TelnetCommand("say" :: text :: Nil) => TelnetReply(text)
-case other => TelnetReply(other.toString)
+case TelnetCommand("say" :: text :: Nil) => Callback.successful(TelnetReply(text))
+case TelnetCommand("exit" :: Nil) => {
+  connection.gracefulDisconnect()
+  Callback.successful(TelnetReply("Bye!"))
+}
+case other => Callback.failed(new IllegalArgumentException($"Invalid command $other"))
 {% endhighlight %}
 
 This is mostly just standard pattern matching against a `TelnetCommand`, producing a
-`TelnetReply` for each case.  The one interesting thing to point out here is this one part:
-
-{% highlight scala %}
-TelnetReply("Bye!").onWrite(OnWriteAction.Disconnect)
-{% endhighlight %}
-
-`onWrite` is not a method of `TelnetReply`, but actually we are using Scala's
-type-lifting pattern to lift the `TelnetReply` into a
-`Completion[TelnetReply]`, which lets us attach metadata and some other things
-to our response object.  This way we can tell Colossus to terminate the
-connection after writing this response, without having to block or deal with
-callbacks.
+`Callback[TelnetReply]` for each case.  A `Callback` is Colossus' internal
+mechanism for asychronous actions within an event loop.  It is a monad and is
+used very similarly to a `Future`, but only for within an event loop.  This
+example doesn't really illustrate the need for Callbacks, so we'll cover these
+in more detail in the next section.
 
 ## Let's get Hacking
 
-Writing a service in ~5 lines of code is pretty neat, but obviously this
+Writing a service in ~10 lines of code is pretty neat, but obviously this
 example is artificially simple and doesn't really illustrate the real power of
 Colossus.  Let's try doing something a little more interesting, such as writing
 a http interface to a redis server.
@@ -155,23 +160,29 @@ import UrlParsing._
 Service.serve[Http]("http-service", 9000){ context =>
   context.handle{ connection =>
     connection.become{
-      case request @ Get on Root => request.ok("Hello World!")
+      case request @ Get on Root => Callback.successful(request.ok("Hello World!"))
     }
   }
 }
 {% endhighlight %}
 
-Now we're using `Service.serve` instead of `Service.become`.  What's the
-difference, and what's with the nested functions?  The goal here is we need an
-outgoing connection to Redis, which brings us to the first law of Colossus, *Do
-not share state between event loops*.  This means, if we wish to connect to
-redis, then we will open one connection per event loop.  Every http connection bound
-to a particular event loop will share the same redis connection, which is totally fine
-since event loops themselves are single-threaded.
+Now it's time to setup our connection to Redis.  In this case, we're going to
+create one client connection per event loop, allowing all http connections in
+the same event loop to share a single redis connection.  This gives us service
+that conceptually looks like:
 
-`Service.serve` gives us a place to add initialization code per event loop.
-This way we can create the redis connection and it'll simply be in scope for
-our pattern matching.  So let's create the connection.
+![redis]({{site.base_url}}/img/redis.png)
+
+This may not always be the best layout for every situation (especially for
+systems not as consistently low-latency as redis), but here it allows us to do
+two things.  First, we can keep persistent connections open to redis, which is
+ideal since the overhead of establishing a TCP connection is likely to take
+much longer than any `GET` or `SET` command to redis.  Second, it allows us to
+perform all I/O operations within the event loop, and since event-loops are
+single threads we can totally avoid using any parallelism mechanism such as
+locks or Futures, cutting down on latency.
+
+To open one redis connection per event loop, we do:
 
 {% highlight scala %}
 import protocols.redis._
@@ -198,10 +209,15 @@ Service.serve[Http]("http-service", 9000){ context =>
   val redis = context.clientFor[Redis]("localhost", 6379)
   context.handle{ connection =>
     connection.become {
-      case request @ Get on Root => request.ok("Hello World!")
-      case request @ Get on Root / "get" / key => request.notImplemented("soooon")
-      case request @ Get on Root / "set" / key / value => request.notImplemented("soooon")
-      //anything that falls through the partial function gets turned into a 404 error
+      case request @ Get on Root => {
+        Callback.successful(request.ok("Hello World!"))
+      }
+      case request @ Get on Root / "get" / key => {
+        Callback.failed(new NotImplementedException("soon"))
+      }
+      case request @ Get on Root / "set" / key / value => {
+        Callback.failed(new NotImplementedException("soon"))
+      }
     }
   }
 }
@@ -212,36 +228,27 @@ So now let's fill in our get route.  Using the redis client is easy:
 {% highlight scala %}
 case request @ Get on Root / "get" / key => redis.send(Commands.Get(ByteString(key))).map{
   case BulkReply(data) => request.ok(data.utf8String)
-  case NilReply => request.notFound("(nil)")
+  case NilReply        => request.notFound("(nil)")
+  case _               => request.error("Invalid response from redis")
 }
 {% endhighlight %}
 
-This is where things get interesting.  We're sending a `GET` command to redis
-for the key, and mapping on the response.  If you've done concurrent
-programming in Scala before, this looks a lot like working with a Future, but
-that's not the case here, `redis.send` is returning a type `Callback[Reply]`.
-A **Callback** in Colossus behaves very similarly to a Future, but a callback
-works entirely in-thread, so even though the above code is non-blocking, it is
-also entirely single-threaded.  For the most part, Callbacks have the same
-interface as Futures, including `flatMap` and `recover` methods.
-
-Callbacks are the secret sauce that allow Colossus to achieve such low latency
-for small, stateless requests like these.  Since both our http connection and
-our redis connection live in the same event loop, there's no reason to use a
-Future that is designed to work across threads.  The small overhead they need
-to run inside an `ExecutionContext` is overkill in this situation.
-
-Callbacks are not meant to replace Futures, in fact the only place they are
-used in Colossus is this particular situation where you need to get data from
-one connection to another without jumping out of the event loop.  But in the
-world of microservices this is basically the most common thing that happens, so
-using Callbacks has a significant impact on performance.
+This shows how Callbacks are used to interact between server connections (http)
+and client connections (redis).  We're sending a `GET` command to redis for the
+key, which returns a `Callback[Reply]`, and then mapping on it to turn it into
+a `Callback[HttpResponse]`.  This should look very familar to anyone who has
+worked with Futures, and indeed Callbacks have analogs of all the typical
+methods on `Future`, including `flatMap` and `recover`.  The big difference is
+that the execution of a Callback never leaves the event-loop.
 
 Implementing the `Set` route is similar:
 
 {% highlight scala %}
-case request @ Get on Root / "set" / key / value => redis.send(Commands.Set(ByteString(key), ByteString(value))).map{
-  case StatusReply(msg) => request.ok(msg)
+case request @ Get on Root / "set" / key / value => {
+  redis.send(Commands.Set(ByteString(key), ByteString(value))).map{
+    case StatusReply(msg) => request.ok(msg)
+    case _                => request.error("Invalid response from redis")
+  }
 }
 {% endhighlight %}
 

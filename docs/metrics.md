@@ -196,6 +196,6 @@ val collection = metric_system.sharedCollection
 
 //proceed as normal
 
-{% end highlight %}
+{% endhighlight %}
 
 
