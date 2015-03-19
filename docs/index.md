@@ -22,14 +22,9 @@ Here's all the docs so far.
 
 [Server](server)
 
-[Actor API](actorapi)
-
 ### Services
 
 [Creating a Service Server](serviceserver)
-
-[Service Client](serviceclient)
-
 
 ### Util
 

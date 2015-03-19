@@ -31,7 +31,7 @@ simply up to you to decide which you feel more comfortable with.
 
 ### A Basic service
 
-The [quickstart guide](quickstart) has a more introductory approach to building a service.
+The [quickstart guide]({{site.baseurl}}/docs/quickstart) has a more introductory approach to building a service.
 
 The general form of starting a service looks like :
 
@@ -96,7 +96,8 @@ into an error response defined by the protocol.
 
 ### Using clients
 
-Service Clients provide in-thread, asynchronous client connections to external services.  Similar to servers, a client requires a protocol:
+Service Clients provide in-thread, asynchronous client connections to external
+services.  Similar to servers, a client requires a protocol:
 
 {% highlight scala %}
 
@@ -121,16 +122,21 @@ reconnection period.
 
 ### Interacting with Actors and Futures
 
-Because the worker, connection, and request contexts all are single-threaded and execute in
-the event loop, performing certain tasks in-thread are either impractical or
-impossible.  For example, a CPU-intensive operation or blocking API call while
-processing one request would end up pausing the event loop, causing latency
-spikes for any other requests being processed in the loop.
+Because the worker, connection, and request contexts all are single-threaded
+and execute in the event loop, performing certain tasks in-thread are either
+impractical or impossible.  For example, a CPU-intensive operation or blocking
+API call while processing one request would end up pausing the event loop,
+causing latency spikes for any other requests being processed in the loop.
+Furthermore, it's pretty rare for a service to be truly stateless.  We need a
+way for connection handlers to interact with some sort of global shared state.
 
 Colossus was built with these use cases in mind and makes it easy to interact
-with Futures and Akka Actors.
+with Futures and Akka Actors.  Actors provide an easy way to manage shared
+state, and both actors and futures provide a way to perform operations in
+parallel with the event loops.
 
-Suppose we have a function `doTask()` that returns a `Future[T]`.  To execute this method in the processing of a request, we can do:
+Suppose we have a function `doTask()` that returns a `Future[T]`.  To execute
+this method in the processing of a request, we can do:
 
 {% highlight scala %}
 
@@ -155,7 +161,8 @@ work in another thread, and then jump back into the event-loop after it
 complete.  So any `map`, `flatMap`, or `recover` that occurs after `fromFuture`
 is still executed in the event loop and is thus thread-safe.
 
-It is very important not to accidentally call thread-local code from within a Future.  Take a look at the following service:
+It is very important not to accidentally call thread-local code from within a
+Future.  Take a look at the following service:
 
 {% highlight scala %}
 

@@ -14,8 +14,8 @@ sacrifices.
 
 
 ### Releases
-* {{ site.latest_version }} - The latest release (this verison used in the docs), built against scala 2.10.4, 2.11.2, akka 2.3.6
-* 0.6.0-SNAPSHOT - Latest development snapshot
+* {{ site.latest_version }} - The latest release (this verison used in the docs), built against scala 2.10.4, 2.11.6, akka 2.3.9
+* 0.6.1-SNAPSHOT - Latest development snapshot
 
 ### Release Workflow
 
