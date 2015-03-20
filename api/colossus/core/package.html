@@ -30,7 +30,7 @@
       <div id="definition">
         <img src="../../lib/package_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
-        <h1>core</h1> <span class="permalink">
+        <h1>core</h1><span class="permalink">
       <a href="../../index.html#colossus.core.package" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -66,97 +66,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.core.AckLevel" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="AckLevelextendsAnyRef"></a>
-      <a id="AckLevel:AckLevel"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="AckLevel.html"><span class="name">AckLevel</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@AckLevelextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">AckLevel is used in Asynchronous write messages to determine how to react to
-writes.</p><div class="fullcomment"><div class="comment cmt"><p>AckLevel is used in Asynchronous write messages to determine how to react to
-writes.  This is useful when interacting with a connection from an actor and
-needing to handle backpressure when writing large amounts of data.</p><p>If AckFailure is selected, WriteStatus's of &quot;Partial&quot; (data partially
-written but buffered, next write will fail), &quot;Zero&quot; (no data was written,
-buffer full), and &quot;Failed&quot; (error, probably disconnected) will generate
-WriteAck messages.</p><p>If AckSuccess is selected, &quot;Partial&quot; and &quot;Success&quot; (data fully written) will
-generate WriteAck</p><p>The simplest approach is to AckAll and only send ByteStrings one at a time,
-waiting for the WriteAck message each time.  The highest-throughput approach
-is  to use AckFailure, and send messages as fast as possible, but be aware that
-you will be entirely responsible for resending failed messages.</p><p>WriteAck Messages are only sent to the ConnectionHandler's watcher (if one
-exists, see the WatchedHandler trait), which may NOT necessarily be the
-sender of the message.</p><p>If you receive a Partial status, you should not send any more data until receiving a ReadyForData message
-</p></div></div>
-    </li><li name="colossus.core.ActorHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ActorHandlerextendsActorwithStash"></a>
-      <a id="ActorHandler:ActorHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="ActorHandler.html"><span class="name">ActorHandler</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.Stash">Stash</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ActorHandlerextendsActorwithStash" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A Basic actor-based handler that can be used with the AsyncHandler.</p><div class="fullcomment"><div class="comment cmt"><p>A Basic actor-based handler that can be used with the AsyncHandler.  A
-listener actor must register with this actor, after which is can send and
-receive data across the connection</p><p>This actor can handle both server and client connections, since it does not
-handle the initial setup of the connection
-</p></div></div>
-    </li><li name="colossus.core.AsyncHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AsyncHandlerextendsWatchedHandlerwithClientConnectionHandlerwithProductwithSerializable"></a>
-      <a id="AsyncHandler:AsyncHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="AsyncHandler.html"><span class="name">AsyncHandler</span></a><span class="params">(<span name="handler">handler: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result"> extends <a href="WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a> with <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@AsyncHandlerextendsWatchedHandlerwithClientConnectionHandlerwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.AutoUnbindHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="AutoUnbindHandlerextendsClientConnectionHandler"></a>
-      <a id="AutoUnbindHandler:AutoUnbindHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="AutoUnbindHandler.html"><span class="name">AutoUnbindHandler</span></a><span class="result"> extends <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@AutoUnbindHandlerextendsClientConnectionHandler" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A Simple mixin trait that will cause the worker to automatically unbind this
-handler if the connection it's attached to is closed.</p><div class="fullcomment"><div class="comment cmt"><p>A Simple mixin trait that will cause the worker to automatically unbind this
-handler if the connection it's attached to is closed.  This is generally a
-good idea if the handler is not going to attempt any connection retry logic
-or is not setup to receive any actor messages
-</p></div></div>
-    </li><li name="colossus.core.BasicSyncHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="colossus.core.BasicSyncHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="BasicSyncHandlerextendsConnectionHandler"></a>
       <a id="BasicSyncHandler:BasicSyncHandler"></a>
       <h4 class="signature">
@@ -177,25 +87,6 @@ the necessary functions.</p><div class="fullcomment"><div class="comment cmt"><p
 the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
 for the functions they require.
 </p></div></div>
-    </li><li name="colossus.core.ClientConnectionEvent" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ClientConnectionEventextendsConnectionEvent"></a>
-      <a id="ClientConnectionEvent:ClientConnectionEvent"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ClientConnectionEvent.html"><span class="name">ClientConnectionEvent</span></a><span class="result"> extends <a href="ConnectionEvent.html" class="extype" name="colossus.core.ConnectionEvent">ConnectionEvent</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ClientConnectionEventextendsConnectionEvent" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">These events are sent from the underlying async handler to the handler actor and also forwarded to the listener</p><div class="fullcomment"><div class="comment cmt"><p>These events are sent from the underlying async handler to the handler actor and also forwarded to the listener</p><p>Notice for all of these events, the sender is always going to be the worker
-to which the connection is bound.
-</p></div></div>
     </li><li name="colossus.core.ClientConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ClientConnectionHandlerextendsConnectionHandler"></a>
       <a id="ClientConnectionHandler:ClientConnectionHandler"></a>
@@ -214,43 +105,6 @@ to which the connection is bound.
     </span>
       <p class="shortcomment cmt">ClientConnectionHandler is a trait meant to be used with outgoing connections.</p><div class="fullcomment"><div class="comment cmt"><p>ClientConnectionHandler is a trait meant to be used with outgoing connections.  It provides a call back function
 connectionFailed, which is called when a connection to an external system could not be established.
-</p></div></div>
-    </li><li name="colossus.core.ConnectionCommand" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ConnectionCommandextendsAnyRef"></a>
-      <a id="ConnectionCommand:ConnectionCommand"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionCommand.html"><span class="name">ConnectionCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ConnectionCommandextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">These messages are sent to async connection actors to interact with connections
-</p>
-    </li><li name="colossus.core.ConnectionEvent" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ConnectionEventextendsAnyRef"></a>
-      <a id="ConnectionEvent:ConnectionEvent"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionEvent.html"><span class="name">ConnectionEvent</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ConnectionEventextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">These events are sent from the underlying async handler to the handler actor and also forwarded to the listener</p><div class="fullcomment"><div class="comment cmt"><p>These events are sent from the underlying async handler to the handler actor and also forwarded to the listener</p><p>Notice for all of these events, the sender is always going to be the worker
-to which the connection is bound.
 </p></div></div>
     </li><li name="colossus.core.ConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ConnectionHandlerextendsWorkerItem"></a>
@@ -282,7 +136,7 @@ that a Worker captures in its SelectLoop.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ConnectionInfo.html"><span class="name">ConnectionInfo</span></a><span class="params">(<span name="domain">domain: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="host">host: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timeOpen">timeOpen: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="timeIdle">timeIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesSent">bytesSent: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesReceived">bytesReceived: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ConnectionInfo.html"><span class="name">ConnectionInfo</span></a><span class="params">(<span name="domain">domain: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="host">host: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timeOpen">timeOpen: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="readIdle">readIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="writeIdle">writeIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesSent">bytesSent: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesReceived">bytesReceived: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ConnectionInfoextendsProductwithSerializable" title="Permalink" target="_top">
@@ -290,7 +144,7 @@ that a Worker captures in its SelectLoop.
       </a>
     </span>
       <p class="shortcomment cmt">This class is used to report some basic stats about a Connection.</p><div class="fullcomment"><div class="comment cmt"><p>This class is used to report some basic stats about a Connection.  This is used in conjunction
-with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>The domain of this Connection</p></dd><dt class="param">host</dt><dd class="cmt"><p>The host of this Connection</p></dd><dt class="param">port</dt><dd class="cmt"><p>The port of this Connection</p></dd><dt class="param">id</dt><dd class="cmt"><p>The id of this Connection</p></dd><dt class="param">timeOpen</dt><dd class="cmt"><p>The amount of time this Connection has been open</p></dd><dt class="param">timeIdle</dt><dd class="cmt"><p>The amount of time this Connection has been idle</p></dd><dt class="param">bytesSent</dt><dd class="cmt"><p>The amount of bytes that this Connection has sent</p></dd><dt class="param">bytesReceived</dt><dd class="cmt"><p>The amount of bytes that this Connection has received
+with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>The domain of this Connection</p></dd><dt class="param">host</dt><dd class="cmt"><p>The host of this Connection</p></dd><dt class="param">port</dt><dd class="cmt"><p>The port of this Connection</p></dd><dt class="param">id</dt><dd class="cmt"><p>The id of this Connection</p></dd><dt class="param">timeOpen</dt><dd class="cmt"><p>The amount of time this Connection has been open</p></dd><dt class="param">readIdle</dt><dd class="cmt"><p>milliseconds since the last read activity on the connection</p></dd><dt class="param">writeIdle</dt><dd class="cmt"><p>milliseconds since the last write activity on the connection</p></dd><dt class="param">bytesSent</dt><dd class="cmt"><p>The amount of bytes that this Connection has sent</p></dd><dt class="param">bytesReceived</dt><dd class="cmt"><p>The amount of bytes that this Connection has received
 </p></dd></dl></div>
     </li><li name="colossus.core.ConnectionStatus" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ConnectionStatusextendsAnyRef"></a>
@@ -326,32 +180,76 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">ConnectionVolumeState indicates whether or not if the Server is operating with a normal workload, which is represented
-by the current ratio of used / available connections being beneath the TimeoutConfig.highWatermarkPercentage amount.</p><div class="fullcomment"><div class="comment cmt"><p>ConnectionVolumeState indicates whether or not if the Server is operating with a normal workload, which is represented
-by the current ratio of used / available connections being beneath the TimeoutConfig.highWatermarkPercentage amount.
-Once this ratio is breached, the state will be changed to the HighWater state.</p><p>In this state, the server will more aggressively timeout and close idle connections.  Effectively what this means is that
-when the Server polls its connections in the Highwater state, any connection that is seen as idle for longer than TimeoutConfig.highWaterMaxIdleTime
-will be reaped.  It does this in an effort to free up space.</p><p>The Server will return back to its normal state when the connection ratio recedes past the lowWater mark.
+      <p class="shortcomment cmt">ConnectionVolumeState indicates whether or not if the Server is operating
+with a normal workload, which is represented by the current ratio of used /
+available connections being beneath the
+ServerSettings.highWatermarkPercentage amount.</p><div class="fullcomment"><div class="comment cmt"><p>ConnectionVolumeState indicates whether or not if the Server is operating
+with a normal workload, which is represented by the current ratio of used /
+available connections being beneath the
+ServerSettings.highWatermarkPercentage amount.  Once this ratio is breached,
+the state will be changed to the HighWater state.</p><p>In this state, the server will more aggressively timeout and close idle
+connections.  Effectively what this means is that when the Server polls its
+connections in the Highwater state, any connection that is seen as idle for
+longer than ServerSettings.highWaterMaxIdleTime will be reaped.  It does this
+in an effort to free up space.</p><p>The Server will return back to its normal state when the connection ratio
+recedes past the lowWater mark.
 </p></div></div>
     </li><li name="colossus.core.DataBuffer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DataBufferextendsAnyValwithProductwithSerializable"></a>
+      <a id="DataBufferextendsDataReaderwithProductwithSerializable"></a>
       <a id="DataBuffer:DataBuffer"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="DataBuffer.html"><span class="name">DataBuffer</span></a><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="DataBuffer.html"><span class="name">DataBuffer</span></a><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result"> extends <a href="DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@DataBufferextendsAnyValwithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.package@DataBufferextendsDataReaderwithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">A thin wrapper around a NIO ByteBuffer with data to read</p><div class="fullcomment"><div class="comment cmt"><p>A thin wrapper around a NIO ByteBuffer with data to read</p><p>DataBuffers are the primary way that data is read from and written to a
 connection.  DataBuffers are mutable and not thread safe.  They can only be
 read from once and cannot be reset.</p></div></div>
+    </li><li name="colossus.core.DataReader" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DataReaderextendsAnyRef"></a>
+      <a id="DataReader:DataReader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DataReader.html"><span class="name">DataReader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataReaderextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A DataReader is the result of codec's encode operation.</p><div class="fullcomment"><div class="comment cmt"><p>A DataReader is the result of codec's encode operation.  It can either
+return a DataBuffer, which contains the entire encoded object at once, or it
+can return a DataStream, which has a Sink for streaming the encoded object.
+</p></div></div>
+    </li><li name="colossus.core.DataStream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataStreamextendsDataReaderwithProductwithSerializable"></a>
+      <a id="DataStream:DataStream"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataStream.html"><span class="name">DataStream</span></a><span class="params">(<span name="source">source: <a href="../controller/Source.html" class="extype" name="colossus.controller.Source">Source</a>[<a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a>]</span>)</span><span class="result"> extends <a href="DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataStreamextendsDataReaderwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.Delegator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="DelegatorextendsAnyRef"></a>
       <a id="Delegator:Delegator"></a>
@@ -425,6 +323,46 @@ or error cases
       </a>
     </span>
       <p class="shortcomment cmt">Subset of DisconnectCause which represent errors which resulted in a disconnect.</p>
+    </li><li name="colossus.core.KeyInterestManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="KeyInterestManagerextendsAnyRef"></a>
+      <a id="KeyInterestManager:KeyInterestManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="KeyInterestManager.html"><span class="name">KeyInterestManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@KeyInterestManagerextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ManualUnbindHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ManualUnbindHandlerextendsClientConnectionHandler"></a>
+      <a id="ManualUnbindHandler:ManualUnbindHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ManualUnbindHandler.html"><span class="name">ManualUnbindHandler</span></a><span class="result"> extends <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ManualUnbindHandlerextendsClientConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Simple mixin trait that will cause the worker to not automatically unbind
+this handler if the connection it's attached to is closed.</p><div class="fullcomment"><div class="comment cmt"><p>A Simple mixin trait that will cause the worker to not automatically unbind
+this handler if the connection it's attached to is closed.  This mixin is
+required if a connection handler wants to handle retry logic, since this
+trait will allow it to continue to receive messages during the reconnection
+process and bind to another connection
+</p></div></div>
     </li><li name="colossus.core.PollingDuration" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PollingDurationextendsProductwithSerializable"></a>
       <a id="PollingDuration:PollingDuration"></a>
@@ -512,7 +450,7 @@ watermarks to 1.
 </p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingAttemptDuration</dt><dd class="cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
                               <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
                               cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s."> The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
+                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
                                  <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
                                  after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
                                  the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s
@@ -533,7 +471,8 @@ watermarks to 1.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Class representing the state of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Class representing the state of the server.  Currently the only reported status is the ConnectionVolumeState.</p></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Represents if the a Server's connections are normal or in highwater</p></dd><dt class="param">serverStatus</dt><dd class="cmt"><p>Represents the Server's current status
+      <p class="shortcomment cmt">Represents the current state of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the current state of a Server.
+</p></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Represents if the a Server's connections are normal or in highwater</p></dd><dt class="param">serverStatus</dt><dd class="cmt"><p>Represents the Server's current status
 </p></dd></dl></div>
     </li><li name="colossus.core.ServerStatus" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ServerStatusextendsAnyRef"></a>
@@ -551,7 +490,10 @@ watermarks to 1.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Represents the startup status of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the startup status of the server.  Can be either Initializing, Binding and Bound.
+      <p class="shortcomment cmt">Represents the startup status of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the startup status of the server.
+- <code>Initializing</code> : The server was just started and is registering with the IOSystem
+- <code>Binding</code> : The server is registered and in the process of binding to its port
+- <code>Bound</code> : The server is actively listening on the port and accepting connections
 </p></div></div>
     </li><li name="colossus.core.WatchedHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WatchedHandlerextendsConnectionHandler"></a>
@@ -753,92 +695,7 @@ connection.  Services wrap this
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="colossus.core.AckLevel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AckLevel"></a>
-      <a id="AckLevel:AckLevel"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="AckLevel$.html"><span class="name">AckLevel</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@AckLevel" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ActorHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ActorHandler"></a>
-      <a id="ActorHandler:ActorHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ActorHandler$.html"><span class="name">ActorHandler</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ActorHandler" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.AsyncHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AsyncHandler"></a>
-      <a id="AsyncHandler:AsyncHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="AsyncHandler$.html"><span class="name">AsyncHandler</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@AsyncHandler" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ConnectionCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ConnectionCommand"></a>
-      <a id="ConnectionCommand:ConnectionCommand"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionCommand$.html"><span class="name">ConnectionCommand</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ConnectionCommand" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ConnectionEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ConnectionEvent"></a>
-      <a id="ConnectionEvent:ConnectionEvent"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionEvent$.html"><span class="name">ConnectionEvent</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ConnectionEvent" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ConnectionInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.core.ConnectionInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ConnectionInfo"></a>
       <a id="ConnectionInfo:ConnectionInfo"></a>
       <h4 class="signature">
@@ -990,12 +847,15 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Servers can be thought of as applications, as they provide Delegators and ConnectionHandlers which contain
-application logic.</p><div class="fullcomment"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and ConnectionHandlers which contain
-application logic.  Servers are the objects that are directly interface with the Workers and provide them with the
-Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers, and after a successful registration, it will
-then bind to the specified ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of these can cause actions, others
-are for when some internal event happens and the Server is notified.</p></div></div>
+      <p class="shortcomment cmt">Servers can be thought of as applications, as they provide Delegators and
+ConnectionHandlers which contain application logic.</p><div class="fullcomment"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and
+ConnectionHandlers which contain application logic.  Servers are the objects
+that are directly interface with the Workers and provide them with the
+Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers,
+and after a successful registration, it will then bind to the specified
+ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of
+these can cause actions, others are for when some internal event happens and
+the Server is notified.</p></div></div>
     </li><li name="colossus.core.ServerStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ServerStatus"></a>
       <a id="ServerStatus:ServerStatus"></a>

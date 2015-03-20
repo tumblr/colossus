@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.parsing">parsing</a></p>
-        <h1>ParserSizeTracker</h1> <span class="permalink">
+        <h1>ParserSizeTracker</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.parsing">package parsing</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.parsing.ParserSizeTracker" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -47,7 +49,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A ParserSizeTracker can wrap a stream parser to ensure that the object beiing parsed doesn't exceed a certain size.</p><p>The size tracker is not exact.  It simply looks at how many bytes are read
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A ParserSizeTracker can wrap a stream parser to ensure that the object being parsed doesn't exceed a certain size.</p><p>The size tracker is not exact.  It simply looks at how many bytes are read
 off the DataBuffer each time the track method is called.  Since in most
 cases databuffers are fairly small (128Kb right now for buffers coming out
 of the event loop), and since the primary purpose for this is to prevent OOM

@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../../lib/object_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.telnet">telnet</a></p>
-        <h1>TelnetServerCodec</h1> <span class="permalink">
+        <h1>TelnetServerCodec</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.protocols.telnet">package telnet</a>
+          </div></span></h3><span class="permalink">
       <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
@@ -202,36 +204,36 @@
               
         </dd></dl></div>
     </li><li name="colossus.protocols.telnet.TelnetServerCodec#decode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="decode(data:colossus.core.DataBuffer):Option[colossus.protocols.telnet.package.TelnetCommand]"></a>
-      <a id="decode(DataBuffer):Option[TelnetCommand]"></a>
+      <a id="decode(data:colossus.core.DataBuffer):Option[colossus.service.DecodedResult[colossus.protocols.telnet.package.TelnetCommand]]"></a>
+      <a id="decode(DataBuffer):Option[DecodedResult[TelnetCommand]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decode</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]</span>
+        <span class="name">decode</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@decode(data:colossus.core.DataBuffer):Option[colossus.protocols.telnet.package.TelnetCommand]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@decode(data:colossus.core.DataBuffer):Option[colossus.service.DecodedResult[colossus.protocols.telnet.package.TelnetCommand]]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Decode a single object from a bytestream.</p><div class="fullcomment"><div class="comment cmt"><p>Decode a single object from a bytestream.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetServerCodec">TelnetServerCodec</a> → <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a></dd></dl></div>
     </li><li name="colossus.service.Codec#decodeAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit"></a>
-      <a id="decodeAll(DataBuffer)((TelnetCommand)⇒Unit):Unit"></a>
+      <a id="decodeAll(data:colossus.core.DataBuffer)(onDecode:colossus.service.DecodedResult[Input]=&gt;Unit):Unit"></a>
+      <a id="decodeAll(DataBuffer)((DecodedResult[TelnetCommand])⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="params">(<span name="onDecode">onDecode: (<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="params">(<span name="onDecode">onDecode: (<a href="../../service/DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@decodeAll(data:colossus.core.DataBuffer)(onDecode:colossus.service.DecodedResult[Input]=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -253,6 +255,29 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetServerCodec">TelnetServerCodec</a> → <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a></dd></dl></div>
+    </li><li name="colossus.service.Codec#endOfStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="endOfStream():Option[colossus.service.DecodedResult[Input]]"></a>
+      <a id="endOfStream():Option[DecodedResult[TelnetCommand]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">endOfStream</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@endOfStream():Option[colossus.service.DecodedResult[Input]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is only needed for codecs where closing the connection signals the
+end of a response (for example, a http response with no content-length and
+non-chunked transfer encoding)
+</p><div class="fullcomment"><div class="comment cmt"><p>This is only needed for codecs where closing the connection signals the
+end of a response (for example, a http response with no content-length and
+non-chunked transfer encoding)
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -362,18 +387,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.service.Codec#mapInput" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="mapInput[U](oMapper:Input=&gt;U):colossus.service.Codec[Output,U]"></a>
-      <a id="mapInput[U]((TelnetCommand)⇒U):Codec[TelnetReply,U]"></a>
+      <a id="mapInput[U](iMapper:Option[colossus.service.DecodedResult[Input]]=&gt;Option[colossus.service.DecodedResult[U]]):colossus.service.Codec[Output,U]"></a>
+      <a id="mapInput[U]((Option[DecodedResult[TelnetCommand]])⇒Option[DecodedResult[U]]):Codec[TelnetReply,U]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mapInput</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="oMapper">oMapper: (<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>) ⇒ <span class="extype" name="colossus.service.Codec.mapInput.U">U</span></span>)</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="package$$TelnetReply.html" class="extype" name="colossus.protocols.telnet.TelnetReply">TelnetReply</a>, <span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]</span>
+        <span class="name">mapInput</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="iMapper">iMapper: (<span class="extype" name="scala.Option">Option</span>[<a href="../../service/DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]]) ⇒ <span class="extype" name="scala.Option">Option</span>[<a href="../../service/DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]]</span>)</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="package$$TelnetReply.html" class="extype" name="colossus.protocols.telnet.TelnetReply">TelnetReply</a>, <span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@mapInput[U](oMapper:Input=&gt;U):colossus.service.Codec[Output,U]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetServerCodec$@mapInput[U](iMapper:Option[colossus.service.DecodedResult[Input]]=&gt;Option[colossus.service.DecodedResult[U]]):colossus.service.Codec[Output,U]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>

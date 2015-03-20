@@ -30,7 +30,11 @@
       <div id="definition">
         <a href="Codec$.html" title="Go to companion"><img src="../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1><a href="Codec$.html" title="Go to companion">Codec</a></h1> <span class="permalink">
+        <h1><a href="Codec$.html" title="Go to companion">Codec</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="Codec$.html" title="See companion">object Codec</a>
+            | <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.Codec" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -56,7 +60,7 @@ codec is stateful and returns a Seq[O]
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../protocols/http/HttpClientCodec.html" class="extype" name="colossus.protocols.http.HttpClientCodec">HttpClientCodec</a>, <a href="../protocols/http/HttpServerCodec.html" class="extype" name="colossus.protocols.http.HttpServerCodec">HttpServerCodec</a>, <a href="../protocols/memcache/MemcacheClientCodec.html" class="extype" name="colossus.protocols.memcache.MemcacheClientCodec">MemcacheClientCodec</a>, <a href="../protocols/redis/RedisClientCodec.html" class="extype" name="colossus.protocols.redis.RedisClientCodec">RedisClientCodec</a>, <a href="../protocols/redis/RedisServerCodec.html" class="extype" name="colossus.protocols.redis.RedisServerCodec">RedisServerCodec</a>, <a href="../protocols/telnet/package$$TelnetServerCodec$.html" class="extype" name="colossus.protocols.telnet.TelnetServerCodec">TelnetServerCodec</a></div>
+            <div class="subClasses hiddenContent"><a href="../protocols/http/BaseHttpClientCodec.html" class="extype" name="colossus.protocols.http.BaseHttpClientCodec">BaseHttpClientCodec</a>, <a href="../protocols/http/BaseHttpServerCodec.html" class="extype" name="colossus.protocols.http.BaseHttpServerCodec">BaseHttpServerCodec</a>, <a href="../protocols/http/HttpClientCodec.html" class="extype" name="colossus.protocols.http.HttpClientCodec">HttpClientCodec</a>, <a href="../protocols/http/HttpServerCodec.html" class="extype" name="colossus.protocols.http.HttpServerCodec">HttpServerCodec</a>, <a href="../protocols/memcache/MemcacheClientCodec.html" class="extype" name="colossus.protocols.memcache.MemcacheClientCodec">MemcacheClientCodec</a>, <a href="../protocols/redis/RedisClientCodec.html" class="extype" name="colossus.protocols.redis.RedisClientCodec">RedisClientCodec</a>, <a href="../protocols/redis/RedisServerCodec.html" class="extype" name="colossus.protocols.redis.RedisServerCodec">RedisServerCodec</a>, <a href="../protocols/http/StreamingHttpClientCodec.html" class="extype" name="colossus.protocols.http.StreamingHttpClientCodec">StreamingHttpClientCodec</a>, <a href="../protocols/http/StreamingHttpServerCodec.html" class="extype" name="colossus.protocols.http.StreamingHttpServerCodec">StreamingHttpServerCodec</a>, <a href="../protocols/telnet/package$$TelnetServerCodec$.html" class="extype" name="colossus.protocols.telnet.TelnetServerCodec">TelnetServerCodec</a></div>
           </div></div>
         
 
@@ -99,35 +103,35 @@ codec is stateful and returns a Seq[O]
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="colossus.service.Codec#decode" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="decode(data:colossus.core.DataBuffer):Option[Input]"></a>
-      <a id="decode(DataBuffer):Option[Input]"></a>
+      <a id="decode(data:colossus.core.DataBuffer):Option[colossus.service.DecodedResult[Input]]"></a>
+      <a id="decode(DataBuffer):Option[DecodedResult[Input]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decode</span><span class="params">(<span name="data">data: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="colossus.service.Codec.Input">Input</span>]</span>
+        <span class="name">decode</span><span class="params">(<span name="data">data: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.Input">Input</span>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Codec@decode(data:colossus.core.DataBuffer):Option[Input]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Codec@decode(data:colossus.core.DataBuffer):Option[colossus.service.DecodedResult[Input]]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Decode a single object from a bytestream.</p>
     </li><li name="colossus.service.Codec#encode" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="encode(out:Output):colossus.core.DataBuffer"></a>
-      <a id="encode(Output):DataBuffer"></a>
+      <a id="encode(out:Output):colossus.core.DataReader"></a>
+      <a id="encode(Output):DataReader"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">encode</span><span class="params">(<span name="out">out: <span class="extype" name="colossus.service.Codec.Output">Output</span></span>)</span><span class="result">: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
+        <span class="name">encode</span><span class="params">(<span name="out">out: <span class="extype" name="colossus.service.Codec.Output">Output</span></span>)</span><span class="result">: <a href="../core/DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Codec@encode(out:Output):colossus.core.DataBuffer" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Codec@encode(out:Output):colossus.core.DataReader" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -246,22 +250,42 @@ codec is stateful and returns a Seq[O]
               
         </dd></dl></div>
     </li><li name="colossus.service.Codec#decodeAll" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit"></a>
-      <a id="decodeAll(DataBuffer)((Input)⇒Unit):Unit"></a>
+      <a id="decodeAll(data:colossus.core.DataBuffer)(onDecode:colossus.service.DecodedResult[Input]=&gt;Unit):Unit"></a>
+      <a id="decodeAll(DataBuffer)((DecodedResult[Input])⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="params">(<span name="onDecode">onDecode: (<span class="extype" name="colossus.service.Codec.Input">Input</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">decodeAll</span><span class="params">(<span name="data">data: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="params">(<span name="onDecode">onDecode: (<a href="DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.Input">Input</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Codec@decodeAll(data:colossus.core.DataBuffer)(onDecode:Input=&gt;Unit):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Codec@decodeAll(data:colossus.core.DataBuffer)(onDecode:colossus.service.DecodedResult[Input]=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
+    </li><li name="colossus.service.Codec#endOfStream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="endOfStream():Option[colossus.service.DecodedResult[Input]]"></a>
+      <a id="endOfStream():Option[DecodedResult[Input]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">endOfStream</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.Input">Input</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.Codec@endOfStream():Option[colossus.service.DecodedResult[Input]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is only needed for codecs where closing the connection signals the
+end of a response (for example, a http response with no content-length and
+non-chunked transfer encoding)
+</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -371,18 +395,18 @@ codec is stateful and returns a Seq[O]
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.service.Codec#mapInput" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="mapInput[U](oMapper:Input=&gt;U):colossus.service.Codec[Output,U]"></a>
-      <a id="mapInput[U]((Input)⇒U):Codec[Output,U]"></a>
+      <a id="mapInput[U](iMapper:Option[colossus.service.DecodedResult[Input]]=&gt;Option[colossus.service.DecodedResult[U]]):colossus.service.Codec[Output,U]"></a>
+      <a id="mapInput[U]((Option[DecodedResult[Input]])⇒Option[DecodedResult[U]]):Codec[Output,U]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mapInput</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="oMapper">oMapper: (<span class="extype" name="colossus.service.Codec.Input">Input</span>) ⇒ <span class="extype" name="colossus.service.Codec.mapInput.U">U</span></span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.Codec.Output">Output</span>, <span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]</span>
+        <span class="name">mapInput</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="iMapper">iMapper: (<span class="extype" name="scala.Option">Option</span>[<a href="DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.Input">Input</span>]]) ⇒ <span class="extype" name="scala.Option">Option</span>[<a href="DecodedResult.html" class="extype" name="colossus.service.DecodedResult">DecodedResult</a>[<span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.Codec.Output">Output</span>, <span class="extype" name="colossus.service.Codec.mapInput.U">U</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Codec@mapInput[U](oMapper:Input=&gt;U):colossus.service.Codec[Output,U]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Codec@mapInput[U](iMapper:Option[colossus.service.DecodedResult[Input]]=&gt;Option[colossus.service.DecodedResult[U]]):colossus.service.Codec[Output,U]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>

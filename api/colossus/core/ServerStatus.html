@@ -30,7 +30,11 @@
       <div id="definition">
         <a href="ServerStatus$.html" title="Go to companion"><img src="../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1><a href="ServerStatus$.html" title="Go to companion">ServerStatus</a></h1> <span class="permalink">
+        <h1><a href="ServerStatus$.html" title="Go to companion">ServerStatus</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="ServerStatus$.html" title="See companion">object ServerStatus</a>
+            | <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.ServerStatus" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -47,7 +51,10 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents the startup status of the server.  Can be either Initializing, Binding and Bound.
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents the startup status of the server.
+- <code>Initializing</code> : The server was just started and is registering with the IOSystem
+- <code>Binding</code> : The server is registered and in the process of binding to its port
+- <code>Bound</code> : The server is actively listening on the port and accepting connections
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>

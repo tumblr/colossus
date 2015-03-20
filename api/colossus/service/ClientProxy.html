@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1>ClientProxy</h1> <span class="permalink">
+        <h1>ClientProxy</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.ClientProxy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -89,7 +91,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.ClientProxy#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(config:colossus.service.ClientConfig,system:colossus.IOSystem,handlerFactory:akka.actor.ActorRef=&gt;colossus.core.ClientConnectionHandler):colossus.service.ClientProxy"></a>
+      <a id="&lt;init&gt;(config:colossus.service.ClientConfig,system:colossus.IOSystem,handlerFactory:akka.actor.ActorRef=&gt;(colossus.core.WorkerRef=&gt;colossus.core.ClientConnectionHandler)):colossus.service.ClientProxy"></a>
       <a id="&lt;init&gt;:ClientProxy"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +99,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ClientProxy</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="handlerFactory">handlerFactory: (<span class="extype" name="akka.actor.ActorRef">ActorRef</span>) ⇒ <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>)</span>
+        <span class="name">ClientProxy</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="handlerFactory">handlerFactory: (<span class="extype" name="akka.actor.ActorRef">ActorRef</span>) ⇒ (<a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ClientProxy@&lt;init&gt;(config:colossus.service.ClientConfig,system:colossus.IOSystem,handlerFactory:akka.actor.ActorRef=&gt;colossus.core.ClientConnectionHandler):colossus.service.ClientProxy" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ClientProxy@&lt;init&gt;(config:colossus.service.ClientConfig,system:colossus.IOSystem,handlerFactory:akka.actor.ActorRef=&gt;(colossus.core.WorkerRef=&gt;colossus.core.ClientConnectionHandler)):colossus.service.ClientProxy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -344,6 +346,40 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Actor</dd></dl></div>
+    </li><li name="colossus.service.ClientProxy#dead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="dead:ClientProxy.this.Receive"></a>
+      <a id="dead:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">dead</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="colossus.service.ClientProxy.Receive">Receive</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientProxy@dead:ClientProxy.this.Receive" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientProxy#dying" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="dying:ClientProxy.this.Receive"></a>
+      <a id="dying:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">dying</span><span class="result">: <a href="#Receive=akka.actor.Actor.Receive" class="extmbr" name="colossus.service.ClientProxy.Receive">Receive</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientProxy@dying:ClientProxy.this.Receive" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

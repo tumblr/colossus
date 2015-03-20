@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.parsing">parsing</a>.<a href="Combinators$.html" class="extype" name="colossus.parsing.Combinators">Combinators</a></p>
-        <h1>Parser</h1> <span class="permalink">
+        <h1>Parser</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="Combinators$.html" class="extype" name="colossus.parsing.Combinators">package Combinators</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.parsing.Combinators$$Parser" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -255,6 +257,29 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.Parser#endOfStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="endOfStream():Option[T]"></a>
+      <a id="endOfStream():Option[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">endOfStream</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="colossus.parsing.Combinators.Parser.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$Parser@endOfStream():Option[T]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This can be optionally implemented if a parser is able to return a
+partial value or for situations where the end of the stream signals a
+complete response</p><div class="fullcomment"><div class="comment cmt"><p>This can be optionally implemented if a parser is able to return a
+partial value or for situations where the end of the stream signals a
+complete response</p><p>Only the unknownLengthBytes parser currently uses this.  It is currently
+undefined if calling this resets a parser's state.  &quot;&gt;&gt;&quot; also uses it, but not |&gt;
+</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

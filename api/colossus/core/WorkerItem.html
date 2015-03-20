@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1>WorkerItem</h1> <span class="permalink">
+        <h1>WorkerItem</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.WorkerItem" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -56,7 +58,7 @@ are executed in the event-loop thread of the bound worker.
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="AsyncHandler.html" class="extype" name="colossus.core.AsyncHandler">AsyncHandler</a>, <a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="AutoUnbindHandler.html" class="extype" name="colossus.core.AutoUnbindHandler">AutoUnbindHandler</a>, <a href="../service/BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="BasicSyncHandler.html" class="extype" name="colossus.core.BasicSyncHandler">BasicSyncHandler</a>, <a href="../task/BasicTask.html" class="extype" name="colossus.task.BasicTask">BasicTask</a>, <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../service/DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../service/LoadBalancingClient.html" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="../protocols/redis/RedisMonitorClient.html" class="extype" name="colossus.protocols.redis.RedisMonitorClient">RedisMonitorClient</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../task/Task.html" class="extype" name="colossus.task.Task">Task</a>, <a href="WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../service/BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="BasicSyncHandler.html" class="extype" name="colossus.core.BasicSyncHandler">BasicSyncHandler</a>, <a href="../task/BasicTask.html" class="extype" name="colossus.task.BasicTask">BasicTask</a>, <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="../service/DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../protocols/http/package$$HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>, <a href="../protocols/http/package$$HttpServiceHandler.html" class="extype" name="colossus.protocols.http.HttpServiceHandler">HttpServiceHandler</a>, <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="../service/LoadBalancingClient.html" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a>, <a href="ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="../protocols/redis/RedisMonitorClient.html" class="extype" name="colossus.protocols.redis.RedisMonitorClient">RedisMonitorClient</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../task/Task.html" class="extype" name="colossus.task.Task">Task</a>, <a href="WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></div>
           </div></div>
         
 
@@ -191,27 +193,6 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#bind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="bind(worker:colossus.core.WorkerRef):Unit"></a>
-      <a id="bind(WorkerRef):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bind</span><span class="params">(<span name="worker">worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WorkerItem@bind(worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Attempt to bind this WorkerItem to the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
-<code>onBind()</code> is called and the item will be able to receive events and
-messages.  Notice that this method is asynchronous.
-</p></div><dl class="paramcmts block"><dt class="param">worker</dt><dd class="cmt"><p>The worker to bind to
-</p></dd></dl></div>
     </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
       <a id="binding:Option[WorkerItemBinding]"></a>
@@ -533,25 +514,6 @@ messages.  Notice that this method is asynchronous.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#unbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unbind():Unit"></a>
-      <a id="unbind():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">unbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WorkerItem@unbind():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Unbinds the WorkerItem, if it is bound.</p><div class="fullcomment"><div class="comment cmt"><p>Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
-<code>onUnbind()</code> is called.  This method is asynchronous.
-</p></div></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>

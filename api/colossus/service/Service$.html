@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/object_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1>Service</h1> <span class="permalink">
+        <h1>Service</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.Service$" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -191,7 +193,7 @@ Service.serve[Http](<span class="lit">"my-app"</span>, <span class="num">9090</s
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">become</span><span class="tparams">[<span name="T">T &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="params">(<span name="handler">handler: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Response[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.become.T">T</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.Service.become.T">T</span>]</span>)</span><span class="result">: <a href="../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
+        <span class="name">become</span><span class="tparams">[<span name="T">T &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="params">(<span name="handler">handler: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.become.T">T</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.Service.become.T">T</span>]</span>)</span><span class="result">: <a href="../core/ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service$@become[T&lt;:colossus.service.CodecDSL](name:String,port:Int,requestTimeout:scala.concurrent.duration.Duration)(handler:colossus.service.CodecDSL.PartialHandler[T])(implicitsystem:colossus.IOSystem,implicitprovider:colossus.service.CodecProvider[T]):colossus.core.ServerRef" title="Permalink" target="_top">
@@ -421,13 +423,13 @@ initialization.  Useful when starting simple services or testing
       </a>
     </span>
       <p class="shortcomment cmt">Start a service with worker and connection initialization</p><div class="fullcomment"><div class="comment cmt"><p>Start a service with worker and connection initialization</p><p>The basic structure of a service using this method is:</p><pre>Service.serve[Http]{ workerContext <span class="kw">=&gt;</span>
-<span class="cmt">//worker initialization</span>
-workerContext.handle { connectionContext <span class="kw">=&gt;</span>
-  <span class="cmt">//connection initialization</span>
-  connection.become {
-    <span class="kw">case</span> ...
+  <span class="cmt">//worker initialization</span>
+  workerContext.handle { connectionContext <span class="kw">=&gt;</span>
+    <span class="cmt">//connection initialization</span>
+    connection.become {
+      <span class="kw">case</span> ...
+    }
   }
-}
 }</pre></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>The codec to use, eg Http, Redis</p></dd><dt class="param">serverSettings</dt><dd class="cmt"><p>Settings to provide the underlying server</p></dd><dt class="param">serviceConfig</dt><dd class="cmt"><p>Config for the service</p></dd><dt class="param">handler</dt><dd class="cmt"><p>The worker initializer to use for the service</p></dd><dt>returns</dt><dd class="cmt"><p>A <span class="extype" name="ServerRef">ServerRef</span> for the server.
 </p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">

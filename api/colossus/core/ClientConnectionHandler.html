@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1>ClientConnectionHandler</h1> <span class="permalink">
+        <h1>ClientConnectionHandler</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.ClientConnectionHandler" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -54,7 +56,7 @@ connectionFailed, which is called when a connection to an external system could 
           <div class="superTypes hiddenContent"><a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="AsyncHandler.html" class="extype" name="colossus.core.AsyncHandler">AsyncHandler</a>, <a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="AutoUnbindHandler.html" class="extype" name="colossus.core.AutoUnbindHandler">AutoUnbindHandler</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="../protocols/redis/RedisMonitorClient.html" class="extype" name="colossus.protocols.redis.RedisMonitorClient">RedisMonitorClient</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></div>
+            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>, <a href="ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="../protocols/redis/RedisMonitorClient.html" class="extype" name="colossus.protocols.redis.RedisMonitorClient">RedisMonitorClient</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></div>
           </div></div>
         
 
@@ -324,27 +326,6 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#bind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="bind(worker:colossus.core.WorkerRef):Unit"></a>
-      <a id="bind(WorkerRef):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bind</span><span class="params">(<span name="worker">worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ClientConnectionHandler@bind(worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Attempt to bind this WorkerItem to the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
-<code>onBind()</code> is called and the item will be able to receive events and
-messages.  Notice that this method is asynchronous.
-</p></div><dl class="paramcmts block"><dt class="param">worker</dt><dd class="cmt"><p>The worker to bind to
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
       <a id="binding:Option[WorkerItemBinding]"></a>
@@ -418,7 +399,7 @@ messages.  Notice that this method is asynchronous.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by and error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by and error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was terminated
+      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by an error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by an error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was terminated
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
@@ -562,6 +543,24 @@ messages.  Notice that this method is asynchronous.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.ClientConnectionHandler#maxIdleTime" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="maxIdleTime:scala.concurrent.duration.Duration"></a>
+      <a id="maxIdleTime:Duration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">maxIdleTime</span><span class="result">: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ClientConnectionHandler@maxIdleTime:scala.concurrent.duration.Duration" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">If no data is either sent or received in this amount of time, the connection is closed.</p><div class="fullcomment"><div class="comment cmt"><p>If no data is either sent or received in this amount of time, the connection is closed.  Defaults to Duration.Inf but handlers can override it
+</p></div></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -684,25 +683,6 @@ messages.  Notice that this method is asynchronous.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#unbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unbind():Unit"></a>
-      <a id="unbind():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">unbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ClientConnectionHandler@unbind():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Unbinds the WorkerItem, if it is bound.</p><div class="fullcomment"><div class="comment cmt"><p>Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
-<code>onUnbind()</code> is called.  This method is asynchronous.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>

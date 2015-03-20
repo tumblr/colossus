@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1>AsyncHandlerGenerator</h1> <span class="permalink">
+        <h1>AsyncHandlerGenerator</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.AsyncHandlerGenerator" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -224,18 +226,18 @@ types
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.service.AsyncHandlerGenerator#client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="client(proxy:akka.actor.ActorRef):colossus.service.AsyncServiceClient[I,O]"></a>
-      <a id="client(ActorRef):AsyncServiceClient[I,O]"></a>
+      <a id="client(proxy:akka.actor.ActorRef,cConfig:colossus.service.ClientConfig):colossus.service.AsyncServiceClient[I,O]"></a>
+      <a id="client(ActorRef,ClientConfig):AsyncServiceClient[I,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">client</span><span class="params">(<span name="proxy">proxy: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <a href="AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</span>
+        <span class="name">client</span><span class="params">(<span name="proxy">proxy: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="cConfig">cConfig: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="result">: <a href="AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncHandlerGenerator@client(proxy:akka.actor.ActorRef):colossus.service.AsyncServiceClient[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator@client(proxy:akka.actor.ActorRef,cConfig:colossus.service.ClientConfig):colossus.service.AsyncServiceClient[I,O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -338,18 +340,18 @@ types
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.AsyncHandlerGenerator#handlerFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="handlerFactory:akka.actor.ActorRef=&gt;colossus.core.ConnectionHandler"></a>
-      <a id="handlerFactory:(ActorRef)⇒ConnectionHandler"></a>
+      <a id="handlerFactory:akka.actor.ActorRef=&gt;(colossus.core.WorkerRef=&gt;colossus.core.ConnectionHandler)"></a>
+      <a id="handlerFactory:(ActorRef)⇒(WorkerRef)⇒ConnectionHandler"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">handlerFactory</span><span class="result">: (<span class="extype" name="akka.actor.ActorRef">ActorRef</span>) ⇒ <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+        <span class="name">handlerFactory</span><span class="result">: (<span class="extype" name="akka.actor.ActorRef">ActorRef</span>) ⇒ (<a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncHandlerGenerator@handlerFactory:akka.actor.ActorRef=&gt;colossus.core.ConnectionHandler" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator@handlerFactory:akka.actor.ActorRef=&gt;(colossus.core.WorkerRef=&gt;colossus.core.ConnectionHandler)" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>

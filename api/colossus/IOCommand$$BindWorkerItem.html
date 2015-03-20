@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../lib/class_big.png" />
         <p id="owner"><a href="package.html" class="extype" name="colossus">colossus</a>.<a href="IOCommand$.html" class="extype" name="colossus.IOCommand">IOCommand</a></p>
-        <h1>BindWorkerItem</h1> <span class="permalink">
+        <h1>BindWorkerItem</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="IOCommand$.html" class="extype" name="colossus.IOCommand">package IOCommand</a>
+          </div></span></h3><span class="permalink">
       <a href="../index.html#colossus.IOCommand$$BindWorkerItem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" />
       </a>
@@ -43,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">BindWorkerItem</span><span class="params">(<span name="item">item: <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">BindWorkerItem</span><span class="params">(<span name="item">item: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -90,7 +92,7 @@ robined across workers in an IOSystem
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.IOCommand.BindWorkerItem#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(item:colossus.core.WorkerItem):colossus.IOCommand.BindWorkerItem"></a>
+      <a id="&lt;init&gt;(item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindWorkerItem"></a>
       <a id="&lt;init&gt;:BindWorkerItem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -98,10 +100,10 @@ robined across workers in an IOSystem
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BindWorkerItem</span><span class="params">(<span name="item">item: <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span>
+        <span class="name">BindWorkerItem</span><span class="params">(<span name="item">item: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOCommand$$BindWorkerItem@&lt;init&gt;(item:colossus.core.WorkerItem):colossus.IOCommand.BindWorkerItem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOCommand$$BindWorkerItem@&lt;init&gt;(item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindWorkerItem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" />
       </a>
     </span>
@@ -281,18 +283,18 @@ robined across workers in an IOSystem
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.IOCommand.BindWorkerItem#item" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="item:colossus.core.WorkerItem"></a>
-      <a id="item:WorkerItem"></a>
+      <a id="item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem"></a>
+      <a id="item:(WorkerRef)⇒WorkerItem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">item</span><span class="result">: <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
+        <span class="name">item</span><span class="result">: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOCommand$$BindWorkerItem@item:colossus.core.WorkerItem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOCommand$$BindWorkerItem@item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" />
       </a>
     </span>

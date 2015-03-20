@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1>WriteEndpoint</h1> <span class="permalink">
+        <h1>WriteEndpoint</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.WriteEndpoint" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -93,7 +95,27 @@ connection.  Services wrap this
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.core.WriteEndpoint#disconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.core.WriteEndpoint#disableReads" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="disableReads():Unit"></a>
+      <a id="disableReads():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">disableReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WriteEndpoint@disableReads():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Disable all read events to the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Disable all read events to the connection.  Once disabled, the connection
+handler will stop receiving incoming data.  This can allow handlers to
+provide backpressure to the remote host.
+</p></div></div>
+    </li><li name="colossus.core.WriteEndpoint#disconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="disconnect():Unit"></a>
       <a id="disconnect():Unit"></a>
       <h4 class="signature">
@@ -109,8 +131,27 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.WriteEndpoint#id" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Terminate the connection
+</p>
+    </li><li name="colossus.core.WriteEndpoint#enableReads" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="enableReads():Unit"></a>
+      <a id="enableReads():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">enableReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WriteEndpoint@enableReads():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Re-enable reads, if they were previously disabled
+</p>
+    </li><li name="colossus.core.WriteEndpoint#id" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="id:Long"></a>
       <a id="id:Long"></a>
       <h4 class="signature">
@@ -126,8 +167,10 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.WriteEndpoint#isWritable" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The id of the underlying connection.</p><div class="fullcomment"><div class="comment cmt"><p>The id of the underlying connection.  This is different from a
+WorkerItem's id.
+</p></div></div>
+    </li><li name="colossus.core.WriteEndpoint#isWritable" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="isWritable:Boolean"></a>
       <a id="isWritable:Boolean"></a>
       <h4 class="signature">
@@ -143,7 +186,28 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Returns true if data can be written to the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Returns true if data can be written to the connection.  This will
+generally only return false if the write buffer is full or the connection
+has been terminated.
+</p></div></div>
+    </li><li name="colossus.core.WriteEndpoint#lastTimeDataWritten" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="lastTimeDataWritten:Long"></a>
+      <a id="lastTimeDataWritten:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lastTimeDataWritten</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WriteEndpoint@lastTimeDataWritten:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a timestamp, in milliseconds of when the last time data was written on the connection
+</p>
     </li><li name="colossus.core.WriteEndpoint#status" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="status:colossus.core.ConnectionStatus"></a>
       <a id="status:ConnectionStatus"></a>
@@ -160,8 +224,8 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.WriteEndpoint#worker" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Get the current connection status.</p>
+    </li><li name="colossus.core.WriteEndpoint#worker" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="worker:akka.actor.ActorRef"></a>
       <a id="worker:ActorRef"></a>
       <h4 class="signature">
@@ -177,8 +241,9 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.WriteEndpoint#write" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Gets the worker this connection is bound to.</p><div class="fullcomment"><div class="comment cmt"><p>Gets the worker this connection is bound to.</p><p>todo: should be a WorkerRef.  Also is this even needed anymore?
+</p></div></div>
+    </li><li name="colossus.core.WriteEndpoint#write" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="write(data:colossus.core.DataBuffer):colossus.core.WriteStatus"></a>
       <a id="write(DataBuffer):WriteStatus"></a>
       <h4 class="signature">
@@ -194,7 +259,11 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Write some data to the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Write some data to the connection.  Because connections are non-blocking,
+it's possible that the underlying write buffer will fill up and not all of
+the DataBuffer will be written.  When that occurs, the endpoint will keep
+a copy of the unwritten data until the buffer empties.
+</p></div></div>
     </li></ol>
             </div>
 

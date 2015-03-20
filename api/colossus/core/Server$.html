@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/object_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1>Server</h1> <span class="permalink">
+        <h1>Server</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.Server$" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -47,11 +49,14 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and ConnectionHandlers which contain
-application logic.  Servers are the objects that are directly interface with the Workers and provide them with the
-Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers, and after a successful registration, it will
-then bind to the specified ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of these can cause actions, others
-are for when some internal event happens and the Server is notified.</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and
+ConnectionHandlers which contain application logic.  Servers are the objects
+that are directly interface with the Workers and provide them with the
+Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers,
+and after a successful registration, it will then bind to the specified
+ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of
+these can cause actions, others are for when some internal event happens and
+the Server is notified.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -110,6 +115,24 @@ are for when some internal event happens and the Server is notified.</p></div><d
       </a>
     </span>
       
+    </li><li name="colossus.core.Server.ConnectionRefused" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionRefusedextendsProductwithSerializable"></a>
+      <a id="ConnectionRefused:ConnectionRefused"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Server$$ConnectionRefused.html"><span class="name">ConnectionRefused</span></a><span class="params">(<span name="channel">channel: <span class="extype" name="java.nio.channels.SocketChannel">SocketChannel</span></span>, <span name="attempt">attempt: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.Server$@ConnectionRefusedextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Sent from a worker to the server when the server is not registered with the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Sent from a worker to the server when the server is not registered with the worker.</p><p>This generally happens when a worker has just been killed and restarted.  See Server.MaxConnectionRegisterAttempts
+</p></div></div>
     </li><li name="colossus.core.Server.DelegatorBroadcast" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DelegatorBroadcastextendsServer.ServerCommandwithProductwithSerializable"></a>
       <a id="DelegatorBroadcast:DelegatorBroadcast"></a>
@@ -123,6 +146,23 @@ are for when some internal event happens and the Server is notified.</p></div><d
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.Server$@DelegatorBroadcastextendsServer.ServerCommandwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Server.MaxConnectionRegisterException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MaxConnectionRegisterExceptionextendsException"></a>
+      <a id="MaxConnectionRegisterException:MaxConnectionRegisterException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Server$$MaxConnectionRegisterException.html"><span class="name">MaxConnectionRegisterException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.Server$@MaxConnectionRegisterExceptionextendsException" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -266,6 +306,23 @@ are for when some internal event happens and the Server is notified.</p></div><d
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.Server$@GetStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Server#MaxConnectionRegisterAttempts" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MaxConnectionRegisterAttempts:Int"></a>
+      <a id="MaxConnectionRegisterAttempts:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MaxConnectionRegisterAttempts</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.Server$@MaxConnectionRegisterAttempts:Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>

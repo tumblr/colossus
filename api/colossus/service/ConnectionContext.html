@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1>ConnectionContext</h1> <span class="permalink">
+        <h1>ConnectionContext</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.ConnectionContext" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -52,7 +54,7 @@
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../protocols/http/package$$HttpServiceHandler.html" class="extype" name="colossus.protocols.http.HttpServiceHandler">HttpServiceHandler</a></div>
           </div></div>
         
 
@@ -103,7 +105,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">become</span><span class="params">(<span name="p">p: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Response[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.ConnectionContext.C">C</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">become</span><span class="params">(<span name="p">p: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.ConnectionContext.C">C</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.ConnectionContext@become(p:colossus.service.CodecDSL.PartialHandler[C]):Unit" title="Permalink" target="_top">
@@ -128,6 +130,23 @@
       </a>
     </span>
       
+    </li><li name="colossus.service.ConnectionContext#connectionId" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="connectionId:Long"></a>
+      <a id="connectionId:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionId</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConnectionContext@connectionId:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ConnectionContext#disconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="disconnect():Unit"></a>
       <a id="disconnect():Unit"></a>
@@ -141,6 +160,57 @@
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.ConnectionContext@disconnect():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ConnectionContext#gracefulDisconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="gracefulDisconnect():Unit"></a>
+      <a id="gracefulDisconnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">gracefulDisconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConnectionContext@gracefulDisconnect():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ConnectionContext#receive" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="receive(receiver:PartialFunction[Any,Unit]):Unit"></a>
+      <a id="receive(PartialFunction[Any,Unit]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receive</span><span class="params">(<span name="receiver">receiver: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Any">Any</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConnectionContext@receive(receiver:PartialFunction[Any,Unit]):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ConnectionContext#sender" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="sender():akka.actor.ActorRef"></a>
+      <a id="sender():ActorRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sender</span><span class="params">()</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConnectionContext@sender():akka.actor.ActorRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -401,18 +471,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.service.ConnectionContext#process" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="process(f:C#Input=&gt;colossus.service.Response[C#Output]):Unit"></a>
-      <a id="process((C.Input)⇒Response[C.Output]):Unit"></a>
+      <a id="process(f:C#Input=&gt;colossus.service.Callback[C#Output]):Unit"></a>
+      <a id="process((C.Input)⇒Callback[C.Output]):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>) ⇒ <a href="Response.html" class="extype" name="colossus.service.Response">Response</a>[<span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">process</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>) ⇒ <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionContext@process(f:C#Input=&gt;colossus.service.Response[C#Output]):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConnectionContext@process(f:C#Input=&gt;colossus.service.Callback[C#Output]):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>

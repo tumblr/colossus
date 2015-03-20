@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1>WorkerRef</h1> <span class="permalink">
+        <h1>WorkerRef</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.WorkerRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -221,6 +223,26 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
       <p class="shortcomment cmt">Bind a new worker item to this worker.</p><div class="fullcomment"><div class="comment cmt"><p>Bind a new worker item to this worker.  The item should have been created
 and initialized within this worker to ensure that the worker item's
 lifecycle is single-threaded.
+</p></div></div>
+    </li><li name="colossus.core.WorkerRef#callbackExecutor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="callbackExecutor:colossus.service.CallbackExecutor"></a>
+      <a id="callbackExecutor:CallbackExecutor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">callbackExecutor</span><span class="result">: <a href="../service/CallbackExecutor.html" class="extype" name="colossus.service.CallbackExecutor">CallbackExecutor</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WorkerRef@callbackExecutor:colossus.service.CallbackExecutor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The representation of this worker as a [CallbackExecutor].</p><div class="fullcomment"><div class="comment cmt"><p>The representation of this worker as a [CallbackExecutor].  Bring this
+into scope to easily convert Futures into Callbacks.  This uses the
+default dispatcher of the worker's underlying ActorSystem.
 </p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>

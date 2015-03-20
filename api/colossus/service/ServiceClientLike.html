@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1>ServiceClientLike</h1> <span class="permalink">
+        <h1>ServiceClientLike</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.ServiceClientLike" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -43,16 +45,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceClientLike</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>]</span>
+        <span class="name">ServiceClientLike</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>], <a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></div>
+            <div class="subClasses hiddenContent"><a href="AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>, <a href="LoadBalancingClient.html" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a>, <a href="../protocols/memcache/MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>, <a href="../protocols/redis/package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>, <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></div>
           </div></div>
         
 
@@ -70,7 +72,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="colossus.service.LocalClient"><span>LocalClient</span></li><li class="in" name="colossus.service.ClientLike"><span>ClientLike</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -94,24 +96,7 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.service.ServiceClientLike#config" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="config:colossus.service.ClientConfig"></a>
-      <a id="config:ClientConfig"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">config</span><span class="result">: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClientLike@config:colossus.service.ClientConfig" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.ServiceClientLike#gracefulDisconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.service.ServiceClientLike#gracefulDisconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="gracefulDisconnect():Unit"></a>
       <a id="gracefulDisconnect():Unit"></a>
       <h4 class="signature">
@@ -128,8 +113,8 @@
       </a>
     </span>
       
-    </li><li name="colossus.service.ClientLike#send" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="send(request:I):M[O]"></a>
+    </li><li name="colossus.service.ServiceClientLike#send" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="send(request:I):colossus.service.Callback[O]"></a>
       <a id="send(I):Callback[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -140,24 +125,7 @@
         <span class="name">send</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.ServiceClientLike.I">I</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ServiceClientLike.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClientLike@send(request:I):M[O]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a></dd></dl></div>
-    </li><li name="colossus.service.ServiceClientLike#shared" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="shared:colossus.service.SharedClient[I,O]"></a>
-      <a id="shared:SharedClient[I,O]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shared</span><span class="result">: <a href="SharedClient.html" class="extype" name="colossus.service.SharedClient">SharedClient</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClientLike@shared:colossus.service.SharedClient[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceClientLike@send(request:I):colossus.service.Callback[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -529,11 +497,7 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.service.LocalClient">
-              <h3>Inherited from <a href="LocalClient.html" class="extype" name="colossus.service.LocalClient">LocalClient</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>]</h3>
-            </div><div class="parent" name="colossus.service.ClientLike">
-              <h3>Inherited from <a href="ClientLike.html" class="extype" name="colossus.service.ClientLike">ClientLike</a>[<span class="extype" name="colossus.service.ServiceClientLike.I">I</span>, <span class="extype" name="colossus.service.ServiceClientLike.O">O</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

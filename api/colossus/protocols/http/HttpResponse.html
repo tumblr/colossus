@@ -30,7 +30,11 @@
       <div id="definition">
         <a href="HttpResponse$.html" title="Go to companion"><img src="../../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.http">http</a></p>
-        <h1><a href="HttpResponse$.html" title="Go to companion">HttpResponse</a></h1> <span class="permalink">
+        <h1><a href="HttpResponse$.html" title="Go to companion">HttpResponse</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="HttpResponse$.html" title="See companion">object HttpResponse</a>
+            | <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
+          </div></span></h3><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.HttpResponse" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
@@ -43,13 +47,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpResponse</span><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>, <span name="code">code: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>, <span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="headers">headers: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)] = <span class="symbol">Nil</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">HttpResponse</span><span class="params">(<span name="head">head: <a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a></span>, <span name="body">body: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>)</span><span class="result"> extends <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -67,7 +71,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.http.HttpResponse"><span>HttpResponse</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.http.HttpResponse"><span>HttpResponse</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.protocols.http.BaseHttpResponse"><span>BaseHttpResponse</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -88,7 +92,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.http.HttpResponse#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(version:colossus.protocols.http.HttpVersion,code:colossus.protocols.http.HttpCode,data:akka.util.ByteString,headers:List[(String,String)]):colossus.protocols.http.HttpResponse"></a>
+      <a id="&lt;init&gt;(head:colossus.protocols.http.HttpResponseHead,body:Option[akka.util.ByteString]):colossus.protocols.http.HttpResponse"></a>
       <a id="&lt;init&gt;:HttpResponse"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +100,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpResponse</span><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>, <span name="code">code: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>, <span name="data">data: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="headers">headers: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)] = <span class="symbol">Nil</span></span>)</span>
+        <span class="name">HttpResponse</span><span class="params">(<span name="head">head: <a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a></span>, <span name="body">body: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@&lt;init&gt;(version:colossus.protocols.http.HttpVersion,code:colossus.protocols.http.HttpCode,data:akka.util.ByteString,headers:List[(String,String)]):colossus.protocols.http.HttpResponse" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@&lt;init&gt;(head:colossus.protocols.http.HttpResponseHead,body:Option[akka.util.ByteString]):colossus.protocols.http.HttpResponse" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -107,7 +111,27 @@
     </li></ol>
             </div>
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.protocols.http.HttpResponse.Encoded" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Encoded=colossus.core.DataBuffer"></a>
+      <a id="Encoded:Encoded"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Encoded</span><span class="result"> = <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@Encoded=colossus.core.DataBuffer" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> → <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a></dd></dl></div>
+    </li></ol>
+            </div>
 
         
 
@@ -181,19 +205,19 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponse#bytes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bytes:colossus.core.DataBuffer"></a>
-      <a id="bytes:DataBuffer"></a>
+    </li><li name="colossus.protocols.http.HttpResponse#body" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="body:Option[akka.util.ByteString]"></a>
+      <a id="body:Option[ByteString]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">bytes</span><span class="result">: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
+        <span class="name">body</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@bytes:colossus.core.DataBuffer" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@body:Option[akka.util.ByteString]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -221,40 +245,23 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponse#code" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="code:colossus.protocols.http.HttpCode"></a>
-      <a id="code:HttpCode"></a>
+    </li><li name="colossus.protocols.http.HttpResponse#encode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="encode():colossus.core.DataBuffer"></a>
+      <a id="encode():DataBuffer"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">code</span><span class="result">: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>
+        <span class="name">encode</span><span class="params">()</span><span class="result">: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@code:colossus.protocols.http.HttpCode" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@encode():colossus.core.DataBuffer" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.protocols.http.HttpResponse#data" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="data:akka.util.ByteString"></a>
-      <a id="data:ByteString"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">data</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@data:akka.util.ByteString" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> → <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -272,23 +279,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponse#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(other:Any):Boolean"></a>
-      <a id="equals(Any):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@equals(other:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> → Equals → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -329,23 +319,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponse#headers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="headers:List[(String,String)]"></a>
-      <a id="headers:List[(String,String)]"></a>
+    </li><li name="colossus.protocols.http.HttpResponse#head" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="head:colossus.protocols.http.HttpResponseHead"></a>
+      <a id="head:HttpResponseHead"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">headers</span><span class="result">: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+        <span class="name">head</span><span class="result">: <a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@headers:List[(String,String)]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@head:colossus.protocols.http.HttpResponseHead" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> → <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -414,6 +404,28 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpResponse#resolveBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resolveBody():Option[colossus.service.Callback[akka.util.ByteString]]"></a>
+      <a id="resolveBody():Option[Callback[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resolveBody</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponse@resolveBody():Option[colossus.service.Callback[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Resolves the body into a bytestring.</p><div class="fullcomment"><div class="comment cmt"><p>Resolves the body into a bytestring.  This operation completes immediately
+for static responses.  For streaming responses, this only completes when
+all data has been received.  Be aware if the response is an infinite
+stream of data (using chunked transfer encoding), this will never
+complete.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> → <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -431,23 +443,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponse#version" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="version:colossus.protocols.http.HttpVersion"></a>
-      <a id="version:HttpVersion"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">version</span><span class="result">: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponse@version:colossus.protocols.http.HttpVersion" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -551,6 +546,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="colossus.protocols.http.BaseHttpResponse">
+              <h3>Inherited from <a href="BaseHttpResponse.html" class="extype" name="colossus.protocols.http.BaseHttpResponse">BaseHttpResponse</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">

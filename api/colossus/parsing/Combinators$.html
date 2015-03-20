@@ -30,7 +30,9 @@
       <div id="definition">
         <img src="../../lib/object_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.parsing">parsing</a></p>
-        <h1>Combinators</h1> <span class="permalink">
+        <h1>Combinators</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.parsing">package parsing</a>
+          </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.parsing.Combinators$" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
@@ -281,6 +283,24 @@ parser.parse(DataBuffer(ByteString(<span class="lit">"defgh"</span>))) <span cla
 possible partial terminus in the data.  The terminus is NOT included in
 the returned value
 </p></div></div>
+    </li><li name="colossus.parsing.Combinators#bytesUntilEOS" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bytesUntilEOS:colossus.parsing.Combinators.Parser[akka.util.ByteString]"></a>
+      <a id="bytesUntilEOS:Parser[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bytesUntilEOS</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@bytesUntilEOS:colossus.parsing.Combinators.Parser[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Read in an unknown number of bytes, ended only when endOfStream is called</p><div class="fullcomment"><div class="comment cmt"><p>Read in an unknown number of bytes, ended only when endOfStream is called</p><p>be aware this parser has no max size and will read in data forever if endOfStream is never called
+</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -432,19 +452,36 @@ any data.  Useful when flatMapping parsers
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.parsing.Combinators#intUntil" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="intUntil(terminus:Byte):colossus.parsing.Combinators.Parser[Long]"></a>
-      <a id="intUntil(Byte):Parser[Long]"></a>
+    </li><li name="colossus.parsing.Combinators#int" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="int:colossus.parsing.Combinators.Parser[Int]"></a>
+      <a id="int:Parser[Int]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">intUntil</span><span class="params">(<span name="terminus">terminus: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Long">Long</span>]</span>
+        <span class="name">int</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Int">Int</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.Combinators$@intUntil(terminus:Byte):colossus.parsing.Combinators.Parser[Long]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.parsing.Combinators$@int:colossus.parsing.Combinators.Parser[Int]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators#intUntil" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="intUntil(terminus:Byte,base:Int):colossus.parsing.Combinators.Parser[Long]"></a>
+      <a id="intUntil(Byte,Int):Parser[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">intUntil</span><span class="params">(<span name="terminus">terminus: <span class="extype" name="scala.Byte">Byte</span></span>, <span name="base">base: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">10</span></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@intUntil(terminus:Byte,base:Int):colossus.parsing.Combinators.Parser[Long]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -481,6 +518,23 @@ terminus is encountered
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.parsing.Combinators$@literal(lit:akka.util.ByteString):colossus.parsing.Combinators.Parser[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators#long" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="long:colossus.parsing.Combinators.Parser[Long]"></a>
+      <a id="long:Parser[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">long</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@long:colossus.parsing.Combinators.Parser[Long]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -600,18 +654,18 @@ have to do it yourself, something like </p><pre>intUntil(<span class="lit">':'</
 }}}</p></div><dl class="paramcmts block"><dt class="param">times</dt><dd class="cmt"><p>parser for the number of times to repeat the pattern</p></dd><dt class="param">parser</dt><dd class="cmt"><p>the parser that will parse a single instance of the pattern</p></dd><dt>returns</dt><dd class="cmt"><p>the parsed sequence
 </p></dd></dl></div>
     </li><li name="colossus.parsing.Combinators#repeatUntil" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="repeatUntil[T](parser:colossus.parsing.Combinators.Parser[T],terminus:Byte):colossus.parsing.Combinators.Parser[List[T]]"></a>
-      <a id="repeatUntil[T](Parser[T],Byte):Parser[List[T]]"></a>
+      <a id="repeatUntil[T](parser:colossus.parsing.Combinators.Parser[T],terminus:Byte):colossus.parsing.Combinators.Parser[Vector[T]]"></a>
+      <a id="repeatUntil[T](Parser[T],Byte):Parser[Vector[T]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">repeatUntil</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="parser">parser: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.repeatUntil.T">T</span>]</span>, <span name="terminus">terminus: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="colossus.parsing.Combinators.repeatUntil.T">T</span>]]</span>
+        <span class="name">repeatUntil</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="parser">parser: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.repeatUntil.T">T</span>]</span>, <span name="terminus">terminus: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="colossus.parsing.Combinators.repeatUntil.T">T</span>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.Combinators$@repeatUntil[T](parser:colossus.parsing.Combinators.Parser[T],terminus:Byte):colossus.parsing.Combinators.Parser[List[T]]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.parsing.Combinators$@repeatUntil[T](parser:colossus.parsing.Combinators.Parser[T],terminus:Byte):colossus.parsing.Combinators.Parser[Vector[T]]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -622,6 +676,41 @@ parser returns a result.</p><p>Notice that the terminal byte is consumed, so if 
 parser.parse(DataBuffer(ByteString(<span class="lit">"aabbcc:ddee"</span>)))</pre><p>the bytes remaining in the buffer after parsing are just <code>ddee</code>.
 </p></div><dl class="paramcmts block"><dt class="param">parser</dt><dd class="cmt"><p>the parser repeat</p></dd><dt class="param">terminus</dt><dd class="cmt"><p>the byte to singal to stop repeating</p></dd><dt>returns</dt><dd class="cmt"><p>the parsed sequence
 </p></dd></dl></div>
+    </li><li name="colossus.parsing.Combinators#short" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="short:colossus.parsing.Combinators.Parser[Short]"></a>
+      <a id="short:Parser[Short]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">short</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Short">Short</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@short:colossus.parsing.Combinators.Parser[Short]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators#skip" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="skip[T](n:Int):colossus.parsing.Combinators.Parser[Unit]"></a>
+      <a id="skip[T](Int):Parser[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">skip</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="n">n: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@skip[T](n:Int):colossus.parsing.Combinators.Parser[Unit]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">creates a parser that will skip over n bytes.</p><div class="fullcomment"><div class="comment cmt"><p>creates a parser that will skip over n bytes.  You generally only want to do this inside a peek parser
+</p></div></div>
     </li><li name="colossus.parsing.Combinators#stringUntil" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stringUntil(terminus:Byte,toLower:Boolean,minSize:Option[Int],allowWhiteSpace:Boolean,ltrim:Boolean):colossus.parsing.Combinators.Parser[String]"></a>
       <a id="stringUntil(Byte,Boolean,Option[Int],Boolean,Boolean):Parser[String]"></a>
