@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Servers</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/server/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Servers</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <h2 id="introduction">Introduction</h2>
+
+<p>A server is one of the primary components of Colossus.  A server listens for
+TCP connections on a single port and distributes them across all the workers in
+an IOSystem.</p>
+
+<p>A Server consists of 3 parts, two of which are user-defined:</p>
+
+<ol>
+  <li>
+    <p>Server actor.  This actor runs its own event loop and handles the process
+of opening a socket and listening for incoming connections.  Server actors are all identical.</p>
+  </li>
+  <li>
+    <p>Connection Handler.  For every newly accepted connection, a connection handler is atteched that handles all interactions with the connection.  Connection Handlers are what contain the low-level business logic for the server.</p>
+  </li>
+  <li>
+    <p>Delegator.  This is a simple class that is in charge of creating new ConnectionHandler’s for each new connection.  Delegators live inside workers and run as part of the worker’s event loop</p>
+  </li>
+</ol>
+
+<h2 id="creating-a-server">Creating a Server</h2>
+
+<p>In most cases, you will generally not be creating servers from scratch, but rather using the <a href="http://tumblr.github.io/colossus/docs/serviceserver">services</a> abstraction layer.</p>
+
+<h3 id="starting-a-server">Starting a Server</h3>
+
+<p>In order to spin up a new server, it must be attached to an IO System.  This can be done by using the <code>Server</code> object:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">io_system</span> <span class="k">=</span> <span class="c1">//...
+</span>
+<span class="k">val</span> <span class="n">serverConfig</span> <span class="k">=</span> <span class="nc">ServerConfig</span><span class="o">(</span>
+  <span class="n">name</span> <span class="k">=</span> <span class="s">"my-first-server"</span><span class="o">,</span>
+  <span class="n">timeoutConfig</span> <span class="k">=</span> <span class="nc">TimeoutConfig</span><span class="o">.</span><span class="nc">Default</span><span class="o">.</span><span class="n">copy</span><span class="o">(</span><span class="n">maxConnections</span> <span class="k">=</span> <span class="mi">1000</span><span class="o">),</span>
+  <span class="n">port</span> <span class="k">=</span> <span class="mi">2345</span><span class="o">,</span>
+  <span class="n">delegatorFactory</span> <span class="k">=</span> <span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">MyFirstDelegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span>
+<span class="o">)</span>
+<span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="nc">Server</span><span class="o">(</span><span class="n">serverConfig</span><span class="o">)</span></code></pre></div>
+
+<p>To attach a server to an IO System, you must give it a <code>DelegatorFactory</code>,
+which is literally just a lambda that returns new instances of your delegator.
+When a server is first attached to an IO System, it registers itself with the
+system, and part of this process involves sending that lambda to every worker
+in the system.  The workers will then use it to create a new instance of your
+delegator.  From that point on, any time your server accepts a new connection,
+the connection is forwarded to a worker, which then uses its delegator to
+create a <code>ConnectionHandler</code> for the connection.</p>
+
+<h3 id="delegators">Delegators</h3>
+
+<p>Delegators serve the purpose of providing <code>ConnectionHandler</code>s for incoming
+connections.  These are long-lived objects that are created once by every
+worker in an IO System.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">Delegator</span><span class="o">(</span><span class="n">server</span><span class="k">:</span> <span class="kt">ServerRef</span><span class="o">,</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">acceptNewConnection</span><span class="k">:</span> <span class="kt">Option</span><span class="o">[</span><span class="kt">ConnectionHandler</span><span class="o">]</span>
+<span class="o">}</span></code></pre></div>
+
+<p>an example of a basic delegator simply just creates a new <code>ConnectionHandler</code></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">MyFirstDelegator</span><span class="o">(</span><span class="n">server</span><span class="k">:</span> <span class="kt">ServerRef</span><span class="o">,</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> 
+  <span class="k">extends</span> <span class="nc">Delegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">acceptNewConnection</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">MyFirstConnectionHandler</span><span class="o">)</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Generally, for more complex system, delegators are where you can initialize
+clients to external systems, setup metrics, or perform other actions that are
+common to all handlers on a worker.</p>
+
+<p><strong>IMPORTANT</strong> : Remember that one delegator is created <em>for every worker</em> in an
+IOSystem, so any shared resource you create inside a delegator is only shared
+by the connections attached to that worker.  If you need a globally shared
+resource like an <code>ActorRef</code>, it should be passed to your delegator as a
+constructor parameter, eg:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">someActor</span> <span class="k">=</span> <span class="n">system</span><span class="o">.</span><span class="n">actorOf</span><span class="o">(</span><span class="c1">//...
+</span>
+<span class="k">val</span> <span class="n">delegator_factory</span> <span class="k">=</span> 
+  <span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">SoemDelegator</span><span class="o">(</span><span class="n">someActor</span><span class="o">,</span> <span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span></code></pre></div>
+
+<h3 id="connection-handler">Connection Handler</h3>
+
+<p>The <code>ConnectionHandler</code> is where most of your server’s user-code will live.  A
+<code>ConnectionHandler</code> is created for every new connection and is attached to the
+connection for as long as it’s open.  The <code>ConnectionHandler</code> trait has a bunch
+of methods that are called when various events occur on its attached
+connection:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">trait</span> <span class="nc">ConnectionHandler</span> <span class="k">extends</span> <span class="nc">WorkerItem</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">receivedData</span><span class="o">(</span><span class="n">data</span><span class="k">:</span> <span class="kt">DataBuffer</span><span class="o">)</span>
+  <span class="k">def</span> <span class="n">connectionClosed</span><span class="o">()</span> 
+  <span class="k">def</span> <span class="n">connectionLost</span><span class="o">()</span> 
+  <span class="k">def</span> <span class="n">readyForData</span><span class="o">()</span>
+  <span class="k">def</span> <span class="n">connected</span><span class="o">(</span><span class="n">endpoint</span><span class="k">:</span> <span class="kt">WriteEndpoint</span><span class="o">)</span>
+<span class="o">}</span></code></pre></div>
+
+<p><em>NOTE: When building services, you will not be implementing this trait, but
+instead the considerably simpler <code>ServiceServer</code> sub-trait.  See the section on
+building <a href="http://tumblr.github.io/colossus/docs/serviceserver">services</a> for more information.</em></p>
+
+<h2 id="a-few-words-on-thread-safety">A Few Words on Thread Safety</h2>
+
+<p>It’s important to understand where code is executed in order to understand what must be done to ensure thread-safety.</p>
+
+<p>Since a worker is just an actor, many of the conventions around actors also
+apply to delegators and connection handlers.  In general, all code inside
+delegators and connection handlers is run inside the worker and is therefore
+thread-safe, but <em>mutable state must not be shared across workers</em>.  This means
+that connections can share safely share state with their creating delegator,
+and connections created by the same delegator can share state, but two
+delegators should <em>not</em> share mutable state, nor should all connections for a
+single server.</p>
+
+<p><strong>OK</strong></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">FooDelegator</span><span class="o">(</span><span class="n">server</span><span class="k">:</span> <span class="kt">ServerRef</span><span class="o">,</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> 
+  <span class="k">extends</span> <span class="nc">Delegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">val</span> <span class="n">stuff</span> <span class="k">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">mutable</span><span class="o">.</span><span class="nc">Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">]()</span>
+
+  <span class="k">def</span> <span class="n">acceptNewConnection</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">FooHandler</span><span class="o">(</span><span class="n">stuff</span><span class="o">))</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This is ok because the mutable <code>Map</code> is local to the delegator, and it is ok
+for all connections created by the delegator to share it.  <strong>But</strong>, you should
+be aware that in an IO System with 10 workers, there will be 10 separate
+<code>Map</code>s, one created by each instantiated delegator.</p>
+
+<p><strong>NOT OK</strong></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">FooDelegator</span><span class="o">(</span><span class="n">stuff</span><span class="k">:</span> <span class="kt">mutable.Map</span><span class="o">[</span><span class="kt">String</span>, <span class="kt">String</span><span class="o">],</span> <span class="n">server</span><span class="k">:</span> <span class="kt">ServerRef</span><span class="o">,</span> <span class="n">worker</span><span class="k">:</span> <span class="kt">WorkerRef</span><span class="o">)</span> 
+  <span class="k">extends</span> <span class="nc">Delegator</span><span class="o">(</span><span class="n">server</span><span class="o">,</span> <span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">acceptNewConnection</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="k">new</span> <span class="nc">FooHandler</span><span class="o">(</span><span class="n">stuff</span><span class="o">))</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This code is not thread-safe because all the created delegators will be using
+the same mutable map, which is not thread-safe.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#creating-a-server">Creating a Server</a></li><li><a href="#a-few-words-on-thread-safety">A Few Words on Thread Safety</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

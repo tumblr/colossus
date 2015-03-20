@@ -1,0 +1,959 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>core - colossus.core</title>
+          <meta name="description" content="core - colossus.core" />
+          <meta name="keywords" content="core colossus.core" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.core.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>core</h1><span class="permalink">
+      <a href="../../index.html#colossus.core.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">core</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.core.BasicSyncHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="BasicSyncHandlerextendsConnectionHandler"></a>
+      <a id="BasicSyncHandler:BasicSyncHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicSyncHandler.html"><span class="name">BasicSyncHandler</span></a><span class="result"> extends <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@BasicSyncHandlerextendsConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Convenience implementation of ConnectionHandler which provides implementations for all of
+the necessary functions.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience implementation of ConnectionHandler which provides implementations for all of
+the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
+for the functions they require.
+</p></div></div>
+    </li><li name="colossus.core.ClientConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ClientConnectionHandlerextendsConnectionHandler"></a>
+      <a id="ClientConnectionHandler:ClientConnectionHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientConnectionHandler.html"><span class="name">ClientConnectionHandler</span></a><span class="result"> extends <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ClientConnectionHandlerextendsConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">ClientConnectionHandler is a trait meant to be used with outgoing connections.</p><div class="fullcomment"><div class="comment cmt"><p>ClientConnectionHandler is a trait meant to be used with outgoing connections.  It provides a call back function
+connectionFailed, which is called when a connection to an external system could not be established.
+</p></div></div>
+    </li><li name="colossus.core.ConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionHandlerextendsWorkerItem"></a>
+      <a id="ConnectionHandler:ConnectionHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionHandler.html"><span class="name">ConnectionHandler</span></a><span class="result"> extends <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionHandlerextendsWorkerItem" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is the base trait for all connection handlers.</p><div class="fullcomment"><div class="comment cmt"><p>This is the base trait for all connection handlers.  When attached to a
+connection by a Delegator, these methods will be called in the worker's
+thread.</p><p>A ConnectionHandler is what directly interfaces with a Connection and is the reactor for all of the Connection events
+that a Worker captures in its SelectLoop.
+</p></div></div>
+    </li><li name="colossus.core.ConnectionInfo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionInfoextendsProductwithSerializable"></a>
+      <a id="ConnectionInfo:ConnectionInfo"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionInfo.html"><span class="name">ConnectionInfo</span></a><span class="params">(<span name="domain">domain: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="host">host: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timeOpen">timeOpen: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="readIdle">readIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="writeIdle">writeIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesSent">bytesSent: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesReceived">bytesReceived: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionInfoextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This class is used to report some basic stats about a Connection.</p><div class="fullcomment"><div class="comment cmt"><p>This class is used to report some basic stats about a Connection.  This is used in conjunction
+with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>The domain of this Connection</p></dd><dt class="param">host</dt><dd class="cmt"><p>The host of this Connection</p></dd><dt class="param">port</dt><dd class="cmt"><p>The port of this Connection</p></dd><dt class="param">id</dt><dd class="cmt"><p>The id of this Connection</p></dd><dt class="param">timeOpen</dt><dd class="cmt"><p>The amount of time this Connection has been open</p></dd><dt class="param">readIdle</dt><dd class="cmt"><p>milliseconds since the last read activity on the connection</p></dd><dt class="param">writeIdle</dt><dd class="cmt"><p>milliseconds since the last write activity on the connection</p></dd><dt class="param">bytesSent</dt><dd class="cmt"><p>The amount of bytes that this Connection has sent</p></dd><dt class="param">bytesReceived</dt><dd class="cmt"><p>The amount of bytes that this Connection has received
+</p></dd></dl></div>
+    </li><li name="colossus.core.ConnectionStatus" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionStatusextendsAnyRef"></a>
+      <a id="ConnectionStatus:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionStatus.html"><span class="name">ConnectionStatus</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionStatusextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represent the connection state.</p><div class="fullcomment"><div class="comment cmt"><p>Represent the connection state.  NotConnected, Connected or Connecting.
+</p></div></div>
+    </li><li name="colossus.core.ConnectionVolumeState" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionVolumeStateextendsAnyRef"></a>
+      <a id="ConnectionVolumeState:ConnectionVolumeState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionVolumeState.html"><span class="name">ConnectionVolumeState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionVolumeStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">ConnectionVolumeState indicates whether or not if the Server is operating
+with a normal workload, which is represented by the current ratio of used /
+available connections being beneath the
+ServerSettings.highWatermarkPercentage amount.</p><div class="fullcomment"><div class="comment cmt"><p>ConnectionVolumeState indicates whether or not if the Server is operating
+with a normal workload, which is represented by the current ratio of used /
+available connections being beneath the
+ServerSettings.highWatermarkPercentage amount.  Once this ratio is breached,
+the state will be changed to the HighWater state.</p><p>In this state, the server will more aggressively timeout and close idle
+connections.  Effectively what this means is that when the Server polls its
+connections in the Highwater state, any connection that is seen as idle for
+longer than ServerSettings.highWaterMaxIdleTime will be reaped.  It does this
+in an effort to free up space.</p><p>The Server will return back to its normal state when the connection ratio
+recedes past the lowWater mark.
+</p></div></div>
+    </li><li name="colossus.core.DataBuffer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DataBufferextendsDataReaderwithProductwithSerializable"></a>
+      <a id="DataBuffer:DataBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataBuffer.html"><span class="name">DataBuffer</span></a><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result"> extends <a href="DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataBufferextendsDataReaderwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A thin wrapper around a NIO ByteBuffer with data to read</p><div class="fullcomment"><div class="comment cmt"><p>A thin wrapper around a NIO ByteBuffer with data to read</p><p>DataBuffers are the primary way that data is read from and written to a
+connection.  DataBuffers are mutable and not thread safe.  They can only be
+read from once and cannot be reset.</p></div></div>
+    </li><li name="colossus.core.DataReader" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DataReaderextendsAnyRef"></a>
+      <a id="DataReader:DataReader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DataReader.html"><span class="name">DataReader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataReaderextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A DataReader is the result of codec's encode operation.</p><div class="fullcomment"><div class="comment cmt"><p>A DataReader is the result of codec's encode operation.  It can either
+return a DataBuffer, which contains the entire encoded object at once, or it
+can return a DataStream, which has a Sink for streaming the encoded object.
+</p></div></div>
+    </li><li name="colossus.core.DataStream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataStreamextendsDataReaderwithProductwithSerializable"></a>
+      <a id="DataStream:DataStream"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataStream.html"><span class="name">DataStream</span></a><span class="params">(<span name="source">source: <a href="../controller/Source.html" class="extype" name="colossus.controller.Source">Source</a>[<a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a>]</span>)</span><span class="result"> extends <a href="DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataStreamextendsDataReaderwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Delegator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DelegatorextendsAnyRef"></a>
+      <a id="Delegator:Delegator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Delegator.html"><span class="name">Delegator</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DelegatorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Delegator is in charge of creating new ConnectionHandler’s for each new connection.</p><div class="fullcomment"><div class="comment cmt"><p>A Delegator is in charge of creating new ConnectionHandler’s for each new connection.
+Delegators live inside workers and run as part of the worker’s event loop</p><p>Delegators are the liaison between the outside world and your application's connection handling logic.</p><p>They can hold state, and pass that state to newly created ConnectionHandlers.</p><p>They can receive messages from the outside world, and thus be notified of changes in their environment by way of the handleMessage.</p><p>This is triggered by utilizing the ServerRef's delegatorBroadcast function.
+</p></div></div>
+    </li><li name="colossus.core.DelegatorCommand" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DelegatorCommandextendsAnyRef"></a>
+      <a id="DelegatorCommand:DelegatorCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DelegatorCommand.html"><span class="name">DelegatorCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DelegatorCommandextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Currently unused; but will eventually be for async delegators, if we decide to allow them
+</p>
+    </li><li name="colossus.core.DisconnectCause" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DisconnectCauseextendsRootDisconnectCause"></a>
+      <a id="DisconnectCause:DisconnectCause"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DisconnectCause.html"><span class="name">DisconnectCause</span></a><span class="result"> extends <span class="extype" name="colossus.core.RootDisconnectCause">RootDisconnectCause</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DisconnectCauseextendsRootDisconnectCause" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Messages representing why a disconnect occurred.</p><div class="fullcomment"><div class="comment cmt"><p>Messages representing why a disconnect occurred.  These can be either normal disconnects
+or error cases
+</p></div></div>
+    </li><li name="colossus.core.DisconnectError" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DisconnectErrorextendsDisconnectCause"></a>
+      <a id="DisconnectError:DisconnectError"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DisconnectError.html"><span class="name">DisconnectError</span></a><span class="result"> extends <a href="DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DisconnectErrorextendsDisconnectCause" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Subset of DisconnectCause which represent errors which resulted in a disconnect.</p>
+    </li><li name="colossus.core.KeyInterestManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="KeyInterestManagerextendsAnyRef"></a>
+      <a id="KeyInterestManager:KeyInterestManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="KeyInterestManager.html"><span class="name">KeyInterestManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@KeyInterestManagerextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ManualUnbindHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ManualUnbindHandlerextendsClientConnectionHandler"></a>
+      <a id="ManualUnbindHandler:ManualUnbindHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ManualUnbindHandler.html"><span class="name">ManualUnbindHandler</span></a><span class="result"> extends <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ManualUnbindHandlerextendsClientConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Simple mixin trait that will cause the worker to not automatically unbind
+this handler if the connection it's attached to is closed.</p><div class="fullcomment"><div class="comment cmt"><p>A Simple mixin trait that will cause the worker to not automatically unbind
+this handler if the connection it's attached to is closed.  This mixin is
+required if a connection handler wants to handle retry logic, since this
+trait will allow it to continue to receive messages during the reconnection
+process and bind to another connection
+</p></div></div>
+    </li><li name="colossus.core.PollingDuration" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PollingDurationextendsProductwithSerializable"></a>
+      <a id="PollingDuration:PollingDuration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="PollingDuration.html"><span class="name">PollingDuration</span></a><span class="params">(<span name="interval">interval: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>, <span name="maximumTries">maximumTries: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@PollingDurationextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Simple class which contains parameters for configuring a polling operation</p><div class="fullcomment"><div class="comment cmt"><p>Simple class which contains parameters for configuring a polling operation</p></div><dl class="paramcmts block"><dt class="param">interval</dt><dd class="cmt"><p>The interval of the poll</p></dd><dt class="param">maximumTries</dt><dd class="cmt"><p>The number of times to execute the poll
+</p></dd></dl></div>
+    </li><li name="colossus.core.ServerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServerConfigextendsProductwithSerializable"></a>
+      <a id="ServerConfig:ServerConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerConfig.html"><span class="name">ServerConfig</span></a><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="delegatorFactory">delegatorFactory: <a href="Delegator$.html#Factory=(colossus.core.ServerRef,colossus.core.WorkerRef)=&gt;colossus.core.Delegator" class="extmbr" name="colossus.core.Delegator.Factory">Factory</a></span>, <span name="settings">settings: <a href="ServerSettings.html" class="extype" name="colossus.core.ServerSettings">ServerSettings</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration used to specify a Server's application-level behavior</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Server's application-level behavior</p><p> As opposed to ServerSettings which contains just lower-level config,
+ ServiceConfig contains higher-level settings.  Ideally, abstraction layers
+ on top of the core layer should provide an API that allows users to create
+ a specialized server, where the delegator factory is provided by the API
+ and the name and settings by the user.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the Server, all reported metrics are prefixed using this name</p></dd><dt class="param">delegatorFactory</dt><dd class="cmt"><p>Factory to generate <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s for each Worker</p></dd><dt class="param">settings</dt><dd class="cmt"><p>lower-level server configuration settings
+</p></dd></dl></div>
+    </li><li name="colossus.core.ServerRef" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServerRefextendsProductwithSerializable"></a>
+      <a id="ServerRef:ServerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerRef.html"><span class="name">ServerRef</span></a><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverStateAgent">serverStateAgent: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerRefextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A ServerRef is the public interface of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
+an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverStateAgent</dt><dd class="cmt"><p>The current state of the Server.
+</p></dd></dl></div>
+    </li><li name="colossus.core.ServerSettings" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServerSettingsextendsProductwithSerializable"></a>
+      <a id="ServerSettings:ServerSettings"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSettings.html"><span class="name">ServerSettings</span></a><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerSettingsextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Contains values for configuring how a Server operates</p><div class="fullcomment"><div class="comment cmt"><p>Contains values for configuring how a Server operates</p><p>These are all lower-level configuration settings that are for the most part
+not concerned with a server's application behavior</p><p>The low/high watermark percentages are used to help mitigate connection
+overload.  When a server hits the high watermark percentage of live
+connections, it will change the idle timeout from <code>maxIdleTime</code> to
+<code>highWaterMaxIdleTime</code> in an attempt to more aggressively close idle
+connections.  This will continue until the percentage drops below
+<code>lowWatermarkPercentage</code>.  This can be totally disabled by just setting both
+watermarks to 1.
+</p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingAttemptDuration</dt><dd class="cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
+                              <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
+                              cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
+                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
+                                 <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
+                                 after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
+                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s
+</span></p></dd></dl></div>
+    </li><li name="colossus.core.ServerState" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServerStateextendsProductwithSerializable"></a>
+      <a id="ServerState:ServerState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerState.html"><span class="name">ServerState</span></a><span class="params">(<span name="connectionVolumeState">connectionVolumeState: <a href="ConnectionVolumeState.html" class="extype" name="colossus.core.ConnectionVolumeState">ConnectionVolumeState</a></span>, <span name="serverStatus">serverStatus: <a href="ServerStatus.html" class="extype" name="colossus.core.ServerStatus">ServerStatus</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerStateextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents the current state of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the current state of a Server.
+</p></div><dl class="paramcmts block"><dt class="param">connectionVolumeState</dt><dd class="cmt"><p>Represents if the a Server's connections are normal or in highwater</p></dd><dt class="param">serverStatus</dt><dd class="cmt"><p>Represents the Server's current status
+</p></dd></dl></div>
+    </li><li name="colossus.core.ServerStatus" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ServerStatusextendsAnyRef"></a>
+      <a id="ServerStatus:ServerStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerStatus.html"><span class="name">ServerStatus</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerStatusextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents the startup status of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the startup status of the server.
+- <code>Initializing</code> : The server was just started and is registering with the IOSystem
+- <code>Binding</code> : The server is registered and in the process of binding to its port
+- <code>Bound</code> : The server is actively listening on the port and accepting connections
+</p></div></div>
+    </li><li name="colossus.core.WatchedHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="WatchedHandlerextendsConnectionHandler"></a>
+      <a id="WatchedHandler:WatchedHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WatchedHandler.html"><span class="name">WatchedHandler</span></a><span class="result"> extends <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WatchedHandlerextendsConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Watched handler allows an actor to be tied to a connection.</p><div class="fullcomment"><div class="comment cmt"><p>A Watched handler allows an actor to be tied to a connection.  The worker
+will watch the actor, and on termination will shutdown the connection
+associated with the actor
+</p></div></div>
+    </li><li name="colossus.core.WorkerCommand" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="WorkerCommandextendsAnyRef"></a>
+      <a id="WorkerCommand:WorkerCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerCommand.html"><span class="name">WorkerCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerCommandextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">These are a different class of Commands to which a worker will respond.</p><div class="fullcomment"><div class="comment cmt"><p>These are a different class of Commands to which a worker will respond.  These
+are more relevant to the lifecycle of WorkerItems
+</p></div></div>
+    </li><li name="colossus.core.WorkerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WorkerConfigextendsProductwithSerializable"></a>
+      <a id="WorkerConfig:WorkerConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerConfig.html"><span class="name">WorkerConfig</span></a><span class="params">(<span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="workerId">workerId: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Contains the configuration for each Worker.</p><div class="fullcomment"><div class="comment cmt"><p>Contains the configuration for each Worker. Created when Workers are spawned by the WorkerManager.
+Notice - currently the worker config cannot contain the MetricSystem,
+because workers are created as a part of creating the MetricSystem
+</p></div><dl class="paramcmts block"><dt class="param">io</dt><dd class="cmt"><p>The IOSystem to which this Worker belongs</p></dd><dt class="param">workerId</dt><dd class="cmt"><p>This Worker's unique id amongst its peers.
+</p></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="WorkerItemextendsAnyRef"></a>
+      <a id="WorkerItem:WorkerItem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItem.html"><span class="name">WorkerItem</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A WorkerItem is anything that can be bound to worker to receive both events
+and external messages.</p><div class="fullcomment"><div class="comment cmt"><p>A WorkerItem is anything that can be bound to worker to receive both events
+and external messages.  WorkerItems are expected to be single-threaded and
+non-blocking.  Once a WorkerItem is bound to a worker, all of its methods
+are executed in the event-loop thread of the bound worker.
+</p></div></div>
+    </li><li name="colossus.core.WorkerItemBinding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WorkerItemBindingextendsProductwithSerializable"></a>
+      <a id="WorkerItemBinding:WorkerItemBinding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItemBinding.html"><span class="name">WorkerItemBinding</span></a><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="worker">worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemBindingextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents the binding of an item to a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Represents the binding of an item to a worker
+</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>the id used to reference the worker item</p></dd><dt class="param">worker</dt><dd class="cmt"><p>the worker the item is bound to
+</p></dd></dl></div>
+    </li><li name="colossus.core.WorkerItemException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WorkerItemExceptionextendsException"></a>
+      <a id="WorkerItemException:WorkerItemException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItemException.html"><span class="name">WorkerItemException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.WorkerItemManager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WorkerItemManagerextendsAnyRef"></a>
+      <a id="WorkerItemManager:WorkerItemManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItemManager.html"><span class="name">WorkerItemManager</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemManagerextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This keeps track of all the bound worker items, and properly handles added/removing them
+</p>
+    </li><li name="colossus.core.WorkerRef" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WorkerRefextendsProductwithSerializable"></a>
+      <a id="WorkerRef:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerRef.html"><span class="name">WorkerRef</span></a><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerRefextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is a Worker's public interface.</p><div class="fullcomment"><div class="comment cmt"><p>This is a Worker's public interface.  This is what can be used to communicate with a Worker, as it
+wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The Worker's id.</p></dd><dt class="param">metrics</dt><dd class="cmt"><p>The Metrics associated with this Worker</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The ActorRef of the Worker</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Worker belongs
+</p></dd></dl></div>
+    </li><li name="colossus.core.WriteEndpoint" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="WriteEndpointextendsAnyRef"></a>
+      <a id="WriteEndpoint:WriteEndpoint"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WriteEndpoint.html"><span class="name">WriteEndpoint</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WriteEndpointextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is passed to handlers to give them a way to synchronously write to the
+connection.</p><div class="fullcomment"><div class="comment cmt"><p>This is passed to handlers to give them a way to synchronously write to the
+connection.  Services wrap this
+</p></div></div>
+    </li><li name="colossus.core.WriteStatus" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WriteStatusextendsAnyRef"></a>
+      <a id="WriteStatus:WriteStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WriteStatus.html"><span class="name">WriteStatus</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WriteStatusextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.core.ConnectionInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionInfo"></a>
+      <a id="ConnectionInfo:ConnectionInfo"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionInfo$.html"><span class="name">ConnectionInfo</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionInfo" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ConnectionStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionStatus"></a>
+      <a id="ConnectionStatus:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionStatus$.html"><span class="name">ConnectionStatus</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ConnectionVolumeState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionVolumeState"></a>
+      <a id="ConnectionVolumeState:ConnectionVolumeState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionVolumeState$.html"><span class="name">ConnectionVolumeState</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionVolumeState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataBuffer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataBuffer"></a>
+      <a id="DataBuffer:DataBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DataBuffer$.html"><span class="name">DataBuffer</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataBuffer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Delegator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Delegator"></a>
+      <a id="Delegator:Delegator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Delegator$.html"><span class="name">Delegator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@Delegator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DelegatorCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DelegatorCommand"></a>
+      <a id="DelegatorCommand:DelegatorCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DelegatorCommand$.html"><span class="name">DelegatorCommand</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DelegatorCommand" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DisconnectCause" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DisconnectCause"></a>
+      <a id="DisconnectCause:DisconnectCause"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DisconnectCause$.html"><span class="name">DisconnectCause</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DisconnectCause" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.PollingDuration" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PollingDuration"></a>
+      <a id="PollingDuration:PollingDuration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PollingDuration$.html"><span class="name">PollingDuration</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@PollingDuration" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Server" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Server"></a>
+      <a id="Server:Server"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Server$.html"><span class="name">Server</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@Server" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Servers can be thought of as applications, as they provide Delegators and
+ConnectionHandlers which contain application logic.</p><div class="fullcomment"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and
+ConnectionHandlers which contain application logic.  Servers are the objects
+that are directly interface with the Workers and provide them with the
+Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers,
+and after a successful registration, it will then bind to the specified
+ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of
+these can cause actions, others are for when some internal event happens and
+the Server is notified.</p></div></div>
+    </li><li name="colossus.core.ServerStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerStatus"></a>
+      <a id="ServerStatus:ServerStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerStatus$.html"><span class="name">ServerStatus</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.Worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Worker"></a>
+      <a id="Worker:Worker"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Worker$.html"><span class="name">Worker</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@Worker" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Like the server actor, it is critical that instances of this actor get their
+own thread, since they block when waiting for events.</p><div class="fullcomment"><div class="comment cmt"><p>Like the server actor, it is critical that instances of this actor get their
+own thread, since they block when waiting for events.</p><p>Workers are the &quot;engine&quot; of Colossus.  They are the components which receive and operate on Connections,
+respond to java NIO select loop events and execute the corresponding reactors in the Delegator and ConnectionHandlers.</p><p>These are the messages to which a Worker will respond.
+</p></div></div>
+    </li><li name="colossus.core.WorkerCommand" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WorkerCommand"></a>
+      <a id="WorkerCommand:WorkerCommand"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerCommand$.html"><span class="name">WorkerCommand</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerCommand" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.WriteStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WriteStatus"></a>
+      <a id="WriteStatus:WriteStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WriteStatus$.html"><span class="name">WriteStatus</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WriteStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
