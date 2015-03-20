@@ -3,7 +3,7 @@ Colossus
 
 [![Build Status](https://api.travis-ci.org/tumblr/colossus.png?branch=master)](https://travis-ci.org/tumblr/colossus)
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tumblr/colossus/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.tumblr/colossus)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tumblr/colossus_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.tumblr/colossus_2.11)
 
 
 Colossus is a lightweight I/O framework for building scala services.
