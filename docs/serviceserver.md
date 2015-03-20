@@ -27,282 +27,214 @@ with a heavy functional feel and the other more object-oriented.  Both styles
 are equivalent and ultimately result in the same system being built.  It is
 simply up to you to decide which you feel more comfortable with.
 
-## Basic Architecture
+## Writing a Service
 
-Since the service layer is built on top of the core layer, you should familiarize yourself with the structure of a [Colossus server]({{ site.baseurl}}/docs/server) first.
+### A Basic service
 
-To build a service server we need 3 components:
+The [quickstart guide]({{site.baseurl}}/docs/quickstart) has a more introductory approach to building a service.
 
-* A Delegator - This is a simple class that lets you define the behavior of how new connections are accepted.  One delegator is created per event loop.
-* A Service Handler - This is a sub-class of `ConnectionHandler` and is the class that handles processing requests into responses.  Just like with any other connection handler, new service handler is instantiated for every accepted connection.
-* A Codec - This class handles translating raw bytes into request objects and vise versa for responses.
-
-Colossus currently ships with server codecs for Http, Redis, and Telnet.  
-
-
-## Build a Service the FP Way
-
-*The [quickstart guide](quickstart) has a more introductory approach to building a service.*
-
-The easiest way to get a simple service up an running is to use the functional DSL.  
-
-*Notice : the DSL is not totally feature complete.  Currently for more advanced functionality you'll have to write your own delegator and connection handler, which is described below*
-
-
-Using the Http protocol as an example, the general structure of a service looks like:
+The general form of starting a service looks like :
 
 
 {% highlight scala %}
-Service.serve[Http]("service-name", 456){context: ServiceContext[Http] => 
-  //everything here happens once per event-loop
-  context.handle{ connecton: ConnectionContext[Http] => 
-    //everything here happens once per connection
+
+Service.serve[Protocol]("name", 9000) { context =>
+  context.handle { connection =>
     connection.become {
-      //partial function HttpRequest => Response[HttpResponse]
-      case req => req.ok("Hello world!")
+      //partial function
     }
   }
 }
+
 {% endhighlight %}
 
-This form essentially uses a partial function to map requests to responses, and
-provides a way to add initialization to both event loops and individual
-connections.  For example, let's add some code to see how things are executed:
+Let's break down what's happening here:
+
+The `Protocol` type parameter is a `CodecDSL`, which is a trait that describes the input
+and output types of a protocol.  For example, to start a server using the http
+protocol, we require the `Http` trait.  
 
 {% highlight scala %}
 
+import colossus.protocols.http._
 
+Service.serve[Http]("http-service", 9000) { context => 
+//...
 
-Service.serve[Http]("service-name", 456){context: ServiceContext[Http] => 
-  println(s"initializing in worker ${context.worker.id}")
-  context.handle{ connecton: ConnectionContext[Http] => 
-    println(s"new connection in worker ${context.worker.id}")
+{% endhighlight %}
+
+More about Codecs and Protocols can be found [here]().
+
+We now have a few nested closures.  Each closure takes us closer to processing
+an individual request
+
+{% highlight scala %}
+
+Service.serve[Protocol]("name", 9000) { context =>
+  //worker context - everything here is executed once per event loop
+  context.handle { connection =>
+    //connection context - everything here is executed once per connections
     connection.become {
-      //partial function HttpRequest => Response[HttpResponse]
-      case req => req.ok("Hello world!")
+      //request context - everything here is executed once per request
     }
   }
 }
+
 {% endhighlight %}
 
-Assuming we are running an `IOSystem` with 2 workers, if we start the service
-and open 4 connections to it, we should see in stdout:
+The **Worker Context** is the place to add initialization per event loop.  In
+most cases, this is where client connections are established, metrics are
+setup, and other long-term initialization is performed.
 
-{% highlight plaintext %}
-initializing in worker 1
-initializing in worker 2
-new connection in worker 1
-new connection in worker 2
-new connection in worker 1
-new connection in worker 2
-{% endhighlight %}
+The **Connection Context** is the place to add initialization per new connection.
+
+The **Request Context** is a partial function that processes requests into
+responses.  Any request that fails to be matched is automatically converted
+into an error response defined by the protocol.
 
 
 
+### Using clients
 
-### Clients and Callbacks
-
-One of the most important features of Colossus services are their ability to
-interact with connections to external services without leaving the event
-loop.  This is ideal when your service is simply passing data back and forth
-between clients (of your service) and the external system.
-
-Suppose your service needs to work with a memcache server.  We can open a connection to memecache like this:
+Service Clients provide in-thread, asynchronous client connections to external
+services.  Similar to servers, a client requires a protocol:
 
 {% highlight scala %}
-Service.serve[Telnet]("telnet-echo", 456){context => 
-  val memcache = context.clientFor[Memcache]("remote-host", 11211)
+
+Service.serve[Protocol]("name", 9000) { context =>
+  val client = context.clientFor[ClientProtocol]("host", port)
   //...
+
+}
+
 {% endhighlight %}
 
-Here we are setting up one memcache connection per delegator, so every
-connection bound to an event loop with share the same client connection.  Of
-course since event loops are single-threaded, there is no need to worry about
-thread-safety or locking a client.
+In general, service clients are intended to be used for long-running persistent
+connections, such as to a cache, database, or other service.  So while it is
+perfectly fine to open a client connection per server connection (or even per
+request), the best place to start is per event loop.  
 
-Now in our connection handler, we can do this:
+Clients have numerous configuration options available concerning timeouts and
+failure handling.  By default if a client loses its connection, either by
+timing out, remote closing, or an error, it will automatically re-establish a
+connection and (depending on configuration) buffer requests during the
+reconnection period.
+
+### Interacting with Actors and Futures
+
+Because the worker, connection, and request contexts all are single-threaded
+and execute in the event loop, performing certain tasks in-thread are either
+impractical or impossible.  For example, a CPU-intensive operation or blocking
+API call while processing one request would end up pausing the event loop,
+causing latency spikes for any other requests being processed in the loop.
+Furthermore, it's pretty rare for a service to be truly stateless.  We need a
+way for connection handlers to interact with some sort of global shared state.
+
+Colossus was built with these use cases in mind and makes it easy to interact
+with Futures and Akka Actors.  Actors provide an easy way to manage shared
+state, and both actors and futures provide a way to perform operations in
+parallel with the event loops.
+
+Suppose we have a function `doTask()` that returns a `Future[T]`.  To execute
+this method in the processing of a request, we can do:
 
 {% highlight scala %}
-  def invalidReply(reply: MemcacheReply) = TelnetReply("Invalid reply $reply")
 
-  context.handle{connection =>
-    connection.become{
-      case TelnetCommand("set", key, value) => memcache.send(Set(key, value)).map{
-        case Stored => TelnetReply("ok")
-        case other => invalidReply(other)
-      }
-      case TelnetCommand("get", key) => memcache.send(Get(key)).map {
-        case Value(data) => TelnetReply(data.utf8String)
-        case NoValue => TelnetReply("(no value)")
-        case other => invalidReply(other)
-      }
+Service.serve[Protocol]("name", 9000) { context =>
+  import context.callbackExecutor
+  context.handle { connection =>
+    connection.become {
+      case request => Callback.fromFuture(doTask()).map{result => ProtocolResponse(result)}
     }
   }
-{% endhighlight %}
-
-## Building a Service the OO Way
-
-The functional approach is really just a thin DSL for defining a couple classes.
-To directly build a service, we basically need to create classes for our
-delegator and connection handler, and wire them up into a server.
-
-First, we'll define our handler
-
-{% highlight scala %}
-import com.tumblr.colossus._
-import protocols.Telnet._
-
-class HelloWorldHandler(config: ServiceConfig, worker: WorkerRef) 
-  extends ServiceServer[HttpRequest, HttpResponse](new HttpServerCodec, config, worker) {
-
-  def processRequest(request: HttpRequest): Response[HttpResponse] = {
-    req.ok("Hello World!")
-  }
-
-  def processFailure(request: HttpRequest, reason: Throwable) = {
-    request.error(s"Error: $reason")
-  }
-}
-
-
-{% endhighlight %}
-
-`processRequest` is the primary method for handling requests, `processFailure`
-is only used when an uncaught exception is thrown during the processing of a
-request (if process Failure throws and exception the connection is terminated).
-Because `ServiceServer` inherits `ConnectionHandler`, you also have the ability
-to override other handling methods to implement custom shutdown or backpressure
-logic.
-
-Implementing a `ServiceServer` instead of a `ConnectionHandler` is the only way
-that a service server differs from any other Colossus server.  Thus to complete
-our service, we must define a delegator:
-
-{% highlight scala %}
-import scala.concurrent.duration._
-import colossus.core.{Delegator, ServerRef, WorkerRef}
-import colossus.service.ServiceConfig
-import trundle.MetricAddress
-
-class HelloWorldDelegator(val server: ServerRef, val worker: WorkerRef) 
-  extends Delegator(server, worker) {
-
-  val config = ServiceConfig(
-    name = "/hello-world",
-    requestTimeout = 100.milliseconds,
-  )
-
-  def acceptNewConnection = Some(new HelloWorldHandler(config, worker))
-
-}
-
-
-{% endhighlight %}
-
-Notice that this is a standard delegator and requires nothing from the service
-layer aside from the config.  Similarly, starting the server is the same as
-starting any other Colossus server.
-
-
-{% highlight scala %}
-import colossus._
-import core.Server
-
-implicit val io_system = IOSystem()
-
-val server = Server(
-  name = "echo-server",
-  port = 4567,
-  delegatorFactory = (server, worker) => new EchoDelegator(server, worker)
-)
-{% endhighlight %}
-
-## Responses and Completions
-
-When producing a response for a service, we need to deal with two orthoganal situations:
-
-* Handling asynchronous responses, both from Futures and Callbacks
-* Attaching metadata to responses
-
-How we handle these situations is an active area of research in Colossus, and our current solution involves using two types.
-
-A `Completion[T]` contains a response value of type `T` as well as metadata such as metrics tags to add and write completion events.
-
-A `Response[T]` is an algebraic datatype (ADT) with 3 implementations:
-
-{% highlight scala %}
-
-sealed trait Response[O]
-object Response {
-  case class SyncResponse[O](result: Completion[O]) extends Response[O]
-  case class AsyncResponse[O](result: Future[Completion[O]]) extends Response[O]
-  case class CallbackResponse[O](callback: Callback[Completion[O]]) extends Response[O]
 }
 
 {% endhighlight %}
 
-There are also implicit functions to lift each contained type into a `Response`.
-So in the above example, our `TelnetReply` objects are automatically converted
-into `SyncResponse[Completion[TelnetReply]]` objects.  In the vast majority of cases, you will never
-need to worry about lifting them yourself.
+`Callback.fromFuture` converts a `Future[T]` into a `Callback[T]`.  This
+requires an implicit `CallbackExecutor` which is basically a reference to the
+event loop that should resume the processing of the Callback after the Future
+has completed execution.
 
-The `Response` ADT allows you to write handlers like:
+Thus, `fromFuture` gives us a way to "jump" out of the event-loop to do some
+work in another thread, and then jump back into the event-loop after it
+complete.  So any `map`, `flatMap`, or `recover` that occurs after `fromFuture`
+is still executed in the event loop and is thus thread-safe.
 
-{% highlight scala %}
-
-def processRequest(request: TelnetCommand) = request.cmd.toUpperCase match {
-  case "PING" => TelnetReply("PONG")
-  case "GET_FUTURE" => (someActor ? GetAFuture).mapTo[String].map{TelnetReply(_)}
-  case "CACHE_HIT" => memcacheClient.sendCB(Get("cache_key")).map{TelnetReply(_.data.utf8String)}
-}
-
-{% endhighlight %}
-
-So in short, the complete set of types a handler partial function can return (with the built-in implicits in scope) are:
-
-* `T`
-* `Future[T]`
-* `Callback[T]`
-* `Completion[T]`
-* `Future[Completion[T]]`
-* `Callback[Completion[T]]`
-* `SyncResponse[Completion[T]]`
-* `AsyncResponse[Future[Completion[T]]]`
-* `CallbackResponse[Callback[Completion[T]]]`
-
-In most cases you only ever need to worry about returning the first three.
-
-<div class = "hint">
-
-As with any implicit lifting, occassionally the compiler can raise a somewhat confusing error.
+It is very important not to accidentally call thread-local code from within a
+Future.  Take a look at the following service:
 
 {% highlight scala %}
-type mismatch;
-[error]  found   : scala.concurrent.Future[com.tumblr.colossus.Completion[Product with Serializable]]
-[error]  required: com.tumblr.colossus.Response[com.tumblr.colossus.protocols.Telnet.Telnet#Output]
-{% endhighlight %}
 
-This occurs if you attempt to mix types within a `map` or `flatMap` method:
-
-{% highlight scala %}
-Service.become[Telnet]("telnet-echo", 456){
-  case TelnetReply(a) => Future{a}.flatMap{
-    //Future[Completion[TelnetReply]]
-    case "a" => Future.successful(TelnetReply("a")).withTags("foo" -> "bar") 
-    //Future[TelnetReply]
-    case "b" => Future.successful(TelnetReply("b")) 
+Service.serve[Protocol]("name", 9000) { context =>
+  var num = 0
+  import context.callbackExecutor
+  context.handle { connection =>
+    connection.become {
+      case RequestTypeA => Callback.fromFuture(doTask()).map{result =>
+        num += 1
+        ProtocolResponse(result)
+      }
+      case RequestTypeB => Callback.fromFuture(doTask().map{result => 
+        num += 1
+        result
+      }).map{result => ProtocolResponse(result)}
+    }
   }
 }
+
 {% endhighlight %}
 
-The solution is to either ensure each case is the same type or indicate the type parameter in the `flatMap` call
+The case for `RequestTypeA` is thread-safe, since the increment `num` happens
+after the Future has been converted to a Callback, and all code executed inside
+a Callback is thread-safe.  However, the case for `RequestTypeB` is **not**
+thread-safe, since the `map` that increments `num` is a map on the Future, not
+on the Callback.
+
+In general, the same precautions should be taken as when working with Futures
+inside Actors: never expose local state.
+
+
+### More on Callbacks
+
+In event-based programming, a common pattern is continuation-passing.  If a
+method has to perform some action asynchronously, where completion of the
+action happens outside of the function, the function would look like:
 
 {% highlight scala %}
-  //do this
-  case TelnetReply(a) => Future{a}.flatMap[Telnet#Completion]{
 
-  //or this
-    case "b" => Future.successful(TelnetReply("b")).complete
+def doSomething(arg1: String, arg2: String, continuation: Result => Unit)
+
+doSomething("foo", "bar", result => someOtherCode())
+
 {% endhighlight %}
 
-</div>
+with the expectaction that `continuation` is called whenever the event
+completes.  This is commonly considered an anti-pattern (sometimes referred to
+as "callback hell") since chaining multiple such methods together involves
+nested functions within functions.  It's also a sharp contrast to normal
+functions where you expect a return value that's immediately usable.
+
+Colossus gets around these pitfalls with the `Callback` monad.  Internally, the
+`Callback` works the same way as a continuation, but instead of requiring the
+continuation as a function parameter, it behaves like a monad, where the
+continuation is implemented by mappiing and flatMapping on the returned
+`Callback[T]`.  Thus the above function becomes:
+
+{% highlight scala %}
+
+def doSomething(arg1: String, arg2: String): Callback[Result]
+
+val cb = doSomething("foo", "bar")
+val mapped = cb.map{result => someOtherCode()}
+
+{% endhighlight %}
+
+In otherwords, a `Callback` is a bit like a function builder, and only the end
+result is used as the continuation.  There is one catch, the Callback needs to
+know when the function is fully built in order to actually invoke the original
+method that required the continuation.  
+
+When using Callbacks in a service, Colossus does this for you.  You can map,
+flatMap, recover, all you want on a Callback, and so long as you return this
+Callback to Colossus in your request handler, everything is taken care of.

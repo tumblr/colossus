@@ -55,9 +55,7 @@ layout: intro
         <h3>Seamless Integration with Akka</h3>
         <p>
           Written entirely as Akka actors, Colossus makes it easy to connect
-          your low-level event-handling code with external actors.  Colossus
-          also comes with a fully actor-based API if you wish to keep all your
-          code inside actors.
+          your low-level event-handling code with external actors.
         </p>
       </div>
       <br class="clear" />
@@ -67,20 +65,15 @@ layout: intro
           Colossus comes with a metrics aggregation and reporting system that
           makes it easy to track events in real-time.  Common metrics like
           request rates and latency are built into services out of the box, and
-          it's easy to add your own.  A SQL-like DSL allows you to
-          filter and aggregate over these metrics, while a reporting module
-          lets you package and export metrics to an external database like
-          OpenTSDB.
+          it's easy to add your own.
         </p>
       </div>
       <div class="feature">
         <h3>Write More than Just Services</h3>
         <p>
           While Colossus has primarily been built with microservices in mind,
-          at the heart is a simple wrapper on NIO that is fully accessible for
-          you to write your own custom servers and clients.  Furthermore,
-          Colossus Tasks let you write arbitrary code inside event loops when
-          you need to do I/O outside the context of a server.        
+          at the heart is a fully generalized IO layer suitable for building
+          any custom server or client.        
         </p>
       </div>
     </div>
@@ -97,7 +90,6 @@ layout: intro
         <li> <a href="{{ site.baseurl }}/docs/quickstart">Quickstart Guide</a>
         <li> <a href="{{ site.baseurl }}/docs">Full Documentation</a>
         <li> <a href="{{ site.github_examples_url }}">Examples Project</a>
-        <li> <a href="{{ site.github_template_url }}">Template Project</a>
       </ul>
     </div>
     <div class="clear"></div>

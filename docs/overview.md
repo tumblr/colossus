@@ -38,10 +38,17 @@ some task in parallel with the event loop, Colossus makes it easy to jump out
 of the event loop using actors and futures.  This also makes it easy to safely
 share state between event loops and connections.
 
+## Philosophy of Use
+
+There is no shortage of IO/service frameworks our there, especially when it
+comes to http frameworks.  So what does Colossus bring to the table and what
+kinds of use cases are in mind for it?
+
+* Application-layer proxies/load-balancers.  Numerous proxies such as [Varnish](), [HAProxy](), [TwemProxy]()
 
 ## Architecture
 
-Colossus is built mostly in four modules:
+Colossus is built mostly in several modules:
 
 #### Core
 
@@ -50,10 +57,15 @@ Core layer manages event loops, servers and raw TCP connections, as well as
 providing the API for being able to attach event handlers to incoming server
 connections and outgoing client connections.
 
+#### Controller
+
+This layer handles the logic for decoding incoming data into input messages and vise
+versa for encoding outgoing messages.  
+
 #### Service
 
-This layer has all the logic for building RPC-like services that transform
-request objects into response objects.  Common issues like managing
+This layer builds on the controller layer to add logic for RPC-like services that transform
+request objects into response objects.  Common issues like timeouts and managing
 backpressure are handled by the service layer.
 
 #### Protocols
