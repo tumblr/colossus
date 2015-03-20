@@ -38,6 +38,13 @@ some task in parallel with the event loop, Colossus makes it easy to jump out
 of the event loop using actors and futures.  This also makes it easy to safely
 share state between event loops and connections.
 
+## Philosophy of Use
+
+There is no shortage of IO/service frameworks our there, especially when it
+comes to http frameworks.  So what does Colossus bring to the table and what
+kinds of use cases are in mind for it?
+
+* Application-layer proxies/load-balancers.  Numerous proxies such as [Varnish](), [HAProxy](), [TwemProxy]()
 
 ## Architecture
 

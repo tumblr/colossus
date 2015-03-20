@@ -32,8 +32,6 @@ Colossus is compiled for Scala 2.10 and 2.11 and built against Akka 2.3.
 
 ## Build a Hello World Service
 
-*If you're feeling particularly opposed to copy/paste, clone the [template project]({{ site.github_template_url }})*
-
 In a standard SBT project layout, create `Main.scala`.  Add this to it:
 
 {% highlight scala %}
@@ -125,12 +123,16 @@ but it provides the interface for interacting directly with the event loop.
 This brings us to the actual logic of the service:
 
 {% highlight scala %}
-case TelnetCommand("say" :: text :: Nil) => Callback.successful(TelnetReply(text))
+case TelnetCommand("say" :: text :: Nil) => {
+  Callback.successful(TelnetReply(text))
+}
 case TelnetCommand("exit" :: Nil) => {
   connection.gracefulDisconnect()
   Callback.successful(TelnetReply("Bye!"))
 }
-case other => Callback.failed(new IllegalArgumentException($"Invalid command $other"))
+case other => {
+  Callback.failed(new IllegalArgumentException($"Invalid command $other"))
+}
 {% endhighlight %}
 
 This is mostly just standard pattern matching against a `TelnetCommand`, producing a

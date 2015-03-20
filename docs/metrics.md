@@ -88,6 +88,9 @@ val rate = collection getOrAdd Rate("/my-rate", periods = List(1.second, 1.minut
 rate.hit()
 rate.hit(25)
 
+//arbitary maps of tags can be included with any event
+rate.hit(tags = Map("key" -> "value"))
+
 //by default, metrics are aggregated and snapshotted once per second
 Thread.sleep(1000)
 
@@ -121,22 +124,19 @@ Each metric has numerous configuration options to ensure the best measurements f
 
 ### Local vs Shared Collectors
 
-The tl;dr is, shared collectors are backed by actors while local collectors are
-used inside actors.  Shared collectors are thread-safe, but since each event is
-an actor message, have a bit of overhead at high frequency.  Local collectors
-are not thread safe, but have almost no overhead.  
+There are two different ways to collect events.  Local event collectors run inside actors and are extremely efficient.  Shared collectors are meant to be used outside of an actor or shared amonng multiple actors, and every event becomes a single actor message.
 
-Every local collector can easily be converted into a shared collector by
-calling its `shared` method, and both version implement the same base interface
-so the API is the same.
+In general it's best to use local collections whenever possible, since for
+example incrementing a counter is just adding 1 to a `Long`, whereas with a
+shared collection every increment is a single actor message.
 
-So if you are writing actors and want to track events inside them, your best
-bet is to extends the `ActorMetrics` trait.  For example:
+To use a LocalCollection, the easiest method is to mixin the `ActorMetrics` trait to your actors.  For example:
 
 {% highlight scala %}
 
 class MyActor(val metricSystem: MetricSystem) extends Actor with ActorMetrics {
-  
+
+  //the trait automatically creates a LocalCollection called metrics  
   val rate = metrics getOrAdd Rate("/foos")
 
   def receive = handleMetrics orElse {
@@ -151,6 +151,30 @@ class MyActor(val metricSystem: MetricSystem) extends Actor with ActorMetrics {
 }
 
 {% endhighlight %}
+
+### Using metrics within Colossus
+
+Being an actor, a Colossus event loop has it's own `LocalCollection`.  This can be accessed through `context.worker.metrics`, for example:
+
+{% highlight scala %}
+
+Service.serve[Http]("my-service", 80) { context =>
+  val myRate = context.worker.metrics.getOrAdd(Rate("my-rate"))
+  context.handle{ connection =>
+    connection.become{
+      case request @ Get on Root / "hit" => {
+        myRate.hit()
+        request.ok("ok!")
+      }
+    }
+  }
+}
+
+{% endhighlight %}
+
+**Important** - in order to properly aggregate metrics together, workers add their id as a tag to every metric.
+
+
 
 ## Metric Snapshots and Aggregation
 

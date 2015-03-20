@@ -195,4 +195,46 @@ In general, the same precautions should be taken as when working with Futures
 inside Actors: never expose local state.
 
 
+### More on Callbacks
 
+In event-based programming, a common pattern is continuation-passing.  If a
+method has to perform some action asynchronously, where completion of the
+action happens outside of the function, the function would look like:
+
+{% highlight scala %}
+
+def doSomething(arg1: String, arg2: String, continuation: Result => Unit)
+
+doSomething("foo", "bar", result => someOtherCode())
+
+{% endhighlight %}
+
+with the expectaction that `continuation` is called whenever the event
+completes.  This is commonly considered an anti-pattern (sometimes referred to
+as "callback hell") since chaining multiple such methods together involves
+nested functions within functions.  It's also a sharp contrast to normal
+functions where you expect a return value that's immediately usable.
+
+Colossus gets around these pitfalls with the `Callback` monad.  Internally, the
+`Callback` works the same way as a continuation, but instead of requiring the
+continuation as a function parameter, it behaves like a monad, where the
+continuation is implemented by mappiing and flatMapping on the returned
+`Callback[T]`.  Thus the above function becomes:
+
+{% highlight scala %}
+
+def doSomething(arg1: String, arg2: String): Callback[Result]
+
+val cb = doSomething("foo", "bar")
+val mapped = cb.map{result => someOtherCode()}
+
+{% endhighlight %}
+
+In otherwords, a `Callback` is a bit like a function builder, and only the end
+result is used as the continuation.  There is one catch, the Callback needs to
+know when the function is fully built in order to actually invoke the original
+method that required the continuation.  
+
+When using Callbacks in a service, Colossus does this for you.  You can map,
+flatMap, recover, all you want on a Callback, and so long as you return this
+Callback to Colossus in your request handler, everything is taken care of.
