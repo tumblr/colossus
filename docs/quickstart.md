@@ -173,7 +173,7 @@ create one client connection per event loop, allowing all http connections in
 the same event loop to share a single redis connection.  This gives us service
 that conceptually looks like:
 
-![redis]({{site.base_url}}/img/redis.png)
+![redis]({{site.baseurl}}/img/redis.png)
 
 This may not always be the best layout for every situation (especially for
 systems not as consistently low-latency as redis), but here it allows us to do
