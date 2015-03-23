@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import akka.testkit._
-
 import scala.concurrent.duration._
 
 class RateSpec extends MetricIntegrationSpec {
@@ -26,9 +24,8 @@ class RateSpec extends MetricIntegrationSpec {
 
   "ConcreteRate" must {
     "tick for tags" in {
-      val p = TestProbe()
       val params = Rate("/foo", periods = List(1.second))
-      val r = new ConcreteRate(params, p.ref)
+      val r = new ConcreteRate(params)
       r.hit(Map("foo" -> "a"))
       r.hit(Map("foo" -> "a"))
       r.hit(Map("foo" -> "b"))

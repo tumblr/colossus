@@ -12,7 +12,7 @@ trait ActorMetrics extends Actor with ActorLogging {
 
   def globalTags: TagMap = TagMap.Empty
 
-  val metrics = new LocalCollection(MetricAddress.Root, globalTags)(self)
+  val metrics = new LocalCollection(MetricAddress.Root, globalTags)
 
   def handleMetrics: Receive = {
     case m : MetricEvent => metrics.handleEvent(m) match {

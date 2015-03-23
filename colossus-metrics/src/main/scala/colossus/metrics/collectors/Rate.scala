@@ -21,15 +21,12 @@ object Rate {
 
   def apply(address: MetricAddress, periods: List[FiniteDuration] = List(1.second, 60.seconds)): RateParams = RateParams(address, periods)
 
-  //this appears to be obselete now, AFAICT shared rates will only be created by called .shared on a local rate
-  implicit object SharedRate extends Generator[SharedLocality,Rate, RateParams] {
-    def apply(params: RateParams)(implicit collector: ActorRef): Shared[Rate] = {
+  implicit object RateGenerator extends Generator[Rate, RateParams] {
+    def local(params: RateParams): Local[Rate] = new ConcreteRate(params)
+
+    def shared(params: RateParams)(implicit collector: ActorRef): Shared[Rate] = {
       new SharedRate(params, collector)
     }
-  }
-
-  implicit object LocalRate extends Generator[LocalLocality,Rate, RateParams] {
-    def apply(params: RateParams)(implicit collector: ActorRef): Local[Rate] = new ConcreteRate(params, collector)
   }
 }
 
@@ -70,7 +67,7 @@ class BasicRate(period: FiniteDuration) {
  * where is should call it's "event" method when it receives this message
  *
  */
-class SharedRate(val params: RateParams, collector: ActorRef) extends Rate with SharedLocality[Rate] {
+class SharedRate(val params: RateParams, collector: ActorRef) extends Rate with SharedLocality {
   def address = params.address
   def hit(tags: TagMap = TagMap.Empty, num: Int = 1) {
     collector ! Rate.Hit(address, tags, num)
@@ -78,7 +75,7 @@ class SharedRate(val params: RateParams, collector: ActorRef) extends Rate with 
 }
 
 //notice this rate is not the actual core rate, since it handles tags
-class ConcreteRate(params: RateParams, collector: ActorRef) extends Rate with LocalLocality[Rate] with TickedCollector {
+class ConcreteRate(params: RateParams) extends Rate with LocalLocality with TickedCollector {
   import collection.mutable.{Map => MutMap}
   //the String keys are stringified periods
   private val rates = MutMap[TagMap, MutMap[String, BasicRate]]()
@@ -110,8 +107,6 @@ class ConcreteRate(params: RateParams, collector: ActorRef) extends Rate with Lo
     }
     Map(params.address -> values.toMap, (params.address / "count") ->  totals.toMap)
   }
-
-  lazy val shared: Shared[Rate] = new SharedRate(params, collector)
 
   def event: PartialFunction[MetricEvent, Unit] = {
     //argument for not including address in event
