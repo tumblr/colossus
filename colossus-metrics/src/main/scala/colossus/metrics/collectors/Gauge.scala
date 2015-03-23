@@ -25,8 +25,9 @@ object Gauge {
 
   def apply(address: MetricAddress, expireAfter: Duration = 1.hour, expireTo: Option[Long] = None) = GaugeParams(address, expireAfter, expireTo)
   
-  implicit object LocalGauge extends Generator[LocalLocality,Gauge, GaugeParams] {
-    def apply(params: GaugeParams)(implicit collector: ActorRef): Local[Gauge] = new ConcreteGauge(params, collector)
+  implicit object GaugeGenerator extends Generator[Gauge, GaugeParams] {
+    def local(params: GaugeParams): Local[Gauge] = new ConcreteGauge(params)
+    def shared(params: GaugeParams)(implicit collector: ActorRef): Shared[Gauge] = new SharedGauge(params, collector)
   }
 
 }
@@ -54,7 +55,7 @@ class BasicGauge(params: GaugeParams)  {
 }
 
 
-class ConcreteGauge(params: GaugeParams, collector: ActorRef) extends Gauge with LocalLocality[Gauge] with TickedCollector {
+class ConcreteGauge(params: GaugeParams) extends Gauge with LocalLocality with TickedCollector {
   val address = params.address
 
   val gauges = collection.mutable.Map[TagMap, BasicGauge]()
@@ -83,11 +84,9 @@ class ConcreteGauge(params: GaugeParams, collector: ActorRef) extends Gauge with
     case Gauge.SetValue(_, v, t) => set(v,t)
   }
 
-  lazy val shared = new SharedGauge(params, collector)
-
 }
 
-class SharedGauge(params: GaugeParams, collector: ActorRef) extends Gauge with SharedLocality[Gauge] {
+class SharedGauge(params: GaugeParams, collector: ActorRef) extends Gauge with SharedLocality {
   val address = params.address
 
   def set(newValue: Option[Long], tags: TagMap) {

@@ -15,21 +15,17 @@ trait MetricEvent {
 
 case class MetricSystemConfig(tickPeriod: FiniteDuration = 1.second)
 
-sealed trait Locality[+T] {
-  def shared : T with SharedLocality[T]
-}
-trait SharedLocality[+T] extends Locality[T] {self: T =>
-  def shared : T with SharedLocality[T] = self
-}
-trait LocalLocality[+T] extends Locality[T] with MetricProducer {
+sealed trait Locality
+trait SharedLocality extends Locality
+trait LocalLocality  extends Locality with MetricProducer {
   def event: PartialFunction[MetricEvent, Unit]
 }
   
 
 trait EventLocality[E <: EventCollector]
 object EventLocality {
-  type Shared[E <: EventCollector] = E with SharedLocality[E]
-  type Local[E <: EventCollector] = E with LocalLocality[E]
+  type Shared[E <: EventCollector] = E with SharedLocality
+  type Local[E <: EventCollector] = E with LocalLocality
 }
 import EventLocality._
 
@@ -63,33 +59,35 @@ trait TickedCollector extends EventCollector {
 /**
  * This is a typeclass that is basically just an EventCollector factory.
  *
- * Note - we may be able to get rid of the Locality type-param since as of now
- * it looks like we only need generators for local collectors, but we'll leave
- * it for now since it's fully hidden from users anyway
  */
-trait Generator[L[_] <: Locality[_], C <: EventCollector, P] {
+trait Generator[C <: EventCollector, P] {
   //notice - we "should" restrict the P type to be a subtype of MetricParams[T],
   //however that makes this incompatible with the type parameters of the
   //collection's getOrAdd method.  And we are not allow to add view-bounds to a
   //trait, so for now we're kind of stuck
 
 
-  def apply(params: P)(implicit collector: ActorRef): C with L[C]
+  /**
+   * Generate a local collector given the params object
+   */
+  def local(params: P): C with LocalLocality
+
+  /**
+   * Generate a shared collector given the params object
+   */
+  def shared(params:P)(implicit collector: ActorRef): C with SharedLocality
 }
 
 
 
-trait Collection[L[_] <: Locality[_]] {
+trait Collection[L <: Locality] {
   import Collection.ParamsFor
   //notice - the type lambda is basically the same as a view bounds (P <%
   //MetricParams[U]), but view bounds are deprecated.  We need this instead of
   //just subtype (P <: MetricParams[U]) becuase for some reason type inference
   //fails when we do that
-  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](params: P)(implicit generator: Generator[LocalLocality,T,P]): T with L[T]
+  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](params: P)(implicit generator: Generator[T,P]): T with L
 
-  def shared: Collection[SharedLocality]
-
-  //def get[U <: EventCollector](address: MetricAddress)
 }
 object Collection {
   type ParamsFor[U <: EventCollector] = ({type Type[P] = P => MetricParams[U,P]})
@@ -109,21 +107,20 @@ class DuplicateMetricException(message: String) extends Exception(message)
  */
 class LocalCollection(
   namespace: MetricAddress = MetricAddress.Root,
-  globalTags: TagMap = TagMap.Empty, 
+  val globalTags: TagMap = TagMap.Empty, 
   metrics:ConcurrentHashMap[MetricAddress, Local[EventCollector]] = new ConcurrentHashMap[MetricAddress, Local[EventCollector]],
   parent: Option[LocalCollection] = None
-)
-(implicit val collector: ActorRef) extends Collection[LocalLocality] {
+) extends Collection[LocalLocality] {
   import Collection.ParamsFor
   import LocalCollection._
 
   val localProducers = collection.mutable.ArrayBuffer[MetricProducer]()
 
 
-  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](_params: P)(implicit creator: Generator[LocalLocality,T, P]): Local[T] = {
+  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](_params: P)(implicit creator: Generator[T, P]): Local[T] = {
     val params: P = _params.transformAddress(namespace / _)
     parent.map{_.getOrAdd(params)}.getOrElse {
-      val created = creator(params)
+      val created = creator.local(params)
       metrics.putIfAbsent(params.address, created: Local[EventCollector]) match {
         case null => created
         case exists: T => {
@@ -172,11 +169,9 @@ class LocalCollection(
   }
 
   def subCollection(subSpace: MetricAddress = MetricAddress.Root, subTags: TagMap = TagMap.Empty) = {
-    new LocalCollection(subSpace, subTags, metrics, Some(this))(collector)
+    new LocalCollection(subSpace, subTags, metrics, Some(this))
   }
 
-  def shared: SharedCollection = new SharedCollection(this)
-    
 }
 
 object LocalCollection {
@@ -197,11 +192,16 @@ object LocalCollection {
  * events just as function calls), this should not be used for very-high
  * frequency events.
  */
-class SharedCollection(val local: LocalCollection) extends Collection[SharedLocality] {
+private[colossus] class SharedCollection(val local: LocalCollection, val collector: ActorRef) extends Collection[SharedLocality] {
 
   import Collection.ParamsFor
 
-  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](params: P)(implicit creator: Generator[LocalLocality,T, P]): Shared[T] = local.getOrAdd(params).shared
+  def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](params: P)(implicit creator: Generator[T, P]): Shared[T] = {
+    //create the actual collector
+    local.getOrAdd(params)
+    //get a shared interface for it
+    creator.shared(params)(collector)
+  }
 
   def shared = this
 }
@@ -211,50 +211,11 @@ object SharedCollection {
   def apply(globalTags: TagMap = TagMap.Empty)(implicit system: MetricSystem, fact: ActorRefFactory): SharedCollection = {
     
     val metrics = new ConcurrentHashMap[MetricAddress, Local[EventCollector]]
+    val local = new LocalCollection(MetricAddress.Root, globalTags, metrics)
 
-    val collector = fact.actorOf(Props(classOf[Collector], system, metrics, globalTags))
+    val collector = fact.actorOf(Props(classOf[Collector], system, local))
     
-    //this is kind of weird, since we're effectively creating two local
-    //collections.  Notice we can't yet pass a local collection to the actor
-    //since it needs the actorref to be created.  we should create some kind of
-    //base collection that has the getOrAdd method, but not a huge deal
-    val local = new LocalCollection(MetricAddress.Root, globalTags, metrics)(collector)
-    new SharedCollection(local)
+    new SharedCollection(local, collector)
   }
 
 }
-
-
-//this is a simplified model of the type system for metrics, keeping this here for experimenting
-private[metrics] object CollectionModel {
-  trait Obj
-
-  trait GenParam
-  trait Param[O <: Obj, R] extends GenParam {self: R =>
-    def transform: R
-  }
-
-  type ParamsFor[U <: Obj] = ({type Type[P] = P => Param[U,P]})
-
-  case class A(a: Int) extends Obj
-  case class B(a: Int) extends Obj
-  case class P(a: Int) extends Param[A,P]{
-    def transform: P = P(a + 1)
-  }
-
-
-  trait Gen[O <: Obj, P] {
-    def apply(p: P): O
-  }
-  implicit object AGen extends Gen[A,P] {
-    def apply(p: P) = A(p.a)
-  }
-
-  def foo[T <: Obj : ClassTag, P : ParamsFor[T]#Type](p: P)(implicit g: Gen[T,P]): T = {
-    g(p.transform)
-  }
-
-  val x: A = foo(P(4))
-  //val y: B = foo(P(3))
-}
-

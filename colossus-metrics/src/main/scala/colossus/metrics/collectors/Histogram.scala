@@ -66,8 +66,9 @@ object Histogram {
     sampleRate: Double = 1.0
   ) : HistogramParams = HistogramParams(address, bucketRanges, periods, percentiles, tagPrecision, sampleRate)
 
-  implicit object HistogramGenerator extends Generator[LocalLocality, Histogram, HistogramParams] {
-    def apply(params: HistogramParams)(implicit actor: ActorRef) = new PeriodicHistogram(params, actor)
+  implicit object HistogramGenerator extends Generator[Histogram, HistogramParams] {
+    def local(params: HistogramParams) = new PeriodicHistogram(params)
+    def shared(params: HistogramParams)(implicit actor: ActorRef) = new SharedHistogram(params, actor)
   }
 
 }
@@ -204,7 +205,7 @@ class TaggedHistogram(val ranges: BucketList, period: FiniteDuration) {
  * Ticks are controlled externally so we can ensure that we get a complete set
  * of data before resetting the hists
  */
-class PeriodicHistogram(params: HistogramParams, collector: ActorRef) extends Histogram with TickedCollector with LocalLocality[Histogram] {
+class PeriodicHistogram(params: HistogramParams) extends Histogram with TickedCollector with LocalLocality {
   def address = params.address
 
   import PeriodicHistogram._
@@ -252,11 +253,9 @@ class PeriodicHistogram(params: HistogramParams, collector: ActorRef) extends Hi
     case Add(_, t, v) => add(v, t)
   }
 
-  def shared = new SharedHistogram(params, collector)
-
 }
 
-class SharedHistogram(params: HistogramParams, collector: ActorRef) extends Histogram with SharedLocality[Histogram] {
+class SharedHistogram(params: HistogramParams, collector: ActorRef) extends Histogram with SharedLocality {
   def address = params.address
   def add(value: Int, tags: TagMap = TagMap.Empty) {
     collector ! PeriodicHistogram.Add(params.address, tags, value)

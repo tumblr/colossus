@@ -1,6 +1,5 @@
 package colossus.metrics
 
-import akka.actor._
 import org.scalatest._
 import scala.concurrent.duration._
 
@@ -33,7 +32,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
   "ConcreteGauge" must {
     "set tagged values" in {
       val params = GaugeParams("/")
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
 
@@ -46,7 +45,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
     "remove unset values" in {
       val params = GaugeParams("/", expireAfter = 1.second)
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
       g.set(None, Map("foo" -> "a"))
@@ -60,7 +59,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
     "remove expired values" in {
       val params = GaugeParams("/", expireAfter = 1.second)
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
       g.tick(500.milliseconds)
