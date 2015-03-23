@@ -1,13 +1,17 @@
 package colossus.metrics
 
+import akka.util.Timeout
+import colossus.metrics.MetricDatabase.ListCollectors
 import org.scalatest._
 
 
 import akka.actor._
+import org.scalatest.concurrent.ScalaFutures
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import MetricAddress._
 
-class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
+class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with ScalaFutures {
 
   "MetricAddress" must {
     "startsWith" in {
@@ -86,6 +90,44 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       sys.shutdown()
       
     }
+
+    "register EventCollectors" in {
+      import akka.pattern.ask
+      implicit val sys = ActorSystem("metrics")
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", tickPeriod = 10.days, collectSystemMetrics = false)
+
+      implicit val to = new Timeout(1.second)
+
+      val sc1 = SharedCollection()
+      val sc2 = SharedCollection()
+
+
+      Thread.sleep(50)
+      val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
+      c.futureValue must equal (Set(sc1.local.collector, sc2.local.collector))
+
+    }
+    "remove terminated EventCollectors" in {
+      import akka.pattern.ask
+      implicit val sys = ActorSystem("metrics")
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", tickPeriod = 10.days, collectSystemMetrics = false)
+
+      implicit val to = new Timeout(1.second)
+
+      val sc1 = SharedCollection()
+      val sc2 = SharedCollection()
+
+      sc2.local.collector ! PoisonPill
+
+      Thread.sleep(50)
+
+      val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
+      c.futureValue must equal (Set(sc1.local.collector))
+    }
+
+
   }
 
 

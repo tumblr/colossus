@@ -29,7 +29,6 @@ trait ActorMetrics extends Actor with ActorLogging {
 
   override def preStart() {
     context.system.eventStream.subscribe(self, classOf[Tick])
+    metricSystem.database ! MetricDatabase.RegisterCollector(self)
   }
-  
-
 }
