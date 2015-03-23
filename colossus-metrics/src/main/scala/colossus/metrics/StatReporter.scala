@@ -56,8 +56,8 @@ class MetricReporter(metrics: MetricSystem, config: MetricReporterConfig) extend
   }
 
   def receive = {
-    case SendStats => (metrics.database ? MetricDatabase.GetDB).onComplete{
-      case Success(MetricDatabase.DB(db)) => {
+    case SendStats => (metrics.intervalAggregator ? IntervalAggregator.GetDB).onComplete{
+      case Success(IntervalAggregator.DB(db)) => {
         val filtered: MetricMap = filters.map{f => db.filter(f)}.getOrElse(db)
         statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
       }
