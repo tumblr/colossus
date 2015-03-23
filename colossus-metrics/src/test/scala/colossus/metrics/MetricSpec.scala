@@ -1,7 +1,7 @@
 package colossus.metrics
 
 import akka.util.Timeout
-import colossus.metrics.MetricDatabase.ListCollectors
+import colossus.metrics.IntervalAggregator.ListCollectors
 import org.scalatest._
 
 
@@ -33,64 +33,6 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
     }
 
 
-    //note - this test passes locally, but seems go never work in travis
-    //need to make some design changes any to eliminate the non-determinism
-    "two metric systems don't react to each other's ticks" taggedAs(org.scalatest.Tag("test")) ignore {
-      implicit val sys = ActorSystem("metrics")
-      //set the tick period to something really high so we can control the ticks ourselves
-      val m1 = MetricSystem("/sys1", tickPeriod = 10.days, collectSystemMetrics = false)
-      val m2 = MetricSystem("/sys2", tickPeriod = 10.days, collectSystemMetrics = false)
-
-      val m1col = m1.sharedCollection()
-      val m1counter = m1col.getOrAdd(Counter("/foo"))
-      m1counter.increment()
-      m1counter.increment()
-      m1counter.increment()
-
-      val m2col = m2.sharedCollection()
-      val m2counter = m2col.getOrAdd(Counter("/bar"))
-      m2counter.increment()
-      m2counter.increment()
-
-      //first tick triggers collectors to send metrics, second tick tells
-      //MetricDatabase to publish the snapshot from the previous tick
-      sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
-      Thread.sleep(500)
-      sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
-      Thread.sleep(50)
-
-      def wait(num: Int)(f: => Boolean) {
-        def loop(n: Int) {
-          if (!f) {
-            if (n == 0) {
-              fail(s"Check failed after $num tries")
-            } else {
-              Thread.sleep(50)
-              loop(n - 1)
-            }
-          }
-        }
-        loop(num)
-      }
-        
-      
-      wait(50){     
-        m1.snapshot() == (Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
-      }
-      m2.snapshot() must equal(Map())
-
-      sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
-      Thread.sleep(500)
-      sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
-      Thread.sleep(50)
-
-      wait(50){
-        m2.snapshot() == Map(Root / "bar" -> Map(TagMap.Empty -> 2))
-      }
-      sys.shutdown()
-      
-    }
-
     "register EventCollectors" in {
       import akka.pattern.ask
       implicit val sys = ActorSystem("metrics")
@@ -104,7 +46,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
 
 
       Thread.sleep(50)
-      val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
+      val c: Future[Set[ActorRef]] = (m1.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]
       c.futureValue must equal (Set(sc1.collector, sc2.collector))
 
     }
@@ -123,11 +65,9 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
 
       Thread.sleep(50)
 
-      val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
+      val c: Future[Set[ActorRef]] = (m1.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]
       c.futureValue must equal (Set(sc1.collector))
     }
-
-
   }
 
 
@@ -241,9 +181,4 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
     }
       
   }
-
-
-
-
-
 }

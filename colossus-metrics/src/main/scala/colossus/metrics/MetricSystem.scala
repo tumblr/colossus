@@ -7,8 +7,6 @@ import colossus.metrics.MetricAddress.Root
 import scala.concurrent.duration._
 
 
-case class MetricSystemId(id: Long)
-
 /**
  * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
  * you only want to have one MetricSystem per application.
@@ -17,15 +15,12 @@ case class MetricSystemId(id: Long)
  * per second, but it can be configured to any time interval. So while events are being collected as they occur,
  * compiled metrics (such as rates and histogram percentiles) are generated once per tick.
  *
- * @param id The ID of the metrics system
  * @param namespace the base of the url describing the location of metrics within the system
- * @param clock an actor which serves as the clock for the metric system
- * @param database an actor which serves as the database of the metric system
+ * @param intervalAggregator an actor which serves as the metric aggregator of the metric system
  * @param snapshot
  * @param tickPeriod The frequency of the tick message
  */
-case class MetricSystem(id: MetricSystemId, namespace: MetricAddress, clock: ActorRef, database: ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
-
+case class MetricSystem(namespace: MetricAddress, intervalAggregator : ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
 
   def query(filter: MetricFilter): MetricMap = snapshot().filter(filter)  
 
@@ -60,23 +55,18 @@ object MetricSystem {
   def apply(namespace: MetricAddress, tickPeriod: FiniteDuration = 1.second, collectSystemMetrics: Boolean = true)
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
-    val id = MetricSystemId(System.nanoTime)
-    val clock = system.actorOf(Props(classOf[MetricClock], id, tickPeriod), name =  s"${namespace.idString}-clock")
-    val snap = Agent[MetricMap](Map())
-    val db = system.actorOf(Props(classOf[MetricDatabase], id, namespace, snap, collectSystemMetrics))
 
-    val metrics = MetricSystem(id, namespace, clock, db, snap, tickPeriod)
+    val snap = Agent[MetricMap](Map())
+    val db = system.actorOf(Props(classOf[IntervalAggregator], namespace, tickPeriod, snap, collectSystemMetrics))
+
+    val metrics = MetricSystem(namespace, db, snap, tickPeriod)
 
     metrics
   }
 
   def deadSystem(implicit system: ActorSystem) = {
     import scala.concurrent.ExecutionContext.Implicits.global //this is ok since we're using it to create an agent that's never used
-    MetricSystem(MetricSystemId(System.nanoTime), Root / "DEAD", system.deadLetters, system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
-  }
-
-  object Global {
-    //coming soon
+    MetricSystem(Root / "DEAD", system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
   }
 }
 

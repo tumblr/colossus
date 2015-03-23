@@ -5,7 +5,7 @@ import akka.actor._
 
 import LocalCollection._
 
-import MetricClock._
+import IntervalAggregator._
 
 trait ActorMetrics extends Actor with ActorLogging {
   val metricSystem: MetricSystem
@@ -20,15 +20,14 @@ trait ActorMetrics extends Actor with ActorLogging {
       case UnknownMetric => log.error(s"Event for unknown Metric: $m")
       case InvalidEvent => log.error(s"Invalid event $m")
     }
-    case Tick(id, v) if (id == metricSystem.id) => {
+    case Tick(v) => {
       val agg = metrics.aggregate
       metrics.tick(metricSystem.tickPeriod)
-      metricSystem.database ! Tock(agg, v)
+      sender() ! Tock(agg, v)
     }
   }
 
   override def preStart() {
-    context.system.eventStream.subscribe(self, classOf[Tick])
-    metricSystem.database ! MetricDatabase.RegisterCollector(self)
+    metricSystem.intervalAggregator ! IntervalAggregator.RegisterCollector(self)
   }
 }

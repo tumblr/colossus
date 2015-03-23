@@ -6,10 +6,10 @@ import akka.agent.Agent
 import scala.concurrent.duration._
 
 
-class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapshot: Agent[MetricMap], collectSystemMetrics: Boolean) extends Actor with ActorLogging {
-  import MetricClock._
-  import MetricDatabase._
+class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, snapshot: Agent[MetricMap], collectSystemMetrics: Boolean) extends Actor with ActorLogging {
 
+  import context.dispatcher
+  import IntervalAggregator._
   import java.util.{HashSet=>JHashSet}
   import scala.collection.JavaConversions._
 
@@ -17,40 +17,52 @@ class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapsho
 
   def blankMap(): MetricMap = if (collectSystemMetrics) systemMetrics.metrics else Map()
 
-  var latestTick = 0L
-  var build: MetricMap = blankMap() 
+  var build: MetricMap = blankMap()
   var metrics = systemMetrics.metrics
   val collectors = new JHashSet[ActorRef]()
+  var latestTick = 0L
 
-  //TODO: this name needs to be able to support multiple databases/metric systems.
-  val collectedGauge = new ConcreteGauge(Gauge(namespace / "metric_completion"))
+
+  val metricSafeDurationName = interval.toString().replaceAll(" ", "") //ie: 1second, 44milliseconds
+  val collectedGauge = new ConcreteGauge(Gauge(namespace / metricSafeDurationName / "metric_completion"))
+
   //needs to be a float so that incrementCollected won't report 0s
   var tocksCollected : Float = 0
+  var tocksExpected : Int = 0
 
   def receive = {
-    case Tick(id, v) if (id == systemId) => {
-      latestTick = v
+
+    case SendTick => {
+      latestTick += 1
+      collectors.foreach(_ ! Tick(latestTick))
       val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
       metrics = build << collectedMap
       snapshot.alter(_ => metrics)
       build = blankMap()
       collectedGauge.set(0L)
       tocksCollected = 0
+      tocksExpected = collectors.size()
     }
-    case Tock(m, v) => if (v >= latestTick) {
-      //ignoring the bad cases of what happens when we get tocks for ticks that have already passed.
-      //that will be fixed in another PR when we merge the Clock and DB together.
-      //also ignoring what if we get 2 tocks for the same tick/Collector?
-      if(collectors.contains(sender())) {
-        build = build << m
-        incrementCollected()
-      }else {
-        log.warning(s"Received metrics from an unregistered EventCollector: ${sender()}")
+
+    case Tock(m, v) => {
+      if (v == latestTick) {
+        if(collectors.contains(sender())) {
+          build = build << m
+          incrementCollected()
+        }else {
+          log.warning(s"Received metrics from an unregistered EventCollector: ${sender()}")
+        }
+      }else{
+        log.warning(s"Currently processing tick# $latestTick.  Received a tock message for an outdated tick#: $v.  Ignoring")
       }
     }
+
     case GetDB => sender ! DB(metrics)
+
+      //TODO: Why do we need this if we have an Agent?  Couldn't we just query the agent?  Querying the "published" version seems safer.
     case Query(filter) => sender ! QueryResult(metrics.filter(filter))
 
+      //TODO: kill this
     case GetWindow(min, max) => {
       //this is now deprecated since we don't store more than 1 second of data ever
       sender ! Window(Frame(System.currentTimeMillis, metrics) :: Nil)
@@ -68,8 +80,6 @@ class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapsho
     case Terminated(child) => {
       log.warning(s"oh no!  We lost an EventCollector $child. Removing from registered collectors.")
       collectors.remove(child)
-      //weird condition here:  we get a tock of data, it is collected.  The actor is terminated, we remove it from our collectors
-      //Now, when we report percentage complete, we will have x reported and x-1 collectors, giving us > 100%!
     }
 
     case ListCollectors => {
@@ -78,18 +88,20 @@ class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapsho
   }
 
   private def incrementCollected() {
-
     tocksCollected += 1
-    val pct = (tocksCollected / collectors.size) * 100F
+    val pct = (tocksCollected / tocksExpected) * 100F
     collectedGauge.set(pct.toLong) //rounds down
   }
 
   override def preStart() {
-    context.system.eventStream.subscribe(self, classOf[Tick])
+    context.system.scheduler.schedule(interval, interval, self, SendTick)
   }
 
+  private case object SendTick
+
 }
-object MetricDatabase {
+
+object IntervalAggregator {
   case object GetDB
   case class Query(filter: MetricFilter)
   case class GetWindow(min: Option[Long], max: Option[Long])
@@ -99,35 +111,10 @@ object MetricDatabase {
   case class RegisterCollector(ref : ActorRef)
   private[metrics] case object ListCollectors
 
-}
-
-
-class MetricClock(systemId: MetricSystemId, period: FiniteDuration) extends Actor with ActorLogging {
-  import context.dispatcher
-  import MetricClock._
-  
-  override def preStart() {
-    context.system.scheduler.schedule(period, period, self, SendTick)
-  }
-
-  var tickNum = 0L
-  case object SendTick
-
-  def receive = {
-    case SendTick => {
-      tickNum += 1
-      context.system.eventStream.publish(Tick(systemId, tickNum))
-    }
-  }
+  private[metrics] case class Tick(value: Long)
+  private[metrics] case class Tock(metrics: MetricMap, tick: Long)
 
 }
-object MetricClock {
-  case class Tick(systemId: MetricSystemId, value: Long)
-  case class Tock(metrics: MetricMap, tick: Long)
-}
-
-
-
 
 
 class SystemMetricsCollector(namespace: MetricAddress) {
@@ -166,7 +153,7 @@ class SystemMetricsCollector(namespace: MetricAddress) {
 
 }
 
-
+//TODO: only really used by histograms...should we move?
 class TickTracker(period: FiniteDuration) {
   import TickTracker._
 
