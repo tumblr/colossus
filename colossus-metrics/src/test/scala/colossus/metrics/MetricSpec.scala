@@ -105,7 +105,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
 
       Thread.sleep(50)
       val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
-      c.futureValue must equal (Set(sc1.local.collector, sc2.local.collector))
+      c.futureValue must equal (Set(sc1.collector, sc2.collector))
 
     }
     "remove terminated EventCollectors" in {
@@ -119,12 +119,12 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val sc1 = SharedCollection()
       val sc2 = SharedCollection()
 
-      sc2.local.collector ! PoisonPill
+      sc2.collector ! PoisonPill
 
       Thread.sleep(50)
 
       val c: Future[Set[ActorRef]] = (m1.database ? ListCollectors).mapTo[Set[ActorRef]]
-      c.futureValue must equal (Set(sc1.local.collector))
+      c.futureValue must equal (Set(sc1.collector))
     }
 
 

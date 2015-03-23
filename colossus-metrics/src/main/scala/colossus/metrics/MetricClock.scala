@@ -23,7 +23,7 @@ class MetricDatabase(systemId: MetricSystemId, namespace: MetricAddress, snapsho
   val collectors = new JHashSet[ActorRef]()
 
   //TODO: this name needs to be able to support multiple databases/metric systems.
-  val collectedGauge = new ConcreteGauge(Gauge(namespace / "metric_completion"), self)
+  val collectedGauge = new ConcreteGauge(Gauge(namespace / "metric_completion"))
   //needs to be a float so that incrementCollected won't report 0s
   var tocksCollected : Float = 0
 
