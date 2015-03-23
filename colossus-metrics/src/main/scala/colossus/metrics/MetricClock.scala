@@ -20,6 +20,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   var build: MetricMap = blankMap()
   var metrics = systemMetrics.metrics
   val collectors = new JHashSet[ActorRef]()
+  val reporters = new JHashSet[ActorRef]()
   var latestTick = 0L
 
 
@@ -38,6 +39,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
       metrics = build << collectedMap
       snapshot.alter(_ => metrics)
+      reporters.foreach(_ ! ReportMetrics(metrics))
       build = blankMap()
       collectedGauge.set(0L)
       tocksCollected = 0
@@ -57,29 +59,20 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       }
     }
 
-    case GetDB => sender ! DB(metrics)
+    case a @ RegisterCollector(ref) => registerComponent(a, ref, collectors)
 
-      //TODO: Why do we need this if we have an Agent?  Couldn't we just query the agent?  Querying the "published" version seems safer.
-    case Query(filter) => sender ! QueryResult(metrics.filter(filter))
+    case a @ RegisterReporter(ref) => registerComponent(a, ref, reporters)
 
-      //TODO: kill this
-    case GetWindow(min, max) => {
-      //this is now deprecated since we don't store more than 1 second of data ever
-      sender ! Window(Frame(System.currentTimeMillis, metrics) :: Nil)
-    }
-
-    case RegisterCollector(ref) => {
-      context.watch(ref)
-      if(collectors.contains(ref)){
-        log.warning(s"Received RegisterCollector message from $ref which is already registered.")
-      }else{
-        log.debug(s"Registered EventCollector $ref")
-        collectors.add(ref)
-      }
-    }
     case Terminated(child) => {
-      log.warning(s"oh no!  We lost an EventCollector $child. Removing from registered collectors.")
-      collectors.remove(child)
+      if(collectors.contains(child)){
+        log.warning(s"oh no!  We lost an EventCollector $child. Removing from registered collectors.")
+        collectors.remove(child)
+      }else if(reporters.contains(child)){
+        log.warning(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
+        reporters.remove(child)
+      }else{
+        log.warning(s"someone: $child died..for which there is no reporter or collector registered")
+      }
     }
 
     case ListCollectors => {
@@ -93,6 +86,16 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     collectedGauge.set(pct.toLong) //rounds down
   }
 
+  private def registerComponent(msg : Any, ref : ActorRef, refs : JHashSet[ActorRef]) {
+    context.watch(ref)
+    if(refs.contains(ref)){
+      log.warning(s"Received ${msg.getClass.getCanonicalName} for $ref, which is already registered")
+    }else{
+      log.debug(s"Registered ${msg.getClass.getCanonicalName}: $ref")
+      refs.add(ref)
+    }
+  }
+
   override def preStart() {
     context.system.scheduler.schedule(interval, interval, self, SendTick)
   }
@@ -102,13 +105,10 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 }
 
 object IntervalAggregator {
-  case object GetDB
-  case class Query(filter: MetricFilter)
-  case class GetWindow(min: Option[Long], max: Option[Long])
 
-  case class DB(metrics: MetricMap)
-  case class QueryResult(metrics: MetricMap)
   case class RegisterCollector(ref : ActorRef)
+  case class RegisterReporter(ref : ActorRef)
+  case class ReportMetrics(m : MetricMap)
   private[metrics] case object ListCollectors
 
   private[metrics] case class Tick(value: Long)
