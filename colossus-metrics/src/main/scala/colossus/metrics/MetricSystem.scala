@@ -32,7 +32,7 @@ case class MetricSystem(namespace: MetricAddress, intervalAggregator : ActorRef,
    * @param fact
    * @return
    */
-  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config)(this, fact)
+  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config, intervalAggregator)
 
   def sharedCollection(globalTags: TagMap = TagMap.Empty)(implicit fact: ActorRefFactory) = {
     implicit val me = this

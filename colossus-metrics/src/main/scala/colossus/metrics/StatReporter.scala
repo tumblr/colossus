@@ -1,15 +1,10 @@
 package colossus.metrics
 
-import akka.actor._
-import akka.pattern.ask
-import akka.actor.OneForOneStrategy
 import akka.actor.SupervisorStrategy._
-import akka.util.Timeout
+import akka.actor.{OneForOneStrategy, _}
+import colossus.metrics.IntervalAggregator.{RegisterReporter, ReportMetrics}
 
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
-
-import java.io._
 
 trait TagGenerator {
   def tags: TagMap
@@ -20,70 +15,58 @@ trait TagGenerator {
  * @param metricSender A [[MetricSender]] instance that the reporter will use to send metrics
  * @param globalTags
  * @param filters
- * @param frequency
  * @param includeHostInGlobalTags
  */
 case class MetricReporterConfig(
   metricSender: MetricSender,
   globalTags: Option[TagGenerator] = None,
   filters: Option[Seq[MetricFilter]] = None,
-  frequency: FiniteDuration = 60.seconds,
   includeHostInGlobalTags: Boolean = true
 )
 
-class MetricReporter(metrics: MetricSystem, config: MetricReporterConfig) extends Actor with ActorLogging{
+class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig) extends Actor with ActorLogging{
   import MetricReporter._
   import config._
-  import context.dispatcher
 
   val localHostname = java.net.InetAddress.getLocalHost.getHostName
 
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1, withinTimeRange = 3 seconds) {
     case _: NullPointerException     => Escalate
-    case _: IOException              => Restart
     case _: Exception                => Restart
   }
 
   def createSender() = context.actorOf(metricSender.props, name = s"${metricSender.name}-sender")
   var statSender = createSender()
 
-  implicit val timeout = Timeout(100.milliseconds)
-
   def getGlobalTags = {
-    val usertags = globalTags.map{_.tags}.getOrElse(Map())
+    val userTags = globalTags.map{_.tags}.getOrElse(Map())
     val added = if (includeHostInGlobalTags) Map("host" -> localHostname) else Map()
-    usertags ++ added
+    userTags ++ added
   }
 
   def receive = {
-    case SendStats => (metrics.intervalAggregator ? IntervalAggregator.GetDB).onComplete{
-      case Success(IntervalAggregator.DB(db)) => {
-        val filtered: MetricMap = filters.map{f => db.filter(f)}.getOrElse(db)
-        statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
-      }
-      case Failure(whoops) => log.error(s"Metrics reporting failed: ${whoops.getMessage}")
-      case _ => log.error("Bad response from db")
+
+    case ReportMetrics(m) => {
+      val filtered: MetricMap = filters.fold(m)(m.filter(_))
+      statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
     }
     case ResetSender => {
       log.info("resetting stats sender")
       statSender ! PoisonPill
       statSender = createSender()
     }
-      
   }
 
   override def preStart() {
-    context.system.scheduler.schedule(frequency, frequency, self , SendStats)
+    intervalAggregator ! RegisterReporter(self)
   }
-
 }
 
 object MetricReporter {
   case object ResetSender
-  case object SendStats
 
-  def apply(config: MetricReporterConfig)(implicit metrics: MetricSystem, fact: ActorRefFactory): ActorRef = {
-    fact.actorOf(Props(classOf[MetricReporter], metrics, config))
+  def apply(config: MetricReporterConfig, intervalAggregator : ActorRef)(implicit fact: ActorRefFactory): ActorRef = {
+    fact.actorOf(Props(classOf[MetricReporter], intervalAggregator, config))
   }
 
 }
