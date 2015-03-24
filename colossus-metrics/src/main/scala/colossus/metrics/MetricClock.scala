@@ -18,7 +18,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   def blankMap(): MetricMap = if (collectSystemMetrics) systemMetrics.metrics else Map()
 
   var build: MetricMap = blankMap()
-  var metrics = systemMetrics.metrics
+  //var metrics = systemMetrics.metrics
   val collectors = new JHashSet[ActorRef]()
   val reporters = new JHashSet[ActorRef]()
   var latestTick = 0L
@@ -36,14 +36,8 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     case SendTick => {
       latestTick += 1
       collectors.foreach(_ ! Tick(latestTick))
-      val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
-      metrics = build << collectedMap
-      snapshot.alter(_ => metrics)
-      reporters.foreach(_ ! ReportMetrics(metrics))
-      build = blankMap()
-      collectedGauge.set(0L)
-      tocksCollected = 0
-      tocksExpected = collectors.size()
+      finalizeAndReportMetrics()
+      resetMetrics()
     }
 
     case Tock(m, v) => {
@@ -84,6 +78,20 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     tocksCollected += 1
     val pct = (tocksCollected / tocksExpected) * 100F
     collectedGauge.set(pct.toLong) //rounds down
+  }
+
+  private def finalizeAndReportMetrics() {
+    val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
+    build = build << collectedMap
+    snapshot.send(build)
+    reporters.foreach(_ ! ReportMetrics(build))
+  }
+
+  private def resetMetrics() {
+    build = blankMap()
+    collectedGauge.set(0L)
+    tocksCollected = 0
+    tocksExpected = collectors.size()
   }
 
   private def registerComponent(msg : Any, ref : ActorRef, refs : JHashSet[ActorRef]) {
