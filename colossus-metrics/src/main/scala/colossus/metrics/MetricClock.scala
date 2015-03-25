@@ -26,6 +26,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
   val metricSafeDurationName = interval.toString().replaceAll(" ", "") //ie: 1second, 44milliseconds
   val collectedGauge = new ConcreteGauge(Gauge(namespace / metricSafeDurationName / "metric_completion"))
+  collectedGauge.set(0)
 
   //needs to be a float so that incrementCollected won't report 0s
   var tocksCollected : Float = 0
@@ -35,7 +36,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
     case SendTick => {
       latestTick += 1
-      collectors.foreach(_ ! Tick(latestTick))
+      collectors.foreach(_ ! Tick(latestTick, interval))
       finalizeAndReportMetrics()
       resetMetrics()
     }
@@ -72,6 +73,10 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     case ListCollectors => {
       sender ! collectors.toSet //yea..that's right..immutable on the way out.
     }
+
+    case ListReporters => {
+      sender ! reporters.toSet //yea..that's right..immutable on the way out.
+    }
   }
 
   private def incrementCollected() {
@@ -107,9 +112,6 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   override def preStart() {
     context.system.scheduler.schedule(interval, interval, self, SendTick)
   }
-
-  private case object SendTick
-
 }
 
 object IntervalAggregator {
@@ -118,8 +120,10 @@ object IntervalAggregator {
   case class RegisterReporter(ref : ActorRef)
   case class ReportMetrics(m : MetricMap)
   private[metrics] case object ListCollectors
+  private[metrics] case object ListReporters
+  private[metrics] case object SendTick
 
-  private[metrics] case class Tick(value: Long)
+  private[metrics] case class Tick(value: Long, interval : FiniteDuration)
   private[metrics] case class Tock(metrics: MetricMap, tick: Long)
 
 }
