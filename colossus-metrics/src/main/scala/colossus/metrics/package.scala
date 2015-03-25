@@ -11,11 +11,17 @@ package object metrics {
 
   //hot dog! look at all these maps!
   type TagMap     = Map[String, String]
-  type ValueMap   = Map[TagMap, MetricValue]
-  type MetricMap  = Map[MetricAddress, ValueMap]
+  type BaseValueMap[T]  = Map[TagMap, T]
+  type BaseMetricMap[T] = Map[MetricAddress, BaseValueMap[T]]
 
-  type MetricValue = Long
-  type MetricSet    = Set[Metric]
+  type ValueMap   = BaseValueMap[MetricValue]
+  type MetricMap  = BaseMetricMap[MetricValue]
+
+  //raw metrics are produced from metric values, for example a histogram value
+  //is turned into individual metrics for each percentile, max, min, etc.
+  type RawMetricValue = Long
+  type RawValueMap    = BaseValueMap[RawMetricValue]
+  type RawMetricMap   = BaseMetricMap[RawMetricValue]
 
 
   object TagMap {
@@ -46,27 +52,18 @@ package object metrics {
     def fromJson(j: JValue): MetricMap = unserialize(j.extract[SerializedMetricMap])
   }
 
+  implicit class LongValue(val value: Long) extends MetricValue {
+    def toRawMetrics(address: MetricAddress, tags: TagMap) : RawMetricMap = Map(address -> Map(tags -> value))
+  }
+
   //these value classes are the bees knees!
 
   implicit class RichMetricMap(val underlying: MetricMap) extends AnyVal {
-    /**
-     * Inserts the values from the given map into this map, merging any values
-     * with the same address, but if two values collide, the value from the
-     * given map overwrites the value in this map.  Thus this function is not
-     * commutative!
-     */
-    def <<(given: MetricMap): MetricMap = {
-      val builder = collection.mutable.Map[MetricAddress, ValueMap]()
-      builder ++= underlying
+
+    def ++(given: MetricMap): MetricMap = {
+      val builder = collection.mutable.Map[MetricAddress, ValueMap]
+      buider ++= underlying
       given.foreach{ case(address, values) =>
-        if (builder contains address) {
-          builder(address) = builder(address) ++ values
-        } else {
-          builder(address) = values
-        }
-      }
-      builder.toMap
-    }
 
     def +(metric: Metric): MetricMap = if (underlying contains metric.address) {
       underlying + (metric.address -> (underlying(metric.address) ++ metric.values))
@@ -113,6 +110,28 @@ package object metrics {
 
   }
 
+  implicit class RichRawMetricMap(val underlying: RawMetricMap) extends AnyVal {
+    /**
+     * Inserts the values from the given map into this map, merging any values
+     * with the same address, but if two values collide, the value from the
+     * given map overwrites the value in this map.  Thus this function is not
+     * commutative!
+     */
+    def <<(given: MetricMap): MetricMap = {
+      val builder = collection.mutable.Map[MetricAddress, ValueMap]()
+      builder ++= underlying
+      given.foreach{ case(address, values) =>
+        if (builder contains address) {
+          builder(address) = builder(address) ++ values
+        } else {
+          builder(address) = values
+        }
+      }
+      builder.toMap
+    }
+
+  }
+
 
 
   implicit class RichTagMap(val underlying: TagMap) extends AnyVal {
@@ -138,10 +157,14 @@ package object metrics {
 
     def tagNames = underlying.map{case (tags, values) => tags.keys}.reduce{_ ++ _}
 
-  }
-
-  implicit class RichMetricset(val underlying: MetricSet) extends AnyVal {
-    def toMap: MetricMap = underlying.map{case Metric(address, values) => (address -> values)}.toMap
+    def ++(other: ValueMap): ValueMap = {
+      val builder = collection.mutable.Map[TagMap, MetricValue]()
+      builder ++= underlying
+      other.foreach{case (tags, value) =>
+        builder(tags) = builder.get(tags).map{ myValue => myValue + value}.getOrElse(value)
+      }
+      builder.toMap
+    }
 
   }
 
@@ -149,26 +172,6 @@ package object metrics {
 
   object Timestamp {
     def apply(): Timestamp = System.currentTimeMillis / 1000
-  }
-
-  /**
-   * STAR's are purely for maintaining sanity when actors are being passed all
-   * over the place and are intended to help detect at compile time when we're
-   * sending a message to the wrong actor.  eg, no more "foo: ActorRef" in parameters
-   *
-   * It is not intended to ensure an actor can handle the messages that are
-   * sent to it.  Perhaps we will switch to typed channels when those are more
-   * stable
-   */
-  trait SemiTypedActorRef[M] {
-
-    val ref: ActorRef
-
-    def !(message: M) {
-      ref ! message
-    }
-
-    def ?(message: M)(implicit timeout: Timeout): Future[Any] = ref ? message
   }
 
 }

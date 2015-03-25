@@ -9,6 +9,22 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 
+/**
+ * The base trait for any exported value from an event collector
+ *
+ * This requires that every matric value is a semi-group (associative +
+ * operation), however they should really be monoids (semi-group with a zero
+ * value).  Unfortunately this cannot be enforced by this trait since these are
+ * passed in actor messages and must be monomorphic
+ */
+trait MetricValue {
+  def + (b: MetricValue): Option[MetricValue]
+
+  def toRawMetrics(address: MetricAddress, globalTags: TagMap): RawMetricMap
+}
+
+
+
 trait MetricEvent {
   def address: MetricAddress
 }
