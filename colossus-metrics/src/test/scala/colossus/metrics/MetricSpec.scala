@@ -1,18 +1,21 @@
 package colossus.metrics
 
-import akka.testkit.TestProbe
+import akka.testkit.{TestKit, TestProbe}
 import akka.util.Timeout
 import colossus.metrics.IntervalAggregator._
 import org.scalatest._
 
 
 import akka.actor._
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import MetricAddress._
 
-class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with ScalaFutures with OptionValues {
+class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with ScalaFutures with OptionValues with IntegrationPatience{
+
+  import akka.testkit._
+
 
   "MetricAddress" must {
     "startsWith" in {
@@ -47,7 +50,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val sc1 = SharedCollection()
       val sc2 = SharedCollection()
 
-      Thread.sleep(50)
+      dilatedWait(20)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
       val expectedCollectors = Set(sc1.collector,sc2.collector)
@@ -69,11 +72,12 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val sc1 = SharedCollection()
       val sc2 = SharedCollection()
 
-      Thread.sleep(20)
+
+      dilatedWait(20)
 
       sc2.collector ! PoisonPill
 
-      Thread.sleep(20)
+      dilatedWait(20)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
       f.futureValue.flatten must equal (Iterable.fill(2)(sc1.collector))
@@ -110,7 +114,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val conf = MetricReporterConfig(LoggerSender, None, None, false)
       val reporter = interval.report(conf)
 
-      Thread.sleep(20)
+      dilatedWait(20)
 
       val expectedValues = Set(1.day->Set(reporter), 10.days -> Set())
       //sorry..trying to avoid sleeps and awaits and such
@@ -135,11 +139,9 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val conf = MetricReporterConfig(LoggerSender, None, None, false)
       val reporter = interval.report(conf)
 
-      Thread.sleep(20)
-
+      dilatedWait(20)
       reporter ! PoisonPill
-
-      Thread.sleep(20)
+      dilatedWait(20)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]]))
       f.futureValue.flatten must equal (Iterable())
@@ -157,6 +159,11 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
       p.expectMsg(ReportMetrics(Map(Root /"sys1"/"1day"/"metric_completion" -> Map(Map[String, String]() -> MetricValues.SumValue(0L)))))
       sys.shutdown()
+    }
+
+    def dilatedWait(millis : Long)(implicit ac : ActorSystem) {
+      println(millis.milliseconds.dilated.toMillis)
+      Thread.sleep(millis.milliseconds.dilated.toMillis)
     }
   }
 
