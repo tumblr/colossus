@@ -34,7 +34,10 @@ package object metrics {
 
   object MetricMap {
     val Empty: MetricMap = Map()
-    def apply(metrics: Metric*): MetricMap = Map(metrics.map{m => (m.address -> m.values)}: _*)
+  }
+
+  object RawMetricMap {
+    val Empty: RawMetricMap = Map()
 
     implicit val formats = DefaultFormats
 
@@ -45,43 +48,62 @@ package object metrics {
     type SerializedMetricMap = Map[String, List[TaggedValue]]
 
 
-    def unserialize(s: SerializedMetricMap): MetricMap = s.map{case (addressString, tagvalues) => 
+    def unserialize(s: SerializedMetricMap): RawMetricMap = s.map{case (addressString, tagvalues) => 
       MetricAddress(addressString) -> tagvalues.map{_.tuple}.toMap
     }
 
-    def fromJson(j: JValue): MetricMap = unserialize(j.extract[SerializedMetricMap])
+    def fromJson(j: JValue): RawMetricMap = unserialize(j.extract[SerializedMetricMap])
   }
 
-  implicit class LongValue(val value: Long) extends MetricValue {
-    def toRawMetrics(address: MetricAddress, tags: TagMap) : RawMetricMap = Map(address -> Map(tags -> value))
-  }
 
   //these value classes are the bees knees!
 
   implicit class RichMetricMap(val underlying: MetricMap) extends AnyVal {
 
-    def ++(given: MetricMap): MetricMap = {
-      val builder = collection.mutable.Map[MetricAddress, ValueMap]
-      buider ++= underlying
-      given.foreach{ case(address, values) =>
-
-    def +(metric: Metric): MetricMap = if (underlying contains metric.address) {
-      underlying + (metric.address -> (underlying(metric.address) ++ metric.values))
-    } else {
-      underlying + (metric.address -> metric.values)
+    def <+>(given: MetricMap): MetricMap = merge(given)
+    def merge (given: MetricMap): MetricMap = {
+      val builder = collection.mutable.Map[MetricAddress, ValueMap]()
+      builder ++= underlying
+      given.foreach{ case(address, values) => 
+        builder(address) = builder.get(address).map{_ <+> values}.getOrElse(values)
+      }
+      builder.toMap
     }
 
     //this is pretty inefficient, but currently no better way to do it
     def addTags(globalTags: TagMap): MetricMap = underlying.map{case (address, valueMap) => (address, valueMap.addTags(globalTags))}
 
+    def prefix(address: MetricAddress): MetricMap = underlying.map{case (a, values) => (address / a, values)}
 
-    def filter(filters: Seq[MetricFilter]): MetricMap = underlying.flatMap{ case (address, values) =>
-      filters.find{_.address matches address}.map{filter => (filter.alias.getOrElse(address) -> filter.valueFilter.process(values))}
+    def toRawMetrics: RawMetricMap = {
+      underlying.map{ case (address, valueMap) => 
+        val rawValues = valueMap.map{case (tags, value) => (tags, value.toRaw)}
+        (address, rawValues)
+      }
     }
 
-    def filter(f: MetricFilter): MetricMap = filter(List(f))
 
-    def prefix(address: MetricAddress): MetricMap = underlying.map{case (a, values) => (address / a, values)}
+  }
+
+  implicit class RichRawMetricMap(val underlying: RawMetricMap) extends AnyVal {
+    /**
+     * Inserts the values from the given map into this map, merging any values
+     * with the same address, but if two values collide, the value from the
+     * given map overwrites the value in this map.  Thus this function is not
+     * commutative!
+     */
+    def <<(given: RawMetricMap): RawMetricMap = {
+      val builder = collection.mutable.Map[MetricAddress, RawValueMap]()
+      builder ++= underlying
+      given.foreach{ case(address, values) =>
+        if (builder contains address) {
+          builder(address) = builder(address) ++ values
+        } else {
+          builder(address) = values
+        }
+      }
+      builder.toMap
+    }
 
     def fragments(globalTags: TagMap): Seq[MetricFragment] = underlying.flatMap{case (address, values) => 
       values.map{case (tags, value) => MetricFragment(address, tags ++ globalTags, value)}
@@ -108,27 +130,11 @@ package object metrics {
       }.toList
     )
 
-  }
-
-  implicit class RichRawMetricMap(val underlying: RawMetricMap) extends AnyVal {
-    /**
-     * Inserts the values from the given map into this map, merging any values
-     * with the same address, but if two values collide, the value from the
-     * given map overwrites the value in this map.  Thus this function is not
-     * commutative!
-     */
-    def <<(given: MetricMap): MetricMap = {
-      val builder = collection.mutable.Map[MetricAddress, ValueMap]()
-      builder ++= underlying
-      given.foreach{ case(address, values) =>
-        if (builder contains address) {
-          builder(address) = builder(address) ++ values
-        } else {
-          builder(address) = values
-        }
-      }
-      builder.toMap
+    def filter(filters: Seq[MetricFilter]): RawMetricMap = underlying.flatMap{ case (address, values) =>
+      filters.find{_.address matches address}.map{filter => (filter.alias.getOrElse(address) -> filter.valueFilter.process(values))}
     }
+
+    def filter(f: MetricFilter): RawMetricMap = filter(List(f))
 
   }
 
@@ -145,6 +151,20 @@ package object metrics {
   }
 
   implicit class RichValueMap(val underlying: ValueMap) extends AnyVal {
+    def <+>(other: ValueMap): ValueMap = {
+      val builder = collection.mutable.Map[TagMap, MetricValue]()
+      builder ++= underlying
+      other.foreach{case (tags, value) =>
+        builder(tags) = builder.get(tags).map{ myValue => myValue + value}.getOrElse(value)
+      }
+      builder.toMap
+    }
+
+    def addTags(globalTags: TagMap): ValueMap = underlying.map{case (tags, value) => (tags ++ globalTags, value)}
+
+  }
+
+  implicit class RichRawValueMap(val underlying: RawValueMap) extends AnyVal {
     def lineString(indent: Boolean = true): String = underlying.map{ case (tags, value) => 
       (if (indent) "\t" else "") + "[" + tags.lineString + "] " + value.toString
     }.mkString("\n")
@@ -153,18 +173,9 @@ package object metrics {
 
     def filter(filter: MetricValueFilter) = filter.process(underlying)
 
-    def addTags(globalTags: TagMap): ValueMap = underlying.map{case (tags, value) => (tags ++ globalTags, value)}
 
     def tagNames = underlying.map{case (tags, values) => tags.keys}.reduce{_ ++ _}
 
-    def ++(other: ValueMap): ValueMap = {
-      val builder = collection.mutable.Map[TagMap, MetricValue]()
-      builder ++= underlying
-      other.foreach{case (tags, value) =>
-        builder(tags) = builder.get(tags).map{ myValue => myValue + value}.getOrElse(value)
-      }
-      builder.toMap
-    }
 
   }
 

@@ -71,7 +71,7 @@ object AggregationType {
 case class GroupBy(tags: Set[String], aggregationType: AggregationType) {
   def reduce(map: TagMap): TagMap = map.filter{case (key, value) => tags.contains(key)}
 
-  def group(values: ValueMap): ValueMap = {
+  def group(values: RawValueMap): RawValueMap = {
     val builder = collection.mutable.Map[TagMap, collection.mutable.ListBuffer[Long]]()
     values.foreach{case (tags, value) => 
       val reduced = reduce(tags) 
@@ -89,7 +89,7 @@ case class GroupBy(tags: Set[String], aggregationType: AggregationType) {
 
 case class MetricValueFilter(filter: Option[TagSelector], aggregate: Option[GroupBy]) {
 
-  def process(values: ValueMap): ValueMap = {
+  def process(values: RawValueMap): RawValueMap = {
     val filtered = filter.map{f => values.filter{case (tags, value) => f.matches(tags)}}.getOrElse(values)
     aggregate.map{_.group(filtered)}.getOrElse(filtered)
   }

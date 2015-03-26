@@ -47,7 +47,7 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   def receive = {
 
     case ReportMetrics(m) => {
-      val filtered: MetricMap = filters.fold(m)(m.filter(_))
+      val filtered: RawMetricMap = filters.fold(m)(m.filter(_))
       statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
     }
     case ResetSender => {
@@ -77,7 +77,7 @@ trait MetricSender {
 }
 
 object MetricSender {
-  case class Send(metrics: MetricMap, globalTags: TagMap, timestamp: Long) {
+  case class Send(metrics: RawMetricMap, globalTags: TagMap, timestamp: Long) {
     def fragments = metrics.fragments(globalTags)
   }
 }

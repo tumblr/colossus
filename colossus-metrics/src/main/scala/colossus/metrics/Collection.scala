@@ -18,11 +18,69 @@ import scala.reflect.ClassTag
  * passed in actor messages and must be monomorphic
  */
 trait MetricValue {
-  def + (b: MetricValue): Option[MetricValue]
+  def + (b: MetricValue): MetricValue
 
-  def toRawMetrics(address: MetricAddress, globalTags: TagMap): RawMetricMap
+  def toRaw: Long
 }
 
+
+class EventCollectorException(message: String) extends Exception(message)
+
+object MetricValues {
+
+  def wrongType(left: MetricValue, right: MetricValue): Nothing = throw new EventCollectorException(s"Attempted to merge incompatible values $left, $right")
+
+  case class SumValue(value: Long) extends MetricValue {
+    def +(b: MetricValue) = b match {
+      case SumValue(bval) => SumValue(value + bval)
+      case _ => wrongType(this, b)
+    }
+
+    def toRaw = value
+  }
+
+  /**
+   * In most cases a weight is a count
+   */
+  case class WeightedAverageValue(value: Long, weight: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case WeightedAverageValue(v, w) => {
+        val wsum = weight + w
+        WeightedAverageValue((value * (weight / wsum)) + (v * (w / wsum)), wsum)
+      }
+      case _ => wrongType(this, other)
+    }
+
+    def toRaw = value
+  }
+
+  case class MinValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case MinValue(v) => MinValue(math.min(v, value))
+      case _ => wrongType(this, other)
+    }
+
+    def toRaw = value
+  }
+
+  case class MaxValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case MaxValue(v) => MaxValue(math.max(v, value))
+      case _ => wrongType(this, other)
+    }
+
+    def toRaw = value
+  }
+
+  /**
+   * This value is intended for metrics that are unique and should never need to be aggregated
+   */
+  case class BasicValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = wrongType(this, other)
+    def toRaw = value
+  }
+
+}
 
 
 trait MetricEvent {
@@ -172,8 +230,9 @@ class LocalCollection(
     val context = CollectionContext(globalTags)
     val eventMetrics = metrics.values.map{_.metrics(context)}
     val producerMetrics = localProducers.map{_.metrics(context)}
+    //TODO: using <+> here should be unnecessary, might want to use ++
     (eventMetrics ++ producerMetrics)
-      .foldLeft[MetricMap](Map()){case (build, m) => build << m}
+      .foldLeft[MetricMap](Map()){case (build, m) => build <+> m}
       .filter{! _._2.isEmpty}
   }
 
