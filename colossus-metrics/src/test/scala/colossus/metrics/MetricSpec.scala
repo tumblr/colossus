@@ -12,10 +12,20 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import MetricAddress._
 
-class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with ScalaFutures with OptionValues with IntegrationPatience{
+class MetricSpec(_system : ActorSystem) extends TestKit(_system) with WordSpecLike with MustMatchers with BeforeAndAfterAll with ScalaFutures with OptionValues with IntegrationPatience{
+
+  def this() = this(ActorSystem("MetricSpec"))
+
+  implicit val sys = _system
 
   import akka.testkit._
 
+  implicit val to = new Timeout(1.second.dilated)
+  implicit val ec = sys.dispatcher
+
+  override protected def afterAll() {
+    TestKit.shutdownActorSystem(sys)
+  }
 
   "MetricAddress" must {
     "startsWith" in {
@@ -29,85 +39,71 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
 
   "MetricSystem" must {
     "allow multiple systems to start without any conflicts" in {
-      implicit val sys = ActorSystem("metrics")
       val m1 = MetricSystem("/sys1")
       val m2 = MetricSystem("/sys2")
       //no exceptions means the test passed
-      sys.shutdown()
     }
 
     //TODO: FIX ALL THESE TESTS..TIMING ISSUES IN TRAVIS
     "register EventCollectors across aggregators" ignore {
       import akka.pattern.ask
 
-      implicit val sys = ActorSystem("metrics")
-      implicit val ec = sys.dispatcher
       //set the tick period to something really high so we can control the ticks ourselves
-      implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
+      implicit val m1 = MetricSystem("/sys3", Seq(1.day, 10.days), false)
 
-      implicit val to = new Timeout(1.second)
+      val p1 = TestProbe()
+      val p2 = TestProbe()
 
-      val sc1 = SharedCollection()
-      val sc2 = SharedCollection()
-
-      dilatedWait(20)
+      m1.registerCollector(p1.ref)
+      m1.registerCollector(p2.ref)
+      p1.expectMsg(Registered)
+      p2.expectMsg(Registered)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
-      val expectedCollectors = Set(sc1.collector,sc2.collector)
+      val expectedCollectors = Set(p1.ref, p2.ref)
       val expectedValue = Iterable.fill(2)(expectedCollectors)
       f.futureValue must equal (expectedValue)
-      sys.shutdown()
     }
 
     "remove terminated EventCollectors" ignore {
       import akka.pattern.ask
 
-      implicit val sys = ActorSystem("metrics")
-      implicit val ec = sys.dispatcher
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
-
-      implicit val to = new Timeout(1.second)
 
       val sc1 = SharedCollection()
       val sc2 = SharedCollection()
 
-
-      dilatedWait(20)
+      val p = TestProbe()
+      p.watch(sc2.collector)
 
       sc2.collector ! PoisonPill
 
-      dilatedWait(20)
+      p.expectTerminated(sc2.collector)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
       f.futureValue.flatten must equal (Iterable.fill(2)(sc1.collector))
-      sys.shutdown()
     }
 
     "Registered Collectors should receive Ticks from all IntervalAggregators" ignore {
       implicit val sys = ActorSystem("metrics")
+
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
 
       val p = TestProbe()
       m1.registerCollector(p.ref)
-
+      p.expectMsgAllOf(Registered, Registered)
       m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
       p.expectMsgAllOf(Tick(1, 1.day), Tick(1, 10.days))
-      sys.shutdown()
     }
 
     "register MetricReporters with an IntervalAggregator" ignore {
       import akka.pattern.ask
 
-      implicit val sys = ActorSystem("metrics")
-      implicit val ec = sys.dispatcher
-
       //set the tick period to something really high so we can control the ticks ourselves
       val intervals = Seq(1.day, 10.days)
       implicit val m1 = MetricSystem("/sys1", intervals, false)
-
-      implicit val to = new Timeout(1.second)
 
       val interval = m1.metricIntervals.get(1.day).value
 
@@ -120,53 +116,48 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       //sorry..trying to avoid sleeps and awaits and such
       val f: Future[Iterable[(FiniteDuration, Set[ActorRef])]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]].map((x.interval->_))))
       f.futureValue.toSet must equal(expectedValues)
-      sys.shutdown()
 
     }
 
     "remove terminated MetricReporters" ignore {
       import akka.pattern.ask
 
-      implicit val sys = ActorSystem("metrics")
-      implicit val ec = sys.dispatcher
-
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
-
-      implicit val to = new Timeout(1.second)
 
       val interval = m1.metricIntervals.get(1.day).value
       val conf = MetricReporterConfig(LoggerSender, None, None, false)
       val reporter = interval.report(conf)
 
-      dilatedWait(20)
+      val p = TestProbe()
+      p.watch(reporter)
       reporter ! PoisonPill
-      dilatedWait(20)
+      p.expectTerminated(reporter)
 
       val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]]))
       f.futureValue.flatten must equal (Iterable())
-      sys.shutdown()
     }
 
     "Registered Reporters should receive ReportMetrics messags only from their IntervalAggregators" ignore {
       implicit val sys = ActorSystem("metrics")
+
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
 
       val p = TestProbe()
       val aggregator = m1.metricIntervals.get(1.day).value.intervalAggregator
       aggregator ! RegisterReporter(p.ref)
+      p.expectMsg(Registered)
       m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
+
       p.expectMsg(ReportMetrics(Map(Root /"sys1"/"1day"/"metric_completion" -> Map(Map[String, String]() -> MetricValues.SumValue(0L)))))
-      sys.shutdown()
+
     }
 
-    def dilatedWait(millis : Long)(implicit ac : ActorSystem) {
-      println(millis.milliseconds.dilated.toMillis)
+    def dilatedWait(millis : Long){
       Thread.sleep(millis.milliseconds.dilated.toMillis)
     }
   }
-
 
   case class Foo(address: MetricAddress) extends MetricProducer {
     def metrics(context: CollectionContext) = Map()

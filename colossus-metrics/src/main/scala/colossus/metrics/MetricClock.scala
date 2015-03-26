@@ -106,6 +106,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     }else{
       log.debug(s"Registered ${msg.getClass.getCanonicalName}: $ref")
       refs.add(ref)
+      ref ! Registered
     }
   }
 
@@ -122,6 +123,7 @@ object IntervalAggregator {
   private[metrics] case object ListCollectors
   private[metrics] case object ListReporters
   private[metrics] case object SendTick
+  case object Registered
 
   private[metrics] case class Tick(value: Long, interval : FiniteDuration)
   private[metrics] case class Tock(metrics: MetricMap, tick: Long)
