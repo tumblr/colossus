@@ -20,14 +20,14 @@ trait ActorMetrics extends Actor with ActorLogging {
       case UnknownMetric => log.error(s"Event for unknown Metric: $m")
       case InvalidEvent => log.error(s"Invalid event $m")
     }
-    case Tick(v) => {
+    case Tick(v, interval) => {
       val agg = metrics.aggregate
-      metrics.tick(metricSystem.tickPeriod)
+      metrics.tick(interval)
       sender() ! Tock(agg, v)
     }
   }
 
   override def preStart() {
-    metricSystem.intervalAggregator ! IntervalAggregator.RegisterCollector(self)
+    metricSystem.registerCollector(self)
   }
 }
