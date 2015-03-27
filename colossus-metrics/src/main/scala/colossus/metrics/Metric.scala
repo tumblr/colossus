@@ -91,21 +91,3 @@ trait TickedMetric {
   def tick()
 }
 
-class MetricMapBuilder{
-  import scala.collection.mutable.{Map => MutMap}
-
-  val builder = MutMap[MetricAddress, MutMap[TagMap, MetricValue]]()
-
-  def add(given: MetricMap) = {
-    given.foreach{ case(address, values) =>
-      if (!(builder contains address)) {
-        builder(address) = MutMap[TagMap, MetricValue]()
-      }
-      builder(address) ++= values
-    }
-    this
-  }
-
-  def result: MetricMap = builder.map{case (a, mut) => (a , mut.toMap)}.toMap
-
-}

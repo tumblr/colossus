@@ -159,7 +159,8 @@ object MetricFilterParser extends RegexParsers {
   def singleTagFilter = name ~ "=" ~ rep1sep(name, ",") ^^ {case key ~ eq ~ values => key -> values.toSeq
   }
 
-  def groupBy = keyword("GROUP") ~> keyword("BY") ~> tagList ~ name ^^ {case keys ~ aggType => GroupBy(keys.toSet, AggregationType.fromString(aggType).get)}
+  def groupBy = keyword("GROUP") ~> keyword("BY") ~> tagList ~ opt(name) ^^ {case keys ~ aggTypeOpt => 
+    GroupBy(keys.toSet, aggTypeOpt.map(AggregationType.fromString(_).get).getOrElse(AggregationType.Natural))}
   def tagList = wildcardTag | rep1sep(name, ",")
   def wildcardTag = "*" ^^^ {List("*")} //this works because grouping by any tag that no value has will just collapse everything
 
