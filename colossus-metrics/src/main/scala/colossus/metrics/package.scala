@@ -149,6 +149,9 @@ package object metrics {
       }.toList
     )
 
+    //this is pretty inefficient, but currently no better way to do it
+    def addTags(globalTags: TagMap): RawMetricMap = underlying.map{case (address, valueMap) => (address, valueMap.addTags(globalTags))}
+
 
   }
 
@@ -189,6 +192,7 @@ package object metrics {
 
     def lineString: String = lineString() //really, scala?
 
+    def addTags(globalTags: TagMap): RawValueMap = underlying.map{case (tags, value) => (tags ++ globalTags, value)}
 
 
     def tagNames = underlying.map{case (tags, values) => tags.keys}.reduce{_ ++ _}
