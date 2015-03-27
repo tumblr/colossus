@@ -20,7 +20,7 @@ import scala.concurrent.duration._
  * @param snapshot
  * @param tickPeriod The frequency of the tick message
  */
-case class MetricSystem(namespace: MetricAddress, intervalAggregator : ActorRef, snapshot: Agent[RawMetricMap], tickPeriod: FiniteDuration) {
+case class MetricSystem(namespace: MetricAddress, intervalAggregator : ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
 
   def query(filter: MetricFilter): RawMetricMap = snapshot().filter(filter)  
 
@@ -39,7 +39,7 @@ case class MetricSystem(namespace: MetricAddress, intervalAggregator : ActorRef,
     SharedCollection(globalTags)
   }
 
-  def last: RawMetricMap = snapshot()
+  def last: MetricMap = snapshot()
 
 }
 
@@ -56,7 +56,7 @@ object MetricSystem {
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
 
-    val snap = Agent[RawMetricMap](Map())
+    val snap = Agent[MetricMap](Map())
     val db = system.actorOf(Props(classOf[IntervalAggregator], namespace, tickPeriod, snap, collectSystemMetrics))
 
     val metrics = MetricSystem(namespace, db, snap, tickPeriod)
@@ -66,7 +66,7 @@ object MetricSystem {
 
   def deadSystem(implicit system: ActorSystem) = {
     import scala.concurrent.ExecutionContext.Implicits.global //this is ok since we're using it to create an agent that's never used
-    MetricSystem(Root / "DEAD", system.deadLetters, Agent[RawMetricMap](Map()), 0.seconds)
+    MetricSystem(Root / "DEAD", system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
   }
 }
 

@@ -20,7 +20,7 @@ import scala.reflect.ClassTag
 trait MetricValue {
   def + (b: MetricValue): MetricValue
 
-  def toRaw: Long
+  def value: RawMetricValue
 }
 
 
@@ -36,7 +36,6 @@ object MetricValues {
       case _ => wrongType(this, b)
     }
 
-    def toRaw = value
   }
 
   /**
@@ -51,7 +50,6 @@ object MetricValues {
       case _ => wrongType(this, other)
     }
 
-    def toRaw = value
   }
 
   case class MinValue(value: Long) extends MetricValue {
@@ -60,7 +58,6 @@ object MetricValues {
       case _ => wrongType(this, other)
     }
 
-    def toRaw = value
   }
 
   case class MaxValue(value: Long) extends MetricValue {
@@ -69,7 +66,6 @@ object MetricValues {
       case _ => wrongType(this, other)
     }
 
-    def toRaw = value
   }
 
   /**
@@ -77,7 +73,6 @@ object MetricValues {
    */
   case class BasicValue(value: Long) extends MetricValue {
     def +(other: MetricValue) = wrongType(this, other)
-    def toRaw = value
   }
 
 }

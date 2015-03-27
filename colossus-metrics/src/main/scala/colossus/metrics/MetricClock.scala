@@ -39,7 +39,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
       metrics = build <+> collectedMap
       snapshot.alter(_ => metrics)
-      reporters.foreach(_ ! ReportMetrics(metrics.toRawMetrics))
+      reporters.foreach(_ ! ReportMetrics(metrics))
       build = blankMap()
       collectedGauge.set(0L)
       tocksCollected = 0
@@ -108,7 +108,7 @@ object IntervalAggregator {
 
   case class RegisterCollector(ref : ActorRef)
   case class RegisterReporter(ref : ActorRef)
-  case class ReportMetrics(m : RawMetricMap)
+  case class ReportMetrics(m : MetricMap)
   private[metrics] case object ListCollectors
 
   private[metrics] case class Tick(value: Long)

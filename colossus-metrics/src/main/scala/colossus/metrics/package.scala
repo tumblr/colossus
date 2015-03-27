@@ -1,6 +1,5 @@
 package colossus
 
-import akka.actor._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.Future
@@ -22,6 +21,20 @@ package object metrics {
   type RawMetricValue = Long
   type RawValueMap    = BaseValueMap[RawMetricValue]
   type RawMetricMap   = BaseMetricMap[RawMetricValue]
+
+  //this is not used yet, but will be used by the aggregation stuff to define a
+  //"natural" aggregation for both metric and raw metric maps
+  /*
+  trait SemiGroup[T] {
+    def |+| (a: T, b: T) : T
+  }
+  implicit object MetricValueSG extends SemiGroup[MetricValue] {
+    def |+|(a: MetricValue, b: MetricValue) = a <+> b
+  }
+  implicit object RawMetriValueSG extends SemiGroup[RawMetricValue] {
+    def |+|(a: RawMetricValue, b: RawMetricValue) = a + b
+  }
+  */
 
 
   object TagMap {
@@ -77,10 +90,16 @@ package object metrics {
 
     def toRawMetrics: RawMetricMap = {
       underlying.map{ case (address, valueMap) => 
-        val rawValues = valueMap.map{case (tags, value) => (tags, value.toRaw)}
+        val rawValues = valueMap.map{case (tags, value) => (tags, value.value)}
         (address, rawValues)
       }
     }
+
+    def filter(filters: Seq[MetricFilter]): RawMetricMap = underlying.flatMap{ case (address, values) =>
+      filters.find{_.address matches address}.map{filter => (filter.alias.getOrElse(address) -> filter.valueFilter.process(values))}
+    }
+
+    def filter(f: MetricFilter): RawMetricMap = filter(List(f))
 
 
   }
@@ -130,11 +149,6 @@ package object metrics {
       }.toList
     )
 
-    def filter(filters: Seq[MetricFilter]): RawMetricMap = underlying.flatMap{ case (address, values) =>
-      filters.find{_.address matches address}.map{filter => (filter.alias.getOrElse(address) -> filter.valueFilter.process(values))}
-    }
-
-    def filter(f: MetricFilter): RawMetricMap = filter(List(f))
 
   }
 
@@ -162,6 +176,10 @@ package object metrics {
 
     def addTags(globalTags: TagMap): ValueMap = underlying.map{case (tags, value) => (tags ++ globalTags, value)}
 
+    def toRawValueMap: RawValueMap = underlying.map{ case (tags, value) => (tags, value.value)}
+
+    def filter(filter: MetricValueFilter) = filter.process(underlying)
+
   }
 
   implicit class RichRawValueMap(val underlying: RawValueMap) extends AnyVal {
@@ -171,7 +189,6 @@ package object metrics {
 
     def lineString: String = lineString() //really, scala?
 
-    def filter(filter: MetricValueFilter) = filter.process(underlying)
 
 
     def tagNames = underlying.map{case (tags, values) => tags.keys}.reduce{_ ++ _}

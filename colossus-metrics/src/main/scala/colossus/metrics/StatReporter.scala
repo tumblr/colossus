@@ -47,7 +47,7 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   def receive = {
 
     case ReportMetrics(m) => {
-      val filtered: RawMetricMap = filters.fold(m)(m.filter(_))
+      val filtered: RawMetricMap = filters.fold(m.toRawMetrics)(m.filter(_))
       statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
     }
     case ResetSender => {
