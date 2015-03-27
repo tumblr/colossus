@@ -6,6 +6,8 @@ import scala.concurrent.Future
 
 import net.liftweb.json._
 
+//TODO: break up this whole thing
+
 package object metrics {
 
   //hot dog! look at all these maps!
@@ -16,26 +18,11 @@ package object metrics {
   type ValueMap   = BaseValueMap[MetricValue]
   type MetricMap  = BaseMetricMap[MetricValue]
 
-  //raw metrics are produced from metric values, for example a histogram value
-  //is turned into individual metrics for each percentile, max, min, etc.
+  //raw metrics are produced from metric values, and RawMetricMaps are what
+  //eventually get serialized and unserialized.
   type RawMetricValue = Long
   type RawValueMap    = BaseValueMap[RawMetricValue]
   type RawMetricMap   = BaseMetricMap[RawMetricValue]
-
-  //this is not used yet, but will be used by the aggregation stuff to define a
-  //"natural" aggregation for both metric and raw metric maps
-  /*
-  trait SemiGroup[T] {
-    def |+| (a: T, b: T) : T
-  }
-  implicit object MetricValueSG extends SemiGroup[MetricValue] {
-    def |+|(a: MetricValue, b: MetricValue) = a <+> b
-  }
-  implicit object RawMetriValueSG extends SemiGroup[RawMetricValue] {
-    def |+|(a: RawMetricValue, b: RawMetricValue) = a + b
-  }
-  */
-
 
   object TagMap {
     val Empty: TagMap = Map()
