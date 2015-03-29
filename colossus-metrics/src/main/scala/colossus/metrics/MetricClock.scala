@@ -18,7 +18,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   def blankMap(): MetricMap = if (collectSystemMetrics) systemMetrics.metrics else Map()
 
   var build: MetricMap = blankMap()
-  var metrics = systemMetrics.metrics
+  //var metrics = systemMetrics.metrics
   val collectors = new JHashSet[ActorRef]()
   val reporters = new JHashSet[ActorRef]()
   var latestTick = 0L
@@ -26,6 +26,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
   val metricSafeDurationName = interval.toString().replaceAll(" ", "") //ie: 1second, 44milliseconds
   val collectedGauge = new ConcreteGauge(Gauge(namespace / metricSafeDurationName / "metric_completion"))
+  collectedGauge.set(0)
 
   //needs to be a float so that incrementCollected won't report 0s
   var tocksCollected : Float = 0
@@ -35,15 +36,9 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
     case SendTick => {
       latestTick += 1
-      collectors.foreach(_ ! Tick(latestTick))
-      val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
-      metrics = build <+> collectedMap
-      snapshot.alter(_ => metrics)
-      reporters.foreach(_ ! ReportMetrics(metrics))
-      build = blankMap()
-      collectedGauge.set(0L)
-      tocksCollected = 0
-      tocksExpected = collectors.size()
+      collectors.foreach(_ ! Tick(latestTick, interval))
+      finalizeAndReportMetrics()
+      resetMetrics()
     }
 
     case Tock(m, v) => {
@@ -78,12 +73,30 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     case ListCollectors => {
       sender ! collectors.toSet //yea..that's right..immutable on the way out.
     }
+
+    case ListReporters => {
+      sender ! reporters.toSet //yea..that's right..immutable on the way out.
+    }
   }
 
   private def incrementCollected() {
     tocksCollected += 1
     val pct = (tocksCollected / tocksExpected) * 100F
     collectedGauge.set(pct.toLong) //rounds down
+  }
+
+  private def finalizeAndReportMetrics() {
+    val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
+    build = build << collectedMap
+    snapshot.send(build)
+    reporters.foreach(_ ! ReportMetrics(build))
+  }
+
+  private def resetMetrics() {
+    build = blankMap()
+    collectedGauge.set(0L)
+    tocksCollected = 0
+    tocksExpected = collectors.size()
   }
 
   private def registerComponent(msg : Any, ref : ActorRef, refs : JHashSet[ActorRef]) {
@@ -99,9 +112,6 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   override def preStart() {
     context.system.scheduler.schedule(interval, interval, self, SendTick)
   }
-
-  private case object SendTick
-
 }
 
 object IntervalAggregator {
@@ -110,8 +120,10 @@ object IntervalAggregator {
   case class RegisterReporter(ref : ActorRef)
   case class ReportMetrics(m : MetricMap)
   private[metrics] case object ListCollectors
+  private[metrics] case object ListReporters
+  private[metrics] case object SendTick
 
-  private[metrics] case class Tick(value: Long)
+  private[metrics] case class Tick(value: Long, interval : FiniteDuration)
   private[metrics] case class Tock(metrics: MetricMap, tick: Long)
 
 }
