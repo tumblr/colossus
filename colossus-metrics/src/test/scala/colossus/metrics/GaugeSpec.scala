@@ -42,7 +42,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
         MetricAddress.Root -> Map(Map("foo" -> "a") -> SumValue(4L), Map("foo" -> "b") -> SumValue(5L))
       )
 
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
     }
 
     "remove unset values" in {
@@ -55,7 +55,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       val expected = Map(
         MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(5L))
       )
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
 
     }
 
@@ -71,7 +71,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       val expected = Map(
         MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(6L))
       )
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
     }
 
   }

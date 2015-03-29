@@ -98,8 +98,7 @@ object EventLocality {
 }
 import EventLocality._
 
-//TOdO: need to eliminate tag duplication
-case class CollectionContext(globalTags: TagMap)
+case class CollectionContext(globalTags: TagMap, interval: FiniteDuration)
 
 trait EventCollector {
   def address: MetricAddress
@@ -218,11 +217,11 @@ class LocalCollection(
     localProducers += producer
   }
 
-  def aggregate: MetricMap = {
+  def aggregate(interval: FiniteDuration): MetricMap = {
     //do not move this import unless you want to have a bad time
     import scala.collection.JavaConversions._
     val now = System.currentTimeMillis
-    val context = CollectionContext(globalTags)
+    val context = CollectionContext(globalTags, interval)
     val eventMetrics = metrics.values.map{_.metrics(context)}
     val producerMetrics = localProducers.map{_.metrics(context)}
     //TODO: using <+> here should be unnecessary, might want to use ++
@@ -231,6 +230,7 @@ class LocalCollection(
       .filter{! _._2.isEmpty}
   }
 
+  //TODO this method is probably not needed, can be merged with aggregate
   def tick(tickPeriod: FiniteDuration) {
     import scala.collection.JavaConversions._
     metrics.values.collect{

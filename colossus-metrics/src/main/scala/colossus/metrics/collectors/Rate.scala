@@ -30,14 +30,11 @@ object Rate {
   }
 }
 
-class BasicRate(period: FiniteDuration) {
+class BasicRate {
 
   private var _total: Long = 0L
   private var current: Long = 0L
-
   private var lastFullValue = 0L
-
-  private var tickAccum: FiniteDuration = 0.seconds
 
   def total = _total
 
@@ -46,18 +43,12 @@ class BasicRate(period: FiniteDuration) {
     current += num
   }
 
-  def tick(tickPeriod: FiniteDuration) {
-    tickAccum += tickPeriod
-    if (tickAccum >= period) {
-      lastFullValue = current
-      current = 0
-      tickAccum = 0.seconds
-    }
+  def tick() {
+    lastFullValue = current
+    current = 0
   }
 
   def value = lastFullValue
-
-  
 
 }
 
@@ -77,14 +68,14 @@ class SharedRate(val params: RateParams, collector: ActorRef) extends Rate with 
 //notice this rate is not the actual core rate, since it handles tags
 class ConcreteRate(params: RateParams) extends Rate with LocalLocality with TickedCollector {
   import collection.mutable.{Map => MutMap}
-  //the String keys are stringified periods
-  private val rates = MutMap[TagMap, MutMap[String, BasicRate]]()
+
+  private val rates = MutMap[TagMap, MutMap[FiniteDuration, BasicRate]]()
 
   def hit(tags: TagMap = TagMap.Empty, num: Int = 1){
     if (!rates.contains(tags)) {
-      val r = MutMap[String, BasicRate]()
+      val r = MutMap[FiniteDuration, BasicRate]()
       params.periods.foreach{p =>
-        r((p / params.tagPrecision).toInt.toString) = new BasicRate(p)
+        r(p) = new BasicRate
       }
       rates(tags) = r
     }
@@ -94,14 +85,17 @@ class ConcreteRate(params: RateParams) extends Rate with LocalLocality with Tick
   def address = params.address
 
   def tick(tickPeriod: FiniteDuration){
-    rates.foreach{_._2.foreach{_._2.tick(tickPeriod)}}  
+    rates.foreach{_._2.foreach{
+      case (interval, basicRate) if (tickPeriod == interval) => basicRate.tick()
+      case _ => {}
+    }}
   }
 
   def metrics(context: CollectionContext): MetricMap = {
     import MetricValues._
-    val values = rates.flatMap{case (tags, values) => values.map{case (period, rate) =>
-      (context.globalTags ++ tags + ("period" -> period) , SumValue(rate.value))
-    }}
+    val values = rates.map{case (tags, values) => 
+      (tags ++ context.globalTags) -> SumValue(values(context.interval).value)
+    }
     //totals are the same for each period
     val totals = rates.map{case (tags, values) => 
       (context.globalTags ++ tags, SumValue(values.head._2.total))
