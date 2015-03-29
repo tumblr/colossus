@@ -87,7 +87,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
   private def finalizeAndReportMetrics() {
     val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
-    build = build << collectedMap
+    build = build <+> collectedMap
     snapshot.send(build)
     reporters.foreach(_ ! ReportMetrics(build))
   }
