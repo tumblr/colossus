@@ -98,12 +98,13 @@ class ConcreteRate(params: RateParams) extends Rate with LocalLocality with Tick
   }
 
   def metrics(context: CollectionContext): MetricMap = {
+    import MetricValues._
     val values = rates.flatMap{case (tags, values) => values.map{case (period, rate) =>
-      (context.globalTags ++ tags + ("period" -> period) , rate.value)
+      (context.globalTags ++ tags + ("period" -> period) , SumValue(rate.value))
     }}
     //totals are the same for each period
     val totals = rates.map{case (tags, values) => 
-      (context.globalTags ++ tags, values.head._2.total)
+      (context.globalTags ++ tags, SumValue(values.head._2.total))
     }
     Map(params.address -> values.toMap, (params.address / "count") ->  totals.toMap)
   }

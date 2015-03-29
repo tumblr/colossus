@@ -9,6 +9,75 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.language.higherKinds
 import scala.reflect.ClassTag
 
+/**
+ * The base trait for any exported value from an event collector
+ *
+ * This requires that every matric value is a semi-group (associative +
+ * operation), however they should really be monoids (semi-group with a zero
+ * value).  Unfortunately this cannot be enforced by this trait since these are
+ * passed in actor messages and must be monomorphic
+ */
+trait MetricValue {
+  def + (b: MetricValue): MetricValue
+
+  def value: RawMetricValue
+}
+
+
+class EventCollectorException(message: String) extends Exception(message)
+
+object MetricValues {
+
+  def wrongType(left: MetricValue, right: MetricValue): Nothing = throw new EventCollectorException(s"Attempted to merge incompatible values $left, $right")
+
+  case class SumValue(value: Long) extends MetricValue {
+    def +(b: MetricValue) = b match {
+      case SumValue(bval) => SumValue(value + bval)
+      case _ => wrongType(this, b)
+    }
+
+  }
+
+  /**
+   * In most cases a weight is a count
+   */
+  case class WeightedAverageValue(value: Long, weight: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case WeightedAverageValue(v, w) => {
+        val wsum = weight + w
+        WeightedAverageValue((value * (weight / wsum)) + (v * (w / wsum)), wsum)
+      }
+      case _ => wrongType(this, other)
+    }
+
+  }
+
+  case class MinValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case MinValue(v) => MinValue(math.min(v, value))
+      case _ => wrongType(this, other)
+    }
+
+  }
+
+  case class MaxValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = other match {
+      case MaxValue(v) => MaxValue(math.max(v, value))
+      case _ => wrongType(this, other)
+    }
+
+  }
+
+  /**
+   * This value is intended for metrics that are unique and should never need to be aggregated
+   */
+  case class BasicValue(value: Long) extends MetricValue {
+    def +(other: MetricValue) = wrongType(this, other)
+  }
+
+}
+
+
 trait MetricEvent {
   def address: MetricAddress
 }
@@ -156,8 +225,9 @@ class LocalCollection(
     val context = CollectionContext(globalTags)
     val eventMetrics = metrics.values.map{_.metrics(context)}
     val producerMetrics = localProducers.map{_.metrics(context)}
+    //TODO: using <+> here should be unnecessary, might want to use ++
     (eventMetrics ++ producerMetrics)
-      .foldLeft[MetricMap](Map()){case (build, m) => build << m}
+      .foldLeft[MetricMap](Map()){case (build, m) => build <+> m}
       .filter{! _._2.isEmpty}
   }
 

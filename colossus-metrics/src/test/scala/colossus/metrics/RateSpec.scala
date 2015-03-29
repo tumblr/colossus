@@ -2,6 +2,8 @@ package colossus.metrics
 
 import scala.concurrent.duration._
 
+import MetricValues._
+
 class RateSpec extends MetricIntegrationSpec {
 
   "Basic Rate" must {
@@ -30,11 +32,11 @@ class RateSpec extends MetricIntegrationSpec {
       r.hit(Map("foo" -> "a"))
       r.hit(Map("foo" -> "b"))
       val m1 = r.metrics(CollectionContext(Map()))
-      m1("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (0L)
-      m1("/foo/count")(Map("foo" -> "a")) must equal (2L)
+      m1("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (SumValue(0L))
+      m1("/foo/count")(Map("foo" -> "a")) must equal (SumValue(2L))
       r.tick(1.second)
       val m2 = r.metrics(CollectionContext(Map()))
-      m2("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (2L)
+      m2("/foo")(Map("foo" -> "a", "period" -> "1")) must equal (SumValue(2L))
     }
   }
 

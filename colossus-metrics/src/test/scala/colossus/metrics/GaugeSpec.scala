@@ -3,6 +3,8 @@ package colossus.metrics
 import org.scalatest._
 import scala.concurrent.duration._
 
+import MetricValues._
+
 class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
 
@@ -37,7 +39,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       g.set(5, Map("foo" -> "b"))
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "a") -> 4L, Map("foo" -> "b") -> 5L)
+        MetricAddress.Root -> Map(Map("foo" -> "a") -> SumValue(4L), Map("foo" -> "b") -> SumValue(5L))
       )
 
       g.metrics(CollectionContext(Map())) must equal(expected)
@@ -51,7 +53,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       g.set(None, Map("foo" -> "a"))
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "b") -> 5L)
+        MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(5L))
       )
       g.metrics(CollectionContext(Map())) must equal(expected)
 
@@ -67,7 +69,7 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       g.tick(501.milliseconds)
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "b") -> 6L)
+        MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(6L))
       )
       g.metrics(CollectionContext(Map())) must equal(expected)
     }
