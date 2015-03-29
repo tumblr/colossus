@@ -155,7 +155,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       val aggregator = m1.metricIntervals.get(1.day).value.intervalAggregator
       aggregator ! RegisterReporter(p.ref)
       m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
-      p.expectMsg(ReportMetrics(Map(Root /"sys1"/"1day"/"metric_completion" -> Map(Map[String, String]() -> 0L))))
+      p.expectMsg(ReportMetrics(Map(Root /"sys1"/"1day"/"metric_completion" -> Map(Map[String, String]() -> MetricValues.SumValue(0L)))))
       sys.shutdown()
     }
   }
