@@ -40,15 +40,26 @@ object TagSelector {
 sealed trait AggregationType {
   def aggregate(values: Seq[MetricValue]): RawMetricValue
 }
+
+/**
+ * An aggregation type defined how several values for the same metric (each
+ * with different tags) get merged into one value.  Notice that these only get
+ * called when there is at least one value to aggregate.  The Natural type uses
+ * the + operation defined on the MetricValue
+ */
 object AggregationType {
   case object Sum extends AggregationType {
     def aggregate(values: Seq[MetricValue]): RawMetricValue = values.foldLeft(0L){case (build: RawMetricValue, next: MetricValue) => build + next.value}
   }
   case object Average extends AggregationType {
-    def aggregate(values: Seq[MetricValue]) = values.foldLeft(0L){case (build, next) => build + next.value} / values.size
+    def aggregate(values: Seq[MetricValue]) = if (values.size > 0) {
+      values.foldLeft(0L){case (build, next) => build + next.value} / values.size
+    } else {
+      0
+    }
   }
   case object Max extends AggregationType {
-    def aggregate(values: Seq[MetricValue]) = values.foldLeft(0L){case (max, next) => if (max > next.value) max else next.value}
+    def aggregate(values: Seq[MetricValue]) = values.foldLeft(Long.MinValue){case (max, next) => if (max > next.value) max else next.value}
   }
   case object Min extends AggregationType {
     def aggregate(values: Seq[MetricValue]) = values.foldLeft(Long.MaxValue){case (min, next) => if (min < next.value) min else next.value}
