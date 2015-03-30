@@ -12,7 +12,8 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import MetricAddress._
 
-class MetricSpec(_system : ActorSystem) extends TestKit(_system) with WordSpecLike with MustMatchers with BeforeAndAfterAll with ScalaFutures with OptionValues with IntegrationPatience{
+class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) with ScalaFutures with OptionValues
+  with IntegrationPatience with EventuallyEquals {
 
   def this() = this(ActorSystem("MetricSpec"))
 
@@ -110,13 +111,15 @@ class MetricSpec(_system : ActorSystem) extends TestKit(_system) with WordSpecLi
       val conf = MetricReporterConfig(LoggerSender, None, None, false)
       val reporter = interval.report(conf)
 
-      dilatedWait(20)
+      val expectedValues: Set[(FiniteDuration, Set[ActorRef])] = Set(1.day->Set(reporter), 10.days -> Set())
 
-      val expectedValues = Set(1.day->Set(reporter), 10.days -> Set())
-      //sorry..trying to avoid sleeps and awaits and such
-      val f: Future[Iterable[(FiniteDuration, Set[ActorRef])]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]].map((x.interval->_))))
-      f.futureValue.toSet must equal(expectedValues)
 
+      def u = {
+        Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]].map((x.interval->_)))).map(_.toSet)
+      }
+      val f: () => Future[Set[(FiniteDuration, Set[ActorRef])]] = u _
+
+      f must eventuallyEqual (expectedValues)
     }
 
     "remove terminated MetricReporters" ignore {
