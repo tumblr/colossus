@@ -44,7 +44,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     case Tock(m, v) => {
       if (v == latestTick) {
         if(collectors.contains(sender())) {
-          build = build << m
+          build = build <+> m
           incrementCollected()
         }else {
           log.warning(s"Received metrics from an unregistered EventCollector: ${sender()}")
@@ -87,7 +87,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
   private def finalizeAndReportMetrics() {
     val collectedMap = collectedGauge.metrics(CollectionContext(Map.empty))
-    build = build << collectedMap
+    build = build <+> collectedMap
     snapshot.send(build)
     reporters.foreach(_ ! ReportMetrics(build))
   }
@@ -106,6 +106,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
     }else{
       log.debug(s"Registered ${msg.getClass.getCanonicalName}: $ref")
       refs.add(ref)
+      ref ! Registered
     }
   }
 
@@ -122,6 +123,7 @@ object IntervalAggregator {
   private[metrics] case object ListCollectors
   private[metrics] case object ListReporters
   private[metrics] case object SendTick
+  case object Registered
 
   private[metrics] case class Tick(value: Long, interval : FiniteDuration)
   private[metrics] case class Tock(metrics: MetricMap, tick: Long)
@@ -132,6 +134,7 @@ object IntervalAggregator {
 class SystemMetricsCollector(namespace: MetricAddress) {
 
   import management._
+  import MetricValues._
 
   def metrics: MetricMap = {
     val runtime = Runtime.getRuntime
@@ -140,27 +143,27 @@ class SystemMetricsCollector(namespace: MetricAddress) {
     val freeMemory = runtime.freeMemory
     val memoryInfo: MetricMap = Map(
       (namespace / "system" / "memory") -> Map(
-        (Map("type" -> "max")       -> maxMemory),
-        (Map("type" -> "allocated") -> allocatedMemory),
-        (Map("type" -> "free")      -> freeMemory)
+        (Map("type" -> "max")       -> SumValue(maxMemory)),
+        (Map("type" -> "allocated") -> SumValue(allocatedMemory)),
+        (Map("type" -> "free")      -> SumValue(freeMemory))
       )
     )
-    val gcInfo = ManagementFactory.getGarbageCollectorMXBeans().toArray.map{case tastyBean: management.GarbageCollectorMXBean =>
+    val gcInfo: MetricMap = ManagementFactory.getGarbageCollectorMXBeans().toArray.map{case tastyBean: management.GarbageCollectorMXBean =>
       val tags = Map("type" -> tastyBean.getName.replace(' ', '_'))
       Map(
-        (namespace / "system" / "gc" / "cycles") -> Map(tags -> tastyBean.getCollectionCount),
-        (namespace / "system" / "gc" / "msec") -> Map(tags -> tastyBean.getCollectionTime)
-      )
-    }.reduce{_ << _}
+        (namespace / "system" / "gc" / "cycles") -> Map(tags -> SumValue(tastyBean.getCollectionCount)),
+        (namespace / "system" / "gc" / "msec") -> Map(tags -> SumValue(tastyBean.getCollectionTime))
+      ) : MetricMap
+    }.reduce{(a: MetricMap, b: MetricMap) => a <+> b}
     
     val fdInfo: MetricMap = ManagementFactory.getOperatingSystemMXBean match {    
       case u: com.sun.management.UnixOperatingSystemMXBean => Map(
-        (namespace / "system" / "fd_count") -> Map(Map() -> u.getOpenFileDescriptorCount)
+        (namespace / "system" / "fd_count") -> Map(Map() -> SumValue(u.getOpenFileDescriptorCount))
       )
       case _ => MetricMap.Empty //for those poor souls using non-*nix
     }
 
-    (memoryInfo << gcInfo << fdInfo)
+    (memoryInfo <+> gcInfo <+> fdInfo)
   }
 
 }
