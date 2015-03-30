@@ -107,7 +107,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
 
       val interval = m1.metricIntervals.get(1.day).value
 
-      val conf = MetricReporterConfig(LoggerSender, None, None, false)
+      val conf = MetricReporterConfig(m1.namespace, Seq(LoggerSender), None, None, false)
       val reporter = interval.report(conf)
 
       Thread.sleep(20)
@@ -132,7 +132,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll with 
       implicit val to = new Timeout(1.second)
 
       val interval = m1.metricIntervals.get(1.day).value
-      val conf = MetricReporterConfig(LoggerSender, None, None, false)
+      val conf = MetricReporterConfig(m1.namespace, Seq(LoggerSender), None, None, false)
       val reporter = interval.report(conf)
 
       Thread.sleep(20)
