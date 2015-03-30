@@ -46,7 +46,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
     }
 
     //TODO: FIX ALL THESE TESTS..TIMING ISSUES IN TRAVIS
-    "register EventCollectors across aggregators" ignore {
+    "register EventCollectors across aggregators" in {
       import akka.pattern.ask
 
       //set the tick period to something really high so we can control the ticks ourselves
@@ -66,7 +66,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       f.futureValue must equal (expectedValue)
     }
 
-    "remove terminated EventCollectors" ignore {
+    "remove terminated EventCollectors" in {
       import akka.pattern.ask
 
       //set the tick period to something really high so we can control the ticks ourselves
@@ -86,8 +86,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       f.futureValue.flatten must equal (Iterable.fill(2)(sc1.collector))
     }
 
-    "Registered Collectors should receive Ticks from all IntervalAggregators" ignore {
-      implicit val sys = ActorSystem("metrics")
+    "Registered Collectors should receive Ticks from all IntervalAggregators" in {
 
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
@@ -99,7 +98,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       p.expectMsgAllOf(Tick(1, 1.day), Tick(1, 10.days))
     }
 
-    "register MetricReporters with an IntervalAggregator" ignore {
+    "register MetricReporters with an IntervalAggregator" in {
       import akka.pattern.ask
 
       //set the tick period to something really high so we can control the ticks ourselves
@@ -122,7 +121,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       f must eventuallyEqual (expectedValues)
     }
 
-    "remove terminated MetricReporters" ignore {
+    "remove terminated MetricReporters" in {
       import akka.pattern.ask
 
       //set the tick period to something really high so we can control the ticks ourselves
@@ -141,9 +140,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       f.futureValue.flatten must equal (Iterable())
     }
 
-    "Registered Reporters should receive ReportMetrics messags only from their IntervalAggregators" ignore {
-      implicit val sys = ActorSystem("metrics")
-
+    "Registered Reporters should receive ReportMetrics messags only from their IntervalAggregators" in {
       //set the tick period to something really high so we can control the ticks ourselves
       implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
 
@@ -157,9 +154,6 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
     }
 
-    def dilatedWait(millis : Long){
-      Thread.sleep(millis.milliseconds.dilated.toMillis)
-    }
   }
 
   case class Foo(address: MetricAddress) extends MetricProducer {
