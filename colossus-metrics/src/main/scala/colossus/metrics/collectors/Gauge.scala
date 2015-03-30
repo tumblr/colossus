@@ -76,8 +76,9 @@ class ConcreteGauge(params: GaugeParams) extends Gauge with LocalLocality with T
     }
   }
 
+  //TODO: how gauges are aggregated should be configurable, since it's not obvious which should be the default
   def metrics(context: CollectionContext): MetricMap = {
-    Map(params.address -> gauges.flatMap{case (tags, gauge) => gauge.value.map{v => tags -> v}}.toMap)
+    Map(params.address -> gauges.flatMap{case (tags, gauge) => gauge.value.map{v => tags -> MetricValues.SumValue(v)}}.toMap)
   }
 
   def event: PartialFunction[MetricEvent, Unit] = {

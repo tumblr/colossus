@@ -5,29 +5,33 @@ import org.scalatest._
 
 import scala.util.Success
 
+import MetricValues._
+
 class AggregationSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "MetricFilter" must {
     "filter metrics" in {
-      val t1 = Metric(Root / "foo" / "bar", 4L)
-      val t2 = Metric(Root / "foo" / "baz", 5L)
-
-      val metrics: MetricMap = MetricMap(t1, t2)
-      val expected = MetricMap(t1)
+      val metrics: MetricMap = Map(
+        (Root / "foo" / "bar") -> Map(Map() -> SumValue(4)),
+        (Root / "foo" / "baz") -> Map(Map() -> SumValue(5))
+      )
+      val expected: RawMetricMap = Map(
+        (Root / "foo" / "bar") -> Map(Map() -> 4)
+      )
       val filter = MetricFilter(Root / "foo" / "bar")
       metrics.filter(Seq(filter)) must equal (expected)
     }
 
     "filter out tags from metric" in {
-      val v1 = Map("tag1" -> "value1") -> (4L)
-      val v2 = Map("tag1" -> "value2") -> (5L)
-      val v3 = Map("tag1" -> "value3") -> (6L)
-      val metric = Metric(Root / "foo", Map(v1,v2,v3))
-      val expected = Metric(Root / "foo", Map(v1))
+      val v1 = Map("tag1" -> "value1") -> SumValue(4L)
+      val v2 = Map("tag1" -> "value2") -> SumValue(5L)
+      val v3 = Map("tag1" -> "value3") -> SumValue(6L)
+      val metric: MetricMap = Map((Root / "foo") -> Map(v1,v2,v3))
+      val expected: RawMetricMap = Map((Root / "foo") -> Map(v1)).toRawMetrics
 
       val filter = MetricFilter(Root / "foo", TagSelector(Map("tag1" -> List("value1"))))
 
-      metric.filter(filter.valueFilter) must equal (expected)
+      metric.filter(filter) must equal (expected)
     }
   }
 
@@ -80,12 +84,12 @@ class AggregationSpec extends WordSpec with MustMatchers with BeforeAndAfterAll 
 
   "MetricValueFilter" must {
     "only keep desired values" in {
-      val v1 = Map("foo" -> "bar") -> (4L)
-      val v2 = Map("foo" -> "bar", "bar" -> "baz") -> (5L)
-      val v3 = Map("foo" -> "moo", "bar" -> "noo") -> (6L)
-      val v4 = TagMap.Empty -> (8L)
+      val v1 = Map("foo" -> "bar") -> SumValue(4L)
+      val v2 = Map("foo" -> "bar", "bar" -> "baz") -> SumValue(5L)
+      val v3 = Map("foo" -> "moo", "bar" -> "noo") -> SumValue(6L)
+      val v4 = TagMap.Empty -> SumValue(8L)
       val values: ValueMap = Map(v1,v2,v3,v4)
-      val expected = Map(v2)
+      val expected: RawValueMap = Map(v2).toRawValueMap
 
       val filter = MetricValueFilter(Some(TagSelector(Map("foo" -> Seq("*"), "bar" -> Seq("baz")))), None)
 

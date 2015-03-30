@@ -76,11 +76,13 @@ object Histogram {
 case class Snapshot(min: Int, max: Int, count: Int, percentiles: Map[Double, Int]) {
   def infoString = s"Count: $count\nMin: $min\nMax: $max\n" + percentiles.map{case (perc, value) => s"${perc * 100}%: $value"}.mkString("\n")
 
+  import MetricValues._
+
   def metrics(address: MetricAddress, tags: TagMap): MetricMap = Map (
-    (address / "min") -> Map(tags -> min),
-    (address / "max") -> Map(tags -> max),
-    (address / "count") -> Map(tags -> count),
-    address -> percentiles.map{case (p, v) => tags + ("percentile" -> p.toString) -> v.toLong}
+    (address / "min") -> Map(tags -> MinValue(min)),
+    (address / "max") -> Map(tags -> MaxValue(max)),
+    (address / "count") -> Map(tags -> SumValue(count)),
+    address -> percentiles.map{case (p, v) => tags + ("percentile" -> p.toString) -> WeightedAverageValue(weight = count, value = v.toLong)}
   )
 
 }
@@ -242,7 +244,7 @@ class PeriodicHistogram(params: HistogramParams) extends Histogram with TickedCo
       .flatMap{case (ptag, hist) => hist.snapshots(params.percentiles).map{case (tags, snap) =>
         snap.metrics(params.address, tags ++ context.globalTags + ("period" -> ptag))
       }}
-      .foldLeft[MetricMap](Map()){case (build, map) => build << map}
+      .foldLeft[MetricMap](Map()){case (build, map) => build <+> map}
   }
 
   def reset() {

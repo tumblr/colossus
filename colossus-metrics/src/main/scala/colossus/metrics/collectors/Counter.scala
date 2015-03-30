@@ -51,7 +51,7 @@ class LocalCounter(params: CounterParams) extends BasicCounter(params) with Coun
   val address = params.address
 
   def metrics(context: CollectionContext): MetricMap = Map(
-    params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, value)}
+    params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, MetricValues.SumValue(value))}
   )
 
   def event = {
