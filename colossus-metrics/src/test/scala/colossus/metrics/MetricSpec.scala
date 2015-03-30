@@ -60,10 +60,15 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       p1.expectMsg(Registered)
       p2.expectMsg(Registered)
 
-      val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
+      def u = {
+        Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
+      }
+
+      val f = u _
+
       val expectedCollectors = Set(p1.ref, p2.ref)
       val expectedValue = Iterable.fill(2)(expectedCollectors)
-      f.futureValue must equal (expectedValue)
+      f must eventuallyEqual(expectedValue)
     }
 
     "remove terminated EventCollectors" in {
@@ -82,8 +87,13 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
       p.expectTerminated(sc2.collector)
 
-      val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]]))
-      f.futureValue.flatten must equal (Iterable.fill(2)(sc1.collector))
+      def u = {
+        Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListCollectors).mapTo[Set[ActorRef]])).map(_.flatten)
+      }
+
+      val f: () => Future[Iterable[ActorRef]] = u _
+
+      f must eventuallyEqual (Iterable.fill(2)(sc1.collector))
     }
 
     "Registered Collectors should receive Ticks from all IntervalAggregators" in {
@@ -136,8 +146,12 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       reporter ! PoisonPill
       p.expectTerminated(reporter)
 
-      val f: Future[Iterable[Set[ActorRef]]] = Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]]))
-      f.futureValue.flatten must equal (Iterable())
+      def u = {
+        Future.sequence(m1.metricIntervals.values.map(x => (x.intervalAggregator ? ListReporters).mapTo[Set[ActorRef]])).map(_.flatten)
+      }
+
+      val f = u _
+      f must eventuallyEqual(Iterable[ActorRef]())
     }
 
     "Registered Reporters should receive ReportMetrics messags only from their IntervalAggregators" in {
