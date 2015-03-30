@@ -11,7 +11,7 @@ trait Rate extends EventCollector {
   def hit(tags: TagMap = TagMap.Empty, num: Int = 1)
 }
 
-case class RateParams(address: MetricAddress, periods: List[FiniteDuration], tagPrecision: FiniteDuration = 1.second) extends MetricParams[Rate, RateParams] {
+case class RateParams(address: MetricAddress) extends MetricParams[Rate, RateParams] {
   def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
 }
 
@@ -19,12 +19,12 @@ object Rate {
 
   case class Hit(address: MetricAddress, tags: TagMap, count: Int = 1) extends MetricEvent
 
-  def apply(address: MetricAddress, periods: List[FiniteDuration] = List(1.second, 60.seconds)): RateParams = RateParams(address, periods)
+  def apply(address: MetricAddress): RateParams = RateParams(address)
 
   implicit object RateGenerator extends Generator[Rate, RateParams] {
-    def local(params: RateParams): Local[Rate] = new ConcreteRate(params)
+    def local(params: RateParams, config: CollectorConfig): Local[Rate] = new ConcreteRate(params, config)
 
-    def shared(params: RateParams)(implicit collector: ActorRef): Shared[Rate] = {
+    def shared(params: RateParams, config: CollectorConfig)(implicit collector: ActorRef): Shared[Rate] = {
       new SharedRate(params, collector)
     }
   }
@@ -66,7 +66,7 @@ class SharedRate(val params: RateParams, collector: ActorRef) extends Rate with 
 }
 
 //notice this rate is not the actual core rate, since it handles tags
-class ConcreteRate(params: RateParams) extends Rate with LocalLocality with TickedCollector {
+class ConcreteRate(params: RateParams, config: CollectorConfig) extends Rate with LocalLocality with TickedCollector {
   import collection.mutable.{Map => MutMap}
 
   private val rates = MutMap[TagMap, MutMap[FiniteDuration, BasicRate]]()
@@ -74,7 +74,7 @@ class ConcreteRate(params: RateParams) extends Rate with LocalLocality with Tick
   def hit(tags: TagMap = TagMap.Empty, num: Int = 1){
     if (!rates.contains(tags)) {
       val r = MutMap[FiniteDuration, BasicRate]()
-      params.periods.foreach{p =>
+      config.intervals.foreach{p =>
         r(p) = new BasicRate
       }
       rates(tags) = r
@@ -85,10 +85,7 @@ class ConcreteRate(params: RateParams) extends Rate with LocalLocality with Tick
   def address = params.address
 
   def tick(tickPeriod: FiniteDuration){
-    rates.foreach{_._2.foreach{
-      case (interval, basicRate) if (tickPeriod == interval) => basicRate.tick()
-      case _ => {}
-    }}
+    rates.foreach{ case (tags, intervalValues) => intervalValues(tickPeriod).tick()}
   }
 
   def metrics(context: CollectionContext): MetricMap = {

@@ -2,6 +2,8 @@ package colossus.metrics
 
 import org.scalatest._
 
+import MetricAddress.Root
+
 class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
   "Bucket generator" must {
     "generate bucket ranges" in {
@@ -23,17 +25,15 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       h.percentiles(percs) must equal (percs.zip(Seq(0, 2, 5, 8, 9, 10)).toMap)
     }
 
-    /*
 
     "generate snapshot" in {
       val h = new BaseHistogram(Histogram.generateBucketRanges(10, 10))
       (0 to 10).foreach{h.add}
-      val percs = Seq(0, 0.25, 0.5, 0.75, 0.99, 1.0)
+      val percs = List(0, 0.25, 0.5, 0.75, 0.99, 1.0)
       val values = Seq(0, 2, 5, 8, 9, 10)
 
-      h.snapshot(percs) must equal (Snapshot(Root, 0, 10, 11, percs.zip(values).toMap))
+      h.snapshot(percs) must equal (Snapshot(0, 10, 11, percs.zip(values).toMap))
     }
-    */
 
 
     "bucketFor" in {
@@ -55,77 +55,56 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       }
     }
   }
-  /*
 
   "tagged histogram" must {
     "combine values with same tags" in {
-      val h = new TaggedHistogram(Root)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
       val m = Map("foo" -> "bar")
-      h.add(m, 4)
-      h.add(m, 400)
+      h.add(4, m)
+      h.add(400, m)
       val percs = Seq(0.25, 0.5, 1.0)
       h(m).percentiles(percs) must equal (percs.zip(Seq(4, 4, 400)).toMap)
     }
 
     "seperate values with different tag values" in {
-      val h = new TaggedHistogram(Root)
-      h.add(Map("foo" -> "a"), 3)
-      h.add(Map("foo" -> "b"), 30000)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
+      h.add(3, Map("foo" -> "a"))
+      h.add(30000, Map("foo" -> "b"))
       h(Map("foo" -> "a")).max must equal (3)
       h(Map("foo" -> "b")).max must equal (30000)
     }
 
-    "create new histogram on non-existant tagmap" in {
-      val h = new TaggedHistogram(Root)
-      h(Map("not" -> "exists")).count must equal (0)
-    }
-
     "produce raw stats" in {
-      val h = new TaggedHistogram(Root)
-      val exp1 = Histogram()
-      val exp2 = Histogram()
-      val percs = Seq(0.75, 0.99)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
+      val exp1 = new BaseHistogram(Histogram.generateBucketRanges(10))
+      val exp2 = new BaseHistogram(Histogram.generateBucketRanges(10))
+      val percs = List(0.75, 0.99)
       (0 to 100).foreach{i =>
-        h.add(Map("foo" -> "bar"), i)
+        h.add(i, Map("foo" -> "bar"))
         exp1.add(i)
       }
       (100 to 200).foreach{i =>
-        h.add(Map("foo" -> "baz"), i)
+        h.add(i, Map("foo" -> "baz"))
         exp2.add(i)
       }
-      val perc: Metric = Metric(Root, 
-        exp1.percentiles(percs).map{ case (perc, value) => 
-          Map("foo" -> "bar", "percentile" -> perc.toString) -> value.toLong
-        } ++ exp2.percentiles(percs).map{ case (perc, value) => 
-          Map("foo" -> "baz", "percentile" -> perc.toString) -> value.toLong
-        }
+      val expected: Map[TagMap, Snapshot] = Map(
+        Map("foo" -> "bar") -> Snapshot(0, 100, 101, exp1.percentiles(percs)),
+        Map("foo" -> "baz") -> Snapshot(100, 200, 101, exp2.percentiles(percs))
       )
-      val min = Metric(Root / "min", Map(
-        Map("foo" -> "bar") -> 0L,
-        Map("foo" -> "baz") -> 100L
-      ))
-      val max = Metric(Root / "max", Map(
-        Map("foo" -> "bar") -> 100L,
-        Map("foo" -> "baz") -> 200L
-      ))
-      val count = Metric(Root / "count", Map(
-        Map("foo" -> "bar") -> 101L,
-        Map("foo" -> "baz") -> 101L
-      ))
-      val expected = MetricMap(perc, min,max, count)
-      val actual = h.metrics(percs)
+      val actual = h.snapshots(percs)
 
-      if (actual != expected) {
-        println("EXPECTED")
-        expected.foreach{case (address, values) => println(address.toString + ": " + values.lineString)}
-        println("ACTUAL")
-        actual.foreach{case (address, values) => println(address.toString + ": " + values.lineString)}
-      }
       actual must equal (expected)
     }
 
 
   }
-  */
+
+  "PeriodicHistogram" must {
+    "properly tick for intervals" in {
+      //val params = HistogramParams(
+
+    }
+
+  }
       
 }

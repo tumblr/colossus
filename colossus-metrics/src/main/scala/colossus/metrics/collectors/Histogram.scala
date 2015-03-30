@@ -13,9 +13,7 @@ case class BucketList(buckets: Vector[Int]) extends AnyVal
 case class HistogramParams (
   address: MetricAddress, 
   bucketRanges: BucketList = Histogram.defaultBucketRanges, 
-  periods: List[FiniteDuration] = List(1.second, 1.minute), 
   percentiles: List[Double] = Histogram.defaultPercentiles,
-  tagPrecision: FiniteDuration = 1.second,
   sampleRate: Double = 1.0
 ) extends MetricParams[Histogram, HistogramParams] {
   def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
@@ -60,15 +58,13 @@ object Histogram {
   def apply(
     address: MetricAddress, 
     bucketRanges: BucketList = Histogram.defaultBucketRanges, 
-    periods: List[FiniteDuration] = List(1.second, 1.minute), 
     percentiles: List[Double] = Histogram.defaultPercentiles,
-    tagPrecision: FiniteDuration = 1.second,
     sampleRate: Double = 1.0
-  ) : HistogramParams = HistogramParams(address, bucketRanges, periods, percentiles, tagPrecision, sampleRate)
+  ) : HistogramParams = HistogramParams(address, bucketRanges, percentiles, sampleRate)
 
   implicit object HistogramGenerator extends Generator[Histogram, HistogramParams] {
-    def local(params: HistogramParams) = new PeriodicHistogram(params)
-    def shared(params: HistogramParams)(implicit actor: ActorRef) = new SharedHistogram(params, actor)
+    def local(params: HistogramParams, config: CollectorConfig) = new PeriodicHistogram(params, config)
+    def shared(params: HistogramParams, config: CollectorConfig)(implicit actor: ActorRef) = new SharedHistogram(params, actor)
   }
 
 }
@@ -172,11 +168,9 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class TaggedHistogram(val ranges: BucketList, period: FiniteDuration) {
+class TaggedHistogram(val ranges: BucketList) {
 
-  val hists = collection.mutable.Map[TagMap, BaseHistogram]()
-
-  val ticker = new TickTracker(period) 
+  private val hists = collection.mutable.Map[TagMap, BaseHistogram]()
 
   def add(value: Int, tags: TagMap = TagMap.Empty) {
     if (!hists.contains(tags)) {
@@ -185,16 +179,16 @@ class TaggedHistogram(val ranges: BucketList, period: FiniteDuration) {
     hists(tags).add(value)
   }
 
-  def tick(p: FiniteDuration) {
-    if (ticker.tick(p) == TickTracker.Tick) {
-      reset()
-    }
+  def tick() {
+    reset()
   }
 
   def reset() {
     hists.foreach{case (tags, h) => h.reset()}
-
   }
+
+  def apply(tags: TagMap): BaseHistogram = hists(tags)
+
 
   def snapshots(percs: List[Double]): Map[TagMap, Snapshot] = hists.map{case (tags, hist) => (tags, hist.snapshot(percs))}.toMap
 
@@ -207,13 +201,13 @@ class TaggedHistogram(val ranges: BucketList, period: FiniteDuration) {
  * Ticks are controlled externally so we can ensure that we get a complete set
  * of data before resetting the hists
  */
-class PeriodicHistogram(params: HistogramParams) extends Histogram with TickedCollector with LocalLocality {
+class PeriodicHistogram(params: HistogramParams, config: CollectorConfig) extends Histogram with TickedCollector with LocalLocality {
   def address = params.address
 
   import PeriodicHistogram._
 
-  val hists: Map[String, TaggedHistogram] = params.periods.map{p => 
-    (p / params.tagPrecision).toInt.toString -> new TaggedHistogram(params.bucketRanges, p)
+  val hists: Map[FiniteDuration, TaggedHistogram] = config.intervals.map{interval => 
+    interval -> new TaggedHistogram(params.bucketRanges)
   }.toMap
   var lastSnapshot: MetricMap = MetricMap.Empty
 
@@ -236,15 +230,13 @@ class PeriodicHistogram(params: HistogramParams) extends Histogram with TickedCo
   }
 
   def tick(period: FiniteDuration) {
-    hists.foreach{case (s, hist) => hist.tick(period)}
+    hists(period).tick()
   }
 
   def metrics(context: CollectionContext): MetricMap = {    
-    hists
-      .flatMap{case (ptag, hist) => hist.snapshots(params.percentiles).map{case (tags, snap) =>
-        snap.metrics(params.address, tags ++ context.globalTags + ("period" -> ptag))
-      }}
-      .foldLeft[MetricMap](Map()){case (build, map) => build <+> map}
+    hists(context.interval).snapshots(params.percentiles).foldLeft[MetricMap](Map()){ case (build, (tags, snapshot)) =>
+      build <+> snapshot.metrics(params.address, tags ++ context.globalTags)
+    }
   }
 
   def reset() {

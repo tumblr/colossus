@@ -21,8 +21,8 @@ class RateSpec extends MetricIntegrationSpec {
 
   "ConcreteRate" must {
     "tick for tags" in {
-      val params = Rate("/foo", periods = List(1.second))
-      val r = new ConcreteRate(params)
+      val params = Rate("/foo")
+      val r = new ConcreteRate(params, CollectorConfig(List(1.second)))
       r.hit(Map("foo" -> "a"))
       r.hit(Map("foo" -> "a"))
       r.hit(Map("foo" -> "b"))
@@ -36,8 +36,8 @@ class RateSpec extends MetricIntegrationSpec {
 
 
     "report the correct intervals" in {
-      val params = Rate("/foo", periods = List(1.second, 1.minute))
-      val r = new ConcreteRate(params)
+      val params = Rate("/foo")
+      val r = new ConcreteRate(params, CollectorConfig(List(1.second, 1.minute)))
       r.hit()
       r.hit()
       r.hit()
