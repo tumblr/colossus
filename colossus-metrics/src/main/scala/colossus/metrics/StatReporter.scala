@@ -12,13 +12,15 @@ trait TagGenerator {
 
 /**
  * Configuration class for the metric reporter
- * @param metricSender A [[MetricSender]] instance that the reporter will use to send metrics
+ * @param metricAddress The MetricAddress of the MetricSystem that this reporter is a member
+ * @param metricSenders A list of [[MetricSender]] instances that the reporter will use to send metrics
  * @param globalTags
  * @param filters
  * @param includeHostInGlobalTags
  */
 case class MetricReporterConfig(
-  metricSender: MetricSender,
+  metricAddress: MetricAddress,
+  metricSenders: Seq[MetricSender],
   globalTags: Option[TagGenerator] = None,
   filters: Option[Seq[MetricFilter]] = None,
   includeHostInGlobalTags: Boolean = true
@@ -35,10 +37,13 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
     case _: Exception                => Restart
   }
 
-  def createSender() = context.actorOf(metricSender.props, name = s"${metricSender.name}-sender")
-  var statSender = createSender()
+  private val strippedAddress = metricAddress.toString.replace("/", "")
 
-  def getGlobalTags = {
+  private def createSender(sender : MetricSender) = context.actorOf(sender.props, name = s"$strippedAddress-${sender.name}-sender")
+
+  private var reporters = Seq[ActorRef]()
+
+  private val compiledGlobalTags = {
     val userTags = globalTags.map{_.tags}.getOrElse(Map())
     val added = if (includeHostInGlobalTags) Map("host" -> localHostname) else Map()
     userTags ++ added
@@ -47,17 +52,24 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   def receive = {
 
     case ReportMetrics(m) => {
+
       val filtered: RawMetricMap = filters.fold(m.toRawMetrics)(m.filter(_))
-      statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
+      val s = MetricSender.Send(filtered, compiledGlobalTags, System.currentTimeMillis())
+      sendToReporters(s)
     }
     case ResetSender => {
-      log.info("resetting stats sender")
-      statSender ! PoisonPill
-      statSender = createSender()
+      log.info("resetting stats senders")
+      sendToReporters(PoisonPill)
+      reporters = metricSenders.map(createSender)
     }
   }
 
+  private def sendToReporters(a : Any){
+    reporters.foreach(_ ! a)
+  }
+
   override def preStart() {
+    reporters = metricSenders.map(createSender)
     intervalAggregator ! RegisterReporter(self)
   }
 }

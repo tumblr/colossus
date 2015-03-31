@@ -95,7 +95,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
       val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
 
-      val conf = MetricReporterConfig(LoggerSender, None, None, false)
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
       val reporter = oneDayAgg.report(conf)
 
       //only one aggregator should have the reporter
@@ -112,7 +112,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
       val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
 
-      val conf = MetricReporterConfig(LoggerSender, None, None, false)
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
       val reporter = oneDayAgg.report(conf)
 
       val expectedReporters = Map(oneDayAgg.intervalAggregator->Set(reporter), tenDayAgg.intervalAggregator->Set[ActorRef]())
