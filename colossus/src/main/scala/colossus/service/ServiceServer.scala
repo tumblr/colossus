@@ -55,10 +55,10 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) {
   implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
   val log = Logging(worker.system.actorSystem, name.toString())
 
-  val requests  = worker.metrics.getOrAdd(Rate(name / "requests", List(1.second, 1.minute)))
-  val latency   = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(1.second, 1.minute), sampleRate = 0.25))
-  val errors    = worker.metrics.getOrAdd(Rate(name / "errors", List(1.second, 1.minute)))
-  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(name / "requests_per_connection", periods = List(1.minute), sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val requests  = worker.metrics.getOrAdd(Rate(name / "requests"))
+  val latency   = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.25))
+  val errors    = worker.metrics.getOrAdd(Rate(name / "errors"))
+  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
   val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
 
   //set to true when graceful disconnect has been triggered

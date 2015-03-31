@@ -1,15 +1,10 @@
 package colossus.metrics
 
-import akka.actor._
-import akka.pattern.ask
-import akka.actor.OneForOneStrategy
 import akka.actor.SupervisorStrategy._
-import akka.util.Timeout
+import akka.actor.{OneForOneStrategy, _}
+import colossus.metrics.IntervalAggregator.{RegisterReporter, ReportMetrics}
 
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
-
-import java.io._
 
 trait TagGenerator {
   def tags: TagMap
@@ -17,73 +12,73 @@ trait TagGenerator {
 
 /**
  * Configuration class for the metric reporter
- * @param metricSender A [[MetricSender]] instance that the reporter will use to send metrics
+ * @param metricAddress The MetricAddress of the MetricSystem that this reporter is a member
+ * @param metricSenders A list of [[MetricSender]] instances that the reporter will use to send metrics
  * @param globalTags
  * @param filters
- * @param frequency
  * @param includeHostInGlobalTags
  */
 case class MetricReporterConfig(
-  metricSender: MetricSender,
+  metricAddress: MetricAddress,
+  metricSenders: Seq[MetricSender],
   globalTags: Option[TagGenerator] = None,
   filters: Option[Seq[MetricFilter]] = None,
-  frequency: FiniteDuration = 60.seconds,
   includeHostInGlobalTags: Boolean = true
 )
 
-class MetricReporter(metrics: MetricSystem, config: MetricReporterConfig) extends Actor with ActorLogging{
+class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig) extends Actor with ActorLogging{
   import MetricReporter._
   import config._
-  import context.dispatcher
 
   val localHostname = java.net.InetAddress.getLocalHost.getHostName
 
   override val supervisorStrategy = OneForOneStrategy(maxNrOfRetries = 1, withinTimeRange = 3 seconds) {
     case _: NullPointerException     => Escalate
-    case _: IOException              => Restart
     case _: Exception                => Restart
   }
 
-  def createSender() = context.actorOf(metricSender.props, name = s"${metricSender.name}-sender")
-  var statSender = createSender()
+  private val strippedAddress = metricAddress.toString.replace("/", "")
 
-  implicit val timeout = Timeout(100.milliseconds)
+  private def createSender(sender : MetricSender) = context.actorOf(sender.props, name = s"$strippedAddress-${sender.name}-sender")
 
-  def getGlobalTags = {
-    val usertags = globalTags.map{_.tags}.getOrElse(Map())
+  private var reporters = Seq[ActorRef]()
+
+  private val compiledGlobalTags = {
+    val userTags = globalTags.map{_.tags}.getOrElse(Map())
     val added = if (includeHostInGlobalTags) Map("host" -> localHostname) else Map()
-    usertags ++ added
+    userTags ++ added
   }
 
   def receive = {
-    case SendStats => (metrics.database ? MetricDatabase.GetDB).onComplete{
-      case Success(MetricDatabase.DB(db)) => {
-        val filtered: MetricMap = filters.map{f => db.filter(f)}.getOrElse(db)
-        statSender ! MetricSender.Send(filtered, getGlobalTags, System.currentTimeMillis)
-      }
-      case Failure(whoops) => log.error(s"Metrics reporting failed: ${whoops.getMessage}")
-      case _ => log.error("Bad response from db")
+
+    case ReportMetrics(m) => {
+
+      val filtered: RawMetricMap = filters.fold(m.toRawMetrics)(m.filter(_))
+      val s = MetricSender.Send(filtered, compiledGlobalTags, System.currentTimeMillis())
+      sendToReporters(s)
     }
     case ResetSender => {
-      log.info("resetting stats sender")
-      statSender ! PoisonPill
-      statSender = createSender()
+      log.info("resetting stats senders")
+      sendToReporters(PoisonPill)
+      reporters = metricSenders.map(createSender)
     }
-      
+  }
+
+  private def sendToReporters(a : Any){
+    reporters.foreach(_ ! a)
   }
 
   override def preStart() {
-    context.system.scheduler.schedule(frequency, frequency, self , SendStats)
+    reporters = metricSenders.map(createSender)
+    intervalAggregator ! RegisterReporter(self)
   }
-
 }
 
 object MetricReporter {
   case object ResetSender
-  case object SendStats
 
-  def apply(config: MetricReporterConfig)(implicit metrics: MetricSystem, fact: ActorRefFactory): ActorRef = {
-    fact.actorOf(Props(classOf[MetricReporter], metrics, config))
+  def apply(config: MetricReporterConfig, intervalAggregator : ActorRef)(implicit fact: ActorRefFactory): ActorRef = {
+    fact.actorOf(Props(classOf[MetricReporter], intervalAggregator, config))
   }
 
 }
@@ -94,7 +89,7 @@ trait MetricSender {
 }
 
 object MetricSender {
-  case class Send(metrics: MetricMap, globalTags: TagMap, timestamp: Long) {
+  case class Send(metrics: RawMetricMap, globalTags: TagMap, timestamp: Long) {
     def fragments = metrics.fragments(globalTags)
   }
 }

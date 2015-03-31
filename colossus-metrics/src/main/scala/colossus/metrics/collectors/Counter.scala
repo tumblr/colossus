@@ -20,8 +20,9 @@ object Counter {
 
   def apply(address: MetricAddress) = CounterParams(address)
 
-  implicit object LocalCounterGenerator extends Generator[LocalLocality, Counter, CounterParams] {
-    def apply(params: CounterParams)(implicit collector: ActorRef) = new LocalCounter(params, collector)
+  implicit object CounterGenerator extends Generator[Counter, CounterParams] {
+    def local(params: CounterParams, config: CollectorConfig) = new LocalCounter(params)
+    def shared(params: CounterParams, config: CollectorConfig)(implicit collector: ActorRef) = new SharedCounter(params, collector)
   }
 
 }
@@ -44,14 +45,13 @@ class BasicCounter(params: CounterParams) {
   }
 }
 
-class LocalCounter(params: CounterParams, collector: ActorRef) extends BasicCounter(params) with Counter with LocalLocality[Counter] {
+class LocalCounter(params: CounterParams) extends BasicCounter(params) with Counter with LocalLocality {
   import Counter._
-  lazy val shared = new SharedCounter(params, collector)
 
   val address = params.address
 
   def metrics(context: CollectionContext): MetricMap = Map(
-    params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, value)}
+    params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, MetricValues.SumValue(value))}
   )
 
   def event = {
@@ -60,7 +60,7 @@ class LocalCounter(params: CounterParams, collector: ActorRef) extends BasicCoun
 
 }
 
-class SharedCounter(params: CounterParams, collector: ActorRef) extends Counter with SharedLocality[Counter] {
+class SharedCounter(params: CounterParams, collector: ActorRef) extends Counter with SharedLocality {
   def address = params.address
   def Δ(d: Long, tags: TagMap = TagMap.Empty) {
     collector ! Counter.Delta(params.address, d, tags)

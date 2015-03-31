@@ -1,8 +1,9 @@
 package colossus.metrics
 
-import akka.actor._
 import org.scalatest._
 import scala.concurrent.duration._
+
+import MetricValues._
 
 class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
@@ -33,34 +34,34 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
   "ConcreteGauge" must {
     "set tagged values" in {
       val params = GaugeParams("/")
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "a") -> 4L, Map("foo" -> "b") -> 5L)
+        MetricAddress.Root -> Map(Map("foo" -> "a") -> SumValue(4L), Map("foo" -> "b") -> SumValue(5L))
       )
 
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
     }
 
     "remove unset values" in {
       val params = GaugeParams("/", expireAfter = 1.second)
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
       g.set(None, Map("foo" -> "a"))
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "b") -> 5L)
+        MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(5L))
       )
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
 
     }
 
     "remove expired values" in {
       val params = GaugeParams("/", expireAfter = 1.second)
-      val g = new ConcreteGauge(params, ActorRef.noSender)
+      val g = new ConcreteGauge(params)
       g.set(4, Map("foo" -> "a"))
       g.set(5, Map("foo" -> "b"))
       g.tick(500.milliseconds)
@@ -68,9 +69,9 @@ class GaugeSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
       g.tick(501.milliseconds)
 
       val expected = Map(
-        MetricAddress.Root -> Map(Map("foo" -> "b") -> 6L)
+        MetricAddress.Root -> Map(Map("foo" -> "b") -> SumValue(6L))
       )
-      g.metrics(CollectionContext(Map())) must equal(expected)
+      g.metrics(CollectionContext(Map(), 1.second)) must equal(expected)
     }
 
   }

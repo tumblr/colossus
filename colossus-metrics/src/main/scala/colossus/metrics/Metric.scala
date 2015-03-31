@@ -74,37 +74,8 @@ object MetricAddress {
 
 }
 
-case class MetricFragment(address: MetricAddress, tags: TagMap, value: MetricValue)
+case class MetricFragment(address: MetricAddress, tags: TagMap, value: RawMetricValue)
 
-case class Metric(address: MetricAddress, values: ValueMap) {
-
-  def ++ (t: Metric): Metric = if (address == t.address) {
-    copy(values = values ++ t.values)
-  } else {
-    throw new Exception(s"cannot merge metric ${t.address} into $address")
-  }
-
-  def + (b: (TagMap, MetricValue)): Metric = copy(values = values + b)
-
-  def fragments(globalTags: TagMap) = values.map{case (tags, value) => MetricFragment(address, tags ++ globalTags, value)}
-
-  def lineString = s"${address.toString}:\n${values.lineString(true)}";
-
-  def filter(filter: MetricValueFilter) = copy(values = filter.process(values))
-
-  def isEmpty = values.size == 0
-
-}
-
-object Metric {
-
-  def apply(address: MetricAddress): Metric = Metric(address, ValueMap.Empty)
-
-  def apply(address: MetricAddress, tags: TagMap, value: MetricValue): Metric = Metric(address, Map(tags -> value))
-
-  def apply(address: MetricAddress, value: MetricValue): Metric = Metric(address, TagMap.Empty, value)
-
-}
 
 /**
  * Anything that eventually expands to a set of raw stats extends this
@@ -120,21 +91,3 @@ trait TickedMetric {
   def tick()
 }
 
-class MetricMapBuilder{
-  import scala.collection.mutable.{Map => MutMap}
-
-  val builder = MutMap[MetricAddress, MutMap[TagMap, MetricValue]]()
-
-  def add(given: MetricMap) = {
-    given.foreach{ case(address, values) =>
-      if (!(builder contains address)) {
-        builder(address) = MutMap[TagMap, MetricValue]()
-      }
-      builder(address) ++= values
-    }
-    this
-  }
-
-  def result: MetricMap = builder.map{case (a, mut) => (a , mut.toMap)}.toMap
-
-}

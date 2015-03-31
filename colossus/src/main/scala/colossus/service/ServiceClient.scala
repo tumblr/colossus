@@ -114,13 +114,12 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
 
   override val maxIdleTime = config.idleTimeout
 
-  private val periods = List(1.second, 1.minute)
-  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
-  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
-  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
-  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
-  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
-  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests"))
+  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors"))
+  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests"))
+  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures"))
+  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects"))
+  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99)))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   case class SourcedRequest(message: I, handler: ResponseHandler) {

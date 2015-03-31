@@ -166,11 +166,10 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val me = ServerRef(config, self, io, stateAgent)
 
   //initialize metrics
-  val ratePeriods = List(1.seconds, 60.seconds)
   val connections   = metrics getOrAdd Counter(name / "connections")
-  val refused       = metrics getOrAdd Rate(name / "refused_connections", ratePeriods)
-  val connects      = metrics getOrAdd Rate(name / "connects", ratePeriods)
-  val closed        = metrics getOrAdd Rate(name / "closed", ratePeriods)
+  val refused       = metrics getOrAdd Rate(name / "refused_connections")
+  val connects      = metrics getOrAdd Rate(name / "connects")
+  val closed        = metrics getOrAdd Rate(name / "closed")
   val highwaters    = metrics getOrAdd Rate(name / "highwaters")
 
   private var openConnections = 0

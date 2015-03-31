@@ -1,13 +1,27 @@
 package colossus.metrics
 
+import akka.util.Timeout
+import colossus.metrics.IntervalAggregator._
 import org.scalatest._
-
 
 import akka.actor._
 import scala.concurrent.duration._
 import MetricAddress._
 
-class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
+
+class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) with OptionValues with MetricSystemMatchers {
+
+  def this() = this(ActorSystem("MetricSpec"))
+
+  implicit val sys = _system
+
+  import akka.testkit._
+
+  implicit val ec = sys.dispatcher
+
+  override protected def afterAll() {
+    TestKit.shutdownActorSystem(sys)
+  }
 
   "MetricAddress" must {
     "startsWith" in {
@@ -21,150 +35,130 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "MetricSystem" must {
     "allow multiple systems to start without any conflicts" in {
-      implicit val sys = ActorSystem("metrics")
       val m1 = MetricSystem("/sys1")
       val m2 = MetricSystem("/sys2")
       //no exceptions means the test passed
-      sys.shutdown()
     }
 
-
-    //note - this test passes locally, but seems go never work in travis
-    //need to make some design changes any to eliminate the non-determinism
-    "two metric systems don't react to each other's ticks" taggedAs(org.scalatest.Tag("test")) ignore {
-      implicit val sys = ActorSystem("metrics")
+    "register EventCollectors across aggregators" in {
       //set the tick period to something really high so we can control the ticks ourselves
-      val m1 = MetricSystem("/sys1", tickPeriod = 10.days, collectSystemMetrics = false)
-      val m2 = MetricSystem("/sys2", tickPeriod = 10.days, collectSystemMetrics = false)
+      implicit val m1 = MetricSystem("/sys3", Seq(1.day, 10.days), false)
 
-      val m1col = m1.sharedCollection()
-      val m1counter = m1col.getOrAdd(Counter("/foo"))
-      m1counter.increment()
-      m1counter.increment()
-      m1counter.increment()
+      val p1 = SharedCollection()
+      val p2 = SharedCollection()
 
-      val m2col = m2.sharedCollection()
-      val m2counter = m2col.getOrAdd(Counter("/bar"))
-      m2counter.increment()
-      m2counter.increment()
+      val expColl = Set(p1.collector, p2.collector)
 
-      //first tick triggers collectors to send metrics, second tick tells
-      //MetricDatabase to publish the snapshot from the previous tick
-      sys.eventStream.publish(MetricClock.Tick(m1.id, 1))
-      Thread.sleep(500)
-      sys.eventStream.publish(MetricClock.Tick(m1.id, 2))
-      Thread.sleep(50)
+      m1 must haveCollectors(expColl)
 
-      def wait(num: Int)(f: => Boolean) {
-        def loop(n: Int) {
-          if (!f) {
-            if (n == 0) {
-              fail(s"Check failed after $num tries")
-            } else {
-              Thread.sleep(50)
-              loop(n - 1)
-            }
-          }
-        }
-        loop(num)
-      }
-        
-      
-      wait(50){     
-        m1.snapshot() == (Map(Root / "foo" -> Map(TagMap.Empty -> 3)))
-      }
-      m2.snapshot() must equal(Map())
-
-      sys.eventStream.publish(MetricClock.Tick(m2.id, 1))
-      Thread.sleep(500)
-      sys.eventStream.publish(MetricClock.Tick(m2.id, 2))
-      Thread.sleep(50)
-
-      wait(50){
-        m2.snapshot() == Map(Root / "bar" -> Map(TagMap.Empty -> 2))
-      }
-      sys.shutdown()
-      
-    }
-  }
-
-
-  "Metric" must {
-    "add a new tagged value" in {
-      val v1 = Map("foo" -> "bar") -> 4L
-      val v2 = Map("foo" -> "zzz") -> 45L
-      val m = Metric(Root, Map(v1))
-      val expected = Metric(Root, Map(v1,v2))
-
-      m + v2 must equal (expected)
     }
 
-    "merge with metric of same address" in {
-      val m1v1 = Map("a" -> "a") -> 3L
-      val m1v2 = Map("b" -> "b") -> 3L
-      val m2v1 = Map("a" -> "aa") -> 5L
-      val m2v2 = Map("b" -> "bb") -> 6L
+    "remove terminated EventCollectors" in {
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
 
-      val m1 = Metric(Root / "foo", Map(m1v1,m1v2))
-      val m2 = Metric(Root / "foo", Map(m2v1,m2v2))
+      val sc1 = SharedCollection()
+      val sc2 = SharedCollection()
 
-      val expected = Metric(Root / "foo", Map(m1v1,m1v2,m2v1,m2v2))
-      m1 ++ m2 must equal (expected)
+      val expColl = Set(sc1.collector, sc2.collector)
+
+      m1 must haveCollectors(expColl)
+
+      val p = TestProbe()
+      p.watch(sc2.collector)
+
+      sc2.collector ! PoisonPill
+
+      p.expectTerminated(sc2.collector)
+
+      m1 must haveCollectors(Set(sc1.collector))
     }
 
-      
+    "Registered Collectors should receive Ticks from all IntervalAggregators" in {
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
 
+      val p = TestProbe()
+      m1.registerCollector(p.ref)
+
+      m1 must haveCollectors(Set(p.ref))
+
+      m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
+      p.expectMsgAllOf(Tick(1, 1.day), Tick(1, 10.days))  //the probe should get ticks from both Aggregators
+    }
+
+    "register MetricReporters with an IntervalAggregator" in {
+      //set the tick period to something really high so we can control the ticks ourselves
+      val intervals = Seq(1.day, 10.days)
+      implicit val m1 = MetricSystem("/sys1", intervals, false)
+
+      val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
+      val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
+
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
+      val reporter = oneDayAgg.report(conf)
+
+      //only one aggregator should have the reporter
+      val expectedReporters = Map(oneDayAgg.intervalAggregator->Set(reporter), tenDayAgg.intervalAggregator->Set[ActorRef]())
+
+      m1 must haveReporters(expectedReporters)
+    }
+
+    "remove terminated MetricReporters" in {
+
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
+
+      val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
+      val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
+
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
+      val reporter = oneDayAgg.report(conf)
+
+      val expectedReporters = Map(oneDayAgg.intervalAggregator->Set(reporter), tenDayAgg.intervalAggregator->Set[ActorRef]())
+
+      m1 must haveReporters(expectedReporters)
+
+      val p = TestProbe()
+      p.watch(reporter)
+
+      reporter ! PoisonPill
+      p.expectTerminated(reporter)
+
+      val expectedAfterDeath = Map(oneDayAgg.intervalAggregator->Set[ActorRef](), tenDayAgg.intervalAggregator->Set[ActorRef]())
+      m1 must haveReporters(expectedAfterDeath)
+    }
+
+    "Registered Reporters should receive ReportMetrics messags only from their IntervalAggregators" in {
+      //set the tick period to something really high so we can control the ticks ourselves
+      implicit val m1 = MetricSystem("/sys1", Seq(1.day, 10.days), false)
+
+      val p = TestProbe()
+      val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
+      val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
+
+      oneDayAgg.intervalAggregator ! RegisterReporter(p.ref)
+
+      val expectedReporters = Map(oneDayAgg.intervalAggregator->Set(p.ref), tenDayAgg.intervalAggregator->Set[ActorRef]())
+
+      m1 must haveReporters(expectedReporters)
+
+      m1.metricIntervals.values.foreach(_.intervalAggregator ! SendTick)
+
+      p.expectMsg(ReportMetrics(Map(Root /"sys1"/"1day"/"metric_completion" -> Map(Map[String, String]() -> MetricValues.SumValue(0L)))))
+
+    }
   }
 
   case class Foo(address: MetricAddress) extends MetricProducer {
     def metrics(context: CollectionContext) = Map()
   }
 
-
-  "MetricMapBuilder" must {
-    "build a map" in {
-      val b = new MetricMapBuilder
-      val map1 = Map(
-        Root / "foo" -> Map(
-          Map("a" -> "va") -> 3L,
-          Map("b" -> "vb") -> 4L
-        )
-      )
-      val map2 = Map(
-        Root / "foo" -> Map(
-          Map("c" -> "vc") -> 3L
-        ),
-        Root / "bar" -> Map(
-          Map("a" -> "ba") -> 45L
-        )
-      )
-      val expected = Map(
-        Root / "foo" -> Map(
-          Map("a" -> "va") -> 3L,
-          Map("b" -> "vb") -> 4L,
-          Map("c" -> "vc") -> 3L
-        ),
-        Root / "bar" -> Map(
-          Map("a" -> "ba") -> 45L
-        )
-      )
-
-      b.add(map1)
-      b.add(map2)
-      b.result must equal(expected)
-
-      val reversed = new MetricMapBuilder
-      reversed.add(map2)
-      reversed.add(map1)
-      reversed.result must equal(expected)
-    }
-  }
-
   "JSON Serialization" must {
     import net.liftweb.json._
 
     "serialize" in {
-      val map = Map(
+      val map: RawMetricMap = Map(
         Root / "foo" -> Map(
           Map("a" -> "va") -> 3L,
           Map("b" -> "vb") -> 4L
@@ -182,7 +176,7 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
     }
 
     "unserialize" in {
-      val expected = Map(
+      val expected: RawMetricMap = Map(
         Root / "foo" -> Map(
           Map("a" -> "va") -> 3L,
           Map("b" -> "vb") -> 4L
@@ -195,13 +189,8 @@ class MetricSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
           ]}"""
       )
 
-      MetricMap.fromJson(json) must equal(expected)
+      RawMetricMap.fromJson(json) must equal(expected)
     }
       
   }
-
-
-
-
-
 }

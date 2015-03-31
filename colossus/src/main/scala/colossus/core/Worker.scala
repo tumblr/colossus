@@ -139,11 +139,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   implicit val mylog = log
   val metricSystem = config.io.metrics
-  override def globalTags = Map("worker" -> (io.name + "-" + workerId.toString))
+  override def globalTags = Map()
 
-  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops", List(1.second))
+  private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
+
+  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops")
   val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections", List(1.second, 60.seconds))
+  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -227,7 +229,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }.getOrElse{
         sc.close()
         delegator.server.server ! Server.ConnectionClosed(0, DisconnectCause.Unhandled)
-        rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString))
+        rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString) ++ workerIdTag)
       }
     }.getOrElse{
       sender ! Server.ConnectionRefused(sc, attempt)
@@ -270,7 +272,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     val connection = new ClientConnection(newId(), key, channel, handler)
     key.attach(connection)
     connections(connection.id) = connection
-    numConnections.increment()
+    numConnections.increment(workerIdTag)
     handler match {
       case w: WatchedHandler => {
         watchedConnections(w.watchedActor) = connection
@@ -334,7 +336,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
       newKey.attach(connection)
       connections(connection.id) = connection
-      numConnections.increment()
+      numConnections.increment(workerIdTag)
       workerItems.bind(handler)
       handler.connected(connection)
   }
@@ -363,7 +365,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   def unregisterConnection(con: Connection, cause : DisconnectCause) {
     connections -= con.id
     con.close(cause)
-    numConnections.decrement()
+    numConnections.decrement(workerIdTag)
     (con.handler, cause) match {
       case (m: ManualUnbindHandler, d: DisconnectError) => {}
       case _ => workerItems.unbind(con.handler)
@@ -388,7 +390,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   def selectLoop() {
     val num = selector.select(1) //need short wait times to register new connections
-    eventLoops.hit()
+    eventLoops.hit(tags = workerIdTag)
     implicit val TIME = System.currentTimeMillis
     val selectedKeys = selector.selectedKeys()
     val it = selectedKeys.iterator()
