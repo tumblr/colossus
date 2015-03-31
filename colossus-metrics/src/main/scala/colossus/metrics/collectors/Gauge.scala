@@ -26,8 +26,8 @@ object Gauge {
   def apply(address: MetricAddress, expireAfter: Duration = 1.hour, expireTo: Option[Long] = None) = GaugeParams(address, expireAfter, expireTo)
   
   implicit object GaugeGenerator extends Generator[Gauge, GaugeParams] {
-    def local(params: GaugeParams): Local[Gauge] = new ConcreteGauge(params)
-    def shared(params: GaugeParams)(implicit collector: ActorRef): Shared[Gauge] = new SharedGauge(params, collector)
+    def local(params: GaugeParams, config: CollectorConfig): Local[Gauge] = new ConcreteGauge(params)
+    def shared(params: GaugeParams, config: CollectorConfig)(implicit collector: ActorRef): Shared[Gauge] = new SharedGauge(params, collector)
   }
 
 }

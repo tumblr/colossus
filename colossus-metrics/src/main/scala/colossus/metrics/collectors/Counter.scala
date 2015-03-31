@@ -21,8 +21,8 @@ object Counter {
   def apply(address: MetricAddress) = CounterParams(address)
 
   implicit object CounterGenerator extends Generator[Counter, CounterParams] {
-    def local(params: CounterParams) = new LocalCounter(params)
-    def shared(params: CounterParams)(implicit collector: ActorRef) = new SharedCounter(params, collector)
+    def local(params: CounterParams, config: CollectorConfig) = new LocalCounter(params)
+    def shared(params: CounterParams, config: CollectorConfig)(implicit collector: ActorRef) = new SharedCounter(params, collector)
   }
 
 }

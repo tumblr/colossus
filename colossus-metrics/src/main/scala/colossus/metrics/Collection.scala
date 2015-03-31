@@ -98,8 +98,7 @@ object EventLocality {
 }
 import EventLocality._
 
-//TOdO: need to eliminate tag duplication
-case class CollectionContext(globalTags: TagMap)
+case class CollectionContext(globalTags: TagMap, interval: FiniteDuration)
 
 trait EventCollector {
   def address: MetricAddress
@@ -126,6 +125,20 @@ trait TickedCollector extends EventCollector {
 }
 
 /**
+ * This is passed to new event collectors in addition to their own config.
+ *
+ * TODO: we might want to include global tags in here as well, and remove them
+ * from CollectionContext.  This would mean event collectors would be
+ * constructed with global tagsinstead of them being passed in during
+ * collection, but right now that basically already happens since the tags are
+ * passed in during the collection's construction and then it passes it to each
+ * collector
+ *
+ * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
+ */
+case class CollectorConfig(intervals: Seq[FiniteDuration])
+
+/**
  * This is a typeclass that is basically just an EventCollector factory.
  *
  */
@@ -139,12 +152,12 @@ trait Generator[C <: EventCollector, P] {
   /**
    * Generate a local collector given the params object
    */
-  def local(params: P): C with LocalLocality
+  def local(params: P, collectorConfig: CollectorConfig): C with LocalLocality
 
   /**
    * Generate a shared collector given the params object
    */
-  def shared(params:P)(implicit collector: ActorRef): C with SharedLocality
+  def shared(params:P, collectorConfig: CollectorConfig)(implicit collector: ActorRef): C with SharedLocality
 }
 
 
@@ -177,6 +190,7 @@ class DuplicateMetricException(message: String) extends Exception(message)
 class LocalCollection(
   namespace: MetricAddress = MetricAddress.Root,
   val globalTags: TagMap = TagMap.Empty, 
+  val intervals: Seq[FiniteDuration] = Nil,
   metrics:ConcurrentHashMap[MetricAddress, Local[EventCollector]] = new ConcurrentHashMap[MetricAddress, Local[EventCollector]],
   parent: Option[LocalCollection] = None
 ) extends Collection[LocalLocality] {
@@ -185,11 +199,13 @@ class LocalCollection(
 
   val localProducers = collection.mutable.ArrayBuffer[MetricProducer]()
 
+  val collectorConfig = CollectorConfig(intervals)
+
 
   def getOrAdd[T <: EventCollector : ClassTag, P : ParamsFor[T]#Type](_params: P)(implicit creator: Generator[T, P]): Local[T] = {
     val params: P = _params.transformAddress(namespace / _)
     parent.map{_.getOrAdd(params)}.getOrElse {
-      val created = creator.local(params)
+      val created = creator.local(params, collectorConfig)
       metrics.putIfAbsent(params.address, created: Local[EventCollector]) match {
         case null => created
         case exists: T => {
@@ -218,11 +234,11 @@ class LocalCollection(
     localProducers += producer
   }
 
-  def aggregate: MetricMap = {
+  def aggregate(interval: FiniteDuration): MetricMap = {
     //do not move this import unless you want to have a bad time
     import scala.collection.JavaConversions._
     val now = System.currentTimeMillis
-    val context = CollectionContext(globalTags)
+    val context = CollectionContext(globalTags, interval)
     val eventMetrics = metrics.values.map{_.metrics(context)}
     val producerMetrics = localProducers.map{_.metrics(context)}
     //TODO: using <+> here should be unnecessary, might want to use ++
@@ -231,6 +247,7 @@ class LocalCollection(
       .filter{! _._2.isEmpty}
   }
 
+  //TODO this method is probably not needed, can be merged with aggregate
   def tick(tickPeriod: FiniteDuration) {
     import scala.collection.JavaConversions._
     metrics.values.collect{
@@ -239,7 +256,7 @@ class LocalCollection(
   }
 
   def subCollection(subSpace: MetricAddress = MetricAddress.Root, subTags: TagMap = TagMap.Empty) = {
-    new LocalCollection(subSpace, subTags, metrics, Some(this))
+    new LocalCollection(subSpace, subTags, intervals, metrics, Some(this))
   }
 
 }
@@ -270,7 +287,7 @@ private[colossus] class SharedCollection(val local: LocalCollection, val collect
     //create the actual collector
     local.getOrAdd(params)
     //get a shared interface for it
-    creator.shared(params)(collector)
+    creator.shared(params, CollectorConfig(local.intervals))(collector)
   }
 
   def shared = this
@@ -281,7 +298,7 @@ object SharedCollection {
   def apply(globalTags: TagMap = TagMap.Empty)(implicit system: MetricSystem, fact: ActorRefFactory): SharedCollection = {
     
     val metrics = new ConcurrentHashMap[MetricAddress, Local[EventCollector]]
-    val local = new LocalCollection(MetricAddress.Root, globalTags, metrics)
+    val local = new LocalCollection(MetricAddress.Root, globalTags, system.metricIntervals.keys.toSeq, metrics)
 
     val collector = fact.actorOf(Props(classOf[Collector], system, local))
     
