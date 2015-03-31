@@ -3,6 +3,7 @@ package colossus.metrics
 import org.scalatest._
 
 import MetricAddress.Root
+import scala.concurrent.duration._
 
 class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
   "Bucket generator" must {
@@ -58,16 +59,16 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "tagged histogram" must {
     "combine values with same tags" in {
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
+      val percs = List(0.25, 0.5, 1.0)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs)
       val m = Map("foo" -> "bar")
       h.add(4, m)
       h.add(400, m)
-      val percs = Seq(0.25, 0.5, 1.0)
       h(m).percentiles(percs) must equal (percs.zip(Seq(4, 4, 400)).toMap)
     }
 
     "seperate values with different tag values" in {
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), Nil)
       h.add(3, Map("foo" -> "a"))
       h.add(30000, Map("foo" -> "b"))
       h(Map("foo" -> "a")).max must equal (3)
@@ -75,10 +76,10 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
     }
 
     "produce raw stats" in {
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10))
+      val percs = List(0.75, 0.99)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs)
       val exp1 = new BaseHistogram(Histogram.generateBucketRanges(10))
       val exp2 = new BaseHistogram(Histogram.generateBucketRanges(10))
-      val percs = List(0.75, 0.99)
       (0 to 100).foreach{i =>
         h.add(i, Map("foo" -> "bar"))
         exp1.add(i)
@@ -91,7 +92,9 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
         Map("foo" -> "bar") -> Snapshot(0, 100, 101, exp1.percentiles(percs)),
         Map("foo" -> "baz") -> Snapshot(100, 200, 101, exp2.percentiles(percs))
       )
-      val actual = h.snapshots(percs)
+      h.tick()
+
+      val actual = h.snapshots
 
       actual must equal (expected)
     }
@@ -101,7 +104,43 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "PeriodicHistogram" must {
     "properly tick for intervals" in {
-      //val params = HistogramParams(
+      val params = HistogramParams(Root / "foo", percentiles = List(0.5), sampleRate = 1.0)
+      val config = CollectorConfig(List(1.second, 1.minute))
+      val hist = new PeriodicHistogram(params, config)
+
+      var i = 0
+      def check(interval: FiniteDuration, expected: Long) {
+        i += 1
+        val m = hist.metrics(CollectionContext(TagMap.Empty, interval))
+        m(Root / "foo")(Map("percentile" -> "0.5")) match {
+          case MetricValues.WeightedAverageValue(value, weight) => if (value != expected) {
+            throw new Exception(s"Check $i failed, expected $expected, got $value")
+          }
+          case _ => throw new Exception("wrong value type")
+        }
+      }
+      def checkEmpty(interval: FiniteDuration) {
+        hist.metrics(CollectionContext(TagMap.Empty, interval)) must equal(Map())
+      }
+
+      checkEmpty(1.second)
+      checkEmpty(1.minute)
+      hist.add(5)
+
+      checkEmpty(1.second)
+      checkEmpty(1.minute)
+      
+      hist.tick(1.second)
+      check(1.second, 5)
+      checkEmpty(1.minute)
+      
+      hist.tick(1.minute)
+      check(1.second, 5)
+      check(1.minute, 5)
+      
+      hist.tick(1.second)
+      check(1.second, 0)
+      check(1.minute, 5)      
 
     }
 

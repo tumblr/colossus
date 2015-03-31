@@ -168,9 +168,11 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class TaggedHistogram(val ranges: BucketList) {
+class TaggedHistogram(val ranges: BucketList, percs: List[Double]) {
 
   private val hists = collection.mutable.Map[TagMap, BaseHistogram]()
+
+  private var lastFullSnapshot: Map[TagMap, Snapshot] = Map()
 
   def add(value: Int, tags: TagMap = TagMap.Empty) {
     if (!hists.contains(tags)) {
@@ -180,6 +182,7 @@ class TaggedHistogram(val ranges: BucketList) {
   }
 
   def tick() {
+    lastFullSnapshot = hists.map{case (tags, hist) => (tags, hist.snapshot(percs))}.toMap
     reset()
   }
 
@@ -190,7 +193,7 @@ class TaggedHistogram(val ranges: BucketList) {
   def apply(tags: TagMap): BaseHistogram = hists(tags)
 
 
-  def snapshots(percs: List[Double]): Map[TagMap, Snapshot] = hists.map{case (tags, hist) => (tags, hist.snapshot(percs))}.toMap
+  def snapshots: Map[TagMap, Snapshot] = lastFullSnapshot
 
 
 }
@@ -207,7 +210,7 @@ class PeriodicHistogram(params: HistogramParams, config: CollectorConfig) extend
   import PeriodicHistogram._
 
   val hists: Map[FiniteDuration, TaggedHistogram] = config.intervals.map{interval => 
-    interval -> new TaggedHistogram(params.bucketRanges)
+    interval -> new TaggedHistogram(params.bucketRanges, params.percentiles)
   }.toMap
   var lastSnapshot: MetricMap = MetricMap.Empty
 
@@ -234,7 +237,7 @@ class PeriodicHistogram(params: HistogramParams, config: CollectorConfig) extend
   }
 
   def metrics(context: CollectionContext): MetricMap = {    
-    hists(context.interval).snapshots(params.percentiles).foldLeft[MetricMap](Map()){ case (build, (tags, snapshot)) =>
+    hists(context.interval).snapshots.foldLeft[MetricMap](Map()){ case (build, (tags, snapshot)) =>
       build <+> snapshot.metrics(params.address, tags ++ context.globalTags)
     }
   }
