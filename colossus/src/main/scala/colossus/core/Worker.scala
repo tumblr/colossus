@@ -141,9 +141,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val metricSystem = config.io.metrics
   override def globalTags = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops", List(1.second))
+  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops")
   val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections", List(1.second, 60.seconds))
+  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
