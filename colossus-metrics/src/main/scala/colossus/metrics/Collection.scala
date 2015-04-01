@@ -46,7 +46,7 @@ object MetricValues {
       case WeightedAverageValue(v, w) => {
         val wsum = weight + w
         if (wsum > 0) {
-          WeightedAverageValue((value * (weight / wsum)) + (v * (w / wsum)), wsum)
+          WeightedAverageValue(((value * weight) + (v * w)) / wsum, wsum)
         } else {
           WeightedAverageValue(0, 0)
         }
