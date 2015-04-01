@@ -23,7 +23,7 @@ object HttpExample {
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
-    val handler: PartialFunction[HttpRequest, Callback[HttpResponse]] = {
+    def handler: PartialFunction[HttpRequest, Callback[HttpResponse]] = {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "get"  / key => redis.send(Commands.Get(ByteString(key))).map{

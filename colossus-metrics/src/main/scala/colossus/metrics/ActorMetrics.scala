@@ -8,11 +8,11 @@ import LocalCollection._
 import IntervalAggregator._
 
 trait ActorMetrics extends Actor with ActorLogging {
-  val metricSystem: MetricSystem
+  def metricSystem: MetricSystem
 
   def globalTags: TagMap = TagMap.Empty
 
-  val metrics = new LocalCollection(MetricAddress.Root, globalTags)
+  lazy val metrics = new LocalCollection(MetricAddress.Root, globalTags, metricSystem.metricIntervals.keys.toSeq)
 
   def handleMetrics: Receive = {
     case m : MetricEvent => metrics.handleEvent(m) match {
