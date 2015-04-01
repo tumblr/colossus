@@ -6,7 +6,7 @@ class Collector(val metricSystem: MetricSystem, val collection: LocalCollection)
 
   override def globalTags = collection.globalTags
 
-  override val metrics = collection
+  override lazy val metrics = collection
 
   def receive = handleMetrics
 

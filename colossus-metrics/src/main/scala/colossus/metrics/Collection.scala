@@ -45,7 +45,11 @@ object MetricValues {
     def +(other: MetricValue) = other match {
       case WeightedAverageValue(v, w) => {
         val wsum = weight + w
-        WeightedAverageValue((value * (weight / wsum)) + (v * (w / wsum)), wsum)
+        if (wsum > 0) {
+          WeightedAverageValue((value * (weight / wsum)) + (v * (w / wsum)), wsum)
+        } else {
+          WeightedAverageValue(0, 0)
+        }
       }
       case _ => wrongType(this, other)
     }
