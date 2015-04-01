@@ -518,7 +518,7 @@ object Worker {
   private[core] case object ConnectionSummaryRequest
   private[core] case object CheckIdleConnections
 
-  case class ConnectionSummary(infos: Seq[ConnectionInfo])
+  case class ConnectionSummary(infos: Seq[ConnectionSnapshot])
 
   /** Sent from Servers
    * @param sc the underlying socketchannel of the connection

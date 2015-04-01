@@ -31,4 +31,12 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
   val worker: ActorRef = workerProbe.ref
 
   def isWritable = connection_status == ConnectionStatus.Connected && bytesAvailable > 0
+
+  def remoteAddress = None
+
+  def lastTimeDataReceived = 0
+
+  def bytesReceived = 0
+
+  def timeOpen = 0
 }

@@ -37,16 +37,17 @@ package object http {
       case other => request.error(reason.toString)
     }
 
-    override def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[Http] = {
-      new HttpServiceHandler(config, worker, this)
+    override def provideHandler(config: ServiceConfig, worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])(implicit ex: ExecutionContext): DSLHandler[Http] = {
+      new HttpServiceHandler(config, worker, this, initializer)
     }
 
   }
 
   implicit object DefaultHttpProvider extends HttpProvider
 
-  class HttpServiceHandler[D <: BaseHttp](config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[D])(implicit ex: ExecutionContext) 
-  extends BasicServiceHandler(config, worker, provider) {
+  class HttpServiceHandler[D <: BaseHttp]
+  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])(implicit ex: ExecutionContext) 
+  extends BasicServiceHandler(config, worker, provider, initializer) {
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
       if (response.head.version == HttpVersion.`1.0`) {
@@ -64,8 +65,8 @@ package object http {
       case other => toStreamed(request.error(reason.toString))
     }
 
-    override def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
-      new HttpServiceHandler(config, worker, this)
+    override def provideHandler(config: ServiceConfig, worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
+      new HttpServiceHandler(config, worker, this, initializer)
     }
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
