@@ -1,9 +1,5 @@
 package colossus
 
-import akka.pattern.ask
-import akka.util.Timeout
-import scala.concurrent.Future
-
 import net.liftweb.json._
 
 //TODO: break up this whole thing
@@ -186,11 +182,4 @@ package object metrics {
 
 
   }
-
-  type Timestamp = Long
-
-  object Timestamp {
-    def apply(): Timestamp = System.currentTimeMillis / 1000
-  }
-
 }

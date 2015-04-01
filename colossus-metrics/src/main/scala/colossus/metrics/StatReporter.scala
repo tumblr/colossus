@@ -22,7 +22,7 @@ case class MetricReporterConfig(
   metricAddress: MetricAddress,
   metricSenders: Seq[MetricSender],
   globalTags: Option[TagGenerator] = None,
-  filters: Option[Seq[MetricFilter]] = None,
+  filters: MetricReporterFilter = MetricReporterFilter.All,
   includeHostInGlobalTags: Boolean = true
 )
 
@@ -52,15 +52,26 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   def receive = {
 
     case ReportMetrics(m) => {
-
-      val filtered: RawMetricMap = filters.fold(m.toRawMetrics)(m.filter(_))
-      val s = MetricSender.Send(filtered, compiledGlobalTags, System.currentTimeMillis())
+      val s = MetricSender.Send(filterMetrics(m), compiledGlobalTags, System.currentTimeMillis())
       sendToReporters(s)
     }
     case ResetSender => {
       log.info("resetting stats senders")
       sendToReporters(PoisonPill)
       reporters = metricSenders.map(createSender)
+    }
+  }
+
+  private def filterMetrics(m : MetricMap) : RawMetricMap = {
+    filters match {
+      case MetricReporterFilter.All => m.toRawMetrics
+      case MetricReporterFilter.None => Map()
+      case MetricReporterFilter.WhiteList(x) => {
+        m.filterKeys(x.contains).toRawMetrics
+      }
+      case MetricReporterFilter.BlackList(x) => {
+        m.filterKeys(k => !x.contains(k)).toRawMetrics
+      }
     }
   }
 
@@ -92,4 +103,35 @@ object MetricSender {
   case class Send(metrics: RawMetricMap, globalTags: TagMap, timestamp: Long) {
     def fragments = metrics.fragments(globalTags)
   }
+}
+
+/**
+ * Tells a MetricReporter how to filter its Metrics before handing off to a Sender.
+ */
+sealed trait MetricReporterFilter
+
+object MetricReporterFilter {
+
+  /**
+   * Do no filtering, pass all metrics through
+   */
+  case object All extends MetricReporterFilter
+
+  /**
+   * Only allow metrics for the specified MetricAddresses
+   * @param addresses
+   */
+  case class WhiteList(addresses : Seq[MetricAddress]) extends MetricReporterFilter
+
+  /**
+   * Allow all other metrics except for the ones in the specified MetricAddresses
+   * @param addresses
+   */
+  case class BlackList(addresses : Seq[MetricAddress]) extends MetricReporterFilter
+
+  /**
+   * No metrics ever.
+   */
+  case object None extends MetricReporterFilter
+
 }

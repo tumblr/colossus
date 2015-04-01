@@ -163,28 +163,4 @@ class SystemMetricsCollector(namespace: MetricAddress) {
 
     (memoryInfo <+> gcInfo <+> fdInfo)
   }
-
-}
-
-//TODO: only really used by histograms...should we move?
-class TickTracker(period: FiniteDuration) {
-  import TickTracker._
-
-  var tickAccum = 0.seconds
-
-  def tick(amount: FiniteDuration): TickResult = {
-    tickAccum += amount
-    if (tickAccum >= period) {
-      tickAccum -= period
-      Tick
-    } else {
-      NoTick
-    }
-  }
-}
-
-object TickTracker {
-  sealed trait TickResult
-  case object Tick extends TickResult
-  case object NoTick extends TickResult
 }

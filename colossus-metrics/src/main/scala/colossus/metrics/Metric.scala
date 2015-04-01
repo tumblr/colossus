@@ -83,11 +83,3 @@ case class MetricFragment(address: MetricAddress, tags: TagMap, value: RawMetric
 trait MetricProducer {
   def metrics(context: CollectionContext): MetricMap
 }
-
-/**
- * Any metric that needs to be ticked by the external clock
- */
-trait TickedMetric {
-  def tick()
-}
-

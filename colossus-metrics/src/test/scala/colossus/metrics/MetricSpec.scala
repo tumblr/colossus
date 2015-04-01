@@ -1,6 +1,5 @@
 package colossus.metrics
 
-import akka.util.Timeout
 import colossus.metrics.IntervalAggregator._
 import org.scalatest._
 
@@ -16,12 +15,6 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
   implicit val sys = _system
 
   import akka.testkit._
-
-  implicit val ec = sys.dispatcher
-
-  override protected def afterAll() {
-    TestKit.shutdownActorSystem(sys)
-  }
 
   "MetricAddress" must {
     "startsWith" in {
@@ -95,7 +88,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
       val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
 
-      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, MetricReporterFilter.All, false)
       val reporter = oneDayAgg.report(conf)
 
       //only one aggregator should have the reporter
@@ -112,7 +105,7 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       val oneDayAgg = m1.metricIntervals.get(1.day).value  //grab an interval
       val tenDayAgg = m1.metricIntervals.get(10.days).value  //grab an interval
 
-      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, None, false)
+      val conf = MetricReporterConfig(Root, Seq(LoggerSender), None, MetricReporterFilter.All, false)
       val reporter = oneDayAgg.report(conf)
 
       val expectedReporters = Map(oneDayAgg.intervalAggregator->Set(reporter), tenDayAgg.intervalAggregator->Set[ActorRef]())
