@@ -22,11 +22,6 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
       testFilter(MetricReporterFilter.All, expectedRawMetrics)
 
     }
-
-    "Filter everything if MetricReporterFilter.None is used" in {
-      testFilter(MetricReporterFilter.None, Map())
-    }
-
     "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used" in {
       val expectedRawMetrics: RawMetricMap = Map(MetricAddress("/foo")->Map(Map("foo" -> "a")->0L))
       testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo"))), expectedRawMetrics)

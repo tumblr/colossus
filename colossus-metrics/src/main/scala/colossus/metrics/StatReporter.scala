@@ -65,7 +65,6 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   private def filterMetrics(m : MetricMap) : RawMetricMap = {
     filters match {
       case MetricReporterFilter.All => m.toRawMetrics
-      case MetricReporterFilter.None => Map()
       case MetricReporterFilter.WhiteList(x) => {
         m.filterKeys(x.contains).toRawMetrics
       }
@@ -128,10 +127,4 @@ object MetricReporterFilter {
    * @param addresses
    */
   case class BlackList(addresses : Seq[MetricAddress]) extends MetricReporterFilter
-
-  /**
-   * No metrics ever.
-   */
-  case object None extends MetricReporterFilter
-
 }
