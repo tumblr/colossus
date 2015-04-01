@@ -5,6 +5,7 @@ import akka.actor.ActorRef
 
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
+import java.net.InetSocketAddress
 
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.
@@ -17,18 +18,62 @@ object ConnectionStatus {
   case object Connecting extends ConnectionStatus
 }
 
-
 /**
- * This is passed to handlers to give them a way to synchronously write to the
- * connection.  Services wrap this
+ * A trait encapsulating live information about a connection.  This should only
+ * contain read-only fields
  */
-trait WriteEndpoint {
+trait ConnectionInfo {
+
+  /**
+   * Get the current connection status.
+   */
+  def status: ConnectionStatus
 
   /**
    * The id of the underlying connection.  This is different from a
    * WorkerItem's id.
    */
   def id: Long
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
+   */
+  def lastTimeDataWritten: Long
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was read on the connection
+   */
+  def lastTimeDataReceived: Long
+
+  /**
+   * how many bytes have been sent on the connection in total
+   */
+  def bytesSent: Long
+
+  /**
+   * how many bytes have been received on the connection in total
+   */
+  def bytesReceived: Long
+
+  /**
+   * How long, in milliseconds, since the connection was opened
+   */
+  def timeOpen: Long
+
+  /**
+   * The address of the remote host for this connection, if connected
+   */
+  def remoteAddress: Option[InetSocketAddress]
+  
+}
+
+
+/**
+ * This is passed to handlers to give them a way to synchronously write to the
+ * connection.  Services wrap this
+ */
+trait WriteEndpoint extends ConnectionInfo {
+
 
   /**
    * Write some data to the connection.  Because connections are non-blocking,
@@ -51,10 +96,6 @@ trait WriteEndpoint {
    */
   def disconnect()
 
-  /**
-   * Get the current connection status.
-   */
-  def status: ConnectionStatus
 
   /**
    * Gets the worker this connection is bound to.
@@ -75,10 +116,6 @@ trait WriteEndpoint {
    */
   def enableReads()
 
-  /**
-   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
-   */
-  def lastTimeDataWritten: Long
 }
 
 private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
@@ -86,6 +123,12 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
 
   val startTime = System.currentTimeMillis
+
+  def remoteAddress = try {
+    Some(_channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
+  } catch {
+    case t: Throwable => None
+  }
 
   //dont make these vals, doesn't work with client connections
   lazy val host: String = try {
@@ -98,6 +141,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   } catch {
     case n: NullPointerException => 0
   }
+
+  def timeOpen = System.currentTimeMillis - startTime
 
   /** ABSTRACT MEMBERS **/
 
@@ -114,10 +159,12 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   protected val channel = _channel
   val worker = sender
-  private var bytesReceived = 0L
+  private var myBytesReceived = 0L
 
-  def info(now: Long): ConnectionInfo = {
-    ConnectionInfo(
+  def bytesReceived = myBytesReceived
+
+  def info(now: Long): ConnectionSnapshot = {
+    ConnectionSnapshot(
       domain = domain,
       host = _channel.socket.getInetAddress,
       port = port,
@@ -145,7 +192,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   def handleRead(data: DataBuffer)(implicit time: Long) = {
     _lastTimeDataReceived = time
-    bytesReceived += data.size
+    myBytesReceived += data.size
     handler.receivedData(data)
   }
 

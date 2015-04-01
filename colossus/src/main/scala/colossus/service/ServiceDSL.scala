@@ -61,8 +61,8 @@ trait CodecProvider[C <: CodecDSL] {
    * @param ex ExecutionContext
    * @return Handler
    */
-  def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[C] = {
-    new BasicServiceHandler[C](config,worker,this)
+  def provideHandler(config: ServiceConfig, worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext): DSLHandler[C] = {
+    new BasicServiceHandler[C](config,worker,this, intializer)
   }
 
   /**
@@ -93,7 +93,7 @@ trait ConnectionContext[C <: CodecDSL] {
   def sender(): ActorRef
   def disconnect()
   def gracefulDisconnect()
-  def connectionId: Long
+  def connectionInfo: Option[ConnectionInfo]
 
   implicit val callbackExecutor: CallbackExecutor
 }
@@ -136,8 +136,7 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
   val handlerInitializer: HandlerGenerator[C] = func(this)
 
   def acceptNewConnection: Option[ConnectionHandler] = {
-    val handler: DSLHandler[C] = provider.provideHandler(config, worker)
-    handlerInitializer(handler)
+    val handler: DSLHandler[C] = provider.provideHandler(config, worker, handlerInitializer)
     Some(handler)
   }
 
@@ -156,7 +155,7 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 class BasicServiceHandler[C <: CodecDSL]
-  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C]) 
+  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C]) 
   (implicit ex: ExecutionContext)
   extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
   with DSLHandler[C] {
@@ -168,12 +167,16 @@ class BasicServiceHandler[C <: CodecDSL]
   protected def unhandledReceive: Receive = {
     case _ => {}
   }
+
+  override def connected(e: WriteEndpoint) {
+    super.connected(e)
+    initializer(this)
+  }
   
   private var currentHandler: PartialHandler[C] = unhandled
   private var currentMessageReceiver: Receive = unhandledReceive
   private var currentSender: Option[ActorRef] = None
 
-  def connectionId = id.get // :(
 
   def become(handler: PartialHandler[C]) {
     currentHandler = handler

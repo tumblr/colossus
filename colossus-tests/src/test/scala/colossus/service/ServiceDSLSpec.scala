@@ -74,7 +74,7 @@ class ServiceDSLSpec extends ColossusSpec {
             }
             connection.become{
               case x if (x == ByteString("PING")) => {
-                context.worker.worker ! core.WorkerCommand.Message(connection.connectionId, "PING")
+                context.worker.worker ! core.WorkerCommand.Message(connection.connectionInfo.get.id, "PING")
                 Callback.successful(ByteString("WHATEVER"))
               }
             }

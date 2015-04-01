@@ -101,6 +101,14 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
     inputOnConnected()
   }
 
+  /**
+   * Returns a read-only trait containing live information about the connection.
+   */
+  def connectionInfo: Option[ConnectionInfo] = state match {
+    case a: AliveState => Some(a.endpoint)
+    case _ => None
+  }
+
   private def onClosed() {
     state = NotConnected
     inputOnClosed()

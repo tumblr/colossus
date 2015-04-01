@@ -57,7 +57,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   //this is used when the manager receives a Connect request to round-robin across workers
   var nextConnectIndex = 0
 
-  var latestSummary: Seq[ConnectionInfo] = Nil
+  var latestSummary: Seq[ConnectionSnapshot] = Nil
   var latestSummaryTime = 0L
 
 
