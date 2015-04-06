@@ -4,6 +4,11 @@ import scala.concurrent.duration._
 
 import MetricValues._
 
+import akka.testkit.TestProbe
+import colossus.metrics.testkit.TestSharedCollection
+
+import EventLocality._
+
 class RateSpec extends MetricIntegrationSpec {
 
   "Basic Rate" must {
@@ -62,6 +67,16 @@ class RateSpec extends MetricIntegrationSpec {
     }
 
 
+  }
+
+  "Shared Rate" must {
+    "send correct event" in {
+      val probe = TestProbe()
+      val collection = new TestSharedCollection(probe)
+      val rate: Shared[Rate] = collection.getOrAdd(Rate("/foo"))
+      rate.hit(tags = Map("a" -> "aa"))
+      probe.expectMsg(10.seconds, Rate.Hit("/foo", Map("a" -> "aa"), 1))
+    }
   }
 
 }
