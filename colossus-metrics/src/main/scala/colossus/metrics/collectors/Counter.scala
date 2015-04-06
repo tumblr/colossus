@@ -32,7 +32,7 @@ case class CounterParams(address: MetricAddress) extends MetricParams[Counter, C
   def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
 }
 
-class BasicCounter(params: CounterParams) {
+class BasicCounter(params: CounterParams) extends Counter{
   var num: Long = 0
   protected val counters = collection.mutable.Map[TagMap, Long]()
 
@@ -43,12 +43,15 @@ class BasicCounter(params: CounterParams) {
       counters(tags) += Δ
     }
   }
-}
 
-class LocalCounter(params: CounterParams) extends BasicCounter(params) with Counter with LocalLocality {
-  import Counter._
+  def value(tags: TagMap = TagMap.Empty): Option[Long] = counters.get(tags)
 
   val address = params.address
+}
+
+class LocalCounter(params: CounterParams) extends BasicCounter(params) with LocalLocality {
+  import Counter._
+
 
   def metrics(context: CollectionContext): MetricMap = Map(
     params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, MetricValues.SumValue(value))}

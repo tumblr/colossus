@@ -5,7 +5,7 @@ import org.scalatest._
 import MetricAddress.Root
 import scala.concurrent.duration._
 
-class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
+class HistogramSpec extends MetricIntegrationSpec {
   "Bucket generator" must {
     "generate bucket ranges" in {
       Histogram.generateBucketRanges(10, 500) must equal (BucketList(Vector(0, 1, 3, 6, 12, 22, 41, 77, 144, 268, 500)))
@@ -145,5 +145,19 @@ class HistogramSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
     }
 
   }
+
+  "Shared Histogram" must {
+    "report the correct event" in {
+      import akka.testkit.TestProbe
+      import colossus.metrics.testkit.TestSharedCollection
+      import EventLocality._
+      val probe = TestProbe()
+      val collection = new TestSharedCollection(probe)
+      val hist: Shared[Histogram] = collection.getOrAdd(Histogram("/foo"))
+      hist.add(23, Map("a" -> "aa"))
+      probe.expectMsg(10.seconds, PeriodicHistogram.Add("/foo", Map("a" -> "aa"), 23))
+    }
+  }
+      
       
 }
