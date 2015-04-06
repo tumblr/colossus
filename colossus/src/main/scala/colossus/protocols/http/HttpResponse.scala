@@ -76,6 +76,8 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
+  def code = head.code
+
 }
 
 /**

@@ -283,7 +283,7 @@ object LocalCollection {
  * events just as function calls), this should not be used for very-high
  * frequency events.
  */
-private[colossus] class SharedCollection(val local: LocalCollection, val collector: ActorRef) extends Collection[SharedLocality] {
+class SharedCollection private[colossus](val local: LocalCollection, val collector: ActorRef) extends Collection[SharedLocality] {
 
   import Collection.ParamsFor
 
