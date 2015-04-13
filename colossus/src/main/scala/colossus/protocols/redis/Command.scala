@@ -2,6 +2,7 @@ package colossus
 package protocols.redis
 
 import akka.util.{ByteString, ByteStringBuilder}
+import scala.concurrent.duration.FiniteDuration
 /**
  * The Command class allows us to do basic parsing and building with minimal overhead
  */
@@ -51,7 +52,7 @@ object Commands {
     def apply(key: ByteString, value: ByteString) = Command.c(CMD_SETNX, key, value)
   }
   object Setex {
-    def apply(key: ByteString, value: ByteString) = Command.c(CMD_SETEX, key, value)
+    def apply(key: ByteString, value: ByteString, ttl: FiniteDuration) = Command.c(CMD_SETEX, key, ByteString(ttl.toSeconds.toString), value)
   }
   object Strlen {
     def apply(key: ByteString) = Command.c(CMD_STRLEN, key)
