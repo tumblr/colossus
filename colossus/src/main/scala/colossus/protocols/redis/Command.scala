@@ -40,6 +40,10 @@ case class Command(command: String, args: Seq[ByteString]) {
 object Commands {
   import UnifiedProtocol._
 
+  object Exists {
+    def apply(key: ByteString) = Command.c(CMD_EXISTS, key)
+    def unapply(c: Command): Option[ByteString] = if (c.command == CMD_EXISTS && c.args.size == 1) Some(c.args.head) else None
+  }
   object Get {
     def apply(key: ByteString) = Command.c(CMD_GET, key)
     def unapply(c: Command): Option[ByteString] = if (c.command == CMD_GET && c.args.size == 1) Some(c.args.head) else None
