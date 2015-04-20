@@ -310,6 +310,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           unregisterConnection(con, DisconnectCause.Disconnect)
         }
       }
+      case Kill(connectionId, errorCause) => {
+        connections.get(connectionId).foreach{con =>
+          unregisterConnection(con, errorCause)
+        }
+      }
       case Connect(address, id) => {
         getWorkerItem(id).map{
           case handler: ClientConnectionHandler => try {
@@ -548,5 +553,11 @@ object WorkerCommand {
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand
   case class Disconnect(id: Long) extends WorkerCommand
+
+  //similar to Disconnect, this will shut down a connection, however it will
+  //treat the disconnect as an error and forward the error cause to the
+  //handler.  In the case of a client connection, this can be a way to
+  //forcefully kill the connection and trigger a reconnect
+  case class Kill(id: Long, error: DisconnectError) extends WorkerCommand
 }
 

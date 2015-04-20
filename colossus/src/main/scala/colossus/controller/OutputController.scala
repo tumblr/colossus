@@ -295,7 +295,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       val expired = waitingToSend.removeFirst()
       expired.postWrite(OutputResult.Cancelled)
     }
-
   }
 
 }
