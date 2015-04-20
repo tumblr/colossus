@@ -305,8 +305,9 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
     super.idleCheck(period)
 
     if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
-      // the oldest sent message has expired with no response - shutdown the connection
-      disconnect()
+      // the oldest sent message has expired with no response - kill the connection
+      // sending the Kill message instead of disconnecting will trigger the reconnection logic
+      worker ! Kill(id.get, DisconnectCause.TimedOut)
     }
   }
 }

@@ -457,7 +457,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "shutdown the connection when an in-flight request times out" in {
       val command = Command(CMD_GET, "foo")
-      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds)
+      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds, connectionAttempts = PollingDuration.NoRetry)
       var failed = true
       val cb = client.send(command).map{
         case wat => failed = false
@@ -469,8 +469,9 @@ class ServiceClientSpec extends ColossusSpec {
       Thread.sleep(150)
       client.idleCheck(100.milliseconds)
 
+      probe.expectMsg(500.milliseconds, WorkerCommand.Kill(client.id.get, DisconnectCause.TimedOut))
+
       failed must equal(true)
-      assert(client.connectionStatus == ConnectionStatus.NotConnected)
     }
 
   }
