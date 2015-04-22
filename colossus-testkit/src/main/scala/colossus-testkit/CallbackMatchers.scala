@@ -22,12 +22,15 @@ trait CallbackMatchers {
             case (t : Throwable) => println(s"creating error") ; error = Some(t)
           }
         }
-        case (Failure(x)) => error = Some(x)
+        case (Failure(x)) => {
+          executed = true
+          error = Some(x)
+        }
       }
       if(!executed) {
-        MatchResult(false, "Callback never executed", "Callback never executed")
+        MatchResult(false, "Callback did not complete", "Callback did not complete")
       }else{
-        val errorMsg = error.fold("")(_.getMessage)
+        val errorMsg = error.fold("")(e => s"Callback failed execution with error: ${e}")
         MatchResult(error.isEmpty, errorMsg, errorMsg)
       }
     }
