@@ -59,6 +59,19 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
       execd must equal(true)
     }
 
+    "report the error for a failed callback" in {
+      val cb = Callback.successful("YAY").map{t => throw new Exception("NAY")}
+      var execd = false
+      val eval = (a: String) => {
+        execd = true
+        a must equal("YAY")
+      }
+      val result = new CallbackEvaluateTo[String](eval).apply(cb)
+      result.matches must equal(false)
+      execd must equal(false)
+      result.failureMessage.contains("NAY") must equal(true)
+    }
+
 
   }
 
