@@ -441,7 +441,7 @@ object Server {
    * @param io The IOSystem to which this Server will belong
    * @return ServerRef which encapsulates the created Server
    */
-  def basic(name: String, port: Int, acceptor: () => ConnectionHandler)(implicit io: IOSystem): ServerRef = {
+  def basic(name: String, port: Int, acceptor: () => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
     val config = ServerConfig(
       name = name,
       delegatorFactory = Delegator.basic(acceptor),

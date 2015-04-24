@@ -135,7 +135,7 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
   
   val handlerInitializer: HandlerGenerator[C] = func(this)
 
-  def acceptNewConnection: Option[ConnectionHandler] = {
+  def acceptNewConnection: Option[ServerConnectionHandler] = {
     val handler: DSLHandler[C] = provider.provideHandler(config, worker, handlerInitializer)
     Some(handler)
   }

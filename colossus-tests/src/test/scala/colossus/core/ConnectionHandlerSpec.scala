@@ -20,10 +20,12 @@ class ConnectionHandlerSpec extends ColossusSpec {
   "Server Connection Handler" must {
     "bind to worker on creation" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler {
+      class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
         override def onBind() {
           probe.ref ! "BOUND"
         }
+
+        def shutdownRequest(){}
 
         def receivedData(data: DataBuffer) {}
       }
@@ -36,7 +38,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
     "unbind on disconnect" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler {
+      class MyHandler extends BasicSyncHandler with ServerConnectionHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
@@ -45,6 +47,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
           println(s"Terminated: $cause")
         }
         def receivedData(data: DataBuffer){}
+        def shutdownRequest(){}
       }
       withIOSystemAndServer(Delegator.basic(() => new MyHandler)){ (io, server) => {
           val c = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
