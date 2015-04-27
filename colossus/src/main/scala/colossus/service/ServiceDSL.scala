@@ -31,6 +31,8 @@ object CodecDSL {
   type Initializer[C <: CodecDSL] = ServiceContext[C] => HandlerGenerator[C]
 
   type Receive = PartialFunction[Any, Unit]
+
+  type ErrorHandler[C <: CodecDSL] = PartialFunction[(C#Input, Throwable), C#Output]
 }
 
 import CodecDSL._
@@ -94,6 +96,7 @@ trait ConnectionContext[C <: CodecDSL] {
   def disconnect()
   def gracefulDisconnect()
   def connectionInfo: Option[ConnectionInfo]
+  def onError(handler: ErrorHandler[C])
 
   implicit val callbackExecutor: CallbackExecutor
 }
@@ -161,11 +164,15 @@ class BasicServiceHandler[C <: CodecDSL]
   with DSLHandler[C] {
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
-    case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
+    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
 
   protected def unhandledReceive: Receive = {
     case _ => {}
+  }
+
+  protected def unhandledError: ErrorHandler[C] = {
+    case (request, reason) => provider.errorResponse(request, reason)
   }
 
   override def connected(e: WriteEndpoint) {
@@ -176,7 +183,11 @@ class BasicServiceHandler[C <: CodecDSL]
   private var currentHandler: PartialHandler[C] = unhandled
   private var currentMessageReceiver: Receive = unhandledReceive
   private var currentSender: Option[ActorRef] = None
+  private var currentErrorHandler: ErrorHandler[C] = unhandledError
 
+  def onError(handler: ErrorHandler[C]) {
+    currentErrorHandler = handler
+  }
 
   def become(handler: PartialHandler[C]) {
     currentHandler = handler
@@ -198,7 +209,7 @@ class BasicServiceHandler[C <: CodecDSL]
   
   protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)
   
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = provider.errorResponse(request, reason)
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = (currentErrorHandler orElse unhandledError)((request, reason))
 
 }
 
