@@ -144,6 +144,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   def timeOpen = System.currentTimeMillis - startTime
 
+
   /** ABSTRACT MEMBERS **/
 
   def domain: String
@@ -226,11 +227,13 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
 }
 
-private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
+private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ServerConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
   extends Connection(id, key, channel, handler)(sender) {
 
   def domain: String = server.name.toString
   val outgoing: Boolean = false
+
+  def serverHandler: ServerConnectionHandler = handler
 
   override def close(cause : DisconnectCause) = {
     server.server ! Server.ConnectionClosed(id, cause)

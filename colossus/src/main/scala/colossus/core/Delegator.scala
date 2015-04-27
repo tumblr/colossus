@@ -36,8 +36,8 @@ abstract class Delegator(val server: ServerRef, val worker: WorkerRef) {
    * This is the function called by the Workers to create an Option[ConnectionHandler]
    * @return
    */
-  def createConnectionHandler: Option[ConnectionHandler] = {
-    val t: Try[Option[ConnectionHandler]] = Try(acceptNewConnection)
+  def createConnectionHandler: Option[ServerConnectionHandler] = {
+    val t: Try[Option[ServerConnectionHandler]] = Try(acceptNewConnection)
     t.recover{ case e =>
       log.error(e, s"error while creating connectionHandler in worker ${worker.id}")
       None

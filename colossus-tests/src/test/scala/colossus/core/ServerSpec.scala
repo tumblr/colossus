@@ -136,14 +136,49 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      //this test won't pass until the AsyncServiceClient retry loop is fixed
-      "shutdown all associated connections when shutdown"  in {
+      //note in this test the server is killed with PoisonPill, not it's own Shutdown message
+      "shutdown all associated connections when killed" in {
         var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
         withIOSystem{implicit io =>
           withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
             client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
           }
           TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
+        }
+      }
+
+      "shutdown with Shutdown message" in {
+        withIOSystem{implicit io =>
+          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          //spin up a client just to make sure the server is running
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val probe = TestProbe()
+            probe.watch(server.server)
+            server.server ! Server.Shutdown
+            probe.expectTerminated(server.server, 2.seconds)
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+          }
+        }
+      }
+
+      "signal connections before termination" taggedAs(org.scalatest.Tag("test")) in {
+        val probe = TestProbe()
+        class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
+          def receivedData(data: DataBuffer){}
+          def shutdownRequest() {probe.ref ! "SHUTDOWN"}
+          override def connectionTerminated(cause: DisconnectCause) {
+            probe.ref ! "TERMINATED"
+          }
+        }
+        withIOSystem{implicit io =>
+          val server = Server.basic("echo", TEST_PORT, () => new MyHandler)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! Server.Shutdown
+            probe.expectMsg(2.seconds, "SHUTDOWN")
+            probe.expectMsg(2.seconds, "TERMINATED")
+          }
         }
       }
 
