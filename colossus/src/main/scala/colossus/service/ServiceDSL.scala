@@ -31,6 +31,8 @@ object CodecDSL {
   type Initializer[C <: CodecDSL] = ServiceContext[C] => HandlerGenerator[C]
 
   type Receive = PartialFunction[Any, Unit]
+
+  type ErrorHandler[C <: CodecDSL] = PartialFunction[(C#Input, Throwable), C#Output]
 }
 
 import CodecDSL._
@@ -84,16 +86,61 @@ trait ClientCodecProvider[C <: CodecDSL] {
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
 
+/**
+ * This contains methods to interact with an individual connection.
+ */
 trait ConnectionContext[C <: CodecDSL] {
+
+  /**
+   * Set a partial function for the request processing handler for the connection.  Any request that
+   * falls through the handler will be automatically converted into an error
+   * response with a `UnhandledRequestException` as the cause
+   */
   def become(p: PartialHandler[C])
+
+  /**
+   * Set a function for the request processing handler for the connection
+   */
   def process(f: C#Input => Callback[C#Output]){
     become{case all => f(all)}
   }
+
+  /**
+   * Set the handler for actor messages intended for this connection.
+   */
   def receive(receiver: PartialFunction[Any, Unit])
+  /**
+   * Gets the sender of the current message being processed in the receive handler
+   */
   def sender(): ActorRef
+
+  /**
+   * Immediately terminate the connection.  Note that requests that are in the
+   * middle of being processed will continue processing although their final
+   * response will be discarded.
+   */
   def disconnect()
+
+  /**
+   * Terminate the connection, but allow any existing outstanding requests to
+   * complete processing before disconnecting.  Any new requests that come in
+   * will be automatically completed with an error.
+   */
   def gracefulDisconnect()
+
+  /**
+   * Get current info about the connection
+   */
   def connectionInfo: Option[ConnectionInfo]
+
+  /**
+   * Attach a handler for non-recoverable errors.  This includes uncaught
+   * exceptions, unhandled requests, request timeouts, and other server-level
+   * errors.  In every case, this handler should not attempt to actually
+   * process the request, but instead simply return an appropriately formatted
+   * error response.
+   */
+  def onError(handler: ErrorHandler[C])
 
   implicit val callbackExecutor: CallbackExecutor
 }
@@ -161,11 +208,15 @@ class BasicServiceHandler[C <: CodecDSL]
   with DSLHandler[C] {
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
-    case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
+    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
 
   protected def unhandledReceive: Receive = {
     case _ => {}
+  }
+
+  protected def unhandledError: ErrorHandler[C] = {
+    case (request, reason) => provider.errorResponse(request, reason)
   }
 
   override def connected(e: WriteEndpoint) {
@@ -176,7 +227,11 @@ class BasicServiceHandler[C <: CodecDSL]
   private var currentHandler: PartialHandler[C] = unhandled
   private var currentMessageReceiver: Receive = unhandledReceive
   private var currentSender: Option[ActorRef] = None
+  private var currentErrorHandler: ErrorHandler[C] = unhandledError
 
+  def onError(handler: ErrorHandler[C]) {
+    currentErrorHandler = handler
+  }
 
   def become(handler: PartialHandler[C]) {
     currentHandler = handler
@@ -198,7 +253,7 @@ class BasicServiceHandler[C <: CodecDSL]
   
   protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)
   
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = provider.errorResponse(request, reason)
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = (currentErrorHandler orElse unhandledError)((request, reason))
 
 }
 

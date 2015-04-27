@@ -7,6 +7,7 @@ import akka.testkit.TestProbe
 import akka.util.ByteString
 
 import scala.concurrent.duration._
+import scala.concurrent.Await
 
 import protocols.telnet._
 import service._
@@ -84,6 +85,25 @@ class ServiceDSLSpec extends ColossusSpec {
           val client = TestClient(system, TEST_PORT)
           client.send(ByteString("PING"))
           probe.expectMsg(250.milliseconds, "PONG")
+        }
+      }
+    }
+
+    "override error handler" in {
+      withIOSystem{ implicit system =>
+        val server = Service.serve[Raw]("test", TEST_PORT) { context =>
+          context.handle{ connection => 
+            connection.onError{
+              case (request, c: UnhandledRequestException) => ByteString("OVERRIDE")
+            }
+            connection.become{
+              case x if (false) => ByteString("NOPE")
+            }
+          }
+        }
+        withServer(server) {
+          val client = TestClient(system, TEST_PORT)
+          Await.result(client.send(ByteString("TEST")), 1.second).utf8String must equal("OVERRIDE")
         }
       }
     }
