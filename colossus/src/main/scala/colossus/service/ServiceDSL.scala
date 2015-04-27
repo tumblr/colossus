@@ -86,16 +86,60 @@ trait ClientCodecProvider[C <: CodecDSL] {
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
 
+/**
+ * This contains methods to interact with an individual connection.
+ */
 trait ConnectionContext[C <: CodecDSL] {
+
+  /**
+   * Set a partial function for the request processing handler for the connection.  Any request that
+   * falls through the handler will be automatically converted into an error
+   * response with a `UnhandledRequestException` as the cause
+   */
   def become(p: PartialHandler[C])
+
+  /**
+   * Set a function for the request processing handler for the connection
+   */
   def process(f: C#Input => Callback[C#Output]){
     become{case all => f(all)}
   }
+
+  /**
+   * Set the handler for actor messages intended for this connection.
+   */
   def receive(receiver: PartialFunction[Any, Unit])
+  /**
+   * Gets the sender of the current message being processed in the receive handler
+   */
   def sender(): ActorRef
+
+  /**
+   * Immediately terminate the connection.  Note that requests that are in the
+   * middle of being processed will continue processing although their final
+   * response will be discarded.
+   */
   def disconnect()
+
+  /**
+   * Terminate the connection, but allow any existing outstanding requests to
+   * complete processing before disconnecting.  Any new requests that come in
+   * will be automatically completed with an error.
+   */
   def gracefulDisconnect()
+
+  /**
+   * Get current info about the connection
+   */
   def connectionInfo: Option[ConnectionInfo]
+
+  /**
+   * Attach a handler for non-recoverable errors.  This includes uncaught
+   * exceptions, unhandled requests, request timeouts, and other server-level
+   * errors.  In every case, this handler should not attempt to actually
+   * process the request, but instead simply return an appropriately formatted
+   * error response.
+   */
   def onError(handler: ErrorHandler[C])
 
   implicit val callbackExecutor: CallbackExecutor
