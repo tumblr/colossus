@@ -340,6 +340,12 @@ object Callback {
 
 class PromiseException(message: String) extends Exception(message)
 
+/**
+ * A CallbackPromise creates a callback which can be eventually filled in with
+ * a value.  This works similarly to a scala Promise.  CallbackPromises are not
+ * thread-safe.  For thread-safety, simply use a scala Promise and use
+ * Callback.fromFuture on it's corresponding Future.
+ */
 class CallbackPromise[T] {
 
   private var value: Option[Try[T]] = None

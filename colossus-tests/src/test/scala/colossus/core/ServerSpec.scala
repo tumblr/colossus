@@ -183,7 +183,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "immediately terminate when last open connection closes" taggedAs(org.scalatest.Tag("test")) in {
+      "immediately terminate when last open connection closes" in {
         class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
           def receivedData(data: DataBuffer){}
           def shutdownRequest() {endpoint.disconnect()}

@@ -114,9 +114,22 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
   }
 
   /**
-   * Shutdown this server.
+   * Gracefully shutdown this server.  This will cause the server to
+   * immediately begin refusing connections, but attempt to allow existing
+   * connections to close on their own.  The `shutdownRequest` method will be
+   * called on every `ServerConnectionHandler` associated with this server.
+   * `shutdownTimeout` in `ServerSettings` controls how long the server will
+   * wait before it force-closes all connections and shuts down.  The server
+   * actor will remain alive until it is fully shutdown.
    */
   def shutdown() {
+    server ! Server.Shutdown
+  }
+
+  /**
+   * Immediately kill the server and all corresponding open connections.
+   */
+  def die() {
     server ! PoisonPill
   }
 }
