@@ -346,4 +346,24 @@ class CallbackSpec extends ColossusSpec {
     }
 
   }
+
+
+  "CallbackPromise" must {
+    "execute when it gets a value" in {
+      var res = 0
+      val c = new CallbackPromise[Int]()
+      c.callback.map{i => res = i + 1}.execute()
+      res must equal(0)
+      c.success(5)
+      res must equal(6)
+    }
+
+    "complete immediately when executed and a value is present" in {
+      var res = 0
+      val c = new CallbackPromise[Int]()
+      c.success(5)
+      c.callback.map{i => res = i + 1}.execute()
+      res must equal(6)
+    }
+  }
 }

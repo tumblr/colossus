@@ -136,14 +136,15 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      //note in this test the server is killed with PoisonPill, not it's own Shutdown message
+      //note in this test the server is killed with PoisonPill, not its own Shutdown message
       "shutdown all associated connections when killed" in {
-        var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
         withIOSystem{implicit io =>
-          withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
-            client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
+          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! PoisonPill
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
           }
-          TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
         }
       }
 
@@ -162,7 +163,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "signal connections before termination" taggedAs(org.scalatest.Tag("test")) in {
+      "signal open connections before termination when shutdown" in {
         val probe = TestProbe()
         class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
           def receivedData(data: DataBuffer){}
@@ -180,6 +181,29 @@ class ServerSpec extends ColossusSpec {
             probe.expectMsg(2.seconds, "TERMINATED")
           }
         }
+      }
+
+      "immediately terminate when last open connection closes" taggedAs(org.scalatest.Tag("test")) in {
+        class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
+          def receivedData(data: DataBuffer){}
+          def shutdownRequest() {endpoint.disconnect()}
+        }
+        val config = ServerConfig(
+          name = "/test",
+          settings = ServerSettings(port = TEST_PORT, shutdownTimeout = 1.hour),
+          delegatorFactory = (s,w) => new Delegator(s,w){ def acceptNewConnection = Some(new MyHandler) }
+        )
+        withIOSystem{ implicit io =>
+          val probe = TestProbe()
+          val server = Server(config)
+          probe.watch(server.server)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! Server.Shutdown
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+            probe.expectTerminated(server.server, 2.seconds)
+          }
+        }          
       }
 
       "shutdown when a delegator surpasses the allotted duration" in {

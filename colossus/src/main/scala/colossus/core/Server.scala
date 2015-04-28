@@ -178,6 +178,13 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
   private var openConnections = 0
 
+  def closeConnection(cause: RootDisconnectCause) {
+    openConnections -= 1
+    connections.decrement()
+    closed.hit(tags = Map("cause" -> cause.toString))
+    updateServerConnectionState()
+  }
+
   def start() = {
     //setup the server
     try {
@@ -204,7 +211,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
 
   def waitForWorkers: Receive = alwaysHandle orElse {
-    case GetInfo => sender ! ServerInfo(0, Initializing)
     case WorkerManager.WorkersReady(workers) => {
       log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
       changeState(binding(workers), ServerStatus.Binding)
@@ -245,7 +251,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   }
 
   def binding(router: ActorRef): Receive = alwaysHandle orElse {
-    case GetInfo => sender ! ServerInfo(0, serverStatus)
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
     case rb : RetryBind => {
       if (start()) {
@@ -273,12 +278,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       selectLoop(router)
       self ! Select
     }
-    case ConnectionClosed(id, cause) => {
-      openConnections -= 1
-      connections.decrement()
-      closed.hit(tags = Map("cause" -> cause.toString))
-      updateServerConnectionState()
-    }
+    case ConnectionClosed(id, cause) => closeConnection(cause)
     case ConnectionRefused(sc, attempt) => if (attempt >= Server.MaxConnectionRegisterAttempts) {
       log.error(s"Failed to register new connection $attempt times, closing")
       sc.close()
@@ -287,7 +287,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       router ! Worker.NewConnection(sc, attempt + 1)
     }
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
-    case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
     case Shutdown => {
       //initiate the shutdown sequence.  We broadcast a shutdown request to all
       //of our open connections, and then wait for them to close or timeout and
@@ -307,23 +306,21 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   }
 
   def shuttingDown(startTime: Long): Receive = alwaysHandle orElse {
+    case ConnectionClosed(id, cause) => closeConnection(cause)
     case ShutdownCheck => if (System.currentTimeMillis - startTime > settings.shutdownTimeout.toMillis) {
       log.warning(s"Shutdown timeout of ${settings.shutdownTimeout} reached, terminating ${openConnections} connections and shutting down")
       self ! PoisonPill
     } else if (openConnections == 0) {
       self ! PoisonPill
     } else {
+      log.info(s"waiting for $openConnections connections to close")
       context.system.scheduler.scheduleOnce(Server.shutdownCheckFrequency, self, ShutdownCheck)
     }
   }
 
 
   def handleStatus : Receive = {
-    case GetStatus =>{
-      val status: ServerStatus = serverStatus
-      log.debug(s"was asked for status, returning $status")
-      sender ! serverStatus
-    }
+    case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
   }
 
   def selectLoop(router: ActorRef) {
@@ -391,7 +388,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     stateAgent.send(stateAgent().copy(serverStatus = serverStatus))
   }
 
-  private def serverStatus = stateAgent().serverStatus
+  private def serverStatus: ServerStatus = stateAgent().serverStatus
 
   private def determineConnectionStateChange(currentCount : Int, lowCount : Double, highCount : Double, previousState : ConnectionVolumeState) : Option[ConnectionVolumeState] = {
 
@@ -411,7 +408,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
  * - `Binding` : The server is registered and in the process of binding to its port
  * - `Bound` : The server is actively listening on the port and accepting connections
  * - `ShuttingDown` : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
- * - `Terminated` : The server is fully shutdown
+ * - `Dead` : The server is fully shutdown
  */
 sealed trait ServerStatus
 object ServerStatus {
@@ -456,7 +453,6 @@ object Server {
   sealed trait ServerCommand
   case object Shutdown extends ServerCommand
   case class DelegatorBroadcast(message: Any) extends ServerCommand
-  case object GetStatus extends ServerCommand
   case object GetInfo extends ServerCommand
 
   case class ServerInfo(openConnections: Int, status: ServerStatus)

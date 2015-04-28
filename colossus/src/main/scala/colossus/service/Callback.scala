@@ -338,6 +338,41 @@ object Callback {
   
 }
 
+class PromiseException(message: String) extends Exception(message)
+
+class CallbackPromise[T] {
+
+  private var value: Option[Try[T]] = None
+  private var completion: Option[Try[T] => Unit] = None
+
+  val callback: Callback[T] = UnmappedCallback(trigger => {
+    value match {
+      case Some(v) => trigger(v)
+      case None => {
+        completion = Some(trigger)
+      }
+    }
+  })
+
+  def success(t: T) {
+    complete(Success(t))
+  }
+
+  def failure(reason: Throwable) {
+    complete(Failure(reason))
+  }
+
+  def complete(v: Try[T]) {
+    value match {
+      case Some(f) => throw new CallbackExecutionException(new PromiseException("Promise already filled with value"))
+      case None => completion match {
+        case Some(c) => c(v)
+        case None => value = Some(v)
+      }
+    }
+  }
+}
+
 
 /* Message used to finish executing a callback after work was done in a future
  *
