@@ -55,7 +55,7 @@ object Main extends App {
           Callback.successful(TelnetReply("Bye!"))
         }
         case other => {
-          Callback.failed(new IllegalArgumentException($"Invalid command $other"))
+          Callback.failed(new IllegalArgumentException(s"Invalid command $other"))
         }
       }
     }
@@ -131,7 +131,7 @@ case TelnetCommand("exit" :: Nil) => {
   Callback.successful(TelnetReply("Bye!"))
 }
 case other => {
-  Callback.failed(new IllegalArgumentException($"Invalid command $other"))
+  Callback.failed(new IllegalArgumentException(s"Invalid command $other"))
 }
 {% endhighlight %}
 
