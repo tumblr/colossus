@@ -10,10 +10,11 @@ import colossus.service.{AsyncServiceClient, ClientConfig}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class EchoHandler extends BasicSyncHandler {
+class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
   def receivedData(data: DataBuffer){
     endpoint.write(data)
   }
+  def shutdownRequest() {}
 }
 
 object RawProtocol {

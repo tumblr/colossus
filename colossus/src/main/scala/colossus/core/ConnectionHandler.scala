@@ -74,6 +74,22 @@ trait ConnectionHandler extends WorkerItem {
 }
 
 /**
+ * Mixin containing events just for server connection handlers
+ */
+trait ServerConnectionHandler extends ConnectionHandler {
+
+  /**
+   * The server is beginning to shutdown and is signaling to the connection
+   * that it should cleanup and terminate.  This gives the connection time to
+   * gracefully shutdown, however eventually the server will timeout and
+   * forcefully close the connection
+   */
+  def shutdownRequest()
+
+}
+
+
+/**
  * ClientConnectionHandler is a trait meant to be used with outgoing connections.  It provides a call back function
  * connectionFailed, which is called when a connection to an external system could not be established.
  */

@@ -211,6 +211,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     case WorkerManager.UnregisterServer(server) => {
       unregisterServer(server.server)
     }
+    case WorkerManager.ServerShutdownRequest(server) => {
+      connections.collect{ case (id, connection: ServerConnection) if (connection.server == server) => {
+        connection.serverHandler.shutdownRequest()
+      }}
+    }
     case DelegatorMessage(server, message) => {
       delegators
         .find{case (_, delegator) => delegator.server == server}
@@ -336,7 +341,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   /**
    * Registers a new server connection
    */
-  def registerConnection(sc: SocketChannel, server: ServerRef, handler: ConnectionHandler) {
+  def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
       val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
       newKey.attach(connection)

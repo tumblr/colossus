@@ -15,3 +15,4 @@ object TagDecorator {
   
   def default[I, O] = new DefaultTagDecorator[I,O]
 }
+

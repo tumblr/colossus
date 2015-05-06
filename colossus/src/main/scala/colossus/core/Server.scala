@@ -36,13 +36,17 @@ import scala.collection.JavaConversions._
  * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
  * @param bindingAttemptDuration The polling configuration for binding to a port.  The The [[IOSystem]] will check
-  *                               [[PollingDuration.interval]] [[PollingDuration.maximumTries]] times. If the server
-  *                               cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-  *                               will wait indefinitely.
-  *@param delegatorCreationDuration The polling configuration for creating [[[colossus.core.Delegator]]s.  The [[IOSystem]] will wait
-  *                                  [[PollingDuration.interval]] for all [[colossus.core.Delegator]]s to be created.  It will fail to startup
-  *                                  after [[PollingDuration.maximumTries]] and shutdown if it cannot successfully create
-  *                                  the [[colossus.core.Delegator]]s
+ *                               [[PollingDuration.interval]] [[PollingDuration.maximumTries]] times. If the server
+ *                               cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
+ *                               will wait indefinitely.
+ *@param delegatorCreationDuration The polling configuration for creating [[[colossus.core.Delegator]]s.  The [[IOSystem]] will wait
+ *                                  [[PollingDuration.interval]] for all [[colossus.core.Delegator]]s to be created.  It will fail to startup
+ *                                  after [[PollingDuration.maximumTries]] and shutdown if it cannot successfully create
+ *                                  the [[colossus.core.Delegator]]s
+ * @param shutdownTimeout Once a Server begins to shutdown, it will signal a
+ * request to every open connection.  This determines how long it will wait for
+ * every connection to self-terminate before it forcibly closes them and
+ * completes the shutdown.
  */
 case class ServerSettings(
   port: Int,
@@ -53,7 +57,8 @@ case class ServerSettings(
   highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
   tcpBacklogSize: Option[Int] = None,
   bindingAttemptDuration : PollingDuration = PollingDuration(200 milliseconds, None),
-  delegatorCreationDuration : PollingDuration = PollingDuration(500.milliseconds, None)
+  delegatorCreationDuration : PollingDuration = PollingDuration(500.milliseconds, None),
+  shutdownTimeout: FiniteDuration = 100.milliseconds
 ) {
   def lowWatermark = lowWatermarkPercentage * maxConnections
   def highWatermark = highWatermarkPercentage * maxConnections
@@ -109,9 +114,22 @@ case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, p
   }
 
   /**
-   * Shutdown this server.
+   * Gracefully shutdown this server.  This will cause the server to
+   * immediately begin refusing connections, but attempt to allow existing
+   * connections to close on their own.  The `shutdownRequest` method will be
+   * called on every `ServerConnectionHandler` associated with this server.
+   * `shutdownTimeout` in `ServerSettings` controls how long the server will
+   * wait before it force-closes all connections and shuts down.  The server
+   * actor will remain alive until it is fully shutdown.
    */
   def shutdown() {
+    server ! Server.Shutdown
+  }
+
+  /**
+   * Immediately kill the server and all corresponding open connections.
+   */
+  def die() {
     server ! PoisonPill
   }
 }
@@ -149,7 +167,6 @@ object ConnectionVolumeState {
 
 private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : Agent[ServerState]) extends Actor with ActorMetrics with ActorLogging with Stash {
   import Server._
-  import WorkerManager._
   import context.dispatcher
   import config._
   import ServerStatus._
@@ -173,6 +190,13 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val highwaters    = metrics getOrAdd Rate(name / "highwaters")
 
   private var openConnections = 0
+
+  def closeConnection(cause: RootDisconnectCause) {
+    openConnections -= 1
+    connections.decrement()
+    closed.hit(tags = Map("cause" -> cause.toString))
+    updateServerConnectionState()
+  }
 
   def start() = {
     //setup the server
@@ -200,18 +224,20 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
 
   def waitForWorkers: Receive = alwaysHandle orElse {
-    case GetInfo => sender ! ServerInfo(0, Initializing)
-    case WorkersReady(workers) => {
+    case WorkerManager.WorkersReady(workers) => {
       log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
       changeState(binding(workers), ServerStatus.Binding)
       self ! RetryBind(settings.bindingAttemptDuration)
       unstashAll()
     }
-    case RegistrationFailed => {
+    case WorkerManager.RegistrationFailed => {
       log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
       self ! PoisonPill
     }
     case d: DelegatorBroadcast => stash()
+    case Shutdown => {
+      self ! PoisonPill
+    }
   }
 
   private case class RetryBind(interval: FiniteDuration, timeElapsed: FiniteDuration = 0.milliseconds, maximumTries : Option[Long], timesTried : Long = 0)
@@ -238,7 +264,6 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   }
 
   def binding(router: ActorRef): Receive = alwaysHandle orElse {
-    case GetInfo => sender ! ServerInfo(0, serverStatus)
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
     case rb : RetryBind => {
       if (start()) {
@@ -255,6 +280,10 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
         }
       }
     }
+    case Shutdown => {
+      //no need to enter the shuttingDown state since we know there's no open connections
+      self ! PoisonPill
+    }
   }
 
   def accepting(router: ActorRef): Receive = alwaysHandle orElse {
@@ -262,12 +291,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       selectLoop(router)
       self ! Select
     }
-    case ConnectionClosed(id, cause) => {
-      openConnections -= 1
-      connections.decrement()
-      closed.hit(tags = Map("cause" -> cause.toString))
-      updateServerConnectionState()
-    }
+    case ConnectionClosed(id, cause) => closeConnection(cause)
     case ConnectionRefused(sc, attempt) => if (attempt >= Server.MaxConnectionRegisterAttempts) {
       log.error(s"Failed to register new connection $attempt times, closing")
       sc.close()
@@ -276,19 +300,40 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       router ! Worker.NewConnection(sc, attempt + 1)
     }
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
-    case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
+    case Shutdown => {
+      //initiate the shutdown sequence.  We broadcast a shutdown request to all
+      //of our open connections, and then wait for them to close or timeout and
+      //force-close them.  We also stop accepting new connections
+      ss.close()
+      io.workerManager ! WorkerManager.ServerShutdownRequest(me)
+      context.system.scheduler.scheduleOnce(shutdownCheckFrequency, self, ShutdownCheck)
+      changeState(shuttingDown(System.currentTimeMillis), ServerStatus.ShuttingDown)
+    }
   }
 
   def handleShutdown: Receive = {
-    case Terminated(w) => self ! PoisonPill
+    case Terminated(w) => {
+      //if the worker manager is terminated, that's it for this server
+      self ! PoisonPill
+    }
   }
 
-  def handleStatus : Receive = {
-    case GetStatus =>{
-      val status: ServerStatus = serverStatus
-      log.debug(s"was asked for status, returning $status")
-      sender ! serverStatus
+  def shuttingDown(startTime: Long): Receive = alwaysHandle orElse {
+    case ConnectionClosed(id, cause) => closeConnection(cause)
+    case ShutdownCheck => if (System.currentTimeMillis - startTime > settings.shutdownTimeout.toMillis) {
+      log.warning(s"Shutdown timeout of ${settings.shutdownTimeout} reached, terminating ${openConnections} connections and shutting down")
+      self ! PoisonPill
+    } else if (openConnections == 0) {
+      self ! PoisonPill
+    } else {
+      log.info(s"waiting for $openConnections connections to close")
+      context.system.scheduler.scheduleOnce(Server.shutdownCheckFrequency, self, ShutdownCheck)
     }
+  }
+
+
+  def handleStatus : Receive = {
+    case GetInfo => sender ! ServerInfo(openConnections, serverStatus)
   }
 
   def selectLoop(router: ActorRef) {
@@ -341,6 +386,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     selector.close()
     ss.close()
     log.info("SERVER PEACE OUT")
+    updateServerStatus(ServerStatus.Dead)
   }
 
   private def updateServerConnectionState() {
@@ -355,7 +401,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     stateAgent.send(stateAgent().copy(serverStatus = serverStatus))
   }
 
-  private def serverStatus = stateAgent().serverStatus
+  private def serverStatus: ServerStatus = stateAgent().serverStatus
 
   private def determineConnectionStateChange(currentCount : Int, lowCount : Double, highCount : Double, previousState : ConnectionVolumeState) : Option[ConnectionVolumeState] = {
 
@@ -374,12 +420,16 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
  * - `Initializing` : The server was just started and is registering with the IOSystem
  * - `Binding` : The server is registered and in the process of binding to its port
  * - `Bound` : The server is actively listening on the port and accepting connections
+ * - `ShuttingDown` : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
+ * - `Dead` : The server is fully shutdown
  */
 sealed trait ServerStatus
 object ServerStatus {
-  case object Initializing extends ServerStatus
-  case object Binding extends ServerStatus
-  case object Bound extends ServerStatus
+  case object Initializing  extends ServerStatus
+  case object Binding       extends ServerStatus
+  case object Bound         extends ServerStatus
+  case object ShuttingDown  extends ServerStatus
+  case object Dead          extends ServerStatus
 }
 
 /**
@@ -400,7 +450,11 @@ object Server {
   val MaxConnectionRegisterAttempts = 3
   class MaxConnectionRegisterException extends Exception("Maximum number of connection register attempts reached")
 
-  case object Select
+  def shutdownCheckFrequency = 50.milliseconds
+
+  private[core] case object Select
+  private[core] case object ShutdownCheck
+
   case class ConnectionClosed(id: Long, cause : RootDisconnectCause)
 
   /** Sent from a worker to the server when the server is not registered with the worker.
@@ -410,9 +464,8 @@ object Server {
   case class ConnectionRefused(channel: SocketChannel, attempt: Int)
 
   sealed trait ServerCommand
-  case class Shutdown(killConnections: Boolean) extends ServerCommand
+  case object Shutdown extends ServerCommand
   case class DelegatorBroadcast(message: Any) extends ServerCommand
-  case object GetStatus extends ServerCommand
   case object GetInfo extends ServerCommand
 
   case class ServerInfo(openConnections: Int, status: ServerStatus)
@@ -441,7 +494,7 @@ object Server {
    * @param io The IOSystem to which this Server will belong
    * @return ServerRef which encapsulates the created Server
    */
-  def basic(name: String, port: Int, acceptor: () => ConnectionHandler)(implicit io: IOSystem): ServerRef = {
+  def basic(name: String, port: Int, acceptor: () => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
     val config = ServerConfig(
       name = name,
       delegatorFactory = Delegator.basic(acceptor),

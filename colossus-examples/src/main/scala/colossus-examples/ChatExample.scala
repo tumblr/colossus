@@ -74,7 +74,7 @@ object Broadcaster {
   case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds)) {
+class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds)) with ServerConnectionHandler {
   implicit lazy val sender = boundWorker.get.worker
 
   sealed trait State
@@ -120,6 +120,11 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
         broadcaster ! Broadcaster.ClientClosed(user, id.get)
       }
     }
+  }
+
+  def shutdownRequest(){
+    push(Status("The server is shutting down, goodbye")){_ => ()}
+    gracefulDisconnect()
   }
 
 

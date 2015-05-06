@@ -47,7 +47,7 @@ class DroppedReply extends Error("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) {
+extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -183,6 +183,10 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) {
     if (disconnecting && requestBuffer.size == 0) {
       super.gracefulDisconnect()
     }
+  }
+
+  def shutdownRequest() {
+    gracefulDisconnect()
   }
 
   // ABSTRACT MEMBERS
