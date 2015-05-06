@@ -66,6 +66,19 @@ class RateSpec extends MetricIntegrationSpec {
       check(1.minute, 3)
     }
 
+    "prune empty values" in {
+      val r = new ConcreteRate(Rate("/foo", true), CollectorConfig(List(1.second, 1.minute)))
+      r.hit(Map("foo" -> "a"))
+      r.hit(Map("foo" -> "b"))
+      r.tick(1.second)
+      r.metrics(CollectionContext(Map(), 1.second))("/foo").contains(Map("foo" -> "a")) must equal(true)
+      r.metrics(CollectionContext(Map(), 1.second))("/foo").contains(Map("foo" -> "b")) must equal(true)
+      r.hit(Map("foo" -> "a"))
+      r.tick(1.second)
+      r.metrics(CollectionContext(Map(), 1.second))("/foo").contains(Map("foo" -> "a")) must equal(true)
+      r.metrics(CollectionContext(Map(), 1.second))("/foo").contains(Map("foo" -> "b")) must equal(false)
+    }
+
 
   }
 

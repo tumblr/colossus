@@ -14,7 +14,8 @@ case class HistogramParams (
   address: MetricAddress, 
   bucketRanges: BucketList = Histogram.defaultBucketRanges, 
   percentiles: List[Double] = Histogram.defaultPercentiles,
-  sampleRate: Double = 1.0
+  sampleRate: Double = 1.0,
+  pruneEmpty: Boolean = false
 ) extends MetricParams[Histogram, HistogramParams] {
   def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
 }
@@ -59,8 +60,9 @@ object Histogram {
     address: MetricAddress, 
     bucketRanges: BucketList = Histogram.defaultBucketRanges, 
     percentiles: List[Double] = Histogram.defaultPercentiles,
-    sampleRate: Double = 1.0
-  ) : HistogramParams = HistogramParams(address, bucketRanges, percentiles, sampleRate)
+    sampleRate: Double = 1.0,
+    pruneEmpty: Boolean = false
+  ) : HistogramParams = HistogramParams(address, bucketRanges, percentiles, sampleRate, pruneEmpty)
 
   implicit object HistogramGenerator extends Generator[Histogram, HistogramParams] {
     def local(params: HistogramParams, config: CollectorConfig) = new PeriodicHistogram(params, config)
@@ -168,7 +170,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class TaggedHistogram(val ranges: BucketList, percs: List[Double]) {
+class TaggedHistogram(val ranges: BucketList, percs: List[Double], pruneEmpty: Boolean) {
 
   private val hists = collection.mutable.Map[TagMap, BaseHistogram]()
 
@@ -182,8 +184,18 @@ class TaggedHistogram(val ranges: BucketList, percs: List[Double]) {
   }
 
   def tick() {
-    lastFullSnapshot = hists.map{case (tags, hist) => (tags, hist.snapshot(percs))}.toMap
-    reset()
+    val toRemove = collection.mutable.ArrayBuffer[TagMap]()
+    val snapBuild = collection.mutable.Map[TagMap, Snapshot]()
+    hists.foreach{case (tags, hist) => 
+      if (hist.count == 0 && pruneEmpty) {
+        toRemove += tags
+      } else {
+        snapBuild += (tags -> hist.snapshot(percs))
+        hist.reset()
+      }
+    }
+    lastFullSnapshot = snapBuild.toMap
+    toRemove.foreach{tags => hists -= tags}      
   }
 
   def reset() {
@@ -210,7 +222,7 @@ class PeriodicHistogram(params: HistogramParams, config: CollectorConfig) extend
   import PeriodicHistogram._
 
   val hists: Map[FiniteDuration, TaggedHistogram] = config.intervals.map{interval => 
-    interval -> new TaggedHistogram(params.bucketRanges, params.percentiles)
+    interval -> new TaggedHistogram(params.bucketRanges, params.percentiles, params.pruneEmpty)
   }.toMap
   var lastSnapshot: MetricMap = MetricMap.Empty
 

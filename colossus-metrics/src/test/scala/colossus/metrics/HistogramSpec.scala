@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import org.scalatest._
-
 import MetricAddress.Root
 import scala.concurrent.duration._
 
@@ -60,7 +58,7 @@ class HistogramSpec extends MetricIntegrationSpec {
   "tagged histogram" must {
     "combine values with same tags" in {
       val percs = List(0.25, 0.5, 1.0)
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs, false)
       val m = Map("foo" -> "bar")
       h.add(4, m)
       h.add(400, m)
@@ -68,7 +66,7 @@ class HistogramSpec extends MetricIntegrationSpec {
     }
 
     "seperate values with different tag values" in {
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), Nil)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), Nil, false)
       h.add(3, Map("foo" -> "a"))
       h.add(30000, Map("foo" -> "b"))
       h(Map("foo" -> "a")).max must equal (3)
@@ -77,7 +75,7 @@ class HistogramSpec extends MetricIntegrationSpec {
 
     "produce raw stats" in {
       val percs = List(0.75, 0.99)
-      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs)
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), percs, false)
       val exp1 = new BaseHistogram(Histogram.generateBucketRanges(10))
       val exp2 = new BaseHistogram(Histogram.generateBucketRanges(10))
       (0 to 100).foreach{i =>
@@ -98,6 +96,21 @@ class HistogramSpec extends MetricIntegrationSpec {
 
       actual must equal (expected)
     }
+
+    "prune empty values" in {
+      val h = new TaggedHistogram(Histogram.generateBucketRanges(10), Nil, true)
+      h.add(3, Map("foo" -> "a"))
+      h.add(4, Map("foo" -> "b"))
+      h.tick()
+      h.snapshots.contains(Map("foo" -> "a")) must equal(true)
+      h.snapshots.contains(Map("foo" -> "b")) must equal(true)
+
+      h.add(3, Map("foo" -> "a"))
+      h.tick()
+      h.snapshots.contains(Map("foo" -> "a")) must equal(true)
+      h.snapshots.contains(Map("foo" -> "b")) must equal(false)
+    }
+
 
 
   }
