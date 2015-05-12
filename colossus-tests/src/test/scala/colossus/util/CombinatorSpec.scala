@@ -202,6 +202,15 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("3:aabbccdd")
       parser.parse(d) must equal (Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
     }
+
+    "repeatUntilEOS" in {
+      val parser = repeatUntilEOS(bytes(2))
+      val d1 = data("aabb")
+      val d2 = data("cc")
+      parser.parse(d1) must equal(None)
+      parser.parse(d2) must equal(None)
+      parser.endOfStream() must equal(Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
+    }
   }
 
 }

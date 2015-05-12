@@ -654,6 +654,30 @@ object Combinators {
     }
   }
 
+  /**
+   * Create a parser that will repeat the given parser forever until
+   * `endOfStream()` is called.  The results from each call to the given parser
+   * are accumulated and returned at the end of the stream.
+   */
+  def repeatUntilEOS[T](parser: Parser[T]): Parser[Seq[T]] = new Parser[Seq[T]] {
+    var build = collection.mutable.ArrayBuffer[T]()
+    def parse(data: DataBuffer) = { 
+      while (data.hasNext) {
+        parser.parse(data).foreach{t =>
+          build += t
+        }
+      }
+      None
+    }
+
+    override def endOfStream() = {
+      val res = Some(build)
+      build = collection.mutable.ArrayBuffer[T]()
+      res
+    }
+  }
+
+
   //this is just a tuple that allows for cleaner pattern matching
   case class ~[+A,+B](a: A, b: B)
 
