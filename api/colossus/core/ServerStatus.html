@@ -28,11 +28,11 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ServerStatus$.html" title="Go to companion"><img src="../../lib/trait_to_object_big.png" /></a>
+        <a href="ServerStatus$.html" title="See companion object"><img src="../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1><a href="ServerStatus$.html" title="Go to companion">ServerStatus</a></h1><h3><span class="morelinks"><div>
+        <h1><a href="ServerStatus$.html" title="See companion object">ServerStatus</a></h1><h3><span class="morelinks"><div>
             Related Docs:
-            <a href="ServerStatus$.html" title="See companion">object ServerStatus</a>
+            <a href="ServerStatus$.html" title="See companion object">object ServerStatus</a>
             | <a href="package.html" class="extype" name="colossus.core">package core</a>
           </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.ServerStatus" title="Permalink" target="_top">
@@ -55,12 +55,14 @@
 - <code>Initializing</code> : The server was just started and is registering with the IOSystem
 - <code>Binding</code> : The server is registered and in the process of binding to its port
 - <code>Bound</code> : The server is actively listening on the port and accepting connections
+- <code>ShuttingDown</code> : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
+- <code>Dead</code> : The server is fully shutdown
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="ServerStatus$$Binding$.html" class="extype" name="colossus.core.ServerStatus.Binding">Binding</a>, <a href="ServerStatus$$Bound$.html" class="extype" name="colossus.core.ServerStatus.Bound">Bound</a>, <a href="ServerStatus$$Initializing$.html" class="extype" name="colossus.core.ServerStatus.Initializing">Initializing</a></div>
+            <div class="subClasses hiddenContent"><a href="ServerStatus$$Binding$.html" class="extype" name="colossus.core.ServerStatus.Binding">Binding</a>, <a href="ServerStatus$$Bound$.html" class="extype" name="colossus.core.ServerStatus.Bound">Bound</a>, <a href="ServerStatus$$Dead$.html" class="extype" name="colossus.core.ServerStatus.Dead">Dead</a>, <a href="ServerStatus$$Initializing$.html" class="extype" name="colossus.core.ServerStatus.Initializing">Initializing</a>, <a href="ServerStatus$$ShuttingDown$.html" class="extype" name="colossus.core.ServerStatus.ShuttingDown">ShuttingDown</a></div>
           </div></div>
         
 

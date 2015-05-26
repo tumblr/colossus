@@ -28,11 +28,11 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ServiceServer$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <a href="ServiceServer$.html" title="See companion object"><img src="../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1><a href="ServiceServer$.html" title="Go to companion">ServiceServer</a></h1><h3><span class="morelinks"><div>
+        <h1><a href="ServiceServer$.html" title="See companion object">ServiceServer</a></h1><h3><span class="morelinks"><div>
             Related Docs:
-            <a href="ServiceServer$.html" title="See companion">object ServiceServer</a>
+            <a href="ServiceServer$.html" title="See companion object">object ServiceServer</a>
             | <a href="package.html" class="extype" name="colossus.service">package service</a>
           </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.ServiceServer" title="Permalink" target="_top">
@@ -47,7 +47,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceServer</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>]</span>
+        <span class="name">ServiceServer</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>] with <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>
       </span>
       </h4>
       
@@ -58,7 +58,7 @@ the desired protocol.</p><p>Requests can be processed synchronously or
 asynchronously.  The server will ensure that all responses are written back
 in the order that they are received.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>], <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
             <div class="subClasses hiddenContent"><a href="BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../protocols/http/package$$HttpServiceHandler.html" class="extype" name="colossus.protocols.http.HttpServiceHandler">HttpServiceHandler</a></div>
@@ -79,7 +79,7 @@ in the order that they are received.</p></div><div class="toggleContainer block"
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.ServiceServer"><span>ServiceServer</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.ServiceServer"><span>ServiceServer</span></li><li class="in" name="colossus.core.ServerConnectionHandler"><span>ServerConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -449,6 +449,24 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
     </span>
       <p class="shortcomment cmt">Connection was closed on our end, either by a shutdown, or by normal means</p><div class="fullcomment"><div class="comment cmt"><p>Connection was closed on our end, either by a shutdown, or by normal means</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was closed
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#connectionInfo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionInfo:Option[colossus.core.ConnectionInfo]"></a>
+      <a id="connectionInfo:Option[ConnectionInfo]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionInfo</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@connectionInfo:Option[colossus.core.ConnectionInfo]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a read-only trait containing live information about the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a read-only trait containing live information about the connection.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a></dd></dl></div>
     </li><li name="colossus.service.ServiceServer#connectionLost" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connectionLost(cause:colossus.core.DisconnectError):Unit"></a>
       <a id="connectionLost(DisconnectError):Unit"></a>
@@ -1152,6 +1170,28 @@ data until this handler is invoked.
       </a>
     </span>
       
+    </li><li name="colossus.service.ServiceServer#shutdownRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceServer@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The server is beginning to shutdown and is signaling to the connection
+that it should cleanup and terminate.</p><div class="fullcomment"><div class="comment cmt"><p>The server is beginning to shutdown and is signaling to the connection
+that it should cleanup and terminate.  This gives the connection time to
+gracefully shutdown, however eventually the server will timeout and
+forcefully close the connection
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ServiceServer">ServiceServer</a> → <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.controller.Controller#state" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="state:colossus.controller.ConnectionState"></a>
       <a id="state:ConnectionState"></a>
@@ -1298,7 +1338,9 @@ data until this handler is invoked.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.controller.Controller">
+        <div class="parent" name="colossus.core.ServerConnectionHandler">
+              <h3>Inherited from <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></h3>
+            </div><div class="parent" name="colossus.controller.Controller">
               <h3>Inherited from <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>]</h3>
             </div><div class="parent" name="colossus.controller.OutputController">
               <h3>Inherited from <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>]</h3>

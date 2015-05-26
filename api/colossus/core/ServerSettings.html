@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -63,8 +63,11 @@ watermarks to 1.
                               will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
                                  <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
                                  after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s
-</span></p></dd></dl><div class="toggleContainer block">
+                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
+request to every open connection.  This determines how long it will wait for
+every connection to self-terminate before it forcibly closes them and
+completes the shutdown.
+</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -105,7 +108,7 @@ watermarks to 1.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ServerSettings#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration):colossus.core.ServerSettings"></a>
+      <a id="&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings"></a>
       <a id="&lt;init&gt;:ServerSettings"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -113,10 +116,10 @@ watermarks to 1.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>)</span>
+        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerSettings@&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration):colossus.core.ServerSettings" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerSettings@&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -126,8 +129,11 @@ watermarks to 1.
                               will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
                                  <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
                                  after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s
-</span></p></dd></dl></div>
+                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
+request to every open connection.  This determines how long it will wait for
+every connection to self-terminate before it forcibly closes them and
+completes the shutdown.
+</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -267,8 +273,7 @@ watermarks to 1.
       <p class="shortcomment cmt">The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
                                  <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
                                  after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s
-</span></p>
+                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -530,6 +535,28 @@ watermarks to 1.
       </a>
     </span>
       <p class="shortcomment cmt">Port on which this Server will accept connections</p>
+    </li><li name="colossus.core.ServerSettings#shutdownTimeout" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownTimeout:scala.concurrent.duration.FiniteDuration"></a>
+      <a id="shutdownTimeout:FiniteDuration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownTimeout</span><span class="result">: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerSettings@shutdownTimeout:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Once a Server begins to shutdown, it will signal a
+request to every open connection.</p><div class="fullcomment"><div class="comment cmt"><p>Once a Server begins to shutdown, it will signal a
+request to every open connection.  This determines how long it will wait for
+every connection to self-terminate before it forcibly closes them and
+completes the shutdown.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

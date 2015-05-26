@@ -676,6 +676,27 @@ parser returns a result.</p><p>Notice that the terminal byte is consumed, so if 
 parser.parse(DataBuffer(ByteString(<span class="lit">"aabbcc:ddee"</span>)))</pre><p>the bytes remaining in the buffer after parsing are just <code>ddee</code>.
 </p></div><dl class="paramcmts block"><dt class="param">parser</dt><dd class="cmt"><p>the parser repeat</p></dd><dt class="param">terminus</dt><dd class="cmt"><p>the byte to singal to stop repeating</p></dd><dt>returns</dt><dd class="cmt"><p>the parsed sequence
 </p></dd></dl></div>
+    </li><li name="colossus.parsing.Combinators#repeatUntilEOS" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="repeatUntilEOS[T](parser:colossus.parsing.Combinators.Parser[T]):colossus.parsing.Combinators.Parser[Seq[T]]"></a>
+      <a id="repeatUntilEOS[T](Parser[T]):Parser[Seq[T]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">repeatUntilEOS</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="parser">parser: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.repeatUntilEOS.T">T</span>]</span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="colossus.parsing.Combinators.repeatUntilEOS.T">T</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@repeatUntilEOS[T](parser:colossus.parsing.Combinators.Parser[T]):colossus.parsing.Combinators.Parser[Seq[T]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a parser that will repeat the given parser forever until
+<code>endOfStream()</code> is called.</p><div class="fullcomment"><div class="comment cmt"><p>Create a parser that will repeat the given parser forever until
+<code>endOfStream()</code> is called.  The results from each call to the given parser
+are accumulated and returned at the end of the stream.
+</p></div></div>
     </li><li name="colossus.parsing.Combinators#short" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="short:colossus.parsing.Combinators.Parser[Short]"></a>
       <a id="short:Parser[Short]"></a>

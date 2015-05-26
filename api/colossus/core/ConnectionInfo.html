@@ -28,12 +28,10 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ConnectionInfo$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1><a href="ConnectionInfo$.html" title="Go to companion">ConnectionInfo</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="ConnectionInfo$.html" title="See companion">object ConnectionInfo</a>
-            | <a href="package.html" class="extype" name="colossus.core">package core</a>
+        <h1>ConnectionInfo</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
           </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.core.ConnectionInfo" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
@@ -44,19 +42,22 @@
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">case class</span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ConnectionInfo</span><span class="params">(<span name="domain">domain: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="host">host: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timeOpen">timeOpen: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="readIdle">readIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="writeIdle">writeIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesSent">bytesSent: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesReceived">bytesReceived: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ConnectionInfo</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This class is used to report some basic stats about a Connection.  This is used in conjunction
-with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>The domain of this Connection</p></dd><dt class="param">host</dt><dd class="cmt"><p>The host of this Connection</p></dd><dt class="param">port</dt><dd class="cmt"><p>The port of this Connection</p></dd><dt class="param">id</dt><dd class="cmt"><p>The id of this Connection</p></dd><dt class="param">timeOpen</dt><dd class="cmt"><p>The amount of time this Connection has been open</p></dd><dt class="param">readIdle</dt><dd class="cmt"><p>milliseconds since the last read activity on the connection</p></dd><dt class="param">writeIdle</dt><dd class="cmt"><p>milliseconds since the last write activity on the connection</p></dd><dt class="param">bytesSent</dt><dd class="cmt"><p>The amount of bytes that this Connection has sent</p></dd><dt class="param">bytesReceived</dt><dd class="cmt"><p>The amount of bytes that this Connection has received
-</p></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A trait encapsulating live information about a connection.  This should only
+contain read-only fields
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="WriteEndpoint.html" class="extype" name="colossus.core.WriteEndpoint">WriteEndpoint</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -73,7 +74,7 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.core.ConnectionInfo"><span>ConnectionInfo</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.ConnectionInfo"><span>ConnectionInfo</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -91,35 +92,161 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="colossus.core.ConnectionInfo#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(domain:String,host:java.net.InetAddress,port:Int,id:Long,timeOpen:Long,readIdle:Long,writeIdle:Long,bytesSent:Long,bytesReceived:Long):colossus.core.ConnectionInfo"></a>
-      <a id="&lt;init&gt;:ConnectionInfo"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ConnectionInfo</span><span class="params">(<span name="domain">domain: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="host">host: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="timeOpen">timeOpen: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="readIdle">readIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="writeIdle">writeIdle: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesSent">bytesSent: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>, <span name="bytesReceived">bytesReceived: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">0</span></span>)</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@&lt;init&gt;(domain:String,host:java.net.InetAddress,port:Int,id:Long,timeOpen:Long,readIdle:Long,writeIdle:Long,bytesSent:Long,bytesReceived:Long):colossus.core.ConnectionInfo" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">domain</dt><dd class="cmt"><p>The domain of this Connection</p></dd><dt class="param">host</dt><dd class="cmt"><p>The host of this Connection</p></dd><dt class="param">port</dt><dd class="cmt"><p>The port of this Connection</p></dd><dt class="param">id</dt><dd class="cmt"><p>The id of this Connection</p></dd><dt class="param">timeOpen</dt><dd class="cmt"><p>The amount of time this Connection has been open</p></dd><dt class="param">readIdle</dt><dd class="cmt"><p>milliseconds since the last read activity on the connection</p></dd><dt class="param">writeIdle</dt><dd class="cmt"><p>milliseconds since the last write activity on the connection</p></dd><dt class="param">bytesSent</dt><dd class="cmt"><p>The amount of bytes that this Connection has sent</p></dd><dt class="param">bytesReceived</dt><dd class="cmt"><p>The amount of bytes that this Connection has received
-</p></dd></dl></div>
-    </li></ol>
-            </div>
-
         
 
         
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Abstract Value Members</h3>
+              <ol><li name="colossus.core.ConnectionInfo#bytesReceived" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="bytesReceived:Long"></a>
+      <a id="bytesReceived:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bytesReceived</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@bytesReceived:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">how many bytes have been received on the connection in total
+</p>
+    </li><li name="colossus.core.ConnectionInfo#bytesSent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="bytesSent:Long"></a>
+      <a id="bytesSent:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bytesSent</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@bytesSent:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">how many bytes have been sent on the connection in total
+</p>
+    </li><li name="colossus.core.ConnectionInfo#id" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="id:Long"></a>
+      <a id="id:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@id:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The id of the underlying connection.</p><div class="fullcomment"><div class="comment cmt"><p>The id of the underlying connection.  This is different from a
+WorkerItem's id.
+</p></div></div>
+    </li><li name="colossus.core.ConnectionInfo#lastTimeDataReceived" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="lastTimeDataReceived:Long"></a>
+      <a id="lastTimeDataReceived:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lastTimeDataReceived</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@lastTimeDataReceived:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a timestamp, in milliseconds of when the last time data was read on the connection
+</p>
+    </li><li name="colossus.core.ConnectionInfo#lastTimeDataWritten" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="lastTimeDataWritten:Long"></a>
+      <a id="lastTimeDataWritten:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lastTimeDataWritten</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@lastTimeDataWritten:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a timestamp, in milliseconds of when the last time data was written on the connection
+</p>
+    </li><li name="colossus.core.ConnectionInfo#remoteAddress" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="remoteAddress:Option[java.net.InetSocketAddress]"></a>
+      <a id="remoteAddress:Option[InetSocketAddress]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">remoteAddress</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@remoteAddress:Option[java.net.InetSocketAddress]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The address of the remote host for this connection, if connected
+</p>
+    </li><li name="colossus.core.ConnectionInfo#status" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="status:colossus.core.ConnectionStatus"></a>
+      <a id="status:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">status</span><span class="result">: <a href="ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@status:colossus.core.ConnectionStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Get the current connection status.</p>
+    </li><li name="colossus.core.ConnectionInfo#timeOpen" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="timeOpen:Long"></a>
+      <a id="timeOpen:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">timeOpen</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@timeOpen:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">How long, in milliseconds, since the connection was opened
+</p>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -188,41 +315,6 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#bytesReceived" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bytesReceived:Long"></a>
-      <a id="bytesReceived:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bytesReceived</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@bytesReceived:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The amount of bytes that this Connection has received
-</p>
-    </li><li name="colossus.core.ConnectionInfo#bytesSent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bytesSent:Long"></a>
-      <a id="bytesSent:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bytesSent</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@bytesSent:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The amount of bytes that this Connection has sent</p>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -246,40 +338,6 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#consoleString" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="consoleString:String"></a>
-      <a id="consoleString:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">consoleString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@consoleString:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ConnectionInfo#domain" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="domain:String"></a>
-      <a id="domain:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">domain</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@domain:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The domain of this Connection</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -297,6 +355,23 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionInfo@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -337,40 +412,23 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#host" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="host:java.net.InetAddress"></a>
-      <a id="host:InetAddress"></a>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">host</span><span class="result">: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@host:java.net.InetAddress" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ConnectionInfo@hashCode():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">The host of this Connection</p>
-    </li><li name="colossus.core.ConnectionInfo#id" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="id:Long"></a>
-      <a id="id:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@id:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The id of this Connection</p>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -388,23 +446,6 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#itemValues" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="itemValues:List[String]"></a>
-      <a id="itemValues:List[String]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">itemValues</span><span class="result">: <span class="extype" name="scala.collection.immutable.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@itemValues:List[String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -456,40 +497,6 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#port" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="port:Int"></a>
-      <a id="port:Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">port</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@port:Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The port of this Connection</p>
-    </li><li name="colossus.core.ConnectionInfo#readIdle" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="readIdle:Long"></a>
-      <a id="readIdle:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">readIdle</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@readIdle:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">milliseconds since the last read activity on the connection</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -507,40 +514,23 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#timeIdle" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="timeIdle:Long"></a>
-      <a id="timeIdle:Long"></a>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">timeIdle</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@timeIdle:Long" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ConnectionInfo@toString():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.ConnectionInfo#timeOpen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="timeOpen:Long"></a>
-      <a id="timeOpen:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">timeOpen</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@timeOpen:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The amount of time this Connection has been open</p>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -610,23 +600,6 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.core.ConnectionInfo#writeIdle" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="writeIdle:Long"></a>
-      <a id="writeIdle:Long"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">writeIdle</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionInfo@writeIdle:Long" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">milliseconds since the last write activity on the connection</p>
     </li></ol>
             </div>
 
@@ -636,15 +609,7 @@ with the Metrics library and ConnectionPageRenderer.</p></div><dl class="paramcm
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

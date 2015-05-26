@@ -256,6 +256,28 @@ a Pinned Dispatcher and shound be the same actor that created the original
 Callback, for example, a Colossus worker.</p><p>This type is generally only needed when converting a Future to a Callback,
 or scheduling a Callback for delayed execution.
 </p></div></div>
+    </li><li name="colossus.service.CallbackPromise" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CallbackPromise[T]extendsAnyRef"></a>
+      <a id="CallbackPromise[T]:CallbackPromise[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackPromise.html"><span class="name">CallbackPromise</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackPromise[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A CallbackPromise creates a callback which can be eventually filled in with
+a value.</p><div class="fullcomment"><div class="comment cmt"><p>A CallbackPromise creates a callback which can be eventually filled in with
+a value.  This works similarly to a scala Promise.  CallbackPromises are not
+thread-safe.  For thread-safety, simply use a scala Promise and use
+Callback.fromFuture on it's corresponding Future.
+</p></div></div>
     </li><li name="colossus.service.ClientCodecProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ClientCodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
       <a id="ClientCodecProvider[C&lt;:CodecDSL]:ClientCodecProvider[C]"></a>
@@ -417,7 +439,7 @@ codec is stateful and returns a Seq[O]
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">This contains methods to interact with an individual connection.</p>
     </li><li name="colossus.service.ConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ConnectionEventextendsAnyRef"></a>
       <a id="ConnectionEvent:ConnectionEvent"></a>
@@ -725,6 +747,23 @@ are guaranteed to cycle though all items as the first element.</p><div class="fu
 are guaranteed to cycle though all items as the first element.</p><p>This currently doesn't iterate through every possible permutation, but it
 does evenly distribute 1st and 2nd tries...needs some more work
 </p></div></div>
+    </li><li name="colossus.service.PromiseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PromiseExceptionextendsException"></a>
+      <a id="PromiseException:PromiseException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PromiseException.html"><span class="name">PromiseException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@PromiseExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ReceiveException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ReceiveExceptionextendsException"></a>
       <a id="ReceiveException:ReceiveException"></a>
@@ -906,7 +945,7 @@ updates and will open/close connections accordingly.</p><p>note that config will
     </span>
       
     </li><li name="colossus.service.ServiceServer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ServiceServer[I,O]extendsController[I,O]"></a>
+      <a id="ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler"></a>
       <a id="ServiceServer[I,O]:ServiceServer[I,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -914,10 +953,10 @@ updates and will open/close connections accordingly.</p><p>note that config will
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="ServiceServer.html"><span class="name">ServiceServer</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>]</span>
+        <a href="ServiceServer.html"><span class="name">ServiceServer</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>] with <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@ServiceServer[I,O]extendsController[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.package@ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>

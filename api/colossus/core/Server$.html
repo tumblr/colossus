@@ -201,23 +201,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       
-    </li><li name="colossus.core.Server.Shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ShutdownextendsServer.ServerCommandwithProductwithSerializable"></a>
-      <a id="Shutdown:Shutdown"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$Shutdown.html"><span class="name">Shutdown</span></a><span class="params">(<span name="killConnections">killConnections: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@ShutdownextendsServer.ServerCommandwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li></ol>
             </div>
 
@@ -293,23 +276,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       
-    </li><li name="colossus.core.Server.GetStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GetStatus"></a>
-      <a id="GetStatus:GetStatus"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$GetStatus$.html"><span class="name">GetStatus</span></a><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@GetStatus" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="colossus.core.Server#MaxConnectionRegisterAttempts" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MaxConnectionRegisterAttempts:Int"></a>
       <a id="MaxConnectionRegisterAttempts:Int"></a>
@@ -327,19 +293,19 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       
-    </li><li name="colossus.core.Server.Select" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Select"></a>
-      <a id="Select:Select"></a>
+    </li><li name="colossus.core.Server.Shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Shutdown"></a>
+      <a id="Shutdown:Shutdown"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Server$$Select$.html"><span class="name">Select</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="Server$$Shutdown$.html"><span class="name">Shutdown</span></a><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@Select" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.Server$@Shutdown" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -380,18 +346,18 @@ the Server is notified.</p></div><div class="toggleContainer block">
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.core.Server#basic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="basic(name:String,port:Int,acceptor:()=&gt;colossus.core.ConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
-      <a id="basic(String,Int,()⇒ConnectionHandler)(IOSystem):ServerRef"></a>
+      <a id="basic(name:String,port:Int,acceptor:()=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
+      <a id="basic(String,Int,()⇒ServerConnectionHandler)(IOSystem):ServerRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">basic</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="acceptor">acceptor: () ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
+        <span class="name">basic</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="acceptor">acceptor: () ⇒ <a href="ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@basic(name:String,port:Int,acceptor:()=&gt;colossus.core.ConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.Server$@basic(name:String,port:Int,acceptor:()=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -581,6 +547,23 @@ factory function</p></div><dl class="paramcmts block"><dt class="param">name</dt
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.Server#shutdownCheckFrequency" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="shutdownCheckFrequency:scala.concurrent.duration.FiniteDuration"></a>
+      <a id="shutdownCheckFrequency:FiniteDuration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownCheckFrequency</span><span class="result">: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.Server$@shutdownCheckFrequency:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

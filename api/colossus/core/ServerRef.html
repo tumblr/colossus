@@ -244,6 +244,23 @@ an application design and from Akka idioms and best practices, passing around an
     </span>
       <p class="shortcomment cmt">Post a message to a <span class="extype" name="Server">Server</span>'s <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></p><div class="fullcomment"><div class="comment cmt"><p>Post a message to a <span class="extype" name="Server">Server</span>'s <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"></dd><dt class="param">sender</dt><dd class="cmt"></dd><dt>returns</dt><dd class="cmt"><p>
 </p></dd></dl></div>
+    </li><li name="colossus.core.ServerRef#die" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="die():Unit"></a>
+      <a id="die():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">die</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerRef@die():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Immediately kill the server and all corresponding open connections.</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -437,7 +454,7 @@ an application design and from Akka idioms and best practices, passing around an
       </a>
     </span>
       
-    </li><li name="colossus.core.ServerRef#shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.ServerRef#shutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="shutdown():Unit"></a>
       <a id="shutdown():Unit"></a>
       <h4 class="signature">
@@ -453,7 +470,14 @@ an application design and from Akka idioms and best practices, passing around an
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Shutdown this server.</p>
+      <p class="shortcomment cmt">Gracefully shutdown this server.</p><div class="fullcomment"><div class="comment cmt"><p>Gracefully shutdown this server.  This will cause the server to
+immediately begin refusing connections, but attempt to allow existing
+connections to close on their own.  The <code>shutdownRequest</code> method will be
+called on every <code>ServerConnectionHandler</code> associated with this server.
+<code>shutdownTimeout</code> in <code>ServerSettings</code> controls how long the server will
+wait before it force-closes all connections and shuts down.  The server
+actor will remain alive until it is fully shutdown.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

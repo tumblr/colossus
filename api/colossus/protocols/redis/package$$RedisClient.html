@@ -384,6 +384,24 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
     </span>
       <p class="shortcomment cmt">Event handler for when a connection failed.</p><div class="fullcomment"><div class="comment cmt"><p>Event handler for when a connection failed.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#connectionInfo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionInfo:Option[colossus.core.ConnectionInfo]"></a>
+      <a id="connectionInfo:Option[ConnectionInfo]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionInfo</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../core/ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionInfo:Option[colossus.core.ConnectionInfo]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a read-only trait containing live information about the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a read-only trait containing live information about the connection.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a></dd></dl></div>
     </li><li name="colossus.service.ServiceClient#connectionLost" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connectionLost(cause:colossus.core.DisconnectError):Unit"></a>
       <a id="connectionLost(DisconnectError):Unit"></a>
@@ -601,7 +619,7 @@ and don't allow any new ones
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.controller.OutputController#idleCheck" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="colossus.service.ServiceClient#idleCheck" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="idleCheck(period:scala.concurrent.duration.Duration):Unit"></a>
       <a id="idleCheck(Duration):Unit"></a>
       <h4 class="signature">
@@ -622,7 +640,7 @@ for checking if an ongoing operation has timed out.</p><div class="fullcomment">
 for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
 which is only based on the last time there was any I/O.
 </p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.protocols.redis.RedisClient#info" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="info:colossus.service.Callback[Map[String,String]]"></a>
       <a id="info:Callback[Map[String,String]]"></a>

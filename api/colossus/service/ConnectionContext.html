@@ -49,7 +49,8 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This contains methods to interact with an individual connection.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
@@ -96,7 +97,7 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.service.ConnectionContext#become" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.service.ConnectionContext#become" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="become(p:colossus.service.CodecDSL.PartialHandler[C]):Unit"></a>
       <a id="become(PartialHandler[C]):Unit"></a>
       <h4 class="signature">
@@ -112,7 +113,10 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Set a partial function for the request processing handler for the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Set a partial function for the request processing handler for the connection.  Any request that
+falls through the handler will be automatically converted into an error
+response with a <code>UnhandledRequestException</code> as the cause
+</p></div></div>
     </li><li name="colossus.service.ConnectionContext#callbackExecutor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="callbackExecutor:colossus.service.CallbackExecutor"></a>
       <a id="callbackExecutor:CallbackExecutor"></a>
@@ -130,24 +134,25 @@
       </a>
     </span>
       
-    </li><li name="colossus.service.ConnectionContext#connectionId" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="connectionId:Long"></a>
-      <a id="connectionId:Long"></a>
+    </li><li name="colossus.service.ConnectionContext#connectionInfo" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="connectionInfo:Option[colossus.core.ConnectionInfo]"></a>
+      <a id="connectionInfo:Option[ConnectionInfo]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">connectionId</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+        <span class="name">connectionInfo</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionContext@connectionId:Long" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConnectionContext@connectionInfo:Option[colossus.core.ConnectionInfo]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.service.ConnectionContext#disconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Get current info about the connection
+</p>
+    </li><li name="colossus.service.ConnectionContext#disconnect" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="disconnect():Unit"></a>
       <a id="disconnect():Unit"></a>
       <h4 class="signature">
@@ -163,8 +168,11 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.service.ConnectionContext#gracefulDisconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Immediately terminate the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Immediately terminate the connection.  Note that requests that are in the
+middle of being processed will continue processing although their final
+response will be discarded.
+</p></div></div>
+    </li><li name="colossus.service.ConnectionContext#gracefulDisconnect" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="gracefulDisconnect():Unit"></a>
       <a id="gracefulDisconnect():Unit"></a>
       <h4 class="signature">
@@ -180,7 +188,33 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Terminate the connection, but allow any existing outstanding requests to
+complete processing before disconnecting.</p><div class="fullcomment"><div class="comment cmt"><p>Terminate the connection, but allow any existing outstanding requests to
+complete processing before disconnecting.  Any new requests that come in
+will be automatically completed with an error.
+</p></div></div>
+    </li><li name="colossus.service.ConnectionContext#onError" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="onError(handler:colossus.service.CodecDSL.ErrorHandler[C]):Unit"></a>
+      <a id="onError(ErrorHandler[C]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onError</span><span class="params">(<span name="handler">handler: <a href="CodecDSL$.html#ErrorHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[(C#Input,Throwable),C#Output]" class="extmbr" name="colossus.service.CodecDSL.ErrorHandler">ErrorHandler</a>[<span class="extype" name="colossus.service.ConnectionContext.C">C</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConnectionContext@onError(handler:colossus.service.CodecDSL.ErrorHandler[C]):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Attach a handler for non-recoverable errors.</p><div class="fullcomment"><div class="comment cmt"><p>Attach a handler for non-recoverable errors.  This includes uncaught
+exceptions, unhandled requests, request timeouts, and other server-level
+errors.  In every case, this handler should not attempt to actually
+process the request, but instead simply return an appropriately formatted
+error response.
+</p></div></div>
     </li><li name="colossus.service.ConnectionContext#receive" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="receive(receiver:PartialFunction[Any,Unit]):Unit"></a>
       <a id="receive(PartialFunction[Any,Unit]):Unit"></a>
@@ -197,7 +231,7 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Set the handler for actor messages intended for this connection.</p>
     </li><li name="colossus.service.ConnectionContext#sender" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="sender():akka.actor.ActorRef"></a>
       <a id="sender():ActorRef"></a>
@@ -214,7 +248,8 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Gets the sender of the current message being processed in the receive handler
+</p>
     </li></ol>
             </div>
 
@@ -486,7 +521,8 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Set a function for the request processing handler for the connection
+</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
