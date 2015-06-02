@@ -201,15 +201,19 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
 object HttpHead {
 
   import java.net.URI
-  //todo, this throws exceptions on malformed URLS, should catch and return 400 instead
+  // Notice, parameters with no value are legal, in which case we fill in with an empty string
   def parseParameters(q: String): Map[String, String] = {
     if (q != null && q.length > -1) {
       val params = scala.collection.mutable.HashMap[String, String]()
       val unparsedArgs = q.split('&')
 
       for (str <- unparsedArgs) {
-        val unparsedArg = str.split('=')
-        params += unparsedArg(0) -> unparsedArg(1)
+        val unparsedArg = str.split("=", 2)
+        if (unparsedArg.size == 2) {
+          params += unparsedArg(0) -> unparsedArg(1)
+        } else {
+          params += unparsedArg(0) -> ""
+        }
       }
       collection.immutable.Map(params.toList: _*)
     } else {
