@@ -39,6 +39,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       collectors.foreach(_ ! Tick(latestTick, interval))
       finalizeAndReportMetrics()
       resetMetrics()
+      context.system.scheduler.scheduleOnce(interval, self, SendTick)
     }
 
     case Tock(m, v) => {
@@ -110,7 +111,7 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
   }
 
   override def preStart() {
-    context.system.scheduler.schedule(interval, interval, self, SendTick)
+    context.system.scheduler.scheduleOnce(interval, self, SendTick)
   }
 }
 
