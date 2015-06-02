@@ -194,7 +194,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   def closeConnection(cause: RootDisconnectCause) {
     openConnections -= 1
     connections.decrement()
-    closed.hit(tags = Map("cause" -> cause.toString))
+    closed.hit(tags = Map("cause" -> cause.tagString))
     updateServerConnectionState()
   }
 

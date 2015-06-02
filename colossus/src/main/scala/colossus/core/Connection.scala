@@ -271,7 +271,10 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
 
 }
 
-private[core] sealed trait RootDisconnectCause
+private[core] sealed trait RootDisconnectCause {
+  def tagString: String
+  def logString: String
+}
 
 /**
  * Messages representing why a disconnect occurred.  These can be either normal disconnects
@@ -289,31 +292,49 @@ object DisconnectCause {
   //unhandled is private because it only occurs in situations where a
   //connection handler doesn't exist yet, so it doesn't make sense to force
   //handlers to handle a cause they will, by definition, never see
-  private[core] case object Unhandled extends RootDisconnectCause
+  private[core] case object Unhandled extends RootDisconnectCause {
+    def tagString = "unhandled"
+    def logString = "No Connection Handler Provided"
+  }
 
   /**
    * We initiated the disconnection on our end
    */
-  case object Disconnect extends DisconnectCause
+  case object Disconnect extends DisconnectCause {
+    def tagString = "disconnect"
+    def logString = "Closed by local host"
+  }
   /**
    * The IO System is being shutdown
    */
-  case object Terminated extends DisconnectCause
+  case object Terminated extends DisconnectCause {
+    def tagString = "terminated"
+    def logString = "IO System is shutting down"
+  }
 
   /**
    * The connection was idle and timed out
    */
-  case object TimedOut extends DisconnectError
+  case object TimedOut extends DisconnectError {
+    def tagString = "timedout"
+    def logString = "Timed out"
+  }
 
   /**
    * Unknown Error was encountered
    */
-  case class Error(error: Throwable) extends DisconnectError
+  case class Error(error: Throwable) extends DisconnectError {
+    def tagString = "error"
+    def logString = s"Error: $error"
+  }
 
   /**
    * The connection was closed by the remote end
    */
-  case object Closed extends DisconnectError
+  case object Closed extends DisconnectError {
+    def tagString = "closed"
+    def logString = "Closed by remote host"
+  }
 }
 
 

@@ -58,7 +58,10 @@ class PermutationGenerator[T : ClassTag](val seedlist: List[T]) extends Iterator
 }
   
 class LoadBalancingClientException(message: String) extends Exception(message)  
-class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(s"Failed after ${tries} tries", finalCause)
+class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
+  s"Failed after ${tries} tries, error on last try: ${finalCause.getMessage}", 
+  finalCause
+)
 
 
 
