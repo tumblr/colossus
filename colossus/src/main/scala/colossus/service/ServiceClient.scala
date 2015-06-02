@@ -39,7 +39,7 @@ case class ClientConfig(
   requestTimeout: Duration, 
   name: MetricAddress,
   pendingBufferSize: Int = 100,
-  sentBufferSize: Int = 20,
+  sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None),
   idleTimeout: Duration = Duration.Inf
@@ -170,9 +170,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
    */
   override def gracefulDisconnect() {
     log.info(s"Terminating connection to $address")
-    //clearPendingBuffer(new NotConnectedException("Connection is closing"))
-    //todo, we should maybe make the Cancelled OutputResult take a Throwable
-    purgePending()
+    purgePending(new NotConnectedException("Connection is closing"))
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()
@@ -216,30 +214,30 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
     connectionAttempts = 0
   }
 
-  private def purgeBuffers(pendingException : => Throwable) {
+  private def purgeBuffers(reason : Throwable) {
     sentBuffer.foreach{s => 
       errors.hit(tags = hpTags)
-      s.handler(Failure(new ConnectionLostException("Connection closed while request was in transit")))
+      s.handler(Failure(new ConnectionLostException(s"Error while request was in transit: $reason")))
     }
     sentBuffer.clear()
-    purgeOutgoing()
+    purgeOutgoing(reason)
     if (failFast) {
-      purgePending()
+      purgePending(reason)
     }
   }
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
     super.connectionClosed(cause)
     manuallyDisconnected = true
-    disconnects.hit(tags = hpTags + ("cause" -> cause.toString))
-    purgeBuffers(new NotConnectedException("Connection closed"))
+    disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
+    purgeBuffers(new NotConnectedException(s"${cause.logString}"))
   }
 
   override protected def connectionLost(cause : DisconnectError) {
     super.connectionLost(cause)
-    purgeBuffers(new NotConnectedException("Connection lost"))
-    log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
-    disconnects.hit(tags = hpTags + ("cause" -> cause.toString))
+    purgeBuffers(new NotConnectedException(s"${cause.logString}"))
+    log.warning(s"${id.get} connection to ${address.toString} lost: ${cause.logString}")
+    disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
     attemptReconnect()
   }
 
@@ -276,9 +274,9 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
       val pushed = push(s.message, s.start){
-        case OutputResult.Success   => sentBuffer.enqueue(s)
-        case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
-        case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
+        case OutputResult.Success         => sentBuffer.enqueue(s)
+        case OutputResult.Failure(err)    => s.handler(Failure(err))
+        case OutputResult.Cancelled(err)  => s.handler(Failure(err))
       }
       if (pushed) {
         if (sentBuffer.size >= config.sentBufferSize) {

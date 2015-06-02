@@ -69,14 +69,14 @@ object TestClient {
 
   def waitForStatus[I,O](client: AsyncServiceClient[I, O], status: ConnectionStatus, maxTries: Int = 5) {
     var tries = maxTries
-    var last = Await.result(client.connectionStatus, 2.seconds)
+    var last = Await.result(client.connectionStatus, 10.seconds)
     while (last != status) {
       Thread.sleep(100)
       tries -= 1
       if (tries == 0) {
         throw new Exception(s"Test client failed to achieve status $status, last status was $last")
       }
-      last = Await.result(client.connectionStatus, 2.seconds)
+      last = Await.result(client.connectionStatus, 10.seconds)
     }
   }
 
