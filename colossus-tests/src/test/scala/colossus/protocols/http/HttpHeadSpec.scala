@@ -1,9 +1,8 @@
-package colossus
+package colossus.protocols.http
 
 
 import org.scalatest._
 
-import protocols.http._
 
 class HttpHeadSuite extends WordSpec with MustMatchers{
 
@@ -57,6 +56,21 @@ class HttpHeadSuite extends WordSpec with MustMatchers{
         Cookie("bar", "true", None)
       )
       head.cookies must equal(expected)
+    }
+
+    "parse query string parameter with no value" in {
+      val head = HttpHead(HttpMethod.Get, "/foo?a=&b=c", HttpVersion.`1.1`, Nil)
+      head.parameters("a") must equal("")
+
+      val head2 = HttpHead(HttpMethod.Get, "/foo?a&b=c", HttpVersion.`1.1`, Nil)
+      head2.parameters("a") must equal("")
+    }
+
+    "correctly handle = in query string parameter values" in {
+      val head = HttpHead(HttpMethod.Get, "/foo?a=b&b=c=d&e=f=", HttpVersion.`1.1`, Nil)
+      head.parameters("a") must equal("b")
+      head.parameters("b") must equal("c=d")
+      head.parameters("e") must equal("f=")
     }
   }
 
