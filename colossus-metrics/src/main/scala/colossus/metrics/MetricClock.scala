@@ -61,10 +61,10 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
 
     case Terminated(child) => {
       if(collectors.contains(child)){
-        log.warning(s"oh no!  We lost an EventCollector $child. Removing from registered collectors.")
+        log.debug(s"oh no!  We lost an EventCollector $child. Removing from registered collectors.")
         collectors.remove(child)
       }else if(reporters.contains(child)){
-        log.warning(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
+        log.debug(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
         reporters.remove(child)
       }else{
         log.warning(s"someone: $child died..for which there is no reporter or collector registered")
