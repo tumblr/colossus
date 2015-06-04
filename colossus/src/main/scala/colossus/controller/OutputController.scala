@@ -244,7 +244,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private def drain(source: Source[DataBuffer]) {
     source.pull{
       case Success(Some(data)) => state match {
-        case AliveState(endpoint) => endpoint.write(data) match {
+        case a: AliveState => a.endpoint.write(data) match {
           case WriteStatus.Complete => drain(source)
           case WriteStatus.Failed  => {
             source.terminate(new NotConnectedException("Connection closed during streaming"))
