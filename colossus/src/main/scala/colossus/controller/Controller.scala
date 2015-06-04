@@ -37,13 +37,6 @@ sealed trait AliveState extends ConnectionState {
   def endpoint: WriteEndpoint
 }
 
-object AliveState {
-  def unapply(state: ConnectionState): Option[WriteEndpoint] = state match {
-    case a: AliveState => Some(a.endpoint)
-    case _ => None
-  }
-}
-
 object ConnectionState {
   case object NotConnected extends ConnectionState
   case class Connected(endpoint: WriteEndpoint) extends ConnectionState with AliveState
@@ -126,8 +119,8 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
   def disconnect() {
     //this has to be public to be used for clients
     state match {
-      case AliveState(endpoint) => {
-        endpoint.disconnect()
+      case a: AliveState => {
+        a.endpoint.disconnect()
       }
       case _ => {}
     }

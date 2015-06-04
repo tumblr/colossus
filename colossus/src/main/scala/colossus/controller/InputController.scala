@@ -82,6 +82,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   }
 
   private[controller] def inputOnConnected() {
+    _readsEnabled = true
     inputState = Decoding
   }
 
@@ -94,19 +95,21 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 
   protected def pauseReads() {
     state match {
-      case AliveState(endpoint) => {
+      case a : AliveState => {
         _readsEnabled = false
-        endpoint.disableReads()
+        a.endpoint.disableReads()
       }
+      case _ => {}
     }
   }
 
   protected def resumeReads() {
     state match {
-      case AliveState(endpoint) => {
+      case a: AliveState => {
         _readsEnabled = true
-        endpoint.enableReads()
+        a.endpoint.enableReads()
       }
+      case _ => {}
     }
   }
 
