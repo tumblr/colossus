@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Quickstart</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/quickstart/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Quickstart</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Hey there, thanks for taking a look!  This quickstart is designed to give a
+brief introduction to some of the central features of Colossus and show what
+it’s like to work with the framework.</p>
+
+<p>This guide covers the primary focus of Colossus, building services.  A
+<strong>service</strong> is a server that reads requests from clients and processes them
+into responses to send back.  Clients can send multiple requests at the same
+time, many (thousands of) clients can be connected to a server at the same
+time, and request processing is expected to happen in parallel.  Colossus does
+all that and more.</p>
+
+<p>This quickstart assumes you are familiar with developing Scala applications
+using SBT.  Furthermore you should be generally familiar with Akka and
+concurrent programming concepts.</p>
+
+<h2 id="sbt">SBT</h2>
+<p>Add the following to your Build.scala or build.sbt:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus"</span> <span class="o">%</span> <span class="s">"0.6.3"</span></code></pre></div>
+
+<p>Colossus is compiled for Scala 2.10 and 2.11 and built against Akka 2.3.</p>
+
+<h2 id="build-a-hello-world-service">Build a Hello World Service</h2>
+
+<p>In a standard SBT project layout, create <code>Main.scala</code>.  Add this to it:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">colossus._</span>
+<span class="k">import</span> <span class="nn">service._</span>
+<span class="k">import</span> <span class="nn">protocols.telnet._</span>
+
+<span class="k">object</span> <span class="nc">Main</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">io</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span>
+
+  <span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Telnet</span><span class="o">](</span><span class="s">"hello-world"</span> <span class="o">,</span> <span class="mi">10010</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span> 
+    <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span> 
+      <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"say"</span> <span class="o">::</span> <span class="n">text</span> <span class="o">::</span> <span class="nc">Nil</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+          <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="n">text</span><span class="o">))</span>
+        <span class="o">}</span>
+        <span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"exit"</span> <span class="o">::</span> <span class="nc">Nil</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+          <span class="n">connection</span><span class="o">.</span><span class="n">gracefulDisconnect</span><span class="o">()</span>
+          <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"Bye!"</span><span class="o">))</span>
+        <span class="o">}</span>
+        <span class="k">case</span> <span class="n">other</span> <span class="k">=&gt;</span> <span class="o">{</span>
+          <span class="nc">Callback</span><span class="o">.</span><span class="n">failed</span><span class="o">(</span><span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="n">s</span><span class="s">"Invalid command $other"</span><span class="o">))</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+<span class="o">}</span></code></pre></div>
+
+<p>Now when you run your application, you should be able to connect to the server with any standard telnet client.</p>
+
+<div class="highlight"><pre><code class="plaintext">&gt; telnet localhost 10010
+Trying ::1...
+Connected to localhost.
+Escape character is '^]'.
+&gt; hello
+TelnetCommand(List(hello))
+&gt; say "I am a teapot"
+I am a teapot
+&gt; exit
+Bye!
+Connection closed by foreign host.</code></pre></div>
+
+<h3 id="a-closer-look">A Closer Look</h3>
+
+<p>Let’s look at this service line-by-line.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">io</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span></code></pre></div>
+
+<p>The first thing you have to do when starting any Colossus service is to create
+an <code>IOSystem</code>.  The <code>IOSystem</code> is a collection of event loops with a thin
+management layer on top.  Both Servers and clients can be attached to an
+<code>IOSystem</code>, which by default will start one event-loop per physical CPU core.
+Internally, an <code>IOSystem</code> is just a bunch of Akka actors, and in this context
+the <code>IOSystem</code> will create its own Akka <code>ActorSystem</code>, but you can also attach
+it to an existing <code>ActorSystem</code>.</p>
+
+<p>In the case of a server like our service, all of the event loops in the
+<code>IOSystem</code> will be used, with incoming connections being round-robin’d across
+them.  This means that overall our service is multi-threaded, but all our code
+interacting with a particular connection is single-threaded (at least so far).</p>
+
+<p>We defined the <code>IOSystem</code> as <code>implicit</code> because it is a dependency for the next
+line, which is where we actually spin up our service:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Telnet</span><span class="o">](</span><span class="s">"hello-world"</span> <span class="o">,</span> <span class="mi">10010</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span></code></pre></div>
+
+<p>This starts a server on port 10010 using the telnet protocol.  Every service is
+built around a protocol using a <strong>codec</strong>.  Codecs do the job of turning raw
+incoming bytes into immutable request objects, and vise versa for turning
+response objects into raw bytes.  So for the telnet protocol, your service only
+has to worry about taking a <code>TelnetCommand</code> and turning it into a
+<code>TelnetReply</code>.</p>
+
+<p>The <code>context</code> is a reference to the current event loop.  Here we don’t need it,
+but it provides the interface for interacting directly with the event loop.</p>
+
+<p>This brings us to the actual logic of the service:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"say"</span> <span class="o">::</span> <span class="n">text</span> <span class="o">::</span> <span class="nc">Nil</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="n">text</span><span class="o">))</span>
+<span class="o">}</span>
+<span class="k">case</span> <span class="nc">TelnetCommand</span><span class="o">(</span><span class="s">"exit"</span> <span class="o">::</span> <span class="nc">Nil</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="n">connection</span><span class="o">.</span><span class="n">gracefulDisconnect</span><span class="o">()</span>
+  <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="nc">TelnetReply</span><span class="o">(</span><span class="s">"Bye!"</span><span class="o">))</span>
+<span class="o">}</span>
+<span class="k">case</span> <span class="n">other</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="nc">Callback</span><span class="o">.</span><span class="n">failed</span><span class="o">(</span><span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="n">s</span><span class="s">"Invalid command $other"</span><span class="o">))</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This is mostly just standard pattern matching against a <code>TelnetCommand</code>, producing a
+<code>Callback[TelnetReply]</code> for each case.  A <code>Callback</code> is Colossus’ internal
+mechanism for asychronous actions within an event loop.  It is a monad and is
+used very similarly to a <code>Future</code>, but only for within an event loop.  This
+example doesn’t really illustrate the need for Callbacks, so we’ll cover these
+in more detail in the next section.</p>
+
+<h2 id="lets-get-hacking">Let’s get Hacking</h2>
+
+<p>Writing a service in ~10 lines of code is pretty neat, but obviously this
+example is artificially simple and doesn’t really illustrate the real power of
+Colossus.  Let’s try doing something a little more interesting, such as writing
+a http interface to a redis server.</p>
+
+<h3 id="writing-the-http-service">Writing the Http service</h3>
+
+<p>So we want to build a service that starts an http server and also connects to a
+redis database.  First let’s create a skeleton service using the http protocol:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">protocols.http._</span>
+<span class="k">import</span> <span class="nn">HttpMethod._</span>
+<span class="k">import</span> <span class="nn">UrlParsing._</span>
+
+<span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"http-service"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">){</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span><span class="o">{</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="k">=&gt;</span> <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello World!"</span><span class="o">))</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Now it’s time to setup our connection to Redis.  In this case, we’re going to
+create one client connection per event loop, allowing all http connections in
+the same event loop to share a single redis connection.  This gives us service
+that conceptually looks like:</p>
+
+<p><img src="http://tumblr.github.io/colossus/img/redis.png" alt="redis" /></p>
+
+<p>This may not always be the best layout for every situation (especially for
+systems not as consistently low-latency as redis), but here it allows us to do
+two things.  First, we can keep persistent connections open to redis, which is
+ideal since the overhead of establishing a TCP connection is likely to take
+much longer than any <code>GET</code> or <code>SET</code> command to redis.  Second, it allows us to
+perform all I/O operations within the event loop, and since event-loops are
+single threads we can totally avoid using any parallelism mechanism such as
+locks or Futures, cutting down on latency.</p>
+
+<p>To open one redis connection per event loop, we do:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">protocols.redis._</span>
+<span class="k">import</span> <span class="nn">akka.util.ByteString</span>
+
+<span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"http-service"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">){</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">val</span> <span class="n">redis</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">clientFor</span><span class="o">[</span><span class="kt">Redis</span><span class="o">](</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+  <span class="o">//...</span></code></pre></div>
+
+<p>So on a computer with 4 cores, this code will end up opening 4 connections to
+redis.  Here we’re using the default config, but clients have a ton of
+configuration options such as setting various buffer sizes and failure logic.
+Also like servers, clients have metrics such as request rate and latency
+built-in.</p>
+
+<p>So all together now, along with some dummy routes for get/set on keys:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">io</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span>
+
+<span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"http-service"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">){</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">val</span> <span class="n">redis</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">clientFor</span><span class="o">[</span><span class="kt">Redis</span><span class="o">](</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello World!"</span><span class="o">))</span>
+      <span class="o">}</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"get"</span> <span class="o">/</span> <span class="n">key</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="nc">Callback</span><span class="o">.</span><span class="n">failed</span><span class="o">(</span><span class="k">new</span> <span class="nc">NotImplementedException</span><span class="o">(</span><span class="s">"soon"</span><span class="o">))</span>
+      <span class="o">}</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"set"</span> <span class="o">/</span> <span class="n">key</span> <span class="o">/</span> <span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="nc">Callback</span><span class="o">.</span><span class="n">failed</span><span class="o">(</span><span class="k">new</span> <span class="nc">NotImplementedException</span><span class="o">(</span><span class="s">"soon"</span><span class="o">))</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>So now let’s fill in our get route.  Using the redis client is easy:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"get"</span> <span class="o">/</span> <span class="n">key</span> <span class="k">=&gt;</span> <span class="n">redis</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="nc">Commands</span><span class="o">.</span><span class="nc">Get</span><span class="o">(</span><span class="nc">ByteString</span><span class="o">(</span><span class="n">key</span><span class="o">))).</span><span class="n">map</span><span class="o">{</span>
+  <span class="k">case</span> <span class="nc">BulkReply</span><span class="o">(</span><span class="n">data</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="n">data</span><span class="o">.</span><span class="n">utf8String</span><span class="o">)</span>
+  <span class="k">case</span> <span class="nc">NilReply</span>        <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">notFound</span><span class="o">(</span><span class="s">"(nil)"</span><span class="o">)</span>
+  <span class="k">case</span> <span class="k">_</span>               <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">"Invalid response from redis"</span><span class="o">)</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This shows how Callbacks are used to interact between server connections (http)
+and client connections (redis).  We’re sending a <code>GET</code> command to redis for the
+key, which returns a <code>Callback[Reply]</code>, and then mapping on it to turn it into
+a <code>Callback[HttpResponse]</code>.  This should look very familar to anyone who has
+worked with Futures, and indeed Callbacks have analogs of all the typical
+methods on <code>Future</code>, including <code>flatMap</code> and <code>recover</code>.  The big difference is
+that the execution of a Callback never leaves the event-loop.</p>
+
+<p>Implementing the <code>Set</code> route is similar:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"set"</span> <span class="o">/</span> <span class="n">key</span> <span class="o">/</span> <span class="n">value</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="n">redis</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="nc">Commands</span><span class="o">.</span><span class="nc">Set</span><span class="o">(</span><span class="nc">ByteString</span><span class="o">(</span><span class="n">key</span><span class="o">),</span> <span class="nc">ByteString</span><span class="o">(</span><span class="n">value</span><span class="o">))).</span><span class="n">map</span><span class="o">{</span>
+    <span class="k">case</span> <span class="nc">StatusReply</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span>
+    <span class="k">case</span> <span class="k">_</span>                <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="s">"Invalid response from redis"</span><span class="o">)</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>And there we have it, a fully functional service with almost no boilerplate.</p>
+
+<h3 id="where-to-go-from-here">Where to go from here</h3>
+
+<p>The rest of docs provide more detail about how all this works and how to
+leverage more advanced features, particularly the section on <a href="../serviceserver">building a
+service server</a>.  Also be sure to check out the
+<a href="https://github.com/tumblr/colossus/tree/master/colossus-examples/src/main/scala/colossus-examples">examples</a> sub-project in the Colossus repo.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#sbt">SBT</a></li><li><a href="#build-a-hello-world-service">Build a Hello World Service</a></li><li><a href="#lets-get-hacking">Let’s get Hacking</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
