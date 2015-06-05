@@ -15,7 +15,7 @@ sacrifices.
 
 ### Releases
 * {{ site.latest_version }} - The latest release (this verison used in the docs), built against scala 2.10.4, 2.11.6, akka 2.3.9
-* 0.6.2-SNAPSHOT - Latest development snapshot
+* 0.6.4-SNAPSHOT - Latest development snapshot
 
 ### Release Workflow
 
@@ -35,7 +35,7 @@ changes
 
 ### Source
 
-The repo is at [git@github.ewr01.tumblr.net:TumblrSvcs/colossus.git](git@github.ewr01.tumblr.net:TumblrSvcs/colossus.git) . You will need to have SBT setup on your computer.  It currently contains several sub-projects
+The repo is on [Github]({{ site.github_repo_url }}) . You will need to have SBT setup on your computer.  It currently contains several sub-projects
 
 
 ### License
