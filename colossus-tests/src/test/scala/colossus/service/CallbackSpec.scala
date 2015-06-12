@@ -323,7 +323,7 @@ class CallbackSpec extends ColossusSpec {
 
       val badfunc = {f: (Try[Int] => Unit) => f(Failure[Int](new Exception))}
       val callback = Callback(badfunc).map { i => i }
-      val result = Await.ready(callback.toFuture, 2 seconds).value.get
+      val result = Try(Await.result(callback.toFuture, 1 seconds))
       result.isFailure must equal(true)
     }
 
