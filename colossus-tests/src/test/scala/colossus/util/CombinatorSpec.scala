@@ -119,6 +119,57 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(d) must equal(Some(" abc def ghi "))
     }
 
+    "short" in {
+      val parser = short
+      val data = DataBuffer(ByteString(0x1D, 0x76, 0x82, 0x71, 0x55, 0xC2, 0x12, 0x00)) //6 extra bytes
+      parser.parse(data) must equal(Some(7542))
+      data.remaining must equal(6)
+    }
+
+    "int" in {
+      val parser = int
+      val data = DataBuffer(ByteString(0x00, 0x0B, 0x82, 0x71, 0x55, 0xC2, 0x12, 0x00)) //4 extra bytes
+      parser.parse(data) must equal(Some(754289))
+      data.remaining must equal(4)
+    }
+
+    "long" in {
+      val parser = long
+      val data = DataBuffer(ByteString(0x01, 0x0B, 0xF4, 0x3A, 0xE2, 0x64, 0x13, 0xBE))
+      parser.parse(data) must equal(Some(75422352525235134L))
+      data.remaining must equal(0)
+    }
+
+    "bytesUntilEOS" in {
+      val parser = bytesUntilEOS
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(ByteString(1, 2, 3, 4, 5, 6)))
+    }
+
+    "bytesUntilEOS as map subject" in {
+      val parser = bytesUntilEOS >> {bytes => bytes.size}
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(6))
+    }
+
+    "bytesUntilEOS as flatMap object" in {
+      //notice that using this parser as the subject makes no sense
+      val parser = bytes(3) |> {bytes => bytesUntilEOS}
+      val d1 = ByteString(1, 2, 3)
+      val d2 = ByteString(4, 5, 6)
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.parse(DataBuffer(d2)) must equal(None)
+      parser.endOfStream() must equal(Some(ByteString(4,5,6)))
+    }
+      
+
+
   }
 
   "combinators" must {
@@ -150,6 +201,15 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val parser = repeat(intUntil(':'), bytes(2))
       val d = data("3:aabbccdd")
       parser.parse(d) must equal (Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
+    }
+
+    "repeatUntilEOS" in {
+      val parser = repeatUntilEOS(bytes(2))
+      val d1 = data("aabb")
+      val d2 = data("cc")
+      parser.parse(d1) must equal(None)
+      parser.parse(d2) must equal(None)
+      parser.endOfStream() must equal(Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
     }
   }
 

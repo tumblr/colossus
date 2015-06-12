@@ -30,14 +30,14 @@ abstract class Delegator(val server: ServerRef, val worker: WorkerRef) {
    * Function which determines whether or not to accept a connection.
    * @return
    */
-  def acceptNewConnection : Option[ConnectionHandler]
+  protected def acceptNewConnection : Option[ServerConnectionHandler]
 
   /**
    * This is the function called by the Workers to create an Option[ConnectionHandler]
    * @return
    */
-  def createConnectionHandler: Option[ConnectionHandler] = {
-    val t: Try[Option[ConnectionHandler]] = Try(acceptNewConnection)
+  def createConnectionHandler: Option[ServerConnectionHandler] = {
+    val t: Try[Option[ServerConnectionHandler]] = Try(acceptNewConnection)
     t.recover{ case e =>
       log.error(e, s"error while creating connectionHandler in worker ${worker.id}")
       None
@@ -59,8 +59,8 @@ abstract class Delegator(val server: ServerRef, val worker: WorkerRef) {
 object Delegator {
   type Factory = (ServerRef, WorkerRef) => Delegator
 
-  def basic(acceptor: () => ConnectionHandler): Factory = {(s,w) => new Delegator(s,w){
-    def acceptNewConnection = Some(acceptor())
+  def basic(acceptor: () => ServerConnectionHandler): Factory = {(s,w) => new Delegator(s,w){
+    protected def acceptNewConnection = Some(acceptor())
   }}
 }
 

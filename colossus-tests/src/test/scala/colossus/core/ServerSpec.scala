@@ -1,7 +1,7 @@
 package colossus
+package core
 
 import testkit._
-import core._
 import service.AsyncServiceClient
 
 import akka.actor._
@@ -62,6 +62,29 @@ class ServerSpec extends ColossusSpec {
         remainingServers.head.name.toString mustBe "/echo1"
       }
     }
+
+    "expose ConnectionSummary data" in {
+      val settings = ServerSettings(
+        port = TEST_PORT,
+        maxConnections = 5000
+      )
+
+      withIOSystemAndServer(simpleEchoDelegator, Some(settings)) {(io, server) => {
+
+        import scala.concurrent.ExecutionContext.Implicits.global
+
+        val c1 = TestClient(server.system, TEST_PORT)
+        expectConnections(server, 1)
+        val c2 = TestClient(server.system, TEST_PORT)
+        val res = Await.result(io.connectionSummary, 2000.milliseconds)
+        res.infos.size mustBe 4 //2 connections for each client since there are both clients and servers
+        res.infos.count(_.domain == "client") mustBe 2
+        res.infos.count(_.domain == "/async-test") mustBe 2
+        c1.disconnect()
+        c2.disconnect()
+      }
+      }
+    }
   }
 
   "Server" must {
@@ -113,15 +136,74 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      //this test won't pass until the AsyncServiceClient retry loop is fixed
-      "shutdown all associated connections when shutdown"  in {
-        var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
+      //note in this test the server is killed with PoisonPill, not its own Shutdown message
+      "shutdown all associated connections when killed" in {
         withIOSystem{implicit io =>
-          withServer(Server.basic("echo", TEST_PORT, () => new EchoHandler)) {
-            client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
+          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! PoisonPill
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
           }
-          TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)
         }
+      }
+
+      "shutdown with Shutdown message" in {
+        withIOSystem{implicit io =>
+          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          //spin up a client just to make sure the server is running
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val probe = TestProbe()
+            probe.watch(server.server)
+            server.server ! Server.Shutdown
+            probe.expectTerminated(server.server, 2.seconds)
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+          }
+        }
+      }
+
+      "signal open connections before termination when shutdown" in {
+        val probe = TestProbe()
+        class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
+          def receivedData(data: DataBuffer){}
+          def shutdownRequest() {probe.ref ! "SHUTDOWN"}
+          override def connectionTerminated(cause: DisconnectCause) {
+            probe.ref ! "TERMINATED"
+          }
+        }
+        withIOSystem{implicit io =>
+          val server = Server.basic("echo", TEST_PORT, () => new MyHandler)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! Server.Shutdown
+            probe.expectMsg(2.seconds, "SHUTDOWN")
+            probe.expectMsg(2.seconds, "TERMINATED")
+          }
+        }
+      }
+
+      "immediately terminate when last open connection closes" in {
+        class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
+          def receivedData(data: DataBuffer){}
+          def shutdownRequest() {endpoint.disconnect()}
+        }
+        val config = ServerConfig(
+          name = "/test",
+          settings = ServerSettings(port = TEST_PORT, shutdownTimeout = 1.hour),
+          delegatorFactory = (s,w) => new Delegator(s,w){ def acceptNewConnection = Some(new MyHandler) }
+        )
+        withIOSystem{ implicit io =>
+          val probe = TestProbe()
+          val server = Server(config)
+          probe.watch(server.server)
+          withServer(server) {
+            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            server.server ! Server.Shutdown
+            TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+            probe.expectTerminated(server.server, 2.seconds)
+          }
+        }          
       }
 
       "shutdown when a delegator surpasses the allotted duration" in {
@@ -307,6 +389,26 @@ class ServerSpec extends ColossusSpec {
 
         alive() must equal(0)
 
+      }
+
+      "attempt to re-register connection if refused by worker" in {
+        val (sys, mprobe) = FakeIOSystem.withManagerProbe()
+        val config = EchoServerConfig
+        val server = Server(config)(sys)
+        val workerRouterProbe = TestProbe()
+        mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
+        server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
+        withIOSystem { implicit io =>
+          val c = TestClient(io, TEST_PORT,connectionAttempts = PollingDuration.NoRetry)
+          (1 to Server.MaxConnectionRegisterAttempts).foreach{i =>
+            val msg = workerRouterProbe.receiveOne(100.milliseconds).asInstanceOf[Worker.NewConnection]
+            msg.attempt must equal(i)
+            server.server ! Server.ConnectionRefused(msg.sc, msg.attempt)
+          }
+          TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
+        }
+        server.shutdown()
+        sys.shutdown()
       }
   }
 

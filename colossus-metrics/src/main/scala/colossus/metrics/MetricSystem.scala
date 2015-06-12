@@ -2,12 +2,41 @@ package colossus.metrics
 
 import akka.actor._
 import akka.agent.Agent
+import colossus.metrics.IntervalAggregator.RegisterCollector
 import colossus.metrics.MetricAddress.Root
 
 import scala.concurrent.duration._
 
+class MetricInterval private[metrics](val namespace : MetricAddress, val interval : FiniteDuration, val intervalAggregator : ActorRef, snapshot : Agent[MetricMap]) {
 
-case class MetricSystemId(id: Long)
+
+  /**
+   * Query the latest compiled metrics
+   * @param filter
+   * @return
+   */
+  def query(filter : MetricFilter) : RawMetricMap = snapshot().filter(filter)
+
+  /**
+   * Query the latest compiled metrics
+   * @param queryString
+   * @return
+   */
+  def query(queryString : String) : RawMetricMap = query(MetricFilter(queryString))
+
+  /**
+   * The latest metrics snapshot
+   * @return
+   */
+  def last : MetricMap = snapshot.get()
+
+  /**
+   * Attach a reporter to this MetricPeriod.
+   * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
+   * @return
+   */
+  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator)
+}
 
 /**
  * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
@@ -17,34 +46,19 @@ case class MetricSystemId(id: Long)
  * per second, but it can be configured to any time interval. So while events are being collected as they occur,
  * compiled metrics (such as rates and histogram percentiles) are generated once per tick.
  *
- * @param id The ID of the metrics system
  * @param namespace the base of the url describing the location of metrics within the system
- * @param clock an actor which serves as the clock for the metric system
- * @param database an actor which serves as the database of the metric system
- * @param snapshot
- * @param tickPeriod The frequency of the tick message
+ * @param metricIntervals Map of all MetricIntervals for which this system collects Metrics.
  */
-case class MetricSystem(id: MetricSystemId, namespace: MetricAddress, clock: ActorRef, database: ActorRef, snapshot: Agent[MetricMap], tickPeriod: FiniteDuration) {
-
-
-  def query(filter: MetricFilter): MetricMap = snapshot().filter(filter)  
-
-  def query(queryString: String): MetricMap = query(MetricFilter(queryString))
-
-  /**
-   * Configures the reporting of the metric system.
-   * @param config The [[MetricReporterConfig]] to use when configuring reporting
-   * @param fact
-   * @return
-   */
-  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config)(this, fact)
+case class MetricSystem private [metrics](namespace: MetricAddress, metricIntervals : Map[FiniteDuration, MetricInterval]) {
 
   def sharedCollection(globalTags: TagMap = TagMap.Empty)(implicit fact: ActorRefFactory) = {
     implicit val me = this
     SharedCollection(globalTags)
   }
 
-  def last: MetricMap = snapshot()
+  def registerCollector(ref : ActorRef): Unit = {
+    metricIntervals.values.foreach(_.intervalAggregator ! RegisterCollector(ref))
+  }
 
 }
 
@@ -52,31 +66,33 @@ object MetricSystem {
   /**
    * Constructs a metric system
    * @param namespace the base of the url describing the location of metrics within the system
-   * @param tickPeriod The frequency of the tick message
+   * @param metricIntervals How often to report metrics
    * @param collectSystemMetrics whether to collect metrics from the system as well
    * @param system the actor system the metric system should use
    * @return
    */
-  def apply(namespace: MetricAddress, tickPeriod: FiniteDuration = 1.second, collectSystemMetrics: Boolean = true)
+  def apply(namespace: MetricAddress, metricIntervals: Seq[FiniteDuration] = Seq(1.second, 1.minute), collectSystemMetrics: Boolean = true)
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
-    val id = MetricSystemId(System.nanoTime)
-    val clock = system.actorOf(Props(classOf[MetricClock], id, tickPeriod), name =  s"${namespace.idString}-clock")
-    val snap = Agent[MetricMap](Map())
-    val db = system.actorOf(Props(classOf[MetricDatabase], id, namespace, snap, collectSystemMetrics))
 
-    val metrics = MetricSystem(id, namespace, clock, db, snap, tickPeriod)
 
-    metrics
+    val m : Map[FiniteDuration, MetricInterval] = metricIntervals.map{ interval =>
+      val snap = Agent[MetricMap](Map())
+      val aggregator : ActorRef = createIntervalAggregator(system, namespace, interval, snap, collectSystemMetrics)
+      val i = new MetricInterval(namespace, interval, aggregator, snap)
+      interval -> i
+    }.toMap
+
+    MetricSystem(namespace, m)
+  }
+
+  private def createIntervalAggregator(system : ActorSystem, namespace : MetricAddress, interval : FiniteDuration,
+                                       snap : Agent[MetricMap], collectSystemMetrics : Boolean) = {
+    system.actorOf(Props(classOf[IntervalAggregator], namespace, interval, snap, collectSystemMetrics))
   }
 
   def deadSystem(implicit system: ActorSystem) = {
-    import scala.concurrent.ExecutionContext.Implicits.global //this is ok since we're using it to create an agent that's never used
-    MetricSystem(MetricSystemId(System.nanoTime), Root / "DEAD", system.deadLetters, system.deadLetters, Agent[MetricMap](Map()), 0.seconds)
-  }
-
-  object Global {
-    //coming soon
+    MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval]())
   }
 }
 

@@ -16,7 +16,7 @@ import java.net.InetAddress
  * @param bytesSent The amount of bytes that this Connection has sent
  * @param bytesReceived The amount of bytes that this Connection has received
  */
-case class ConnectionInfo(
+case class ConnectionSnapshot(
   domain: String, //either a server name or client
   host: InetAddress, //this is not a string because looking up the hostname takes time
   port: Int,
@@ -35,7 +35,7 @@ case class ConnectionInfo(
   def itemValues = List(id.toString, domain, host.getHostName, timeOpen.toString, timeIdle.toString, bytesSent.toString, bytesReceived.toString)
 }
 //NOTE:  This feels weird here and is used in conjunction with the PageRenderer used for stats.  Should be moved to the metrics pkg
-object ConnectionInfo {
+object ConnectionSnapshot {
   val items = List("id", "domain", "host", "ms-alive", "ms-idle", "b-sent", "b-received")
   val consoleHeader = {
     String.format(items.map{_ => "%-10s"}.mkString(" "), items:_*)

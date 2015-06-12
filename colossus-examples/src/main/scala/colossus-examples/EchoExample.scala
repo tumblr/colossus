@@ -8,10 +8,12 @@ import colossus.core._
  * implementations for most of the methods.  It also stores the WriteEndpoint
  * that is passed in the connected method.
  */
-class EchoHandler extends BasicSyncHandler {
+class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
   def receivedData(data: DataBuffer){
     endpoint.write(data)
   }
+
+  def shutdownRequest(){}
 }
 
 class EchoDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {

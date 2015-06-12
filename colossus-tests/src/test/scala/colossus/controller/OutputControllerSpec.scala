@@ -50,6 +50,18 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.expectWrite(data2)
       endpoint.disconnectCalled must equal(true)  
     }
+
+    "timeout queued messages that haven't been sent" in {
+      val (endpoint, controller) = createController()
+      val data = ByteString(List.fill(endpoint.maxWriteSize + 1)("x").mkString)
+
+      val message = TestOutput(Source.one(DataBuffer(data)))
+      val message2 = TestOutput(Source.one(DataBuffer(data)))
+
+      controller.testPush(message){_ must equal (OutputResult.Success)}
+      controller.testPush(message2){_ must equal (OutputResult.Cancelled)}
+
+    }
   }
 
 

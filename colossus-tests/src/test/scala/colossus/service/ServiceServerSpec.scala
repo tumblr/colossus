@@ -6,15 +6,91 @@ import core._
 import Callback.Implicits._
 
 import scala.concurrent.duration._
+import akka.actor.ActorRef
+import akka.testkit.TestProbe
 import akka.util.ByteString
 import java.net.InetSocketAddress
 
 import protocols.redis._
 import scala.concurrent.Await
 
+import RawProtocol._
+
 class ServiceServerSpec extends ColossusSpec {
 
+  import system.dispatcher
+  
+  class FakeService(handler: ByteString => Callback[ByteString], worker : WorkerRef) extends ServiceServer[ByteString, ByteString](
+      config = ServiceConfig (
+        name = "/test",
+        requestTimeout = 50.milliseconds
+      ),
+      worker = worker,
+      codec = RawCodec
+  ) {
+    def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR:" + reason.toString)
+
+    def processRequest(input: ByteString) = handler(input)
+
+    def receivedMessage(x: Any, s: ActorRef){}
+  }
+
+  case class ServiceTest(service: FakeService, endpoint: MockWriteEndpoint, workerProbe: TestProbe)
+
+  def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): ServiceTest = {
+    val (probe, worker) = FakeIOSystem.fakeWorkerRef
+    val service = new FakeService(handler, worker)
+    service.setBind(1, worker)
+    val endpoint = new MockWriteEndpoint(100, probe, Some(service)) 
+    service.connected(endpoint)
+    ServiceTest(service, endpoint, probe)
+  }
+
   "ServiceServer" must {
+
+    "process a request" in {
+      val t = fakeService()
+      t.service.receivedData(DataBuffer(ByteString("hello")))
+      t.endpoint.expectOneWrite(ByteString("hello"))
+    }
+
+    "send responses back in the right order" in {
+      var promises = Vector[CallbackPromise[ByteString]]()
+      val t = fakeService(x => {
+        val p = new CallbackPromise[ByteString]()
+        promises = promises :+ p
+        p.callback
+      })
+      val r1 = ByteString("AAAA")
+      val r2 = ByteString("BBBB")
+      t.service.receivedData(DataBuffer(r1))
+      t.service.receivedData(DataBuffer(r2))
+      promises.size must equal(2)
+      t.endpoint.expectNoWrite()
+      promises(1).success(ByteString("B"))
+      t.endpoint.expectNoWrite()
+      promises(0).success(ByteString("A"))
+      t.endpoint.expectWrite(ByteString("A"))
+      t.endpoint.expectWrite(ByteString("B"))
+    }
+
+    "graceful disconnect allows pending requests to complete" in {
+      var promises = Vector[CallbackPromise[ByteString]]()
+      val t = fakeService(x => {
+        val p = new CallbackPromise[ByteString]()
+        promises = promises :+ p
+        p.callback
+      })
+      val r1 = ByteString("AAAA")
+      t.service.receivedData(DataBuffer(r1))
+      t.service.gracefulDisconnect()
+      t.endpoint.readsEnabled must equal(false)
+      t.endpoint.status must equal(ConnectionStatus.Connected)
+      promises(0).success(ByteString("BBBB"))
+      t.endpoint.expectOneWrite(ByteString("BBBB"))
+      t.endpoint.status must equal(ConnectionStatus.NotConnected)
+    }
+
     "timeout request that takes too long" in {
       val serverSettings = ServerSettings (
         port = TEST_PORT,
@@ -38,7 +114,7 @@ class ServiceServerSpec extends ColossusSpec {
           val clientConfig = ClientConfig(
             name = "/test-client",
             address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = Duration.Inf,
+            requestTimeout = 500.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
           val client = AsyncServiceClient(clientConfig, new RedisClientCodec)
@@ -85,7 +161,7 @@ class ServiceServerSpec extends ColossusSpec {
         }
         withServer(server) { 
           val client = AsyncServiceClient[Http]("localhost", TEST_PORT)
-          Await.result(client.send(HttpRequest.get("/")), 1.second).data must equal(ByteString("Hello World"))
+          Await.result(client.send(HttpRequest.get("/")), 1.second).body.get must equal(ByteString("Hello World"))
         }
       }
     }

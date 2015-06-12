@@ -28,13 +28,13 @@ class JsonMetricSenderActor(io: IOSystem, host: String, port: Int, path: String)
   implicit val timeout = Timeout(1.seconds)
   import context.dispatcher
 
-  val client = AsyncServiceClient(config, HttpClientCodec.static())
+  val client = AsyncServiceClient(config, new HttpClientCodec)
 
   def receive = {
     case Send(map, gtags, timestamp) => {
       val body = compact(render(map.addTags(gtags).toJson))
       val request = HttpRequest(HttpMethod.Post, path, Some(body))
-      client.send(request).map{response => response.code match {
+      client.send(request).map{response => response.head.code match {
         case HttpCodes.OK => {}
         case other => log.warning(s"got error from aggregator: $response")
       }}      

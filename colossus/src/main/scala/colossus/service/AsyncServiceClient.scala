@@ -101,6 +101,8 @@ trait AsyncServiceClient[I,O]  {
    * much outside of tests, so we need some more use cases
    */
   def kill()
+
+  def clientConfig : ClientConfig
 }
 
 object AsyncServiceClient {
@@ -113,7 +115,7 @@ object AsyncServiceClient {
   def apply[Request, Response](config: ClientConfig, codec: Codec.ClientCodec[Request, Response])(implicit io: IOSystem): AsyncServiceClient[Request,Response] = {
     val gen = new AsyncHandlerGenerator(config, codec)
     val actor = io.actorSystem.actorOf(Props(classOf[ClientProxy], config, io, gen.handlerFactory))
-    gen.client(actor)
+    gen.client(actor, config)
   }
 
   def apply[C <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 100.milliseconds)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] = {
@@ -176,7 +178,7 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
 
   implicit val timeout = Timeout(100.milliseconds)
 
-  def client(proxy: ActorRef): AsyncServiceClient[I,O] = new AsyncServiceClient[I,O] {
+  def client(proxy: ActorRef, cConfig : ClientConfig): AsyncServiceClient[I,O] = new AsyncServiceClient[I,O] {
     def send(request: I): Future[O] = {
       val promise = Promise[O]()
       proxy ! PackagedRequest(request, promise)
@@ -200,6 +202,8 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
       proxy ! s
       s.promise.future
     }
+
+    val clientConfig = cConfig
   }
 
   val handlerFactory: ActorRef => WorkerRef =>  ConnectionHandler = caller => worker => new AsyncHandler(config, caller, worker)

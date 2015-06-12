@@ -5,6 +5,7 @@ import core._
 import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
+import scala.concurrent.duration._
 
 trait TestInput {
   def source: Source[DataBuffer]
@@ -25,7 +26,7 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   def decode(data: DataBuffer): Option[DecodedResult[TestInput]] = {
     val res = parser.parse(data)
     res.map { x =>
-      DecodedResult.Streamed(x, x.source)
+      DecodedResult.Stream(x, x.source)
     }
   }
 
@@ -35,9 +36,7 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   def reset(){}
 }
 
-class TestController(processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4)) {
-
-  def idleCheck(period: scala.concurrent.duration.Duration): Unit = ???
+class TestController(processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, 1.second)) {
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 

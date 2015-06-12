@@ -20,7 +20,7 @@ sealed trait DecodedResult[+T]
 object DecodedResult {
 
   case class Static[T](value : T) extends DecodedResult[T] //this is what is formerly the Some(Input) in a Codec
-  case class Streamed[T](t : T, s : Sink[DataBuffer]) extends DecodedResult[T]
+  case class Stream[T](value : T, s : Sink[DataBuffer]) extends DecodedResult[T]
 
   def static[T](value : Option[T]) : Option[DecodedResult[T]] = value.map(x => Static(x))
 
@@ -39,6 +39,12 @@ trait Codec[Output,Input] {
    * Decode a single object from a bytestream.  
    */
   def decode(data: DataBuffer): Option[DecodedResult[Input]]
+
+  /** This is only needed for codecs where closing the connection signals the
+   * end of a response (for example, a http response with no content-length and
+   * non-chunked transfer encoding)
+   */
+  def endOfStream(): Option[DecodedResult[Input]] = None
 
   def decodeAll(data: DataBuffer)(onDecode : DecodedResult[Input] => Unit) { if (data.hasUnreadData){
     var done: Option[DecodedResult[Input]] = None
@@ -74,6 +80,7 @@ trait Codec[Output,Input] {
 
   def reset()
 }
+
 object Codec {
 
   type ServerCodec[Request,Response] = Codec[Response,Request]

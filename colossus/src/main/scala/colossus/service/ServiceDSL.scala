@@ -31,6 +31,8 @@ object CodecDSL {
   type Initializer[C <: CodecDSL] = ServiceContext[C] => HandlerGenerator[C]
 
   type Receive = PartialFunction[Any, Unit]
+
+  type ErrorHandler[C <: CodecDSL] = PartialFunction[(C#Input, Throwable), C#Output]
 }
 
 import CodecDSL._
@@ -61,8 +63,8 @@ trait CodecProvider[C <: CodecDSL] {
    * @param ex ExecutionContext
    * @return Handler
    */
-  def provideHandler(config: ServiceConfig, worker: WorkerRef)(implicit ex: ExecutionContext): DSLHandler[C] = {
-    new BasicServiceHandler[C](config,worker,this)
+  def provideHandler(config: ServiceConfig, worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext): DSLHandler[C] = {
+    new BasicServiceHandler[C](config,worker,this, intializer)
   }
 
   /**
@@ -84,16 +86,61 @@ trait ClientCodecProvider[C <: CodecDSL] {
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
 
+/**
+ * This contains methods to interact with an individual connection.
+ */
 trait ConnectionContext[C <: CodecDSL] {
+
+  /**
+   * Set a partial function for the request processing handler for the connection.  Any request that
+   * falls through the handler will be automatically converted into an error
+   * response with a `UnhandledRequestException` as the cause
+   */
   def become(p: PartialHandler[C])
+
+  /**
+   * Set a function for the request processing handler for the connection
+   */
   def process(f: C#Input => Callback[C#Output]){
     become{case all => f(all)}
   }
+
+  /**
+   * Set the handler for actor messages intended for this connection.
+   */
   def receive(receiver: PartialFunction[Any, Unit])
+  /**
+   * Gets the sender of the current message being processed in the receive handler
+   */
   def sender(): ActorRef
+
+  /**
+   * Immediately terminate the connection.  Note that requests that are in the
+   * middle of being processed will continue processing although their final
+   * response will be discarded.
+   */
   def disconnect()
+
+  /**
+   * Terminate the connection, but allow any existing outstanding requests to
+   * complete processing before disconnecting.  Any new requests that come in
+   * will be automatically completed with an error.
+   */
   def gracefulDisconnect()
-  def connectionId: Long
+
+  /**
+   * Get current info about the connection
+   */
+  def connectionInfo: Option[ConnectionInfo]
+
+  /**
+   * Attach a handler for non-recoverable errors.  This includes uncaught
+   * exceptions, unhandled requests, request timeouts, and other server-level
+   * errors.  In every case, this handler should not attempt to actually
+   * process the request, but instead simply return an appropriately formatted
+   * error response.
+   */
+  def onError(handler: ErrorHandler[C])
 
   implicit val callbackExecutor: CallbackExecutor
 }
@@ -135,9 +182,8 @@ class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerR
   
   val handlerInitializer: HandlerGenerator[C] = func(this)
 
-  def acceptNewConnection: Option[ConnectionHandler] = {
-    val handler: DSLHandler[C] = provider.provideHandler(config, worker)
-    handlerInitializer(handler)
+  def acceptNewConnection: Option[ServerConnectionHandler] = {
+    val handler: DSLHandler[C] = provider.provideHandler(config, worker, handlerInitializer)
     Some(handler)
   }
 
@@ -156,24 +202,36 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 class BasicServiceHandler[C <: CodecDSL]
-  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C]) 
+  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C]) 
   (implicit ex: ExecutionContext)
   extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
   with DSLHandler[C] {
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
-    case other => Callback.successful(provider.errorResponse(other, new UnhandledRequestException(s"Unhandled Request $other")))
+    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
   }
 
   protected def unhandledReceive: Receive = {
     case _ => {}
   }
+
+  protected def unhandledError: ErrorHandler[C] = {
+    case (request, reason) => provider.errorResponse(request, reason)
+  }
+
+  override def connected(e: WriteEndpoint) {
+    super.connected(e)
+    initializer(this)
+  }
   
   private var currentHandler: PartialHandler[C] = unhandled
   private var currentMessageReceiver: Receive = unhandledReceive
   private var currentSender: Option[ActorRef] = None
+  private var currentErrorHandler: ErrorHandler[C] = unhandledError
 
-  def connectionId = id.get // :(
+  def onError(handler: ErrorHandler[C]) {
+    currentErrorHandler = handler
+  }
 
   def become(handler: PartialHandler[C]) {
     currentHandler = handler
@@ -195,7 +253,7 @@ class BasicServiceHandler[C <: CodecDSL]
   
   protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)
   
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = provider.errorResponse(request, reason)
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = (currentErrorHandler orElse unhandledError)((request, reason))
 
 }
 

@@ -49,12 +49,19 @@ package protocols.http
     }
   }
 
-
-
   /** Extractor for integers */
   object Integer {
     def unapply(s: String) : Option[Int] = try {
       Some(s.toInt)
+    } catch {
+      case n: java.lang.NumberFormatException => None
+    }
+  }
+
+  /** Extractor for Longs */
+  object Long {
+    def unapply(s: String) : Option[Long] = try {
+      Some(s.toLong)
     } catch {
       case n: java.lang.NumberFormatException => None
     }

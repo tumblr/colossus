@@ -36,23 +36,4 @@ object Main extends App {
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
 
-
-  import service._
-  import protocols.http._
-
-  Service.serve[StreamingHttp]("stream-proxy", 9090){ context =>
-    context.handle{ connection =>
-      connection.become {
-        case req => {
-          val client = context.clientFor[StreamingHttp]("localhost", 9001)
-          client.send(HttpRequest.get("/")).map{c =>
-            client.gracefulDisconnect()
-            c
-          }
-        }
-      }
-    }
-  }
-
-
 }

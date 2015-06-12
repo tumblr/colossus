@@ -7,7 +7,9 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   import head._
   import HttpCodes._
 
-  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = HttpResponse(version, code, headers, ByteString(data))
+  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = {
+    HttpResponse(HttpResponseHead(version, code, headers.toVector), Some(ByteString(data)))
+  }
 
   def ok(data: String, headers: List[(String, String)] = Nil)              = respond(OK, data, headers)
   def notFound(data: String = "", headers: List[(String, String)] = Nil)   = respond(NOT_FOUND, data, headers)

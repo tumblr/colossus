@@ -38,20 +38,34 @@ object TagSelector {
 }
 
 sealed trait AggregationType {
-  def aggregate(values: Seq[Long]): Long
+  def aggregate(values: Seq[MetricValue]): RawMetricValue
 }
+
+/**
+ * An aggregation type defined how several values for the same metric (each
+ * with different tags) get merged into one value.  Notice that these only get
+ * called when there is at least one value to aggregate.  The Natural type uses
+ * the + operation defined on the MetricValue
+ */
 object AggregationType {
   case object Sum extends AggregationType {
-    def aggregate(values: Seq[Long]) = values.sum
+    def aggregate(values: Seq[MetricValue]): RawMetricValue = values.foldLeft(0L){case (build: RawMetricValue, next: MetricValue) => build + next.value}
   }
   case object Average extends AggregationType {
-    def aggregate(values: Seq[Long]) = values.sum / values.size
+    def aggregate(values: Seq[MetricValue]) = if (values.size > 0) {
+      values.foldLeft(0L){case (build, next) => build + next.value} / values.size
+    } else {
+      0
+    }
   }
   case object Max extends AggregationType {
-    def aggregate(values: Seq[Long]) = values.max
+    def aggregate(values: Seq[MetricValue]) = values.foldLeft(Long.MinValue){case (max, next) => if (max > next.value) max else next.value}
   }
   case object Min extends AggregationType {
-    def aggregate(values: Seq[Long]) = values.min
+    def aggregate(values: Seq[MetricValue]) = values.foldLeft(Long.MaxValue){case (min, next) => if (min < next.value) min else next.value}
+  }
+  case object Natural extends AggregationType {
+    def aggregate(values: Seq[MetricValue]) = values.reduce{_ + _}.value
   }
 
 
@@ -61,6 +75,7 @@ object AggregationType {
       case "AVG" => Average
       case "MAX" => Max
       case "MIN" => Min
+      case "NAT" | "NATURAL" => Natural
       case _     => throw new IllegalArgumentException(s"Invalid aggregation type $str")
     }
   }
@@ -71,12 +86,12 @@ object AggregationType {
 case class GroupBy(tags: Set[String], aggregationType: AggregationType) {
   def reduce(map: TagMap): TagMap = map.filter{case (key, value) => tags.contains(key)}
 
-  def group(values: ValueMap): ValueMap = {
-    val builder = collection.mutable.Map[TagMap, collection.mutable.ListBuffer[Long]]()
+  def group(values: ValueMap): RawValueMap = {
+    val builder = collection.mutable.Map[TagMap, collection.mutable.ListBuffer[MetricValue]]()
     values.foreach{case (tags, value) => 
       val reduced = reduce(tags) 
       if (! builder.contains(reduced)) {
-        builder(reduced) = new collection.mutable.ListBuffer[Long]()
+        builder(reduced) = new collection.mutable.ListBuffer[MetricValue]()
       }
       builder(reduced).prepend(value)
     }
@@ -89,9 +104,9 @@ case class GroupBy(tags: Set[String], aggregationType: AggregationType) {
 
 case class MetricValueFilter(filter: Option[TagSelector], aggregate: Option[GroupBy]) {
 
-  def process(values: ValueMap): ValueMap = {
+  def process(values: ValueMap): RawValueMap = {
     val filtered = filter.map{f => values.filter{case (tags, value) => f.matches(tags)}}.getOrElse(values)
-    aggregate.map{_.group(filtered)}.getOrElse(filtered)
+    aggregate.map{_.group(filtered)}.getOrElse(filtered.toRawValueMap)
   }
   
 }
@@ -155,7 +170,8 @@ object MetricFilterParser extends RegexParsers {
   def singleTagFilter = name ~ "=" ~ rep1sep(name, ",") ^^ {case key ~ eq ~ values => key -> values.toSeq
   }
 
-  def groupBy = keyword("GROUP") ~> keyword("BY") ~> tagList ~ name ^^ {case keys ~ aggType => GroupBy(keys.toSet, AggregationType.fromString(aggType).get)}
+  def groupBy = keyword("GROUP") ~> keyword("BY") ~> tagList ~ opt(name) ^^ {case keys ~ aggTypeOpt => 
+    GroupBy(keys.toSet, aggTypeOpt.map(AggregationType.fromString(_).get).getOrElse(AggregationType.Natural))}
   def tagList = wildcardTag | rep1sep(name, ",")
   def wildcardTag = "*" ^^^ {List("*")} //this works because grouping by any tag that no value has will just collapse everything
 

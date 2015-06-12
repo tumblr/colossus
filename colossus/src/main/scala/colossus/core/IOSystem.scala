@@ -1,6 +1,7 @@
 package colossus
 
 import akka.util.Timeout
+import colossus.core.Worker.ConnectionSummary
 
 import core._
 
@@ -94,6 +95,10 @@ case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemC
 
   def registeredServers(implicit to : Timeout, ec : ExecutionContext) : Future[Seq[ServerRef]] = {
     (workerManager ? WorkerManager.ListRegisteredServers).mapTo[RegisteredServers].map(_.servers)
+  }
+
+  def connectionSummary(implicit to : Timeout, ec :ExecutionContext) : Future[ConnectionSummary] = {
+    (workerManager ? WorkerManager.GetConnectionSummary).mapTo[ConnectionSummary]
   }
 
   /**

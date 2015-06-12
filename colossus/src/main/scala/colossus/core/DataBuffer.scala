@@ -32,6 +32,8 @@ case class DataBuffer(data: ByteBuffer) extends DataReader {
    */
   def next(): Byte = data.get
 
+  private var peeking = false
+
 
   /** Get some bytes
    * @param n how many bytes you want.
@@ -71,6 +73,19 @@ case class DataBuffer(data: ByteBuffer) extends DataReader {
     data.get(buffer, offset, length)
   }
 
+  /** Skip over n bytes in the buffer.
+   *
+   * @param n the number of bytes to skip.
+   * @throws IllegalArgumentException if n is larger than the number of remaining bytes
+   */
+  def skip(n: Int) {
+    data.position(data.position() + n)
+  }
+
+  def skipAll() {
+    skip(remaining)
+  }
+
   /** Write the buffer into a SocketChannel
    *
    * The buffer's taken and remaining values will be updated to reflect how
@@ -97,6 +112,21 @@ case class DataBuffer(data: ByteBuffer) extends DataReader {
 
   /** Returns the total size of this DataBuffer */
   def size = data.limit
+
+  def peek[T](f: DataBuffer => T): (T, Int) = {
+    if (peeking) {
+      throw new Exception("Cannot peek into databuffer that is already peeking")
+    }
+    peeking = true
+    data.mark()
+    val pos1 = data.position
+    val res = f(this)
+    val pos2 = data.position
+    data.reset()
+    peeking = false
+    (res, pos2 - pos1)
+  }
+    
 }
 
 object DataBuffer {
@@ -105,6 +135,8 @@ object DataBuffer {
     n.limit(bytesRead)
     DataBuffer(n)
   }
+
+  def apply(data: Array[Byte]): DataBuffer = DataBuffer(ByteBuffer.wrap(data))
 
   def apply(data: ByteString): DataBuffer = fromByteString(data)
 

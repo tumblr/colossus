@@ -267,6 +267,17 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       res must equal(3)
     }
 
+
+
+    "match http request with long" in {
+      val h = HttpRequest(HttpHead(Get, "/foo/bar/17592186044416", `1.1`, Nil), None)
+      val res: Long = h match {
+        case Get on Root / "foo" / "bar" / Long(x) => x
+        case _ => 0
+      }
+      res must equal(17592186044416L)
+    }
+
     "match root url" in {
       val h = HttpRequest(HttpHead(Get, "/", `1.1`, Nil), None)
       val res: Boolean = h match {

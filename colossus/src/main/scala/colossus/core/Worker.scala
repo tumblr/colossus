@@ -139,11 +139,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   implicit val mylog = log
   val metricSystem = config.io.metrics
-  override def globalTags = Map("worker" -> (io.name + "-" + workerId.toString))
+  override def globalTags = Map()
 
-  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops", List(1.second))
+  private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
+
+  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops")
   val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections", List(1.second, 60.seconds))
+  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -209,6 +211,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     case WorkerManager.UnregisterServer(server) => {
       unregisterServer(server.server)
     }
+    case WorkerManager.ServerShutdownRequest(server) => {
+      connections.collect{ case (id, connection: ServerConnection) if (connection.server == server) => {
+        connection.serverHandler.shutdownRequest()
+      }}
+    }
     case DelegatorMessage(server, message) => {
       delegators
         .find{case (_, delegator) => delegator.server == server}
@@ -221,15 +228,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           log.error(s"delegator message $message for unknown server ${server.name}")
         }
     }
-    case NewConnection(sc) => delegators.get(sender()).map{delegator =>
+    case NewConnection(sc, attempt) => delegators.get(sender()).map{delegator =>
       delegator.createConnectionHandler.map{handler =>
         registerConnection(sc, delegator.server, handler)
       }.getOrElse{
         sc.close()
         delegator.server.server ! Server.ConnectionClosed(0, DisconnectCause.Unhandled)
-        rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString))
+        rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString) ++ workerIdTag)
       }
     }.getOrElse{
+      sender ! Server.ConnectionRefused(sc, attempt)
       log.error("Received connection from unregistered server!!!")
     }
     case Terminated(handler) => {
@@ -261,7 +269,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
 
   //start the connection process for either a new client or a reconnecting client
-  //FIXME: https://github.com/tumblr/colossus/issues/19
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
     val channel = SocketChannel.open()
     channel.configureBlocking(false)
@@ -270,7 +277,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     val connection = new ClientConnection(newId(), key, channel, handler)
     key.attach(connection)
     connections(connection.id) = connection
-    numConnections.increment()
+    numConnections.increment(workerIdTag)
     handler match {
       case w: WatchedHandler => {
         watchedConnections(w.watchedActor) = connection
@@ -308,9 +315,21 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           unregisterConnection(con, DisconnectCause.Disconnect)
         }
       }
+      case Kill(connectionId, errorCause) => {
+        connections.get(connectionId).foreach{con =>
+          unregisterConnection(con, errorCause)
+        }
+      }
       case Connect(address, id) => {
         getWorkerItem(id).map{
-          case handler: ClientConnectionHandler => clientConnect(address, handler)
+          case handler: ClientConnectionHandler => try {
+            clientConnect(address, handler)
+          } catch {
+            case t: Throwable => {
+              log.error(s"Failed to establish connection to $address: $t")
+              handler.connectionFailed()
+            }
+          }
           case other => log.error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
         }.getOrElse {
           log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
@@ -322,12 +341,12 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   /**
    * Registers a new server connection
    */
-  def registerConnection(sc: SocketChannel, server: ServerRef, handler: ConnectionHandler) {
+  def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
       val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
       newKey.attach(connection)
       connections(connection.id) = connection
-      numConnections.increment()
+      numConnections.increment(workerIdTag)
       workerItems.bind(handler)
       handler.connected(connection)
   }
@@ -356,7 +375,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   def unregisterConnection(con: Connection, cause : DisconnectCause) {
     connections -= con.id
     con.close(cause)
-    numConnections.decrement()
+    numConnections.decrement(workerIdTag)
     (con.handler, cause) match {
       case (m: ManualUnbindHandler, d: DisconnectError) => {}
       case _ => workerItems.unbind(con.handler)
@@ -381,7 +400,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   def selectLoop() {
     val num = selector.select(1) //need short wait times to register new connections
-    eventLoops.hit()
+    eventLoops.hit(tags = workerIdTag)
     implicit val TIME = System.currentTimeMillis
     val selectedKeys = selector.selectedKeys()
     val it = selectedKeys.iterator()
@@ -509,8 +528,14 @@ object Worker {
   private[core] case object ConnectionSummaryRequest
   private[core] case object CheckIdleConnections
 
-  case class ConnectionSummary(infos: Seq[ConnectionInfo])
-  private[core] case class NewConnection(sc: SocketChannel)
+  case class ConnectionSummary(infos: Seq[ConnectionSnapshot])
+
+  /** Sent from Servers
+   * @param sc the underlying socketchannel of the connection
+   * @param attempt used when a worker refuses a connection, which can happen if a worker has just restarted and hasn't yet re-registered servers
+   */
+  private[core] case class NewConnection(sc: SocketChannel, attempt: Int = 1)
+
   /**
    * Send a message to the delegator belonging to the server
    */
@@ -533,5 +558,11 @@ object WorkerCommand {
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand
   case class Disconnect(id: Long) extends WorkerCommand
+
+  //similar to Disconnect, this will shut down a connection, however it will
+  //treat the disconnect as an error and forward the error cause to the
+  //handler.  In the case of a client connection, this can be a way to
+  //forcefully kill the connection and trigger a reconnect
+  case class Kill(id: Long, error: DisconnectError) extends WorkerCommand
 }
 

@@ -1,16 +1,12 @@
 package colossus.metrics
 
-import java.util.concurrent.ConcurrentHashMap
-
 import akka.actor._
 
-import EventLocality._
+class Collector(val metricSystem: MetricSystem, val collection: LocalCollection) extends Actor with ActorMetrics{
 
-class Collector(val metricSystem: MetricSystem, val collectors: ConcurrentHashMap[MetricAddress, Local[EventCollector]], val gTags: TagMap) extends Actor with ActorMetrics{
+  override def globalTags = collection.globalTags
 
-  override def globalTags = gTags
-
-  override val metrics = new LocalCollection(MetricAddress.Root, globalTags, collectors)(self)
+  override lazy val metrics = collection
 
   def receive = handleMetrics
 

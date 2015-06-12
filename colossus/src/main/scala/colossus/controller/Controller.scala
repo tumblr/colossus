@@ -4,6 +4,8 @@ package controller
 import core._
 import service.Codec
 
+import scala.concurrent.duration.Duration
+
 /** trait representing a decoded message that is actually a stream
  * 
  * When a codec decodes a message that contains a stream (perhaps an http
@@ -15,8 +17,15 @@ trait StreamMessage {
   def sink: Sink[DataBuffer]
 }
 
+/**
+ * Configuration for the controller
+ *
+ * @param outputBufferSize the maximum number of outbound messages that can be queued for sending at once
+ * @param sendTimeout if a queued outbound message becomes older than this it will be cancelled
+ */
 case class ControllerConfig(
-  outputBufferSize: Int
+  outputBufferSize: Int,
+  sendTimeout: Duration
 )
 
 //used to terminate input streams when a connection is closing
@@ -26,13 +35,6 @@ class DisconnectingException(message: String) extends Exception(message)
 sealed trait ConnectionState
 sealed trait AliveState extends ConnectionState {
   def endpoint: WriteEndpoint
-}
-
-object AliveState {
-  def unapply(state: ConnectionState): Option[WriteEndpoint] = state match {
-    case a: AliveState => Some(a.endpoint)
-    case _ => None
-  }
 }
 
 object ConnectionState {
@@ -92,6 +94,14 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
     inputOnConnected()
   }
 
+  /**
+   * Returns a read-only trait containing live information about the connection.
+   */
+  def connectionInfo: Option[ConnectionInfo] = state match {
+    case a: AliveState => Some(a.endpoint)
+    case _ => None
+  }
+
   private def onClosed() {
     state = NotConnected
     inputOnClosed()
@@ -109,8 +119,8 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
   def disconnect() {
     //this has to be public to be used for clients
     state match {
-      case AliveState(endpoint) => {
-        endpoint.disconnect()
+      case a: AliveState => {
+        a.endpoint.disconnect()
       }
       case _ => {}
     }

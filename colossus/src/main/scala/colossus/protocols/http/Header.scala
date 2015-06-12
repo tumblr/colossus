@@ -63,19 +63,28 @@ trait HttpHeaderUtils {
 
   def headers : Seq[(String, String)]
 
-  def getHeader(key : String) : Option[String] = {
-    headers.collectFirst{case (`key`, value) => value}
+
+  def singleHeader(name: String): Option[String] = {
+    val l = name.toLowerCase
+    headers.collectFirst{ case (`l`, v) => v}
   }
 
-  def getHeader(key : String, orElse : String) : String = {
-    headers.collectFirst{case (`key`, value) => value}.getOrElse(orElse)
+  def multiHeader(name: String): Seq[String] = {
+    val l = name.toLowerCase
+    headers.collect{ case (`l`, v) => v}
   }
 
-  def getContentLength : Option[Int] = {
-    getHeader(HttpHeaders.ContentLength).map(_.toInt)
-  }
+  //TODO: These vals are probably inefficient, should be generated as the
+  //headers are being parsed.  Benchmark before changing
 
-  def getEncoding : TransferEncoding = getHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
+  /** Returns the value of the content-length header, if it exists.
+   * 
+   * Be aware that lacking this header may or may not be a valid request,
+   * depending if the "transfer-encoding" header is set to "chunked"
+   */
+  val contentLength: Option[Int] = headers.collectFirst{case (HttpHeaders.ContentLength, l) => l.toInt}
+
+  val transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
 }
 
 
@@ -113,25 +122,40 @@ object TransferEncoding {
     val value = "chunked"
   }
 
-  case object Gzip extends TransferEncoding {
-    val value = "gzip"
-  }
-
-  case object Deflate extends TransferEncoding {
-    val value = "deflate"
-  }
-
-  case object Compressed extends TransferEncoding {
-    val value = "compressed"
-  }
-
-  private val all = Seq(Identity, Chunked, Gzip, Deflate, Compressed)
+  private val all = Seq(Identity, Chunked)
   def unapply(str : String) : Option[TransferEncoding] = {
     all.find(_.value == str.toLowerCase)
   }
 }
 
-case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) {
+sealed trait ContentEncoding {
+  def value: String
+}
+object ContentEncoding {
+
+  case object Identity extends ContentEncoding {
+    val value = "identity"
+  }
+
+  case object Gzip extends ContentEncoding {
+    val value = "gzip"
+  }
+
+  case object Deflate extends ContentEncoding {
+    val value = "deflate"
+  }
+
+  case object Compressed extends ContentEncoding {
+    val value = "compressed"
+  }
+
+  private val all = Seq(Gzip, Deflate, Compressed, Identity)
+  def unapply(str : String) : Option[ContentEncoding] = {
+    all.find(_.value == str.toLowerCase)
+  }
+}
+
+case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) extends HttpHeaderUtils {
   import HttpHead._
   import HttpHeaders._
 
@@ -142,25 +166,6 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   def withHeader(header: String, value: String): HttpHead = {
     copy(headers = (header -> value) +: headers)
   }
-
-  def singleHeader(name: String): Option[String] = {
-    val l = name.toLowerCase
-    headers.collectFirst{ case (`l`, v) => v}
-  }
-
-  def multiHeader(name: String): Seq[String] = {
-    val l = name.toLowerCase
-    headers.collect{ case (`l`, v) => v}
-  }
-
-
-  /** Returns the value of the content-length header, if it exists.
-   * 
-   * Be aware that lacking this header may or may not be a valid request,
-   * depending if the "transfer-encoding" header is set to "chunked"
-   */
-  val contentLength: Option[Int] = headers.collectFirst{case (ContentLength, l) => l.toInt}
-
 
   lazy val cookies: Seq[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
 
@@ -196,15 +201,19 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
 object HttpHead {
 
   import java.net.URI
-  //todo, this throws exceptions on malformed URLS, should catch and return 400 instead
+  // Notice, parameters with no value are legal, in which case we fill in with an empty string
   def parseParameters(q: String): Map[String, String] = {
     if (q != null && q.length > -1) {
       val params = scala.collection.mutable.HashMap[String, String]()
       val unparsedArgs = q.split('&')
 
       for (str <- unparsedArgs) {
-        val unparsedArg = str.split('=')
-        params += unparsedArg(0) -> unparsedArg(1)
+        val unparsedArg = str.split("=", 2)
+        if (unparsedArg.size == 2) {
+          params += unparsedArg(0) -> unparsedArg(1)
+        } else {
+          params += unparsedArg(0) -> ""
+        }
       }
       collection.immutable.Map(params.toList: _*)
     } else {

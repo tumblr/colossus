@@ -3,68 +3,212 @@ package protocols.http
 
 import core._
 
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 
 import colossus.parsing._
 import HttpParse._
 import Combinators._
 import DataSize._
+import controller._
+import service.DecodedResult
+import scala.language.higherKinds
 
+sealed trait ResponseResult 
+object ResponseResult {
+  case class StaticResponse(response: HttpResponse) extends ResponseResult
+  case class StreamResponse(sink: Sink[DataBuffer], response: HttpResponse) extends ResponseResult
+}
 
-object HttpResponseParser {
-
+object HttpResponseParser  {
   val DefaultMaxSize: DataSize = 10.MB
 
-  val DefaultQueueSize : Int = 100
+  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
 
-  //not totally in love with this extra object allocation, but feel its more straightforward than extractors
-  case class ParsedHeaders(headers : Seq[(String, String)]) extends HttpHeaderUtils
+  def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
 
-  def static(size: DataSize = DefaultMaxSize) : HttpResponseParser[HttpResponse] = {
-    new HttpResponseParser[HttpResponse](() => maxSize(size, staticResponse))
-  }
 
-  def streaming(size : DataSize = DefaultMaxSize, streamBufferSize : Int = DefaultQueueSize) : HttpResponseParser[StreamingHttpResponseHeaderStub] = {
-    new HttpResponseParser[StreamingHttpResponseHeaderStub](() => maxSize(size, streamedResponse(streamBufferSize)))
-  }
+  //TODO: eliminate duplicate code
+  //TODO: Dechunk on static
 
-  def staticResponse: Parser[HttpResponse] = firstLine ~ headers |> {case (version, code) ~ headers =>
-    val pHeaders = ParsedHeaders(headers)
-    val clength =  pHeaders.getContentLength
-    val encoding = pHeaders.getEncoding
-    encoding match {
-      case TransferEncoding.Identity => clength match {
-        case Some(0) | None => const(HttpResponse(version, code, headers, ByteString()))
-        case Some(n) => bytes(n) >> {body => HttpResponse(version, code, headers, body)}
+  protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
+    parsedHead.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.contentLength match {
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
       }
-      case _  => chunkedBody >> {body => HttpResponse(version, code, headers, body)}
+      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
     }
   }
 
-  private def streamedResponse(streamBufferSize : Int) : Parser[StreamingHttpResponseHeaderStub] =
-    firstLine ~ headers >> {case (version, code) ~ headers =>
-      StreamingHttpResponseHeaderStub(version, code, headers)
+  protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
+    parsedHead.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.contentLength match {
+        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        case Some(n) => streamingResponse(parsedHead, Some(n), false)
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        //TODO: adding support for this requires upcoming changes to stream termination error handling
+        case None => throw new ParseException("Infinite non-chunked responses not supported") 
+      }
+      case _  => streamingResponse(parsedHead, None, dechunk)
     }
+  }
 
-  protected def firstLine: Parser[(HttpVersion, HttpCode)] = version ~ code >> {case v ~ c => (HttpVersion(v), HttpCodes(c.toInt))}
+  private def streamingResponse(head: HttpResponseHead, contentLength: Option[Int], dechunk: Boolean) = {
+    val pipe: Pipe[DataBuffer, DataBuffer] = contentLength match {
+      case Some(n)  => new FiniteBytePipe(n)
+      case None     => if (dechunk) new ChunkDecodingPipe else new ChunkPassThroughPipe
+    }
+    DecodedResult.Stream(StreamingHttpResponse(head, Some(pipe)), pipe)
+  }
+    
 
-  protected def version = stringUntil(' ')
+  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case version ~ code ~ headers => HttpResponseHead(version, code, headers)}
 
-  protected def code = intUntil(' ') <~ stringUntil('\r') <~ byte
+  protected def firstLine = version ~ code 
+
+  protected def version = stringUntil(' ') >> {v => HttpVersion(v)}
+
+  protected def code = intUntil(' ') <~ stringUntil('\r') <~ byte >> {c => HttpCode(c.toInt)}
 
 }
 
-class HttpResponseParser[T <: HttpResponseHeader](f : () => Parser[T]) {
-
-  private def parser : Parser[T] = f()
-
-  private var current : Parser[T] = parser
-
-  def parse(data : DataBuffer) : Option[T] = current.parse(data)
-
-  def reset() {
-    current = parser
+object HttpChunk {
+  
+  def wrap(data: DataBuffer): DataBuffer = {
+    val builder = new ByteStringBuilder
+    builder.sizeHint(data.size + 25)
+    builder.putBytes(data.size.toHexString.getBytes)
+    builder.append(HttpParse.NEWLINE)
+    builder.putBytes(data.takeAll)
+    builder.append(HttpParse.NEWLINE)
+    DataBuffer(builder.result)
   }
 }
 
-case class StreamingHttpResponseHeaderStub(version : HttpVersion, code : HttpCode, headers : Seq[(String, String)]) extends HttpResponseHeader
+/** A Pipe that will take raw DataBuffers and add a http chunk header.  This is
+ * needed if you are streaming out a response that is not also being streamed
+ * in (like in a proxy)
+ *
+ * Right now this ends up copying the DataBuffer.
+ * 
+ */
+class ChunkEncodingPipe extends InfinitePipe[DataBuffer] {
+
+  override def push(data: DataBuffer) = whenPushable {
+    super.push(HttpChunk.wrap(data))
+  }
+
+  override def complete() {
+    super.push(DataBuffer(ByteString("0\r\n\r\n"))) match {
+      case PushResult.Full(trig) => trig.fill(complete)
+      case _ => super.complete()
+    }
+  }
+
+}
+
+
+/**
+ * A Pass-through pipe that parses chunk headers in the data stream and closes
+ * the pipe when the stream ends.  This pipe does not remove any header/footer
+ * information, making it ideal for use in a proxy
+ */
+class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
+
+  //this parser is used to follow along with the chunks so we know when to
+  //close the stream, but we don't actually parse out the data since we're just
+  //passing everything through
+  private val chunkParser = intUntil('\r', 16) <~ byte |>{
+    case 0   => const(0) //notice there's no second \r\n, this is according to spec
+    case len => skip(len.toInt) <~ bytes(2) >> {_ => len.toInt}
+  }
+
+  private val trailerParser = bytes(2)
+
+  private var parsingTrailer = false
+
+  override def push(data: DataBuffer): PushResult = whenPushable {
+    val (done, bytesRead) = data.peek{d => 
+      try {
+        if (!parsingTrailer) {
+          var chunkSize = Int.MaxValue
+          while(d.hasUnreadData && chunkSize != 0) {
+            chunkParser.parse(d).foreach{len =>
+              chunkSize = len
+            }
+          }
+          parsingTrailer = if (chunkSize == 0) true else false
+        }
+        if (parsingTrailer) {
+          if (trailerParser.parse(d).isDefined) {
+            true
+          } else {
+            false
+          }
+        } else {
+          false
+        }        
+      } catch {
+        case p: ParseException => {
+          terminate(p)
+          false //this will result in a push failure
+        }
+      }
+    }
+    if (done) {
+      super.push(DataBuffer(data.take(bytesRead)))
+      complete()
+      PushResult.Complete
+    } else {
+      super.push(data)
+    }
+  }
+
+}
+
+/** A pipe designed to accept a chunked http body.
+ *
+ * The pipe will scan the chunk headers and auto-close itself when it hits the
+ * end of the stream (reading a 0 length chunk).  It also strips all chunk
+ * headers from the data, so the output stream is the raw data
+ *  
+ */
+class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
+
+  
+  private val chunkParser = intUntil('\r', 16) <~ byte |> {
+    case 0 => const(ByteString())
+    case n => bytes(n.toInt) <~ bytes(2)
+  }
+
+  private val trailerParser = bytes(2)
+
+  private var parsingTrailer = false
+
+  override def push(data: DataBuffer): PushResult = whenPushable {
+    if (parsingTrailer) {
+      if (trailerParser.parse(data).isDefined) {
+        complete()
+        PushResult.Complete
+      } else {
+        PushResult.Ok
+      }
+    } else {
+      chunkParser.parse(data) match {
+        case Some(fullChunk)  => if (fullChunk.size > 0) {
+          super.push(DataBuffer(fullChunk))
+          push(data)
+        } else {
+          //terminal chunk
+          parsingTrailer = true
+          push(data)
+        }
+        case None => PushResult.Ok
+      }
+    }
+  }
+
+}
+    

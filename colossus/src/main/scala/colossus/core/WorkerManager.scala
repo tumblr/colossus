@@ -57,7 +57,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   //this is used when the manager receives a Connect request to round-robin across workers
   var nextConnectIndex = 0
 
-  var latestSummary: Seq[ConnectionInfo] = Nil
+  var latestSummary: Seq[ConnectionSnapshot] = Nil
   var latestSummaryTime = 0L
 
 
@@ -177,6 +177,8 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
     case ListRegisteredServers => {
       sender ! RegisteredServers(registeredServers.map(_.server))
     }
+
+    case s:  ServerShutdownRequest => currentState.foreach{state => state.workers.foreach{_ ! s}}
   }
 
   private def registerServer(state : State, r : RegisterServer)(implicit to : Timeout) {
@@ -240,6 +242,12 @@ private[colossus] object WorkerManager {
   //ping manager
   case class RegisterServer(server: ServerRef, factory: Delegator.Factory, timesTried : Int = 1)
   case class UnregisterServer(server: ServerRef)
+
+  //sent by the server and broadcast to all workers when the server is
+  //beginning to shutdown.  This initiates a shutdown request on all
+  //connections
+  case class ServerShutdownRequest(server: ServerRef)
+
   case object ListRegisteredServers
 
   case class RegisteredServers(servers : Seq[ServerRef])

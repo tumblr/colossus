@@ -16,6 +16,8 @@ import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
+import com.github.nscala_time.time.Imports.DateTime
+
 
 /**
  * Configuration used to specify a Client's parameters
@@ -27,7 +29,7 @@ import scala.util.{Failure, Success, Try}
  * @param failFast  When a failure is detected, immediately fail all pending requests.
  * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
  *                           and for connection lost events.
- * @param idleTime How long the connection can remain idle (both sending and
+ * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
  *
@@ -37,7 +39,7 @@ case class ClientConfig(
   requestTimeout: Duration, 
   name: MetricAddress,
   pendingBufferSize: Int = 100,
-  sentBufferSize: Int = 20,
+  sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None),
   idleTimeout: Duration = Duration.Inf
@@ -103,7 +105,7 @@ class ServiceClient[I,O](
   val config: ClientConfig,
   val worker: WorkerRef
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
@@ -112,17 +114,20 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
 
   override val maxIdleTime = config.idleTimeout
 
-  private val periods = List(1.second, 1.minute)
-  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests", periods))
-  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors", periods))
-  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests", periods))
-  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures", periods))
-  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects", periods))
-  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", periods = List(60.seconds), sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  private val requests  = worker.metrics.getOrAdd(Rate(name / "requests"))
+  private val errors    = worker.metrics.getOrAdd(Rate(name / "errors"))
+  private val droppedRequests    = worker.metrics.getOrAdd(Rate(name / "dropped_requests"))
+  private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures"))
+  private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects"))
+  private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99)))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
+
+  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
 
   case class SourcedRequest(message: I, handler: ResponseHandler) {
     val start: Long = System.currentTimeMillis
+
+    def isTimedOut(now: Long) = now > (start + responseTimeoutMillis)
   }
 
 
@@ -143,7 +148,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
    */
   def connectionStatus: ConnectionStatus = if (isConnected) {
     ConnectionStatus.Connected 
-  } else if (canReconnect) {
+  } else if (canReconnect && !manuallyDisconnected) {
     ConnectionStatus.Connecting
   } else {
     ConnectionStatus.NotConnected
@@ -165,9 +170,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
    */
   override def gracefulDisconnect() {
     log.info(s"Terminating connection to $address")
-    //clearPendingBuffer(new NotConnectedException("Connection is closing"))
-    //todo, we should maybe make the Cancelled OutputResult take a Throwable
-    purgePending()
+    purgePending(new NotConnectedException("Connection is closing"))
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()
@@ -183,7 +186,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
 
   /**
    * Create a callback for sending a request.  this allows you to do something like
-   * service.sendCB("request"){response => "YAY"}.map{str => println(str)}.execute()
+   * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
   def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
 
@@ -211,29 +214,30 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
     connectionAttempts = 0
   }
 
-  private def purgeBuffers(pendingException : => Throwable) {
+  private def purgeBuffers(reason : Throwable) {
     sentBuffer.foreach{s => 
       errors.hit(tags = hpTags)
-      s.handler(Failure(new ConnectionLostException("Connection closed while request was in transit")))
+      s.handler(Failure(new ConnectionLostException(s"Error while request was in transit: $reason")))
     }
     sentBuffer.clear()
-    purgeOutgoing()
+    purgeOutgoing(reason)
     if (failFast) {
-      purgePending()
+      purgePending(reason)
     }
   }
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
     super.connectionClosed(cause)
     manuallyDisconnected = true
-    purgeBuffers(new NotConnectedException("Connection closed"))
+    disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
+    purgeBuffers(new NotConnectedException(s"${cause.logString}"))
   }
 
   override protected def connectionLost(cause : DisconnectError) {
     super.connectionLost(cause)
-    purgeBuffers(new NotConnectedException("Connection lost"))
-    log.warning(s"${id.get} connection to ${address.toString} lost: $cause")
-    disconnects.hit(tags = hpTags)
+    purgeBuffers(new NotConnectedException(s"${cause.logString}"))
+    log.warning(s"${id.get} connection to ${address.toString} lost: ${cause.logString}")
+    disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
     attemptReconnect()
   }
 
@@ -269,10 +273,10 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
-      val pushed = push(s.message){
-        case OutputResult.Success   => sentBuffer.enqueue(s)
-        case OutputResult.Failure   => s.handler(Failure(new NotConnectedException("Error while sending")))
-        case OutputResult.Cancelled => s.handler(Failure(new RequestTimeoutException))
+      val pushed = push(s.message, s.start){
+        case OutputResult.Success         => sentBuffer.enqueue(s)
+        case OutputResult.Failure(err)    => s.handler(Failure(err))
+        case OutputResult.Cancelled(err)  => s.handler(Failure(err))
       }
       if (pushed) {
         if (sentBuffer.size >= config.sentBufferSize) {
@@ -288,13 +292,19 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize)) with 
   }
 
   private def checkGracefulDisconnect() {
-    if (disconnecting && sentBuffer.size == 0) {
+    if (isConnected && disconnecting && sentBuffer.size == 0) {
       super.gracefulDisconnect()
     }
   }
 
 
-  def idleCheck(period: Duration) {
-    //TODO: timeout pending requests
+  override def idleCheck(period: Duration) {
+    super.idleCheck(period)
+
+    if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
+      // the oldest sent message has expired with no response - kill the connection
+      // sending the Kill message instead of disconnecting will trigger the reconnection logic
+      worker ! Kill(id.get, DisconnectCause.TimedOut)
+    }
   }
 }

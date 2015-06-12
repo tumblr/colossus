@@ -7,6 +7,7 @@ import colossus.core._
 import colossus.service.{Codec, DecodedResult}
 import colossus.controller._
 import java.net.InetSocketAddress
+import scala.concurrent.duration._
 
 /*
  * The controller layer adds generalized message processing to a connection.  A
@@ -73,7 +74,7 @@ object Broadcaster {
   case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50)) {
+class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds)) with ServerConnectionHandler {
   implicit lazy val sender = boundWorker.get.worker
 
   sealed trait State
@@ -89,8 +90,6 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
     super.connected(endpoint)
     push(Status("Please enter your name")){_ => ()}
   }
-
-  def idleCheck(period: scala.concurrent.duration.Duration){}
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef){
     message match {
@@ -121,6 +120,11 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
         broadcaster ! Broadcaster.ClientClosed(user, id.get)
       }
     }
+  }
+
+  def shutdownRequest(){
+    push(Status("The server is shutting down, goodbye")){_ => ()}
+    gracefulDisconnect()
   }
 
 

@@ -1,69 +1,34 @@
 package colossus
 package protocols.http
 
-import colossus.controller.{FiniteBytePipe, Pipe, InfinitePipe, Sink}
 import colossus.core._
 import colossus.parsing.DataSize
-import colossus.service.Codec.ClientCodec
 import colossus.service._
+import Codec.ClientCodec
+import parsing._
+import Combinators.Parser
+import DataSize._
 
-trait HttpClientCodec[T <: HttpResponseHeader, U <: HttpResponseHeader] extends Codec.ClientCodec[HttpRequest, T] {
+class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[DecodedResult[T]]) extends ClientCodec[HttpRequest, T] {
 
-  def parser : HttpResponseParser[U]
+  private var parser : Parser[DecodedResult[T]] = parserFactory()
 
-  override def encode(out: HttpRequest): DataBuffer = DataBuffer(out.bytes)
 
-  override def decode(data: DataBuffer): Option[DecodedResult[T]]
+  override def encode(out: HttpRequest): DataReader = DataBuffer(out.bytes)
 
-  override def reset(): Unit = { parser.reset() }
+  override def decode(data: DataBuffer): Option[DecodedResult[T]] = parser.parse(data)
+
+  override def reset(): Unit = { 
+    parser = parserFactory()
+  }
+
+  override def endOfStream() = parser.endOfStream()
 
 }
 
-object HttpClientCodec {
+class HttpClientCodec(maxResponseSize: DataSize = 1.MB) 
+  extends BaseHttpClientCodec[HttpResponse](() => HttpResponseParser.static(maxResponseSize))
 
-  def static(maxSize : DataSize = HttpResponseParser.DefaultMaxSize) : ClientCodec[HttpRequest, HttpResponse] = {
-    new HttpClientCodec[HttpResponse, HttpResponse] {
-      val parser: HttpResponseParser[HttpResponse] = HttpResponseParser.static(maxSize)
+class StreamingHttpClientCodec(dechunk: Boolean = false)
+  extends BaseHttpClientCodec[StreamingHttpResponse](() => HttpResponseParser.stream(dechunk))
 
-      override def decode(data: DataBuffer): Option[DecodedResult[HttpResponse]] = {
-        parser.parse(data).map(DecodedResult.Static(_))
-      }
-    }
-  }
-
-  def streaming(maxSize : DataSize = HttpResponseParser.DefaultMaxSize,
-                streamingQueueSize : Int = HttpResponseParser.DefaultQueueSize) : ClientCodec[HttpRequest, StreamingHttpResponse] = {
-    new HttpClientCodec[StreamingHttpResponse, StreamingHttpResponseHeaderStub] {
-      val parser: HttpResponseParser[StreamingHttpResponseHeaderStub] = HttpResponseParser.streaming(maxSize, streamingQueueSize)
-
-      override def decode(data: DataBuffer): Option[DecodedResult[StreamingHttpResponse]] = {
-        parser.parse(data).map{ x=>
-          val rs = x.getEncoding match {
-            case TransferEncoding.Chunked => createChunkedReponse(x)
-            case _ => createNonChunkedReponse(x)
-          }
-          DecodedResult.Streamed(rs.response, rs.sink)
-        }
-      }
-
-      private def createChunkedReponse(headers : StreamingHttpResponseHeaderStub) : ResponseAndSink = {
-        val combinator = StreamingHttpChunkPipe(new InfinitePipe[DataBuffer], new InfinitePipe[DataBuffer])
-        val res = StreamingHttpResponse(headers.version, headers.code, headers.headers, combinator)
-        ResponseAndSink(res, combinator)
-      }
-
-      private def createNonChunkedReponse(headers : StreamingHttpResponseHeaderStub) : ResponseAndSink = {
-        val sink =  createNonChunkedPipe(headers)
-        val res = StreamingHttpResponse(headers.version, headers.code, headers.headers, sink)
-        ResponseAndSink(res, sink)
-      }
-
-      private def createNonChunkedPipe(headers : StreamingHttpResponseHeaderStub) : Pipe[DataBuffer, DataBuffer] = {
-        val length = headers.getContentLength.getOrElse(0)
-        new FiniteBytePipe(length)
-      }
-    }
-  }
-
-  private case class ResponseAndSink(response : StreamingHttpResponse, sink : Sink[DataBuffer])
-}

@@ -2,10 +2,10 @@ package colossus
 package controller
 
 import core._
-import colossus.service.{DecodedResult, Codec}
+import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
 
-import service.NotConnectedException
+import service.{NotConnectedException, RequestTimeoutException}
 
 
 sealed trait OutputState 
@@ -58,11 +58,11 @@ object OutputResult {
   // the message was successfully written
   case object Success extends OutputResult
 
-  // the message failed, most likely due to the connection closing partway
-  case object Failure extends OutputResult
+  // the message failed while it was being written, most likely due to the connection closing partway
+  case class Failure(reason: Throwable) extends OutputResult
 
-  // the message was cancelled before it was written (not implemented yet) 
-  case object Cancelled extends OutputResult
+  // the message was cancelled before it was written
+  case class Cancelled(reason: Throwable) extends OutputResult
 }
 
 /**
@@ -73,7 +73,9 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
 
-  case class QueuedItem(item: Output, postWrite: OutputResult => Unit)
+  case class QueuedItem(item: Output, postWrite: OutputResult => Unit, creationTimeMillis: Long) {
+    def isTimedOut(now: Long) = controllerConfig.sendTimeout.isFinite && now > (creationTimeMillis + controllerConfig.sendTimeout.toMillis)
+  }
 
   private[controller] var outputState: OutputState = Dequeueing
 
@@ -84,23 +86,26 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   //represents a message queued for writing
   //the queue of items waiting to be written.
+  // this is intentionally a j.u.LinkedList instead of s.Queue for performance reasons
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
 
   def queueSize = waitingToSend.size()
 
   private[controller] def outputOnConnected() {
+    _writesEnabled = true
     outputState = Dequeueing
     checkQueue()
   }
 
   private[controller] def outputOnClosed() {
+    val reason = new NotConnectedException("Connection Closed")
     outputState match {
       case Streaming(source, post) => {
-        source.terminate(new NotConnectedException("Connection Closed"))
-        post(OutputResult.Failure)
+        source.terminate(reason)
+        post(OutputResult.Failure(reason))
       }
       case Writing(post) => {
-        post(OutputResult.Failure)
+        post(OutputResult.Failure(reason))
       }
       case _ => {}
     }
@@ -122,14 +127,15 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * whether a message should be pushed based on connection state.
    *
    * @param item the message to push
+   * @param createdMillis the timestamp of when the message was created, defaults to now if not specified
    * @param postWrite called either when writing has completed or failed
    *
    * @return true if the message was successfully enqueued, false if the queue is full
    */
-  protected def push(item: Output)(postWrite: OutputResult => Unit): Boolean = {
+  protected def push(item: Output, createdMillis: Long = System.currentTimeMillis)(postWrite: OutputResult => Unit): Boolean = {
     if (waitingToSend.size < controllerConfig.outputBufferSize) {
-      waitingToSend.add(QueuedItem(item, postWrite))
-      checkQueue() 
+      waitingToSend.add(QueuedItem(item, postWrite, createdMillis))
+      checkQueue()
       true
     } else {
       false
@@ -140,12 +146,12 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    *
    * If a message is currently being streamed, the stream will be terminated
    */
-  protected def purgeOutgoing() {
+  protected def purgeOutgoing(reason: Throwable) {
     outputState match {
-      case Writing(postWrite) => postWrite(OutputResult.Failure)
+      case Writing(postWrite) => postWrite(OutputResult.Failure(reason))
       case Streaming(source, post) => {
-        source.terminate(new service.NotConnectedException("Connection closed"))
-        post(OutputResult.Failure)
+        source.terminate(reason)
+        post(OutputResult.Failure(reason))
       }
       case _ => {}
     }
@@ -159,17 +165,17 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * 
    * If a message is currently being written, it is not affected
    */
-  protected def purgePending() {
+  protected def purgePending(reason: Throwable) {
     while (waitingToSend.size > 0) {
       val q = waitingToSend.remove()
-      q.postWrite(OutputResult.Cancelled)
+      q.postWrite(OutputResult.Cancelled(reason))
     }
   }
 
   /** Purge both pending and outgoing messages */
-  protected def purgeAll() {
-    purgeOutgoing()
-    purgePending()
+  protected def purgeAll(reason: Throwable) {
+    purgeOutgoing(reason)
+    purgePending(reason)
   }
 
   /**
@@ -209,7 +215,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
             }
             case WriteStatus.Failed | WriteStatus.Zero => {
               //this probably shouldn't occur since we already check if the connection is writable
-              queued.postWrite(OutputResult.Failure)
+              queued.postWrite(OutputResult.Failure(new Exception("Attempted to write to non-writable endpoint")))
               //throw new Exception(s"Invalid write status")
             }
             case WriteStatus.Partial => {
@@ -238,7 +244,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private def drain(source: Source[DataBuffer]) {
     source.pull{
       case Success(Some(data)) => state match {
-        case AliveState(endpoint) => endpoint.write(data) match {
+        case a: AliveState => a.endpoint.write(data) match {
           case WriteStatus.Complete => drain(source)
           case WriteStatus.Failed  => {
             source.terminate(new NotConnectedException("Connection closed during streaming"))
@@ -282,6 +288,15 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         checkQueue()
       }
       case other => throw new InvalidOutputStateException(other)
+    }
+  }
+
+  def idleCheck(period: Duration): Unit = {
+    val time = System.currentTimeMillis
+    while (waitingToSend.size > 0 && waitingToSend.peek.isTimedOut(time)) {
+      val expired = waitingToSend.removeFirst()
+      println(s"$time : $expired : $outputState : $queueSize : $state : $writesEnabled")
+      expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
     }
   }
 

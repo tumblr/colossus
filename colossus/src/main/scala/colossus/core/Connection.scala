@@ -5,6 +5,7 @@ import akka.actor.ActorRef
 
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
+import java.net.InetSocketAddress
 
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.
@@ -17,18 +18,62 @@ object ConnectionStatus {
   case object Connecting extends ConnectionStatus
 }
 
-
 /**
- * This is passed to handlers to give them a way to synchronously write to the
- * connection.  Services wrap this
+ * A trait encapsulating live information about a connection.  This should only
+ * contain read-only fields
  */
-trait WriteEndpoint {
+trait ConnectionInfo {
+
+  /**
+   * Get the current connection status.
+   */
+  def status: ConnectionStatus
 
   /**
    * The id of the underlying connection.  This is different from a
    * WorkerItem's id.
    */
   def id: Long
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
+   */
+  def lastTimeDataWritten: Long
+
+  /**
+   * Returns a timestamp, in milliseconds of when the last time data was read on the connection
+   */
+  def lastTimeDataReceived: Long
+
+  /**
+   * how many bytes have been sent on the connection in total
+   */
+  def bytesSent: Long
+
+  /**
+   * how many bytes have been received on the connection in total
+   */
+  def bytesReceived: Long
+
+  /**
+   * How long, in milliseconds, since the connection was opened
+   */
+  def timeOpen: Long
+
+  /**
+   * The address of the remote host for this connection, if connected
+   */
+  def remoteAddress: Option[InetSocketAddress]
+  
+}
+
+
+/**
+ * This is passed to handlers to give them a way to synchronously write to the
+ * connection.  Services wrap this
+ */
+trait WriteEndpoint extends ConnectionInfo {
+
 
   /**
    * Write some data to the connection.  Because connections are non-blocking,
@@ -51,10 +96,6 @@ trait WriteEndpoint {
    */
   def disconnect()
 
-  /**
-   * Get the current connection status.
-   */
-  def status: ConnectionStatus
 
   /**
    * Gets the worker this connection is bound to.
@@ -75,10 +116,6 @@ trait WriteEndpoint {
    */
   def enableReads()
 
-  /**
-   * Returns a timestamp, in milliseconds of when the last time data was written on the connection
-   */
-  def lastTimeDataWritten: Long
 }
 
 private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
@@ -86,6 +123,12 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
 
   val startTime = System.currentTimeMillis
+
+  def remoteAddress = try {
+    Some(_channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
+  } catch {
+    case t: Throwable => None
+  }
 
   //dont make these vals, doesn't work with client connections
   lazy val host: String = try {
@@ -98,6 +141,9 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   } catch {
     case n: NullPointerException => 0
   }
+
+  def timeOpen = System.currentTimeMillis - startTime
+
 
   /** ABSTRACT MEMBERS **/
 
@@ -114,10 +160,12 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   protected val channel = _channel
   val worker = sender
-  private var bytesReceived = 0L
+  private var myBytesReceived = 0L
 
-  def info(now: Long): ConnectionInfo = {
-    ConnectionInfo(
+  def bytesReceived = myBytesReceived
+
+  def info(now: Long): ConnectionSnapshot = {
+    ConnectionSnapshot(
       domain = domain,
       host = _channel.socket.getInetAddress,
       port = port,
@@ -145,7 +193,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
   def handleRead(data: DataBuffer)(implicit time: Long) = {
     _lastTimeDataReceived = time
-    bytesReceived += data.size
+    myBytesReceived += data.size
     handler.receivedData(data)
   }
 
@@ -179,11 +227,13 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
 
 }
 
-private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
+private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ServerConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
   extends Connection(id, key, channel, handler)(sender) {
 
   def domain: String = server.name.toString
   val outgoing: Boolean = false
+
+  def serverHandler: ServerConnectionHandler = handler
 
   override def close(cause : DisconnectCause) = {
     server.server ! Server.ConnectionClosed(id, cause)
@@ -221,7 +271,10 @@ private[core] class ClientConnection(id: Long, key: SelectionKey, channel: Socke
 
 }
 
-private[core] sealed trait RootDisconnectCause
+private[core] sealed trait RootDisconnectCause {
+  def tagString: String
+  def logString: String
+}
 
 /**
  * Messages representing why a disconnect occurred.  These can be either normal disconnects
@@ -239,31 +292,49 @@ object DisconnectCause {
   //unhandled is private because it only occurs in situations where a
   //connection handler doesn't exist yet, so it doesn't make sense to force
   //handlers to handle a cause they will, by definition, never see
-  private[core] case object Unhandled extends RootDisconnectCause
+  private[core] case object Unhandled extends RootDisconnectCause {
+    def tagString = "unhandled"
+    def logString = "No Connection Handler Provided"
+  }
 
   /**
    * We initiated the disconnection on our end
    */
-  case object Disconnect extends DisconnectCause
+  case object Disconnect extends DisconnectCause {
+    def tagString = "disconnect"
+    def logString = "Closed by local host"
+  }
   /**
    * The IO System is being shutdown
    */
-  case object Terminated extends DisconnectCause
+  case object Terminated extends DisconnectCause {
+    def tagString = "terminated"
+    def logString = "IO System is shutting down"
+  }
 
   /**
    * The connection was idle and timed out
    */
-  case object TimedOut extends DisconnectError
+  case object TimedOut extends DisconnectError {
+    def tagString = "timedout"
+    def logString = "Timed out"
+  }
 
   /**
    * Unknown Error was encountered
    */
-  case class Error(error: Throwable) extends DisconnectError
+  case class Error(error: Throwable) extends DisconnectError {
+    def tagString = "error"
+    def logString = s"Error: $error"
+  }
 
   /**
    * The connection was closed by the remote end
    */
-  case object Closed extends DisconnectError
+  case object Closed extends DisconnectError {
+    def tagString = "closed"
+    def logString = "Closed by remote host"
+  }
 }
 
 

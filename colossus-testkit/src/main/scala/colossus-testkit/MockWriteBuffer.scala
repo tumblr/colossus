@@ -70,5 +70,12 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
     assert(bufferCleared == false, "Expected write buffer to not be cleared, but it was")
   }
 
+  def withExpectedWrite(f: ByteString => Unit) {
+    assert(writeCalls.size > 0, "expected write, but no write occurred")
+    val call = writeCalls.dequeue()
+    f(call)
+  }
+    
+
     
 }

@@ -172,6 +172,18 @@ object Combinators {
   trait Parser[+T] {
     def parse(data: DataBuffer): Option[T]
 
+    /**
+     * This can be optionally implemented if a parser is able to return a
+     * partial value or for situations where the end of the stream signals a
+     * complete response
+     *
+     * Only the unknownLengthBytes parser currently uses this.  It is currently
+     * undefined if calling this resets a parser's state.  ">>" also uses it, but not |>
+     */
+    def endOfStream(): Option[T] = {
+      None
+    }
+
     def ~[B](b: Parser[B]): Parser[~[T,B]] = {
       val a = this
       new Parser[~[T,B]] {
@@ -216,6 +228,7 @@ object Combinators {
       val orig = this
       new Parser[B]{
         def parse(data: DataBuffer) = orig.parse(data).map{r => f(r)}
+        override def endOfStream() = orig.endOfStream().map(f)
       }
     }
     def map[B](f: T => B): Parser[B] = >>(f)
@@ -236,6 +249,8 @@ object Combinators {
             }
           }
         }
+
+        override def endOfStream() = mapped.flatMap{_.endOfStream}
       }
     }
     def flatMap[B](f: T => Parser[B]): Parser[B] = |>(f)
@@ -278,6 +293,7 @@ object Combinators {
   def maxSize[T](size: DataSize, parser: Parser[T]): Parser[T] = new Parser[T] {
     val tracker = new ParserSizeTracker(Some(size))
     def parse(data: DataBuffer) = tracker.track(data)(parser.parse(data))
+    override def endOfStream() = parser.endOfStream()
   }
 
   /**
@@ -335,6 +351,12 @@ object Combinators {
       }
     }
   }
+
+  def short: Parser[Short] = bytes(2) >> {b => b.asByteBuffer.getShort}
+
+  def int: Parser[Int] = bytes(4) >> {b => b.asByteBuffer.getInt}
+
+  def long: Parser[Long] = bytes(8) >> {b => b.asByteBuffer.getLong}
 
   /** Parse a series of ascii strings seperated by a single-byte delimiter and terminated by a byte
    *
@@ -539,7 +561,7 @@ object Combinators {
    * @param terminus the byte to singal to stop repeating
    * @return the parsed sequence
    */
-  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[Seq[T]] = new Parser[Seq[T]]{
+  def repeatUntil[T](parser: Parser[T], terminus: Byte): Parser[Vector[T]] = new Parser[Vector[T]]{
     var build: Vector[T] = Vector()
     var checkNext = true
     var done = false
@@ -576,6 +598,85 @@ object Combinators {
       }
     }
   }
+
+  /**
+   * uses the parser but then immediately resets the databuffer to its position
+   * before the parser was invoked.  This is useful is you need to parse
+   * incoming data, but leave the data itself untouched, or for look-ahead
+   * parsing, but be aware of the performance implications of possibly reading
+   * the same segment of data multiple times.
+   */
+   /*
+    NOTE - this is commented out because right now in all cases we need to know
+    how much data was peeked, so instead we're using peek on the databuffer and
+    regular parsers inside of the peek, 
+  def peek[T](p: Parser[T]): Parser[T] = new Parser[(T] {
+    def parse(data: DataBuffer): Option[T] = data.peek{buf => p.parse(data)}
+  }
+  */
+
+  /**
+   * creates a parser that will skip over n bytes.  You generally only want to do this inside a peek parser
+   */
+  def skip[T](n: Int): Parser[Unit] = new Parser[Unit] {
+    private var left = n
+    private def reset() {
+      left = n
+    }
+    def parse(data: DataBuffer): Option[Unit] = {
+      if (data.remaining >= left) {
+        data.skip(left)
+        reset()
+        Some(Unit)
+      } else {
+        left -= data.remaining
+        data.skipAll
+        None
+      }
+    }
+  }
+
+  /** Read in an unknown number of bytes, ended only when endOfStream is called
+   *
+   * be aware this parser has no max size and will read in data forever if endOfStream is never called
+   */
+  def bytesUntilEOS: Parser[ByteString] = new Parser[ByteString] {
+    var builder = new ByteStringBuilder
+    def parse(data: DataBuffer) = {
+      builder.putBytes(data.takeAll)
+      None
+    }
+
+    override def endOfStream() = {
+      val res = builder.result
+      builder = new ByteStringBuilder //probably not required, we should probably formalize that this parser will never be used again once this is called
+      Some(res)
+    }
+  }
+
+  /**
+   * Create a parser that will repeat the given parser forever until
+   * `endOfStream()` is called.  The results from each call to the given parser
+   * are accumulated and returned at the end of the stream.
+   */
+  def repeatUntilEOS[T](parser: Parser[T]): Parser[Seq[T]] = new Parser[Seq[T]] {
+    var build = collection.mutable.ArrayBuffer[T]()
+    def parse(data: DataBuffer) = { 
+      while (data.hasNext) {
+        parser.parse(data).foreach{t =>
+          build += t
+        }
+      }
+      None
+    }
+
+    override def endOfStream() = {
+      val res = Some(build)
+      build = collection.mutable.ArrayBuffer[T]()
+      res
+    }
+  }
+
 
   //this is just a tuple that allows for cleaner pattern matching
   case class ~[+A,+B](a: A, b: B)
