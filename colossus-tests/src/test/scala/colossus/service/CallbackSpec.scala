@@ -4,7 +4,7 @@ package service
 import testkit._
 import akka.testkit.TestProbe
 
-import scala.concurrent.{ExecutionContext, Promise}
+import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 
@@ -90,7 +90,7 @@ class CallbackSpec extends ColossusSpec {
       c.execute()
       value1 must equal(0)
     }
-      
+
 
     "fromFuture" in {
       import system.dispatcher
@@ -158,7 +158,7 @@ class CallbackSpec extends ColossusSpec {
       a must equal(true)
       b must equal(false)
     }
-      
+
 
     "recover" in {
       var recovered = false
@@ -230,7 +230,7 @@ class CallbackSpec extends ColossusSpec {
       }
       caught must equal(true)
     }
-      
+
 
     "recoverWith (unmapped)" in {
       var recovered = false
@@ -270,7 +270,7 @@ class CallbackSpec extends ColossusSpec {
       var triggered1 = false
       var triggered2 = false
       //notice these functions don't actually call the handler functions, so if the callbacks are chained, the second will never execute
-      //eg, the original implementation (in the companion obj) was 
+      //eg, the original implementation (in the companion obj) was
       // def zip(a,b) = a.flatMap{res_a => b.map{res_b => (res_a, res_b)}}
       // which works, execpt there's no concurrency, b doesn't even execute until a finishes
       val func1: (Try[Int] => Unit) => Unit = {x => triggered1 = true}
@@ -282,7 +282,7 @@ class CallbackSpec extends ColossusSpec {
     }
 
     "filter" in {
-      val fail = Callback(func).withFilter{_ > 12345} 
+      val fail = Callback(func).withFilter{_ > 12345}
       val succeed = Callback(func).map{i => 999999}.withFilter{_ > 12345}
       var fr: Option[Try[Int]] = None
       var sr: Option[Try[Int]] = None
@@ -293,6 +293,23 @@ class CallbackSpec extends ColossusSpec {
       sr must equal(Some(Success(999999)))
 
 
+    }
+
+    "toFuture" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      var value = 0
+      val callback = Callback(func).map { i => i }
+      value = Await.result(callback.toFuture, 2 seconds)
+      value must equal(5)
+    }
+
+    "toFuture failed" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+
+      val badfunc = {f: (Try[Int] => Unit) => f(Failure[Int](new Exception))}
+      val callback = Callback(badfunc).map { i => i }
+      val result = Await.ready(callback.toFuture, 2 seconds).value.get
+      result mustBe a [Failure[Int]]
     }
 
     "not suppress exceptions thrown in the execute block" in {
