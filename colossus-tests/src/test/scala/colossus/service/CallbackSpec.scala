@@ -170,7 +170,7 @@ class CallbackSpec extends ColossusSpec {
       }
 
       res.get mustBe a[Failure[_]]
-        
+
 
     }
 
@@ -324,7 +324,7 @@ class CallbackSpec extends ColossusSpec {
       val badfunc = {f: (Try[Int] => Unit) => f(Failure[Int](new Exception))}
       val callback = Callback(badfunc).map { i => i }
       val result = Await.ready(callback.toFuture, 2 seconds).value.get
-      result mustBe a [Failure[Int]]
+      result.isFailure must equal(true)
     }
 
     "not suppress exceptions thrown in the execute block" in {
