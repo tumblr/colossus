@@ -1,4 +1,4 @@
-jpackage colossus
+package colossus
 package service
 
 import akka.actor._
@@ -116,7 +116,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
   //notice the order of execution is handler(this callback) => f(the mapping) => cb (the handler function built after this call)
   def flatMap[U](f: O => Callback[U]): Callback[U] = {
     val newTrigger: (Try[U] => Unit) => Unit = cb => trigger(i => handler(i) match {
-      case Success(value) => { 
+      case Success(value) => {
         Try(f(value)) match {
           case Success(callback) => callback.execute(cb)
           case Failure(err) => cb(Failure(err))
