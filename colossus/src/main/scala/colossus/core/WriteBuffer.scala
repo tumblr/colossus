@@ -74,7 +74,10 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 
   def isDataBuffered: Boolean = partialBuffer.isDefined
 
-  private val internal = DataBuffer(ByteBuffer.allocate(1024 * 64))
+  //TODO: This buffer size is probably fine, but either do some more
+  //experimentation or make it configurable.  Easier said than done as no config
+  //is passed into this trait right now
+  private val internal = DataBuffer(ByteBuffer.allocateDirect(1024 * 64))
   private def copyInternal(src: ByteBuffer) {
     val oldLimit = src.limit()
     val newLimit = if (src.remaining > internal.remaining) {
