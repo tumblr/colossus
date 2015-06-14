@@ -366,7 +366,7 @@ class ServiceClientSpec extends ColossusSpec {
       //TODO: is this test unfinished?
     }
 
-    "attempts to reconnect when server closes connection" taggedAs(org.scalatest.Tag("test")) in {
+    "attempts to reconnect when server closes connection" in {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem{implicit sys => 
         import protocols.redis._

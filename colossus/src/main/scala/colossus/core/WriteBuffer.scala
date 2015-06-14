@@ -94,10 +94,12 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 
   def isDataBuffered: Boolean = partialBuffer.isDefined
 
-  //TODO: This buffer size is probably fine, but either do some more
-  //experimentation or make it configurable.  Easier said than done as no config
-  //is passed into this trait right now
+  //all writes are initially written to this internal buffer.  The buffer is
+  //then drained at most once per event loop.  This ends up being much faster
+  //than attempting to directly write to the socket each time
   private val internal = DataBuffer(ByteBuffer.allocateDirect(internalBufferSize))
+
+  //copy as much data as possible from src into the internal buffer
   private def copyInternal(src: ByteBuffer) {
     val oldLimit = src.limit()
     val newLimit = if (src.remaining > internal.remaining) {

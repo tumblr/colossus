@@ -36,4 +36,6 @@ object Main extends App {
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
 
+  val benchmarkServer = BenchmarkService.start(9007)
+
 }

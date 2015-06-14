@@ -131,6 +131,7 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
 
   protected def processMessage(request: I) {
     numRequests += 1
+    val startTime = System.currentTimeMillis
     /**
      * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
@@ -153,9 +154,9 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
           case Success(yay) => yay
           case Failure(err) => handleFailure(request, err)
         }
-        //val tags = tagDecorator.tagsFor(request, done)
-        //requests.hit(tags = tags)
-        //latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+        val tags = tagDecorator.tagsFor(request, done)
+        requests.hit(tags = tags)
+        latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
         push(done) {
           case OutputResult.Success => {}
           case _ => println("dropped reply")
