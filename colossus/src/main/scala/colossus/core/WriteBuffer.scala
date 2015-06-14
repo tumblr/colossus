@@ -146,6 +146,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       internal.data.flip //prepare for reading
     }
     val wrote = channelWrite(internal)
+    //println(s"wrote $wrote")
     _bytesSent += wrote
     if (internal.remaining == 0) {
       //hooray! we wrote all the data, now we can accept more

@@ -392,10 +392,8 @@ class ServiceClientSpec extends ColossusSpec {
           TestClient.waitForConnected(client)
           TestUtil.expectServerConnections(server, 1)
           Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
-          println("========== 1")
           TestUtil.expectServerConnections(server, 1)
           TestClient.waitForConnected(client)
-          println("========== 2")
           Await.result(client.send(Command("00000000000")), 500.milliseconds) must equal(StatusReply("ok"))
         }
       }

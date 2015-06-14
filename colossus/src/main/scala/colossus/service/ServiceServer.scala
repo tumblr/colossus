@@ -160,6 +160,7 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
           case OutputResult.Success => {}
           case _ => println("dropped reply")
         }
+        checkGracefulDisconnect()
       }
       case other => {
         val promise = new SyncPromise(request)
@@ -196,6 +197,8 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
   override def gracefulDisconnect() {
     pauseReads()
     disconnecting = true
+    //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
+    //disconnecting before we have a change to finish processing and write the response
 
   }
 
