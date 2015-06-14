@@ -87,7 +87,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
    */
   def bind(workerItem: WorkerItem) {
     if (workerItem.isBound) {
-      log.error(s"Attempted to bind worker ${workerItem.binding} that was already bound")
+      log.error(s"Attempted to bind worker ${workerItem} that was already bound")
     } else {
       val id = newId()
       workerItems(id) = workerItem
@@ -256,7 +256,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     import IOCommand._
     cmd match {
       case BindWorkerItem(itemFactory) => {
-        workerItems.bind(itemFactory(me))
+        val item = itemFactory(me)
+        //the item may have already bound itself
+        if (!item.isBound) {
+          workerItems.bind(item)
+        }
       }
       case BindAndConnectWorkerItem(address, itemFactory) => {
         val item = itemFactory(me)

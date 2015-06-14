@@ -282,7 +282,7 @@ class ServiceClientSpec extends ColossusSpec {
       var failed = false
       val cb = client.send(command)
       endpoint.expectNoWrite()
-      endpoint.connection_status = ConnectionStatus.NotConnected
+      endpoint.disrupt()
       cb.execute{
         case Success(wat) => println("HERE");throw new Exception("NOPE")
         case Failure(yay) => println("THER");failed = true
@@ -356,7 +356,6 @@ class ServiceClientSpec extends ColossusSpec {
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
       client.gracefulDisconnect()
-      endpoint.connection_status = ConnectionStatus.NotConnected
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
     }
@@ -377,7 +376,7 @@ class ServiceClientSpec extends ColossusSpec {
       }.execute()
       endpoint.expectOneWrite(cmd.raw)
       client.receivedData(reply.raw)
-      endpoint.connection_status = ConnectionStatus.NotConnected
+      //TODO: is this test unfinished?
     }
 
 

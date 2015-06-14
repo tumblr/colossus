@@ -47,6 +47,8 @@ trait KeyInterestManager {
 private[colossus] trait WriteBuffer extends KeyInterestManager {
   import WriteStatus._
 
+  def internalBufferSize: Int
+
   //this will be called whenever a partial buffer was fully written from and handleWrite
   def onBufferClear(): Unit
 
@@ -69,7 +71,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 
   //this is set to true when we are in the process of writing the internal
   //buffer to the channel.  Normally this is only true outside of handleWrite
-  //when we fail to write teh whole internal buffer to the socket
+  //when we fail to write the whole internal buffer to the socket
   private var drainingInternal = false
 
   def isDataBuffered: Boolean = partialBuffer.isDefined
@@ -77,7 +79,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //TODO: This buffer size is probably fine, but either do some more
   //experimentation or make it configurable.  Easier said than done as no config
   //is passed into this trait right now
-  private val internal = DataBuffer(ByteBuffer.allocateDirect(1024 * 64))
+  private val internal = DataBuffer(ByteBuffer.allocateDirect(internalBufferSize))
   private def copyInternal(src: ByteBuffer) {
     val oldLimit = src.limit()
     val newLimit = if (src.remaining > internal.remaining) {
@@ -151,6 +153,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 }
 
 private[core] trait LiveWriteBuffer extends WriteBuffer {
+
+  //DO NOT MAKE THIS A VAL, screws up initialization order
+  def internalBufferSize = 1024 * 64
 
   protected def channel: SocketChannel
   def channelWrite(raw: DataBuffer): Int = raw.writeTo(channel)
