@@ -410,7 +410,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     val it = selectedKeys.iterator()
     while (it.hasNext) {
       val key : SelectionKey = it.next
-      it.remove()
       if (!key.isValid) {
         log.error("KEY IS INVALID")
       } else if (key.isConnectable) {
@@ -485,7 +484,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
             }
           }
         }
-        if (key.isWritable) {
+        //have to test for valid here since it could have just been cancelled above
+        if (key.isValid && key.isWritable) {
           key.attachment  match {
             case c: Connection => try {
               c.handleWrite()
@@ -501,6 +501,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           }
         }
       }
+      it.remove()
+
     }
   }
 

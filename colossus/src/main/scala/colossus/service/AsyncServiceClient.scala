@@ -65,7 +65,9 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
       worker ! Disconnect(connectionId)
       context.become(dying)
     }
-    //case Worker.MessageDeliveryFailed   <--- add that in later
+    case m: Worker.MessageDeliveryFailed => {
+      println(s"received failed message delivery $m")
+    }
     case x => worker ! Message(connectionId, x)
   }
 

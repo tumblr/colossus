@@ -25,15 +25,15 @@ object Main extends App {
   val telnetServer = TelnetExample.start(9000)
 
   //http service which communicates with a key/value store over the redis protocol
-  //val httpServer = HttpExample.start(9001, new InetSocketAddress("localhost", 9002))
+  val httpServer = HttpExample.start(9001, new InetSocketAddress("localhost", 9002))
 
   //and here's the key/value store itself
-  //val keyvalServer = KeyValExample.start(9002)
+  val keyvalServer = KeyValExample.start(9002)
 
   //an echo server built only on the core layer
-  //val echoServer = EchoExample.start(9003)
+  val echoServer = EchoExample.start(9003)
 
   //chat server using the controller layer
-  //val chatServer = ChatExample.start(9005)
+  val chatServer = ChatExample.start(9005)
 
 }
