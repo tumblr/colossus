@@ -28,11 +28,14 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
   def channelWrite(data: DataBuffer) = 0
 
   def clearBuffer(): ByteString = {
+    val lastsize = bytesAvailable
     bytesAvailable = maxWriteSize
-    handler.foreach{_.readyForData()}
     val builder = new ByteStringBuilder
     while (!writeCalls.isEmpty) {
       builder ++= writeCalls.dequeue()
+    }
+    if (lastsize == 0) {
+      handler.foreach{_.readyForData()}
     }
     builder.result
   }
@@ -42,7 +45,8 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
       WriteStatus.Zero
     } else {
       bytesAvailable -= raw.remaining
-      writeCalls.enqueue(ByteString(raw.takeAll))
+      val data = ByteString(raw.takeAll)
+      writeCalls.enqueue(data)
       if (bytesAvailable < 0) {
         bytesAvailable = 0
         WriteStatus.Partial

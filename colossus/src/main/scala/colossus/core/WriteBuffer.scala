@@ -74,6 +74,24 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //when we fail to write the whole internal buffer to the socket
   private var drainingInternal = false
 
+  //this is only used when the connection is about to disconnect.  We allow the
+  //write buffer to drain, then perform the actual disconnect.  Once this is
+  //set, no more writes are allowed and the connection is considered severed
+  //from the user's point of view
+  //
+  //TODO: this is a total hack, make it less so
+  private var disconnectCallback: Option[() => Unit] = None
+  def disconnectBuffer(cb: () => Unit) {
+    if (partialBuffer.isEmpty && drainingInternal == false && internal.data.position == 0) {
+      cb()
+      //we set this to prevent any further writes (see write())
+      disconnectCallback = Some(() => ())
+    } else {
+      disconnectCallback = Some(cb)
+    }
+  }
+
+
   def isDataBuffered: Boolean = partialBuffer.isDefined
 
   //TODO: This buffer size is probably fine, but either do some more
@@ -93,6 +111,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   }
 
   private def writeRaw(raw: DataBuffer): WriteStatus = {
+    _lastTimeDataWritten = System.currentTimeMillis
     enableWriteReady()
     copyInternal(raw.data)
     if (raw.hasUnreadData) {
@@ -110,14 +129,10 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //need to do any buffering of its own, though it does need to be aware that
   //any subsequent calls will return a Zero write status
   def write(raw: DataBuffer): WriteStatus = {
-    if (drainingInternal) {
-      if (partialBuffer.isDefined) {
-        Zero
-      } else {
-        //we have to take a copy
-        partialBuffer = Some(raw.takeCopy)
-        Partial
-      }
+    if (disconnectCallback.isDefined) {
+      Failed
+    } else if (partialBuffer.isDefined) {
+      Zero
     } else {
       writeRaw(raw)
     }
@@ -132,7 +147,6 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     }
     val wrote = channelWrite(internal)
     _bytesSent += wrote
-    _lastTimeDataWritten = System.currentTimeMillis
     if (internal.remaining == 0) {
       //hooray! we wrote all the data, now we can accept more
       internal.data.clear()
@@ -147,6 +161,8 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
         //partialBuffer being set)
         onBufferClear()
       }
+    }.getOrElse{
+      disconnectCallback.foreach{cb => cb()}
     }
 
   }

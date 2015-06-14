@@ -273,6 +273,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
+      println(s"PUSHING ${s.message}")
       val pushed = push(s.message, s.start){
         case OutputResult.Success         => sentBuffer.enqueue(s)
         case OutputResult.Failure(err)    => s.handler(Failure(err))

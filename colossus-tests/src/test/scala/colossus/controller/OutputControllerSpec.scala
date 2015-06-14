@@ -43,10 +43,9 @@ class OutputControllerSpec extends ColossusSpec {
       controller.testPush(message){_ must equal (OutputResult.Success)}
       controller.testPush(message2){_ must equal (OutputResult.Success)}
       controller.testGracefulDisconnect()
-      endpoint.expectOneWrite(data.take(endpoint.maxWriteSize))
+      endpoint.expectOneWrite(data)
       endpoint.disconnectCalled must equal(false)
       endpoint.clearBuffer()
-      endpoint.expectWrite(data.drop(endpoint.maxWriteSize))
       endpoint.expectWrite(data2)
       endpoint.disconnectCalled must equal(true)  
     }
