@@ -53,7 +53,8 @@ object BenchmarkService {
     )
     val serviceConfig = ServiceConfig(
       name = "/sample",
-      requestTimeout = Duration.Inf
+      requestTimeout = Duration.Inf,
+      requestMetrics = false
     )
 
     val server = Service.serve[Http](serverConfig, serviceConfig) { context =>

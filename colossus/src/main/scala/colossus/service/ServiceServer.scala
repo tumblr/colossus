@@ -24,7 +24,8 @@ case class ServiceConfig(
   name: MetricAddress,
   requestTimeout: Duration,
   requestBufferSize: Int = 100, //how many concurrent requests can be processing at once
-  logErrors: Boolean = true
+  logErrors: Boolean = true,
+  requestMetrics: Boolean = true
 )
 
 class RequestBufferFullException extends Exception("Request Buffer full")
@@ -106,9 +107,11 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
     while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
       val done = requestBuffer.remove()
       val comp = done.response
-      val tags = tagDecorator.tagsFor(done.request, comp)
-      requests.hit(tags = tags)
-      latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+      if (requestMetrics) {
+        val tags = tagDecorator.tagsFor(done.request, comp)
+        requests.hit(tags = tags)
+        latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+      }
       concurrentRequests.decrement()
       push(comp, done.creationTime) {
         case OutputResult.Success => {}
@@ -154,9 +157,11 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
           case Success(yay) => yay
           case Failure(err) => handleFailure(request, err)
         }
-        val tags = tagDecorator.tagsFor(request, done)
-        requests.hit(tags = tags)
-        latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
+        if (requestMetrics) {
+          val tags = tagDecorator.tagsFor(request, done)
+          requests.hit(tags = tags)
+          latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
+        }
         push(done) {
           case OutputResult.Success => {}
           case _ => println("dropped reply")
