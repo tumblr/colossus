@@ -61,7 +61,7 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
   def encode() : DataBuffer = {
     val builder = new ByteStringBuilder
     val dataSize = body.map{_.size}.getOrElse(0)
-    builder.sizeHint(100 + dataSize)
+    builder.sizeHint((50 * head.headers.size) + dataSize)
     head.appendHeaderBytes(builder)
     builder putBytes s"Content-Length: ${dataSize}".getBytes
     builder append NEWLINE
