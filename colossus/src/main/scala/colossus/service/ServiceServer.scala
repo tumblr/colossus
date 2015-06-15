@@ -85,16 +85,16 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
 
   }
 
-  private val requestBuffer = collection.mutable.Queue[SyncPromise]()
+  private val requestBuffer = new java.util.LinkedList[SyncPromise]()
   private var numRequests = 0
 
   override def idleCheck(period: Duration) {
     super.idleCheck(period)
 
     val time = System.currentTimeMillis
-    while (requestBuffer.size > 0 && requestBuffer.head.isTimedOut(time)) {
+    while (requestBuffer.size > 0 && requestBuffer.peek.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
-      requestBuffer.head.complete(handleFailure(requestBuffer.head.request, new TimeoutError))
+      requestBuffer.peek.complete(handleFailure(requestBuffer.peek.request, new TimeoutError))
 
     }
   }
@@ -103,8 +103,8 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.head.isComplete) {
-      val done = requestBuffer.dequeue()
+    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
+      val done = requestBuffer.remove()
       val comp = done.response
       val tags = tagDecorator.tagsFor(done.request, comp)
       requests.hit(tags = tags)
@@ -131,9 +131,7 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
 
   protected def processMessage(request: I) {
     numRequests += 1
-    val promise = new SyncPromise(request)
-    requestBuffer.enqueue(promise)
-    concurrentRequests.increment()
+    val startTime = System.currentTimeMillis
     /**
      * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
@@ -149,10 +147,34 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
     } else {
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
-    response.execute{
-      case Success(res) => promise.complete(res)
-      case Failure(err) => promise.complete(handleFailure(promise.request, err))
+    response match {
+      case ConstantCallback(v) if (requestBuffer.size == 0) => {
+        //println("const!")
+        val done = v match {
+          case Success(yay) => yay
+          case Failure(err) => handleFailure(request, err)
+        }
+        val tags = tagDecorator.tagsFor(request, done)
+        requests.hit(tags = tags)
+        latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
+        push(done) {
+          case OutputResult.Success => {}
+          case _ => println("dropped reply")
+        }
+        checkGracefulDisconnect()
+      }
+      case other => {
+        val promise = new SyncPromise(request)
+        requestBuffer.add(promise)
+        concurrentRequests.increment()
+        other.execute{
+          case Success(res) => promise.complete(res)
+          case Failure(err) => promise.complete(handleFailure(promise.request, err))
+        }
+
+      }
     }
+
   }
 
   private def handleFailure(request: I, reason: Throwable): O = {
@@ -176,6 +198,8 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
   override def gracefulDisconnect() {
     pauseReads()
     disconnecting = true
+    //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
+    //disconnecting before we have a change to finish processing and write the response
 
   }
 

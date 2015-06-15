@@ -122,13 +122,23 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
     }
 
     inputState match {
-      case Decoding => codec.decode(data) match {
-        case Some(DecodedResult.Stream(msg, sink)) => {
-          inputState = ReadingStream(sink)
-          processAndContinue(msg, data)
+      case Decoding => {
+        var decoding = true
+        while (decoding) {
+          codec.decode(data) match {
+            case Some(DecodedResult.Static(msg)) => {
+              processMessage(msg)
+            }
+            case None => {
+              decoding = false
+            } 
+            case Some(DecodedResult.Stream(msg, sink)) => {
+              decoding = false
+              inputState = ReadingStream(sink)
+              processAndContinue(msg, data)
+            }
+          }
         }
-        case Some(DecodedResult.Static(msg)) => processAndContinue(msg, data)
-        case None => {} //nothing to do here, just waiting for MOAR DATA
       }
       case ReadingStream(sink) => sink.push(data) match {
         case PushResult.Ok => {}

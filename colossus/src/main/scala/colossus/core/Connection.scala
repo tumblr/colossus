@@ -206,8 +206,9 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-
-    sender ! WorkerCommand.Disconnect(id)
+    disconnectBuffer{() => 
+      sender ! WorkerCommand.Disconnect(id)
+    }
   }
 
   /**
