@@ -105,19 +105,7 @@ class ServiceClientSpec extends ColossusSpec {
       cb.execute()
     }
 
-    "send big command" in {
-      //command is exactly the size of the write buffer
-      val command = Command(CMD_GET, "123456789012345678901234567890")
-      val raw = command.raw
-      val (endpoint, client, probe) = newClient()
-      val cb = client.send(command)
-      cb.execute()
-      endpoint.expectOneWrite(raw.slice(0, 30))
-      endpoint.clearBuffer()
-      endpoint.expectOneWrite(raw.slice(30, raw.size))
-    }
-
-    "queue a second command when a big command is partially sent" in {
+    "queue a second command when a big command is partially sent"  in {
       val command = Command(CMD_GET, "123456789012345678901234567890")
       val command2 = Command(CMD_GET, "hello")
       val raw = command.raw
@@ -126,13 +114,12 @@ class ServiceClientSpec extends ColossusSpec {
       val cb2 = client.send(command2)
       cb.execute()
       cb2.execute()
-      endpoint.expectOneWrite(raw.slice(0, 30))
+      endpoint.expectOneWrite(raw)
       endpoint.clearBuffer()
-      endpoint.expectWrite(raw.slice(30, raw.size))
-      endpoint.expectOneWrite(command2.raw.slice(0, 10))
+      println("checking")
+      endpoint.expectOneWrite(command2.raw)
       endpoint.clearBuffer()
-      endpoint.expectWrite(command2.raw.drop(10))
-      //endpoint.writeCalls(2) ++ endpoint.writeCalls(3) must equal(command2.raw)
+      endpoint.expectNoWrite()
 
     }
 
@@ -195,7 +182,7 @@ class ServiceClientSpec extends ColossusSpec {
       response must equal(Some(reply))
     }
 
-    "fail pending requests on disconnect with failFast" taggedAs(org.scalatest.Tag("test")) in {
+    "fail pending requests on disconnect with failFast" in {
       val command1 = Command(CMD_GET, "123456789012345678901234567890")
       val command2 = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true)
@@ -232,7 +219,7 @@ class ServiceClientSpec extends ColossusSpec {
         case Success(r) => response2 = Some(r)
         case Failure(nope) => throw new Exception("NOPE2")
       }
-      endpoint.expectOneWrite(command1.raw.slice(0, 30))
+      endpoint.expectOneWrite(command1.raw)
       while (endpoint.clearBuffer().size > 0) {}
       client.receivedData(reply1.raw)
       client.receivedData(reply2.raw)
@@ -253,7 +240,7 @@ class ServiceClientSpec extends ColossusSpec {
           case _ => throw new Exception("Executed!")
         }
       }
-      endpoint.expectOneWrite(big.raw.slice(0, 30))
+      endpoint.expectOneWrite(big.raw)
       var failed = false
       client.send(shouldFail).execute{
         case Success(_) => throw new Exception("Didn't fail?!?!")
@@ -282,7 +269,7 @@ class ServiceClientSpec extends ColossusSpec {
       var failed = false
       val cb = client.send(command)
       endpoint.expectNoWrite()
-      endpoint.connection_status = ConnectionStatus.NotConnected
+      endpoint.disrupt()
       cb.execute{
         case Success(wat) => println("HERE");throw new Exception("NOPE")
         case Failure(yay) => println("THER");failed = true
@@ -356,7 +343,6 @@ class ServiceClientSpec extends ColossusSpec {
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
       client.gracefulDisconnect()
-      endpoint.connection_status = ConnectionStatus.NotConnected
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
     }
@@ -377,14 +363,9 @@ class ServiceClientSpec extends ColossusSpec {
       }.execute()
       endpoint.expectOneWrite(cmd.raw)
       client.receivedData(reply.raw)
-      endpoint.connection_status = ConnectionStatus.NotConnected
+      //TODO: is this test unfinished?
     }
 
-
-      
-
-
-    //blocked on https://github.com/tumblr/colossus/issues/19
     "attempts to reconnect when server closes connection" in {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem{implicit sys => 
@@ -396,25 +377,29 @@ class ServiceClientSpec extends ColossusSpec {
             con.gracefulDisconnect()
             reply
           }
-          case other => StatusReply("ok")
+          case other => {
+            println(s"GOT $other")
+            StatusReply("ok")
+          }
         }}}
         withServer(server) {
           val config = ClientConfig(
             address = new InetSocketAddress("localhost", TEST_PORT),
             name = "/test",
-            requestTimeout = 100.milliseconds
+            requestTimeout = 1.second
           )
           val client = AsyncServiceClient(config, new RedisClientCodec)
           TestClient.waitForConnected(client)
           TestUtil.expectServerConnections(server, 1)
           Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
-          Thread.sleep(100)
           TestUtil.expectServerConnections(server, 1)
           TestClient.waitForConnected(client)
-          Await.result(client.send(Command("hey")), 500.milliseconds) must equal(StatusReply("ok"))
+          Await.result(client.send(Command("00000000000")), 500.milliseconds) must equal(StatusReply("ok"))
         }
       }
     }
+
+
     "not attempt reconnect when autoReconnect is false" taggedAs(Tag("wat")) in {
       withIOSystem{ implicit io => 
         val server = Service.serve[Raw]("rawwww", TEST_PORT) {_.handle{con => con.become{
