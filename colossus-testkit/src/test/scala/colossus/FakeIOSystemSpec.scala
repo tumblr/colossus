@@ -21,6 +21,16 @@ class FakeIOSystemSpec extends ColossusSpec with CallbackMatchers {
     }
   }
 
+  "fakeExecutorWorkerRef" must {
+    "execute a callback" in {
+      val worker = FakeIOSystem.fakeExecutorWorkerRef
+      import worker.callbackExecutor
+      val cb = Callback.fromFuture(Future{ 5 }).map{i => i + 1}
+      CallbackAwait.result(cb, 1.second) must equal(6)
+    }
+  }
+
+
 
       
 

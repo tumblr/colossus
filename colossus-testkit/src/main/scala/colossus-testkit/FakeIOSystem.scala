@@ -17,11 +17,24 @@ object FakeIOSystem {
     IOSystem(system.deadLetters, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
   }
 
+  /**
+   * Returns a WorkerRef with a TestProbe as the underlying actor.  Returns the probe with the WorkerRef.
+   *
+   * Important: This WorkerRef's callbackExecutor does NOT work, use `fakeExecutorWorkerRef` instead
+   */
   def fakeWorkerRef(implicit system: ActorSystem): (TestProbe, WorkerRef) = {
     val probe = TestProbe()
     implicit val aref = probe.ref
     val ref = WorkerRef(0, new LocalCollection, probe.ref, apply())
     (probe, ref)
+  }
+
+  /**
+   * Returns a WorkerRef that is able to properly execute callbacks
+   */
+  def fakeExecutorWorkerRef(implicit system: ActorSystem): WorkerRef = {
+    val ex = testExecutor
+    WorkerRef(0, new LocalCollection, testExecutor.executor, FakeIOSystem())
   }
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {

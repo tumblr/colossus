@@ -37,7 +37,7 @@ case class WorkerConfig(
  * @param worker The ActorRef of the Worker
  * @param system The IOSystem to which this Worker belongs
  */
-case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system: IOSystem) {
+case class WorkerRef private[colossus](id: Int, metrics: LocalCollection, worker: ActorRef, system: IOSystem) {
   /**
    * Send this Worker a message
    * @param message The message to send
