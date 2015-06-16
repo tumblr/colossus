@@ -5,17 +5,23 @@ package testkit
 import akka.testkit.TestProbe
 import service._
 import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 
 
 class FakeIOSystemSpec extends ColossusSpec with CallbackMatchers {
 
-  "FakeExecutor" must {
+  "TestExecutor" must {
     "execute" in {
-      implicit val ex = FakeIOSystem.callingThreadCallbackExecutor
-      val cb = Callback.fromFuture(Future.successful(5)).map{i => i + 1}
-      cb must evaluateTo{x: Int => x must equal(6)}
+      implicit val ex = FakeIOSystem.testExecutor
+
+      val cb = Callback.fromFuture(Future{ 5 }).map{i => i + 1}
+
+      CallbackAwait.result(cb, 1.second) must equal(6)
     }
   }
+
+
+      
 
 }
