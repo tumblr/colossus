@@ -16,7 +16,7 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
   def error(message: String, headers: List[(String, String)] = Nil)        = respond(INTERNAL_SERVER_ERROR, message, headers)
   def badRequest(message: String, headers: List[(String, String)] = Nil)   = respond(BAD_REQUEST, message, headers)
   def unauthorized(message: String, headers: List[(String, String)] = Nil) = respond(UNAUTHORIZED, message, headers)
-
+  def forbidden(message: String, headers: List[(String, String)] = Nil)    = respond(FORBIDDEN, message, headers)
 
   //TODO optimize
   def bytes : ByteString = {
