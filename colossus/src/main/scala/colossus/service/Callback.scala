@@ -66,7 +66,7 @@ class CallbackExecutionException(cause: Throwable) extends Exception("Uncaught e
  * thrown in the "final" handler passed to `execute` are not caught.  This is
  * because the final block cannot be mapped on (since it is only passed when
  * the callback is executed) and throwing the exception is preferrable to
- * suppressing it.  
+ * suppressing it.
  *
  * Any exception that is thrown in this block is however rethrown as a
  * `CallbackExecutionException`.  Therefore, any "trigger" function you wrap
@@ -91,7 +91,7 @@ sealed trait Callback[+O] {
    */
   def toFuture(implicit ex: ExecutionContext): Future[O] = {
     val p = Promise[O]()
-    this.map{o => p.success(o)}.execute()
+    this.map{o => p.success(o)}.recover{case o => p.failure(o)}.execute()
     p.future
   }
 
@@ -116,7 +116,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
   //notice the order of execution is handler(this callback) => f(the mapping) => cb (the handler function built after this call)
   def flatMap[U](f: O => Callback[U]): Callback[U] = {
     val newTrigger: (Try[U] => Unit) => Unit = cb => trigger(i => handler(i) match {
-      case Success(value) => { 
+      case Success(value) => {
         Try(f(value)) match {
           case Success(callback) => callback.execute(cb)
           case Failure(err) => cb(Failure(err))
@@ -130,7 +130,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
 
   def mapTry[U](f: Try[O] => Try[U]): Callback[U] = MappedCallback(trigger, {i: Try[I] => f(handler(i))})
 
-  def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = MappedCallback(trigger, {i: Try[I] => 
+  def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = MappedCallback(trigger, {i: Try[I] =>
     handler(i) match {
       case Success(o) => Success(o)
       case Failure(err) => try { p.andThen(s => Success(s)).applyOrElse(err, {e: Throwable => Failure[U](e)})} catch {
@@ -234,7 +234,7 @@ case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
  * Callback, for example, a Colossus worker.
  *
  * This type is generally only needed when converting a Future to a Callback,
- * or scheduling a Callback for delayed execution.  
+ * or scheduling a Callback for delayed execution.
  */
 case class CallbackExecutor(context: ExecutionContext, executor: ActorRef)
 object CallbackExecutor {
@@ -259,7 +259,7 @@ object Callback {
       numComplete += 1
       if (numComplete == callbacks.size) {
         callback(Success(results.toList))
-      }        
+      }
     }
 
     def execute() {
@@ -282,7 +282,7 @@ object Callback {
         completion(ab)
       }
     }
-        
+
 
     def execute(){
       a.execute{a => aresult = Some(a); checkDone()}
@@ -357,8 +357,8 @@ object Callback {
   object Implicits {
     implicit def objectToSuccessfulCallback[T](obj: T): Callback[T] = Callback.successful(obj)
   }
-      
-  
+
+
 }
 
 class PromiseException(message: String) extends Exception(message)
