@@ -53,7 +53,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
   def testGet(url: String, expectedBody: String) {
     val req = get(url)
     val expected = HttpResponse(
-      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(("content-length" -> expectedBody.length.toString))), 
+      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("content-length" ,expectedBody.length.toString))), 
       Some(ByteString(expectedBody))
     )
 
