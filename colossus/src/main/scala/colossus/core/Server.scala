@@ -90,7 +90,7 @@ case class ServerConfig(
  * @param system The IOSystem to which this Server belongs
  * @param serverStateAgent The current state of the Server.
  */
-case class ServerRef(config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateAgent : Agent[ServerState]) {
+case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateAgent : Agent[ServerState]) {
   def name = config.name
 
   def serverState = serverStateAgent.get()
