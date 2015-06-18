@@ -2,17 +2,19 @@ package colossus.protocols.http.client
 
 import akka.util.ByteString
 import colossus.controller._
-import colossus.core.{DataBuffer, DataStream, DataReader}
+import colossus.core.{DataBuffer, DataReader, DataStream}
 import colossus.protocols.http._
 import colossus.service.{Callback, DecodedResult}
-import colossus.testkit.{PipeFoldTester, CallbackMatchers}
-import org.scalatest.{WordSpec, MustMatchers, TryValues, OptionValues}
-import scala.util.{Try, Success, Failure}
+import colossus.testkit.{CallbackMatchers, ColossusSpec, FakeIOSystem, PipeFoldTester}
+import org.scalatest.{MustMatchers, OptionValues, TryValues}
 
-class StreamingHttpResponseParserSpec extends WordSpec with MustMatchers with TryValues with OptionValues with CallbackMatchers {
+import scala.concurrent.duration._
 
+class StreamingHttpResponseParserSpec extends ColossusSpec with MustMatchers with TryValues with OptionValues with CallbackMatchers {
 
+  implicit val cbe = FakeIOSystem.testExecutor
 
+  implicit val duration = 1.second
 
   "StreamingHttpResponseParser" must {
 
