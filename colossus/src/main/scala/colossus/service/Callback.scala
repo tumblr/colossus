@@ -358,7 +358,9 @@ object Callback {
     implicit def objectToSuccessfulCallback[T](obj: T): Callback[T] = Callback.successful(obj)
   }
 
-
+  object FutureImplicits {
+    implicit def futureToCallback[T](f : Future[T])(implicit cbe : CallbackExecutor) : Callback[T] = Callback.fromFuture(f)
+  }
 }
 
 class PromiseException(message: String) extends Exception(message)

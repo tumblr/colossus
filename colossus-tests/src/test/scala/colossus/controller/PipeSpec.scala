@@ -1,16 +1,22 @@
 package colossus
 package controller
 
-import colossus.testkit.CallbackMatchers
+import colossus.testkit.{FakeIOSystem, ColossusSpec, CallbackMatchers}
 import org.scalatest._
 
 import akka.util.ByteString
 import core.DataBuffer
 import scala.util.{Success, Failure}
 
+import scala.concurrent.duration._
+
 import PushResult._
 
-class PipeSpec extends WordSpec with MustMatchers with CallbackMatchers {
+class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
+
+  implicit val cbe = FakeIOSystem.testExecutor
+
+  implicit val duration = 1.second
 
   "InfinitePipe" must {
 

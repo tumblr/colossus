@@ -3,10 +3,16 @@ package colossus.protocols.http
 import akka.util.ByteString
 import colossus.controller.Source
 import colossus.core.DataBuffer
-import colossus.testkit.CallbackMatchers
-import org.scalatest.{OptionValues, TryValues, MustMatchers, WordSpec}
+import colossus.testkit.{CallbackMatchers, ColossusSpec, FakeIOSystem}
+import org.scalatest.{OptionValues, TryValues}
 
-class HttpResponseSpec extends WordSpec with MustMatchers with TryValues with OptionValues with CallbackMatchers {
+import scala.concurrent.duration._
+
+class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues with CallbackMatchers {
+
+  implicit val cbe = FakeIOSystem.testExecutor
+
+  implicit val duration = 1.second
 
   "An HttpResponse" must {
 
