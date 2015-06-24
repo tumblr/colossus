@@ -263,7 +263,9 @@ object Combinators {
    * any data.  Useful when flatMapping parsers
    */
   def const[T](t: T): Parser[T] = new Parser[T] {
-    def parse(data: DataBuffer) = Some(t)
+    val result = Some(t)
+    def parse(data: DataBuffer) = result
+    override def endOfStream() = result
   }
 
   def literal(lit: ByteString): Parser[ByteString] = new Parser[ByteString] {

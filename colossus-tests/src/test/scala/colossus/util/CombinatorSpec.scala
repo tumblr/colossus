@@ -33,6 +33,13 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("12:abcdefghijklmn")
       parser.parse(d) must equal (Some(bstr("abcdefghijkl")))
     }
+    "const is const" in {
+      val d = data("abcdefg")
+      val parser = const(1)
+      parser.parse(d) must equal (Some(1))
+      parser.parse(d) must equal (Some(1))
+      parser.endOfStream() must equal (Some(1))
+    }
     "repeat" in {
       val parser = repeat(3, bytes(2))
       val d = data("abcdefgh")
