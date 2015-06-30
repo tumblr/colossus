@@ -240,8 +240,12 @@ object Callback {
     }
 
     def execute() {
-      callbacks.zipWithIndex.foreach{ case (cb,index) =>
-        cb.execute(result => finish(index, result))
+      if (callbacks.isEmpty) {
+        callback(Success(Nil))
+      } else {
+        callbacks.zipWithIndex.foreach {
+          case (cb, index) => cb.execute(result => finish(index, result))
+        }
       }
     }
   }
