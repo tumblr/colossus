@@ -49,12 +49,12 @@ object HttpHeaders {
   )
 
   //make these all lower-case
-
   val Accept            = "accept"
-  val ContentLength     = "content-length"
   val Connection        = "connection"
-  val SetCookie         = "set-cookie"
+  val ContentLength     = "content-length"
+  val ContentType       = "content-type"
   val CookieHeader      = "cookie"
+  val SetCookie         = "set-cookie"
   val TransferEncoding  = "transfer-encoding"
 }
 
