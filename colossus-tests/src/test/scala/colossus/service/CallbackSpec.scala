@@ -77,13 +77,18 @@ class CallbackSpec extends ColossusSpec {
       value2 must equal(9)
       value3 must equal(16)
     }
+    "empty sequence" in {
+      var value1 = false
+      val emptySeq = Callback.sequence(List()).map{i => value1 = true }
+      emptySeq.execute()
+      value1 must equal(true)
+    }
     "successful" in {
       var value1 = 0
       val c = Callback.successful(5).map{i => value1 = i}
       c.execute()
       value1 must equal(5)
     }
-
     "failed" in {
       var value1 = 0
       val c = Callback.failed(new Exception("XXX")).map{i => value1 = i}
