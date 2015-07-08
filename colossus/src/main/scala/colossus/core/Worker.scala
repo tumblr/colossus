@@ -37,7 +37,7 @@ case class WorkerConfig(
  * @param worker The ActorRef of the Worker
  * @param system The IOSystem to which this Worker belongs
  */
-case class WorkerRef(id: Int, metrics: LocalCollection, worker: ActorRef, system: IOSystem) {
+case class WorkerRef private[colossus](id: Int, metrics: LocalCollection, worker: ActorRef, system: IOSystem) {
   /**
    * Send this Worker a message
    * @param message The message to send
@@ -87,7 +87,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
    */
   def bind(workerItem: WorkerItem) {
     if (workerItem.isBound) {
-      log.error(s"Attempted to bind worker ${workerItem.binding} that was already bound")
+      log.error(s"Attempted to bind worker ${workerItem} that was already bound")
     } else {
       val id = newId()
       workerItems(id) = workerItem
@@ -256,7 +256,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
     import IOCommand._
     cmd match {
       case BindWorkerItem(itemFactory) => {
-        workerItems.bind(itemFactory(me))
+        val item = itemFactory(me)
+        //the item may have already bound itself
+        if (!item.isBound) {
+          workerItems.bind(item)
+        }
       }
       case BindAndConnectWorkerItem(address, itemFactory) => {
         val item = itemFactory(me)
@@ -408,7 +412,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       val key : SelectionKey = it.next
       if (!key.isValid) {
         log.error("KEY IS INVALID")
-        it.remove()
       } else if (key.isConnectable) {
         val con = key.attachment.asInstanceOf[ClientConnection]
         try {
@@ -426,76 +429,80 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
             }
           }
         }
-        it.remove()
-      }  else if (key.isReadable) {
-        // Read the data
-        buffer.clear
-        val sc: SocketChannel = key.channel().asInstanceOf[SocketChannel]
-        try {
-          val len = sc.read(buffer)
-          if (len > -1) {
-            key.attachment match {
-              case connection: Connection => {
-                buffer.flip
-                val data = DataBuffer(buffer, len)
-                connection.handleRead(data)
-              } //end case
-            }
-          } else {
-            //reading -1 bytes means the connection has been closed
-            key.attachment match {
-              case c: Connection => {
-                unregisterConnection(c, DisconnectCause.Closed)
-                key.cancel()
+      }  else {
+        if (key.isReadable) {
+          // Read the data
+          buffer.clear
+          val sc: SocketChannel = key.channel().asInstanceOf[SocketChannel]
+          try {
+            val len = sc.read(buffer)
+            if (len > -1) {
+              key.attachment match {
+                case connection: Connection => {
+                  buffer.flip
+                  val data = DataBuffer(buffer, len)
+                  connection.handleRead(data)
+                } //end case
+              }
+            } else {
+              //reading -1 bytes means the connection has been closed
+              key.attachment match {
+                case c: Connection => {
+                  unregisterConnection(c, DisconnectCause.Closed)
+                  key.cancel()
+                }
               }
             }
-          }
-        } catch {
-          case t: java.io.IOException => {
-            key.attachment match {
-              case c: Connection => {
-                //connection reset by peer, sometimes thrown by read when the connection closes
-                unregisterConnection(c, DisconnectCause.Closed)
+          } catch {
+            case t: java.io.IOException => {
+              key.attachment match {
+                case c: Connection => {
+                  //connection reset by peer, sometimes thrown by read when the connection closes
+                  unregisterConnection(c, DisconnectCause.Closed)
+                }
               }
+              sc.close()
+              key.cancel()
             }
-            sc.close()
-            key.cancel()
-          }
-          case t: Throwable => {
-            log.warning(s"Unknown Error! : ${t.getClass.getName}: ${t.getMessage}")
-            if (trace) {
-              t.printStackTrace()
-            }
-            //close the connection to ensure it's not in an undefined state
-            key.attachment match {
-              case c: Connection => {
-                log.warning(s"closing connection ${c.id} due to unknown error")
-                unregisterConnection(c, DisconnectCause.Error(t))
+            case t: Throwable => {
+              log.warning(s"Unknown Error! : ${t.getClass.getName}: ${t.getMessage}")
+              if (trace) {
+                t.printStackTrace()
               }
-              case other => {
-                log.error (s"Key has bad attachment!! $other")
+              //close the connection to ensure it's not in an undefined state
+              key.attachment match {
+                case c: Connection => {
+                  log.warning(s"closing connection ${c.id} due to unknown error")
+                  unregisterConnection(c, DisconnectCause.Error(t))
+                }
+                case other => {
+                  log.error (s"Key has bad attachment!! $other")
+                }
               }
+              sc.close()
+              key.cancel()
             }
-            sc.close()
-            key.cancel()
           }
         }
-        it.remove()
-      } else if (key.isWritable) {
-        key.attachment  match {
-          case c: Connection => try {
-            c.handleWrite()
-          } catch {
-            case j: java.io.IOException => {
-              unregisterConnection(c, DisconnectCause.Error(j))
+        //have to test for valid here since it could have just been cancelled above
+        if (key.isValid && key.isWritable) {
+          key.attachment  match {
+            case c: Connection => try {
+              c.handleWrite()
+            } catch {
+              case j: java.io.IOException => {
+                unregisterConnection(c, DisconnectCause.Error(j))
+              }
+              case other: Throwable => {
+                log.warning(s"Error handling write: ${other.getClass.getName} : ${other.getMessage}")
+              }
             }
-            case other: Throwable => {
-              log.warning(s"Error handling write: ${other.getClass.getName} : ${other.getMessage}")
-            }
+            case _ => {}
           }
-          case _ => {}
         }
       }
+      it.remove()
+
     }
   }
 

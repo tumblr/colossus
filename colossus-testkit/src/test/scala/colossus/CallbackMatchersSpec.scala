@@ -1,14 +1,20 @@
 package colossus
 package testkit
 
+import java.awt.datatransfer.UnsupportedFlavorException
+
 import colossus.service.{UnmappedCallback, Callback}
-import org.scalatest.{MustMatchers, WordSpec}
+import scala.concurrent.duration._
 
 import scala.util.Try
 
-class CallbackMatchersSpec extends WordSpec with MustMatchers{
+class CallbackMatchersSpec extends ColossusSpec{
 
   import CallbackMatchers._
+
+  val duration = 1.second
+
+  implicit val cbe = FakeIOSystem.testExecutor
 
   "A CallbackMatcher" should {
 
@@ -21,7 +27,7 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
       val unmapped = UnmappedCallback(cbFunc)
 
       var execd = false
-      val result = new CallbackEvaluateTo[Int](a => execd = true).apply(unmapped)
+      val result = new CallbackEvaluateTo[Int](duration, a => execd = true).apply(unmapped)
       result.matches must equal(false)
       execd must equal(false)
 
@@ -34,7 +40,7 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
         execd = true
         a must equal("awesome!")
       }
-      val result = new CallbackEvaluateTo[String](eval).apply(cb)
+      val result = new CallbackEvaluateTo[String](duration, eval).apply(cb)
       result.matches must equal(false)
       execd must equal(true)
     }
@@ -42,7 +48,7 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
     "fail to match if a Callback reports a failure" in {
       val cb = Callback.failed(new Exception("bam"))
       var execd = false
-      val result = new CallbackEvaluateTo[Any](a => execd = true).apply(cb)
+      val result = new CallbackEvaluateTo[Any](duration, a => execd = true).apply(cb)
       result.matches must equal(false)
       execd must equal(false)
     }
@@ -54,7 +60,7 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
         execd = true
         a must equal("success!")
       }
-      val result = new CallbackEvaluateTo[String](eval).apply(cb)
+      val result = new CallbackEvaluateTo[String](duration, eval).apply(cb)
       result.matches must equal(true)
       execd must equal(true)
     }
@@ -66,28 +72,14 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
         execd = true
         a must equal("YAY")
       }
-      val result = new CallbackEvaluateTo[String](eval).apply(cb)
+      val result = new CallbackEvaluateTo[String](duration, eval).apply(cb)
       result.matches must equal(false)
       execd must equal(false)
       result.failureMessage.contains("NAY") must equal(true)
     }
-
-
   }
 
   "A CallbackFailTo matcher" should {
-    "fail to match if a Callback never executes" in {
-      def cbFunc(f : Try[Int] => Unit) {
-
-      }
-
-      val unmapped = UnmappedCallback(cbFunc)
-
-      var execd = false
-      val result = new CallbackFailTo[Int](a => execd = true).apply(unmapped)
-      result.matches must equal(false)
-      execd must equal(false)
-    }
 
     "fail to match if the 'evaluate' function throws" in {
       var execd = false
@@ -96,7 +88,7 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
         execd = true
         a must equal("awesome!")
       }
-      val result = new CallbackFailTo[String](eval).apply(cb)
+      val result = new CallbackFailTo[String, Throwable](duration, eval).apply(cb)
       result.matches must equal(false)
       execd must equal(true)
     }
@@ -108,7 +100,19 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
         execd = true
         a must not be null
       }
-      val result = new CallbackFailTo[String](eval).apply(cb)
+      val result = new CallbackFailTo[String, Throwable](duration, eval).apply(cb)
+      result.matches must equal(false)
+      execd must equal(false)
+    }
+
+    "fail to match if a Callback throws the wrong exception" in {
+      var execd = false
+      val cb = Callback.failed(new IllegalArgumentException("D'OH!"))
+      val eval = (a : UnsupportedFlavorException) => {
+        execd = true
+      }
+
+      val result = new CallbackFailTo[String, UnsupportedFlavorException](duration, eval).apply(cb)
       result.matches must equal(false)
       execd must equal(false)
     }
@@ -119,7 +123,8 @@ class CallbackMatchersSpec extends WordSpec with MustMatchers{
       val eval = (a : Throwable) => {
         execd = true
       }
-      val result = new CallbackFailTo[String](eval).apply(cb)
+
+      val result = new CallbackFailTo[String, Throwable](duration, eval).apply(cb)
       result.matches must equal(true)
       execd must equal(true)
     }

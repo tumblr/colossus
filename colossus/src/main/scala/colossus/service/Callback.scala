@@ -73,7 +73,7 @@ class CallbackExecutionException(cause: Throwable) extends Exception("Uncaught e
  * inside a callback should properly catch this exception.
  *
  */
-trait Callback[+O] {
+sealed trait Callback[+O] {
   def map[U](f: O => U): Callback[U]
   def flatMap[U](f: O => Callback[U]): Callback[U]
 
@@ -203,6 +203,29 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
 
 }
 
+case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
+  def map[U](f: O => U): Callback[U] = ConstantCallback(value.map(f))
+  def flatMap[U](f: O => Callback[U]): Callback[U] = value match {
+    case Success(v) => f(v)
+    case Failure(err) => ConstantCallback(Failure(err))
+  }
+
+  def mapTry[U](f: Try[O] => Try[U]): Callback[U] = ConstantCallback(f(value))
+  
+
+  def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = ConstantCallback(value.recover(p))
+
+  def recoverWith[U >: O](p: PartialFunction[Throwable, Callback[U]]): Callback[U] = value match {
+    case Success(_) => this
+    case Failure(err) => p.applyOrElse(err, (x: Throwable) => ConstantCallback(Failure(err)))
+  }
+
+  def execute(onComplete: Try[O] => Unit = _ => ()) {
+    onComplete(value)
+  }
+
+}
+
 /**
  * A `CallbackExecutor` is an actor that mixes in the [CallbackExecution] trait
  * to complete the execution of a [Callback] that has been converted from a
@@ -285,7 +308,7 @@ object Callback {
    *
    * @param value the successful value or error to complete with
    */
-  def complete[I](value: Try[I]): Callback[I] = UnmappedCallback[I](f => f(value))
+  def complete[I](value: Try[I]): Callback[I] = ConstantCallback[I](value)
 
   /** returns a callback that will immediately succeed with the value as soon as its executed
    *
@@ -339,7 +362,9 @@ object Callback {
     implicit def objectToSuccessfulCallback[T](obj: T): Callback[T] = Callback.successful(obj)
   }
 
-
+  object FutureImplicits {
+    implicit def futureToCallback[T](f : Future[T])(implicit cbe : CallbackExecutor) : Callback[T] = Callback.fromFuture(f)
+  }
 }
 
 class PromiseException(message: String) extends Exception(message)

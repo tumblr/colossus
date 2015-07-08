@@ -1,83 +1,62 @@
 package colossus
 package testkit
 
-import colossus.service.Callback
+import colossus.service.{CallbackExecutor, Callback}
+import org.scalatest.Assertions
 import org.scalatest.matchers.{MatchResult, Matcher}
 
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.FiniteDuration
 
 trait CallbackMatchers {
 
-  class CallbackEvaluateTo[T](f : T => Any) extends Matcher[Callback[T]] {
+  class CallbackEvaluateTo[T](duration : FiniteDuration, f : T => Any)(implicit cbe : CallbackExecutor) extends Matcher[Callback[T]] {
 
     def apply(c: Callback[T]): MatchResult = {
-      var executed = false
-      var error : Option[Throwable] = None
-      c.execute {
-        case Success(x) => {
-          try{
-            executed = true
-            f(x)
-          }catch {
-            case (t : Throwable) => error = Some(t)
-          }
-        }
-        case (Failure(x)) => {
-          executed = true
-          error = Some(x)
-        }
-      }
-      if(!executed) {
-        MatchResult(false, "Callback did not complete", "Callback did not complete")
-      }else{
-        val errorMsg = error.fold("")(e => s"Callback failed execution with error: ${e}")
-        MatchResult(error.isEmpty, errorMsg, errorMsg)
+      try{
+        val res = CallbackAwait.result(c, duration)
+        f(res)
+        MatchResult(true, "", "")
+      }catch {
+        case th : Throwable => MatchResult(false, s"Unexpected exception: $th", s"Unexpected exception: $th")
       }
     }
   }
 
-  class CallbackFailTo[T](f : Throwable => Any) extends Matcher[Callback[T]] {
+  class CallbackFailTo[T, Ex <: Throwable : Manifest](duration : FiniteDuration, f : Ex => Any)(implicit cbe : CallbackExecutor) extends Matcher[Callback[T]] with Assertions{
 
     def apply(c: Callback[T]): MatchResult = {
-      var executed = false
-      var error : Option[Throwable] = None
-      var evaluationError : Option[Throwable] = None
-      c.execute {
-        case Success(x) => {
-          executed = true
-        }
-        case (Failure(x)) => {
-          error = Some(x)
-          executed = true
+
+      val expectedException = implicitly[Manifest[Ex]].runtimeClass.getName
+
+      try {
+        CallbackAwait.result(c, duration)
+        val msg = s"Expected Callback to fail with $expectedException"
+        MatchResult(false, msg, msg)
+      }catch {
+        case e: Ex => {
           try {
-            f(x)
+            f(e)
+            MatchResult(true, "", "")
           }catch {
-            case (t : Throwable) => evaluationError = Some(t)
+            case e : Throwable => {
+              val errorMsg = s"Callback evaluation function threw: $e"
+              MatchResult(false, errorMsg, errorMsg)
+            }
           }
         }
-      }
-
-      (executed, error, evaluationError) match {
-        case (false, _, _) => MatchResult(false, "Callback did not complete", "Callback did not complete")
-        case (true, _, Some(x)) => {
-          val errorMsg = s"Callback failure evaluation function threw error $x"
-          MatchResult(false, errorMsg, errorMsg)
-        }
-        case (true, None, None) => {
-          val errorMsg = s"Callback evaluated successfully, expected a failure"
-          MatchResult(false, errorMsg, errorMsg)
-        }
-        case (true, Some(x), None) => {
-          MatchResult(true, "", "")
+        case e: Throwable => {
+          val msg = s"Expected Callback to fail with $expectedException.  Received ${e.getClass.getName} instead"
+          MatchResult(false, msg, msg)
         }
       }
     }
   }
 
-  def evaluateTo[T](f : T => Any) = new CallbackEvaluateTo[T](f)
+  def evaluateTo[T](f : T => Any)(implicit cbe : CallbackExecutor, duration : FiniteDuration): Matcher[Callback[T]] = new CallbackEvaluateTo[T](duration, f)
 
-  def failWith[T](f : Throwable => Any) = new CallbackFailTo[T](f)
+  def failWith[T, U <: Any, Ex <: Throwable : Manifest](f : Ex => U)(implicit cbe : CallbackExecutor, duration : FiniteDuration) : Matcher[Callback[T]] = new CallbackFailTo[T, Ex](duration, f)
 
+  def failWith[T, Ex <: Throwable : Manifest](implicit cbe : CallbackExecutor, duration : FiniteDuration) : Matcher[Callback[T]] = new CallbackFailTo[T, Ex](duration, (ex : Ex) => {})
 }
 
 object CallbackMatchers extends CallbackMatchers
