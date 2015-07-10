@@ -28,6 +28,11 @@ object IOSystem {
 
   def apply(name: String, numWorkers: Int)(implicit system: ActorSystem): IOSystem = apply(name, numWorkers, MetricSystem.deadSystem)
 
+  def apply(name: String, metrics: MetricSystem)(implicit  system: ActorSystem): IOSystem = {
+    val numWorkers = Runtime.getRuntime.availableProcessors()
+    apply(name, numWorkers, metrics)
+  }
+
   def apply(name: String = "iosystem", numWorkers: Option[Int] = None)(implicit sys: ActorSystem = ActorSystem(name)): IOSystem = {
     val workers = numWorkers.getOrElse (Runtime.getRuntime.availableProcessors())
     val metrics = MetricSystem(MetricAddress.Root / name)
