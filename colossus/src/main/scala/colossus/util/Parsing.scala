@@ -209,6 +209,18 @@ object Combinators {
             }
           }
         }
+        override def endOfStream(): Option[~[T,B]] = {
+          if (!donea.isDefined) {
+            donea = a.endOfStream()
+          }
+          if (!doneb.isDefined) {
+            doneb = b.endOfStream()
+          }
+          (donea, doneb) match {
+            case (Some(ra), Some(rb)) => Some(new ~(ra, rb))
+            case _ => None
+          }
+        }
       }
     }
     def andThen[B](b: Parser[B]): Parser[~[T,B]] = this.~(b)
