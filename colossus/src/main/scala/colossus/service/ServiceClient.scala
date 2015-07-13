@@ -41,7 +41,7 @@ case class ClientConfig(
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
-  connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None),
+  connectionAttempts : PollingDuration = PollingDuration(500.milliseconds, None),
   idleTimeout: Duration = Duration.Inf
 )
 
@@ -235,16 +235,17 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
 
   override protected def connectionLost(cause : DisconnectError) {
     super.connectionLost(cause)
+    cause match {
+      case DisconnectCause.ConnectFailed(error) => {
+        log.warning(s"failed to connect to ${address.toString}: ${error.getMessage}")
+        connectionFailures.hit(tags = hpTags)
+      }
+      case _ => {
+        log.warning(s"${id.get} connection to ${address.toString} lost: ${cause.logString}")
+        disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
+      }
+    }
     purgeBuffers(new NotConnectedException(s"${cause.logString}"))
-    log.warning(s"${id.get} connection to ${address.toString} lost: ${cause.logString}")
-    disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
-    attemptReconnect()
-  }
-
-  def connectionFailed() {
-
-    log.error(s"failed to connect to ${address.toString}")
-    connectionFailures.hit(tags = hpTags)
     attemptReconnect()
   }
 
@@ -260,7 +261,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
         worker.unbind(id.get)
       }
     } else {
-      //todo I think there's a bug here, pending requests aren't properly failed
       worker.unbind(id.get)
     }
   }

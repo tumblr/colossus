@@ -336,6 +336,14 @@ object DisconnectCause {
     def tagString = "closed"
     def logString = "Closed by remote host"
   }
+
+  /**
+   * A client connection failed to connect
+   */
+  case class ConnectFailed(error: Throwable) extends DisconnectError {
+    def tagString = "connectfailed"
+    def logString = "Failed to Connect"
+  }
 }
 
 
