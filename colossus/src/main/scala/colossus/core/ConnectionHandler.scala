@@ -90,14 +90,9 @@ trait ServerConnectionHandler extends ConnectionHandler {
 
 
 /**
- * ClientConnectionHandler is a trait meant to be used with outgoing connections.  It provides a call back function
- * connectionFailed, which is called when a connection to an external system could not be established.
+ * ClientConnectionHandler is a trait meant to be used with outgoing connections.  
  */
 trait ClientConnectionHandler extends ConnectionHandler {
-  /**
-   * Event handler for when a connection failed.
-   */
-  def connectionFailed()
 
   /**
    * If no data is either sent or received in this amount of time, the connection is closed.  Defaults to Duration.Inf but handlers can override it

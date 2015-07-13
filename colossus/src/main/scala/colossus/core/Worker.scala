@@ -276,7 +276,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
     val channel = SocketChannel.open()
     channel.configureBlocking(false)
-    channel.connect(address)
     val key = channel.register(selector, SelectionKey.OP_CONNECT)
     val connection = new ClientConnection(newId(), key, channel, handler)
     key.attach(connection)
@@ -288,6 +287,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         context.watch(w.watchedActor)
       }
       case _ =>{}
+    }
+    try {
+      channel.connect(address)
+    } catch {
+      case t: Throwable => {
+        log.error(s"Failed to establish connection to $address: $t")
+        unregisterConnection(connection, DisconnectCause.ConnectFailed(t))
+      }
     }
   }
 
@@ -326,14 +333,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       }
       case Connect(address, id) => {
         getWorkerItem(id).map{
-          case handler: ClientConnectionHandler => try {
-            clientConnect(address, handler)
-          } catch {
-            case t: Throwable => {
-              log.error(s"Failed to establish connection to $address: $t")
-              handler.connectionFailed()
-            }
-          }
+          case handler: ClientConnectionHandler =>  clientConnect(address, handler)
           case other => log.error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
         }.getOrElse {
           log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
@@ -418,15 +418,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
           con.handleConnected()
         } catch {
           case t: Throwable => {
-            con.clientHandler.connectionFailed()
-            if (!con.clientHandler.isInstanceOf[ManualUnbindHandler]) {
-              workerItems.unbind(con.clientHandler)
-            }
-            //only ConnectException is expected here, other exceptions should be logged
-            t match {
-              case c: java.net.ConnectException => {}
-              case _ => log.error(s"Unexpected exception occurred while completing connection: ${t.getMessage}")
-            }
+            unregisterConnection(con, DisconnectCause.ConnectFailed(t))
+            key.cancel()
           }
         }
       }  else {
