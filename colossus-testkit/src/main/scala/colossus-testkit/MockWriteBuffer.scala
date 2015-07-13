@@ -63,6 +63,14 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
     assert(call == data, s"expected '${data.utf8String}', got '${call.utf8String}'")
   }
 
+  /**
+   * Expect exactly `num` writes
+   */
+  def expectNumWrites(num: Int) {
+    assert(writeCalls.size == num, s"expected exactly $num writes, but ${writeCalls.size} writes occurred")
+    writeCalls.clear()
+  }
+
   def expectOneWrite(data: ByteString) {
     assert(writeCalls.size == 1, s"expected exactly one write, but ${writeCalls.size} writes occurred")
     expectWrite(data)

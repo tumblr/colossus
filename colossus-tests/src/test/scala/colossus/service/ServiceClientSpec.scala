@@ -305,6 +305,23 @@ class ServiceClientSpec extends ColossusSpec {
       res2 must equal(Some(rep2.message))
     }
 
+    "not overflow sentBuffer when draining from pending" in {
+      // here we're checking to make sure that if we've previously paused
+      // writes, and then resume writing, that we continue to respect the max
+      // sentBuffer size.
+      val (endpoint, client, probe) = newClient(true, 1)
+      val cmds = (0 to 3).map{i => 
+        client.send(Command(CMD_GET, "foo")).execute()
+      }
+      val reply = StatusReply("foo")
+      (0 to 3).map{i => 
+        endpoint.expectNumWrites(1)
+        endpoint.clearBuffer()
+        endpoint.expectNumWrites(0)
+        client.receivedData(reply.raw)
+      }
+    }
+
     "gracefully disconnect" in {
       val cmd1 = Command(CMD_GET, "foo")
       val cmd2 = Command(CMD_GET, "bar")
@@ -400,7 +417,7 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
 
-    "not attempt reconnect when autoReconnect is false" taggedAs(Tag("wat")) in {
+    "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
         val server = Service.serve[Raw]("rawwww", TEST_PORT) {_.handle{con => con.become{
           case foo => {

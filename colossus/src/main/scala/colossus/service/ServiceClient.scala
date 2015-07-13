@@ -274,15 +274,16 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
       val pushed = push(s.message, s.start){
-        case OutputResult.Success         => sentBuffer.enqueue(s)
+        case OutputResult.Success         => {
+          sentBuffer.enqueue(s)
+          if (sentBuffer.size >= config.sentBufferSize) {
+            pauseWrites() //writes resumed in processMessage
+          }
+        }
         case OutputResult.Failure(err)    => s.handler(Failure(err))
         case OutputResult.Cancelled(err)  => s.handler(Failure(err))
       }
-      if (pushed) {
-        if (sentBuffer.size >= config.sentBufferSize) {
-          pauseWrites() //writes resumed in processMessage
-        }
-      } else {
+      if (!pushed) {
         s.handler(Failure(new ClientOverloadedException(s"Error sending ${s.message}: Client is overloaded")))
       }
     } else {
