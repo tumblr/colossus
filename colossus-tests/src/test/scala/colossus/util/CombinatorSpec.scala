@@ -174,6 +174,14 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(DataBuffer(d2)) must equal(None)
       parser.endOfStream() must equal(Some(ByteString(4,5,6)))
     }
+
+    "EOS with pairing" in {
+      val parser = bytes(3) ~> repeatUntilEOS(bytes(2))
+      val d1 = ByteString("aaabbccdd")
+      val expected = Some(Vector(ByteString("bb"), ByteString("cc"), ByteString("dd")))
+      parser.parse(DataBuffer(d1)) must equal(None)
+      parser.endOfStream() must equal(expected)
+    }
       
 
 
