@@ -19,14 +19,20 @@ import Codec._
  * @param requestTimeout how long to wait until we timeout the request
  * @param requestBufferSize how many concurrent requests a single connection can be processing
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
+ * @param requestLogFormat if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
  */
-case class ServiceConfig(
+case class ServiceConfig[I,O](
   name: MetricAddress,
   requestTimeout: Duration,
   requestBufferSize: Int = 100, //how many concurrent requests can be processing at once
   logErrors: Boolean = true,
+  requestLogFormat : Option[RequestFormatter[I]] = None,
   requestMetrics: Boolean = true
 )
+
+trait RequestFormatter[I] {
+  def format(request : I) : String
+}
 
 class RequestBufferFullException extends Exception("Request Buffer full")
 class DroppedReply extends Error("Dropped Reply")
@@ -46,7 +52,7 @@ class DroppedReply extends Error("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig, worker: WorkerRef)
+  (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
 extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
@@ -185,7 +191,8 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
   private def handleFailure(request: I, reason: Throwable): O = {
     addError(reason)
     if (logErrors) {
-      log.error(s"Error processing request: $request: $reason")
+      val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
+      log.error(s"Error processing request: $formattedRequest: $reason")
     }
     processFailure(request, reason)
   }
