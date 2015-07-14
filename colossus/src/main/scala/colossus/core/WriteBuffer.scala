@@ -2,7 +2,7 @@ package colossus
 package core
 
 import java.nio.ByteBuffer
-import java.nio.channels.{ClosedChannelException, SelectionKey, SocketChannel}
+import java.nio.channels.{CancelledKeyException, ClosedChannelException, SelectionKey, SocketChannel}
 
 sealed trait WriteStatus
 object WriteStatus {
@@ -44,6 +44,28 @@ trait KeyInterestManager {
   }
 }
 
+/**
+ * The WriteBuffer handles everything dealing properly writing raw data to the
+ * SocketChannel and dealing with backpressure.
+ *
+ * When `write` is called on a SocketChannel in nonblocking mode, the channel
+ * may not accept all of the given data, returning how many bytes it actually
+ * accepted.  Therefore it is up to the WriteBuffer to handle these situations,
+ * in which case it buffers the unwritten data and waits for the OP_WRITE signal
+ * from the event loop to continue writing.
+ *
+ * WriteBuffer does not handle all aspects of write backpressure, only the most
+ * immediate scenario of a partially written DataBuffer.  Every call to `write`
+ * returns a WriteStatus, indicating the WriteBuffer's status in relation to the
+ * given data.  In every case, a Partial status will always be returned before a
+ * Zero status, so a caller that is properly reacting to the Partial status
+ * should never in practice actually receive a zero status.
+ *
+ * The WriteBuffer works by writing all data into an internal buffer, which is
+ * then drained into the SocketChannel once per event loop iteration.  This is
+ * done to minimize the number of calls to SocketChannel.write, a fairly
+ * expensive operation.
+ */
 private[colossus] trait WriteBuffer extends KeyInterestManager {
   import WriteStatus._
 
@@ -78,8 +100,6 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //write buffer to drain, then perform the actual disconnect.  Once this is
   //set, no more writes are allowed and the connection is considered severed
   //from the user's point of view
-  //
-  //TODO: this is a total hack, make it less so
   private var disconnectCallback: Option[() => Unit] = None
   def disconnectBuffer(cb: () => Unit) {
     if (partialBuffer.isEmpty && drainingInternal == false && internal.data.position == 0) {
@@ -113,16 +133,23 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   }
 
   private def writeRaw(raw: DataBuffer): WriteStatus = {
-    _lastTimeDataWritten = System.currentTimeMillis
-    enableWriteReady()
-    copyInternal(raw.data)
-    if (raw.hasUnreadData) {
-      //we must take a copy of the buffer since it will be repurposed
-      partialBuffer = Some(raw.takeCopy)
-      Partial
-    } else {
-      partialBuffer = None
-      Complete
+    try {
+      enableWriteReady()
+      _lastTimeDataWritten = System.currentTimeMillis
+      copyInternal(raw.data)
+      if (raw.hasUnreadData) {
+        //we must take a copy of the buffer since it will be repurposed
+        partialBuffer = Some(raw.takeCopy)
+        Partial
+      } else {
+        partialBuffer = None
+        Complete
+      }
+    } catch {
+      case t: CancelledKeyException => {
+        //no cleanup is required since the connection is closed for good
+        Failed
+      }
     }
   }
 
@@ -140,16 +167,18 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     }
   }
 
-  //called whenever we're subbed to OP_WRITE
+  /**
+   * Drain the internal buffer and perform the actual write to the socket.
+   */
   def handleWrite() {
-    //write data from the internal buffer
     if (!drainingInternal) {
       drainingInternal = true
       internal.data.flip //prepare for reading
     }
-    val wrote = channelWrite(internal)
-    //println(s"wrote $wrote")
-    _bytesSent += wrote
+    //notice that this method may throw a ClosedChannelException, however the
+    //worker is correctly handling the exception and doing the necessary cleanup
+    _bytesSent += channelWrite(internal)
+
     if (internal.remaining == 0) {
       //hooray! we wrote all the data, now we can accept more
       internal.data.clear()
