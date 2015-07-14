@@ -37,8 +37,8 @@ package object http {
       case other => request.error(reason.toString)
     }
 
-    override def provideHandler(config: ServiceConfig, worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])(implicit ex: ExecutionContext): DSLHandler[Http] = {
-      new HttpServiceHandler(config, worker, this, initializer)
+    override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])(implicit ex: ExecutionContext): DSLHandler[Http] = {
+      new HttpServiceHandler[Http](config, worker, this, initializer)
     }
 
   }
@@ -46,8 +46,8 @@ package object http {
   implicit object DefaultHttpProvider extends HttpProvider
 
   class HttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])(implicit ex: ExecutionContext) 
-  extends BasicServiceHandler(config, worker, provider, initializer) {
+  (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])(implicit ex: ExecutionContext)
+  extends BasicServiceHandler[D](config, worker, provider, initializer) {
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
       if (response.head.version == HttpVersion.`1.0`) {
@@ -65,8 +65,8 @@ package object http {
       case other => toStreamed(request.error(reason.toString))
     }
 
-    override def provideHandler(config: ServiceConfig, worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
-      new HttpServiceHandler(config, worker, this, initializer)
+    override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
+      new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
     }
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {

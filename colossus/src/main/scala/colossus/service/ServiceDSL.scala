@@ -63,7 +63,7 @@ trait CodecProvider[C <: CodecDSL] {
    * @param ex ExecutionContext
    * @return Handler
    */
-  def provideHandler(config: ServiceConfig, worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext): DSLHandler[C] = {
+  def provideHandler(config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext): DSLHandler[C] = {
     new BasicServiceHandler[C](config,worker,this, intializer)
   }
 
@@ -76,7 +76,7 @@ trait CodecProvider[C <: CodecDSL] {
    * @param requestTimeout RequestTimeout
    * @return Delegator
    */
-  def provideDelegator(func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig) = {
+  def provideDelegator(func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig[C#Input, C#Output]) = {
     new BasicServiceDelegator(func, server, worker, provider, config)
   }
 }
@@ -174,7 +174,7 @@ trait ServiceContext[C <: CodecDSL] {
 
 abstract class DSLDelegator[C <: CodecDSL](server : ServerRef, worker : WorkerRef) extends Delegator(server, worker) with ServiceContext[C]
 
-class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig)
+class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig[C#Input, C#Output])
   extends DSLDelegator[C](server, worker){
 
   //note, this needs to be setup before func is called
@@ -202,7 +202,7 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 class BasicServiceHandler[C <: CodecDSL]
-  (config: ServiceConfig, worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C]) 
+  (config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C])
   (implicit ex: ExecutionContext)
   extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
   with DSLHandler[C] {
@@ -315,7 +315,7 @@ object Service {
    * @return A [[ServerRef]] for the server.
    */
   def serve[T <: CodecDSL]
-  (serverSettings: ServerSettings, serviceConfig: ServiceConfig)
+  (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
     val serverConfig = ServerConfig(
@@ -335,7 +335,7 @@ object Service {
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)
   (handler: Initializer[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    serve[T](ServerSettings(port), ServiceConfig(name = name, requestTimeout = requestTimeout))(handler)
+    serve[T](ServerSettings(port), ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout))(handler)
   }
 
   /** Start a simple, stateless service
