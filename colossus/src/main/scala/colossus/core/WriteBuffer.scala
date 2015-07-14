@@ -147,7 +147,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       }
     } catch {
       case t: CancelledKeyException => {
-        //no cleanup is required since the connection is closed for good
+        //no cleanup is required since the connection is closed for good, 
         Failed
       }
     }
@@ -168,7 +168,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   }
 
   /**
-   * Drain the internal buffer and perform the actual write to the socket.
+   * Drain the internal buffer and perform the actual write to the socket.  This
+   * is called by the event loop whenever the buffer is subscribed to the
+   * OP_WRITE key interest.
    */
   def handleWrite() {
     if (!drainingInternal) {
