@@ -295,7 +295,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     val time = System.currentTimeMillis
     while (waitingToSend.size > 0 && waitingToSend.peek.isTimedOut(time)) {
       val expired = waitingToSend.removeFirst()
-      println(s"$time : $expired : $outputState : $queueSize : $state : $writesEnabled")
       expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
     }
   }
