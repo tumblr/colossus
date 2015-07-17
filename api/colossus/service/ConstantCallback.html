@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>Callback - colossus.service.Callback</title>
-          <meta name="description" content="Callback - colossus.service.Callback" />
-          <meta name="keywords" content="Callback colossus.service.Callback" />
+          <title>ConstantCallback - colossus.service.ConstantCallback</title>
+          <meta name="description" content="ConstantCallback - colossus.service.ConstantCallback" />
+          <meta name="keywords" content="ConstantCallback colossus.service.ConstantCallback" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'colossus.service.Callback';
+            var hash = 'colossus.service.ConstantCallback';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,14 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Callback$.html" title="See companion object"><img src="../../lib/trait_to_object_big.png" /></a>
+        <img src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1><a href="Callback$.html" title="See companion object">Callback</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="Callback$.html" title="See companion object">object Callback</a>
-            | <a href="package.html" class="extype" name="colossus.service">package service</a>
+        <h1>ConstantCallback</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -43,38 +41,18 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Callback</span><span class="tparams">[<span name="O">+O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">ConstantCallback</span><span class="tparams">[<span name="O">O</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>)</span><span class="result"> extends <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Callback is a Monad for doing in-thread non-blocking operations.  It is
-essentially a &quot;function builder&quot; that uses function composition to chain
-together a callback function that is eventually passed to another function.</p><p>Normally if you have a function that requires a callback, the function looks something like:</p><pre><span class="kw">def</span> doSomething(param, param, callBack: result <span class="kw">=&gt;</span> <span class="std">Unit</span>)</pre><p>and then you'd call it like </p><pre>doSomething(arg1, arg2, result <span class="kw">=&gt;</span> println(<span class="lit">"got the result"</span>))</pre><p>This is the well-known continuation pattern, and it something we'd like to avoid due to the common occurrance of deeply nested &quot;callback hell&quot;.  Instead, the <code>Callback</code> allows us to define out function as</p><pre><span class="kw">def</span> doSomething(param1, param2): Callback[Result]</pre><p>and call it like </p><pre><span class="kw">val</span> c = doSomething(arg1, arg2)
-c.map{ result <span class="kw">=&gt;</span>
-  println(<span class="lit">"got the result"</span>)
-}.execute()</pre><p>Thus, in practice working with Callbacks is very similar to working with Futures.  The big differences from a future are:</p><p>1.  Callbacks are not thread safe at all.  They are entirely intended to stay inside a single worker.  Otherwise just use Futures.</p><p>2.  The execute() method needs to be called once the callback has been
-fully built, which unlike futures requires some part of the code to know when a callback is ready to be invoked</p><h4> Using Callbacks in Services </h4><p>When building services, particularly when working with service clients, you
-will usually be getting Callbacks back from clients when requests are sent.
-*Do not call <code>execute</code> yourself!* on these Callbacks.  They must be returned
-as part of request processing, and Colossus will invoke the callback itself.</p><h4> Using Callbacks elsewhere </h4><p>If you are using Callbacks in some custom situation outside of services, be
-aware that exceptions thrown inside a <code>map</code> or <code>flatMap</code> are properly caught
-and can be recovered using <code>recover</code> and <code>recoverWith</code>, however exceptions
-thrown in the &quot;final&quot; handler passed to <code>execute</code> are not caught.  This is
-because the final block cannot be mapped on (since it is only passed when
-the callback is executed) and throwing the exception is preferrable to
-suppressing it.</p><p>Any exception that is thrown in this block is however rethrown as a
-<code>CallbackExecutionException</code>.  Therefore, any &quot;trigger&quot; function you wrap
-inside a callback should properly catch this exception.</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="ConstantCallback.html" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a>, <a href="MappedCallback.html" class="extype" name="colossus.service.MappedCallback">MappedCallback</a>, <a href="UnmappedCallback.html" class="extype" name="colossus.service.UnmappedCallback">UnmappedCallback</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -91,7 +69,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.Callback"><span>Callback</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.ConstantCallback"><span>ConstantCallback</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.service.Callback"><span>Callback</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -109,110 +87,21 @@ inside a callback should properly catch this exception.</p></div><div class="tog
 
       <div id="template">
         <div id="allMembers">
-        
-
-        
-
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.service.Callback#execute" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="execute(onComplete:scala.util.Try[O]=&gt;Unit):Unit"></a>
-      <a id="execute((Try[O])⇒Unit):Unit"></a>
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="colossus.service.ConstantCallback#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(value:scala.util.Try[O]):colossus.service.ConstantCallback[O]"></a>
+      <a id="&lt;init&gt;:ConstantCallback[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">execute</span><span class="params">(<span name="onComplete">onComplete: (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.Callback.O">O</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span> = <span class="symbol">_ =&gt; ()</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">ConstantCallback</span><span class="params">(<span name="value">value: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@execute(onComplete:scala.util.Try[O]=&gt;Unit):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.Callback#flatMap" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="flatMap[U](f:O=&gt;colossus.service.Callback[U]):colossus.service.Callback[U]"></a>
-      <a id="flatMap[U]((O)⇒Callback[U]):Callback[U]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">flatMap</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.Callback.O">O</span>) ⇒ <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.flatMap.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.flatMap.U">U</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@flatMap[U](f:O=&gt;colossus.service.Callback[U]):colossus.service.Callback[U]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.Callback#map" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="map[U](f:O=&gt;U):colossus.service.Callback[U]"></a>
-      <a id="map[U]((O)⇒U):Callback[U]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">map</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.Callback.O">O</span>) ⇒ <span class="extype" name="colossus.service.Callback.map.U">U</span></span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.map.U">U</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@map[U](f:O=&gt;U):colossus.service.Callback[U]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.Callback#mapTry" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="mapTry[U](f:scala.util.Try[O]=&gt;scala.util.Try[U]):colossus.service.Callback[U]"></a>
-      <a id="mapTry[U]((Try[O])⇒Try[U]):Callback[U]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">mapTry</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.Callback.O">O</span>]) ⇒ <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.Callback.mapTry.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.mapTry.U">U</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@mapTry[U](f:scala.util.Try[O]=&gt;scala.util.Try[U]):colossus.service.Callback[U]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.Callback#recover" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="recover[U&gt;:O](p:PartialFunction[Throwable,U]):colossus.service.Callback[U]"></a>
-      <a id="recover[U&gt;:O](PartialFunction[Throwable,U]):Callback[U]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">recover</span><span class="tparams">[<span name="U">U &gt;: <span class="extype" name="colossus.service.Callback.O">O</span></span>]</span><span class="params">(<span name="p">p: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="colossus.service.Callback.recover.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.recover.U">U</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@recover[U&gt;:O](p:PartialFunction[Throwable,U]):colossus.service.Callback[U]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.Callback#recoverWith" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="recoverWith[U&gt;:O](p:PartialFunction[Throwable,colossus.service.Callback[U]]):colossus.service.Callback[U]"></a>
-      <a id="recoverWith[U&gt;:O](PartialFunction[Throwable,Callback[U]]):Callback[U]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">recoverWith</span><span class="tparams">[<span name="U">U &gt;: <span class="extype" name="colossus.service.Callback.O">O</span></span>]</span><span class="params">(<span name="p">p: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.recoverWith.U">U</span>]]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.recoverWith.U">U</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@recoverWith[U&gt;:O](p:PartialFunction[Throwable,colossus.service.Callback[U]]):colossus.service.Callback[U]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@&lt;init&gt;(value:scala.util.Try[O]):colossus.service.ConstantCallback[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -220,8 +109,12 @@ inside a callback should properly catch this exception.</p></div><div class="tog
     </li></ol>
             </div>
 
+        
+
+        
+
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -234,7 +127,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -251,7 +144,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@##():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@##():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -268,7 +161,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -285,7 +178,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -302,7 +195,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@clone():Object" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@clone():Object" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -325,28 +218,28 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(x$1:Any):Boolean"></a>
-      <a id="equals(Any):Boolean"></a>
+    </li><li name="colossus.service.ConstantCallback#execute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="execute(onComplete:scala.util.Try[O]=&gt;Unit):Unit"></a>
+      <a id="execute((Try[O])⇒Unit):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">execute</span><span class="params">(<span name="onComplete">onComplete: (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span> = <span class="symbol">_ =&gt; ()</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@execute(onComplete:scala.util.Try[O]=&gt;Unit):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -359,7 +252,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@finalize():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -370,6 +263,23 @@ inside a callback should properly catch this exception.</p></div><div class="tog
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#flatMap" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="flatMap[U](f:O=&gt;colossus.service.Callback[U]):colossus.service.Callback[U]"></a>
+      <a id="flatMap[U]((O)⇒Callback[U]):Callback[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">flatMap</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.ConstantCallback.O">O</span>) ⇒ <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.flatMap.U">U</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.flatMap.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConstantCallback@flatMap[U](f:O=&gt;colossus.service.Callback[U]):colossus.service.Callback[U]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -382,24 +292,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <a id="hashCode():Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -416,11 +309,45 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#map" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="map[U](f:O=&gt;U):colossus.service.Callback[U]"></a>
+      <a id="map[U]((O)⇒U):Callback[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">map</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.ConstantCallback.O">O</span>) ⇒ <span class="extype" name="colossus.service.ConstantCallback.map.U">U</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.map.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConstantCallback@map[U](f:O=&gt;U):colossus.service.Callback[U]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#mapTry" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mapTry[U](f:scala.util.Try[O]=&gt;scala.util.Try[U]):colossus.service.Callback[U]"></a>
+      <a id="mapTry[U]((Try[O])⇒Try[U]):Callback[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mapTry</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]) ⇒ <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.mapTry.U">U</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.mapTry.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConstantCallback@mapTry[U](f:scala.util.Try[O]=&gt;scala.util.Try[U]):colossus.service.Callback[U]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -433,7 +360,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -450,7 +377,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@notify():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@notify():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -467,11 +394,45 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#recover" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="recover[U&gt;:O](p:PartialFunction[Throwable,U]):colossus.service.Callback[U]"></a>
+      <a id="recover[U&gt;:O](PartialFunction[Throwable,U]):Callback[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">recover</span><span class="tparams">[<span name="U">U &gt;: <span class="extype" name="colossus.service.ConstantCallback.O">O</span></span>]</span><span class="params">(<span name="p">p: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="colossus.service.ConstantCallback.recover.U">U</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.recover.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConstantCallback@recover[U&gt;:O](p:PartialFunction[Throwable,U]):colossus.service.Callback[U]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#recoverWith" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="recoverWith[U&gt;:O](p:PartialFunction[Throwable,colossus.service.Callback[U]]):colossus.service.Callback[U]"></a>
+      <a id="recoverWith[U&gt;:O](PartialFunction[Throwable,Callback[U]]):Callback[U]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">recoverWith</span><span class="tparams">[<span name="U">U &gt;: <span class="extype" name="colossus.service.ConstantCallback.O">O</span></span>]</span><span class="params">(<span name="p">p: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.recoverWith.U">U</span>]]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.recoverWith.U">U</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ConstantCallback@recoverWith[U&gt;:O](p:PartialFunction[Throwable,colossus.service.Callback[U]]):colossus.service.Callback[U]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.ConstantCallback">ConstantCallback</a> → <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -484,7 +445,7 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -498,33 +459,33 @@ inside a callback should properly catch this exception.</p></div><div class="tog
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toFuture</span><span class="params">(<span class="implicit">implicit </span><span name="ex">ex: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="colossus.service.Callback.O">O</span>]</span>
+        <span class="name">toFuture</span><span class="params">(<span class="implicit">implicit </span><span name="ex">ex: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@toFuture(implicitex:scala.concurrent.ExecutionContext):scala.concurrent.Future[O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@toFuture(implicitex:scala.concurrent.ExecutionContext):scala.concurrent.Future[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Hook a future into the callback and execute the caller.</p><div class="fullcomment"><div class="comment cmt"><p>Hook a future into the callback and execute the caller.  Use this if you
 need to hand a callback to something out-of-thread
-</p></div></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <a id="toString():String"></a>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
+    </li><li name="colossus.service.ConstantCallback#value" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="value:scala.util.Try[O]"></a>
+      <a id="value:Try[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">value</span><span class="result">: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@toString():String" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@value:scala.util.Try[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -537,7 +498,7 @@ need to hand a callback to something out-of-thread
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@wait():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@wait():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -560,7 +521,7 @@ need to hand a callback to something out-of-thread
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -583,7 +544,7 @@ need to hand a callback to something out-of-thread
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -594,7 +555,7 @@ need to hand a callback to something out-of-thread
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.service.Callback#withFilter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.Callback#withFilter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withFilter(f:O=&gt;Boolean):colossus.service.Callback[O]"></a>
       <a id="withFilter((O)⇒Boolean):Callback[O]"></a>
       <h4 class="signature">
@@ -603,15 +564,15 @@ need to hand a callback to something out-of-thread
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withFilter</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.Callback.O">O</span>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.O">O</span>]</span>
+        <span class="name">withFilter</span><span class="params">(<span name="f">f: (<span class="extype" name="colossus.service.ConstantCallback.O">O</span>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@withFilter(f:O=&gt;Boolean):colossus.service.Callback[O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@withFilter(f:O=&gt;Boolean):colossus.service.Callback[O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.service.Callback#zip" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
+    </li><li name="colossus.service.Callback#zip" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="zip[B,C](b:colossus.service.Callback[B],c:colossus.service.Callback[C]):colossus.service.Callback[(O,B,C)]"></a>
       <a id="zip[B,C](Callback[B],Callback[C]):Callback[(O,B,C)]"></a>
       <h4 class="signature">
@@ -620,15 +581,15 @@ need to hand a callback to something out-of-thread
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">zip</span><span class="tparams">[<span name="B">B</span>, <span name="C">C</span>]</span><span class="params">(<span name="b">b: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.B">B</span>]</span>, <span name="c">c: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.C">C</span>]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[(<span class="extype" name="colossus.service.Callback.O">O</span>, <span class="extype" name="colossus.service.Callback.zip.B">B</span>, <span class="extype" name="colossus.service.Callback.zip.C">C</span>)]</span>
+        <span class="name">zip</span><span class="tparams">[<span name="B">B</span>, <span name="C">C</span>]</span><span class="params">(<span name="b">b: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.B">B</span>]</span>, <span name="c">c: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.C">C</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[(<span class="extype" name="colossus.service.ConstantCallback.O">O</span>, <span class="extype" name="colossus.service.Callback.zip.B">B</span>, <span class="extype" name="colossus.service.Callback.zip.C">C</span>)]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@zip[B,C](b:colossus.service.Callback[B],c:colossus.service.Callback[C]):colossus.service.Callback[(O,B,C)]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@zip[B,C](b:colossus.service.Callback[B],c:colossus.service.Callback[C]):colossus.service.Callback[(O,B,C)]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="colossus.service.Callback#zip" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
+    </li><li name="colossus.service.Callback#zip" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="zip[B](b:colossus.service.Callback[B]):colossus.service.Callback[(O,B)]"></a>
       <a id="zip[B](Callback[B]):Callback[(O,B)]"></a>
       <h4 class="signature">
@@ -637,14 +598,14 @@ need to hand a callback to something out-of-thread
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">zip</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="b">b: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.B">B</span>]</span>)</span><span class="result">: <a href="" class="extype" name="colossus.service.Callback">Callback</a>[(<span class="extype" name="colossus.service.Callback.O">O</span>, <span class="extype" name="colossus.service.Callback.zip.B">B</span>)]</span>
+        <span class="name">zip</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="b">b: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Callback.zip.B">B</span>]</span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[(<span class="extype" name="colossus.service.ConstantCallback.O">O</span>, <span class="extype" name="colossus.service.Callback.zip.B">B</span>)]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback@zip[B](b:colossus.service.Callback[B]):colossus.service.Callback[(O,B)]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ConstantCallback@zip[B](b:colossus.service.Callback[B]):colossus.service.Callback[(O,B)]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -654,7 +615,17 @@ need to hand a callback to something out-of-thread
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="colossus.service.Callback">
+              <h3>Inherited from <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

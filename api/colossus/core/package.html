@@ -87,7 +87,7 @@ the necessary functions.</p><div class="fullcomment"><div class="comment cmt"><p
 the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
 for the functions they require.
 </p></div></div>
-    </li><li name="colossus.core.ClientConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="colossus.core.ClientConnectionHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ClientConnectionHandlerextendsConnectionHandler"></a>
       <a id="ClientConnectionHandler:ClientConnectionHandler"></a>
       <h4 class="signature">
@@ -103,9 +103,7 @@ for the functions they require.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">ClientConnectionHandler is a trait meant to be used with outgoing connections.</p><div class="fullcomment"><div class="comment cmt"><p>ClientConnectionHandler is a trait meant to be used with outgoing connections.  It provides a call back function
-connectionFailed, which is called when a connection to an external system could not be established.
-</p></div></div>
+      <p class="shortcomment cmt">ClientConnectionHandler is a trait meant to be used with outgoing connections.</p>
     </li><li name="colossus.core.ConnectionHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ConnectionHandlerextendsWorkerItem"></a>
       <a id="ConnectionHandler:ConnectionHandler"></a>
@@ -450,7 +448,7 @@ process and bind to another connection
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServerRef.html"><span class="name">ServerRef</span></a><span class="params">(<span name="config">config: <a href="ServerConfig.html" class="extype" name="colossus.core.ServerConfig">ServerConfig</a></span>, <span name="server">server: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="serverStateAgent">serverStateAgent: <span class="extype" name="akka.agent.Agent">Agent</span>[<a href="ServerState.html" class="extype" name="colossus.core.ServerState">ServerState</a>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServerRef.html"><span class="name">ServerRef</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ServerRefextendsProductwithSerializable" title="Permalink" target="_top">
@@ -458,8 +456,7 @@ process and bind to another connection
       </a>
     </span>
       <p class="shortcomment cmt">A ServerRef is the public interface of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
-an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The ServerConfig used to create this Server</p></dd><dt class="param">server</dt><dd class="cmt"><p>The ActorRef of the Server</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Server belongs</p></dd><dt class="param">serverStateAgent</dt><dd class="cmt"><p>The current state of the Server.
-</p></dd></dl></div>
+an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div></div>
     </li><li name="colossus.core.ServerSettings" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServerSettingsextendsProductwithSerializable"></a>
       <a id="ServerSettings:ServerSettings"></a>
@@ -683,7 +680,7 @@ are executed in the event-loop thread of the bound worker.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="WorkerRef.html"><span class="name">WorkerRef</span></a><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="WorkerRef.html"><span class="name">WorkerRef</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@WorkerRefextendsProductwithSerializable" title="Permalink" target="_top">
@@ -691,8 +688,7 @@ are executed in the event-loop thread of the bound worker.
       </a>
     </span>
       <p class="shortcomment cmt">This is a Worker's public interface.</p><div class="fullcomment"><div class="comment cmt"><p>This is a Worker's public interface.  This is what can be used to communicate with a Worker, as it
-wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The Worker's id.</p></dd><dt class="param">metrics</dt><dd class="cmt"><p>The Metrics associated with this Worker</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The ActorRef of the Worker</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Worker belongs
-</p></dd></dl></div>
+wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div></div>
     </li><li name="colossus.core.WriteEndpoint" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WriteEndpointextendsConnectionInfo"></a>
       <a id="WriteEndpoint:WriteEndpoint"></a>

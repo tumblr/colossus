@@ -147,7 +147,7 @@ types
       <a id="Callback[+O]:Callback[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">sealed </span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
@@ -304,7 +304,7 @@ Callback.fromFuture on it's corresponding Future.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(250.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
@@ -474,6 +474,23 @@ codec is stateful and returns a Seq[O]
       </a>
     </span>
       <p class="shortcomment cmt">Thrown when a request is lost in transit</p>
+    </li><li name="colossus.service.ConstantCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConstantCallback[O]extendsCallback[O]withProductwithSerializable"></a>
+      <a id="ConstantCallback[O]:ConstantCallback[O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConstantCallback.html"><span class="name">ConstantCallback</span></a><span class="tparams">[<span name="O">O</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>)</span><span class="result"> extends <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConstantCallback[O]extendsCallback[O]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.DSLDelegator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="DSLDelegator[C&lt;:colossus.service.CodecDSL]extendsDelegatorwithServiceContext[C]"></a>
       <a id="DSLDelegator[C&lt;:CodecDSL]:DSLDelegator[C]"></a>
@@ -798,6 +815,23 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </a>
     </span>
       
+    </li><li name="colossus.service.RequestFormatter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RequestFormatter[I]extendsAnyRef"></a>
+      <a id="RequestFormatter[I]:RequestFormatter[I]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestFormatter.html"><span class="name">RequestFormatter</span></a><span class="tparams">[<span name="I">I</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@RequestFormatter[I]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.RequestTimeoutException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RequestTimeoutExceptionextendsServiceClientException"></a>
       <a id="RequestTimeoutException:RequestTimeoutException"></a>
@@ -910,22 +944,22 @@ that accepts a worker
 updates and will open/close connections accordingly.</p><p>note that config will be copied for each client, replacing only the address
 </p></div></div>
     </li><li name="colossus.service.ServiceConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ServiceConfigextendsProductwithSerializable"></a>
-      <a id="ServiceConfig:ServiceConfig"></a>
+      <a id="ServiceConfig[I,O]extendsProductwithSerializable"></a>
+      <a id="ServiceConfig[I,O]:ServiceConfig[I,O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServiceConfig.html"><span class="name">ServiceConfig</span></a><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServiceConfig.html"><span class="name">ServiceConfig</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="requestLogFormat">requestLogFormat: <span class="extype" name="scala.Option">Option</span>[<a href="RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<span class="extype" name="colossus.service.ServiceConfig.I">I</span>]] = <span class="symbol">None</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@ServiceConfigextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.package@ServiceConfig[I,O]extendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the prefix to use for all metrics generated by the service</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged
+      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the prefix to use for all metrics generated by the service</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestLogFormat</dt><dd class="cmt"><p>if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
 </p></dd></dl></div>
     </li><li name="colossus.service.ServiceContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ServiceContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>

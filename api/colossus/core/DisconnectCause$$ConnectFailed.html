@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>DisconnectCause - colossus.core.DisconnectCause</title>
-          <meta name="description" content="DisconnectCause - colossus.core.DisconnectCause" />
-          <meta name="keywords" content="DisconnectCause colossus.core.DisconnectCause" />
+          <title>ConnectFailed - colossus.core.DisconnectCause.ConnectFailed</title>
+          <meta name="description" content="ConnectFailed - colossus.core.DisconnectCause.ConnectFailed" />
+          <meta name="keywords" content="ConnectFailed colossus.core.DisconnectCause.ConnectFailed" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'colossus.core.DisconnectCause';
+            var hash = 'colossus.core.DisconnectCause$$ConnectFailed';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,14 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="DisconnectCause$.html" title="See companion object"><img src="../../lib/trait_to_object_big.png" /></a>
-        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
-        <h1><a href="DisconnectCause$.html" title="See companion object">DisconnectCause</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="DisconnectCause$.html" title="See companion object">object DisconnectCause</a>
-            | <a href="package.html" class="extype" name="colossus.core">package core</a>
+        <img src="../../lib/class_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a>.<a href="DisconnectCause$.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></p>
+        <h1>ConnectFailed</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="DisconnectCause$.html" class="extype" name="colossus.core.DisconnectCause">package DisconnectCause</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -43,23 +41,19 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">DisconnectCause</span><span class="result"> extends <span class="extype" name="colossus.core.RootDisconnectCause">RootDisconnectCause</span></span>
+        <span class="name">ConnectFailed</span><span class="params">(<span name="error">error: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result"> extends <a href="DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Messages representing why a disconnect occurred.  These can be either normal disconnects
-or error cases
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A client connection failed to connect
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="colossus.core.RootDisconnectCause">RootDisconnectCause</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="DisconnectCause$$Closed$.html" class="extype" name="colossus.core.DisconnectCause.Closed">Closed</a>, <a href="DisconnectCause$$ConnectFailed.html" class="extype" name="colossus.core.DisconnectCause.ConnectFailed">ConnectFailed</a>, <a href="DisconnectCause$$Disconnect$.html" class="extype" name="colossus.core.DisconnectCause.Disconnect">Disconnect</a>, <a href="DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a>, <a href="DisconnectCause$$Error.html" class="extype" name="colossus.core.DisconnectCause.Error">Error</a>, <a href="DisconnectCause$$Terminated$.html" class="extype" name="colossus.core.DisconnectCause.Terminated">Terminated</a>, <a href="DisconnectCause$$TimedOut$.html" class="extype" name="colossus.core.DisconnectCause.TimedOut">TimedOut</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a>, <a href="DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a>, <span class="extype" name="colossus.core.RootDisconnectCause">RootDisconnectCause</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -76,7 +70,7 @@ or error cases
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.core.DisconnectCause"><span>DisconnectCause</span></li><li class="in" name="colossus.core.RootDisconnectCause"><span>RootDisconnectCause</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.DisconnectCause.ConnectFailed"><span>ConnectFailed</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.core.DisconnectError"><span>DisconnectError</span></li><li class="in" name="colossus.core.DisconnectCause"><span>DisconnectCause</span></li><li class="in" name="colossus.core.RootDisconnectCause"><span>RootDisconnectCause</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -94,51 +88,34 @@ or error cases
 
       <div id="template">
         <div id="allMembers">
-        
-
-        
-
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.core.RootDisconnectCause#logString" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="logString:String"></a>
-      <a id="logString:String"></a>
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="colossus.core.DisconnectCause.ConnectFailed#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(error:Throwable):colossus.core.DisconnectCause.ConnectFailed"></a>
+      <a id="&lt;init&gt;:ConnectFailed"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">logString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">ConnectFailed</span><span class="params">(<span name="error">error: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@logString:String" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@&lt;init&gt;(error:Throwable):colossus.core.DisconnectCause.ConnectFailed" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RootDisconnectCause</dd></dl></div>
-    </li><li name="colossus.core.RootDisconnectCause#tagString" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="tagString:String"></a>
-      <a id="tagString:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">tagString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@tagString:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>RootDisconnectCause</dd></dl></div>
+      
     </li></ol>
             </div>
 
+        
+
+        
+
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -151,7 +128,7 @@ or error cases
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -168,7 +145,7 @@ or error cases
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@##():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@##():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -185,7 +162,7 @@ or error cases
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -202,7 +179,7 @@ or error cases
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -219,7 +196,7 @@ or error cases
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@clone():Object" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@clone():Object" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -242,28 +219,28 @@ or error cases
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(x$1:Any):Boolean"></a>
-      <a id="equals(Any):Boolean"></a>
+    </li><li name="colossus.core.DisconnectCause.ConnectFailed#error" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="error:Throwable"></a>
+      <a id="error:Throwable"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">error</span><span class="result">: <span class="extype" name="scala.Throwable">Throwable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@error:Throwable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -276,7 +253,7 @@ or error cases
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@finalize():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -299,24 +276,7 @@ or error cases
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <a id="hashCode():Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -333,11 +293,28 @@ or error cases
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.DisconnectCause.ConnectFailed#logString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="logString:String"></a>
+      <a id="logString:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">logString</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@logString:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.DisconnectCause.ConnectFailed">ConnectFailed</a> → RootDisconnectCause</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -350,7 +327,7 @@ or error cases
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -367,7 +344,7 @@ or error cases
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@notify():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@notify():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -384,7 +361,7 @@ or error cases
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -401,28 +378,28 @@ or error cases
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <a id="toString():String"></a>
+    </li><li name="colossus.core.DisconnectCause.ConnectFailed#tagString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="tagString:String"></a>
+      <a id="tagString:String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">tagString</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@toString():String" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@tagString:String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.DisconnectCause.ConnectFailed">ConnectFailed</a> → RootDisconnectCause</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -435,7 +412,7 @@ or error cases
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@wait():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@wait():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -458,7 +435,7 @@ or error cases
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -481,7 +458,7 @@ or error cases
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DisconnectCause@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DisconnectCause$$ConnectFailed@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -501,7 +478,19 @@ or error cases
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.core.RootDisconnectCause">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="colossus.core.DisconnectError">
+              <h3>Inherited from <a href="DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a></h3>
+            </div><div class="parent" name="colossus.core.DisconnectCause">
+              <h3>Inherited from <a href="DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></h3>
+            </div><div class="parent" name="colossus.core.RootDisconnectCause">
               <h3>Inherited from <span class="extype" name="colossus.core.RootDisconnectCause">RootDisconnectCause</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>

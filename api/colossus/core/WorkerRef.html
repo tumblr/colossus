@@ -45,13 +45,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">WorkerRef</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This is a Worker's public interface.  This is what can be used to communicate with a Worker, as it
-wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The Worker's id.</p></dd><dt class="param">metrics</dt><dd class="cmt"><p>The Metrics associated with this Worker</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The ActorRef of the Worker</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Worker belongs
-</p></dd></dl><div class="toggleContainer block">
+wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -89,28 +88,7 @@ wraps the Worker's ActorRef, as well as providing some additional information wh
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="colossus.core.WorkerRef#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(id:Int,metrics:colossus.metrics.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef"></a>
-      <a id="&lt;init&gt;:WorkerRef"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">WorkerRef</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.LocalCollection">LocalCollection</span></span>, <span name="worker">worker: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>, <span name="system">system: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WorkerRef@&lt;init&gt;(id:Int,metrics:colossus.metrics.LocalCollection,worker:akka.actor.ActorRef,system:colossus.IOSystem):colossus.core.WorkerRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>The Worker's id.</p></dd><dt class="param">metrics</dt><dd class="cmt"><p>The Metrics associated with this Worker</p></dd><dt class="param">worker</dt><dd class="cmt"><p>The ActorRef of the Worker</p></dd><dt class="param">system</dt><dd class="cmt"><p>The IOSystem to which this Worker belongs
-</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         
 
