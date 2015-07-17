@@ -1,0 +1,1303 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>RedisClient - colossus.protocols.redis.RedisClient</title>
+          <meta name="description" content="RedisClient - colossus.protocols.redis.RedisClient" />
+          <meta name="keywords" content="RedisClient colossus.protocols.redis.RedisClient" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.redis.package$$RedisClient';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img src="../../../lib/class_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.redis">redis</a></p>
+        <h1>RedisClient</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.protocols.redis">package redis</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RedisClient</span><span class="result"> extends <a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>], <a href="../../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>], <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>], <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>], <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>], <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>], <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.redis.RedisClient"><span>RedisClient</span></li><li class="in" name="colossus.service.ServiceClient"><span>ServiceClient</span></li><li class="in" name="colossus.core.ManualUnbindHandler"><span>ManualUnbindHandler</span></li><li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="colossus.core.ClientConnectionHandler"><span>ClientConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="colossus.protocols.redis.RedisClient#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisClient"></a>
+      <a id="&lt;init&gt;:RedisClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RedisClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="RedisReplyParser$.html">RedisReplyParser.DefaultMaxSize</a></span></span></span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@&lt;init&gt;(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.controller.OutputController.QueuedItem" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="QueuedItemextendsProductwithSerializable"></a>
+      <a id="QueuedItem:QueuedItem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="../../controller/OutputController$QueuedItem.html"><span class="name">QueuedItem</span></a><span class="params">(<span name="item">item: <span class="extype" name="colossus.controller.OutputController.Output">Output</span></span>, <span name="postWrite">postWrite: (<a href="../../controller/OutputResult.html" class="extype" name="colossus.controller.OutputResult">OutputResult</a>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>, <span name="creationTimeMillis">creationTimeMillis: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.OutputController@QueuedItemextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.ResponseHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ResponseHandler=scala.util.Try[O]=&gt;Unit"></a>
+      <a id="ResponseHandler:ResponseHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ResponseHandler</span><span class="result"> = (<span class="extype" name="scala.util.Try">Try</span>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@ResponseHandler=scala.util.Try[O]=&gt;Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.SourcedRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SourcedRequestextendsProductwithSerializable"></a>
+      <a id="SourcedRequest:SourcedRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="../../service/ServiceClient$SourcedRequest.html"><span class="name">SourcedRequest</span></a><span class="params">(<span name="message">message: <span class="extype" name="colossus.service.ServiceClient.I">I</span></span>, <span name="handler">handler: <a href="../../service/ServiceClient.html#ResponseHandler=scala.util.Try[O]=&gt;Unit" class="extmbr" name="colossus.service.ServiceClient.ResponseHandler">ResponseHandler</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceClient@SourcedRequestextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@##():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
+      <a id="binding:Option[WorkerItemBinding]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">binding</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../core/WorkerItemBinding.html" class="extype" name="colossus.core.WorkerItemBinding">WorkerItemBinding</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@binding:Option[colossus.core.WorkerItemBinding]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">When bound to a worker, this contains the [WorkerItemBinding]</p><div class="fullcomment"><div class="comment cmt"><p>When bound to a worker, this contains the [WorkerItemBinding]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#boundWorker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="boundWorker:Option[colossus.core.WorkerRef]"></a>
+      <a id="boundWorker:Option[WorkerRef]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">boundWorker</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@boundWorker:Option[colossus.core.WorkerRef]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@clone():Object" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.controller.Controller#codec" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="codec:colossus.service.Codec[Output,Input]"></a>
+      <a id="codec:Codec[Command,Reply]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">codec</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@codec:colossus.service.Codec[Output,Input]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#config" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="config:colossus.service.ClientConfig"></a>
+      <a id="config:ClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">config</span><span class="result">: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@config:colossus.service.ClientConfig" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connected(endpoint:colossus.core.WriteEndpoint):Unit"></a>
+      <a id="connected(WriteEndpoint):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connected</span><span class="params">(<span name="endpoint">endpoint: <a href="../../core/WriteEndpoint.html" class="extype" name="colossus.core.WriteEndpoint">WriteEndpoint</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connected(endpoint:colossus.core.WriteEndpoint):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This handler is called when a Worker new Connection is established.</p><div class="fullcomment"><div class="comment cmt"><p>This handler is called when a Worker new Connection is established.  A Connection can be
+either an incoming (ie: something to connected to the server), or outgoing(ie: the server connected
+to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endpoint</dt><dd class="cmt"><p>The endpoint which wraps the java NIO layer.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionClosed" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionClosed(cause:colossus.core.DisconnectCause):Unit"></a>
+      <a id="connectionClosed(DisconnectCause):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionClosed</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionClosed(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Connection was closed on our end, either by a shutdown, or by normal means</p><div class="fullcomment"><div class="comment cmt"><p>Connection was closed on our end, either by a shutdown, or by normal means</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was closed
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#connectionInfo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionInfo:Option[colossus.core.ConnectionInfo]"></a>
+      <a id="connectionInfo:Option[ConnectionInfo]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionInfo</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../core/ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionInfo:Option[colossus.core.ConnectionInfo]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returns a read-only trait containing live information about the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a read-only trait containing live information about the connection.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionLost" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionLost(cause:colossus.core.DisconnectError):Unit"></a>
+      <a id="connectionLost(DisconnectError):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionLost</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionLost(cause:colossus.core.DisconnectError):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Connection lost is caused by termination, closed, etc</p><div class="fullcomment"><div class="comment cmt"><p>Connection lost is caused by termination, closed, etc</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was lost
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#connectionStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionStatus:colossus.core.ConnectionStatus"></a>
+      <a id="connectionStatus:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionStatus</span><span class="result">: <a href="../../core/ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionStatus:colossus.core.ConnectionStatus" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt>returns</dt><dd class="cmt"><p>Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.core.ConnectionHandler#connectionTerminated" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="connectionTerminated(cause:colossus.core.DisconnectCause):Unit"></a>
+      <a id="connectionTerminated(DisconnectCause):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">connectionTerminated</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@connectionTerminated(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by an error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by an error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was terminated
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#controllerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="controllerConfig:colossus.controller.ControllerConfig"></a>
+      <a id="controllerConfig:ControllerConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">controllerConfig</span><span class="result">: <a href="../../controller/ControllerConfig.html" class="extype" name="colossus.controller.ControllerConfig">ControllerConfig</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@controllerConfig:colossus.controller.ControllerConfig" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#disconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="disconnect():Unit"></a>
+      <a id="disconnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">disconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@disconnect():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a></dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#gracefulDisconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="gracefulDisconnect():Unit"></a>
+      <a id="gracefulDisconnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">gracefulDisconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@gracefulDisconnect():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Allow any requests in transit to complete, but cancel all pending requests
+and don't allow any new ones
+</p><div class="fullcomment"><div class="comment cmt"><p>Allow any requests in transit to complete, but cancel all pending requests
+and don't allow any new ones
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a> → <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a></dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="id:Option[Long]"></a>
+      <a id="id:Option[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@id:Option[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#idleCheck" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="idleCheck(period:scala.concurrent.duration.Duration):Unit"></a>
+      <a id="idleCheck(Duration):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@idleCheck(period:scala.concurrent.duration.Duration):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><div class="fullcomment"><div class="comment cmt"><p>Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
+which is only based on the last time there was any I/O.
+</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#info" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="info:colossus.service.Callback[Map[String,String]]"></a>
+      <a id="info:Callback[Map[String,String]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">info</span><span class="result">: <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@info:colossus.service.Callback[Map[String,String]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBound:Boolean"></a>
+      <a id="isBound:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@isBound:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#isConnected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isConnected:Boolean"></a>
+      <a id="isConnected:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isConnected</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@isConnected:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a></dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#log" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="log:akka.event.LoggingAdapter"></a>
+      <a id="log:LoggingAdapter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">log</span><span class="result">: <span class="extype" name="akka.event.LoggingAdapter">LoggingAdapter</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#maxIdleTime" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="maxIdleTime:scala.concurrent.duration.Duration"></a>
+      <a id="maxIdleTime:Duration"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">maxIdleTime</span><span class="result">: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@maxIdleTime:scala.concurrent.duration.Duration" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">If no data is either sent or received in this amount of time, the connection is closed.</p><div class="fullcomment"><div class="comment cmt"><p>If no data is either sent or received in this amount of time, the connection is closed.  Defaults to Duration.Inf but handlers can override it
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#onBind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onBind():Unit"></a>
+      <a id="onBind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@onBind():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onUnbind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onUnbind():Unit"></a>
+      <a id="onUnbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@onUnbind():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item has been unbound from a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#pauseReads" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="pauseReads():Unit"></a>
+      <a id="pauseReads():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pauseReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@pauseReads():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#pauseWrites" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="pauseWrites():Unit"></a>
+      <a id="pauseWrites():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pauseWrites</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@pauseWrites():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Pauses writing of the next item in the queue.</p><div class="fullcomment"><div class="comment cmt"><p>Pauses writing of the next item in the queue.  If there is currently a
+message in the process of writing, it will be unaffected.  New messages
+can still be pushed to the queue as long as it is not full
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#processMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="processMessage(response:O):Unit"></a>
+      <a id="processMessage(Reply):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">processMessage</span><span class="params">(<span name="response">response: <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@processMessage(response:O):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#purgeAll" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="purgeAll(reason:Throwable):Unit"></a>
+      <a id="purgeAll(Throwable):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">purgeAll</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@purgeAll(reason:Throwable):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Purge both pending and outgoing messages</p><div class="fullcomment"><div class="comment cmt"><p>Purge both pending and outgoing messages</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#purgeOutgoing" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="purgeOutgoing(reason:Throwable):Unit"></a>
+      <a id="purgeOutgoing(Throwable):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">purgeOutgoing</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@purgeOutgoing(reason:Throwable):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Purge the outgoing message, if there is one</p><div class="fullcomment"><div class="comment cmt"><p>Purge the outgoing message, if there is one</p><p>If a message is currently being streamed, the stream will be terminated
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#purgePending" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="purgePending(reason:Throwable):Unit"></a>
+      <a id="purgePending(Throwable):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">purgePending</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@purgePending(reason:Throwable):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Purge all pending messages</p><div class="fullcomment"><div class="comment cmt"><p>Purge all pending messages</p><p>If a message is currently being written, it is not affected
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#push" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="push(item:Output,createdMillis:Long)(postWrite:colossus.controller.OutputResult=&gt;Unit):Boolean"></a>
+      <a id="push(Command,Long)((OutputResult)⇒Unit):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">push</span><span class="params">(<span name="item">item: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: (<a href="../../controller/OutputResult.html" class="extype" name="colossus.controller.OutputResult">OutputResult</a>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@push(item:Output,createdMillis:Long)(postWrite:colossus.controller.OutputResult=&gt;Unit):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Push a message to be written</p><div class="fullcomment"><div class="comment cmt"><p>Push a message to be written</p><p>Pushing a message does not necessarily mean it will be written, but rather
+that the message is queued to be written.  Messages can be queue
+regardless of the state of the underlying connection, even if the
+connection is never reconnected.  It is up to the caller to determine
+whether a message should be pushed based on connection state.
+</p></div><dl class="paramcmts block"><dt class="param">item</dt><dd class="cmt"><p>the message to push</p></dd><dt class="param">createdMillis</dt><dd class="cmt"><p>the timestamp of when the message was created, defaults to now if not specified</p></dd><dt class="param">postWrite</dt><dd class="cmt"><p>called either when writing has completed or failed
+</p></dd><dt>returns</dt><dd class="cmt"><p>true if the message was successfully enqueued, false if the queue is full
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#queueSize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="queueSize:Int"></a>
+      <a id="queueSize:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">queueSize</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@queueSize:Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#readsEnabled" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="readsEnabled:Boolean"></a>
+      <a id="readsEnabled:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">readsEnabled</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@readsEnabled:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#readyForData" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="readyForData():Unit"></a>
+      <a id="readyForData():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">readyForData</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@readyForData():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This function is called to signal to the handler that it can resume writing data.</p><div class="fullcomment"><div class="comment cmt"><p>This function is called to signal to the handler that it can resume writing data.
+It is called as part of the WriteEndPoint event loop write cycle, where previously this handler
+attempted to write data, but the buffers were filled up.  This is called once the buffers
+are empty again and able to receive data.  This handler should be in a state where it is paused on writing
+data until this handler is invoked.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#receivedData" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedData(data:colossus.core.DataBuffer):Unit"></a>
+      <a id="receivedData(DataBuffer):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedData</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@receivedData(data:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Handler which is called when data is received from a Connection.</p><div class="fullcomment"><div class="comment cmt"><p>Handler which is called when data is received from a Connection.</p></div><dl class="paramcmts block"><dt class="param">data</dt><dd class="cmt"><p>DataBuffer read from the underlying Connection.
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#resumeReads" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resumeReads():Unit"></a>
+      <a id="resumeReads():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resumeReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@resumeReads():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#resumeWrites" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resumeWrites():Unit"></a>
+      <a id="resumeWrites():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resumeWrites</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@resumeWrites():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Resumes writing of messages if currently paused, otherwise has no affect
+</p><div class="fullcomment"><div class="comment cmt"><p>Resumes writing of messages if currently paused, otherwise has no affect
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="send(request:I):colossus.service.Callback[O]"></a>
+      <a id="send(Command):Callback[Reply]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">send</span><span class="params">(<span name="request">request: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>)</span><span class="result">: <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@send(request:I):colossus.service.Callback[O]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a callback for sending a request.</p><div class="fullcomment"><div class="comment cmt"><p>Create a callback for sending a request.  this allows you to do something like
+service.send(&quot;request&quot;){response =&gt; &quot;YAY&quot;}.map{str =&gt; println(str)}.execute()
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+    </li><li name="colossus.controller.Controller#state" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="state:colossus.controller.ConnectionState"></a>
+      <a id="state:ConnectionState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">var</span>
+      </span>
+      <span class="symbol">
+        <span class="name">state</span><span class="result">: <a href="../../controller/ConnectionState.html" class="extype" name="colossus.controller.ConnectionState">ConnectionState</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@state:colossus.controller.ConnectionState" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a></dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@toString():String" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.service.ServiceClient#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.controller.OutputController#writesEnabled" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="writesEnabled:Boolean"></a>
+      <a id="writesEnabled:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">writesEnabled</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient@writesEnabled:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="colossus.service.ServiceClient">
+              <h3>Inherited from <a href="../../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</h3>
+            </div><div class="parent" name="colossus.core.ManualUnbindHandler">
+              <h3>Inherited from <a href="../../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a></h3>
+            </div><div class="parent" name="colossus.service.ServiceClientLike">
+              <h3>Inherited from <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</h3>
+            </div><div class="parent" name="colossus.core.ClientConnectionHandler">
+              <h3>Inherited from <a href="../../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></h3>
+            </div><div class="parent" name="colossus.controller.Controller">
+              <h3>Inherited from <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>]</h3>
+            </div><div class="parent" name="colossus.controller.OutputController">
+              <h3>Inherited from <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>]</h3>
+            </div><div class="parent" name="colossus.controller.InputController">
+              <h3>Inherited from <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>]</h3>
+            </div><div class="parent" name="colossus.controller.MasterController">
+              <h3>Inherited from <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>]</h3>
+            </div><div class="parent" name="colossus.core.ConnectionHandler">
+              <h3>Inherited from <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></h3>
+            </div><div class="parent" name="colossus.core.WorkerItem">
+              <h3>Inherited from <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
