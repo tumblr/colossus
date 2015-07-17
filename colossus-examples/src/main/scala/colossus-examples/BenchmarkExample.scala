@@ -15,10 +15,6 @@ import akka.actor._
 import akka.util.ByteString
 import scala.concurrent.duration._
 
-import UrlParsing._
-import HttpMethod._
-
-
 object BenchmarkService {
 
   class Timestamp(server: ServerRef) extends Actor {
@@ -51,7 +47,7 @@ object BenchmarkService {
       maxConnections = 16384,
       tcpBacklogSize = Some(1024)
     )
-    val serviceConfig = ServiceConfig(
+    val serviceConfig = ServiceConfig[Http#Input, Http#Output](
       name = "/sample",
       requestTimeout = Duration.Inf,
       requestMetrics = false

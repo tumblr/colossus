@@ -97,7 +97,7 @@ class ServiceServerSpec extends ColossusSpec {
         maxIdleTime = Duration.Inf
       )
 
-      val serviceConfig = ServiceConfig (
+      val serviceConfig = ServiceConfig[Redis#Input, Redis#Output] (
         name = "/timeout-test",
         requestTimeout = 50.milliseconds
       )

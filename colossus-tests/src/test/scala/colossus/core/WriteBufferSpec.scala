@@ -124,6 +124,17 @@ class WriteBufferSpec extends ColossusSpec {
       b.write(data("asf")) must equal(Failed)
     }
 
+    "properly catch CancelledKeyException on key set interest in writes" in {
+      class FailFakeWriter extends FakeWriteBuffer(10) {
+        override def setKeyInterest() {
+          throw new java.nio.channels.CancelledKeyException()
+        }
+      }
+
+      val b = new FailFakeWriter
+      b.write(data("asdfsadf")) must equal(Failed)
+    }
+
 
 
   }
