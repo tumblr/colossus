@@ -29,13 +29,13 @@ import DataSize._
 object UnifiedProtocol {
   val ADD     = ByteString("add")
   val APPEND  = ByteString("append")
+  val DECR    = ByteString("decr")
   val DELETE  = ByteString("delete")
   val GET     = ByteString("get")
+  val INCR    = ByteString("incr")
   val PREPEND = ByteString("prepend")
   val REPLACE = ByteString("replace")
   val SET     = ByteString("set")
-  val INCR    = ByteString("incr")
-  val DECR    = ByteString("decr")
   val TOUCH   = ByteString("touch")
 
   val RN = ByteString("\r\n")
@@ -222,6 +222,7 @@ object MemcacheReply {
   sealed trait DataReply extends MemcacheReply 
     
   case class Value(key: String, data: ByteString) extends DataReply
+  case class Counter(value : Long) extends DataReply
   case class Values(values: Seq[Value]) extends DataReply
   case object NoData extends DataReply
 
@@ -233,6 +234,7 @@ object MemcacheReply {
   case class ClientError(error: String) extends MemcacheError
   case class ServerError(error: String) extends MemcacheError
 
+  case object Touched extends MemcacheReply with MemcacheHeader
   case object Stored extends MemcacheReply with MemcacheHeader
   case object NotFound  extends MemcacheReply with MemcacheHeader
   case object Deleted extends MemcacheReply with MemcacheHeader
@@ -270,9 +272,13 @@ object MemcacheReplyParser {
     case "EXISTS"     => const(Exists)
     case "NOT_FOUND"  => const(NotFound)
     case "DELETED"    => const(Deleted)
+    case "TOUCHED"    => const(Touched)
     case "ERROR"      => const(Error("ERROR"))
+    case other if isNumeric(other) => const(Counter(other.toLong))
     case other        => throw new ParseException(s"Unknown reply '$other'")
   }}
+
+  def isNumeric(str : String) = str.forall(_.isDigit)
                                 
   //returns either a Value or Values object depending if 1 or >1 values received
   def values(build: List[Value]): Parser[DataReply] = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
@@ -284,13 +290,6 @@ object MemcacheReplyParser {
   //parses the key and length in the header
   def value(build: List[Value], key: String, len: Int) = bytes(len) <~ bytes(2) |> {b => values(Value(key, b) :: build)}
 }
-
-case class MemcacheClientConfig(
-  io: IOSystem,
-  host: String,
-  port: Int,
-  compression: Boolean
-)
 
 trait Compressor {
   def compress(bytes: ByteString): ByteString
@@ -344,6 +343,7 @@ class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize
   }
 }
 
+//TODO: convenience functions
 class MemcacheClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
   extends ServiceClient[MemcacheCommand, MemcacheReply](
     codec   = new MemcacheClientCodec(maxSize),

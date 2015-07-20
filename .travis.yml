@@ -1,6 +1,10 @@
 language: scala
 scala:
   - 2.10.4
-  - 2.11.5
+  - 2.11.7
 jdk: oraclejdk7
 sudo: false
+services:
+  - memcached
+  - redis
+script: sbt ++$TRAVIS_SCALA_VERSION testAll
