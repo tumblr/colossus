@@ -104,7 +104,7 @@ class ServiceClient[I,O](
   codec: Codec[I,O], 
   val config: ClientConfig,
   val worker: WorkerRef
-)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
+)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
 extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
