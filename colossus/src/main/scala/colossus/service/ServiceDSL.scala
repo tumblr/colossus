@@ -63,7 +63,7 @@ trait CodecProvider[C <: CodecDSL] {
    * @param ex ExecutionContext
    * @return Handler
    */
-  def provideHandler(config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext): DSLHandler[C] = {
+  def provideHandler(config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext, tagDecorator: TagDecorator[C#Input, C#Output] = TagDecorator.default[C#Input, C#Output]): DSLHandler[C] = {
     new BasicServiceHandler[C](config,worker,this, intializer)
   }
 
@@ -73,7 +73,7 @@ trait CodecProvider[C <: CodecDSL] {
    * @param server Server which this Delegator will operate in
    * @param worker Worker which the Delegator will be bound
    * @param provider The codecProvider
-   * @param requestTimeout RequestTimeout
+   * @param config ServiceConfig
    * @return Delegator
    */
   def provideDelegator(func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig[C#Input, C#Output]) = {
@@ -203,7 +203,7 @@ class ReceiveException(message: String) extends Exception(message)
 
 class BasicServiceHandler[C <: CodecDSL]
   (config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C])
-  (implicit ex: ExecutionContext)
+  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[C#Input, C#Output] = TagDecorator.default[C#Input, C#Output])
   extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
   with DSLHandler[C] {
 

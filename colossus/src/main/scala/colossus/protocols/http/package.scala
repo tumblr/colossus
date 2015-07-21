@@ -1,6 +1,7 @@
 package colossus
 package protocols
 
+import colossus.metrics.TagMap
 import colossus.parsing.DataSize
 import core.WorkerRef
 import service._
@@ -37,7 +38,8 @@ package object http {
       case other => request.error(reason.toString)
     }
 
-    override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])(implicit ex: ExecutionContext): DSLHandler[Http] = {
+    override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = TagDecorator.default[Http#Input, Http#Output]): DSLHandler[Http] = {
       new HttpServiceHandler[Http](config, worker, this, initializer)
     }
 
@@ -45,8 +47,18 @@ package object http {
 
   implicit object DefaultHttpProvider extends HttpProvider
 
+
+
+  object ReturnCodeTagDecorator extends TagDecorator[BaseHttp#Input, BaseHttp#Output] {
+    override def tagsFor(request: BaseHttp#Input, response: BaseHttp#Output): TagMap = {
+      Map("status_code" -> response.head.code.code.toString)
+    }
+  }
+
+
   class HttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])(implicit ex: ExecutionContext)
+  (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])
+  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output] = ReturnCodeTagDecorator)
   extends BasicServiceHandler[D](config, worker, provider, initializer) {
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
@@ -65,7 +77,8 @@ package object http {
       case other => toStreamed(request.error(reason.toString))
     }
 
-    override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])(implicit ex: ExecutionContext): DSLHandler[StreamingHttp] = {
+    override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = TagDecorator.default[StreamingHttp#Input, StreamingHttp#Output]): DSLHandler[StreamingHttp] = {
       new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
     }
 
