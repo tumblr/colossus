@@ -1,6 +1,9 @@
 language: scala
 scala:
-  - 2.10.4
-  - 2.11.5
+- 2.10.4
+- 2.11.5
 jdk: oraclejdk7
 sudo: false
+before_install:
+- openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv
+  -in pubring.gpg.enc -out pubring.gpg -d
