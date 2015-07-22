@@ -54,19 +54,25 @@ case class MemcachedKey(bytes: ByteString) {
   assert(bytes.indexWhere(_ < ' ') == -1, "Memcached keys should not contain ascii control characters")
 
 }
-//TODO: Flags don't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
+//TODO: 'Flags' doesn't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
 //TODO: implement CAS
-//TODO: incrs/decrs are not utilizing full 64 bit unsigned int space
+//TODO: incrs/decrs are not utilizing full 64 bit unsigned int space since we are using singed Longs
 object MemcacheCommand {
 
   import UnifiedProtocol._
 
-  case class Get(key: MemcachedKey) extends MemcacheCommand {
+  case class Get(keys: MemcachedKey*) extends MemcacheCommand {
 
     def bytes (compressor: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
-      b.sizeHint(GET.size + key.bytes.size + 3) //3 bytes..one each for SP\r\n : for GET <key>\r\n
-      b.append(GET).append(SP).append(key.bytes).append(RN).result()
+      val totalKeyBytes = keys.foldLeft(0)(_ + _.bytes.size + 1)
+      //padding is 2..for the \r\n.  The spaces between keys are already accounted for in the foldLeft
+      b.sizeHint(GET.size + totalKeyBytes + 2)
+      b.append(GET)
+      keys.foreach{ x =>
+        b.append(SP).append(x.bytes)
+      }
+      b.append(RN).result()
     }
   }
 
@@ -221,9 +227,9 @@ sealed trait MemcacheHeader
 object MemcacheReply {
   sealed trait DataReply extends MemcacheReply 
     
-  case class Value(key: String, data: ByteString) extends DataReply
+  case class Value(key: String, data: ByteString, flags : Int) extends DataReply
   case class Counter(value : Long) extends DataReply
-  case class Values(values: Seq[Value]) extends DataReply
+  case class Values(values: Vector[Value]) extends DataReply
   case object NoData extends DataReply
 
   //these are all one-line responses
@@ -265,7 +271,7 @@ object MemcacheReplyParser {
   def apply(size: DataSize = DefaultMaxSize) = maxSize(size, reply)
 
   def reply = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
-    case "VALUE"      => value(Nil, pieces(1), pieces(3).toInt)
+    case "VALUE"      => value(Vector.empty, pieces(1), pieces(2).toInt, pieces(3).toInt)
     case "END"        => const(NoData)
     case "NOT_STORED" => const(NotStored)
     case "STORED"     => const(Stored)
@@ -281,14 +287,12 @@ object MemcacheReplyParser {
   def isNumeric(str : String) = str.forall(_.isDigit)
                                 
   //returns either a Value or Values object depending if 1 or >1 values received
-  def values(build: List[Value]): Parser[DataReply] = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
-    case "VALUE" => value(build, pieces(1), pieces(3).toInt)
+  def values(build: Vector[Value]): Parser[DataReply] = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
+    case "VALUE" => value(build, pieces(1), pieces(2).toInt, pieces(3).toInt)
     case "END" => const(if (build.size == 1) build.head else Values(build))
   }}
 
-  //this parser starts immediately after the "VALUE" in the header, so it
-  //parses the key and length in the header
-  def value(build: List[Value], key: String, len: Int) = bytes(len) <~ bytes(2) |> {b => values(Value(key, b) :: build)}
+  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(key, b, flags))}
 }
 
 trait Compressor {

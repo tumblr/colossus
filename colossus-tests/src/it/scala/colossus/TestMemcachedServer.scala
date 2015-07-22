@@ -12,6 +12,7 @@ import colossus.protocols.memcache._
 import colossus.service.{Callback, ClientConfig, Service}
 
 import net.liftweb.json._
+import net.liftweb.json.Serialization.write
 
 object TestMemcachedServer {
 
@@ -62,10 +63,12 @@ object TestMemcachedServer {
             }
           }
           case req @ HttpGet on Root / "get" / key => {
-            memcachedClient.send(Get(MemcachedKey(key))).map {
-              case Value(k, v) => req.ok(v.utf8String)
+            val keys = key.split("_").map(MemcachedKey(_)) //lazy
+            memcachedClient.send(Get(keys : _*)).map {
+              case a : Value  => req.ok(write(GetReply(a)))
+              case a : Values => req.ok(write(GetReplies(a.values.map(x => GetReply(x)))))
               case NoData => req.notFound("")
-              case x => println(s"get fail: $x"); req.error(":(")
+              case x => req.error(":(")
             }
           }
           case req @ Post on Root / "incr" / key / value => {
@@ -118,5 +121,13 @@ object TestMemcachedServer {
     }
   }
   case class WriteParameters(key : String, value : String, flags : Int = 0, ttl : Int = 0)
+
+  case class GetReply(key : String, value : String, flags : Int)
+
+  case class GetReplies(values : Seq[GetReply])
+
+  object GetReply {
+    def apply(value : Value) : GetReply = GetReply(value.key, value.data.utf8String, value.flags)
+  }
 
 }

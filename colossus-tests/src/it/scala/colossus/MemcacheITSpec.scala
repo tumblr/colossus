@@ -1,8 +1,9 @@
 package colossus
 
-import colossus.TestMemcachedServer.WriteParameters
+import colossus.TestMemcachedServer.{GetReplies, GetReply, WriteParameters}
 import colossus.core.ServerRef
 import colossus.protocols.http.HttpCodes
+import colossus.protocols.memcache.MemcacheReply.Value
 import colossus.testkit.HttpServiceSpec
 import net.liftweb.json.Serialization.write
 
@@ -24,7 +25,7 @@ class MemcacheITSpec extends HttpServiceSpec{
     "add" in {
       val params =  write(WriteParameters("colITAdd", "colITAddValue"))
       testPost("/add", params, HttpCodes.OK, "Stored")
-      testGet("/get/colITAdd", "colITAddValue")
+      testGetJson("/get/colITAdd",  GetReply("colITAdd", "colITAddValue", 0))
       testPost("/add", params, HttpCodes.OK, "NotStored")
     }
 
@@ -34,7 +35,7 @@ class MemcacheITSpec extends HttpServiceSpec{
       testPost("/append", appendParams, HttpCodes.OK, "NotStored")
       testPost("/add", params, HttpCodes.OK, "Stored")
       testPost("/append", appendParams, HttpCodes.OK, "Stored")
-      testGet("/get/colITAppend", "colITAddAppendappend")
+      testGetJson("/get/colITAppend",  GetReply("colITAppend", "colITAddAppendappend", 0))
     }
 
     "decr" in {
@@ -49,6 +50,13 @@ class MemcacheITSpec extends HttpServiceSpec{
       testPost("/delete/colITDel", "", HttpCodes.OK)
       testGetCode("/get/colITDel", HttpCodes.NOT_FOUND)
     }
+    "get multiple keys" in {
+      val paramsA =  write(WriteParameters("colITGetA", "colITGetAValue"))
+      val paramsB =  write(WriteParameters("colITGetB", "colITGetBValue"))
+      testPost("/set", paramsA, HttpCodes.OK, "Stored")
+      testPost("/set", paramsB, HttpCodes.OK, "Stored")
+      testGetJson("/get/colITGetA_colITGetB",  GetReplies(Seq(GetReply("colITGetA", "colITGetAValue", 0), GetReply("colITGetB", "colITGetBValue", 0))))
+    }
 
     "incr" in {
       val params =  write(WriteParameters("colITIncr", "10"))
@@ -62,7 +70,7 @@ class MemcacheITSpec extends HttpServiceSpec{
       testPost("/prepend", appendParams, HttpCodes.OK, "NotStored")
       testPost("/add", params, HttpCodes.OK, "Stored")
       testPost("/prepend", appendParams, HttpCodes.OK, "Stored")
-      testGet("/get/colITPrepend", "prependcolITAddPrepend")
+      testGetJson("/get/colITPrepend",  GetReply("colITPrepend", "prependcolITAddPrepend", 0))
     }
 
     "replace" in {
@@ -71,16 +79,16 @@ class MemcacheITSpec extends HttpServiceSpec{
       testPost("/replace", replaceParams, HttpCodes.OK, "NotStored")
       testPost("/add", addParams, HttpCodes.OK, "Stored")
       testPost("/replace", replaceParams, HttpCodes.OK, "Stored")
-      testGet("/get/colITReplace", "replaced!")
+      testGetJson("/get/colITReplace",  GetReply("colITReplace", "replaced!", 0))
     }
 
     "set" in {
-      val params =  write(WriteParameters("colITSet", "colITSetValue"))
+      val params =  write(WriteParameters("colITSet", "colITSetValue", 123))
       testPost("/set", params, HttpCodes.OK, "Stored")
-      testGet("/get/colITSet", "colITSetValue")
-      val params2 =  write(WriteParameters("colITSet", "colITSetValueAgain"))
+      testGetJson("/get/colITSet",  GetReply("colITSet", "colITSetValue", 123))
+      val params2 =  write(WriteParameters("colITSet", "colITSetValueAgain", 123))
       testPost("/set", params2, HttpCodes.OK, "Stored")
-      testGet("/get/colITSet", "colITSetValueAgain")
+      testGetJson("/get/colITSet",  GetReply("colITSet", "colITSetValueAgain", 123))
     }
 
     "touch" in {
