@@ -1,9 +1,18 @@
 language: scala
 scala:
-- 2.10.4
-- 2.11.5
+  - 2.10.4
+  - 2.11.5
 jdk: oraclejdk7
 sudo: false
+env:
+  global:
+  - secure: C5gzKxJbLfWxAI7iONYu93DyhyUTAM8u/XAsiELYz5VcLsWVyvd/8X/GqP8V0EB4EMShZ5HE4rx0Goyf3taRXQnHHdrOZA+wLXiqtLROC+Lg0yZ4R5Cfk8tvXGh9b1NbcZ5MRyksk+7SmXCysaj7wZbH2/9ZHwDIttQ1HQT0lqg=
+  - secure: iiw9+wtUF6jp61G24pEbk+S6FzjuYKToPqXAbk0oDkcSdfYgKSjSBmWO00JrvY//NlrGECI+PUltl1O1uOACLI8sgrMGFY9vhRTPHndKWJR9xuox9ZF+FalxVdSNtUpelZaEoBdkMW60ED/lv56bTqfr2PVI5yxY/Zz4u58ayi0=
+  - secure: QLBIwUob5cvL2SEbhvxK7ts2xpa9sUb3mtqpH+ognXJh042WyKHEn6IUtl5xUPhnSv/lXlxiutSWpMxzlySd47tp0Fjz30myrVIm5xuDwb2qmDuD9WQ1MOfFR+qJ9B7sF1v3ZeQmZg3YslaGuDSbkZxQe5Wwi132IbdYqVhyYDo=
 before_install:
 - openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv
+  -in secring.gpg.enc -out secring.gpg -d
+- openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv
   -in pubring.gpg.enc -out pubring.gpg -d
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"auto-publish\" ]] && { sbt publishSigned; };"
