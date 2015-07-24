@@ -1,12 +1,16 @@
 package colossus
 
-import colossus.TestMemcachedServer.{GetReplies, GetReply, WriteParameters}
-import colossus.core.ServerRef
-import colossus.protocols.http.HttpCodes
-import colossus.protocols.memcache.MemcacheReply.Value
-import colossus.testkit.HttpServiceSpec
-import net.liftweb.json.Serialization.write
+import java.net.InetSocketAddress
 
+import akka.util.ByteString
+import colossus.protocols.memcache.MemcacheCommand._
+import colossus.protocols.memcache.MemcacheReply._
+import colossus.protocols.memcache.{Memcache, MemcacheCommand, MemcacheReply, MemcachedKey}
+import colossus.service.{AsyncServiceClient, ClientConfig}
+import colossus.testkit.ColossusSpec
+import org.scalatest.concurrent.ScalaFutures
+
+import scala.concurrent.Future
 import scala.concurrent.duration._
 /*
 Please be aware when running this test, that if you run it on a machine with a memcached server
@@ -15,87 +19,174 @@ which has data you care about.
 This test runs by hitting the REST endpoints exposed by teh TestMemcachedServer, which just proxies directly to
 a Memcached client, which communicates with memcached
  */
-class MemcacheITSpec extends HttpServiceSpec{
+class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
-  override def service: ServerRef = TestMemcachedServer.start(8889)
+  type AsyncMemacheClient = AsyncServiceClient[MemcacheCommand, MemcacheReply]
 
-  override def requestTimeout: FiniteDuration = 1.second
+  implicit val sys = IOSystem("test-system", 2)
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  val client = AsyncServiceClient[Memcache](ClientConfig(new InetSocketAddress("localhost", 11211), 1.second, "memcache"))
+
+  val mValue = ByteString("value")
   "Memcached client" should {
     "add" in {
-      val params =  write(WriteParameters("colITAdd", "colITAddValue"))
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITAdd",  GetReply("colITAdd", "colITAddValue", 0))
-      testPost("/add", params, HttpCodes.OK, "NotStored")
+      val key = ByteString("colITAdd")
+      add(client, key, mValue).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITAdd"->Value("colITAdd", mValue, 0)))
+      add(client, key, mValue).futureValue must be (false)
     }
 
     "append" in {
-      val params =  write(WriteParameters("colITAppend", "colITAddAppend"))
-      val appendParams =  write(WriteParameters("colITAppend", "append"))
-      testPost("/append", appendParams, HttpCodes.OK, "NotStored")
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testPost("/append", appendParams, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITAppend",  GetReply("colITAppend", "colITAddAppendappend", 0))
+      val key = ByteString("colITAppend")
+      append(client, key, ByteString("valueA")).futureValue must be (false)
+      add(client, key, mValue).futureValue must be (true)
+      append(client, key, ByteString("valueA")).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITAppend"->Value("colITAppend", ByteString("valuevalueA"), 0)))
     }
 
     "decr" in {
-      val params =  write(WriteParameters("colITDecr", "10"))
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testPost("/decr/colITDecr/1", "", HttpCodes.OK, "9")
+      val key = ByteString("colITDecr")
+      decr(client, key, 1).futureValue must be (None)
+      add(client, key, ByteString("2")).futureValue must be (true)
+      decr(client, key, 1).futureValue must be (Some(1))
     }
 
     "delete" in {
-      val params =  write(WriteParameters("colITDel", "colItDelValue"))
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testPost("/delete/colITDel", "", HttpCodes.OK)
-      testGetCode("/get/colITDel", HttpCodes.NOT_FOUND)
+      val key = ByteString("colITDel")
+      add(client, key, mValue).futureValue must be (true)
+      delete(client, key).futureValue must be (true)
+      delete(client, key).futureValue must be (false)
     }
+
     "get multiple keys" in {
-      val paramsA =  write(WriteParameters("colITGetA", "colITGetAValue"))
-      val paramsB =  write(WriteParameters("colITGetB", "colITGetBValue"))
-      testPost("/set", paramsA, HttpCodes.OK, "Stored")
-      testPost("/set", paramsB, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITGetA_colITGetB",  GetReplies(Seq(GetReply("colITGetA", "colITGetAValue", 0), GetReply("colITGetB", "colITGetBValue", 0))))
+      val keyA = ByteString("colITMGetA")
+      val keyB = ByteString("colITMGetB")
+      val expectedMap = Map("colITMGetA"->Value("colITMGetA", mValue, 0), "colITMGetB"->Value("colITMGetB", mValue, 0))
+      add(client, keyA, mValue).futureValue must be (true)
+      add(client, keyB, mValue).futureValue must be (true)
+      get(client, keyA, keyB).futureValue mustBe expectedMap
     }
 
     "incr" in {
-      val params =  write(WriteParameters("colITIncr", "10"))
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testPost("/incr/colITIncr/1", "", HttpCodes.OK, "11")
+      val key = ByteString("colITIncr")
+      incr(client, key, 1).futureValue must be (None)
+      add(client, key, ByteString("2")).futureValue must be (true)
+      incr(client, key, 1).futureValue must be (Some(3))
     }
 
     "prepend" in {
-      val params =  write(WriteParameters("colITPrepend", "colITAddPrepend"))
-      val appendParams =  write(WriteParameters("colITPrepend", "prepend"))
-      testPost("/prepend", appendParams, HttpCodes.OK, "NotStored")
-      testPost("/add", params, HttpCodes.OK, "Stored")
-      testPost("/prepend", appendParams, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITPrepend",  GetReply("colITPrepend", "prependcolITAddPrepend", 0))
+      val key = ByteString("colITPrepend")
+      prepend(client, key, ByteString("valueA")).futureValue must be (false)
+      add(client, key, mValue).futureValue must be (true)
+      prepend(client, key, ByteString("valueP")).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITPrepend"->Value("colITPrepend", ByteString("valuePvalue"), 0)))
     }
 
     "replace" in {
-      val replaceParams =  write(WriteParameters("colITReplace", "replaced!"))
-      val addParams =  write(WriteParameters("colITReplace", "colItReplaceValue"))
-      testPost("/replace", replaceParams, HttpCodes.OK, "NotStored")
-      testPost("/add", addParams, HttpCodes.OK, "Stored")
-      testPost("/replace", replaceParams, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITReplace",  GetReply("colITReplace", "replaced!", 0))
+      val key = ByteString("colITReplace")
+      replace(client, key, mValue).futureValue must be (false)
+      add(client, key, mValue).futureValue must be (true)
+      replace(client, key, ByteString("newValue")).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITReplace"->Value("colITReplace", ByteString("newValue"), 0)))
     }
 
     "set" in {
-      val params =  write(WriteParameters("colITSet", "colITSetValue", 123))
-      testPost("/set", params, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITSet",  GetReply("colITSet", "colITSetValue", 123))
-      val params2 =  write(WriteParameters("colITSet", "colITSetValueAgain", 123))
-      testPost("/set", params2, HttpCodes.OK, "Stored")
-      testGetJson("/get/colITSet",  GetReply("colITSet", "colITSetValueAgain", 123))
+      val key = ByteString("colITSet")
+      set(client, key, mValue).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITSet"->Value("colITSet", ByteString("value"), 0)))
+      set(client, key, ByteString("newValue")).futureValue must be (true)
+      get(client, key).futureValue must be (Map("colITSet"->Value("colITSet", ByteString("newValue"), 0)))
     }
 
     "touch" in {
-      val params =  write(WriteParameters("colITTouch", "colITTouchValue"))
-      testPost("/touch/colITTouch/100", params, HttpCodes.NOT_FOUND)
-      testPost("/set", params, HttpCodes.OK, "Stored")
-      testPost("/touch/colITTouch/100", params, HttpCodes.OK, "Touched")
+      val key = ByteString("colITTouch")
+      touch(client, key, 100).futureValue must be (false)
+      set(client, key, mValue).futureValue must be (true)
+      touch(client, key, 100).futureValue must be (true)
+    }
+  }
+
+  //potential client interface (with some refinements)
+  def add(client : AsyncMemacheClient, key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) = {
+    client.send(Add(MemcachedKey(key), value, ttl, flags)).flatMap {
+      case Stored => Future.successful(true)
+      case NotStored => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when adding $key and $value"))
+    }
+  }
+
+  def append(client : AsyncMemacheClient, key : ByteString, value : ByteString) = {
+    client.send(Append(MemcachedKey(key), value)).flatMap {
+      case Stored => Future.successful(true)
+      case NotStored => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when appending $key and $value"))
+    }
+  }
+
+  def decr(client : AsyncMemacheClient, key : ByteString, value : Long) : Future[Option[Long]] = {
+    client.send(Decr(MemcachedKey(key), value)).flatMap {
+      case Counter(v) => Future.successful(Some(v))
+      case NotFound => Future.successful(None)
+      case x => Future.failed(new Exception(s"unexpected response $x when decr $key with $value"))
+    }
+  }
+
+  def delete(client : AsyncMemacheClient, key : ByteString) = {
+    client.send(Delete(MemcachedKey(key))).flatMap {
+      case Deleted => Future.successful(true)
+      case NotFound => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when deleting $key"))
+    }
+  }
+
+  def get(client : AsyncMemacheClient, keys : ByteString*) : Future[Map[String, Value]] = {
+    client.send(Get(keys.map(MemcachedKey(_)) : _*)).flatMap {
+      case a : Value => Future.successful(Map(a.key->a))
+      case Values(x) => Future.successful(x.map(y => y.key->y).toMap)
+      case x => Future.failed(new Exception(s"unexpected response $x when getting $keys"))
+    }
+  }
+
+  def incr(client : AsyncMemacheClient, key : ByteString, value : Long) = {
+    client.send(Incr(MemcachedKey(key), value)).flatMap {
+      case Counter(v) => Future.successful(Some(v))
+      case NotFound => Future.successful(None)
+      case x => Future.failed(new Exception(s"unexpected response $x when incr $key with $value"))
+    }
+  }
+
+  def prepend(client : AsyncMemacheClient, key : ByteString, value : ByteString) = {
+    client.send(Prepend(MemcachedKey(key), value)).flatMap {
+      case Stored => Future.successful(true)
+      case NotStored => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when prepending $key and $value"))
+    }
+  }
+
+  def replace(client : AsyncMemacheClient, key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) = {
+    client.send(Replace(MemcachedKey(key), value, ttl, flags)).flatMap {
+      case Stored => Future.successful(true)
+      case NotStored => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when replacing $key and $value"))
+    }
+  }
+
+
+  def set(client : AsyncMemacheClient, key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) = {
+    client.send(Set(MemcachedKey(key), value, ttl, flags)).flatMap {
+      case Stored => Future.successful(true)
+      case NotStored => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when setting $key and $value"))
+    }
+  }
+
+  def touch(client : AsyncMemacheClient, key : ByteString, ttl : Int = 0) = {
+    client.send(Touch(MemcachedKey(key), ttl)).flatMap {
+      case Touched => Future.successful(true)
+      case NotFound => Future.successful(false)
+      case x => Future.failed(new Exception(s"unexpected response $x when touching $key with $ttl"))
     }
   }
 }
