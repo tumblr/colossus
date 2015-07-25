@@ -61,6 +61,9 @@ object Commands {
   object Strlen {
     def apply(key: ByteString) = Command.c(CMD_STRLEN, key)
   }
+  object Ttl {
+    def apply(key : ByteString) = Command.c(CMD_TTL, key)
+  }
   object ZAdd {
     def apply(key: ByteString, score: ByteString, value: ByteString) = Command.c(CMD_ZADD, key, score, value)
   }
