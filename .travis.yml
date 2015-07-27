@@ -1,10 +1,20 @@
 language: scala
 scala:
-  - 2.10.4
-  - 2.11.7
+- 2.10.4
+- 2.11.7
 jdk: oraclejdk7
 sudo: false
 services:
-  - memcached
-  - redis
+- memcached
+- redis
 script: sbt ++$TRAVIS_SCALA_VERSION testAll
+env:
+  global:
+  - secure: izNeghOzB8Z5m0j24XhqCVlAhgs56p10l6pR2DtotKC7Q7rSfunLH3YF+8ijBkxFBNocnb0/XWbCWOhFOpje+gogIkYNGwZkxAKRAIifWf/+w4fMoqpid+q9kQZYRT5Iv+lm1YEC3PxhwPKQWe+fhfjPE21YNY6XIaUyQ4p8kXA=
+  - secure: KOt7FSG8FckBl49tfassG/fQKFMSAU/Xaz83UvEY0oAnFBbBSuSR/OkUd6NAHxFy/RotFsVoAxed8NgL8Nh7nsut3clXmhXuxhWsIOpR+q4wWrqA7KG+Fw4Q3SUsrICKGm92LnVsTeHKQ57qZ3mQaV/j/srmc+mrbi2kIYdmpFk=
+  - secure: JjPl0W+YTRiANGnmPilLM0lZywkoH26YdQ5C9KrdMwbb92dxxR2D+qEbxVlH36sjOual3txeETTbmCbcTTdQCkbrND7+hSaHNx4vmj05P8HT5TwgQXmp9U4Sp7BapRezRS5KCr12fYaoaDE5xS3Anq/F5ErJDVv5x2HoXhmXEdo=
+before_install:
+- openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv -in secrets.tar.enc -out secrets.tar -d
+- tar xvf secrets.tar
+after_success:
+- if [ "$TRAVIS_BRANCH" = "master" ]; then  sbt publishSigned; fi
