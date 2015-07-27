@@ -8,15 +8,17 @@ object ColossusBuild extends Build {
   val AKKA_VERSION            = "2.3.9"
   val SCALATEST_VERSION       = "2.2.0"
 
+  lazy val testAll = TaskKey[Unit]("test-all")
+
   val GeneralSettings = Seq[Setting[_]](
 
 
-    compile <<= (compile in Compile) dependsOn (compile in Test),
-    
+    compile <<= (compile in Compile) dependsOn (compile in Test) dependsOn (compile in IntegrationTest),
+    (testAll) <<= (test in Test) dependsOn (test in IntegrationTest),
     organization := "com.tumblr",
-    scalaVersion  := "2.11.6",
-    crossScalaVersions := Seq("2.10.4", "2.11.6"),
-    version                   := "0.6.5-atuo-publish-SNAPSHOT",
+    scalaVersion  := "2.11.7",
+    crossScalaVersions := Seq("2.10.4", "2.11.7"),
+    version                   := "0.6.5-auto-publish-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(
@@ -32,11 +34,11 @@ object ColossusBuild extends Build {
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION,
-      "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test",
+      "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test, it",
       "org.mockito" % "mockito-all" % "1.9.5" % "test",
       "com.github.nscala-time" %% "nscala-time" % "1.2.0"
     )
-  )
+  ) ++ Defaults.itSettings
 
   val ColossusSettings = GeneralSettings ++ Publish.settings
   
@@ -56,33 +58,38 @@ object ColossusBuild extends Build {
 
   lazy val RootProject = Project(id="root", base=file("."))
       .settings(noPubSettings:_*)
+      .configs(IntegrationTest)
       .dependsOn(ColossusProject)
       .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject)
 
   lazy val ColossusProject: Project = Project(id="colossus", base=file("colossus"))
       .settings(ColossusSettings:_*)
+      .configs(IntegrationTest)
       .aggregate(ColossusTestsProject)
       .dependsOn(ColossusMetricsProject)
 
   lazy val ColossusExamplesProject = Project(id="colossus-examples", base=file("colossus-examples"))
       .settings(noPubSettings:_*)
       .settings(Revolver.settings:_*)
+      .configs(IntegrationTest)
       .dependsOn(ColossusProject)
 
   lazy val ColossusMetricsProject = Project(id="colossus-metrics", base=file("colossus-metrics"))
       .settings(MetricSettings:_*)
       .settings(Revolver.settings:_*)
+      .configs(IntegrationTest)
 
   lazy val ColossusTestkitProject = Project(id="colossus-testkit", base = file("colossus-testkit"))
       .settings(ColossusSettings:_*)
       .settings(testkitDependencies)
+      .configs(IntegrationTest)
       .dependsOn(ColossusProject)
 
   lazy val ColossusTestsProject = Project(
     id="colossus-tests", 
     base = file("colossus-tests"),
     dependencies = Seq(ColossusTestkitProject % "compile;test->test")
-  ).settings(noPubSettings:_*)
+  ).settings(noPubSettings:_*).configs(IntegrationTest)
 
 
 

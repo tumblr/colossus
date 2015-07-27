@@ -1,9 +1,13 @@
 language: scala
 scala:
   - 2.10.4
-  - 2.11.5
+  - 2.11.7
 jdk: oraclejdk7
 sudo: false
+services:
+  - memcached
+  - redis
+script: sbt ++$TRAVIS_SCALA_VERSION testAll
 env:
   global:
   - secure: C5gzKxJbLfWxAI7iONYu93DyhyUTAM8u/XAsiELYz5VcLsWVyvd/8X/GqP8V0EB4EMShZ5HE4rx0Goyf3taRXQnHHdrOZA+wLXiqtLROC+Lg0yZ4R5Cfk8tvXGh9b1NbcZ5MRyksk+7SmXCysaj7wZbH2/9ZHwDIttQ1HQT0lqg=
