@@ -18,5 +18,5 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv -in secrets.tar.enc -out secrets.tar -d
 - tar xvf secrets.tar
 after_success:
-- if [ "$TRAVIS_BRANCH" = "master" ]; then  sbt publishSigned; fi
+- if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then  sbt publishSigned; fi
 - bash <(curl -s https://codecov.io/bash)
