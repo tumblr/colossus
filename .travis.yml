@@ -7,7 +7,8 @@ sudo: false
 services:
 - memcached
 - redis
-script: sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll && sbt coverageReport && sbt coverageAggregate
+script: if [ "$TRAVIS_SCALA_VERSION" = "2.10.4" ]; then sbt ++$TRAVIS_SCALA_VERSION testAll; else sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll && sbt coverageReport && sbt coverageAggregate; fi
+
 env:
   global:
   - secure: izNeghOzB8Z5m0j24XhqCVlAhgs56p10l6pR2DtotKC7Q7rSfunLH3YF+8ijBkxFBNocnb0/XWbCWOhFOpje+gogIkYNGwZkxAKRAIifWf/+w4fMoqpid+q9kQZYRT5Iv+lm1YEC3PxhwPKQWe+fhfjPE21YNY6XIaUyQ4p8kXA=
