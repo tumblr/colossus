@@ -19,4 +19,4 @@ before_install:
 - tar xvf secrets.tar
 after_success:
 - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then  sbt publishSigned; fi
-- bash <(curl -s https://codecov.io/bash)
+- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash <(curl -s https://codecov.io/bash); elif [ "$TRAVIS_BRANCH" = "master" ]; then bash <(curl -s https://codecov.io/bash); fi
