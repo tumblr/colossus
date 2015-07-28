@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import spray.revolver.RevolverPlugin._
 import com.typesafe.sbt.pgp.PgpKeys._
+import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 object ColossusBuild extends Build {
 
@@ -37,7 +38,8 @@ object ColossusBuild extends Build {
       "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test, it",
       "org.mockito" % "mockito-all" % "1.9.5" % "test",
       "com.github.nscala-time" %% "nscala-time" % "1.2.0"
-    )
+    ),
+    coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*"
   ) ++ Defaults.itSettings
 
   val ColossusSettings = GeneralSettings ++ Publish.settings

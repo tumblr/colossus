@@ -6,4 +6,6 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.6.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-pgp" % "0.8.3")
 
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.2.0")
+
 resolvers += "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/"
