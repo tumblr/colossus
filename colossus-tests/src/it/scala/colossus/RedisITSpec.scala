@@ -28,43 +28,50 @@ class RedisITSpec extends ColossusSpec with ScalaFutures{
 
   val client = AsyncServiceClient[Redis](ClientConfig(new InetSocketAddress("localhost", 6379), 1.second, "redis"))
 
+  val usedKeys = scala.collection.mutable.MutableList[ByteString]()
+
+  override def afterAll() {
+    usedKeys.foreach(key => del(client, key))
+    super.afterAll()
+  }
+
   "Redis Client" should {
 
     "del" in {
-      val delKey = ByteString("colITDel")
+      val delKey = getKey("colITDel")
       set(client, delKey, ByteString("value")).futureValue must be (true)
       del(client, delKey).futureValue must be (1)
     }
 
     "existence" in {
-      val exKey = ByteString("colITEx")
+      val exKey = getKey("colITEx")
       exists(client, exKey).futureValue must be (false)
       set(client, exKey, ByteString("value")).futureValue must be (true)
       exists(client, exKey).futureValue must be (true)
     }
 
     "set && get" in {
-      val setKey = ByteString("colITSet")
+      val setKey = getKey("colITSet")
       set(client, setKey, ByteString("value")).futureValue must be (true)
       get(client, setKey).futureValue must be (ByteString("value"))
     }
 
     "setnx" in {
-      val setnxKey = ByteString("colITSetnx")
+      val setnxKey = getKey("colITSetnx")
       setnx(client, setnxKey, ByteString("value")).futureValue must be (true)
       get(client, setnxKey).futureValue must be (ByteString("value"))
       setnx(client, setnxKey, ByteString("value")).futureValue must be (false)
     }
 
     "setex && ttl" in {
-      val setexKey = ByteString("colITSetex")
+      val setexKey = getKey("colITSetex")
       setex(client, setexKey, ByteString("value"), 10.seconds).futureValue must be (true)
       get(client, setexKey).futureValue must be (ByteString("value"))
       ttl(client, setexKey).futureValue must be (Some(10))
     }
 
     "strlen" in {
-      val strlenKey = ByteString("colITStrlen")
+      val strlenKey = getKey("colITStrlen")
       set(client, strlenKey, ByteString("value"))
       strlen(client, strlenKey).futureValue must be (Some(5))
     }
@@ -124,4 +131,9 @@ class RedisITSpec extends ColossusSpec with ScalaFutures{
     }
   }
 
+  def getKey(key: String): ByteString = {
+    val bKey = ByteString(key)
+    usedKeys += bKey
+    bKey
+  }
 }
