@@ -114,7 +114,24 @@ object Commands {
   object HDel {
     def apply(key: ByteString, fields: ByteString*) = Command.c(CMD_HDEL, key +: fields:_*)
   }
-
+  object LRange {
+    def apply(key: ByteString, start: ByteString, stop: ByteString) = Command.c(UnifiedProtocol.CMD_LRANGE, key, start, stop)
+  }
+  object RPush {
+    def apply(key: ByteString, value: Seq[ByteString]) = Command.c(UnifiedProtocol.CMD_RPUSH, key +: value:_*)
+  }
+  object RPushX {
+    def apply(key: ByteString, value: ByteString) = Command.c(UnifiedProtocol.CMD_RPUSHX, key, value)
+  }
+  object RedisSet {
+    def apply(values: ByteString*) = Command.c(UnifiedProtocol.CMD_SET, values:_*)
+  }
+  object LRem {
+    def apply(key: ByteString, count: ByteString, value: ByteString) = Command.c(UnifiedProtocol.CMD_LREM, key, count, value)
+  }
+  object Expire {
+    def apply(key: ByteString, value: ByteString) = Command.c(UnifiedProtocol.CMD_EXPIRE, key, value)
+  }
 }
 
 object Command {
