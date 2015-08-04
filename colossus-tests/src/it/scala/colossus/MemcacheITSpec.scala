@@ -28,18 +28,24 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val client = AsyncServiceClient[Memcache](ClientConfig(new InetSocketAddress("localhost", 11211), 1.second, "memcache"))
+  val usedKeys = scala.collection.mutable.MutableList[ByteString]()
+
+  override def afterAll() {
+    usedKeys.foreach(key => delete(client, key))
+    super.afterAll()
+  }
 
   val mValue = ByteString("value")
   "Memcached client" should {
     "add" in {
-      val key = ByteString("colITAdd")
+      val key = getKey("colITAdd")
       add(client, key, mValue).futureValue must be (true)
       get(client, key).futureValue must be (Map("colITAdd"->Value("colITAdd", mValue, 0)))
       add(client, key, mValue).futureValue must be (false)
     }
 
     "append" in {
-      val key = ByteString("colITAppend")
+      val key = getKey("colITAppend")
       append(client, key, ByteString("valueA")).futureValue must be (false)
       add(client, key, mValue).futureValue must be (true)
       append(client, key, ByteString("valueA")).futureValue must be (true)
@@ -47,22 +53,22 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     }
 
     "decr" in {
-      val key = ByteString("colITDecr")
+      val key = getKey("colITDecr")
       decr(client, key, 1).futureValue must be (None)
       add(client, key, ByteString("2")).futureValue must be (true)
       decr(client, key, 1).futureValue must be (Some(1))
     }
 
     "delete" in {
-      val key = ByteString("colITDel")
+      val key = getKey("colITDel")
       add(client, key, mValue).futureValue must be (true)
       delete(client, key).futureValue must be (true)
       delete(client, key).futureValue must be (false)
     }
 
     "get multiple keys" in {
-      val keyA = ByteString("colITMGetA")
-      val keyB = ByteString("colITMGetB")
+      val keyA = getKey("colITMGetA")
+      val keyB = getKey("colITMGetB")
       val expectedMap = Map("colITMGetA"->Value("colITMGetA", mValue, 0), "colITMGetB"->Value("colITMGetB", mValue, 0))
       add(client, keyA, mValue).futureValue must be (true)
       add(client, keyB, mValue).futureValue must be (true)
@@ -70,14 +76,14 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     }
 
     "incr" in {
-      val key = ByteString("colITIncr")
+      val key = getKey("colITIncr")
       incr(client, key, 1).futureValue must be (None)
       add(client, key, ByteString("2")).futureValue must be (true)
       incr(client, key, 1).futureValue must be (Some(3))
     }
 
     "prepend" in {
-      val key = ByteString("colITPrepend")
+      val key = getKey("colITPrepend")
       prepend(client, key, ByteString("valueA")).futureValue must be (false)
       add(client, key, mValue).futureValue must be (true)
       prepend(client, key, ByteString("valueP")).futureValue must be (true)
@@ -85,7 +91,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     }
 
     "replace" in {
-      val key = ByteString("colITReplace")
+      val key = getKey("colITReplace")
       replace(client, key, mValue).futureValue must be (false)
       add(client, key, mValue).futureValue must be (true)
       replace(client, key, ByteString("newValue")).futureValue must be (true)
@@ -93,7 +99,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     }
 
     "set" in {
-      val key = ByteString("colITSet")
+      val key = getKey("colITSet")
       set(client, key, mValue).futureValue must be (true)
       get(client, key).futureValue must be (Map("colITSet"->Value("colITSet", ByteString("value"), 0)))
       set(client, key, ByteString("newValue")).futureValue must be (true)
@@ -101,7 +107,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     }
 
     "touch" in {
-      val key = ByteString("colITTouch")
+      val key = getKey("colITTouch")
       touch(client, key, 100).futureValue must be (false)
       set(client, key, mValue).futureValue must be (true)
       touch(client, key, 100).futureValue must be (true)
@@ -188,5 +194,11 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
       case NotFound => Future.successful(false)
       case x => Future.failed(new Exception(s"unexpected response $x when touching $key with $ttl"))
     }
+  }
+
+  def getKey(key: String): ByteString = {
+    val bKey = ByteString(key)
+    usedKeys += bKey
+    bKey
   }
 }
