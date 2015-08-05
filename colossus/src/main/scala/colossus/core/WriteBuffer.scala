@@ -177,6 +177,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       drainingInternal = true
       internal.data.flip //prepare for reading
     }
+
     //notice that this method may throw a ClosedChannelException, however the
     //worker is correctly handling the exception and doing the necessary cleanup
     _bytesSent += channelWrite(internal)
@@ -186,18 +187,18 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       internal.data.clear()
       disableWriteReady()
       drainingInternal = false
+      partialBuffer.map{raw =>
+        if (writeRaw(raw) == Complete) {
+          //notice that onBufferClear is only called if the user had previously
+          //called write and we returned a Partial status (which would result in
+          //partialBuffer being set)
+          onBufferClear()
+        }
+      }.getOrElse{
+        disconnectCallback.foreach{cb => cb()}
+      }
     }
 
-    partialBuffer.map{raw =>
-      if (writeRaw(raw) == Complete) {
-        //notice that onBufferClear is only called if the user had previously
-        //called write and we returned a Partial status (which would result in
-        //partialBuffer being set)
-        onBufferClear()
-      }
-    }.getOrElse{
-      disconnectCallback.foreach{cb => cb()}
-    }
 
   }
 }

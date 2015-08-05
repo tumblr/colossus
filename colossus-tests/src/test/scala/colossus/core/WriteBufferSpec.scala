@@ -11,7 +11,7 @@ import WriteStatus._
 
 class WriteBufferSpec extends ColossusSpec {
 
-  class FakeWriteBuffer(val internalBufferSize: Int) extends WriteBuffer {
+  class FakeWriteBuffer(val internalBufferSize: Int, channelBufferSize: Int = Int.MaxValue) extends WriteBuffer {
   
     protected var writes = collection.mutable.Queue[ByteString]()
     
@@ -21,7 +21,7 @@ class WriteBufferSpec extends ColossusSpec {
     }
 
     def channelWrite(data: DataBuffer): Int = {
-      val d = ByteString(data.takeAll)
+      val d = if (data.remaining <= channelBufferSize) ByteString(data.takeAll) else ByteString(data.take(channelBufferSize))
       writes.enqueue(d)
       d.size
     }
@@ -73,6 +73,18 @@ class WriteBufferSpec extends ColossusSpec {
       b.expectChannelWrite("5678")
       b.handleWrite()
       b.expectChannelWrite("90")
+      b.writeReadyEnabled must equal(false)
+    }
+
+    "properly drain buffer when socket is full" in {
+      val b = new FakeWriteBuffer(4, 2)
+      b.write(data("123456")) must equal(Partial)
+      b.handleWrite()
+      b.expectChannelWrite("12")
+      b.handleWrite()
+      b.expectChannelWrite("34")
+      b.handleWrite()
+      b.expectChannelWrite("56")
       b.writeReadyEnabled must equal(false)
     }
 
