@@ -47,7 +47,7 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
       bytesAvailable -= raw.remaining
       val data = ByteString(raw.takeAll)
       writeCalls.enqueue(data)
-      if (bytesAvailable < 0) {
+      if (bytesAvailable <= 0) {
         bytesAvailable = 0
         WriteStatus.Partial
       } else {

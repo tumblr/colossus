@@ -24,7 +24,7 @@ import Codec._
 case class ServiceConfig[I,O](
   name: MetricAddress,
   requestTimeout: Duration,
-  requestBufferSize: Int = 100, //how many concurrent requests can be processing at once
+  requestBufferSize: Int = 100,
   logErrors: Boolean = true,
   requestLogFormat : Option[RequestFormatter[I]] = None,
   requestMetrics: Boolean = true
@@ -54,7 +54,7 @@ class DroppedReply extends Error("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerConnectionHandler {
+extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -70,6 +70,10 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false
+
+  //this is set to true when the head of the request queue is ready to write its
+  //response but the last time we checked the output buffer it was full
+  private var dequeuePaused = false
 
   def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
@@ -110,7 +114,7 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
+    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && outputQueueFull == false) {
       val done = requestBuffer.remove()
       val comp = done.response
       if (requestMetrics) {
@@ -120,10 +124,20 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
       }
       concurrentRequests.decrement()
       push(comp, done.creationTime) {
-        case OutputResult.Success => {}
+        case OutputResult.Success => {
+          if (dequeuePaused) {
+            dequeuePaused = false
+            checkBuffer()
+          }
+        }
         case _ => println("dropped reply")
       }
-      //todo: deal with output-controller full
+    }
+    if (outputQueueFull) {
+      //this means the output buffer cannot accept any more messages, so we have
+      //to pause dequeuing responses and wait for the next message in the output
+      //buffer to be written
+      dequeuePaused = true
     }
     checkGracefulDisconnect()
   }
@@ -157,8 +171,10 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
     response match {
-      case ConstantCallback(v) if (requestBuffer.size == 0) => {
-        //println("const!")
+      case ConstantCallback(v) if (requestBuffer.size == 0 && !outputQueueFull) => {
+        //a constant callback means the result was produced immmediately, so if
+        //request buffer is empty and we know we can write the result
+        //immediately, we can totally skip the request buffering process
         val done = v match {
           case Success(yay) => yay
           case Failure(err) => handleFailure(request, err)
@@ -170,7 +186,7 @@ extends Controller[I,O](codec, ControllerConfig(50, Duration.Inf)) with ServerCo
         }
         push(done) {
           case OutputResult.Success => {}
-          case _ => println("dropped reply")
+          case err => println(s"dropped reply: $err")
         }
         checkGracefulDisconnect()
       }
