@@ -103,6 +103,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
   }
 
   private val requestBuffer = new java.util.LinkedList[SyncPromise]()
+  def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
   override def idleCheck(period: Duration) {
