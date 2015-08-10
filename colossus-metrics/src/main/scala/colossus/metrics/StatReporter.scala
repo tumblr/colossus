@@ -43,7 +43,7 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
 
   private var reporters = Seq[ActorRef]()
 
-  private val compiledGlobalTags = {
+  private def compiledGlobalTags() = {
     val userTags = globalTags.map{_.tags}.getOrElse(Map())
     val added = if (includeHostInGlobalTags) Map("host" -> localHostname) else Map()
     userTags ++ added
@@ -52,7 +52,7 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
   def receive = {
 
     case ReportMetrics(m) => {
-      val s = MetricSender.Send(filterMetrics(m), compiledGlobalTags, System.currentTimeMillis())
+      val s = MetricSender.Send(filterMetrics(m), compiledGlobalTags(), System.currentTimeMillis())
       sendToReporters(s)
     }
     case ResetSender => {
