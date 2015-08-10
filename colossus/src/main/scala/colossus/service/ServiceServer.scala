@@ -34,7 +34,13 @@ trait RequestFormatter[I] {
   def format(request : I) : String
 }
 
-class RequestBufferFullException extends Exception("Request Buffer full")
+class ServiceServerException(message: String) extends Exception(message)
+
+class RequestBufferFullException extends ServiceServerException("Request Buffer full")
+
+//if this exception is ever thrown it indicates a bug
+class FatalServiceServerException(message: String) extends ServiceServerException(message)
+
 class DroppedReply extends Error("Dropped Reply")
 
 
@@ -117,21 +123,8 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
     while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && outputQueueFull == false) {
       val done = requestBuffer.remove()
       val comp = done.response
-      if (requestMetrics) {
-        val tags = tagDecorator.tagsFor(done.request, comp)
-        requests.hit(tags = tags)
-        latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
-      }
       concurrentRequests.decrement()
-      push(comp, done.creationTime) {
-        case OutputResult.Success => {
-          if (dequeuePaused) {
-            dequeuePaused = false
-            checkBuffer()
-          }
-        }
-        case _ => println("dropped reply")
-      }
+      pushResponse(done.request, comp, done.creationTime) 
     }
     if (outputQueueFull) {
       //this means the output buffer cannot accept any more messages, so we have
@@ -150,6 +143,29 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
 
   override def connectionLost(cause : DisconnectError) {
     connectionClosed(cause)
+  }
+
+  protected def pushResponse(request: I, response: O, startTime: Long) {
+    if (requestMetrics) {
+      val tags = tagDecorator.tagsFor(request, response)
+      requests.hit(tags = tags)
+      latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
+    }
+    val pushed = push(response, startTime) {
+      case OutputResult.Success => {
+        if (dequeuePaused) {
+          dequeuePaused = false
+          checkBuffer()
+        }
+      }
+      case err => println(s"dropped reply: $err")
+    }
+
+    //this should never happen because we are always checking if the outputqueue
+    //is full before calling this
+    if (!pushed) {
+      throw new FatalServiceServerException("Attempted to push response to a full output buffer")
+    }
   }
 
   protected def processMessage(request: I) {
@@ -179,15 +195,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
           case Success(yay) => yay
           case Failure(err) => handleFailure(request, err)
         }
-        if (requestMetrics) {
-          val tags = tagDecorator.tagsFor(request, done)
-          requests.hit(tags = tags)
-          latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
-        }
-        push(done) {
-          case OutputResult.Success => {}
-          case err => println(s"dropped reply: $err")
-        }
+        pushResponse(request, done, startTime)
         checkGracefulDisconnect()
       }
       case other => {

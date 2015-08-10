@@ -42,7 +42,7 @@ class ServiceServerSpec extends ColossusSpec {
     val (probe, worker) = FakeIOSystem.fakeWorkerRef
     val service = new FakeService(handler, worker)
     service.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(100, probe, Some(service)) 
+    val endpoint = new MockWriteEndpoint(10, probe, Some(service)) 
     service.connected(endpoint)
     ServiceTest(service, endpoint, probe)
   }
@@ -93,35 +93,32 @@ class ServiceServerSpec extends ColossusSpec {
     }
 
     "handle backpressure from output controller" taggedAs(org.scalatest.Tag("test")) in {
-      val bytes = ByteString((1 to 100).map{_ => "x"}.mkString)
-      def data = DataBuffer(bytes)
+      def bytes(n: Int) = ByteString((1 to 10).map{i => n.toString}.mkString)
+      def data(n: Int) = DataBuffer(bytes(n))
       val s = fakeService()
       //this request will fill up the write buffer
-      s.service.receivedData(data)
-      s.endpoint.expectOneWrite(bytes)
+      s.service.receivedData(data(1))
+      s.endpoint.expectOneWrite(bytes(1))
       //this one will fill the partial buffer
-      //s.service.receivedData(data)
+      //s.service.receivedData(data(1))
       //s.endpoint.expectNoWrite()
       //these next two fill up the output controller's buffer (set to 2 in fakeService())
       s.service.outputQueueFull must equal(false)
-      s.service.receivedData(data)
-      s.service.receivedData(data)
+      s.service.receivedData(data(2))
+      s.service.receivedData(data(3))
       s.endpoint.expectNoWrite()
-      println(s.service.queueSize)
       s.service.outputQueueFull must equal(true)
       //this last one should not even attempt to write and instead keep the
       //response waiting in the request buffer
-      s.service.receivedData(data)
+      s.service.receivedData(data(4))
       s.endpoint.expectNoWrite()
       s.service.outputQueueFull must equal(true)
 
       //now as we begin draining the write buffer, both the controller and
       //service layers should begin clearing their buffers
-      (1 to 3).foreach { i =>
-        println(i)
+      (2 to 4).foreach { i =>
         s.endpoint.clearBuffer()
-        println(s.service.queueSize)
-        s.endpoint.expectOneWrite(bytes)
+        s.endpoint.expectOneWrite(bytes(i))
       }
       s.endpoint.expectNoWrite()
     }
@@ -162,7 +159,7 @@ class ServiceServerSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "graceful disconnect" in {
       withIOSystem{implicit io => 
         val server = Service.serve[Redis]("test", TEST_PORT, 1.second){_.handle{con => con.become{
           case x if (x.command == "DIE") => {
