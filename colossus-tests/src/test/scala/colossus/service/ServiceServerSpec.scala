@@ -16,6 +16,8 @@ import scala.concurrent.Await
 
 import RawProtocol._
 
+import scala.util.{Failure, Success, Try}
+
 class ServiceServerSpec extends ColossusSpec {
 
   import system.dispatcher
@@ -155,10 +157,13 @@ class ServiceServerSpec extends ColossusSpec {
             requestTimeout = 500.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
-          val client = AsyncServiceClient(clientConfig, new RedisClientCodec)
-          Await.result(client.send(Commands.Get(ByteString("foo"))), 1.second) match {
-            case e: ErrorReply => {}
-            case other => throw new Exception(s"Non-error reply: $other")
+          val client = new RedisFutureClient(AsyncServiceClient(clientConfig, new RedisClientCodec))
+          val t = Try {
+            Await.result(client.get(ByteString("foo")), 1.second)
+          }
+          t match {
+            case Success(x) => throw new Exception(s"Non-error reply: $x")
+            case Failure(ex) =>{}
           }
         }
       }

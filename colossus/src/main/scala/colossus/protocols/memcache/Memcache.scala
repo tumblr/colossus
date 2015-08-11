@@ -346,11 +346,3 @@ class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize
     parser = new MemcacheReplyParser(maxSize)//(NoCompressor)
   }
 }
-
-//TODO: convenience functions
-class MemcacheClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)
-  extends ServiceClient[MemcacheCommand, MemcacheReply](
-    codec   = new MemcacheClientCodec(maxSize),
-    config  = config,
-    worker  = worker
-  )
