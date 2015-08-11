@@ -47,7 +47,7 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
       bytesAvailable -= raw.remaining
       val data = ByteString(raw.takeAll)
       writeCalls.enqueue(data)
-      if (bytesAvailable < 0) {
+      if (bytesAvailable <= 0) {
         bytesAvailable = 0
         WriteStatus.Partial
       } else {
@@ -79,17 +79,6 @@ class MockWriteBuffer(val maxWriteSize: Int, handler: Option[ConnectionHandler] 
   def expectNoWrite() {
     assert(writeCalls.size == 0, s"Expected no write, but data '${writeCalls.head.utf8String}' was written")
   }
-
-  /*
-  def expectBufferCleared() {
-    assert(bufferCleared == true, "Expected write buffer to be cleared, but it was no")
-    bufferCleared = false
-  }
-
-  def expectBufferNotCleared() {
-    assert(bufferCleared == false, "Expected write buffer to not be cleared, but it was")
-  }
-  */
 
   def withExpectedWrite(f: ByteString => Unit) {
     assert(writeCalls.size > 0, "expected write, but no write occurred")

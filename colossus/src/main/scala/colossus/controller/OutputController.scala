@@ -90,6 +90,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private val waitingToSend = new java.util.LinkedList[QueuedItem]
 
   def queueSize = waitingToSend.size()
+  def outputQueueFull: Boolean = queueSize == controllerConfig.outputBufferSize
 
   private[controller] def outputOnConnected() {
     _writesEnabled = true

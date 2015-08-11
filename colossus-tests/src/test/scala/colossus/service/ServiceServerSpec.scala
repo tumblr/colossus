@@ -23,6 +23,7 @@ class ServiceServerSpec extends ColossusSpec {
   class FakeService(handler: ByteString => Callback[ByteString], worker : WorkerRef) extends ServiceServer[ByteString, ByteString](
       config = ServiceConfig (
         name = "/test",
+        requestBufferSize = 2,
         requestTimeout = 50.milliseconds
       ),
       worker = worker,
@@ -41,7 +42,7 @@ class ServiceServerSpec extends ColossusSpec {
     val (probe, worker) = FakeIOSystem.fakeWorkerRef
     val service = new FakeService(handler, worker)
     service.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(100, probe, Some(service)) 
+    val endpoint = new MockWriteEndpoint(10, probe, Some(service)) 
     service.connected(endpoint)
     ServiceTest(service, endpoint, probe)
   }
@@ -91,6 +92,43 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.status must equal(ConnectionStatus.NotConnected)
     }
 
+    "handle backpressure from output controller" taggedAs(org.scalatest.Tag("test")) in {
+      def bytes(n: Int) = ByteString((1 to 10).map{i => n.toString}.mkString)
+      def data(n: Int) = DataBuffer(bytes(n))
+      val s = fakeService()
+
+      //this request will fill up the write buffer
+      s.service.receivedData(data(1))
+      s.endpoint.expectOneWrite(bytes(1))
+      s.service.outputQueueFull must equal(false)
+
+      //these next two fill up the output controller's buffer (set to 2 in fakeService())
+      s.service.receivedData(data(2))
+      s.service.receivedData(data(3))
+      s.endpoint.expectNoWrite()
+      s.service.outputQueueFull must equal(true)
+      s.service.currentRequestBufferSize must equal(0)
+
+      //this last one should not even attempt to write and instead keep the
+      //response waiting in the request buffer
+      s.service.receivedData(data(4))
+      s.endpoint.expectNoWrite()
+      s.service.currentRequestBufferSize must equal(1)
+      s.service.outputQueueFull must equal(true)
+
+      //now as we begin draining the write buffer, both the controller and
+      //service layers should begin clearing their buffers
+      (2 to 4).foreach { i =>
+        s.endpoint.clearBuffer()
+        s.endpoint.expectOneWrite(bytes(i))
+      }
+
+      s.service.outputQueueFull must equal(false)
+      s.service.currentRequestBufferSize must equal(0)
+      s.endpoint.expectNoWrite()
+    }
+
+
     "timeout request that takes too long" in {
       val serverSettings = ServerSettings (
         port = TEST_PORT,
@@ -126,20 +164,20 @@ class ServiceServerSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "graceful disconnect" in {
       withIOSystem{implicit io => 
-        val server = Service.serve[Redis]("test", TEST_PORT){_.handle{con => con.become{
+        val server = Service.serve[Redis]("test", TEST_PORT, 1.second){_.handle{con => con.become{
           case x if (x.command == "DIE") => {
             con.gracefulDisconnect()
             StatusReply("BYE")
           }
           case other => {
             import con.callbackExecutor
-            Callback.schedule(100.milliseconds)(StatusReply("FOO"))
+            Callback.schedule(200.milliseconds)(StatusReply("FOO"))
           }
         }}}
         withServer(server) {
-          val client = AsyncServiceClient[Redis]("localhost", TEST_PORT)
+          val client = AsyncServiceClient[Redis]("localhost", TEST_PORT, 1.second)
           val r1 = client.send(Command("TEST"))
           val r2 = client.send(Command("DIE"))
           Await.result(r1, 1.second) must equal(StatusReply("FOO"))
