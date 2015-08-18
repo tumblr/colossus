@@ -119,19 +119,35 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //than attempting to directly write to the socket each time
   private val internal = DataBuffer(ByteBuffer.allocateDirect(internalBufferSize))
 
-  //copy as much data as possible from src into the internal buffer
+  /**
+   * copy as much data as possible from src into the internal buffer.  If
+   * drainingInternal is true is means we're currently in the process of writing
+   * the internal buffer to the socket so we cannot write data into it.
+   */
   private def copyInternal(src: ByteBuffer) {
-    val oldLimit = src.limit()
-    val newLimit = if (src.remaining > internal.remaining) {
-      oldLimit - (src.remaining - internal.remaining)
-    } else {
-      oldLimit
+    if (!drainingInternal) {
+      val oldLimit = src.limit()
+      val newLimit = if (src.remaining > internal.remaining) {
+        oldLimit - (src.remaining - internal.remaining)
+      } else {
+        oldLimit
+      }
+      src.limit(newLimit)
+      internal.data.put(src)
+      src.limit(oldLimit)
     }
-    src.limit(newLimit)
-    internal.data.put(src)
-    src.limit(oldLimit)
   }
 
+  /**
+   * Attempt to copy data into the internal buffer.  Notice that this method is
+   * separated from write becuase :
+   *
+   * 1.  this is called from handleWrite when the
+   * partialBuffer is set, though I think it could possibly be refactored
+   *
+   * 2.  We want to keep draining the buffers even when disconnectCallback is
+   * defined (which prevents additional writes from the user)
+   */
   private def writeRaw(raw: DataBuffer): WriteStatus = {
     try {
       enableWriteReady()
@@ -159,6 +175,8 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //any subsequent calls will return a Zero write status
   def write(raw: DataBuffer): WriteStatus = {
     if (disconnectCallback.isDefined) {
+      //the user has called disconnect, so we reject new writes.  At this point
+      //the connection would only be open to drain the internal/partial buffers
       Failed
     } else if (partialBuffer.isDefined) {
       Zero
@@ -173,33 +191,33 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
    * OP_WRITE key interest.
    */
   def handleWrite() {
-    if (!drainingInternal) {
-      drainingInternal = true
-      internal.data.flip //prepare for reading
-    }
+    if (internal.data.position > 0) {
+      if (!drainingInternal) {
+        drainingInternal = true
+        internal.data.flip //prepare for reading
+      }
 
-    //notice that this method may throw a ClosedChannelException, however the
-    //worker is correctly handling the exception and doing the necessary cleanup
-    _bytesSent += channelWrite(internal)
+      //notice that this method may throw a ClosedChannelException, however the
+      //worker is correctly handling the exception and doing the necessary cleanup
+      _bytesSent += channelWrite(internal)
 
-    if (internal.remaining == 0) {
-      //hooray! we wrote all the data, now we can accept more
-      internal.data.clear()
-      disableWriteReady()
-      drainingInternal = false
-      partialBuffer.map{raw =>
-        if (writeRaw(raw) == Complete) {
-          //notice that onBufferClear is only called if the user had previously
-          //called write and we returned a Partial status (which would result in
-          //partialBuffer being set)
-          onBufferClear()
+      if (internal.remaining == 0) {
+        //hooray! we wrote all the data, now we can accept more
+        internal.data.clear()
+        disableWriteReady()
+        drainingInternal = false
+        partialBuffer.map{raw =>
+          if (writeRaw(raw) == Complete) {
+            //notice that onBufferClear is only called if the user had previously
+            //called write and we returned a Partial status (which would result in
+            //partialBuffer being set)
+            onBufferClear()
+          }
+        }.getOrElse{
+          disconnectCallback.foreach{cb => cb()}
         }
-      }.getOrElse{
-        disconnectCallback.foreach{cb => cb()}
       }
     }
-
-
   }
 }
 

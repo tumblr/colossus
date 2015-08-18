@@ -74,6 +74,7 @@ class WriteBufferSpec extends ColossusSpec {
       b.handleWrite()
       b.expectChannelWrite("90")
       b.writeReadyEnabled must equal(false)
+      b.expectClearCalled()
     }
 
     "properly drain buffer when socket is full" in {
@@ -86,6 +87,20 @@ class WriteBufferSpec extends ColossusSpec {
       b.handleWrite()
       b.expectChannelWrite("56")
       b.writeReadyEnabled must equal(false)
+      b.expectClearCalled()
+    }
+
+    "add to partial buffer when drainingInternal is true" in {
+      val b = new FakeWriteBuffer(4, 2)
+      b.write(data("1234")) must equal(Complete)
+      b.handleWrite()
+      b.expectChannelWrite("12")
+      b.write(data("56")) must equal(Partial)
+      b.handleWrite()
+      b.expectChannelWrite("34")
+      b.handleWrite()
+      b.expectChannelWrite("56")
+      b.expectClearCalled()
     }
 
     "reject more writes while draining when buffer filled" in {
