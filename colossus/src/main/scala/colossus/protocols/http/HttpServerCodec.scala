@@ -2,7 +2,6 @@ package colossus
 package protocols.http
 
 
-import akka.util.ByteStringBuilder
 import core._
 import service._
 import parsing._
@@ -17,7 +16,7 @@ class BaseHttpServerCodec[T <: BaseHttpResponse](maxSize: DataSize = 1.MB) exten
   def decode(data: DataBuffer): Option[DecodedResult[HttpRequest]] = DecodedResult.static(parser.parse(data))
 
   def reset(){
-    parser = HttpRequestParser()
+    parser = HttpRequestParser(maxSize)
   }
 }
 
