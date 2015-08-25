@@ -25,15 +25,8 @@ object OutputState{
    * waiting for the socket's underlying buffer to clear out before writing the
    * rest
    */
-  case class Writing(postWrite: OutputResult => Unit) extends OutputState
+  case class Writing(encoder: Encoder, postWrite: OutputResult => Unit) extends OutputState
   
-  /**
-   * The controller is currently streaming out a streamed message.  This state
-   * does not keep track of whether the underlying socket buffer is full or
-   * not.
-   */
-  case class Streaming(source: Source[DataBuffer], postWrite: OutputResult => Unit) extends OutputState
-
   /**
    * In this state, the controller is effectively disabled.  This generally
    * only occurs once the underlying connection has been disconnected.  Be
@@ -196,99 +189,31 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     checkQueue()
   }
 
-  /*
-   * iterate through the queue and write items.  Writing non-streaming items is
-   * iterative whereas writing a stream enters drain, which will be recursive
-   * if the stream has multiple databuffers to immediately write
-   */
-  private def checkQueue() {
-    def go(endpoint: WriteEndpoint) {
-      while (_writesEnabled && outputState == Dequeueing && waitingToSend.size > 0) {
-        val queued = waitingToSend.remove()
-        codec.encode(queued.item) match {
-          case DataStream(sink) => {
-            outputState = Streaming(sink, queued.postWrite)
-            drain(sink)
-          }
-          case d: DataBuffer => endpoint.write(d) match {
-            case WriteStatus.Complete => {
-              queued.postWrite(OutputResult.Success)
-            }
-            case WriteStatus.Failed | WriteStatus.Zero => {
-              //this probably shouldn't occur since we already check if the connection is writable
-              queued.postWrite(OutputResult.Failure(new Exception("Attempted to write to non-writable endpoint")))
-              //throw new Exception(s"Invalid write status")
-            }
-            case WriteStatus.Partial => {
-              outputState = Writing(queued.postWrite)
-            }
-          }
+  def readyForData(buffer: DataOutBuffer) = {
+    //if we're in the middle of writing a message, try to complete it
+    outputState match {
+      case Writing(encoder, post) => {
+        if (encoder.writeInto(buffer) == EncodeResult.Complete) {
+          post(OutputResult.Success)
+          outputState = Dequeueing
         }
-      }
-    }
-    state match {
-      case a: AliveState if (waitingToSend.size > 0) => go(a.endpoint)
-      case d: ConnectionState.Disconnecting => {
-        outputState = Terminated
       }
       case _ => {}
     }
-    checkControllerGracefulDisconnect()
-  }
-      
-
-  /*
-   * keeps reading from a source until it's empty or writing a databuffer is
-   * incomplete.  Notice in the latter case we just wait for readyForData to be
-   * called and resume there
-   */
-  private def drain(source: Source[DataBuffer]) {
-    source.pull{
-      case Success(Some(data)) => state match {
-        case a: AliveState => a.endpoint.write(data) match {
-          case WriteStatus.Complete => drain(source)
-          case WriteStatus.Failed  => {
-            source.terminate(new NotConnectedException("Connection closed during streaming"))
-          }
-          case WriteStatus.Zero => {
-            throw new Exception("Invalid write status")
-          }
-          case WriteStatus.Partial =>{} //don't do anything, draining will resume in readyForData
-        }
-        case other => {
-          source.terminate(new NotConnectedException("Connection closed during streaming"))
-        }
-      }
-      case Success(None) => outputState match {
-        case Streaming(s, postWrite) => {
-          postWrite(OutputResult.Success)
-          outputState = Dequeueing
-          checkQueue()
-        }
-        case other => throw new InvalidOutputStateException(other)
-      }
-      case Failure(err) => {
-        //if we can't finish writing the current stream, not much else we can
-        //do except close the connection
-        throw err
+    while (outputState == Dequeueing && waitingToSend.size > 0 && _writesEnabled) {
+      val queued = waitingToSend.remove()
+      val encoder = codec.encode(queued.item)
+      encoder.writeInfo(buffer) match {
+        case EncodeResult.Complete    => queued.postWrite(OutputResult.Success)
+        case EncodeResult.Incomplete  => outputState = Writing(encoder, queued)
       }
     }
-  }
+    checkControllerGracefulDisconnect()
 
-  /*
-   * If we're currently streaming, resume the stream, otherwise when this is
-   * called it means a non-stream item has finished fully writing, so we can go
-   * back to checking the queue
-   */
-  def readyForData() {
     outputState match {
-      case Streaming(sink, post) => drain(sink)
-      case Writing(post) => {
-        post(OutputResult.Success)
-        outputState = Dequeueing
-        checkQueue()
-      }
-      case other => throw new InvalidOutputStateException(other)
+      case Dequeueing => MoreDataResult.Complete
+      case Writing(_,_) => MoreDataResult.Incomplete
+      case Terminated => throw new InvalidOutputStateException(outputState)
     }
   }
 

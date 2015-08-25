@@ -7,10 +7,26 @@ object EncodeResult {
   case object Incomplete extends EncodeResult
 }
 
+object Encoders {
+
+  def sized(size: Long)(encoder: DataOutBuffer => Unit) = SizedProcEncoder(size, encoder)
+
+  def unsized(encoder: => DataBuffer) = BlockEncoder(encoder)
+}
+
 trait DataOutBuffer {
 
   def available: Long
-  def copy(from: DataBuffer)
+
+  /**
+   * Copy as much as `src` into this buffer as possible.  
+   */
+  def copy(src: DataBuffer)
+
+  /**
+   * Attempt to write the entire contents of bytes into this buffer.  If there
+   * is not enough available space an exeption is thrown
+   */
   def write(bytes: ByteString)
 
 }
@@ -20,23 +36,21 @@ case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
   def available = underlying.remaining
 
   def copy(src: DataBuffer) {
-    /*
     val oldLimit = src.limit()
-    val newLimit = if (src.remaining > internal.remaining) {
-      oldLimit - (src.remaining - internal.remaining)
+    val newLimit = if (src.remaining > underlying.remaining) {
+      oldLimit - (src.remaining - underlying.remaining)
     } else {
       oldLimit
     }
     src.limit(newLimit)
-    internal.data.put(src)
+    underlying.put(src)
     src.limit(oldLimit)
-    */
-    ???
   }
 
   def write(bytes: ByteString) {
-
+    underlying.put(bytes.asByteBuffer)
   }
+
 }
 
 class DynamicBuffer extends DataOutBuffer {
@@ -57,6 +71,27 @@ class DynamicBuffer extends DataOutBuffer {
 trait Encoder {
 
   def writeInto(buffer: DataOutBuffer) : EncodeResult
+
+}
+
+class MultiEncoder(encoders: List[Encoder]) {
+
+  var remaining = encoders
+
+  def writeInto(buffer: DataOutBuffer) = {
+    var full = false
+    while (!full && !remaining.isEmpty) {
+      remaining.head.writeInto(buffer) match {
+        case Complete => {
+          remaining = remaining.tail
+        }
+        case Incomplete => {
+          full = true
+        }
+      }
+    }
+    if (full) Incomplete else Complete
+  }
 
 }
 

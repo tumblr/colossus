@@ -150,6 +150,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
 
+  val outputBuffer = ByteBuffer.allocateDirect(1024 * 1024 * 4)
+
 
   //collection of all the active connections
   val connections = collection.mutable.Map[Long, Connection]()

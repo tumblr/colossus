@@ -4,6 +4,17 @@ package core
 import akka.actor.ActorRef
 import scala.concurrent.duration._
 
+
+sealed trait MoreDataResult
+object MoreDataResult {
+
+  //the handler has no more data at the moment to write
+  case object Complete extends MoreDataResult
+
+  //the handler has more data to write as soon as it can
+  case object Incomplete extends MoreDataResult
+}
+
 /**
  * This is the base trait for all connection handlers.  When attached to a
  * connection by a Delegator, these methods will be called in the worker's
@@ -44,14 +55,11 @@ trait ConnectionHandler extends WorkerItem {
   protected def connectionLost(cause : DisconnectError)
 
 
-  /**
-   * This function is called to signal to the handler that it can resume writing data.
-   * It is called as part of the WriteEndPoint event loop write cycle, where previously this handler
-   * attempted to write data, but the buffers were filled up.  This is called once the buffers
-   * are empty again and able to receive data.  This handler should be in a state where it is paused on writing
-   * data until this handler is invoked.
+  /*
+   * This event allows handlers to write data to the connection.  The output
+   * buffer is limited in size so handlers must properly deal with backpressure.
    */
-  def readyForData()
+  def readyForData(buffer: DataOutBuffer) : MoreDataResult
 
   /**
    * This handler is called when a Worker new Connection is established.  A Connection can be

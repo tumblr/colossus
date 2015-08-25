@@ -74,15 +74,12 @@ trait ConnectionInfo {
  */
 trait WriteEndpoint extends ConnectionInfo {
 
-
   /**
-   * Write some data to the connection.  Because connections are non-blocking,
-   * it's possible that the underlying write buffer will fill up and not all of
-   * the DataBuffer will be written.  When that occurs, the endpoint will keep
-   * a copy of the unwritten data until the buffer empties.
+   * Signals to the worker that this connection wishes to write some data.  It
+   * will trigger a call to the handler's readyForData when the connection is
+   * able to write.
    */
-
-  def write(data: DataBuffer): WriteStatus
+  def requestWrite()
 
   /**
    * Returns true if data can be written to the connection.  This will
@@ -195,6 +192,21 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
     _lastTimeDataReceived = time
     myBytesReceived += data.size
     handler.receivedData(data)
+  }
+
+  def requestWrite() {
+    enableWriteReady()
+  }
+
+  def handleWrite(data: DataOutBuffer) {
+    var more = MoreDataResult.Incomplete
+    while (continueWrite() && more == MoreDataResult.Incomplete) {
+      more  = handler.readyForData(data)
+      write(data)
+    }
+    if (more == MoreDataResult.Complete) {
+      disableWriteReady()
+    }
   }
 
 

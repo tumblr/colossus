@@ -34,7 +34,7 @@ object DecodedResult {
  */
 trait Codec[Output,Input] {
 
-  def encode(out: Output): DataReader
+  def encode(out: Output): Encoder
   /**
    * Decode a single object from a bytestream.  
    */
