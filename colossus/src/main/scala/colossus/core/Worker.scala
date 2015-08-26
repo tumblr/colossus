@@ -14,6 +14,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
+import encoding.ByteOutBuffer
 
 
 /**
@@ -150,7 +151,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
 
-  val outputBuffer = ByteBuffer.allocateDirect(1024 * 1024 * 4)
+  val outputBuffer = ByteOutBuffer(ByteBuffer.allocateDirect(1024 * 1024 * 4))
 
 
   //collection of all the active connections
@@ -483,7 +484,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
         if (key.isValid && key.isWritable) {
           key.attachment  match {
             case c: Connection => try {
-              c.handleWrite()
+              c.handleWrite(outputBuffer)
+              outputBuffer.underlying.clear()
             } catch {
               case j: java.io.IOException => {
                 unregisterConnection(c, DisconnectCause.Error(j))

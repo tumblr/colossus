@@ -8,6 +8,7 @@ import core._
 import service.Callback
 import controller._
 import HttpParse._
+import encoding._
 
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[(String, String)] = Vector()) extends HttpHeaderUtils {
@@ -31,8 +32,6 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
 sealed trait BaseHttpResponse { 
 
-  type Encoded <: DataReader
-
   def head: HttpResponseHead
 
   /**
@@ -44,7 +43,7 @@ sealed trait BaseHttpResponse {
    */
   def resolveBody(): Option[Callback[ByteString]]
 
-  def encode(): Encoded
+  def encode(): Encoder
 
   //def withHeader(key: String, value: String): self.type
 
@@ -58,7 +57,7 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
 
   type Encoded = DataBuffer
 
-  def encode() : DataBuffer = {
+  def encode() : Encoder = Encoders.unsized {
     val builder = new ByteStringBuilder
     val dataSize = body.map{_.size}.getOrElse(0)
     builder.sizeHint((50 * head.headers.size) + dataSize)
@@ -111,18 +110,20 @@ object HttpResponse {
  */
 case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[DataBuffer]]) extends BaseHttpResponse {
 
-  type Encoded = DataReader
 
-  def encode() : DataReader = {
+  def encode() : Encoder = Encoders.unsized {
     val builder = new ByteStringBuilder
     builder.sizeHint(100)
     head.appendHeaderBytes(builder)
     builder append NEWLINE
-
+    //TODO: FIXX!!!!!!!
+    DataBuffer(builder.result)
+    /*
     val headerBytes = DataBuffer(builder.result())
     body.map{stream => 
       DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
     }.getOrElse(headerBytes)
+    */
 
   }
 

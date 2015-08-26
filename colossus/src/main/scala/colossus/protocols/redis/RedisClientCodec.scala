@@ -5,6 +5,7 @@ import core._
 import service._
 
 import colossus.parsing.DataSize
+import encoding.Encoders
 
 class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) extends Codec.ClientCodec[Command, Reply] {
   private var replyParser = RedisReplyParser(maxSize)
@@ -13,6 +14,6 @@ class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) exte
     replyParser = RedisReplyParser(maxSize)
   }
 
-  def encode(cmd: Command) = DataBuffer(cmd.raw)
+  def encode(cmd: Command) = Encoders.unsized{DataBuffer(cmd.raw)}
   def decode(data: DataBuffer): Option[DecodedResult[Reply]] = DecodedResult.static(replyParser.parse(data))
 }

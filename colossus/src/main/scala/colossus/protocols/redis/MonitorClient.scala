@@ -16,6 +16,8 @@ import scala.annotation.tailrec
  * This is not very durable and needs some more work (handling disconnects,
  * some way to handle backpressure)
  */
+
+ /*
 abstract class RedisMonitorClient extends ClientConnectionHandler {
   
   import RedisMonitorClient._
@@ -117,3 +119,5 @@ object RedisMonitorClient {
     loop(Nil, new ByteStringBuilder, line.drop(line.indexOf('"') + 1))
   }
 }
+
+*/

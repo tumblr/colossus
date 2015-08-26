@@ -5,15 +5,6 @@ import akka.util.ByteString
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
-/**
- * A DataReader is the result of codec's encode operation.  It can either
- * return a DataBuffer, which contains the entire encoded object at once, or it
- * can return a DataStream, which has a Sink for streaming the encoded object.
- */
-sealed trait DataReader
-
-case class DataStream(source: controller.Source[DataBuffer]) extends DataReader
-
 /** A thin wrapper around a NIO ByteBuffer with data to read
  *
  * DataBuffers are the primary way that data is read from and written to a
@@ -21,7 +12,7 @@ case class DataStream(source: controller.Source[DataBuffer]) extends DataReader
  * read from once and cannot be reset.
  *
  */
-case class DataBuffer(data: ByteBuffer) extends DataReader {
+case class DataBuffer(data: ByteBuffer) {
   /** Get the next byte, removing it from the buffer
    *
    * WARNING : This method will throw an exception if no data is left.  It is

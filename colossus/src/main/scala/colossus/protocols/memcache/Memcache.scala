@@ -9,6 +9,7 @@ import java.util.zip.{Deflater, Inflater}
 
 import parsing._
 import DataSize._
+import encoding.{Encoder, Encoders}
 
 /*
  * Memcache protocol for Colossus, implements a majority of the commands with the exception of some of the
@@ -340,7 +341,7 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
 class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
   private var parser = new MemcacheReplyParser(maxSize)//(NoCompressor) //config
 
-  def encode(cmd: MemcacheCommand): DataBuffer = DataBuffer(cmd.bytes(NoCompressor))
+  def encode(cmd: MemcacheCommand): Encoder = Encoders.unsized(DataBuffer(cmd.bytes(NoCompressor)))
   def decode(data: DataBuffer): Option[DecodedResult[MemcacheReply]] = DecodedResult.static(parser.parse(data))
   def reset(){
     parser = new MemcacheReplyParser(maxSize)//(NoCompressor)

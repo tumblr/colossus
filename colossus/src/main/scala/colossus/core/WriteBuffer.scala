@@ -93,7 +93,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     }
   }
 
-  def continueWrite(): Boolean {
+  def continueWrite(): Boolean = {
     partialBuffer.map{raw =>
       if (writeRaw(raw) == Complete) {
         true

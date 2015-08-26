@@ -6,6 +6,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
 
 import service.{NotConnectedException, RequestTimeoutException}
+import encoding._
 
 
 sealed trait OutputState 
@@ -88,17 +89,13 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private[controller] def outputOnConnected() {
     _writesEnabled = true
     outputState = Dequeueing
-    checkQueue()
+    signalWrite()
   }
 
   private[controller] def outputOnClosed() {
     val reason = new NotConnectedException("Connection Closed")
     outputState match {
-      case Streaming(source, post) => {
-        source.terminate(reason)
-        post(OutputResult.Failure(reason))
-      }
-      case Writing(post) => {
+      case Writing(_, post) => {
         post(OutputResult.Failure(reason))
       }
       case _ => {}
@@ -110,6 +107,15 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     if (outputState == Dequeueing) {
       outputState = Terminated
     }
+  }
+
+  private def signalWrite() {
+    if (waitingToSend.size > 0) {
+      state match {
+        case ConnectionState.Connected(endpoint) => endpoint.requestWrite()
+        case _ => {}
+      }
+    }      
   }
 
   /** Push a message to be written
@@ -129,7 +135,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   protected def push(item: Output, createdMillis: Long = System.currentTimeMillis)(postWrite: OutputResult => Unit): Boolean = {
     if (waitingToSend.size < controllerConfig.outputBufferSize) {
       waitingToSend.add(QueuedItem(item, postWrite, createdMillis))
-      checkQueue()
+      signalWrite()
       true
     } else {
       false
@@ -142,11 +148,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   protected def purgeOutgoing(reason: Throwable) {
     outputState match {
-      case Writing(postWrite) => postWrite(OutputResult.Failure(reason))
-      case Streaming(source, post) => {
-        source.terminate(reason)
-        post(OutputResult.Failure(reason))
-      }
+      case Writing(_, postWrite) => postWrite(OutputResult.Failure(reason))
       case _ => {}
     }
     outputState = state match {
@@ -186,7 +188,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   protected def resumeWrites() {
     _writesEnabled = true
-    checkQueue()
+    signalWrite()
   }
 
   def readyForData(buffer: DataOutBuffer) = {
@@ -203,9 +205,9 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     while (outputState == Dequeueing && waitingToSend.size > 0 && _writesEnabled) {
       val queued = waitingToSend.remove()
       val encoder = codec.encode(queued.item)
-      encoder.writeInfo(buffer) match {
+      encoder.writeInto(buffer) match {
         case EncodeResult.Complete    => queued.postWrite(OutputResult.Success)
-        case EncodeResult.Incomplete  => outputState = Writing(encoder, queued)
+        case EncodeResult.Incomplete  => outputState = Writing(encoder, queued.postWrite)
       }
     }
     checkControllerGracefulDisconnect()

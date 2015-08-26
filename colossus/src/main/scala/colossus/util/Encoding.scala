@@ -1,15 +1,21 @@
 package colossus
 package encoding
 
+import akka.util.{ByteString, ByteStringBuilder}
+import java.nio.ByteBuffer
+import core.DataBuffer
+
 sealed trait EncodeResult
 object EncodeResult {
   case object Complete extends EncodeResult
   case object Incomplete extends EncodeResult
 }
 
+import EncodeResult._
+
 object Encoders {
 
-  def sized(size: Long)(encoder: DataOutBuffer => Unit) = SizedProcEncoder(size, encoder)
+  def sized(size: Long)(encoder: DataOutBuffer => Unit) = new SizedProcEncoder(size, encoder)
 
   def unsized(encoder: => DataBuffer) = BlockEncoder(encoder)
 }
@@ -29,13 +35,17 @@ trait DataOutBuffer {
    */
   def write(bytes: ByteString)
 
+  //TODO: somehow unify this better
+  def data: DataBuffer
+
 }
 
 case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
 
   def available = underlying.remaining
 
-  def copy(src: DataBuffer) {
+  def copy(data: DataBuffer) {
+    val src = data.data
     val oldLimit = src.limit()
     val newLimit = if (src.remaining > underlying.remaining) {
       oldLimit - (src.remaining - underlying.remaining)
@@ -50,6 +60,12 @@ case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
   def write(bytes: ByteString) {
     underlying.put(bytes.asByteBuffer)
   }
+
+  def data = {
+    underlying.flip
+    DataBuffer(underlying)
+  }
+
 
 }
 
@@ -66,6 +82,8 @@ class DynamicBuffer extends DataOutBuffer {
   }
 
   def result = builder.result
+
+  def data = DataBuffer(result)
 }
 
 trait Encoder {
@@ -119,7 +137,7 @@ class SizedProcEncoder(size: Long, encoder: DataOutBuffer => Unit) extends Encod
   
   private var overflowEncoder: Option[BlockEncoder] = None
 
-  def writeInfo(buffer: DataOutBuffer): EncodeResult = overflowEncoder match {
+  def writeInto(buffer: DataOutBuffer): EncodeResult = overflowEncoder match {
     case Some(enc) => enc.writeInto(buffer)
     case None => if (buffer.available < size) {
       val data = new DynamicBuffer

@@ -59,7 +59,7 @@ trait ConnectionHandler extends WorkerItem {
    * This event allows handlers to write data to the connection.  The output
    * buffer is limited in size so handlers must properly deal with backpressure.
    */
-  def readyForData(buffer: DataOutBuffer) : MoreDataResult
+  def readyForData(buffer: encoding.DataOutBuffer) : MoreDataResult
 
   /**
    * This handler is called when a Worker new Connection is established.  A Connection can be

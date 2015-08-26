@@ -7,6 +7,8 @@ import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
 import java.net.InetSocketAddress
 
+import encoding.DataOutBuffer
+
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.
  */
@@ -199,10 +201,10 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def handleWrite(data: DataOutBuffer) {
-    var more = MoreDataResult.Incomplete
+    var more: MoreDataResult = MoreDataResult.Incomplete
     while (continueWrite() && more == MoreDataResult.Incomplete) {
       more  = handler.readyForData(data)
-      write(data)
+      write(data.data)
     }
     if (more == MoreDataResult.Complete) {
       disableWriteReady()
@@ -218,9 +220,14 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-    disconnectBuffer{() => 
+    //TODO: fix logic for graceful disconnect with partial buffer
+    /*
+    if (partialBuffer.isDefined) {
+      disconnecting = true
+    } else {
+    */
       sender ! WorkerCommand.Disconnect(id)
-    }
+    
   }
 
   /**
@@ -231,12 +238,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
     channel.close()
     handler.connectionTerminated(cause)
   }
-
-
-  def onBufferClear() {
-    handler.readyForData()
-  }
-
 
 }
 

@@ -8,13 +8,14 @@ import Codec.ClientCodec
 import parsing._
 import Combinators.Parser
 import DataSize._
+import encoding._
 
 class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[DecodedResult[T]]) extends ClientCodec[HttpRequest, T] {
 
   private var parser : Parser[DecodedResult[T]] = parserFactory()
 
 
-  override def encode(out: HttpRequest): DataReader = DataBuffer(out.bytes)
+  override def encode(out: HttpRequest): Encoder = Encoders.unsized(DataBuffer(out.bytes))
 
   override def decode(data: DataBuffer): Option[DecodedResult[T]] = parser.parse(data)
 

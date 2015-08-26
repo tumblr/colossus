@@ -8,6 +8,7 @@ import akka.util.ByteString
 
 import Codec._
 import service._
+import encoding.{Encoder, Encoders}
 
 package object telnet {
   import scala.language.higherKinds
@@ -117,7 +118,7 @@ package object telnet {
     val parser = new TelnetCommandParser
 
     def decode(data: DataBuffer): Option[DecodedResult[TelnetCommand]] = DecodedResult.static(parser.parse(data))
-    def encode(reply: TelnetReply): DataBuffer = DataBuffer(reply.bytes)
+    def encode(reply: TelnetReply): Encoder = Encoders.unsized(DataBuffer(reply.bytes))
     def reset(){}
 
     def apply() = this
