@@ -82,9 +82,9 @@ trait HttpHeaderUtils {
    * Be aware that lacking this header may or may not be a valid request,
    * depending if the "transfer-encoding" header is set to "chunked"
    */
-  def contentLength: Option[Int] = headers.collectFirst{case (HttpHeaders.ContentLength, l) => l.toInt}
+  lazy val contentLength: Option[Int] = headers.collectFirst{case (HttpHeaders.ContentLength, l) => l.toInt}
 
-  def transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
+  lazy val transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
 }
 
 
