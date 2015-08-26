@@ -10,22 +10,52 @@ import controller._
 import HttpParse._
 
 
-case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[(String, String)] = Vector()) extends HttpHeaderUtils {
+case class HttpResponseHeader(key: ByteString, value: ByteString)
+
+object HttpResponseHeader {
+
+  //TODO: these are bytestrings, whereas in Head they're strings
+  val ContentLength = ByteString("content-length")
+  val TransferEncoding = ByteString("transfer-encoding")
+
+  val DELIM = ByteString(": ")
+
+  def apply(key: String, value: String): HttpResponseHeader = {
+    HttpResponseHeader(ByteString(key) , ByteString(value))
+  }
+
+
+  object Conversions {
+    implicit def stringTuple2Header(t: (String, String)): HttpResponseHeader = HttpResponseHeader(t._1, t._2)
+    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): Vector[HttpResponseHeader] = t.map{stringTuple2Header}.toVector
+  }
+
+}
+
+case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
   def appendHeaderBytes(builder : ByteStringBuilder) {
     builder append version.messageBytes
     builder putByte ' '
     builder append code.headerBytes
     builder append NEWLINE
-    headers.foreach{case (key, value) =>
-      builder putBytes key.getBytes
-      builder putBytes ": ".getBytes
-      builder putBytes value.getBytes
-      builder append NEWLINE
+    headers.foreach{case header =>
+      builder ++= header.key
+      builder ++= HttpResponseHeader.DELIM
+      builder ++= header.value
+      builder ++= NEWLINE
     }
   }
 
-  def withHeader(key: String, value: String) = copy(headers = headers :+ (key, value))
+  def withHeader(key: String, value: String) = copy(headers = headers :+ HttpResponseHeader(key, value))
+
+  def contentLength = {
+    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.ContentLength, v) => v.utf8String.toInt}
+  }
+
+  def transferEncoding : TransferEncoding = {
+    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.TransferEncoding, v) => v}.flatMap{t => TransferEncoding.unapply(t.utf8String)}.getOrElse(TransferEncoding.Identity)
+}
 
 }
 
@@ -63,7 +93,8 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
     val dataSize = body.map{_.size}.getOrElse(0)
     builder.sizeHint((50 * head.headers.size) + dataSize)
     head.appendHeaderBytes(builder)
-    builder putBytes s"Content-Length: ${dataSize}".getBytes
+    builder append HttpResponse.ContentLengthKey
+    builder putBytes dataSize.toString.getBytes
     builder append NEWLINE
     builder append NEWLINE
     body.foreach{b => 
@@ -91,12 +122,14 @@ trait ByteStringLike[T] {
 
 object HttpResponse {
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[(String, String)] , data : T) : HttpResponse = {
+  val ContentLengthKey = ByteString("Content-Length: ")
+
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
-  def apply(version : HttpVersion, code : HttpCode, headers : Vector[(String, String)]) : HttpResponse = {
+  def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), None)
   }
 
@@ -140,7 +173,7 @@ object StreamingHttpResponse {
     StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[(String, String)] = Vector(), data : T) : StreamingHttpResponse = {
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector(), data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
       Some(implicitly[ByteStringLike[T]].toByteString(data))

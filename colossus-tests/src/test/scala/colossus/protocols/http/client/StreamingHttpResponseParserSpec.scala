@@ -15,6 +15,7 @@ class StreamingHttpResponseParserSpec extends ColossusSpec with MustMatchers wit
   implicit val cbe = FakeIOSystem.testExecutor
 
   implicit val duration = 1.second
+  import HttpResponseHeader.Conversions._
 
   "StreamingHttpResponseParser" must {
 
