@@ -121,7 +121,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects"))
   private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99)))
   private val requestBufferRatio = worker.metrics.getOrAdd(Histogram(name / "request_buffer_ratio", sampleRate = 0.10, percentiles = List(0.75, 0.99)))
-  private val requestBufferLoad = worker.metrics.getOrAdd((Gauge(name / "request_buffer_size")))
+  private val requestBufferSize = worker.metrics.getOrAdd((Gauge(name / "request_buffer_size")))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
@@ -275,7 +275,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
-      requestBufferLoad.set(queueSize)
+      requestBufferSize.set(queueSize)
       requestBufferRatio.add(((queueSize.toDouble / config.pendingBufferSize.toDouble) * 100).toInt, Map("full" -> outputQueueFull.toString))
       val pushed = push(s.message, s.start){
         case OutputResult.Success         => {
