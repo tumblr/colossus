@@ -11,8 +11,6 @@ import scala.concurrent.ExecutionContext
 
 package object http {
 
-  class HttpParsingException(message: String) extends Exception(message)
-
   class InvalidRequestException(message: String) extends Exception(message)
 
   trait BaseHttp extends CodecDSL {

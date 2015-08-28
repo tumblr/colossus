@@ -5,6 +5,7 @@ import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
 
 import scala.collection.immutable.HashMap
+import parsing.ParseException
 
 
 sealed abstract class HttpMethod(val name: String)
@@ -22,7 +23,7 @@ object HttpMethod {
   val methods: List[HttpMethod] = List(Get, Post, Put, Delete, Head, Options, Trace, Connect, Patch)
 
   def apply(str: String): HttpMethod = methods.find{_.name == str.toUpperCase}.getOrElse(
-    throw new HttpParsingException(s"Invalid http method $str")
+    throw new ParseException(s"Invalid http method $str")
   )
 }
 
@@ -35,7 +36,7 @@ object HttpVersion {
   case object `1.1` extends HttpVersion("1.1")
 
   def apply(str: String): HttpVersion = {
-    if (str == "HTTP/1.1") `1.1` else if (str=="HTTP/1.0") `1.0` else throw new parsing.ParseException(s"Invalid http version '$str'")
+    if (str == "HTTP/1.1") `1.1` else if (str=="HTTP/1.0") `1.0` else throw new ParseException(s"Invalid http version '$str'")
   }
 }
 
