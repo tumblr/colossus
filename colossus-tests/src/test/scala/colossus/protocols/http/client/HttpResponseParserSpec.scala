@@ -17,6 +17,8 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
   import DecodedResult.Static
 
+  import HttpResponseHeader.Conversions._
+
   "HttpResponseParser" must {
 
     "parse a basic response" in {

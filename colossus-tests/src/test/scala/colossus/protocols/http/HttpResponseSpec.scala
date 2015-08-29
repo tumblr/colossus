@@ -46,7 +46,7 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
       val payload = "look ma, no hands!"
 
       val expected = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("content-length"->"18")), 
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("content-length", "18"))), 
         Some(Source.one(DataBuffer(ByteString("test conversion"))))
       )
 

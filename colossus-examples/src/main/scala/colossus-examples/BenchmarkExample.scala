@@ -35,9 +35,9 @@ object BenchmarkService {
     }
   }
   val response          = ByteString("Hello, World!")
-  val plaintextHeader   = ("Content-Type", "text/plain")
-  val jsonHeader        = ("Content-Type", "application/json")
-  val serverHeader      = ("Server", "Colossus")
+  val plaintextHeader   = HttpResponseHeader("Content-Type", "text/plain")
+  val jsonHeader        = HttpResponseHeader("Content-Type", "application/json")
+  val serverHeader      = HttpResponseHeader("Server", "Colossus")
 
 
   def start(port: Int)(implicit io: IOSystem) {
@@ -56,10 +56,10 @@ object BenchmarkService {
     val server = Service.serve[Http](serverConfig, serviceConfig) { context =>
 
       ///the ??? is filled in almost immediately
-      var dateHeader = ("Date", "???")
+      var dateHeader = HttpResponseHeader("Date", "???")
 
       context.receive {
-        case ts: String => dateHeader = ("Date", ts)
+        case ts: String => dateHeader = HttpResponseHeader("Date", ts)
       }
       
       context.handle { connection =>
