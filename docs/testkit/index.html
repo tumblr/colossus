@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Testing Servers</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/testkit/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Testing Servers</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Colossus has a test kit that includes some classes for simplifying tests for servers.  Testkit is built on <a href="http://scalatest.org">ScalaTest</a>.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>Make sure you add <code>colossus-testkit</code> to your dependcies, using the same version as colossus itself.  For example:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus"</span> <span class="o">%</span> <span class="s">"0.6.6"</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus-testkit"</span> <span class="o">%</span> <span class="s">"0.6.6"</span> <span class="o">%</span> <span class="s">"test"</span></code></pre></div>
+
+<h2 id="testing-core-servers">Testing Core Servers</h2>
+
+<p>TODO</p>
+
+<h2 id="testing-services">Testing Services</h2>
+
+<p>The <code>ServiceSpec</code> class has some basic methods for doing integration testing on services.  You are required to provide two values:</p>
+
+<ul>
+  <li><code>service: ServerRef</code> : This is a running instance of your service, bound to <code>ServiceSpec.TestPort</code> (19999)</li>
+  <li><code>requestTimeout: FiniteDuration</code> : How long the matchers should wait for responses</li>
+</ul>
+
+<p>Some helpful matchers are:</p>
+
+<ul>
+  <li><code>expectResponse(request: Request, response: Response)</code></li>
+  <li><code>expectResponseType[T &lt;: Response](request: Request)</code></li>
+</ul>
+
+<p>For http, the <code>HttpServiceSpec</code> contains some more helpful functions specifically for http.</p>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#setup">Setup</a></li><li><a href="#testing-core-servers">Testing Core Servers</a></li><li><a href="#testing-services">Testing Services</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
