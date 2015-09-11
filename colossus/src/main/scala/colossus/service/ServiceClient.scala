@@ -35,8 +35,8 @@ import com.github.nscala_time.time.Imports.DateTime
  *
  */
 case class ClientConfig(
-  address: InetSocketAddress, 
-  requestTimeout: Duration, 
+  address: InetSocketAddress,
+  requestTimeout: Duration,
   name: MetricAddress,
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 100,
@@ -101,7 +101,7 @@ class StaleClientException(msg : String) extends Exception(msg)
  * that accepts a worker
  */
 class ServiceClient[I,O](
-  codec: Codec[I,O], 
+  codec: Codec[I,O],
   val config: ClientConfig,
   val worker: WorkerRef
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
@@ -120,6 +120,8 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   private val connectionFailures    = worker.metrics.getOrAdd(Rate(name / "connection_failures"))
   private val disconnects  = worker.metrics.getOrAdd(Rate(name / "disconnects"))
   private val latency = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  private val requestBufferRatio = worker.metrics.getOrAdd(Histogram(name / "request_buffer_ratio", sampleRate = 0.10, percentiles = List(0.75, 0.99)))
+  private val requestBufferSize = worker.metrics.getOrAdd((Gauge(name / "request_buffer_size")))
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
@@ -147,7 +149,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
    */
   def connectionStatus: ConnectionStatus = if (isConnected) {
-    ConnectionStatus.Connected 
+    ConnectionStatus.Connected
   } else if (canReconnect && !manuallyDisconnected) {
     ConnectionStatus.Connecting
   } else {
@@ -215,7 +217,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach{s => 
+    sentBuffer.foreach{s =>
       errors.hit(tags = hpTags)
       s.handler(Failure(new ConnectionLostException(s"Error while request was in transit: $reason")))
     }
@@ -273,6 +275,8 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
       //don't allow any new requests, appear as if we're dead
       s.handler(Failure(new NotConnectedException("Not Connected")))
     } else if (isConnected || !failFast) {
+      requestBufferSize.set(queueSize)
+      requestBufferRatio.add(((queueSize.toDouble / config.pendingBufferSize.toDouble) * 100).toInt, Map("full" -> outputQueueFull.toString))
       val pushed = push(s.message, s.start){
         case OutputResult.Success         => {
           sentBuffer.enqueue(s)
