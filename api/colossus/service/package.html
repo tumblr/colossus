@@ -28,11 +28,11 @@
         </head>
         <body class="value">
       <div id="definition">
-        <img src="../../lib/package_big.png" />
+        <img alt="Package" src="../../lib/package_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
         <h1>service</h1><span class="permalink">
       <a href="../../index.html#colossus.service.package" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -79,7 +79,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@AsyncHandlerGenerator[I,O]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">So we need to take a type-parameterized request object, package it into a
@@ -104,7 +104,7 @@ types
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@AsyncServiceClient[I,O]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -121,7 +121,7 @@ types
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@BasicServiceDelegator[C&lt;:colossus.service.CodecDSL]extendsDSLDelegator[C]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -138,7 +138,7 @@ types
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@BasicServiceHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withDSLHandler[C]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -155,7 +155,7 @@ types
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@Callback[+O]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A Callback is a Monad for doing in-thread non-blocking operations.</p><div class="fullcomment"><div class="comment cmt"><p>A Callback is a Monad for doing in-thread non-blocking operations.  It is
@@ -189,7 +189,7 @@ inside a callback should properly catch this exception.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -206,7 +206,7 @@ inside a callback should properly catch this exception.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecutionextendsActorwithActorLogging" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -223,7 +223,7 @@ inside a callback should properly catch this exception.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecutionExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">This exception is only thrown when there's a uncaught exception in the execution block of a Callback.</p><div class="fullcomment"><div class="comment cmt"><p>This exception is only thrown when there's a uncaught exception in the execution block of a Callback.  For example, </p><pre><span class="kw">val</span> c: Callback[Foo] = getCallback()
@@ -244,7 +244,7 @@ c.execute{
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecutorextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
@@ -269,7 +269,7 @@ or scheduling a Callback for delayed execution.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackPromise[T]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A CallbackPromise creates a callback which can be eventually filled in with
@@ -278,6 +278,23 @@ a value.  This works similarly to a scala Promise.  CallbackPromises are not
 thread-safe.  For thread-safety, simply use a scala Promise and use
 Callback.fromFuture on it's corresponding Future.
 </p></div></div>
+    </li><li name="colossus.service.CallbackResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CallbackResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,colossus.service.Callback]"></a>
+      <a id="CallbackResponseAdapter[C&lt;:CodecDSL]:CallbackResponseAdapter[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackResponseAdapter.html"><span class="name">CallbackResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ResponseAdapter.html" class="extype" name="colossus.service.ResponseAdapter">ResponseAdapter</a>[<span class="extype" name="colossus.service.CallbackResponseAdapter.C">C</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,colossus.service.Callback]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ClientCodecProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ClientCodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
       <a id="ClientCodecProvider[C&lt;:CodecDSL]:ClientCodecProvider[C]"></a>
@@ -291,7 +308,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientCodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -308,7 +325,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Configuration used to specify a Client's parameters</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectionAttempts</dt><dd class="cmt"><p>Polling configuration to govern retry behavior for both initial connect attempts
@@ -328,7 +345,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientConnectionEventextendsConnectionEvent" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -345,7 +362,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientOverloadedExceptionextendsServiceClientException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Thrown when the pending buffer is full</p>
@@ -362,7 +379,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientProxyextendsActorwithActorLoggingwithStash" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">This correctly routes messages to the right worker and handler
@@ -380,7 +397,7 @@ Callback.fromFuture on it's corresponding Future.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@Codec[Output,Input]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A Codec is a stateful object for converting requests/responses to/from DataBuffers.</p><div class="fullcomment"><div class="comment cmt"><p>A Codec is a stateful object for converting requests/responses to/from DataBuffers.
@@ -401,7 +418,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CodecDSLextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -418,11 +435,10 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Provide a Codec as well as some convenience functions for usage within in a Service.</p><div class="fullcomment"><div class="comment cmt"><p>Provide a Codec as well as some convenience functions for usage within in a Service.</p></div><dl class="paramcmts block"><dt class="tparam">C</dt><dd class="cmt"><p>the type of codec this provider will supply
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Provide a Codec as well as some convenience functions for usage within in a Service.</p><div class="fullcomment"><div class="comment cmt"><p>Provide a Codec as well as some convenience functions for usage within in a Service.</p></div><dl class="paramcmts block"><dt class="tparam">C</dt><dd class="cmt"><p>the type of codec this provider will supply</p></dd></dl></div>
     </li><li name="colossus.service.ConnectionContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ConnectionContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
       <a id="ConnectionContext[C&lt;:CodecDSL]:ConnectionContext[C]"></a>
@@ -436,7 +452,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ConnectionContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">This contains methods to interact with an individual connection.</p>
@@ -453,7 +469,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ConnectionEventextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -470,7 +486,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ConnectionLostExceptionextendsServiceClientException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Thrown when a request is lost in transit</p>
@@ -487,7 +503,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ConstantCallback[O]extendsCallback[O]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -504,7 +520,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DSLDelegator[C&lt;:colossus.service.CodecDSL]extendsDelegatorwithServiceContext[C]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -521,7 +537,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DSLHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withConnectionContext[C]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -538,7 +554,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DataExceptionextendsServiceClientException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Thrown when there's some kind of data error</p>
@@ -555,7 +571,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DecodedResult[+T]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -572,7 +588,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DefaultHandlerextendsCodecDSL" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -589,7 +605,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DefaultTagDecorator[I,O]extendsTagDecorator[I,O]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -606,7 +622,7 @@ codec is stateful and returns a Seq[O]
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DelayerextendsActorwithActorLogging" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">This little actor is needed because apparently actors that are running in a
@@ -630,7 +646,41 @@ which then does the proper scheduling
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DroppedReplyextendsError" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.FatalServiceServerException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FatalServiceServerExceptionextendsServiceServerException"></a>
+      <a id="FatalServiceServerException:FatalServiceServerException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="FatalServiceServerException.html"><span class="name">FatalServiceServerException</span></a><span class="result"> extends <a href="ServiceServerException.html" class="extype" name="colossus.service.ServiceServerException">ServiceServerException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@FatalServiceServerExceptionextendsServiceServerException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.FutureResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FutureResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,scala.concurrent.Future]"></a>
+      <a id="FutureResponseAdapter[C&lt;:CodecDSL]:FutureResponseAdapter[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FutureResponseAdapter.html"><span class="name">FutureResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ResponseAdapter.html" class="extype" name="colossus.service.ResponseAdapter">ResponseAdapter</a>[<span class="extype" name="colossus.service.FutureResponseAdapter.C">C</span>, <span class="extype" name="scala.concurrent.Future">Future</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@FutureResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,scala.concurrent.Future]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -647,7 +697,7 @@ which then does the proper scheduling
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@LoadBalancingClient[I,O]extendsServiceClientLike[I,O]withWorkerItem" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">The LoadBalancingClient will evenly distribute requests across a set of
@@ -671,7 +721,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@LoadBalancingClientExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -688,7 +738,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@MappedCallback[I,O]extendsCallback[O]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -705,7 +755,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@MessageDecoder[T]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -722,7 +772,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@MessageEncoder[T]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -739,7 +789,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@NotConnectedExceptionextendsServiceClientException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Throw when a request is attempted while not connected</p>
@@ -756,7 +806,7 @@ be tried once
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@PermutationGenerator[T]extendsIterator[List[T]]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">The PermutationGenerator creates permutations such that consecutive calls
@@ -777,7 +827,7 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@PromiseExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -794,12 +844,12 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ReceiveExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="colossus.service.RequestBufferFullException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RequestBufferFullExceptionextendsException"></a>
+      <a id="RequestBufferFullExceptionextendsServiceServerException"></a>
       <a id="RequestBufferFullException:RequestBufferFullException"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -807,11 +857,11 @@ does evenly distribute 1st and 2nd tries...needs some more work
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="RequestBufferFullException.html"><span class="name">RequestBufferFullException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+        <a href="RequestBufferFullException.html"><span class="name">RequestBufferFullException</span></a><span class="result"> extends <a href="ServiceServerException.html" class="extype" name="colossus.service.ServiceServerException">ServiceServerException</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@RequestBufferFullExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+      <a href="../../index.html#colossus.service.package@RequestBufferFullExceptionextendsServiceServerException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -828,7 +878,7 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@RequestFormatter[I]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -845,11 +895,28 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@RequestTimeoutExceptionextendsServiceClientException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Returned when a request has been pending for too long
 </p>
+    </li><li name="colossus.service.ResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ResponseAdapter[C&lt;:colossus.service.CodecDSL,M[_]]extendsAnyRef"></a>
+      <a id="ResponseAdapter[C&lt;:CodecDSL,M[_]]:ResponseAdapter[C,M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseAdapter.html"><span class="name">ResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>, <span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ResponseAdapter[C&lt;:colossus.service.CodecDSL,M[_]]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.SendFailedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SendFailedExceptionextendsException"></a>
       <a id="SendFailedException:SendFailedException"></a>
@@ -863,7 +930,7 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@SendFailedExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -880,7 +947,7 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceClient[I,O]extendsController[O,I]withClientConnectionHandlerwithServiceClientLike[I,O]withManualUnbindHandler" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A ServiceClient is a non-blocking, synchronous interface that handles
@@ -903,7 +970,7 @@ that accepts a worker
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceClientExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -920,7 +987,7 @@ that accepts a worker
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceClientLike[I,O]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -937,7 +1004,7 @@ that accepts a worker
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceClientPool[I,O,T&lt;:colossus.service.ServiceClient[I,O]]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">A ClientPool is a simple container of open connections.</p><div class="fullcomment"><div class="comment cmt"><p>A ClientPool is a simple container of open connections.  It can receive
@@ -956,11 +1023,10 @@ updates and will open/close connections accordingly.</p><p>note that config will
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceConfig[I,O]extendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the prefix to use for all metrics generated by the service</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestLogFormat</dt><dd class="cmt"><p>if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
-</p></dd></dl></div>
+      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the prefix to use for all metrics generated by the service</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestLogFormat</dt><dd class="cmt"><p>if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used</p></dd></dl></div>
     </li><li name="colossus.service.ServiceContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ServiceContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
       <a id="ServiceContext[C&lt;:CodecDSL]:ServiceContext[C]"></a>
@@ -974,7 +1040,7 @@ updates and will open/close connections accordingly.</p><p>note that config will
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -991,7 +1057,7 @@ updates and will open/close connections accordingly.</p><p>note that config will
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">The ServiceServer provides an interface and basic functionality to create a server that processes
@@ -1001,6 +1067,23 @@ examples(and natively supported).  It is entirely possible to use an additional 
 the desired protocol.</p><p>Requests can be processed synchronously or
 asynchronously.  The server will ensure that all responses are written back
 in the order that they are received.</p></div></div>
+    </li><li name="colossus.service.ServiceServerException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceServerExceptionextendsException"></a>
+      <a id="ServiceServerException:ServiceServerException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceServerException.html"><span class="name">ServiceServerException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceServerExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.StaleClientException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="StaleClientExceptionextendsException"></a>
       <a id="StaleClientException:StaleClientException"></a>
@@ -1014,7 +1097,7 @@ in the order that they are received.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@StaleClientExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.</p><div class="fullcomment"><div class="comment cmt"><p>This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
@@ -1033,7 +1116,7 @@ a new Client to reestablish a connection.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@TagDecorator[I,O]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1050,7 +1133,7 @@ a new Client to reestablish a connection.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@UnhandledRequestExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1067,7 +1150,7 @@ a new Client to reestablish a connection.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@UnmappedCallback[I]extendsCallback[I]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">UnmappedCallback is essentially an optimization that avoids needing to
@@ -1093,7 +1176,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@AsyncServiceClient" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1110,7 +1193,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@Callback" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1127,7 +1210,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecutor" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1144,7 +1227,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@Codec" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1161,7 +1244,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CodecDSL" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1178,7 +1261,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ConnectionEvent" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1195,7 +1278,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@DecodedResult" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1212,7 +1295,7 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@Service" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">The Service object is an entry point into the the Service DSL which provide some convenience functions for quickly
@@ -1251,7 +1334,7 @@ Service.serve[Http](<span class="lit">"my-app"</span>, <span class="num">9090</s
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceServer" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1268,7 +1351,7 @@ Service.serve[Http](<span class="lit">"my-app"</span>, <span class="num">9090</s
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@TagDecorator" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       

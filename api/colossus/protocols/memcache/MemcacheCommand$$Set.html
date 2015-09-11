@@ -28,15 +28,13 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="MemcacheCommand$$Set$.html" title="See companion object"><img src="../../../lib/class_to_object_big.png" /></a>
+        <img alt="Class" src="../../../lib/class_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.memcache">memcache</a>.<a href="MemcacheCommand$.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></p>
-        <h1><a href="MemcacheCommand$$Set$.html" title="See companion object">Set</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="MemcacheCommand$$Set$.html" title="See companion object">object Set</a>
-            | <a href="MemcacheCommand$.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">package MemcacheCommand</a>
+        <h1>Set</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="MemcacheCommand$.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">package MemcacheCommand</a>
           </div></span></h3><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -47,13 +45,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Set</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result"> extends <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Set</span><span class="params">(<span name="key">key: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">0</span></span>, <span name="flags">flags: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">0</span></span>)</span><span class="result"> extends <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a>, <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -71,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.memcache.MemcacheCommand.Set"><span>Set</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.protocols.memcache.MemcacheCommand"><span>MemcacheCommand</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.memcache.MemcacheCommand.Set"><span>Set</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.protocols.memcache.MemcacheWriteCommand"><span>MemcacheWriteCommand</span></li><li class="in" name="colossus.protocols.memcache.MemcacheCommand"><span>MemcacheCommand</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -79,7 +77,6 @@
               <li class="hideall out"><span>Hide All</span></li>
               <li class="showall in"><span>Show all</span></li>
             </ol>
-            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
           </div>
         <div id="visbl">
             <span class="filtertype">Visibility</span>
@@ -92,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.memcache.MemcacheCommand.Set#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(key:akka.util.ByteString,value:akka.util.ByteString):colossus.protocols.memcache.MemcacheCommand.Set"></a>
+      <a id="&lt;init&gt;(key:colossus.protocols.memcache.MemcachedKey,value:akka.util.ByteString,ttl:Int,flags:Int):colossus.protocols.memcache.MemcacheCommand.Set"></a>
       <a id="&lt;init&gt;:Set"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -100,11 +97,11 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Set</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span>
+        <span class="name">Set</span><span class="params">(<span name="key">key: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">0</span></span>, <span name="flags">flags: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">0</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@&lt;init&gt;(key:akka.util.ByteString,value:akka.util.ByteString):colossus.protocols.memcache.MemcacheCommand.Set" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@&lt;init&gt;(key:colossus.protocols.memcache.MemcachedKey,value:akka.util.ByteString,ttl:Int,flags:Int):colossus.protocols.memcache.MemcacheCommand.Set" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -130,7 +127,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@!=(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -147,7 +144,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@##():Int" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -164,7 +161,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@==(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -181,11 +178,11 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@asInstanceOf[T0]:T0" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#bytes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="colossus.protocols.memcache.MemcacheWriteCommand#bytes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="bytes(compressor:colossus.protocols.memcache.Compressor):akka.util.ByteString"></a>
       <a id="bytes(Compressor):ByteString"></a>
       <h4 class="signature">
@@ -198,10 +195,10 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@bytes(compressor:colossus.protocols.memcache.Compressor):akka.util.ByteString" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a> → <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -215,7 +212,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@clone():Object" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -225,6 +222,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#commandName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="commandName:akka.util.ByteString"></a>
+      <a id="commandName:ByteString"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">commandName</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@commandName:akka.util.ByteString" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -238,7 +252,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -255,7 +269,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@finalize():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -265,6 +279,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#flags" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="flags:Int"></a>
+      <a id="flags:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">flags</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@flags:Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -278,7 +309,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -295,27 +326,27 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#key" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="key:akka.util.ByteString"></a>
-      <a id="key:ByteString"></a>
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#key" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="key:colossus.protocols.memcache.MemcachedKey"></a>
+      <a id="key:MemcachedKey"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">key</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
+        <span class="name">key</span><span class="result">: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@key:akka.util.ByteString" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@key:colossus.protocols.memcache.MemcachedKey" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -329,7 +360,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -346,7 +377,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@notify():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -363,7 +394,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@notifyAll():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -380,7 +411,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -397,11 +428,28 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@toString():String" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#value" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#ttl" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ttl:Int"></a>
+      <a id="ttl:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ttl</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@ttl:Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></dd></dl></div>
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Set#value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="value:akka.util.ByteString"></a>
       <a id="value:ByteString"></a>
       <h4 class="signature">
@@ -414,10 +462,10 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@value:akka.util.ByteString" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Set">Set</a> → <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -431,7 +479,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@wait():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -454,7 +502,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -477,7 +525,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Set@wait(x$1:Long):Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -504,6 +552,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="colossus.protocols.memcache.MemcacheWriteCommand">
+              <h3>Inherited from <a href="MemcacheWriteCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheWriteCommand">MemcacheWriteCommand</a></h3>
             </div><div class="parent" name="colossus.protocols.memcache.MemcacheCommand">
               <h3>Inherited from <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></h3>
             </div><div class="parent" name="scala.AnyRef">

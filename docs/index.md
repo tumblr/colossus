@@ -6,7 +6,7 @@ categories: docs
 
 **First time with colossus? Try the [quickstart guide](quickstart)**
 
-[API Docs]({{site.baseurl}}/api/index.html#colossus.package) (0.6.2)
+[API Docs]({{site.baseurl}}/api/index.html#colossus.package) (0.6.6)
 
 Here's all the docs so far.
 
