@@ -3,7 +3,7 @@ package colossus
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
-import colossus.protocols.MemcacheClient
+import colossus.protocols.memcache.MemcacheClient
 import colossus.protocols.memcache.MemcacheReply._
 import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
 import colossus.service.{AsyncServiceClient, ClientConfig}

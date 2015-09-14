@@ -63,6 +63,8 @@ object MemcacheCommand {
 
   case class Get(keys: MemcachedKey*) extends MemcacheCommand {
 
+    val commandName = GET
+
     def bytes (compressor: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
       val totalKeyBytes = keys.foldLeft(0)(_ + _.bytes.size + 1)
@@ -114,6 +116,8 @@ object MemcacheCommand {
 
   case class Delete(key: MemcachedKey) extends MemcacheCommand {
 
+    val commandName = DELETE
+
     def bytes(c: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder()
       //3 for SP and \R\N
@@ -133,17 +137,24 @@ object MemcacheCommand {
   }
 
   case class Incr(key: MemcachedKey, value: Long) extends CounterCommand {
+
+    val commandName = INCR
+
     assert(value > 0, "Increment value must be non negative")
     def bytes(c: Compressor = NoCompressor) = formatCommand(INCR, key, value)
   }
 
   case class Decr(key: MemcachedKey, value: Long) extends CounterCommand {
 
+    val commandName = DECR
+
     assert(value > 0, "Decrement value must be non negative")
     def bytes(c: Compressor = NoCompressor) = formatCommand(DECR, key, value)
   }
 
   case class Touch(key: MemcachedKey, ttl: Int) extends MemcacheCommand {
+
+    val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
 
@@ -162,6 +173,8 @@ sealed trait MemcacheCommand {
   def bytes(compressor: Compressor): ByteString
 
   override def toString = bytes(NoCompressor).utf8String
+
+  def commandName : ByteString
 }
 
 //set, add, replace, append, prepend
@@ -169,7 +182,7 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
 
   import UnifiedProtocol._
 
-  def commandName : ByteString
+
   def key: MemcachedKey
   def value: ByteString
   def ttl: Int
