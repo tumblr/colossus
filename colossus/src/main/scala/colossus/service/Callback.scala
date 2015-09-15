@@ -206,11 +206,15 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
 case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   def map[U](f: O => U): Callback[U] = ConstantCallback(value.map(f))
   def flatMap[U](f: O => Callback[U]): Callback[U] = value match {
-    case Success(v) => f(v)
+    case Success(v) => try { f(v) } catch {
+      case t: Throwable => ConstantCallback(Failure(t))
+    }
     case Failure(err) => ConstantCallback(Failure(err))
   }
 
-  def mapTry[U](f: Try[O] => Try[U]): Callback[U] = ConstantCallback(f(value))
+  def mapTry[U](f: Try[O] => Try[U]): Callback[U] = try { ConstantCallback(f(value)) } catch {
+    case t: Throwable => ConstantCallback(Failure(t))
+  }
   
 
   def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = ConstantCallback(value.recover(p))
