@@ -42,7 +42,7 @@ class ServiceClientSpec extends ColossusSpec {
       connectionAttempts = connectionAttempts
     )
     //haxor!
-    val client = (RedisClient.callbackClient(config, worker)).asInstanceOf[RedisCallbackClient].client
+    val client = (RedisClient.callbackClient(config, worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
 
     workerProbe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
     client.setBind(1, worker)

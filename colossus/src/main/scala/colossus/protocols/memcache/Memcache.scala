@@ -240,7 +240,7 @@ sealed trait MemcacheHeader
 object MemcacheReply {
   sealed trait DataReply extends MemcacheReply 
     
-  case class Value(key: String, data: ByteString, flags : Int) extends DataReply
+  case class Value(key: ByteString, data: ByteString, flags : Int) extends DataReply
   case class Counter(value : Long) extends DataReply
   case class Values(values: Vector[Value]) extends DataReply
   case object NoData extends DataReply
@@ -305,7 +305,7 @@ object MemcacheReplyParser {
     case "END" => const(if (build.size == 1) build.head else Values(build))
   }}
 
-  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(key, b, flags))}
+  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), b, flags))}
 }
 
 trait Compressor {

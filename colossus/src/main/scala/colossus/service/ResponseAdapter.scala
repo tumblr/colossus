@@ -20,7 +20,7 @@ trait ResponseAdapter[C <: CodecDSL, M[_]] {
 
 trait CallbackResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Callback] {
 
-  protected def client : ServiceClient[C#Input, C#Output]
+  protected def client : ServiceClientLike[C#Input, C#Output]
 
   def execute(i : C#Input) : Callback[C#Output] = client.send(i)
 

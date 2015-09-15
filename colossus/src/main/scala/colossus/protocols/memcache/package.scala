@@ -33,7 +33,9 @@ package object memcache {
    *
    * Just because these commands are not implemented, doesn't mean they cannot be used.  The implementors of this trait provide
    * a generic 'execute' command, which allows for the execution of arbitrary [[colossus.protocols.memcache.MemcacheCommand]] objects.  The calling code is responsible
-   * for handling the raw [[colossus.protocols.memcache.MemcacheReply]].
+   * for handling the raw [[colossus.protocols.memcache.MemcacheReply]].  The only restriction here is that the replies must fall in line
+   * with what the [[colossus.protocols.memcache.MemcacheReply]] expects, or the parser will fail to recognize the response as valid.
+   *
    *
    * @tparam M
    */
@@ -86,7 +88,14 @@ package object memcache {
       }
     }
 
-    def get(keys : ByteString*) : M[Map[String, Value]] = {
+    def get(key : ByteString) : M[Option[Value]] = {
+      executeCommand(Get(MemcachedKey(key)), key){
+        case a : Value => success(Some(a))
+        case NoData => success(None)
+      }
+    }
+
+    def getAll(keys : ByteString*) : M[Map[ByteString, Value]] = {
       executeCommand(Get(keys.map(MemcachedKey(_)) : _*), multiKey(keys)){
         case a : Value => success(Map(a.key->a))
         case Values(x) => success(x.map(y => y.key->y).toMap)
@@ -117,7 +126,7 @@ package object memcache {
     }
   }
 
-  class MemcacheCallbackClient(val client : ServiceClient[MemcacheCommand, MemcacheReply])
+  class MemcacheCallbackClient(val client : ServiceClientLike[MemcacheCommand, MemcacheReply])
     extends MemcacheClient[Callback] with CallbackResponseAdapter[Memcache]
 
 
@@ -130,13 +139,25 @@ package object memcache {
 
   object MemcacheClient {
 
-    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize) : MemcacheClient[Callback] with CallbackResponseAdapter[Memcache] = {
+
+    def callbackClient(scl : ServiceClient[MemcacheCommand, MemcacheReply]) : MemcacheCallbackClient = {
+      new MemcacheCallbackClient(scl)
+    }
+
+    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize) : MemcacheCallbackClient = {
       val serviceClient = new ServiceClient[MemcacheCommand, MemcacheReply](new MemcacheClientCodec(maxSize), config, worker)
       new MemcacheCallbackClient(serviceClient)
     }
-    def asyncClient(config : ClientConfig, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)(implicit io : IOSystem) : MemcacheClient[Future] with FutureResponseAdapter[Memcache] = {
+
+
+    def asyncClient(config : ClientConfig, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)(implicit io : IOSystem) : MemcacheFutureClient = {
       implicit val ec = io.actorSystem.dispatcher
       val client = AsyncServiceClient(config, new MemcacheClientCodec(maxSize))
+      new MemcacheFutureClient(client)
+    }
+
+    def asyncClient(client : AsyncServiceClient[MemcacheCommand, MemcacheReply])(implicit io : IOSystem) : MemcacheFutureClient = {
+      implicit val ec = io.actorSystem.dispatcher
       new MemcacheFutureClient(client)
     }
   }

@@ -42,7 +42,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     "add" in {
       val key = getKey("colITAdd")
       client.add(key, mValue).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITAdd"->Value("colITAdd", mValue, 0)))
+      client.get(key).futureValue must be (Map("colITAdd"->Value(ByteString("colITAdd"), mValue, 0)))
       client.add(key, mValue).futureValue must be (false)
     }
 
@@ -51,7 +51,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
       client.append(key, ByteString("valueA")).futureValue must be (false)
       client.add(key, mValue).futureValue must be (true)
       client.append(key, ByteString("valueA")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITAppend"->Value("colITAppend", ByteString("valuevalueA"), 0)))
+      client.get(key).futureValue must be (Map("colITAppend"->Value(ByteString("colITAppend"), ByteString("valuevalueA"), 0)))
     }
 
     "decr" in {
@@ -71,10 +71,10 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     "get multiple keys" in {
       val keyA = getKey("colITMGetA")
       val keyB = getKey("colITMGetB")
-      val expectedMap = Map("colITMGetA"->Value("colITMGetA", mValue, 0), "colITMGetB"->Value("colITMGetB", mValue, 0))
+      val expectedMap = Map("colITMGetA"->Value(ByteString("colITMGetA"), mValue, 0), ByteString("colITMGetB")->Value(ByteString("colITMGetB"), mValue, 0))
       client.add(keyA, mValue).futureValue must be (true)
       client.add(keyB, mValue).futureValue must be (true)
-      client.get(keyA, keyB).futureValue mustBe expectedMap
+      client.getAll(keyA, keyB).futureValue mustBe expectedMap
     }
 
     "incr" in {
@@ -89,7 +89,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
       client.prepend(key, ByteString("valueA")).futureValue must be (false)
       client.add(key, mValue).futureValue must be (true)
       client.prepend(key, ByteString("valueP")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITPrepend"->Value("colITPrepend", ByteString("valuePvalue"), 0)))
+      client.get(key).futureValue must be (Map("colITPrepend"->Value(ByteString("colITPrepend"), ByteString("valuePvalue"), 0)))
     }
 
     "replace" in {
@@ -97,15 +97,15 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
       client.replace(key, mValue).futureValue must be (false)
       client.add(key, mValue).futureValue must be (true)
       client.replace(key, ByteString("newValue")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITReplace"->Value("colITReplace", ByteString("newValue"), 0)))
+      client.get(key).futureValue must be (Map("colITReplace"->Value(ByteString("colITReplace"), ByteString("newValue"), 0)))
     }
 
     "set" in {
       val key = getKey("colITSet")
       client.set(key, mValue).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITSet"->Value("colITSet", ByteString("value"), 0)))
+      client.get(key).futureValue must be (Map("colITSet"->Value(ByteString("colITSet"), ByteString("value"), 0)))
       client.set(key, ByteString("newValue")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITSet"->Value("colITSet", ByteString("newValue"), 0)))
+      client.get(key).futureValue must be (Map("colITSet"->Value(ByteString("colITSet"), ByteString("newValue"), 0)))
     }
 
     "touch" in {

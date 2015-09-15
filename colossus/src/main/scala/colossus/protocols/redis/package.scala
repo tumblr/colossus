@@ -503,7 +503,7 @@ package object redis {
   }
 
 
-  class RedisCallbackClient(val client : ServiceClient[Command, Reply])
+  class RedisCallbackClient(val client : ServiceClientLike[Command, Reply])
     extends RedisClient[Callback] with CallbackResponseAdapter[Redis]
 
 
@@ -518,13 +518,23 @@ package object redis {
 
   object RedisClient {
 
-    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) : RedisClient[Callback] with CallbackResponseAdapter[Redis] = {
+    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) : RedisCallbackClient = {
       val serviceClient = new ServiceClient[Command, Reply](new RedisClientCodec(maxSize), config, worker)
       new RedisCallbackClient(serviceClient)
     }
-    def asyncClient(config : ClientConfig, maxSize : DataSize = RedisReplyParser.DefaultMaxSize)(implicit io : IOSystem) : RedisClient[Future] with FutureResponseAdapter[Redis] = {
+
+    def callbackClient(scl : ServiceClientLike[Command, Reply]) : RedisCallbackClient = {
+      new RedisCallbackClient(scl)
+    }
+
+    def asyncClient(config : ClientConfig, maxSize : DataSize = RedisReplyParser.DefaultMaxSize)(implicit io : IOSystem) : RedisFutureClient = {
       implicit val ec = io.actorSystem.dispatcher
       val client = AsyncServiceClient(config, new RedisClientCodec(maxSize))
+      new RedisFutureClient(client)
+    }
+
+    def asyncClient(client : AsyncServiceClient[Command, Reply])(implicit io : IOSystem) : RedisFutureClient = {
+      implicit val ec = io.actorSystem.dispatcher
       new RedisFutureClient(client)
     }
   }
