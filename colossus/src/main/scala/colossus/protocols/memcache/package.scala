@@ -45,7 +45,7 @@ package object memcache {
     protected def executeCommand[T](c : MemcacheCommand, key : ByteString)(goodCase : PartialFunction[MemcacheReply, M[T]]) : M[T] = {
       executeAndMap(c) {
         goodCase orElse {
-          case x => failure(UnexpectedMemcacheReplyException(s"Unexpected response $x when executing ${c.commandName.utf8String} on ${key.utf8String}"))
+          case x =>failure(UnexpectedMemcacheReplyException(s"Unexpected response $x when executing ${c.commandName.utf8String} on ${key.utf8String}"))
         }
       }
     }
@@ -71,55 +71,56 @@ package object memcache {
     }
 
     def add(key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) : M[Boolean] =
-      storageAsBooleanCommand(Add(MemcachedKey(key), value, ttl, flags), key)
+      storageAsBooleanCommand(Add(key, value, ttl, flags), key)
 
     def append(key : ByteString, value : ByteString) : M[Boolean] =
-      storageAsBooleanCommand(Append(MemcachedKey(key), value), key)
+      storageAsBooleanCommand(Append(key, value), key)
 
 
     def decr(key : ByteString, value : Long) : M[Option[Long]] =
-      counterAsOptionCommand(Decr(MemcachedKey(key), value), key)
+      counterAsOptionCommand(Decr(key, value), key)
 
 
     def delete(key : ByteString) : M[Boolean] = {
-      executeCommand(Delete(MemcachedKey(key)), key) {
+      executeCommand(Delete(key), key) {
         case Deleted => success(true)
         case NotFound => success(false)
       }
     }
 
     def get(key : ByteString) : M[Option[Value]] = {
-      executeCommand(Get(MemcachedKey(key)), key){
+      executeCommand(Get(key), key){
         case a : Value => success(Some(a))
         case NoData => success(None)
       }
     }
 
     def getAll(keys : ByteString*) : M[Map[ByteString, Value]] = {
-      executeCommand(Get(keys.map(MemcachedKey(_)) : _*), multiKey(keys)){
+      executeCommand(Get(keys : _*), multiKey(keys)){
         case a : Value => success(Map(a.key->a))
         case Values(x) => success(x.map(y => y.key->y).toMap)
+        case NoData => success(Map())
       }
     }
 
     def incr(key : ByteString, value : Long) : M[Option[Long]] =
-      counterAsOptionCommand(Incr(MemcachedKey(key), value), key)
+      counterAsOptionCommand(Incr(key, value), key)
 
 
     def prepend(key : ByteString, value : ByteString) : M[Boolean] =
-      storageAsBooleanCommand(Prepend(MemcachedKey(key), value), key)
+      storageAsBooleanCommand(Prepend(key, value), key)
 
 
     def replace(key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) : M[Boolean] =
-      storageAsBooleanCommand(Replace(MemcachedKey(key), value, ttl, flags), key)
+      storageAsBooleanCommand(Replace(key, value, ttl, flags), key)
 
 
     def set(key : ByteString, value : ByteString, ttl : Int = 0, flags : Int = 0) : M[Boolean] =
-      storageAsBooleanCommand(Set(MemcachedKey(key), value, ttl, flags), key)
+      storageAsBooleanCommand(Set(key, value, ttl, flags), key)
 
 
     def touch(key : ByteString, ttl : Int = 0) : M[Boolean] = {
-      executeCommand(Touch(MemcachedKey(key), ttl), key){
+      executeCommand(Touch(key, ttl), key){
         case Touched => success(true)
         case NotFound => success(false)
       }

@@ -30,8 +30,9 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 
+  implicit val ec = sys.actorSystem.dispatcher
+
   override def afterAll() {
-    implicit val ec = sys.actorSystem.dispatcher
     val f: Future[mutable.HashSet[Boolean]] = Future.sequence(usedKeys.map(client.delete))
     f.futureValue must be (mutable.HashSet(true, false)) //some keys are deleted by the tests.
     super.afterAll()
@@ -41,78 +42,138 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
   "Memcached client" should {
     "add" in {
       val key = getKey("colITAdd")
-      client.add(key, mValue).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITAdd"->Value(ByteString("colITAdd"), mValue, 0)))
-      client.add(key, mValue).futureValue must be (false)
+      val res = for {
+        x <- client.add(key, mValue)
+        y <- client.get(key)
+        z <- client.add(key, mValue)
+      } yield {
+          (x,y,z)
+        }
+
+      res.futureValue must be ((true, Some(Value(ByteString("colITAdd"), mValue, 0)), false))
     }
 
     "append" in {
       val key = getKey("colITAppend")
-      client.append(key, ByteString("valueA")).futureValue must be (false)
-      client.add(key, mValue).futureValue must be (true)
-      client.append(key, ByteString("valueA")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITAppend"->Value(ByteString("colITAppend"), ByteString("valuevalueA"), 0)))
+      val res = for {
+        w <- client.append(key, ByteString("valueA"))
+        x <- client.add(key, mValue)
+        y <- client.append(key, ByteString("valueA"))
+        z <- client.get(key)
+      } yield {
+          (w,x,y,z)
+        }
+
+      res.futureValue must be ((false, true, true, Some(Value(ByteString("colITAppend"), ByteString("valuevalueA"), 0))))
     }
 
     "decr" in {
       val key = getKey("colITDecr")
-      client.decr(key, 1).futureValue must be (None)
-      client.add(key, ByteString("2")).futureValue must be (true)
-      client.decr(key, 1).futureValue must be (Some(1))
+
+      val res = for {
+        x <- client.decr(key, 1)
+        y <- client.add(key, ByteString("2"))
+        z <- client.decr(key, 1)
+      } yield {
+          (x,y,z)
+        }
+
+      res.futureValue must be((None, true, Some(1)))
+
     }
 
     "delete" in {
       val key = getKey("colITDel")
-      client.add(key, mValue).futureValue must be (true)
-      client.delete(key).futureValue must be (true)
-      client.delete(key).futureValue must be (false)
+      val res = for {
+        x <- client.add(key, mValue)
+        y <- client.delete(key)
+        z <- client.delete(key)
+      } yield {
+          (x,y,z)
+        }
+
+      res.futureValue must be ((true, true, false))
     }
 
     "get multiple keys" in {
       val keyA = getKey("colITMGetA")
       val keyB = getKey("colITMGetB")
-      val expectedMap = Map("colITMGetA"->Value(ByteString("colITMGetA"), mValue, 0), ByteString("colITMGetB")->Value(ByteString("colITMGetB"), mValue, 0))
-      client.add(keyA, mValue).futureValue must be (true)
-      client.add(keyB, mValue).futureValue must be (true)
-      client.getAll(keyA, keyB).futureValue mustBe expectedMap
+      val expectedMap = Map(ByteString("colITMGetA")->Value(ByteString("colITMGetA"), mValue, 0), ByteString("colITMGetB")->Value(ByteString("colITMGetB"), mValue, 0))
+
+      val res = for {
+        _ <- client.add(keyA, mValue)
+        _ <- client.add(keyB, mValue)
+        x <- client.getAll(keyA, keyB)
+      } yield {
+          x
+        }
+
+      res.futureValue must be (expectedMap)
     }
 
     "incr" in {
       val key = getKey("colITIncr")
-      client.incr(key, 1).futureValue must be (None)
-      client.add(key, ByteString("2")).futureValue must be (true)
-      client.incr(key, 1).futureValue must be (Some(3))
+      val res = for {
+        x <- client.incr(key, 1)
+        y <- client.add(key, ByteString("2"))
+        z <- client.incr(key, 1)
+      } yield {
+          (x,y,z)
+        }
+
+      res.futureValue must be ((None, true, Some(3)))
     }
 
     "prepend" in {
       val key = getKey("colITPrepend")
-      client.prepend(key, ByteString("valueA")).futureValue must be (false)
-      client.add(key, mValue).futureValue must be (true)
-      client.prepend(key, ByteString("valueP")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITPrepend"->Value(ByteString("colITPrepend"), ByteString("valuePvalue"), 0)))
+      val res = for {
+        w <- client.prepend(key, ByteString("valueA"))
+        x <- client.add(key, mValue)
+        y <- client.prepend(key, ByteString("valueP"))
+        z <- client.get(key)
+      } yield {
+          (w,x,y,z)
+        }
+
+      res.futureValue must be(false, true, true, Some(Value(ByteString("colITPrepend"), ByteString("valuePvalue"), 0)))
     }
 
     "replace" in {
       val key = getKey("colITReplace")
-      client.replace(key, mValue).futureValue must be (false)
-      client.add(key, mValue).futureValue must be (true)
-      client.replace(key, ByteString("newValue")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITReplace"->Value(ByteString("colITReplace"), ByteString("newValue"), 0)))
+      val res = for {
+        w <- client.replace(key, mValue)
+        x <- client.add(key, mValue)
+        y <- client.replace(key, ByteString("newValue"))
+        z <- client.get(key)
+      } yield {
+          (w,x,y,z)
+        }
     }
 
     "set" in {
       val key = getKey("colITSet")
-      client.set(key, mValue).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITSet"->Value(ByteString("colITSet"), ByteString("value"), 0)))
-      client.set(key, ByteString("newValue")).futureValue must be (true)
-      client.get(key).futureValue must be (Map("colITSet"->Value(ByteString("colITSet"), ByteString("newValue"), 0)))
+      val res = for {
+        w <- client.set(key, mValue)
+        x <- client.get(key)
+        y <- client.set(key, ByteString("newValue"))
+        z <- client.get(key)
+      } yield {
+          (w,x,y,z)
+        }
+
+      res.futureValue must be(true, Some(Value(ByteString("colITSet"), ByteString("value"), 0)), true, Some(Value(ByteString("colITSet"), ByteString("newValue"), 0)))
     }
 
     "touch" in {
       val key = getKey("colITTouch")
-      client.touch(key, 100).futureValue must be (false)
-      client.set(key, mValue).futureValue must be (true)
-      client.touch(key, 100).futureValue must be (true)
+      val res = for {
+        x <- client.touch(key, 100)
+        y <- client.set(key, mValue)
+        z <- client.touch(key, 100)
+      } yield {
+          (x,y,z)
+        }
+      res.futureValue must be (false, true, true)
     }
   }
 
