@@ -19,7 +19,7 @@ object ColossusBuild extends Build {
     organization := "com.tumblr",
     scalaVersion  := "2.11.7",
     crossScalaVersions := Seq("2.10.4", "2.11.7"),
-    version                   := "0.6.6-RC2",
+    version                   := "0.6.6-RC2-SAURON-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(

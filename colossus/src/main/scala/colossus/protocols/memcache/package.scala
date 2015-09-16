@@ -141,7 +141,7 @@ package object memcache {
   object MemcacheClient {
 
 
-    def callbackClient(scl : ServiceClient[MemcacheCommand, MemcacheReply]) : MemcacheCallbackClient = {
+    def callbackClient(scl : ServiceClientLike[MemcacheCommand, MemcacheReply]) : MemcacheCallbackClient = {
       new MemcacheCallbackClient(scl)
     }
 
