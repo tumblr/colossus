@@ -3,6 +3,7 @@ package colossus
 import akka.util.ByteString
 
 import scala.concurrent.duration._
+import colossus.protocols.redis.{IntegerReply, Command}
 
 class RedisITSpec extends BaseRedisITSpec{
 
@@ -387,6 +388,13 @@ class RedisITSpec extends BaseRedisITSpec{
       } yield { (w,x,y) }
 
       res.futureValue must be (0, true, 5)
+    }
+
+    "generic command" in {
+      client.execute(Command.c("DBSIZE")).map{
+        case IntegerReply(x) => //sweet
+        case other => throw new Exception(s"bad response! $other")
+      }
     }
   }
 }

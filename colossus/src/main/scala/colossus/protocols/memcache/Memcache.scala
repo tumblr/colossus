@@ -46,14 +46,17 @@ object MemcachedKey {
 
   val KEY_SIZE = 250
 
-  def apply(key : String) : MemcachedKey = MemcachedKey(ByteString(key))
+  def validateKey(key : ByteString) {
+    if (key.size > KEY_SIZE) {
+      throw new InvalidMemcacheKeyException(s"Key $key's size is greater than 250 characters.")
+    } else if (key.indexWhere(_ < ' ') != -1) {
+      throw new InvalidMemcacheKeyException(s"Key $key contains ascii control characters")
+    }
+  }
 }
 
-case class MemcachedKey(bytes: ByteString) {
-  assert(bytes.length <= MemcachedKey.KEY_SIZE, "Memcached keys cannot exceed 250 bytes")
-  assert(bytes.indexWhere(_ < ' ') == -1, "Memcached keys should not contain ascii control characters")
+class InvalidMemcacheKeyException(reason : String) extends Exception(reason)
 
-}
 //TODO: 'Flags' doesn't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
 //TODO: implement CAS
 //TODO: incrs/decrs are not utilizing full 64 bit unsigned int space since we are using singed Longs
@@ -61,42 +64,45 @@ object MemcacheCommand {
 
   import UnifiedProtocol._
 
-  case class Get(keys: MemcachedKey*) extends MemcacheCommand {
+  case class Get(keys: ByteString*) extends MemcacheCommand {
+
+    val commandName = GET
 
     def bytes (compressor: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
-      val totalKeyBytes = keys.foldLeft(0)(_ + _.bytes.size + 1)
+      val totalKeyBytes = keys.foldLeft(0){ case(acc, key) =>
+        MemcachedKey.validateKey(key)
+        acc + key.length + 1
+      }
       //padding is 2..for the \r\n.  The spaces between keys are already accounted for in the foldLeft
       b.sizeHint(GET.size + totalKeyBytes + 2)
       b.append(GET)
-      keys.foreach{ x =>
-        b.append(SP).append(x.bytes)
-      }
+      keys.foreach{x => b.append(SP).append(x)}
       b.append(RN).result()
     }
   }
 
-  case class Set(key: MemcachedKey, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
+  case class Set(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = SET
   }
   
-  case class Add(key: MemcachedKey, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
+  case class Add(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = ADD
   }
   
-  case class Replace(key: MemcachedKey, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
+  case class Replace(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = REPLACE
   }
   
   // Append does not take <flags> or <expiretime> but we have to provide them according to the protocol
-  case class Append(key: MemcachedKey, value: ByteString) extends MemcacheWriteCommand {
+  case class Append(key: ByteString, value: ByteString) extends MemcacheWriteCommand {
     val commandName = APPEND
     val ttl = 0
     val flags = 0
   }
 
   // Prepend does not take <flags> or <expiretime> but we have to provide them according to the protocol
-  case class Prepend(key: MemcachedKey, value: ByteString) extends MemcacheWriteCommand {
+  case class Prepend(key: ByteString, value: ByteString) extends MemcacheWriteCommand {
     val commandName = PREPEND
     val ttl = 0
     val flags = 0
@@ -112,46 +118,58 @@ object MemcacheCommand {
     }
   }*/
 
-  case class Delete(key: MemcachedKey) extends MemcacheCommand {
+  case class Delete(key: ByteString) extends MemcacheCommand {
+
+    val commandName = DELETE
 
     def bytes(c: Compressor = NoCompressor) = {
+      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder()
       //3 for SP and \R\N
-      val hintSize = DELETE.size + key.bytes.size + 3
+      val hintSize = DELETE.size + key.size + 3
       b.sizeHint(hintSize)
-      b.append(DELETE).append(SP).append(key.bytes).append(RN).result()
+      b.append(DELETE).append(SP).append(key).append(RN).result()
     }
   }
 
   sealed trait CounterCommand extends MemcacheCommand{
-    def formatCommand(commandName : ByteString, key : MemcachedKey, value : Long) : ByteString = {
+    def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
+      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
-      b.sizeHint(commandName.size + key.bytes.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
-      b.append(commandName).append(SP).append(key.bytes).append(SP).append(valStr).append(RN).result()
+      b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
+      b.append(commandName).append(SP).append(key).append(SP).append(valStr).append(RN).result()
     }
   }
 
-  case class Incr(key: MemcachedKey, value: Long) extends CounterCommand {
+  case class Incr(key: ByteString, value: Long) extends CounterCommand {
+
+    val commandName = INCR
+
     assert(value > 0, "Increment value must be non negative")
     def bytes(c: Compressor = NoCompressor) = formatCommand(INCR, key, value)
   }
 
-  case class Decr(key: MemcachedKey, value: Long) extends CounterCommand {
+  case class Decr(key: ByteString, value: Long) extends CounterCommand {
+
+    val commandName = DECR
 
     assert(value > 0, "Decrement value must be non negative")
     def bytes(c: Compressor = NoCompressor) = formatCommand(DECR, key, value)
   }
 
-  case class Touch(key: MemcachedKey, ttl: Int) extends MemcacheCommand {
+  case class Touch(key: ByteString, ttl: Int) extends MemcacheCommand {
+
+    val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
 
     def bytes(c: Compressor = NoCompressor) = {
+      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder
       val ttlStr = ByteString(ttl.toString)
-      b.sizeHint(TOUCH.size + key.bytes.size + ttlStr.length + 4) //4 one each for 2 spaces and an \r\n
-      b.append(TOUCH).append(SP).append(key.bytes).append(SP).append(ttlStr).append(RN).result()
+      b.sizeHint(TOUCH.size + key.size + ttlStr.length + 4) //4 one each for 2 spaces and an \r\n
+      b.append(TOUCH).append(SP).append(key).append(SP).append(ttlStr).append(RN).result()
     }
   }
 }
@@ -162,6 +180,8 @@ sealed trait MemcacheCommand {
   def bytes(compressor: Compressor): ByteString
 
   override def toString = bytes(NoCompressor).utf8String
+
+  def commandName : ByteString
 }
 
 //set, add, replace, append, prepend
@@ -169,13 +189,16 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
 
   import UnifiedProtocol._
 
-  def commandName : ByteString
-  def key: MemcachedKey
+
+  def key: ByteString
   def value: ByteString
   def ttl: Int
   def flags : Int
 
   def bytes(compressor : Compressor) : ByteString = {
+
+    //assert that the key is valid..this throws on a malformatted key
+    MemcachedKey.validateKey(key)
 
     val b = new ByteStringBuilder
 
@@ -203,7 +226,7 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
     b.append(commandName)
     b.append(SP)
 
-    b.append(key.bytes)
+    b.append(key)
     b.append(SP)
 
     b.append(flagsStr)
@@ -227,7 +250,7 @@ sealed trait MemcacheHeader
 object MemcacheReply {
   sealed trait DataReply extends MemcacheReply 
     
-  case class Value(key: String, data: ByteString, flags : Int) extends DataReply
+  case class Value(key: ByteString, data: ByteString, flags : Int) extends DataReply
   case class Counter(value : Long) extends DataReply
   case class Values(values: Vector[Value]) extends DataReply
   case object NoData extends DataReply
@@ -292,7 +315,7 @@ object MemcacheReplyParser {
     case "END" => const(if (build.size == 1) build.head else Values(build))
   }}
 
-  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(key, b, flags))}
+  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), b, flags))}
 }
 
 trait Compressor {

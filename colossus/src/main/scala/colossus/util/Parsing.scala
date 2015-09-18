@@ -372,7 +372,7 @@ object Combinators {
 
   def long: Parser[Long] = bytes(8) >> {b => b.asByteBuffer.getLong}
 
-  /** Parse a series of ascii strings seperated by a single-byte delimiter and terminated by a byte
+  /** Parse a series of ascii strings separated by a single-byte delimiter and terminated by a byte
    *
    */
   def delimitedString(delimiter: Byte, terminus: Byte): Parser[Vector[String]] = new Parser[Vector[String]] {
