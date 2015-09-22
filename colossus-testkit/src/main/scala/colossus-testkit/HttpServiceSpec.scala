@@ -75,7 +75,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
 
   def testPost(url: String, data: String, expectedCode: HttpCode, expectedBody : String) {
     val req = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Post, url = url, headers = List(("content-length" ->data.length.toString))), Some(ByteString(data)))
-    expectCode(req, expectedCode)
+    expectCodeAndBody(req, expectedCode, expectedBody)
   }
 
   def testDelete(url: String, expectedCode: HttpCode) {
