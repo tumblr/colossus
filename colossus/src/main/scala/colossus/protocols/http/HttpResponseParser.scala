@@ -49,7 +49,7 @@ object HttpResponseParser  {
         case Some(n) => streamingResponse(parsedHead, Some(n), false)
         case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         //TODO: adding support for this requires upcoming changes to stream termination error handling
-        case None => throw new ParseException("Infinite non-chunked responses not supported") 
+        case None => throw new ParseException("Infinite non-chunked responses not supported")
       }
       case _  => streamingResponse(parsedHead, None, dechunk)
     }
