@@ -60,13 +60,7 @@ package object http {
   extends BasicServiceHandler[D](config, worker, provider, initializer) {
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
-      if ((
-          input.head.version == HttpVersion.`1.1` &&
-          input.head.singleHeader("Connection").contains("close")
-        ) || response.head.version == HttpVersion.`1.0`
-      ) {
-        gracefulDisconnect()
-      }
+      if(!input.head.persistConnection) gracefulDisconnect()
       response
     }
     

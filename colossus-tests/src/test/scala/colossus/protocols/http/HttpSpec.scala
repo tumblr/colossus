@@ -38,7 +38,79 @@ class HttpSpec extends WordSpec with MustMatchers{
 
       request.bytes.utf8String must equal(expected)
     }
-      
+
+    "want to close HTTP/1.0 requests without the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.0`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("foo" -> "bar")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(false)
+    }
+
+    "want to close HTTP/1.0 requests without keep-alive in the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.0`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("connection" -> "bar")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(false)
+    }
+
+    "want to persist HTTP/1.0 requests with keep-alive in the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.0`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("connection" -> "keep-alive")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(true)
+    }
+
+    "want to persist HTTP/1.1 requests without the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.1`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("foo" -> "bar")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(true)
+    }
+
+    "want to persist HTTP/1.1 requests without close in the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.1`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("connection" -> "bar")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(true)
+    }
+
+    "want to close HTTP/1.1 requests with close in the Connection header" in {
+      val head = HttpHead(
+        version = HttpVersion.`1.1`,
+        url = "/hello",
+        method = HttpMethod.Post,
+        headers = List("connection" -> "close")
+      )
+      val request = HttpRequest(head, None)
+
+      request.head.persistConnection must equal(false)
+    }
+
   }
 
   "http response" must {

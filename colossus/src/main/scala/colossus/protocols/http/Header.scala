@@ -2,6 +2,7 @@ package colossus
 package protocols.http
 
 import akka.util.ByteString
+import colossus.protocols.http.Connection.{Close, KeepAlive}
 import com.github.nscala_time.time.Imports._
 
 import scala.collection.immutable.HashMap
@@ -86,6 +87,8 @@ trait HttpHeaderUtils {
   lazy val contentLength: Option[Int] = headers.collectFirst{case (HttpHeaders.ContentLength, l) => l.toInt}
 
   lazy val transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
+
+  lazy val connection: Option[Connection] = singleHeader(HttpHeaders.Connection).flatMap(Connection.unapply)
 }
 
 
@@ -156,6 +159,23 @@ object ContentEncoding {
   }
 }
 
+sealed trait Connection {
+  def value: String
+}
+object Connection {
+  case object KeepAlive extends Connection {
+    val value = "keep-alive"
+  }
+  case object Close extends Connection {
+    val value = "close"
+  }
+
+  private val all = Seq(Close, KeepAlive)
+  def unapply(str : String) : Option[Connection] = {
+    all.find(_.value == str)
+  }
+}
+
 case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) extends HttpHeaderUtils {
   import HttpHead._
   import HttpHeaders._
@@ -169,9 +189,6 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
   }
 
   lazy val cookies: Seq[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
-
-
-
 
   //we should only encode if the string is decoded.
   //To check for that, if we decode an already decoded URL, it should not change (this may not be necessary)
@@ -197,6 +214,14 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
       reqString ++ ByteString("\r\n")
     }
   }
+
+  def persistConnection: Boolean =
+    (version, connection) match {
+      case (HttpVersion.`1.1`, Some(Close)) => false
+      case (HttpVersion.`1.1`, _) => true
+      case (HttpVersion.`1.0`, Some(KeepAlive)) => true
+      case (HttpVersion.`1.0`, _) => false
+    }
 }
 
 object HttpHead {
