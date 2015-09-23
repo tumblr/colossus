@@ -37,7 +37,7 @@ package object http {
     }
 
     override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = ReturnCodeTagDecorator): DSLHandler[Http] = {
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator[Http]): DSLHandler[Http] = {
       new HttpServiceHandler[Http](config, worker, this, initializer)
     }
 
@@ -47,8 +47,8 @@ package object http {
 
 
 
-  object ReturnCodeTagDecorator extends TagDecorator[Http#Input, Http#Output] {
-    override def tagsFor(request: Http#Input, response: Http#Output): TagMap = {
+  class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
+    override def tagsFor(request: C#Input, response: C#Output): TagMap = {
       Map("status_code" -> response.head.code.code.toString)
     }
   }
@@ -76,7 +76,7 @@ package object http {
     }
 
     override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = TagDecorator.default[StreamingHttp#Input, StreamingHttp#Output]): DSLHandler[StreamingHttp] = {
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = new ReturnCodeTagDecorator[StreamingHttp]): DSLHandler[StreamingHttp] = {
       new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
     }
 
