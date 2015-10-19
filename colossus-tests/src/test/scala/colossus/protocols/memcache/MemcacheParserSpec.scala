@@ -32,6 +32,12 @@ class MemcacheParserSuite extends FlatSpec with ShouldMatchers{
     p.parse(reply) should equal (Some(NoData))
   }
 
+  it should "parse a server error" in {
+    val reply = DataBuffer(ByteString("SERVER_ERROR out of memory storing object\r\n"))
+    val p = new MemcacheReplyParser
+    p.parse(reply) should equal (Some(ServerError("out of memory storing object")))
+  }
+
   it should "parse a blank error reply" in {
     val reply = DataBuffer(ByteString("ERROR\r\n"))
     val p = new MemcacheReplyParser

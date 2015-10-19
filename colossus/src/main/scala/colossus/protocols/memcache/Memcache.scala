@@ -302,7 +302,7 @@ object MemcacheReplyParser {
     case "NOT_FOUND"      => const(NotFound)
     case "DELETED"        => const(Deleted)
     case "TOUCHED"        => const(Touched)
-    case "SERVER_ERROR"   => const(ServerError(pieces(1)))
+    case "SERVER_ERROR"   => const(ServerError(pieces.tail.mkString(" ")))
     case "ERROR"          => const(Error("ERROR"))
     case other if isNumeric(other) => const(Counter(other.toLong))
     case other        => throw new ParseException(s"Unknown reply '$other'")
