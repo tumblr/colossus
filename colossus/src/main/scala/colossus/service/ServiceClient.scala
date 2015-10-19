@@ -308,6 +308,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   }
 
   private def failRequest(s: SourcedRequest, exception: Throwable): Unit = {
+    // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
     errors.hit(tags = hpTags + ("type" -> exception.getClass.getName.replaceAll("[^\\w]", "")))
     s.handler(Failure(exception))
   }
