@@ -21,8 +21,7 @@ trait ActorMetrics extends Actor with ActorLogging {
       case InvalidEvent => log.error(s"Invalid event $m")
     }
     case Tick(v, interval) => {
-      val agg = metrics.aggregate(interval)
-      metrics.tick(interval)
+      val agg = metrics.tick(interval)
       sender() ! Tock(agg, v)
     }
   }
