@@ -5,10 +5,13 @@ import akka.actor._
 import akka.testkit._
 
 import scala.language.higherKinds
+import scala.concurrent.duration._
 
 import org.scalatest._
 
-class NewSpec extends WordSpec with MustMatchers with BeforeAndAfterAll{
+import MetricValues._
+
+class CollectionSpec extends WordSpec with MustMatchers with BeforeAndAfterAll{
 
   implicit val sys = ActorSystem("test")
 
@@ -69,6 +72,21 @@ class NewSpec extends WordSpec with MustMatchers with BeforeAndAfterAll{
       a[DuplicateMetricException] must be thrownBy {
         val r: Rate = sub.getOrAdd(Rate("/baz"))
       }
+
+    }
+
+    "properly tick during aggregation" in {
+      val c = new LocalCollection(intervals = Seq(1.second, 1.minute))//(TestProbe().ref)
+      val r: Rate = c.getOrAdd(Rate("/foo"))
+      r.hit()
+      r.hit()
+      r.hit()
+      val m = c.tick(1.second)
+      m("/foo")(Map()) must equal(SumValue(3))
+      r.hit()
+      r.hit()
+      val n = c.tick(1.minute)
+      n("/foo")(Map()) must equal(SumValue(5))
 
     }
       
