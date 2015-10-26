@@ -9,22 +9,7 @@ import scala.concurrent.duration._
 
 class MetricInterval private[metrics](val namespace : MetricAddress, val interval : FiniteDuration, val intervalAggregator : ActorRef, snapshot : Agent[MetricMap]) {
 
-
-  /**
-   * Query the latest compiled metrics
-   * @param filter
-   * @return
-   */
-  def query(filter : MetricFilter) : RawMetricMap = snapshot().filter(filter)
-
-  /**
-   * Query the latest compiled metrics
-   * @param queryString
-   * @return
-   */
-  def query(queryString : String) : RawMetricMap = query(MetricFilter(queryString))
-
-  /**
+    /**
    * The latest metrics snapshot
    * @return
    */
