@@ -21,7 +21,7 @@ class BaseHttpServerCodec[T <: BaseHttpResponse](maxSize: DataSize = 1.MB) exten
   }
 }
 
-class HttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[HttpResponse]
+class HttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[HttpResponse](maxSize)
 
-class StreamingHttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[StreamingHttpResponse]
+class StreamingHttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[StreamingHttpResponse](maxSize)
 

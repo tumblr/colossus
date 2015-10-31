@@ -369,6 +369,36 @@ class CallbackSpec extends ColossusSpec {
 
   }
 
+  "ConstantCallback" must {
+
+    "catch exception thrown during mapTry" in {
+      ConstantCallback(Success(4)).mapTry{
+        case _ => throw new Exception("Fail")
+      }.execute{
+        case Success(_) => fail("this should never occur")
+        case Failure(t) => {}
+      }
+    }
+
+    "catch exception thrown during map" in {
+      ConstantCallback(Success(4)).map{i =>
+        throw new Exception("Fail")
+      }.execute{
+        case Success(_) => fail("this should never occur")
+        case Failure(t) => {}
+      }
+    }
+
+    "catch exception thrown during flatMap" in {
+      ConstantCallback(Success(4)).flatMap{i =>
+        throw new Exception("Fail")
+      }.execute{
+        case Success(_) => fail("this should never occur")
+        case Failure(t) => {}
+      }
+    }
+  }
+
 
   "CallbackPromise" must {
     "execute when it gets a value" in {

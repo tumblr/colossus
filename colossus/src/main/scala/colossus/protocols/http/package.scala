@@ -37,7 +37,7 @@ package object http {
     }
 
     override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = TagDecorator.default[Http#Input, Http#Output]): DSLHandler[Http] = {
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator[Http]): DSLHandler[Http] = {
       new HttpServiceHandler[Http](config, worker, this, initializer)
     }
 
@@ -47,8 +47,8 @@ package object http {
 
 
 
-  object ReturnCodeTagDecorator extends TagDecorator[BaseHttp#Input, BaseHttp#Output] {
-    override def tagsFor(request: BaseHttp#Input, response: BaseHttp#Output): TagMap = {
+  class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
+    override def tagsFor(request: C#Input, response: C#Output): TagMap = {
       Map("status_code" -> response.head.code.code.toString)
     }
   }
@@ -56,16 +56,14 @@ package object http {
 
   class HttpServiceHandler[D <: BaseHttp]
   (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output] = ReturnCodeTagDecorator)
+  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output])
   extends BasicServiceHandler[D](config, worker, provider, initializer) {
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
-      if (response.head.version == HttpVersion.`1.0`) {
-        gracefulDisconnect()
-      }
+      if(!input.head.persistConnection) gracefulDisconnect()
       response
     }
-    
+
   }
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
@@ -76,7 +74,7 @@ package object http {
     }
 
     override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = TagDecorator.default[StreamingHttp#Input, StreamingHttp#Output]): DSLHandler[StreamingHttp] = {
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = new ReturnCodeTagDecorator[StreamingHttp]): DSLHandler[StreamingHttp] = {
       new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
     }
 

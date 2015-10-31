@@ -238,10 +238,16 @@ class LocalCollection(
     localProducers += producer
   }
 
-  def aggregate(interval: FiniteDuration): MetricMap = {
+  /**
+   * Ticks all of the metric collectors in this collection and returns their aggregated metric map.
+   *
+   */
+  def tick(interval: FiniteDuration): MetricMap = {
     //do not move this import unless you want to have a bad time
     import scala.collection.JavaConversions._
-    val now = System.currentTimeMillis
+    metrics.values.collect{
+      case t: TickedCollector => t.tick(interval)
+    }
     val context = CollectionContext(globalTags, interval)
     val eventMetrics = metrics.values.map{_.metrics(context)}
     val producerMetrics = localProducers.map{_.metrics(context)}
@@ -249,14 +255,6 @@ class LocalCollection(
     (eventMetrics ++ producerMetrics)
       .foldLeft[MetricMap](Map()){case (build, m) => build <+> m}
       .filter{! _._2.isEmpty}
-  }
-
-  //TODO this method is probably not needed, can be merged with aggregate
-  def tick(tickPeriod: FiniteDuration) {
-    import scala.collection.JavaConversions._
-    metrics.values.collect{
-      case t: TickedCollector => t.tick(tickPeriod)
-    }
   }
 
   def subCollection(subSpace: MetricAddress = MetricAddress.Root, subTags: TagMap = TagMap.Empty) = {
