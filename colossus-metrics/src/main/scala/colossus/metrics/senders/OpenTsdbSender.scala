@@ -92,12 +92,9 @@ class OpenTsdbSenderActor(val host: String, val port: Int, timeout: FiniteDurati
 
 }
 
-case class OpenTsdbSender(host: String, port: Int, timeout: Option[FiniteDuration]) extends MetricSender {
-  val name = "tsdb"
-  def props = Props(classOf[OpenTsdbSenderActor], host, port, timeout.getOrElse(OpenTsdbSender.defaultTimeout)).withDispatcher("opentsdb-dispatcher")
-}
-
-object OpenTsdbSender {
+case class OpenTsdbSender(host: String, port: Int) extends MetricSender {
   val defaultTimeout: FiniteDuration = 1.minute
+  val name = "tsdb"
+  def props = Props(classOf[OpenTsdbSenderActor], host, port, defaultTimeout).withDispatcher("opentsdb-dispatcher")
 }
 
