@@ -217,7 +217,18 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
    */
   def close(cause : DisconnectCause) {
     channel.close()
-    handler.connectionTerminated(cause)
+    try {
+      handler.connectionTerminated(cause)
+    } catch {
+      case t: Throwable => {
+        //Notice that it's possible that an exception from somewhere else can
+        //end up getting thrown here.  For example, if closing this connection
+        //ends up terminating a pipe, the pipe's receive may throw an exception
+        //here.  Since we're already closing the connection there's nothing else
+        //to do here if this occurs
+        //TODO: pending logging overhaul, this should log a warning
+      }
+    }
   }
 
 
