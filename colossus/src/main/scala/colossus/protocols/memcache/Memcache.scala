@@ -47,9 +47,11 @@ object MemcachedKey {
   val KEY_SIZE = 250
 
   def validateKey(key : ByteString) {
-    if (key.size > KEY_SIZE) {
+    if (key.size == 0) {
+      throw new InvalidMemcacheKeyException(s"Key is empty.")
+    } else if (key.size > KEY_SIZE) {
       throw new InvalidMemcacheKeyException(s"Key $key's size is greater than 250 characters.")
-    } else if (key.indexWhere(_ < ' ') != -1) {
+    } else if (key.indexWhere(x => x >=0 && x <= ' ') != -1) {
       throw new InvalidMemcacheKeyException(s"Key $key contains ascii control characters")
     }
   }
