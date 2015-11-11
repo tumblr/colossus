@@ -44,7 +44,7 @@ package object metrics {
     type SerializedMetricMap = Map[String, List[TaggedValue]]
 
 
-    def unserialize(s: SerializedMetricMap): RawMetricMap = s.map{case (addressString, tagvalues) => 
+    def unserialize(s: SerializedMetricMap): RawMetricMap = s.map{case (addressString, tagvalues) =>
       MetricAddress(addressString) -> tagvalues.map{_.tuple}.toMap
     }
 
@@ -60,7 +60,7 @@ package object metrics {
     def merge (given: MetricMap): MetricMap = {
       val builder = collection.mutable.Map[MetricAddress, ValueMap]()
       builder ++= underlying
-      given.foreach{ case(address, values) => 
+      given.foreach{ case(address, values) =>
         builder(address) = builder.get(address).map{_ <+> values}.getOrElse(values)
       }
       builder.toMap
@@ -72,19 +72,11 @@ package object metrics {
     def prefix(address: MetricAddress): MetricMap = underlying.map{case (a, values) => (address / a, values)}
 
     def toRawMetrics: RawMetricMap = {
-      underlying.map{ case (address, valueMap) => 
+      underlying.map{ case (address, valueMap) =>
         val rawValues = valueMap.map{case (tags, value) => (tags, value.value)}
         (address, rawValues)
       }
     }
-
-    def filter(filters: Seq[MetricFilter]): RawMetricMap = underlying.flatMap{ case (address, values) =>
-      filters.find{_.address matches address}.map{filter => (filter.alias.getOrElse(address) -> filter.valueFilter.process(values))}
-    }
-
-    def filter(f: MetricFilter): RawMetricMap = filter(List(f))
-
-
   }
 
   implicit class RichRawMetricMap(val underlying: RawMetricMap) extends AnyVal {
@@ -107,18 +99,18 @@ package object metrics {
       builder.toMap
     }
 
-    def fragments(globalTags: TagMap): Seq[MetricFragment] = underlying.flatMap{case (address, values) => 
+    def fragments(globalTags: TagMap): Seq[MetricFragment] = underlying.flatMap{case (address, values) =>
       values.map{case (tags, value) => MetricFragment(address, tags ++ globalTags, value)}
     }.toSeq
     def fragments: Seq[MetricFragment] = fragments(TagMap.Empty)
 
 
     def toJson: JValue = JObject(
-      underlying.map{case (metric, values) => 
+      underlying.map{case (metric, values) =>
         val valueArray = JArray(
-          values.map{case (tags, value) => 
+          values.map{case (tags, value) =>
             val tagObj = JObject(
-              tags.map{ case (key, value) => 
+              tags.map{ case (key, value) =>
                 JField(key, JString(value))
               }.toList
             )
@@ -146,7 +138,7 @@ package object metrics {
     def id = underlying.map{case (k,v) => k + "_" + v}.toSeq.mkString("_")
     def name = underlying.map{case (k,v) => k + ":" + v}.mkString(" ")
 
-    
+
 
   }
 
@@ -169,7 +161,7 @@ package object metrics {
   }
 
   implicit class RichRawValueMap(val underlying: RawValueMap) extends AnyVal {
-    def lineString(indent: Boolean = true): String = underlying.map{ case (tags, value) => 
+    def lineString(indent: Boolean = true): String = underlying.map{ case (tags, value) =>
       (if (indent) "\t" else "") + "[" + tags.lineString + "] " + value.toString
     }.mkString("\n")
 

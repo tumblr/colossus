@@ -11,25 +11,53 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
 
   implicit val sys = _system
 
-  val metricMap: MetricMap = Map(MetricAddress("/foo")->Map(Map("foo" -> "a")->SumValue(0L)),
-                                  MetricAddress("/bar")->Map(Map("bar" -> "a")->SumValue(1L)))
+  val metricMap: MetricMap = Map(
+    MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->SumValue(0L)),
+    MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->SumValue(0L)),
+    MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->SumValue(0L)),
+    MetricAddress("/bar")->Map(Map("bar" -> "a")->SumValue(1L)))
 
   "MetricReportFilters" must {
 
     "Filter nothing if MetricReporterFilter.All is used" in {
-      val expectedRawMetrics: RawMetricMap = Map(MetricAddress("/foo")->Map(Map("foo" -> "a")->0L),
+      val expectedRawMetrics: RawMetricMap = Map(
+        MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
+        MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->0L),
+        MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/bar")->Map(Map("bar" -> "a")->1L))
       testFilter(MetricReporterFilter.All, expectedRawMetrics)
 
     }
-    "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used" in {
-      val expectedRawMetrics: RawMetricMap = Map(MetricAddress("/foo")->Map(Map("foo" -> "a")->0L))
-      testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo"))), expectedRawMetrics)
+
+    "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (wild card) - 1" in {
+      val expectedRawMetrics: RawMetricMap = Map(
+        MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
+        MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L))
+      testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/*/foo"))), expectedRawMetrics)
+    }
+
+    "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (wild card) - 2" in {
+      val expectedRawMetrics: RawMetricMap = Map(
+        MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
+        MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L),
+        MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->0L))
+      testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/*"))), expectedRawMetrics)
+    }
+
+    "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (no wild card) - 1" in {
+      val expectedRawMetrics: RawMetricMap = Map(
+        MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L))
+      testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/bar/foo"))), expectedRawMetrics)
+    }
+
+    "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (no wild card) - 2" in {
+      val expectedRawMetrics: RawMetricMap = Map.empty
+      testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/bar"))), expectedRawMetrics)
     }
 
     "Filter out metrics if MetricReporterFilter.BlackList is used" in {
       val expectedRawMetrics: RawMetricMap = Map(MetricAddress("/bar")->Map(Map("bar" -> "a")->1L))
-      testFilter(MetricReporterFilter.BlackList(Seq(MetricAddress("/foo"))), expectedRawMetrics)
+      testFilter(MetricReporterFilter.BlackList(Seq(MetricAddress("/foo/*"))), expectedRawMetrics)
     }
   }
 

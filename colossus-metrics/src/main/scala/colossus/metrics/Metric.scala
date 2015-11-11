@@ -6,11 +6,11 @@ trait MetricFormatter[T] {
   def format(m: MetricFragment, timestamp: Long): T
 }
 
-object OpenTsdbFormatter extends MetricFormatter[String] { 
+object OpenTsdbFormatter extends MetricFormatter[String] {
 
   def formatTags(t: TagMap) = t.map{case (k,v) => k + "=" + v}.mkString(" ")
 
-  def format(m: MetricFragment, timestamp: Long): String = s"put ${m.address.pieceString} $timestamp ${m.value} ${formatTags(m.tags)}\n" 
+  def format(m: MetricFragment, timestamp: Long): String = s"put ${m.address.pieceString} $timestamp ${m.value} ${formatTags(m.tags)}\n"
 }
 
 
@@ -34,6 +34,9 @@ case class MetricAddress(components: List[String]) {
    * /foo/bar matches /foo/bar but not /foo/bar/baz
    * /foo/ * matches foo/bar and foo/bar/baz
    * /foo/ * /baz matches foo/bar/baz but not foo/bar
+   *
+   * PS: This is not commutative
+   * @param address MetricAddress the address being checked
    */
   def matches(address: MetricAddress): Boolean = {
     def next(mine: List[String], theirs: List[String], lastWasWC: Boolean = false): Boolean = (mine.headOption, theirs.headOption) match {
