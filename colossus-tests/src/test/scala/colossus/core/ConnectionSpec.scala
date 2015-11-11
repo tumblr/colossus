@@ -2,6 +2,7 @@ package colossus
 package core
 
 import testkit._
+import java.nio.channels.SocketChannel
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
 
@@ -11,6 +12,33 @@ import akka.util.ByteString
 import scala.concurrent.duration._
 
 class ConnectionSpec extends ColossusSpec with MockitoSugar{
+
+  "Connection" must {
+
+    "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
+      val channel = SocketChannel.open()
+      val key     = mock[java.nio.channels.SelectionKey]
+      val handler = new BasicSyncHandler with ClientConnectionHandler {
+
+        override def connectionClosed(cause: DisconnectCause) {
+          println("here")
+          throw new Exception("x_x")
+        }
+
+        override def connectionLost(error: DisconnectError) {
+          throw new Exception("o_O")
+        }
+
+        def receivedData(data: DataBuffer){}
+      }
+      val con = new ClientConnection(1, key, channel, handler)
+
+      //this test fails if this throws an exception
+      con.close(DisconnectCause.Closed)
+      con.close(DisconnectCause.Disconnect)
+    }
+
+  }
 
 
   "ClientConnection" must {
