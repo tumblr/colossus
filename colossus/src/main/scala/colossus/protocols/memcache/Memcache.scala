@@ -40,6 +40,8 @@ object UnifiedProtocol {
 
   val RN = ByteString("\r\n")
   val SP = ByteString(" ")
+
+  val invalidKeyChars = (RN ++ SP).toSet[Byte]
 }
 
 //TODO: 'Flags' doesn't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
@@ -48,6 +50,21 @@ object UnifiedProtocol {
 object MemcacheCommand {
 
   import UnifiedProtocol._
+
+
+
+  def validateKey(key: ByteString) : Unit = {
+    if(key.isEmpty) throw new MemcacheEmptyKeyException
+    if(key.length > 250) throw new MemcacheKeyTooLongException(key)
+    if(key.length > 1) {
+      for (ix <- 0 until key.length - 1) {
+        if (key(ix) == 0x20 || (key(ix) == 0x0D && key(ix + 1) == 0x0A)) {
+          throw new MemcacheInvalidCharacterException(key, ix + 1)
+        }
+      }
+    }
+    if(key.last == 0x20) throw new MemcacheInvalidCharacterException(key, key.length)
+  }
 
   case class Get(keys: ByteString*) extends MemcacheCommand {
 
@@ -61,7 +78,10 @@ object MemcacheCommand {
       //padding is 2..for the \r\n.  The spaces between keys are already accounted for in the foldLeft
       b.sizeHint(GET.size + totalKeyBytes + 2)
       b.append(GET)
-      keys.foreach{x => b.append(SP).append(x)}
+      keys.foreach{x =>
+        validateKey(x)
+        b.append(SP).append(x)
+      }
       b.append(RN).result()
     }
   }
@@ -117,6 +137,7 @@ object MemcacheCommand {
 
   sealed trait CounterCommand extends MemcacheCommand{
     def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
+      validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
@@ -145,6 +166,7 @@ object MemcacheCommand {
     val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
+    validateKey(key)
 
     def bytes(c: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
@@ -154,6 +176,17 @@ object MemcacheCommand {
     }
   }
 }
+
+sealed class InvalidMemcacheKeyException(message: String, cause: Exception = null) extends MemcacheException(message, cause)
+
+sealed class MemcacheEmptyKeyException extends
+  InvalidMemcacheKeyException("Memcache keys must be at least 1 character.")
+
+sealed class MemcacheKeyTooLongException(val key: ByteString) extends
+  InvalidMemcacheKeyException("Memcache keys must be no longer than 250 characters. Provided key: " + key.utf8String)
+
+sealed class MemcacheInvalidCharacterException(val key: ByteString, val position: Int) extends
+  InvalidMemcacheKeyException(s"Key contains invalid character at position $position.")
 
 sealed trait MemcacheCommand {
 
@@ -166,10 +199,10 @@ sealed trait MemcacheCommand {
 }
 
 //set, add, replace, append, prepend
-sealed trait MemcacheWriteCommand extends MemcacheCommand{
+sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
   import UnifiedProtocol._
-
+  import MemcacheCommand._
 
   def key: ByteString
   def value: ByteString
@@ -199,6 +232,8 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
 
 
     val sizeHint = commandName.length + flagsStr.length + ttlStr.length + dataSizeStr.length + value.size + padding
+
+    validateKey(key)
 
     b.sizeHint(sizeHint)
     b.append(commandName)
