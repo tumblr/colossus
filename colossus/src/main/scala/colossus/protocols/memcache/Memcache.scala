@@ -42,23 +42,6 @@ object UnifiedProtocol {
   val SP = ByteString(" ")
 }
 
-object MemcachedKey {
-
-  val KEY_SIZE = 250
-
-  def validateKey(key : ByteString) {
-    if (key.size == 0) {
-      throw new InvalidMemcacheKeyException(s"Key is empty.")
-    } else if (key.size > KEY_SIZE) {
-      throw new InvalidMemcacheKeyException(s"Key $key's size is greater than 250 characters.")
-    } else if (key.indexWhere(x => x >=0 && x <= ' ') != -1) {
-      throw new InvalidMemcacheKeyException(s"Key $key contains ascii control characters")
-    }
-  }
-}
-
-class InvalidMemcacheKeyException(reason : String) extends Exception(reason)
-
 //TODO: 'Flags' doesn't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
 //TODO: implement CAS
 //TODO: incrs/decrs are not utilizing full 64 bit unsigned int space since we are using singed Longs
@@ -73,7 +56,6 @@ object MemcacheCommand {
     def bytes (compressor: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
       val totalKeyBytes = keys.foldLeft(0){ case(acc, key) =>
-        MemcachedKey.validateKey(key)
         acc + key.length + 1
       }
       //padding is 2..for the \r\n.  The spaces between keys are already accounted for in the foldLeft
@@ -125,7 +107,6 @@ object MemcacheCommand {
     val commandName = DELETE
 
     def bytes(c: Compressor = NoCompressor) = {
-      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder()
       //3 for SP and \R\N
       val hintSize = DELETE.size + key.size + 3
@@ -136,7 +117,6 @@ object MemcacheCommand {
 
   sealed trait CounterCommand extends MemcacheCommand{
     def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
-      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
@@ -167,7 +147,6 @@ object MemcacheCommand {
     assert(ttl > 0, "TTL Must be a non negative number")
 
     def bytes(c: Compressor = NoCompressor) = {
-      MemcachedKey.validateKey(key)
       val b = new ByteStringBuilder
       val ttlStr = ByteString(ttl.toString)
       b.sizeHint(TOUCH.size + key.size + ttlStr.length + 4) //4 one each for 2 spaces and an \r\n
@@ -198,9 +177,6 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
   def flags : Int
 
   def bytes(compressor : Compressor) : ByteString = {
-
-    //assert that the key is valid..this throws on a malformatted key
-    MemcachedKey.validateKey(key)
 
     val b = new ByteStringBuilder
 
@@ -247,21 +223,34 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand{
   }
 }
 
+object MemcacheException {
+  def fromMemcacheError(error: MemcacheReply.MemcacheError) : MemcacheException = error match {
+    case MemcacheReply.Error => new MemcacheErrorException
+    case MemcacheReply.ClientError(message) => new MemcacheClientException(message)
+    case MemcacheReply.ServerError(message) => new MemcacheServerException(message)
+  }
+}
+
+class MemcacheException(message: String, cause: Exception = null) extends Exception(message, cause)
+class MemcacheErrorException extends MemcacheException("Memcached returned an error. This likely due to a bad command string.")
+class MemcacheClientException(message: String) extends MemcacheException(message)
+class MemcacheServerException(message: String) extends MemcacheException(message)
+
+
 sealed trait MemcacheReply
 sealed trait MemcacheHeader
 object MemcacheReply {
-  sealed trait DataReply extends MemcacheReply 
-    
+  sealed trait DataReply extends MemcacheReply
+
   case class Value(key: ByteString, data: ByteString, flags : Int) extends DataReply
   case class Counter(value : Long) extends DataReply
   case class Values(values: Vector[Value]) extends DataReply
   case object NoData extends DataReply
 
   //these are all one-line responses
-  sealed trait MemcacheError extends MemcacheReply with MemcacheHeader {
-    def error: String
-  }
-  case class Error(error: String) extends MemcacheError
+  sealed trait MemcacheError extends MemcacheReply with MemcacheHeader
+
+  case object Error extends MemcacheError
   case class ClientError(error: String) extends MemcacheError
   case class ServerError(error: String) extends MemcacheError
 
@@ -304,8 +293,9 @@ object MemcacheReplyParser {
     case "NOT_FOUND"      => const(NotFound)
     case "DELETED"        => const(Deleted)
     case "TOUCHED"        => const(Touched)
+    case "CLIENT_ERROR"   => const(ClientError(pieces.tail.mkString(" ")))
     case "SERVER_ERROR"   => const(ServerError(pieces.tail.mkString(" ")))
-    case "ERROR"          => const(Error("ERROR"))
+    case "ERROR"          => const(Error)
     case other if isNumeric(other) => const(Counter(other.toLong))
     case other        => throw new ParseException(s"Unknown reply '$other'")
   }}
