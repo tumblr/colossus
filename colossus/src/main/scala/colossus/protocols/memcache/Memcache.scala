@@ -54,16 +54,16 @@ object MemcacheCommand {
 
 
   def validateKey(key: ByteString) : Unit = {
-    if(key.isEmpty) throw new MemcacheEmptyKeyException
-    if(key.length > 250) throw new MemcacheKeyTooLongException(key)
-    if(key.length > 1) {
+    if (key.isEmpty) throw new MemcacheEmptyKeyException
+    if (key.length > 250) throw new MemcacheKeyTooLongException(key)
+    if (key.length > 1) {
       for (ix <- 0 until key.length - 1) {
         if (key(ix) == 0x20 || (key(ix) == 0x0D && key(ix + 1) == 0x0A)) {
           throw new MemcacheInvalidCharacterException(key, ix + 1)
         }
       }
     }
-    if(key.last == 0x20) throw new MemcacheInvalidCharacterException(key, key.length)
+    if (key.last == 0x20) throw new MemcacheInvalidCharacterException(key, key.length)
   }
 
   case class Get(keys: ByteString*) extends MemcacheCommand {
