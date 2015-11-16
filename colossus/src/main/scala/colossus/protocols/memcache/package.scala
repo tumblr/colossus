@@ -40,12 +40,11 @@ package object memcache {
    * @tparam M
    */
   trait MemcacheClient[M[_]] { this : ResponseAdapter[Memcache, M] =>
-
-
     protected def executeCommand[T](c : MemcacheCommand, key : ByteString)(goodCase : PartialFunction[MemcacheReply, M[T]]) : M[T] = {
       executeAndMap(c) {
         goodCase orElse {
-          case x =>failure(UnexpectedMemcacheReplyException(s"Unexpected response $x when executing ${c.commandName.utf8String} on ${key.utf8String}"))
+          case x: MemcacheError => failure(MemcacheException.fromMemcacheError(x))
+          case x => failure(UnexpectedMemcacheReplyException(s"Unexpected response $x when executing ${c.commandName.utf8String} on ${key.utf8String}"))
         }
       }
     }
