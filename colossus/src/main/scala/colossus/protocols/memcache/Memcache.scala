@@ -79,7 +79,7 @@ object MemcacheCommand {
       b.sizeHint(GET.size + totalKeyBytes + 2)
       b.append(GET)
       keys.foreach{x =>
-        validateKey(x)
+//        validateKey(x)
         b.append(SP).append(x)
       }
       b.append(RN).result()
@@ -137,7 +137,7 @@ object MemcacheCommand {
 
   sealed trait CounterCommand extends MemcacheCommand{
     def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
-      validateKey(key)
+//      validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
@@ -166,7 +166,7 @@ object MemcacheCommand {
     val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
-    validateKey(key)
+//    validateKey(key)
 
     def bytes(c: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
@@ -233,7 +233,7 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
     val sizeHint = commandName.length + flagsStr.length + ttlStr.length + dataSizeStr.length + value.size + padding
 
-    validateKey(key)
+//    validateKey(key)
 
     b.sizeHint(sizeHint)
     b.append(commandName)
