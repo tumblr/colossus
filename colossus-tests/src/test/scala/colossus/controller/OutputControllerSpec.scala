@@ -61,6 +61,16 @@ class OutputControllerSpec extends ColossusSpec {
       controller.testPush(message2){_ must equal (OutputResult.Cancelled)}
 
     }
+
+    "allow multiple calls to gracefulDisconnect" in {
+      val (endpoint, controller) = createController()
+      controller.testGracefulDisconnect()
+      //this used to throw an exception
+      controller.testGracefulDisconnect()
+    }
+
+
+      
   }
 
 

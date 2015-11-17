@@ -129,6 +129,8 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
   /**
    * stops reading from the connection and accepting new writes, but waits for
    * pending/ongoing write operations to complete before disconnecting
+   *
+   * This is an idempotent operation
    */
   def gracefulDisconnect() {
     state match {
@@ -136,7 +138,7 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
         state = Disconnecting(e)
       }
       case Disconnecting(e) => {}
-      case other => throw new InvalidConnectionStateException(other)
+      case NotConnected => {}
     }
     inputGracefulDisconnect()
     outputGracefulDisconnect()
