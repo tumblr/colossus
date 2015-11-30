@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Metrics</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttp://tumblr.github.io/colossus/docs/metrics/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="http://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="http://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="http://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="http://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="http://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="http://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Metrics</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Colossus uses the (currently nameless) metrics library.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>High-throughput Colossus services can serve hundreds of thousands of requests
+per second, which can easily translate to millions of recordable events per
+second.  The Metrics library provides a way to work with metrics with as little
+overhead as possible.</p>
+
+<p>The metrics library performs 3 important operations</p>
+
+<ul>
+  <li><strong>Event Collection</strong> : providing a way for user-code to signal that something worth tracking has happened</li>
+  <li><strong>Metrics Aggregation</strong> : collecting raw events into metrics that can be filtered and aggregated in real-time</li>
+  <li><strong>Reporting</strong> : packaging up and sending data to some external database (such as OpenTSDB)</li>
+</ul>
+
+<h2 id="basic-architecture">Basic Architecture</h2>
+
+<p>The heart of metrics is a <code>MetricSystem</code>, which is a set of actors that handle
+all of the background operations of dealing with metrics.  In most cases, you
+only want to have one <code>MetricSystem</code> per application.</p>
+
+<p>The entire flow of data happens in a pipeline</p>
+
+<ol>
+  <li>Collection - application code signals an event to a collector</li>
+  <li>Local Aggregation - event collectors within an actor produce a snapshot of their data</li>
+  <li>Interval aggregation - local snapshots from all actors collecting metrics are periodically merged together into an interval snapshot</li>
+  <li>Reporting - interval snapshots are pushed to reporters, which consume the snapshot and take action with the data</li>
+</ol>
+
+<p>Everything happens asynchronously and the resulting data can be thought of as
+eventually consistent.  </p>
+
+<p>Every system has a configured set of tick intervals which determine how often
+interval aggregations happens.  By default, aggregations happen both once per
+second and once per minute, so two separate snapshots are produced.</p>
+
+<h3 id="event-collection">Event Collection</h3>
+
+<p>Event collection only happens inside an actor, it is not possible to directly
+record events outside of one (although every collector has a shared interface,
+see below).  Events, such as incrementing counters or adding values to
+histograms, are always collected locally within an Akka actor.  So if you have
+two actors recording the same metric, each actor will be collecting data
+independantly.  This data is then periodically packaged up and shipped to a
+central aggregator, which produces the final data.</p>
+
+<p>In most cases, metrics are generated from various events triggered by
+application code.  For example, we can keep track of a service’s request rate
+by firing an event every time a request finishes processing.  Likewise, we can
+keep track of latency by adding the proccessing time of each request to a
+histogram.</p>
+
+<p>Event Collectors take the role of providing a simple API for generating events.</p>
+
+<p>There are currently 4 built-in event collectors:</p>
+
+<ul>
+  <li>Counter - keeps track of a single number which can process increment/decrement operations</li>
+  <li>Rate - A rate can be “hit” and it will track hits/second (or other time periods)</li>
+  <li>Histogram - Similar to a rate, but each hit includes an integer value.  The histogram will generate percentiles/min/max over periods of time</li>
+  <li>Gauge - set a static integer value</li>
+</ul>
+
+<p>Each metric has numerous configuration options to ensure the best measurements for the job.</p>
+
+<h3 id="aggregation-intervals">Aggregation Intervals</h3>
+
+<p>Aggregation intervals define how often the raw data from all event collectors
+are snapshotted and merged together into a single database of values.</p>
+
+<p>By default, a metric system is created with both 1 second and 1 minute
+aggregation intervals.  The idea here is the 1 second interval is used to show
+real-time metrics where rates and histograms are all showing values reflective
+of the last second of activity, whereas the 1 minute intervals are used for
+reporting values to an external database in which case the values reported are
+all reflective of the last minute of activity.</p>
+
+<h3 id="structure-of-a-metric">Structure of a Metric</h3>
+
+<p>Regardless of whether the event collector is a rate, counter, etc, the
+resulting data it produces is one or more metrics.  A metric is simply a set of
+integer values.</p>
+
+<p>Every metric in a system has a unique name with a url-like structure.  For
+example, <code>/my-service/requests</code> and <code>/my-service/system/gc/msec</code> are two
+metrics automatically generated by Colossus.  Every metric contains a set of
+integer values, with each value uniquely identified by a set of key/value tags.
+For example, the values for the <code>system/gc/msec</code> metric might look like</p>
+
+<div class="highlight"><pre><code class="scala"><span class="o">/</span><span class="n">my</span><span class="o">-</span><span class="n">service</span><span class="o">/</span><span class="n">system</span><span class="o">/</span><span class="n">gc</span><span class="o">/</span><span class="n">msec</span>
+  <span class="o">[</span><span class="k">type</span> <span class="kt">=</span> <span class="kt">ParNew</span><span class="o">]</span> <span class="k">:</span> <span class="err">123456</span>
+  <span class="err">[</span><span class="k">type</span> <span class="o">=</span> <span class="nc">ConcurrentMarkSweep</span><span class="err">]</span> <span class="k">:</span> <span class="err">9876543</span></code></pre></div>
+
+<p>Tags are immensely useful when more fine-grained breakdown of imformation is
+required.  A metric value can have multiple tags, values in a single metric do
+not all need the same tags, and tags are optional.  We will see later that tags
+can also be used to filter and aggregate values.</p>
+
+<p>For example, suppose we have a rate to track the processing frequency of some task, we might have code that looks like </p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="n">metrics</span> <span class="n">getOrAdd</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"/my-rate"</span><span class="o">)</span>
+
+<span class="c1">//...
+</span><span class="k">def</span> <span class="n">processData</span><span class="o">(</span><span class="n">data</span><span class="k">:</span> <span class="kt">Foo</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">data</span><span class="o">.</span><span class="n">isValid</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"valid"</span> <span class="o">-&gt;</span> <span class="s">"true"</span><span class="o">))</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+    <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"valid"</span> <span class="o">-&gt;</span> <span class="s">"false"</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The map that’s passed in as a parameter is a <code>TagMap</code>, which allows you to
+associate a set of tags with the event.  This code could be running in parallel
+inside multiple actors, but the end result is going to be a single metric that
+looks like:</p>
+
+<pre><code>/my-rate
+  [valid: true] 46383422
+  [valid: false] 2499
+</code></pre>
+
+<p>You can then run queries on the data such as:</p>
+
+<p><code>
+SELECT /my-rate WHERE valid=true
+</code></p>
+
+<p><code>
+SELECT /my-rate GROUP BY * SUM
+</code></p>
+
+<p>So one value will exist per unique <code>TagMap</code>.  The number of values per metric can quickly grow to a large number.  For example, suppose our data has an associated name, then our code might look like:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">processData</span><span class="o">(</span><span class="n">data</span><span class="k">:</span> <span class="kt">Foo</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">data</span><span class="o">.</span><span class="n">isValid</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"valid"</span> <span class="o">-&gt;</span> <span class="s">"true"</span><span class="o">,</span> <span class="s">"name"</span> <span class="o">-&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="o">))</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+    <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"valid"</span> <span class="o">-&gt;</span> <span class="s">"false"</span><span class="o">,</span> <span class="err">"</span><span class="n">name</span> <span class="o">-&gt;</span> <span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Now our resulting metric could have many more values: </p>
+
+<pre><code>/my-rate
+  [valid: true, name: bar] 252
+  [valid: false, name: bar] 2499
+  [valid: true, name: baz] 3452
+  [valid: false, name: bar] 9852
+</code></pre>
+
+<p>Of course, using tags at all is completely optional, so it is entirely up to you to determine what tags should be used for a specific metric</p>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>If you are using colossus, it depends on the metrics library and pulls it in.  Otherwise you must add the following to your build.sbt/Build.scala</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus-metrics"</span> <span class="o">%</span> <span class="s">"0.6.8"</span></code></pre></div>
+
+<p>From there, the only required step is to spin up a <code>MetricSystem</code></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">metrics._</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">actor_system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+
+<span class="c1">//create the metric system
+</span><span class="k">val</span> <span class="n">metric_system</span> <span class="k">=</span> <span class="nc">MetricSystem</span><span class="o">(</span><span class="s">"/my-service"</span><span class="o">)</span></code></pre></div>
+
+<h3 id="quickstart--local-collection">Quickstart : Local Collection</h3>
+
+<p>Colossus-metrics is intended to be used inside actors, and the most efficient way to record metrics is to mixin the <code>ActorMetrics</code> trait:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">class</span> <span class="nc">MyActor</span><span class="o">(</span><span class="k">val</span> <span class="n">metricSystem</span><span class="k">:</span> <span class="kt">MetricSystem</span><span class="o">)</span> <span class="k">extends</span> <span class="nc">Actor</span> <span class="k">with</span> <span class="nc">ActorMetrics</span> <span class="o">{</span>
+
+  <span class="c1">//the trait automatically creates a LocalCollection called metrics  
+</span>  <span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="n">metrics</span> <span class="n">getOrAdd</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"/foos"</span><span class="o">)</span>
+
+  <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="n">handleMetrics</span> <span class="n">orElse</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s">"Foo"</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span>
+    <span class="o">}</span>
+    <span class="k">case</span> <span class="s">"Bar"</span> <span class="k">=&gt;</span> <span class="o">{</span>
+      <span class="c1">//DO NOT DO THIS
+</span>      <span class="nc">Future</span> <span class="o">{</span>
+        <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+<span class="o">}</span></code></pre></div>
+
+<p>It’s important to ensure you compose <code>handleMetrics</code> into all of your Receives.</p>
+
+<h3 id="quickstart--shared-collection">Quickstart : Shared Collection</h3>
+
+<p>In some cases you might want to record metrics from outside of an actor, or for
+some other reason don’t want to mixin the <code>ActorMetrics</code> trait.  In these
+cases, you can use a <code>SharedCollection</code> which returns thread-safe versions of
+all the event collectors.  The one caveat is that every event is really an
+actor message, so the overhead of using a shared rate is much higher than that
+of a local rate.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="c1">//get a collection
+</span><span class="k">val</span> <span class="n">collection</span> <span class="k">=</span> <span class="n">metric_system</span><span class="o">.</span><span class="n">sharedCollection</span>
+
+<span class="c1">//now get a rate from the collection
+</span><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="n">collection</span> <span class="n">getOrAdd</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"/my-rate"</span><span class="o">,</span> <span class="n">periods</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">1.</span><span class="n">second</span><span class="o">,</span> <span class="mf">1.</span><span class="n">minute</span><span class="o">))</span>
+
+<span class="c1">//fire off some events!
+</span><span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span>
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="mi">25</span><span class="o">)</span>
+
+<span class="c1">//metrics returned by the shared collection are thread safe
+</span><span class="nc">Future</span> <span class="o">{</span>
+  <span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="c1">//arbitary maps of tags can be included with any event
+</span><span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="n">tags</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"key"</span> <span class="o">-&gt;</span> <span class="s">"value"</span><span class="o">))</span></code></pre></div>
+
+<h3 id="using-metrics-within-colossus">Using metrics within Colossus</h3>
+
+<p>Being an actor, a Colossus event loop has it’s own <code>LocalCollection</code>.  This can be accessed through <code>context.worker.metrics</code>, for example:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"my-service"</span><span class="o">,</span> <span class="mi">80</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">val</span> <span class="n">myRate</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">worker</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">getOrAdd</span><span class="o">(</span><span class="nc">Rate</span><span class="o">(</span><span class="s">"my-rate"</span><span class="o">))</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span><span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span><span class="o">{</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"hit"</span> <span class="k">=&gt;</span> <span class="o">{</span>
+        <span class="n">myRate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"ok!"</span><span class="o">)</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<h2 id="metric-reporting">Metric Reporting</h2>
+
+<p>Currently metric reporting is mostly focused on reporting to OpenTSDB.  To setup reporting you basically need 2 things:</p>
+
+<ul>
+  <li>A MetricSender - this is the object that encodes metrics to be sent</li>
+  <li>A set of metric filters - These are used to select and aggregate which metrics to send</li>
+</ul>
+
+<p>In addition to OpenTSDB, metrics may also be logged to file. To use logging, change the MetricSystem to use
+a LoggingSender as the metrics reporter:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">metrics._</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">actor_system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+
+<span class="c1">//create the metric system
+</span><span class="k">val</span> <span class="n">metric_system</span> <span class="k">=</span> <span class="nc">MetricSystem</span><span class="o">(</span><span class="s">"/my-service"</span><span class="o">)</span>
+
+<span class="c1">//create the config, providing LoggerSender as the MetricSender
+</span><span class="k">val</span> <span class="n">metric_config</span> <span class="k">=</span> <span class="nc">MetricReporterConfig</span><span class="o">(</span><span class="nc">LoggerSender</span><span class="o">)</span>
+
+<span class="c1">//set this as the reporting for the metric system
+</span><span class="n">metric_system</span><span class="o">.</span><span class="n">metricIntervals</span><span class="o">(</span><span class="mf">1.</span><span class="n">minute</span><span class="o">).</span><span class="n">report</span><span class="o">(</span><span class="n">metric_config</span><span class="o">)</span>
+
+<span class="c1">//get a collection
+</span><span class="k">val</span> <span class="n">collection</span> <span class="k">=</span> <span class="n">metric_system</span><span class="o">.</span><span class="n">sharedCollection</span>
+
+<span class="o">//</span><span class="n">proceed</span> <span class="n">as</span> <span class="n">normal</span></code></pre></div>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#basic-architecture">Basic Architecture</a></li><li><a href="#getting-started">Getting Started</a></li><li><a href="#metric-reporting">Metric Reporting</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
