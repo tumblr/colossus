@@ -165,35 +165,69 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.protocols.redis.RedisClient#asyncClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="asyncClient(config:colossus.service.ClientConfig,maxSize:colossus.parsing.DataSize)(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisClient[scala.concurrent.Future]withcolossus.service.FutureResponseAdapter[colossus.protocols.redis.package.Redis]"></a>
-      <a id="asyncClient(ClientConfig,DataSize)(IOSystem):RedisClient[Future]withFutureResponseAdapter[Redis]"></a>
+      <a id="asyncClient(client:colossus.service.AsyncServiceClient[colossus.protocols.redis.Command,colossus.protocols.redis.Reply])(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisFutureClient"></a>
+      <a id="asyncClient(AsyncServiceClient[Command,Reply])(IOSystem):RedisFutureClient"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">asyncClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="RedisReplyParser$.html">RedisReplyParser.DefaultMaxSize</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>[<span class="extype" name="scala.concurrent.Future">Future</span>] with <a href="../../service/FutureResponseAdapter.html" class="extype" name="colossus.service.FutureResponseAdapter">FutureResponseAdapter</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
+        <span class="name">asyncClient</span><span class="params">(<span name="client">client: <a href="../../service/AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="package$$RedisFutureClient.html" class="extype" name="colossus.protocols.redis.RedisFutureClient">RedisFutureClient</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@asyncClient(config:colossus.service.ClientConfig,maxSize:colossus.parsing.DataSize)(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisClient[scala.concurrent.Future]withcolossus.service.FutureResponseAdapter[colossus.protocols.redis.package.Redis]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@asyncClient(client:colossus.service.AsyncServiceClient[colossus.protocols.redis.Command,colossus.protocols.redis.Reply])(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisFutureClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#asyncClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="asyncClient(config:colossus.service.ClientConfig,maxSize:colossus.parsing.DataSize)(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisFutureClient"></a>
+      <a id="asyncClient(ClientConfig,DataSize)(IOSystem):RedisFutureClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asyncClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="RedisReplyParser$.html">RedisReplyParser.DefaultMaxSize</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="package$$RedisFutureClient.html" class="extype" name="colossus.protocols.redis.RedisFutureClient">RedisFutureClient</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@asyncClient(config:colossus.service.ClientConfig,maxSize:colossus.parsing.DataSize)(implicitio:colossus.IOSystem):colossus.protocols.redis.package.RedisFutureClient" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="colossus.protocols.redis.RedisClient#callbackClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="callbackClient(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisClient[colossus.service.Callback]withcolossus.service.CallbackResponseAdapter[colossus.protocols.redis.package.Redis]"></a>
-      <a id="callbackClient(ClientConfig,WorkerRef,DataSize):RedisClient[Callback]withCallbackResponseAdapter[Redis]"></a>
+      <a id="callbackClient(scl:colossus.service.ServiceClientLike[colossus.protocols.redis.Command,colossus.protocols.redis.Reply]):colossus.protocols.redis.package.RedisCallbackClient"></a>
+      <a id="callbackClient(ServiceClientLike[Command,Reply]):RedisCallbackClient"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">callbackClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="RedisReplyParser$.html">RedisReplyParser.DefaultMaxSize</a></span></span></span>)</span><span class="result">: <a href="package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>[<a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>] with <a href="../../service/CallbackResponseAdapter.html" class="extype" name="colossus.service.CallbackResponseAdapter">CallbackResponseAdapter</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
+        <span class="name">callbackClient</span><span class="params">(<span name="scl">scl: <a href="../../service/ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>)</span><span class="result">: <a href="package$$RedisCallbackClient.html" class="extype" name="colossus.protocols.redis.RedisCallbackClient">RedisCallbackClient</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@callbackClient(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisClient[colossus.service.Callback]withcolossus.service.CallbackResponseAdapter[colossus.protocols.redis.package.Redis]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@callbackClient(scl:colossus.service.ServiceClientLike[colossus.protocols.redis.Command,colossus.protocols.redis.Reply]):colossus.protocols.redis.package.RedisCallbackClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#callbackClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="callbackClient(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisCallbackClient"></a>
+      <a id="callbackClient(ClientConfig,WorkerRef,DataSize):RedisCallbackClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">callbackClient</span><span class="params">(<span name="config">config: <a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="worker">worker: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="maxSize">maxSize: <a href="../../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="RedisReplyParser$.html">RedisReplyParser.DefaultMaxSize</a></span></span></span>)</span><span class="result">: <a href="package$$RedisCallbackClient.html" class="extype" name="colossus.protocols.redis.RedisCallbackClient">RedisCallbackClient</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package$$RedisClient$@callbackClient(config:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,maxSize:colossus.parsing.DataSize):colossus.protocols.redis.package.RedisCallbackClient" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

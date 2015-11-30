@@ -518,7 +518,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.controller.Controller#gracefulDisconnect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.controller.Controller#gracefulDisconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="gracefulDisconnect():Unit"></a>
       <a id="gracefulDisconnect():Unit"></a>
       <h4 class="signature">
@@ -535,8 +535,9 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
       </a>
     </span>
       <p class="shortcomment cmt">stops reading from the connection and accepting new writes, but waits for
-pending/ongoing write operations to complete before disconnecting
-</p>
+pending/ongoing write operations to complete before disconnecting</p><div class="fullcomment"><div class="comment cmt"><p>stops reading from the connection and accepting new writes, but waits for
+pending/ongoing write operations to complete before disconnecting</p><p>This is an idempotent operation
+</p></div></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>

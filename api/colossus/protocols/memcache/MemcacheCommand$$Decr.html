@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Decr</span><span class="params">(<span name="key">key: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <a href="MemcacheCommand$$CounterCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand.CounterCommand">CounterCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Decr</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <a href="MemcacheCommand$$CounterCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand.CounterCommand">CounterCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -89,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.memcache.MemcacheCommand.Decr#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(key:colossus.protocols.memcache.MemcachedKey,value:Long):colossus.protocols.memcache.MemcacheCommand.Decr"></a>
+      <a id="&lt;init&gt;(key:akka.util.ByteString,value:Long):colossus.protocols.memcache.MemcacheCommand.Decr"></a>
       <a id="&lt;init&gt;:Decr"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +97,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Decr</span><span class="params">(<span name="key">key: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span>
+        <span class="name">Decr</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@&lt;init&gt;(key:colossus.protocols.memcache.MemcachedKey,value:Long):colossus.protocols.memcache.MemcacheCommand.Decr" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@&lt;init&gt;(key:akka.util.ByteString,value:Long):colossus.protocols.memcache.MemcacheCommand.Decr" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -222,6 +222,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.protocols.memcache.MemcacheCommand.Decr#commandName" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="commandName:akka.util.ByteString"></a>
+      <a id="commandName:ByteString"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">commandName</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@commandName:akka.util.ByteString" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.memcache.MemcacheCommand.Decr">Decr</a> → <a href="MemcacheCommand.html" class="extype" name="colossus.protocols.memcache.MemcacheCommand">MemcacheCommand</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -263,18 +280,18 @@
               
         </dd></dl></div>
     </li><li name="colossus.protocols.memcache.MemcacheCommand.CounterCommand#formatCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="formatCommand(commandName:akka.util.ByteString,key:colossus.protocols.memcache.MemcachedKey,value:Long):akka.util.ByteString"></a>
-      <a id="formatCommand(ByteString,MemcachedKey,Long):ByteString"></a>
+      <a id="formatCommand(commandName:akka.util.ByteString,key:akka.util.ByteString,value:Long):akka.util.ByteString"></a>
+      <a id="formatCommand(ByteString,ByteString,Long):ByteString"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">formatCommand</span><span class="params">(<span name="commandName">commandName: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="key">key: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
+        <span class="name">formatCommand</span><span class="params">(<span name="commandName">commandName: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@formatCommand(commandName:akka.util.ByteString,key:colossus.protocols.memcache.MemcachedKey,value:Long):akka.util.ByteString" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@formatCommand(commandName:akka.util.ByteString,key:akka.util.ByteString,value:Long):akka.util.ByteString" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -314,18 +331,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.protocols.memcache.MemcacheCommand.Decr#key" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="key:colossus.protocols.memcache.MemcachedKey"></a>
-      <a id="key:MemcachedKey"></a>
+      <a id="key:akka.util.ByteString"></a>
+      <a id="key:ByteString"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">key</span><span class="result">: <a href="MemcachedKey.html" class="extype" name="colossus.protocols.memcache.MemcachedKey">MemcachedKey</a></span>
+        <span class="name">key</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@key:colossus.protocols.memcache.MemcachedKey" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.MemcacheCommand$$Decr@key:akka.util.ByteString" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

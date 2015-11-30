@@ -12,7 +12,7 @@ highlighter: rouge
 
 exclude: [rakefile, Gemfile]
 
-latest_version: 0.6.6
+latest_version: 0.6.8
 github_url: https://github.com
 github_repo_url: https://github.com/tumblr/colossus
 github_examples_url: https://github.com/tumblr/colossus/tree/master/colossus-examples/src/main/scala/colossus-examples
