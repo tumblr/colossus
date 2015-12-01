@@ -1,4 +1,5 @@
 package colossus
+package protocols.memcache
 
 
 import org.scalatest._
@@ -6,12 +7,10 @@ import org.scalatest._
 import akka.util.ByteString
 
 import core.DataBuffer
-import protocols.memcache._
 
-import parsing.ParseException
-import parsing.DataSize._
+import colossus.parsing.{DataSize, ParseException}
 
-class MemcacheParserSuite extends FlatSpec with ShouldMatchers{
+class MemcacheParserSpec extends FlatSpec with ShouldMatchers{
   import MemcacheReply._
 
   "MemcacheParser" should "parse a value reply" in {
@@ -41,18 +40,18 @@ class MemcacheParserSuite extends FlatSpec with ShouldMatchers{
   it should "parse a blank error reply" in {
     val reply = DataBuffer(ByteString("ERROR\r\n"))
     val p = new MemcacheReplyParser
-    p.parse(reply) should equal (Some(Error("ERROR")))
+    p.parse(reply) should equal (Some(Error))
   }
 
   it should "accept a reply under the size limit" in {
     val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
-    val p = MemcacheReplyParser(reply.size.bytes)
+    val p = MemcacheReplyParser(DataSize(reply.size))
     p.parse(reply) should equal (Some(Value(ByteString("foo"), ByteString("hello"), 0)))
   }
 
   it should "reject a reply over the size limit" in {
     val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
-    val p = MemcacheReplyParser((reply.size -1).bytes)
+    val p = MemcacheReplyParser(DataSize(reply.size -1))
     intercept[ParseException] {
       p.parse(reply)
     }

@@ -11,7 +11,7 @@ import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.ScalaFutures
 
 import scala.collection.mutable
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 /*
 Please be aware when running this test, that if you run it on a machine with a memcached server
@@ -174,6 +174,62 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
           (x,y,z)
         }
       res.futureValue must be (false, true, true)
+    }
+
+    val iterations = 100
+    val cycles = 1
+    import java.nio.ByteBuffer
+    val benchmarkKey = "1234567890" * 25
+
+    "benchmark writes" in {
+      for (_ <- 1 to cycles) {
+        val keyA = ByteString(benchmarkKey)
+        val start = System.nanoTime()
+        val fut = (1 to iterations).foldLeft(client.set(keyA, ByteString(0))) {
+          case (agg, i) =>
+            val buff = new Array[Byte](4)
+            val bb = ByteBuffer.wrap(buff)
+            bb.putInt(0, i)
+            agg.flatMap { _ => client.set(keyA, ByteString(buff)) }
+        }.flatMap {
+          case true => client.get(keyA)
+          case false => throw new Exception("set failed!")
+        }
+
+        val result = Await.result(fut, 60 seconds)
+        val nanos = System.nanoTime() - start
+
+        assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
+        log.info(s"SET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+      }
+    }
+
+    "benchmark reads" in {
+      for(_ <- 1 to cycles) {
+        import java.nio.ByteBuffer
+        val buff = new Array[Byte](4)
+        val bb = ByteBuffer.wrap(buff)
+        val keyA = ByteString(benchmarkKey)
+        bb.putInt(0, iterations)
+        val start = System.nanoTime()
+        val fut =
+          client.set(keyA, ByteString(buff)).flatMap {
+            case false => throw new Exception("set failed!")
+            case true =>
+              (1 to iterations)
+                .foldLeft(client.get(keyA)) {
+                  case (agg, i) =>
+                    bb.putInt(0, i)
+                    agg.flatMap { _ => client.get(keyA) }
+                }
+          }
+
+        val result = Await.result(fut, 60 seconds)
+        val nanos = System.nanoTime() - start
+
+        assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
+        log.info(s"GET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+      }
     }
   }
 

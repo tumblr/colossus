@@ -89,7 +89,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
   case class SyncPromise(request: I) {
     val creationTime = System.currentTimeMillis
 
-    def isTimedOut(time: Long) = !isComplete && (time - creationTime) > requestTimeout.toMillis
+    def isTimedOut(time: Long) = !isComplete && requestTimeout.isFinite && (time - creationTime) > requestTimeout.toMillis
 
     private var _response: Option[O] = None
     def isComplete = _response.isDefined
