@@ -220,14 +220,11 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-    //TODO: fix logic for graceful disconnect with partial buffer
-    /*
-    if (partialBuffer.isDefined) {
-      disconnecting = true
-    } else {
-    */
-      sender ! WorkerCommand.Disconnect(id)
-    
+    gracefulDisconnect()
+  }
+
+  def completeDisconnect() {
+    sender ! WorkerCommand.Disconnect(id)
   }
 
   /**

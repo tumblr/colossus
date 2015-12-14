@@ -50,6 +50,29 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //mostly for DI for testing
   def channelWrite(data: DataBuffer): Int
 
+  /**
+   * The WriteBuffer calls this if it has been signaled to disconnect and
+   * finishes writing any existing partial buffer
+   */
+  def completeDisconnect()
+
+  /**
+   * This should be called when it's time to disconnect the connection, but we
+   * wish to finish writing any existing partial buffer.  We do this because any
+   * levels higher up already consider any data in a partial buffer to be sent,
+   * so we don't want to disconnect until we fullfil that promise.
+   */
+  def gracefulDisconnect() {
+    disconnecting = true
+    if (partialBuffer.isEmpty) {
+      completeDisconnect()
+    }
+    //if the partial buffer is defined, completeDisconnect gets called when we
+    //finish writing it
+  }
+
+  private var disconnecting = false
+
   private var _bytesSent = 0L
   def bytesSent = _bytesSent
 
@@ -70,8 +93,13 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       _bytesSent += channelWrite(raw)
       _lastTimeDataWritten = System.currentTimeMillis
       if (raw.hasUnreadData) {
-        //we must take a copy of the buffer since it will be repurposed
-        partialBuffer = Some(raw.takeCopy)
+        if (!partialBuffer.isDefined) {
+          //we must take a copy of the buffer since it will be repurposed.
+          //notice if the partial buffer is defined, then it must be the same as
+          //what we're currently trying to write, so we don't need to set it
+          //again
+          partialBuffer = Some(raw.takeCopy)
+        }
         Partial
       } else {
         partialBuffer = None
@@ -88,14 +116,26 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   def write(raw: DataBuffer): WriteStatus = {
     if (partialBuffer.isDefined) {
       Zero
+    } else if (disconnecting) {
+      Failed
     } else {
       writeRaw(raw)
     }
   }
 
+  /**
+   * Attempts to continue writing any existing partial buffer and returns true
+   * if the write buffer is able to accept more data immediately.  This will
+   * return false if the WriteBuffer is currently in the middle of draining an
+   * existing PartialBuffer, so if this returns false, then calling `write` will
+   * return `Zero`
+   */
   def continueWrite(): Boolean = {
     partialBuffer.map{raw =>
       if (writeRaw(raw) == Complete) {
+        if (disconnecting) {
+          completeDisconnect()
+        }
         true
       } else {
         false
@@ -107,9 +147,6 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
 }
 
 private[core] trait LiveWriteBuffer extends WriteBuffer {
-
-  //DO NOT MAKE THIS A VAL, screws up initialization order
-  def internalBufferSize = 1024 * 64
 
   protected def channel: SocketChannel
   def channelWrite(raw: DataBuffer): Int = raw.writeTo(channel)

@@ -15,9 +15,15 @@ import EncodeResult._
 
 object Encoders {
 
-  def sized(size: Long)(encoder: DataOutBuffer => Unit) = new SizedProcEncoder(size, encoder)
+  def sized(size: Long)(encoder: DataOutBuffer => Unit): Encoder = new SizedProcEncoder(size, encoder)
 
-  def unsized(encoder: => DataBuffer) = BlockEncoder(encoder)
+  def unsized(encoder: => DataBuffer): Encoder = BlockEncoder(encoder)
+
+  def block(bytes: ByteString): Encoder = sized(bytes.size){_.write(bytes)}
+
+  val Zero = new Encoder {
+    def writeInto(buf: DataOutBuffer) = EncodeResult.Complete
+  }
 }
 
 trait DataOutBuffer {
@@ -35,7 +41,11 @@ trait DataOutBuffer {
    */
   def write(bytes: ByteString)
 
-  //TODO: somehow unify this better
+  /* Get a DataBuffer containing the data written into this DataOutBuffer.  This
+   * generally renders this buffer unusable
+   *
+   * TODO: Unify this maybe with DataBuffer
+   */
   def data: DataBuffer
 
 }

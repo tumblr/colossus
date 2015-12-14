@@ -35,7 +35,9 @@ object HttpResponseHeader {
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
-  def appendHeaderBytes(builder : ByteStringBuilder) {
+  def encode: Encoder =  {
+    val builder = new ByteStringBuilder()
+    builder.sizeHint(50 * headers.size)
     builder append version.messageBytes
     builder putByte ' '
     builder append code.headerBytes
@@ -46,6 +48,8 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
       builder ++= header.value
       builder ++= NEWLINE
     }
+    builder append NEWLINE
+    Encoders.block(builder.result)
   }
 
   def withHeader(key: String, value: String) = copy(headers = headers :+ HttpResponseHeader(key, value))
@@ -79,11 +83,24 @@ sealed trait BaseHttpResponse {
 
 }
 
+sealed trait HttpResponseBody {
+  def encode: Encoder
+}
+object HttpResponseBody {
+  case class NoBody extends HttpResponseBody {
+    def encode = Encoders.Zero
+  }
+  case class Data(data: ByteString) extends HttpResponseBody {
+    def encode = Encoders.block(data)
+  }
+  case class Stream(data: Source[DataBuffer]) extends HttpResponseBody
+}
+
 //TODO: We need to make some headers like Content-Length, Transfer-Encoding,
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse {
+case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends BaseHttpResponse {
 
   type Encoded = DataBuffer
 
@@ -94,8 +111,6 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
     head.appendHeaderBytes(builder)
     builder append HttpResponse.ContentLengthKey
     builder putBytes dataSize.toString.getBytes
-    builder append NEWLINE
-    builder append NEWLINE
     body.foreach{b => 
       builder append b
     }
