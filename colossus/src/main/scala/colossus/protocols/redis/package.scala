@@ -282,7 +282,22 @@ package object redis {
     def sdiffstore(destination : ByteString, key : ByteString, keys : ByteString*) : M[Long] =
       integerReplyCommand(cmd(CMD_SDIFFSTORE, destination +: key +: keys : _*), key)
 
-    def set(key : ByteString, value : ByteString) : M[Boolean] = stringReplyCommand(cmd(CMD_SET, key, value), key)
+    def set(key : ByteString, value : ByteString, notExists: Boolean = false, exists: Boolean = false, ttl: Option[FiniteDuration] = None) : M[Boolean] = {
+      var args = Seq(key, value)
+      if (notExists) {
+        args = args :+ SET_PARAM_NX
+      } else if (exists) {
+        args = args :+ SET_PARAM_XX
+      }
+      ttl.foreach{duration =>
+        args = args :+ SET_PARAM_PX
+        args = args :+ ByteString(duration.toMillis.toString)
+      }
+      executeCommand(Command(CMD_SET, args), key){
+        case StatusReply(_) => success(true)
+        case NilReply       => success(false)
+      }
+    }
 
     def setnx(key : ByteString, value : ByteString) : M[Boolean] = integerReplyBoolCommand(cmd(CMD_SETNX, key, value), key)
 

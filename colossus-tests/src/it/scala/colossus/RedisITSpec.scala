@@ -355,6 +355,42 @@ class RedisITSpec extends BaseRedisITSpec{
       res.futureValue must be((false, true, Seq(None, Some(value), Some(value))))
     }
 
+    "set (basic)" in {
+      val key = getKey()
+      client.set(key, value).futureValue must be(true)
+    }
+
+    "set (with NX)" in {
+      val key = getKey()
+      val key2 = getKey()
+      val res = for {
+        x <- client.set(key, value)
+        y <- client.set(key, value, notExists = true)
+        z <- client.set(key2, value, notExists = true)
+      } yield (x, y, z)
+      res.futureValue must be ((true, false, true))
+    }
+
+    "set (with EX)" in {
+      val key = getKey()
+      val key2 = getKey()
+      val res = for {
+        x <- client.set(key, value)
+        y <- client.set(key, value, exists = true)
+        z <- client.set(key2, value, exists = true)
+      } yield (x, y, z)
+      res.futureValue must be ((true, true, false))
+    }
+
+    "set (with ttl)" in {
+      val key = getKey()
+      val res = for {
+        x <- client.set(key, value, ttl = Some(10.seconds))
+        y <- client.ttl(key)
+      } yield (x, y >= 0 && y <= 10)
+      res.futureValue must be ((true, true))
+    }
+
     "setnx" in {
       val setnxKey = getKey()
 
