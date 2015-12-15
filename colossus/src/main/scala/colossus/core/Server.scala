@@ -206,7 +206,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
       true
     } catch {
       case t: Throwable => {
-        log.error(s"bind failed: ${t.getMessage}, retrying")
+        log.error(t, s"bind failed: ${t.getMessage}, retrying")
         false
       }
     }
@@ -364,8 +364,8 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
             refused.hit()
           }
         } catch {
-          case c: java.nio.channels.NotYetBoundException => log.error("Attempted to accept before bound!?")
-          case error: Throwable => log.error(s"Error accepting connection: ${error.getClass.getName} - ${error.getMessage}")
+          case c: java.nio.channels.NotYetBoundException => log.error(c, "Attempted to accept before bound!?")
+          case error: Throwable => log.error(error, s"Error accepting connection: ${error.getClass.getName} - ${error.getMessage}")
         }
         it.remove()
       }

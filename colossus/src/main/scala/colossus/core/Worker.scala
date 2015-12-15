@@ -295,7 +295,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
       channel.connect(address)
     } catch {
       case t: Throwable => {
-        log.error(s"Failed to establish connection to $address: $t")
+        log.error(t, s"Failed to establish connection to $address: $t")
         unregisterConnection(connection, DisconnectCause.ConnectFailed(t))
       }
     }

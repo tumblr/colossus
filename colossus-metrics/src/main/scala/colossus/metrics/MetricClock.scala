@@ -42,16 +42,16 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       context.system.scheduler.scheduleOnce(interval, self, SendTick)
     }
 
-    case Tock(m, v) => {
-      if (v == latestTick) {
-        if(collectors.contains(sender())) {
-          build = build <+> m
+    case Tock(metrics, tick) => {
+      if (tick == latestTick) {
+        if(collectors.contains(sender)) {
+          build = build <+> metrics
           incrementCollected()
-        }else {
-          log.warning(s"Received metrics from an unregistered EventCollector: ${sender()}")
+        } else {
+          log.warning(s"Ignoring metrics from an unregistered EventCollector sent by $sender")
         }
-      }else{
-        log.warning(s"Currently processing tick# $latestTick.  Received a tock message for an outdated tick#: $v.  Ignoring")
+      } else {
+        log.warning(s"Ignoring tock from $sender with tick #$tick as metric clock is at tick #$latestTick")
       }
     }
 

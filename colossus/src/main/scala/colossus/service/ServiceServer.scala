@@ -217,13 +217,13 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
     addError(reason)
     if (logErrors) {
       val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
-      log.error(s"Error processing request: $formattedRequest: $reason")
+      log.error(reason, s"Error processing request: $formattedRequest: $reason")
     }
     processFailure(request, reason)
   }
 
   def schedule(in: FiniteDuration, message: Any) {
-    id.foreach{i => 
+    id.foreach{i =>
       worker ! Schedule(in, Message(i, message))
     }
   }
