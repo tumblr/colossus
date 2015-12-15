@@ -385,7 +385,7 @@ class RedisITSpec extends BaseRedisITSpec{
     "set (with ttl)" in {
       val key = getKey()
       val res = for {
-        x <- client.set(key, value, ttl = Some(10.seconds))
+        x <- client.set(key, value, ttl = 10.seconds)
         y <- client.ttl(key)
       } yield (x, y >= 0 && y <= 10)
       res.futureValue must be ((true, true))
