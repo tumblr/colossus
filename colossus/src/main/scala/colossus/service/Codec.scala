@@ -5,7 +5,6 @@ import colossus.controller.Sink
 import core._
 
 import java.nio.ByteBuffer
-import encoding.Encoder
 
 trait MessageDecoder[T] {
   def decode(buffer: ByteBuffer, len: Int): Seq[T]
@@ -35,7 +34,7 @@ object DecodedResult {
  */
 trait Codec[Output,Input] {
 
-  def encode(out: Output): Encoder
+  def encode(out: Output): DataReader
   /**
    * Decode a single object from a bytestream.  
    */

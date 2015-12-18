@@ -87,7 +87,7 @@ sealed trait HttpResponseBody {
   def encode: Encoder
 }
 object HttpResponseBody {
-  case class NoBody extends HttpResponseBody {
+  case object NoBody extends HttpResponseBody {
     def encode = Encoders.Zero
   }
   case class Data(data: ByteString) extends HttpResponseBody {
