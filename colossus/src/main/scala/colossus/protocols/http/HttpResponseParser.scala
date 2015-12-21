@@ -24,7 +24,9 @@ object HttpResponseParser  {
 
   def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
 
-  def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
+  //def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
+
+  import HttpResponseBody._
 
 
   //TODO: eliminate duplicate code
@@ -33,14 +35,16 @@ object HttpResponseParser  {
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
     parsedHead.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.contentLength match {
-        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
-        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
-        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, NoBody)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, NoBody)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
       }
-      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
     }
   }
+
+  /*
 
   protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
     parsedHead.transferEncoding match {
@@ -62,6 +66,7 @@ object HttpResponseParser  {
     }
     DecodedResult.Stream(StreamingHttpResponse(head, Some(pipe)), pipe)
   }
+  */
     
 
   protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case version ~ code ~ headers => 

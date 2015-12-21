@@ -14,6 +14,6 @@ class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) exte
     replyParser = RedisReplyParser(maxSize)
   }
 
-  def encode(cmd: Command) = Encoders.unsized{DataBuffer(cmd.raw)}
+  def encode(cmd: Command) = DataBuffer(cmd.raw)
   def decode(data: DataBuffer): Option[DecodedResult[Reply]] = DecodedResult.static(replyParser.parse(data))
 }

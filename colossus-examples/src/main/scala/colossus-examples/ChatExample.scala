@@ -39,7 +39,7 @@ class ChatCodec extends Codec[ChatMessage, String]{
 
   def decode(data: DataBuffer): Option[DecodedResult[String]] = parser.parse(data).map{DecodedResult.Static(_)}
 
-  def encode(message: ChatMessage): Encoder = Encoders.unsized(DataBuffer(ByteString(message.formatted)))
+  def encode(message: ChatMessage)= DataBuffer(ByteString(message.formatted))
 
   def reset(){}
 

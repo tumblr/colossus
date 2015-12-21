@@ -118,7 +118,7 @@ package object telnet {
     val parser = new TelnetCommandParser
 
     def decode(data: DataBuffer): Option[DecodedResult[TelnetCommand]] = DecodedResult.static(parser.parse(data))
-    def encode(reply: TelnetReply): Encoder = Encoders.unsized(DataBuffer(reply.bytes))
+    def encode(reply: TelnetReply): DataReader = DataBuffer(reply.bytes)
     def reset(){}
 
     def apply() = this

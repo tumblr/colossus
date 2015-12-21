@@ -8,8 +8,6 @@ import core._
 import service.Callback
 import controller._
 import HttpParse._
-import encoding._
-
 
 case class HttpResponseHeader(key: ByteString, value: ByteString)
 
@@ -35,9 +33,7 @@ object HttpResponseHeader {
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
-  def encode: Encoder =  {
-    val builder = new ByteStringBuilder()
-    builder.sizeHint(50 * headers.size)
+  def appendHeaderBytes(builder: ByteStringBuilder) =  {
     builder append version.messageBytes
     builder putByte ' '
     builder append code.headerBytes
@@ -48,8 +44,6 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
       builder ++= header.value
       builder ++= NEWLINE
     }
-    builder append NEWLINE
-    Encoders.block(builder.result)
   }
 
   def withHeader(key: String, value: String) = copy(headers = headers :+ HttpResponseHeader(key, value))
@@ -64,34 +58,13 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
 }
 
-sealed trait BaseHttpResponse { 
-
-  def head: HttpResponseHead
-
-  /**
-   * Resolves the body into a bytestring.  This operation completes immediately
-   * for static responses.  For streaming responses, this only completes when
-   * all data has been received.  Be aware if the response is an infinite
-   * stream of data (using chunked transfer encoding), this will never
-   * complete.
-   */
-  def resolveBody(): Option[Callback[ByteString]]
-
-  def encode(): Encoder
-
-  //def withHeader(key: String, value: String): self.type
-
-}
 
 sealed trait HttpResponseBody {
-  def encode: Encoder
 }
 object HttpResponseBody {
   case object NoBody extends HttpResponseBody {
-    def encode = Encoders.Zero
   }
   case class Data(data: ByteString) extends HttpResponseBody {
-    def encode = Encoders.block(data)
   }
   case class Stream(data: Source[DataBuffer]) extends HttpResponseBody
 }
@@ -100,24 +73,27 @@ object HttpResponseBody {
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends BaseHttpResponse {
+case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) {
+  import HttpResponseBody._
 
-  type Encoded = DataBuffer
-
-  def encode() : Encoder = Encoders.unsized {
-    val builder = new ByteStringBuilder
-    val dataSize = body.map{_.size}.getOrElse(0)
-    builder.sizeHint((50 * head.headers.size) + dataSize)
-    head.appendHeaderBytes(builder)
-    builder append HttpResponse.ContentLengthKey
-    builder putBytes dataSize.toString.getBytes
-    body.foreach{b => 
-      builder append b
+  def encode() : DataReader = body match {
+    case Data(data: ByteString) => {
+      val builder = new ByteStringBuilder
+      builder.sizeHint((50 * head.headers.size) + data.size)
+      head.appendHeaderBytes(builder)
+      builder append HttpResponse.ContentLengthKey
+      builder putBytes data.size.toString.getBytes
+      builder append NEWLINE
+      builder append NEWLINE
+      builder append data
+      DataBuffer(builder.result())
     }
-    DataBuffer(builder.result())
+    case _ => {
+      ???
+    }
   }
 
-  def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
+  //def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
@@ -139,65 +115,13 @@ object HttpResponse {
   val ContentLengthKey = ByteString("Content-Length: ")
 
   def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
+    HttpResponse(HttpResponseHead(version, code, headers), HttpResponseBody.Data(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
   def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), None)
+    HttpResponse(HttpResponseHead(version, code, headers), HttpResponseBody.NoBody)
   }
 
 }
-
-
-/**
- * Be aware, at the moment when the response is encoded, there is no processing
- * on the response body, and no headers are added in.  This means if the
- * transfer-encoding is "chunked", the header must already exist and the stream
- * must already be prepending chunk headers to the data.
- */
-case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[DataBuffer]]) extends BaseHttpResponse {
-
-
-  def encode() : Encoder = Encoders.unsized {
-    val builder = new ByteStringBuilder
-    builder.sizeHint(100)
-    head.appendHeaderBytes(builder)
-    builder append NEWLINE
-    //TODO: FIXX!!!!!!!
-    DataBuffer(builder.result)
-    /*
-    val headerBytes = DataBuffer(builder.result())
-    body.map{stream => 
-      DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
-    }.getOrElse(headerBytes)
-    */
-
-  }
-
-  def resolveBody: Option[Callback[ByteString]] = body.map{data => 
-    data.fold(new ByteStringBuilder){(buffer: DataBuffer, builder: ByteStringBuilder) => builder.putBytes(buffer.takeAll)}.map{_.result}
-  }
-
-  def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
-
-}
-
-object StreamingHttpResponse {
-
-  def fromStatic(resp: HttpResponse): StreamingHttpResponse = {
-    StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
-  }
-
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector(), data : T) : StreamingHttpResponse = {
-    fromStatic(HttpResponse(
-      HttpResponseHead(version, code, headers), 
-      Some(implicitly[ByteStringLike[T]].toByteString(data))
-    ))
-  }
-
-}
-
-
-
 

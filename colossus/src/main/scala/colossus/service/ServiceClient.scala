@@ -217,7 +217,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   private def purgeBuffers(reason : Throwable) {
     sentBuffer.foreach(failRequest(_, reason))
     sentBuffer.clear()
-    purgeOutgoing(reason)
     if (failFast) {
       purgePending(reason)
     }

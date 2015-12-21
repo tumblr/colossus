@@ -6,13 +6,11 @@ import core._
 import service._
 import parsing._
 import DataSize._
-import encoding.Encoder
 
-class BaseHttpServerCodec[T <: BaseHttpResponse](maxSize: DataSize = 1.MB) extends Codec.ServerCodec[HttpRequest, T] {
-
+class HttpServerCodec(maxSize: DataSize = 1.MB) extends Codec.ServerCodec[HttpRequest, HttpResponse]{
   private var parser = HttpRequestParser(maxSize)
 
-  def encode(response: T): Encoder = response.encode()
+  def encode(response: HttpResponse): DataReader = response.encode()
 
   def decode(data: DataBuffer): Option[DecodedResult[HttpRequest]] = DecodedResult.static(parser.parse(data))
 
@@ -21,7 +19,4 @@ class BaseHttpServerCodec[T <: BaseHttpResponse](maxSize: DataSize = 1.MB) exten
   }
 }
 
-class HttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[HttpResponse](maxSize)
-
-class StreamingHttpServerCodec(maxSize: DataSize = 1.MB) extends BaseHttpServerCodec[StreamingHttpResponse](maxSize)
 

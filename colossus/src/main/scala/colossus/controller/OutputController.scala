@@ -19,6 +19,7 @@ class DataQueue(maxBytes: Long) {
   def itemSize = queue.size
 
   def isFull = total >= maxBytes
+  def isEmpty = itemSize == 0
 
   def head = queue.peek._1
 
@@ -65,14 +66,9 @@ class MessageQueue[T](maxSize: Int) {
 
 }
 
-    
 
-
-
-
-
-sealed trait OutputState[+T] {
-  def ifLive(l: OutputState.Alive[T] => Unit) {}
+sealed trait OutputState[T] {
+  def ifAlive(l: OutputState.Alive[T] => Unit) {}
 }
 
 object OutputState{
@@ -92,7 +88,7 @@ object OutputState{
    * @param writesEnabled set by the user, if false new messages are always buffered to msgQ
    */
   case class Alive[T](msgQ: MessageQueue[T], dataQ: DataQueue, liveState: LiveState, disconnecting: Boolean, writesEnabled: Boolean) extends OutputState[T] {
-    override def ifLive(l: Alive[T] => Unit){ l(this) }
+    override def ifAlive(l: Alive[T] => Unit){ l(this) }
   }
 
 
@@ -114,7 +110,7 @@ object OutputState{
    * only occurs once the underlying connection has been manually disconnected,
    * and this controller no longer intends to be used.
    */
-  case object Terminated extends OutputState[Nothing] //only used when disconnecting
+  case class Terminated[T]() extends OutputState[T] //only used when disconnecting
 }
 
 sealed trait LiveState
@@ -166,6 +162,7 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
   import LiveState._
+  import QueuedItem._
 
 
 
@@ -197,7 +194,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         }
         if (disconnecting) {
           //todo: flush msgq
-          outputState = Terminated
+          outputState = Terminated()
         } else {
           outputState = Suspended(msgq)
         }
@@ -243,8 +240,22 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         drainMessages(state)
         true
       }
+      case Suspended(msgq) if (!msgq.isFull) => {
+        msgq.enqueue(item, postWrite, createdMillis)
+        true
+      }
       case _ => false
     }
+  }
+
+  protected def canPush = outputState match {
+    case state @ Alive(msgq, _, _, false, _) if (!msgq.isFull) => {
+      true
+    }
+    case Suspended(msgq) if (!msgq.isFull) => {
+      true
+    }
+    case _ => false
   }
 
   private def drainMessages(state: Alive[Output]) {
@@ -259,7 +270,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         }
         case DataStream(source) => {
           cstate = Streaming(source, next.postWrite)
-          drainSource(source)
+          drainSource(source, next.postWrite)
         }
       }
 
@@ -267,22 +278,25 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     if (cstate != state.liveState) outputState = state.copy(liveState = cstate)
   }
 
-  private def drainSource(source: Source[DataBuffer]){ source.pull{
+  private def drainSource(source: Source[DataBuffer], post: PostWrite){ source.pull{
     case Success(Some(data)) => outputState match {
       case a: Alive[Output] => {
         if (a.dataQ.itemSize == 0) signalWrite()
         a.dataQ.enqueue(data)
         if (!a.dataQ.isFull) {
-          drainSource(source)
+          drainSource(source, post)
         }
       }
       case other => {
-        source.terminate(new NotConnectedException("Connection Closed"))
+        val ex = new NotConnectedException("Connection Closed")
+        source.terminate(ex)
+        post(OutputResult.Failure(ex))
       }
     }
     case Success(None) => {
-      outputState.ifLive{s =>
+      outputState.ifAlive{s =>
         outputState = s.copy(liveState = Dequeueing)
+        post(OutputResult.Success)
         drainMessages(s)
       }
     }
@@ -305,7 +319,19 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
           q.postWrite(OutputResult.Cancelled(reason))
         }
       }
+      case Suspended(msgs) => {
+        while (msgs.isEmpty) {
+          val q = msgs.dequeue
+          q.postWrite(OutputResult.Cancelled(reason))
+        }
+      }
+      case _ => {}
     }
+  }
+
+  protected def writesEnabled: Boolean = outputState match {
+    case a: Alive[Output] if (a.writesEnabled) => true
+    case _ => false
   }
 
   /** Purge both pending and outgoing messages */
@@ -315,7 +341,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    outputState.ifLive{s =>
+    outputState.ifAlive{s =>
       outputState = s.copy(writesEnabled = false)
     }
   }
@@ -324,7 +350,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
   protected def resumeWrites() {
-    outputState.ifLive{s =>
+    outputState.ifAlive{s =>
       outputState = s.copy(writesEnabled = true)
       signalWrite()
     }
@@ -338,7 +364,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         val next = state.dataQ.head
         buffer.copy(next)
         if (next.remaining == 0) {
-          state.dataQ.dequeue()
+          state.dataQ.dequeue
         } else {
           continue = false
         }
@@ -350,12 +376,12 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       if (fullBefore && !state.dataQ.isFull) {
         state.liveState match {
           case Dequeueing => drainMessages(state)
-          case Streaming(source) => {
-            drainSource(source)
+          case Streaming(source, post) => {
+            drainSource(source, post)
           }
         }
       }
-      if (dataQ.itemSize > 0) MoreDataResult.Incomplete else MoreDataResult.Complete
+      if (!state.dataQ.isEmpty) MoreDataResult.Incomplete else MoreDataResult.Complete
     }
     case _ => MoreDataResult.Complete //this should never happen
   }

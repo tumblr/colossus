@@ -147,7 +147,7 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
 
   private[controller] def checkControllerGracefulDisconnect() {
     (state, inputState, outputState) match {
-      case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated) => {
+      case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated()) => {
         endpoint.disconnect()
         state = NotConnected
       }
