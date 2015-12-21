@@ -2,7 +2,7 @@ package colossus.examples
 
 import akka.util.ByteString
 import colossus.IOSystem
-import colossus.core.{ServerRef, WorkerRef}
+import colossus.core.{DataBuffer, ServerRef, WorkerRef}
 import colossus.protocols.http._
 import colossus.protocols.redis._
 import colossus.service.{Callback, Service}
@@ -11,6 +11,8 @@ import java.net.InetSocketAddress
 import UrlParsing._
 import HttpMethod._
 import Callback.Implicits._
+
+import colossus.controller.IteratorGenerator
 
 
 object HttpExample {
@@ -29,6 +31,13 @@ object HttpExample {
       case req @ Get on Root / "shutdown" => {
         worker.system.actorSystem.shutdown
         req.ok("bye")
+      }
+
+      case req @ Get on Root / "stream" => {
+        val source = new IteratorGenerator((0 to 10).map{x => DataBuffer(ByteString(x.toString))}.toIterator)
+        val chunker = new ChunkEncodingPipe
+        chunker.feed(source, true)
+        HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("transfer-encoding","chunked"))), HttpResponseBody.Stream(chunker))
       }
 
       case req @ Get on Root / "get"  / key => redis.get(ByteString(key)).map{x => req.ok(x.utf8String)}

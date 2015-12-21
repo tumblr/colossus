@@ -270,12 +270,12 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         }
         case DataStream(source) => {
           cstate = Streaming(source, next.postWrite)
+          outputState = state.copy(liveState = cstate)
           drainSource(source, next.postWrite)
         }
       }
 
     }
-    if (cstate != state.liveState) outputState = state.copy(liveState = cstate)
   }
 
   private def drainSource(source: Source[DataBuffer], post: PostWrite){ source.pull{
@@ -295,9 +295,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
     case Success(None) => {
       outputState.ifAlive{s =>
-        outputState = s.copy(liveState = Dequeueing)
+        val newState = s.copy(liveState = Dequeueing)
+        outputState = newState
         post(OutputResult.Success)
-        drainMessages(s)
+        drainMessages(newState)
       }
     }
     case Failure(err) => {

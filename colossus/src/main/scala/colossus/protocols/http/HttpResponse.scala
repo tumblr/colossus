@@ -76,20 +76,34 @@ object HttpResponseBody {
 case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) {
   import HttpResponseBody._
 
+  
+  def encodeHead(contentLength: Option[Int]): ByteStringBuilder = {
+    val s = contentLength.getOrElse(0)
+    val builder = new ByteStringBuilder
+    builder.sizeHint((50 * head.headers.size) + s)
+    head.appendHeaderBytes(builder)
+    contentLength.foreach{c => 
+      builder append HttpResponse.ContentLengthKey
+      builder putBytes c.toString.getBytes
+      builder append NEWLINE
+    }
+    builder append NEWLINE
+
+  }
+
   def encode() : DataReader = body match {
     case Data(data: ByteString) => {
-      val builder = new ByteStringBuilder
-      builder.sizeHint((50 * head.headers.size) + data.size)
-      head.appendHeaderBytes(builder)
-      builder append HttpResponse.ContentLengthKey
-      builder putBytes data.size.toString.getBytes
-      builder append NEWLINE
-      builder append NEWLINE
+      val builder = encodeHead(Some(data.size))
       builder append data
       DataBuffer(builder.result())
     }
-    case _ => {
-      ???
+    case NoBody => {
+      val builder = encodeHead(Some(0))
+      DataBuffer(builder.result())      
+    }
+    case Stream(data: Source[DataBuffer]) => {
+      val head = DataBuffer(encodeHead(None).result)
+      DataStream(new DualSource(Source.one(head), data))
     }
   }
 
