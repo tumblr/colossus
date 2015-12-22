@@ -8,7 +8,6 @@ import akka.util.ByteString
 
 import Codec._
 import service._
-import encoding.{Encoder, Encoders}
 
 package object telnet {
   import scala.language.higherKinds

@@ -5,7 +5,6 @@ import core._
 import service._
 
 import colossus.parsing.DataSize
-import encoding.Encoders
 
 class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) extends Codec.ClientCodec[Command, Reply] {
   private var replyParser = RedisReplyParser(maxSize)

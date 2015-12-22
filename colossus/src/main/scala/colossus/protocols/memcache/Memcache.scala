@@ -9,7 +9,6 @@ import java.util.zip.{Deflater, Inflater}
 
 import parsing._
 import DataSize._
-import encoding.{Encoder, Encoders}
 
 /*
  * Memcache protocol for Colossus, implements a majority of the commands with the exception of some of the
