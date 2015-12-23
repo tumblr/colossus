@@ -54,27 +54,43 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
   def transferEncoding : TransferEncoding = {
     headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.TransferEncoding, v) => v}.flatMap{t => TransferEncoding.unapply(t.utf8String)}.getOrElse(TransferEncoding.Identity)
-}
-
-}
-
-
-sealed trait HttpResponseBody {
-}
-object HttpResponseBody {
-  case object NoBody extends HttpResponseBody {
   }
-  case class Data(data: ByteString) extends HttpResponseBody {
+
+}
+
+//TODO: all of this should be generalized for requests and responses
+
+sealed trait HttpMessageBody {
+  def resolve: Callback[ByteString]
+}
+object HttpMessageBody {
+  case object NoBody extends HttpMessageBody {
+    def resolve = Callback.successful(ByteString())
   }
-  case class Stream(data: Source[DataBuffer]) extends HttpResponseBody
+  case class Data(data: ByteString) extends HttpMessageBody {
+    def resolve = Callback.successful(data)
+  }
+  case class Stream(data: Source[DataBuffer]) extends HttpMessageBody {
+    def resolve = data.fold(new ByteStringBuilder) { case (data, builder) => builder.putBytes(data.takeAll); builder}.map{_.result}
+  }
+
+  //maybe this isn't needed
+  /*
+  case class ChunkStream(chunks: source[HttpChunk]) extends HttpMessageBody {
+    def resolve = data.fold(new ByteStringBuilder) { case (chunk, builder) => builder.append(chunk.data); builder}.map{_.result}
+  }
+  */
+
+  implicit def liftBytes(data: ByteString): HttpMessageBody = Data(data)
+  implicit def liftStream(stream: Source[DataBuffer]) = DataStream(stream)
 }
 
 //TODO: We need to make some headers like Content-Length, Transfer-Encoding,
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) {
-  import HttpResponseBody._
+case class HttpResponse(head: HttpResponseHead, body: HttpMessageBody) {
+  import HttpMessageBody._
 
   
   def encodeHead(contentLength: Option[Int]): ByteStringBuilder = {
@@ -107,8 +123,6 @@ case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) {
     }
   }
 
-  //def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
-
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
   def code = head.code
@@ -129,12 +143,12 @@ object HttpResponse {
   val ContentLengthKey = ByteString("Content-Length: ")
 
   def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), HttpResponseBody.Data(implicitly[ByteStringLike[T]].toByteString(data)))
+    HttpResponse(HttpResponseHead(version, code, headers), HttpMessageBody.Data(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
   def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), HttpResponseBody.NoBody)
+    HttpResponse(HttpResponseHead(version, code, headers), HttpMessageBody.NoBody)
   }
 
 }

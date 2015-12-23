@@ -8,7 +8,6 @@ import Codec.ClientCodec
 import parsing._
 import Combinators.Parser
 import DataSize._
-import encoding._
 
 class HttpClientCodec(maxResponseSize: DataSize = 1.MB, stream: Boolean = false) extends ClientCodec[HttpRequest, HttpResponse] {
 

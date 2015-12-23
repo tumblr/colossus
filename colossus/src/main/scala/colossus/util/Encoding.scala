@@ -30,6 +30,11 @@ trait DataOutBuffer {
 
 }
 
+
+trait Encodable {
+  def encode : DataBuffer
+}
+
 case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
 
   def available = underlying.remaining

@@ -13,49 +13,33 @@ import controller._
 import service.DecodedResult
 import scala.language.higherKinds
 
-sealed trait ResponseResult 
-object ResponseResult {
-  case class StaticResponse(response: HttpResponse) extends ResponseResult
-  case class StreamResponse(sink: Sink[DataBuffer], response: HttpResponse) extends ResponseResult
-}
-
 object HttpResponseParser  {
   val DefaultMaxSize: DataSize = 10.MB
 
-  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
+  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult[HttpResponse]] = maxSize(maxResponseSize, messageBody(true, false))
 
   //def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
 
-  import HttpResponseBody._
+  import HttpMessageBody._
 
 
   //TODO: eliminate duplicate code
   //TODO: Dechunk on static
 
-  protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
+  protected def messageBody(dechunk: Boolean, stream: Boolean): Parser[DecodedResult[HttpResponse]] = head |> {parsedHead =>
     parsedHead.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.contentLength match {
         case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, NoBody)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
+        case Some(n)  => if (stream) {
+          const(streamingResponse(parsedHead, Some(n), dechunk))
+        } else {
+          bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
+        }
         case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, NoBody)))
         case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
       }
+      //todo: add support for streaming EOS messages
       case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Data(body)))}
-    }
-  }
-
-  /*
-
-  protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case TransferEncoding.Identity => parsedHead.contentLength match {
-        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
-        case Some(n) => streamingResponse(parsedHead, Some(n), false)
-        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
-        //TODO: adding support for this requires upcoming changes to stream termination error handling
-        case None => throw new ParseException("Infinite non-chunked responses not supported") 
-      }
-      case _  => streamingResponse(parsedHead, None, dechunk)
     }
   }
 
@@ -64,9 +48,8 @@ object HttpResponseParser  {
       case Some(n)  => new FiniteBytePipe(n)
       case None     => if (dechunk) new ChunkDecodingPipe else new ChunkPassThroughPipe
     }
-    DecodedResult.Stream(StreamingHttpResponse(head, Some(pipe)), pipe)
+    DecodedResult.Stream(HttpResponse(head, Stream(pipe)), pipe)
   }
-  */
     
 
   protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case version ~ code ~ headers => 
@@ -81,18 +64,21 @@ object HttpResponseParser  {
 
 }
 
-object HttpChunk {
-  
-  def wrap(data: DataBuffer): DataBuffer = {
+case class HttpChunk(data: ByteString) extends AnyVal {
+  /**
+   * wraps the contained data in the proper http chunk header and footer
+   */
+  def encode: DataBuffer = {
     val builder = new ByteStringBuilder
     builder.sizeHint(data.size + 25)
     builder.putBytes(data.size.toHexString.getBytes)
     builder.append(HttpParse.NEWLINE)
-    builder.putBytes(data.takeAll)
+    builder.append(data)
     builder.append(HttpParse.NEWLINE)
     DataBuffer(builder.result)
   }
 }
+
 
 /** A Pipe that will take raw DataBuffers and add a http chunk header.  This is
  * needed if you are streaming out a response that is not also being streamed
@@ -104,7 +90,7 @@ object HttpChunk {
 class ChunkEncodingPipe extends InfinitePipe[DataBuffer] {
 
   override def push(data: DataBuffer) = whenPushable {
-    super.push(HttpChunk.wrap(data))
+    super.push(HttpChunk(ByteString(data.takeAll)).encode)
   }
 
   override def complete() {
