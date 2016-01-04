@@ -67,7 +67,7 @@ object ColossusBuild extends Build {
   lazy val ColossusProject: Project = Project(id="colossus", base=file("colossus"))
       .settings(ColossusSettings:_*)
       .configs(IntegrationTest)
-      //.aggregate(ColossusTestsProject)
+      .aggregate(ColossusTestsProject)
       .dependsOn(ColossusMetricsProject)
 
   lazy val ColossusExamplesProject = Project(id="colossus-examples", base=file("colossus-examples"))
