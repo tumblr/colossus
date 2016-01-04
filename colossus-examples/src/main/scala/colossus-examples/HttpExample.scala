@@ -33,22 +33,6 @@ object HttpExample {
         req.ok("bye")
       }
 
-      case req @ Get on Root / "simstream" => {
-        val body = ByteString("Hello World!")
-        HttpResponse(
-          HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("content-length",body.size.toString))), 
-          HttpMessageBody.Stream(colossus.controller.Source.one(DataBuffer(body)))
-        )
-      }
-        
-
-      case req @ Get on Root / "stream" => {
-        val source = new IteratorGenerator((0 to 10).map{x => DataBuffer(ByteString(x.toString))}.toIterator)
-        val chunker = new ChunkEncodingPipe
-        chunker.feed(source, true)
-        HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("transfer-encoding","chunked"))), HttpMessageBody.Stream(chunker))
-      }
-
       case req @ Get on Root / "get"  / key => redis.get(ByteString(key)).map{x => req.ok(x.utf8String)}
 
       case req @ Get on Root / "set" / key / value => redis.set(ByteString(key), ByteString(value)).map{ x =>
