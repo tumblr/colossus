@@ -9,6 +9,7 @@ import service.Callback
 import controller._
 import HttpParse._
 
+
 case class HttpResponseHeader(key: ByteString, value: ByteString)
 
 object HttpResponseHeader {
@@ -33,7 +34,7 @@ object HttpResponseHeader {
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
-  def appendHeaderBytes(builder: ByteStringBuilder) =  {
+  def appendHeaderBytes(builder : ByteStringBuilder) {
     builder append version.messageBytes
     builder putByte ' '
     builder append code.headerBytes
@@ -54,74 +55,55 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
   def transferEncoding : TransferEncoding = {
     headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.TransferEncoding, v) => v}.flatMap{t => TransferEncoding.unapply(t.utf8String)}.getOrElse(TransferEncoding.Identity)
-  }
+}
 
 }
 
-//TODO: all of this should be generalized for requests and responses
+sealed trait BaseHttpResponse { 
 
-sealed trait HttpMessageBody {
-  def resolve: Callback[ByteString]
-}
-object HttpMessageBody {
-  case object NoBody extends HttpMessageBody {
-    def resolve = Callback.successful(ByteString())
-  }
-  case class Data(data: ByteString) extends HttpMessageBody {
-    def resolve = Callback.successful(data)
-  }
-  case class Stream(data: Source[DataBuffer]) extends HttpMessageBody {
-    def resolve = data.fold(new ByteStringBuilder) { case (data, builder) => builder.putBytes(data.takeAll); builder}.map{_.result}
-  }
+  type Encoded <: DataReader
 
-  //maybe this isn't needed
-  /*
-  case class ChunkStream(chunks: source[HttpChunk]) extends HttpMessageBody {
-    def resolve = data.fold(new ByteStringBuilder) { case (chunk, builder) => builder.append(chunk.data); builder}.map{_.result}
-  }
-  */
+  def head: HttpResponseHead
 
-  implicit def liftBytes(data: ByteString): HttpMessageBody = Data(data)
-  implicit def liftStream(stream: Source[DataBuffer]) = DataStream(stream)
+  /**
+   * Resolves the body into a bytestring.  This operation completes immediately
+   * for static responses.  For streaming responses, this only completes when
+   * all data has been received.  Be aware if the response is an infinite
+   * stream of data (using chunked transfer encoding), this will never
+   * complete.
+   */
+  def resolveBody(): Option[Callback[ByteString]]
+
+  def encode(): Encoded
+
+  //def withHeader(key: String, value: String): self.type
+
 }
 
 //TODO: We need to make some headers like Content-Length, Transfer-Encoding,
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: HttpMessageBody) {
-  import HttpMessageBody._
+case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse {
 
-  
-  def encodeHead(contentLength: Option[Int]): ByteStringBuilder = {
-    val s = contentLength.getOrElse(0)
+  type Encoded = DataBuffer
+
+  def encode() : DataBuffer = {
     val builder = new ByteStringBuilder
-    builder.sizeHint((50 * head.headers.size) + s)
+    val dataSize = body.map{_.size}.getOrElse(0)
+    builder.sizeHint((50 * head.headers.size) + dataSize)
     head.appendHeaderBytes(builder)
-    contentLength.foreach{c => 
-      builder append HttpResponse.ContentLengthKey
-      builder putBytes c.toString.getBytes
-      builder append NEWLINE
-    }
+    builder append HttpResponse.ContentLengthKey
+    builder putBytes dataSize.toString.getBytes
     builder append NEWLINE
-
+    builder append NEWLINE
+    body.foreach{b => 
+      builder append b
+    }
+    DataBuffer(builder.result())
   }
 
-  def encode() : DataReader = body match {
-    case Data(data: ByteString) => {
-      val builder = encodeHead(Some(data.size))
-      builder append data
-      DataBuffer(builder.result())
-    }
-    case NoBody => {
-      val builder = encodeHead(Some(0))
-      DataBuffer(builder.result())      
-    }
-    case Stream(data: Source[DataBuffer]) => {
-      val head = DataBuffer(encodeHead(None).result)
-      DataStream(new DualSource(Source.one(head), data))
-    }
-  }
+  def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
@@ -143,13 +125,63 @@ object HttpResponse {
   val ContentLengthKey = ByteString("Content-Length: ")
 
   def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), HttpMessageBody.Data(implicitly[ByteStringLike[T]].toByteString(data)))
+    HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
   def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), HttpMessageBody.NoBody)
+    HttpResponse(HttpResponseHead(version, code, headers), None)
   }
 
 }
+
+
+/**
+ * Be aware, at the moment when the response is encoded, there is no processing
+ * on the response body, and no headers are added in.  This means if the
+ * transfer-encoding is "chunked", the header must already exist and the stream
+ * must already be prepending chunk headers to the data.
+ */
+case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[DataBuffer]]) extends BaseHttpResponse {
+
+  type Encoded = DataReader
+
+  def encode() : DataReader = {
+    val builder = new ByteStringBuilder
+    builder.sizeHint(100)
+    head.appendHeaderBytes(builder)
+    builder append NEWLINE
+
+    val headerBytes = DataBuffer(builder.result())
+    body.map{stream => 
+      DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
+    }.getOrElse(headerBytes)
+
+  }
+
+  def resolveBody: Option[Callback[ByteString]] = body.map{data => 
+    data.fold(new ByteStringBuilder){(buffer: DataBuffer, builder: ByteStringBuilder) => builder.putBytes(buffer.takeAll)}.map{_.result}
+  }
+
+  def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
+
+}
+
+object StreamingHttpResponse {
+
+  def fromStatic(resp: HttpResponse): StreamingHttpResponse = {
+    StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
+  }
+
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector(), data : T) : StreamingHttpResponse = {
+    fromStatic(HttpResponse(
+      HttpResponseHead(version, code, headers), 
+      Some(implicitly[ByteStringLike[T]].toByteString(data))
+    ))
+  }
+
+}
+
+
+
 

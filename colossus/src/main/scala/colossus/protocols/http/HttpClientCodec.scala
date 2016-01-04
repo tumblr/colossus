@@ -9,18 +9,26 @@ import parsing._
 import Combinators.Parser
 import DataSize._
 
-class HttpClientCodec(maxResponseSize: DataSize = 1.MB, stream: Boolean = false) extends ClientCodec[HttpRequest, HttpResponse] {
+class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[DecodedResult[T]]) extends ClientCodec[HttpRequest, T] {
 
-  private var parser : Parser[DecodedResult[HttpResponse]] = HttpResponseParser.static(maxResponseSize)
+  private var parser : Parser[DecodedResult[T]] = parserFactory()
 
-  override def encode(out: HttpRequest) = DataBuffer(out.bytes)
 
-  override def decode(data: DataBuffer): Option[DecodedResult[HttpResponse]] = parser.parse(data)
+  override def encode(out: HttpRequest): DataReader = DataBuffer(out.bytes)
+
+  override def decode(data: DataBuffer): Option[DecodedResult[T]] = parser.parse(data)
 
   override def reset(): Unit = { 
-    HttpResponseParser.static(maxResponseSize)
+    parser = parserFactory()
   }
 
   override def endOfStream() = parser.endOfStream()
 
 }
+
+class HttpClientCodec(maxResponseSize: DataSize = 1.MB) 
+  extends BaseHttpClientCodec[HttpResponse](() => HttpResponseParser.static(maxResponseSize))
+
+class StreamingHttpClientCodec(dechunk: Boolean = false)
+  extends BaseHttpClientCodec[StreamingHttpResponse](() => HttpResponseParser.stream(dechunk))
+

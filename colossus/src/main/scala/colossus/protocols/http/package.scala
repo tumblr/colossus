@@ -13,10 +13,20 @@ package object http {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
+  trait BaseHttp extends CodecDSL {
+    type Input <: HttpRequest
+    type Output <: BaseHttpResponse
+  }
 
-  trait Http extends CodecDSL {
+
+  trait Http extends BaseHttp {
     type Input = HttpRequest
     type Output = HttpResponse
+  }
+
+  trait StreamingHttp extends BaseHttp {
+    type Input = HttpRequest
+    type Output = StreamingHttpResponse
   }
 
   trait HttpProvider extends CodecProvider[Http] {
@@ -27,8 +37,8 @@ package object http {
     }
 
     override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator): DSLHandler[Http] = {
-      new HttpServiceHandler(config, worker, this, initializer)
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator[Http]): DSLHandler[Http] = {
+      new HttpServiceHandler[Http](config, worker, this, initializer)
     }
 
   }
@@ -37,21 +47,39 @@ package object http {
 
 
 
-  class ReturnCodeTagDecorator extends TagDecorator[HttpRequest, HttpResponse] {
-    override def tagsFor(request: HttpRequest, response: HttpResponse): TagMap = {
+  class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
+    override def tagsFor(request: C#Input, response: C#Output): TagMap = {
       Map("status_code" -> response.head.code.code.toString)
     }
   }
 
 
-  class HttpServiceHandler
-  (config: ServiceConfig[HttpRequest, HttpResponse], worker: WorkerRef, provider: CodecProvider[Http], initializer: CodecDSL.HandlerGenerator[Http])
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[HttpRequest, HttpResponse])
-  extends BasicServiceHandler[Http](config, worker, provider, initializer) {
+  class HttpServiceHandler[D <: BaseHttp]
+  (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])
+  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output])
+  extends BasicServiceHandler[D](config, worker, provider, initializer) {
 
-    override def processRequest(input: HttpRequest): Callback[HttpResponse] = super.processRequest(input).map{response =>
+    override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
       if(!input.head.persistConnection) gracefulDisconnect()
       response
+    }
+
+  }
+
+  implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
+    def provideCodec = new StreamingHttpServerCodec
+    def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
+      case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
+      case other => toStreamed(request.error(reason.toString))
+    }
+
+    override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])
+                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = new ReturnCodeTagDecorator[StreamingHttp]): DSLHandler[StreamingHttp] = {
+      new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
+    }
+
+    private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
+      StreamingHttpResponse.fromStatic(response)
     }
 
   }
@@ -59,6 +87,13 @@ package object http {
   implicit object HttpClientProvider extends ClientCodecProvider[Http] {
     def clientCodec = new HttpClientCodec
     def name = "http"
+  }
+
+
+  implicit object StreamingHttpClientProvider extends ClientCodecProvider[StreamingHttp] {
+
+    def clientCodec = new StreamingHttpClientCodec
+    def name = "streamingHttp"
   }
 
 
@@ -70,6 +105,18 @@ package object http {
     )
 
 
+  /*
+  class StreamingHttpClient(config : ClientConfig,
+                            worker : WorkerRef,
+                            maxSize : DataSize = HttpResponseParser.DefaultMaxSize,
+                            streamBufferSize : Int = HttpResponseParser.DefaultQueueSize)
+    extends ServiceClient[HttpRequest, StreamingHttpResponse](
+      codec = HttpClientCodec.streaming(maxSize, streamBufferSize),
+      config = config,
+      worker = worker
+    )
+
+    */
   implicit object ByteStringLikeString extends ByteStringLike[String] {
     override def toByteString(t: String): ByteString = ByteString(t)
   }
