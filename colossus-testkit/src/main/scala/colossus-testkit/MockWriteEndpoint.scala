@@ -7,12 +7,19 @@ import akka.actor._
 import akka.testkit.TestProbe
 
 class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Option[ConnectionHandler] = None) 
-  extends MockWriteBuffer(maxBufferSize, handler) with WriteEndpoint {
+  extends MockWriteBuffer(maxBufferSize) with WriteEndpoint {
 
   var disconnectCalled = false
+  var disconnectCompleted = false
   def id: Long = 9876L
 
   def disconnect() {
+    disconnectCalled = true
+    gracefulDisconnect()
+  }
+
+  override def completeDisconnect() {
+    super.completeDisconnect()
     sendDisconnect(DisconnectCause.Disconnect)
   }
 
@@ -21,8 +28,7 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
   }
 
   protected def sendDisconnect(cause : DisconnectCause) {
-    connection_status = ConnectionStatus.NotConnected
-    disconnectCalled = true
+    disconnectCompleted = true
     handler.foreach{_.connectionTerminated(cause)}
   }
 
@@ -39,4 +45,18 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
   def bytesReceived = 0
 
   def timeOpen = 0
+
+  /**
+   * Simulate event-loop iterations, calling readyForData until this buffer fills or everything is written
+   *
+   * Be aware you need to call clearBuffer yourself
+   */
+  def iterate[T](f: => T): T = {
+    val res = f
+    handler.foreach{handler =>
+      while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer, handler)) {}
+    }
+    res
+  }
+
 }

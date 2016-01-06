@@ -36,7 +36,7 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   def reset(){}
 }
 
-class TestController(processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, 1.second)) {
+class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 1.second)) {
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
@@ -55,12 +55,14 @@ class TestController(processor: TestInput => Unit) extends Controller[TestInput,
 }
 
 object TestController {
-  def createController(processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = {
-    val controller = new TestController(processor)
+  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = {
+    val controller = new TestController(dataBufferSize, processor)
     val (probe, worker) = FakeIOSystem.fakeWorkerRef
     controller.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(100, probe, Some(controller))
+    val endpoint = new MockWriteEndpoint(outputBufferSize, probe, Some(controller))
     controller.connected(endpoint)
     (endpoint, controller)
   }
+
+  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = createController(100, 100, processor)
 }

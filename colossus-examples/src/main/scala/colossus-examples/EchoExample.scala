@@ -20,7 +20,7 @@ class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
 
   def shutdownRequest(){}
 
-  def readyForData(buffer: DataOutBuffer) = {
+  override def readyForData(buffer: DataOutBuffer) = {
     buffer.write(bytes)
     MoreDataResult.Complete
   }

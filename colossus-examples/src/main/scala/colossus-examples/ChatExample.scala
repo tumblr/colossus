@@ -75,7 +75,7 @@ object Broadcaster {
   case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds)) with ServerConnectionHandler {
+class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 100, 10.seconds)) with ServerConnectionHandler {
   implicit lazy val sender = boundWorker.get.worker
 
   sealed trait State

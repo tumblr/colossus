@@ -130,7 +130,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
    * existing PartialBuffer, so if this returns false, then calling `write` will
    * return `Zero`
    */
-  def continueWrite(): Boolean = {
+  private[colossus] def continueWrite(): Boolean = {
     partialBuffer.map{raw =>
       if (writeRaw(raw) == Complete) {
         if (disconnecting) {
@@ -144,6 +144,35 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       true
     }
   }
+
+  /**
+   * returns true if more data can be written, false otherwise
+   *
+   * Note - the return value is only used in testing
+   */
+  protected def handleWrite(data: encoding.DataOutBuffer, handler: ConnectionHandler) = {
+    if (continueWrite()) {
+      //partial buffer is empty, so we can get data from the handler to write
+      val more  = handler.readyForData(data)
+      val toWrite = data.data
+      //its possible for the handler to not actually have written anything, this
+      //can occur due to the fact that we use the writeReady flag to track both
+      //pending data from the handler and from the partial buffer, so we can end up
+      //calling handler.readyForData even when it didn't request a write
+      val result = if (toWrite.remaining > 0) write(toWrite) else WriteStatus.Complete
+      //we want to leave writeReady enabled if either the handler has more data to write, or if the writebuffer couldn't write everything
+      if (more == MoreDataResult.Complete && result == WriteStatus.Complete) {
+        disableWriteReady()
+      }
+      true
+    } else false
+  }
+
+
+  def requestWrite() {
+    enableWriteReady()
+  }
+
 }
 
 private[core] trait LiveWriteBuffer extends WriteBuffer {

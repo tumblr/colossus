@@ -36,6 +36,8 @@ class ServiceServerSpec extends ColossusSpec {
     def processRequest(input: ByteString) = handler(input)
 
     def receivedMessage(x: Any, s: ActorRef){}
+
+    def testCanPush = canPush //expose protected method
   }
 
   case class ServiceTest(service: FakeService, endpoint: MockWriteEndpoint, workerProbe: TestProbe)
@@ -102,13 +104,13 @@ class ServiceServerSpec extends ColossusSpec {
       //this request will fill up the write buffer
       s.service.receivedData(data(1))
       s.endpoint.expectOneWrite(bytes(1))
-      s.service.outputQueueFull must equal(false)
+      s.service.testCanPush must equal(true)
 
       //these next two fill up the output controller's buffer (set to 2 in fakeService())
       s.service.receivedData(data(2))
       s.service.receivedData(data(3))
       s.endpoint.expectNoWrite()
-      s.service.outputQueueFull must equal(true)
+      s.service.testCanPush must equal(false)
       s.service.currentRequestBufferSize must equal(0)
 
       //this last one should not even attempt to write and instead keep the
@@ -116,7 +118,7 @@ class ServiceServerSpec extends ColossusSpec {
       s.service.receivedData(data(4))
       s.endpoint.expectNoWrite()
       s.service.currentRequestBufferSize must equal(1)
-      s.service.outputQueueFull must equal(true)
+      s.service.testCanPush must equal(false)
 
       //now as we begin draining the write buffer, both the controller and
       //service layers should begin clearing their buffers
@@ -125,7 +127,7 @@ class ServiceServerSpec extends ColossusSpec {
         s.endpoint.expectOneWrite(bytes(i))
       }
 
-      s.service.outputQueueFull must equal(false)
+      s.service.testCanPush must equal(true)
       s.service.currentRequestBufferSize must equal(0)
       s.endpoint.expectNoWrite()
     }

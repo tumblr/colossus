@@ -30,6 +30,7 @@ class DataQueue(maxBytes: Long) {
     val size = data.remaining
     total += size
     queue.add(data -> size)
+    println(s"adding $size, total $total, isFull $isFull")
     isFull
   }
 
@@ -174,7 +175,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case Suspended(msgs) => msgs
       case _ => new MessageQueue[Output](controllerConfig.outputBufferSize)
     }
-    outputState = Alive(msgs, new DataQueue(1024), Dequeueing, disconnecting = false, writesEnabled = true)
+    outputState = Alive(msgs, new DataQueue(controllerConfig.dataBufferSize), Dequeueing, disconnecting = false, writesEnabled = true)
     if (!msgs.isEmpty) {
       signalWrite()
     }
@@ -359,30 +360,45 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   def readyForData(buffer: DataOutBuffer) = outputState match {
     case state: Alive[Output] => {
-      val fullBefore = state.dataQ.isFull
-      var continue = true
-      while (continue) {
-        val next = state.dataQ.head
-        buffer.copy(next)
-        if (next.remaining == 0) {
-          state.dataQ.dequeue
-        } else {
-          continue = false
-        }
-        if (state.dataQ.itemSize == 0) {
-          continue = false
-        }
-      }
-      //if dataQ can now accept more data, try to fill it again.
-      if (fullBefore && !state.dataQ.isFull) {
-        state.liveState match {
-          case Dequeueing => drainMessages(state)
-          case Streaming(source, post) => {
-            drainSource(source, post)
+      if (state.disconnecting && state.msgQ.isEmpty && state.dataQ.isEmpty && state.liveState == Dequeueing) {
+        //this occurs as a continuation of below
+        outputState = Terminated()
+        checkControllerGracefulDisconnect()
+        MoreDataResult.Complete
+      } else {
+        val fullBefore = state.dataQ.isFull
+        var continue = state.dataQ.itemSize > 0
+        while (continue) {
+          val next = state.dataQ.head
+          buffer.copy(next)
+          if (next.remaining == 0) {
+            state.dataQ.dequeue
+          } else {
+            continue = false
+          }
+          if (state.dataQ.itemSize == 0) {
+            continue = false
           }
         }
+        //if dataQ can now accept more data, try to fill it again.
+        if (fullBefore && !state.dataQ.isFull) {
+          state.liveState match {
+            case Dequeueing => drainMessages(state)
+            case Streaming(source, post) => {
+              drainSource(source, post)
+            }
+          }
+        }
+        if (!state.dataQ.isEmpty || state.disconnecting) {
+          //we return Incomplete when disconnecting because if we disconnect now,
+          //the data we just buffered is not going to get written (since that
+          //happens after this function returns), so we have to wait until the
+          //next iteration to actually finish disconnecting.
+          MoreDataResult.Incomplete
+        } else {
+          MoreDataResult.Complete
+        }
       }
-      if (!state.dataQ.isEmpty) MoreDataResult.Incomplete else MoreDataResult.Complete
     }
     case _ => MoreDataResult.Complete //this should never happen
   }
@@ -397,4 +413,14 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
   }
 
+}
+
+object OutputController {
+  /**
+   * The default max size for the data buffer of the output controller.
+   *
+   * TODO: This should be somehow synced up with the worker output buffer size,
+   * or at the very least made configurable
+   */
+  val DefaultDataBufferSize = 16384
 }

@@ -10,6 +10,7 @@ import akka.util.ByteString
 import WriteStatus._
 
 class WriteBufferSpec extends ColossusSpec {
+/*
 
   class FakeWriteBuffer(val internalBufferSize: Int, channelBufferSize: Int = Int.MaxValue) extends WriteBuffer {
   
@@ -41,87 +42,31 @@ class WriteBufferSpec extends ColossusSpec {
 
   }
 
+  */
+
   def data(s: String) = DataBuffer(ByteString(s))
 
 
   "WriteBuffer" must {
     "buffer some data and clear it" in {
-      val b = new FakeWriteBuffer(20)
-      b.write(data("hello")) must equal(Complete)
-      b.write(data(" world")) must equal(Complete)
-      b.handleWrite()
-      b.expectChannelWrite("hello world")
-      b.expectNoClearCalled()
-    }
-
-    "properly set write key interest" in {
-      val b = new FakeWriteBuffer(20)
-      b.writeReadyEnabled must equal(false)
-      b.write(data("hello"))
-      b.writeReadyEnabled must equal(true)
-      b.handleWrite()
-      b.writeReadyEnabled must equal(false)
+      val b = new MockWriteBuffer(20)
+      b.write(data("hello world")) must equal(Complete)
+      b.expectOneWrite(ByteString("hello world"))
     }
 
     "buffer and drain data too large for internal buffer" in {
-      val b = new FakeWriteBuffer(4)
+      val b = new MockWriteBuffer(4)
       b.write(data("1234567890")) must equal(Partial)
-      b.handleWrite()
-      b.expectChannelWrite("1234")
-      b.writeReadyEnabled must equal(true)
-      b.handleWrite()
-      b.expectChannelWrite("5678")
-      b.handleWrite()
-      b.expectChannelWrite("90")
-      b.writeReadyEnabled must equal(false)
-      b.expectClearCalled()
+      b.expectOneWrite(ByteString("1234"))
+      b.clearBuffer()
+      b.continueWrite() must equal(false)
+      b.expectOneWrite(ByteString("5678"))
+      b.clearBuffer()
+      b.continueWrite() must equal(true)
+      b.expectOneWrite(ByteString("90"))
     }
 
-    "properly drain buffer when socket is full" in {
-      val b = new FakeWriteBuffer(4, 2)
-      b.write(data("123456")) must equal(Partial)
-      b.handleWrite()
-      b.expectChannelWrite("12")
-      b.handleWrite()
-      b.expectChannelWrite("34")
-      b.handleWrite()
-      b.expectChannelWrite("56")
-      b.writeReadyEnabled must equal(false)
-      b.expectClearCalled()
-    }
-
-    "add to partial buffer when drainingInternal is true" in {
-      val b = new FakeWriteBuffer(4, 2)
-      b.write(data("1234")) must equal(Complete)
-      b.handleWrite()
-      b.expectChannelWrite("12")
-      b.write(data("56")) must equal(Partial)
-      b.handleWrite()
-      b.expectChannelWrite("34")
-      b.handleWrite()
-      b.expectChannelWrite("56")
-      b.expectClearCalled()
-    }
-
-    "reject more writes while draining when buffer filled" in {
-      val b = new FakeWriteBuffer(4)
-      b.write(data("12345678")) must equal(Partial)
-      b.write(data("90")) must equal(Zero)
-    }
-    
-    "allow writes after buffer drained" in {
-      val b = new FakeWriteBuffer(4)
-      b.write(data("12345678")) must equal(Partial)
-      b.handleWrite()
-      b.expectChannelWrite("1234")
-      b.write(data("90")) must equal(Partial)
-      b.handleWrite()
-      b.expectChannelWrite("5678")
-      b.write(data("ab")) must equal(Complete)
-      b.handleWrite()
-      b.expectChannelWrite("90ab")
-    }
-
+    /*
     "immediately call disconnect callback when no data buffered" in {
       val b = new FakeWriteBuffer(4)
       b.write(data("hello"))
@@ -161,6 +106,8 @@ class WriteBufferSpec extends ColossusSpec {
       val b = new FailFakeWriter
       b.write(data("asdfsadf")) must equal(Failed)
     }
+
+    */
 
 
 

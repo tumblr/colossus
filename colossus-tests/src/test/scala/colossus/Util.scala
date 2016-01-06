@@ -9,11 +9,23 @@ import colossus.service.{AsyncServiceClient, ClientConfig}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import colossus.encoding._
 
 class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
+
+  val buffer = new collection.mutable.Queue[ByteString]
   def receivedData(data: DataBuffer){
-    endpoint.write(data)
+    //endpoint.write(data)
+    buffer.enqueue(ByteString(data.takeAll))
+    endpoint.requestWrite
   }
+
+  override def readyForData(out: DataOutBuffer) = {
+    out.write(buffer.dequeue)
+    if (buffer.isEmpty) MoreDataResult.Complete else MoreDataResult.Incomplete
+  }
+      
+
   def shutdownRequest() {}
 }
 

@@ -60,7 +60,7 @@ class DroppedReply extends Error("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Duration.Inf)) with ServerConnectionHandler {
+extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._

@@ -196,21 +196,9 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
     handler.receivedData(data)
   }
 
-  def requestWrite() {
-    enableWriteReady()
-  }
 
   def handleWrite(data: DataOutBuffer) {
-    //first, drain any existing partial buffer
-    if (continueWrite()) {
-      //now get data from the handler
-      val more  = handler.readyForData(data)
-      val result = write(data.data)
-      //we want to leave writeReady enabled if either the handler has more data to write, of the writebuffer couldn't write everything
-      if (more == MoreDataResult.Complete && result == WriteStatus.Complete) {
-        disableWriteReady()
-      }
-    }
+    handleWrite(data, handler) //see WriteBuffer
   }
 
 
