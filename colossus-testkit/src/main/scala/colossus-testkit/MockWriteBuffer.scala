@@ -13,6 +13,8 @@ class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer {
   private var writeCalls = collection.mutable.Queue[ByteString]()
   protected var connection_status: ConnectionStatus = ConnectionStatus.Connected
 
+  def connectionStatus = connection_status
+
   private var bufferCleared = false
 
   protected def setKeyInterest(){}

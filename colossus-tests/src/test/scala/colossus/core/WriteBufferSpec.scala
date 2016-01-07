@@ -66,50 +66,30 @@ class WriteBufferSpec extends ColossusSpec {
       b.expectOneWrite(ByteString("90"))
     }
 
-    /*
     "immediately call disconnect callback when no data buffered" in {
-      val b = new FakeWriteBuffer(4)
-      b.write(data("hello"))
-      b.handleWrite()
-      b.handleWrite()
-      b.writeReadyEnabled must equal(false)
-      var called = false
-      b.disconnectBuffer(() => {called = true})
-      called must equal(true)
+      val b = new MockWriteBuffer(4)
+      b.write(data("hell"))
+      b.connectionStatus must equal (ConnectionStatus.Connected)
+      b.gracefulDisconnect()
+      println(b.isDataBuffered)
+      b.connectionStatus must equal (ConnectionStatus.NotConnected)
     }
 
-    "call disconnect callback when internal buffer drained" in {
-      val b = new FakeWriteBuffer(4)
+    "call disconnect callback only when all data is written" in {
+      val b = new MockWriteBuffer(4)
       b.write(data("12345678"))
-      var called = false
-      b.disconnectBuffer(() => {called = true})
-      called must equal(false)
-      b.handleWrite()
-      called must equal(false)
-      b.handleWrite()
-      called must equal(true)
+      b.gracefulDisconnect()
+      b.connectionStatus must equal (ConnectionStatus.Connected)
+      b.clearBuffer()
+      b.continueWrite() must equal(true)
+      b.connectionStatus must equal (ConnectionStatus.NotConnected)
     }
 
     "disallow more writes after disconnect callback has been set" in {
-      val b = new FakeWriteBuffer(4)
-      b.disconnectBuffer(() => ())
+      val b = new MockWriteBuffer(4)
+      b.gracefulDisconnect()
       b.write(data("asf")) must equal(Failed)
     }
-
-    "properly catch CancelledKeyException on key set interest in writes" in {
-      class FailFakeWriter extends FakeWriteBuffer(10) {
-        override def setKeyInterest() {
-          throw new java.nio.channels.CancelledKeyException()
-        }
-      }
-
-      val b = new FailFakeWriter
-      b.write(data("asdfsadf")) must equal(Failed)
-    }
-
-    */
-
-
 
   }
 }
