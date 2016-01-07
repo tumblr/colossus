@@ -47,7 +47,9 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
   def timeOpen = 0
 
   /**
-   * Simulate event-loop iterations, calling readyForData until this buffer fills or everything is written
+   * Simulate event-loop iterations, calling readyForData until this buffer
+   * fills or everything is written.  This can be used to test backpressure
+   * situations
    *
    * Be aware you need to call clearBuffer yourself
    */
@@ -58,5 +60,19 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
     }
     res
   }
+
+  /**
+   * Simulates event loop iteration, clearing the buffer on each iteration to avoid any backpressure
+   */
+  def iterateAndClear() {
+    handler.foreach{handler =>
+      while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer, handler)) {
+        clearBuffer()
+      }
+    }
+  }
+    
+
+  def iterate() = iterate[Unit]({})
 
 }

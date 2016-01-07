@@ -274,6 +274,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     } else if (isConnected || !failFast) {
       val pushed = push(s.message, s.start){
         case OutputResult.Success         => {
+        println("success")
           sentBuffer.enqueue(s)
           if (sentBuffer.size >= config.sentBufferSize) {
             pauseWrites() //writes resumed in processMessage

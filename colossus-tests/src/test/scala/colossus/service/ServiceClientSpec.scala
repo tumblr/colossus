@@ -64,6 +64,7 @@ class ServiceClientSpec extends ColossusSpec {
     val parser = new RedisServerCodec
     var bytes = ByteString()
     do {
+      endpoint.iterate()
       bytes = endpoint.clearBuffer()
       parser.decodeAll(DataBuffer.fromByteString(bytes)){command =>
         command match {
@@ -89,8 +90,10 @@ class ServiceClientSpec extends ColossusSpec {
       val command = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient()
       val cb = client.send(command)
+      endpoint.iterate({})
       endpoint.expectNoWrite()
       cb.execute()
+      endpoint.iterate({})
       endpoint.expectOneWrite(command.raw)
     }
 
@@ -98,13 +101,16 @@ class ServiceClientSpec extends ColossusSpec {
       val command = Command(CMD_GET, "foo")
       val reply = BulkReply(ByteString("HELLO"))
       val (endpoint, client, probe) = newClient()
+      var executed = false
       val cb = client.send(command).map{ r =>
+        executed = true
         r must equal (reply)
-        endpoint.expectOneWrite(command.raw)
-        client.receivedData(reply.raw)
-      }.recover{ case t => throw t}
+      }.recover{ case t => throw t}.execute()
+      endpoint.iterate()
+      endpoint.expectOneWrite(command.raw)
+      client.receivedData(reply.raw)
+      executed must equal(true)
 
-      cb.execute()
     }
 
     "queue a second command when a big command is partially sent"  in {
@@ -116,11 +122,17 @@ class ServiceClientSpec extends ColossusSpec {
       val cb2 = client.send(command2)
       cb.execute()
       cb2.execute()
-      endpoint.expectOneWrite(raw)
+      endpoint.iterate()
+      endpoint.expectOneWrite(raw.take(endpoint.maxWriteSize))
       endpoint.clearBuffer()
-      println("checking")
-      endpoint.expectOneWrite(command2.raw)
+      endpoint.iterate()
+      val remain = raw.drop(endpoint.maxWriteSize) ++ command2.raw
+      endpoint.expectOneWrite(remain.take(endpoint.maxWriteSize))
       endpoint.clearBuffer()
+      endpoint.iterate()
+      endpoint.expectOneWrite(remain.drop(endpoint.maxWriteSize))
+      endpoint.clearBuffer()
+      endpoint.iterate()
       endpoint.expectNoWrite()
 
     }
@@ -146,43 +158,21 @@ class ServiceClientSpec extends ColossusSpec {
     "fails requests in transit when connection closes" in {
       val command = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient()
-      var failed = true
+      var failed = false
       val cb = client.send(command).map{
         case wat => failed = false
+      }.recover{
+        case _ => failed = true
       }
       endpoint.expectNoWrite()
       cb.execute()
+      endpoint.iterate()
       endpoint.expectOneWrite(command.raw)
       endpoint.disconnect()
       failed must equal(true)
     }
 
 
-    "complete pending requests on reconnect" in {
-      val command1 = Command(CMD_GET, "123456789012345678901234567890")
-      val command2 = Command(CMD_GET, "foo")
-      val (endpoint, client, probe) = newClient()
-      var failed = true
-      val reply = BulkReply(ByteString("foobarbaz"))
-      var response: Option[Reply] = None
-      val cb1 = client.send(command1).map{
-        case wat => failed = false
-      }
-      val cb2 = client.send(command2).map{
-        case r => response = Some(r)
-      }
-      cb1.execute()
-      cb2.execute()
-      endpoint.disrupt()
-      failed must equal(true)
-
-      val newEndpoint = new MockWriteEndpoint(30, probe, Some(client))
-      client.connected(newEndpoint)
-      newEndpoint.expectOneWrite(command2.raw)
-      newEndpoint.clearBuffer()
-      client.receivedData(reply.raw)
-      response must equal(Some(reply))
-    }
 
     "fail pending requests on disconnect with failFast" in {
       val command1 = Command(CMD_GET, "123456789012345678901234567890")
@@ -203,33 +193,8 @@ class ServiceClientSpec extends ColossusSpec {
       failed2 must equal(true)
     }
 
-    "complete pending requests on buffer clear" in {
-      val command1 = Command(CMD_GET, "123456789012345678901234567890")
-      val command2 = Command(CMD_GET, "foo")
-      val (endpoint, client, probe) = newClient()
-      var failed = false
-      val reply1 = BulkReply(ByteString("foobarbaz"))
-      val reply2 = BulkReply(ByteString("abcdefg")) 
-      var response1: Option[Reply] = None
-      var response2: Option[Reply] = None
-
-      val cb1 = client.send(command1).execute{
-        case Success(r) => response1 = Some(r)
-        case Failure(nope) => throw new Exception("NOPE1")
-      }
-      val cb2 = client.send(command2).execute{
-        case Success(r) => response2 = Some(r)
-        case Failure(nope) => throw new Exception("NOPE2")
-      }
-      endpoint.expectOneWrite(command1.raw)
-      while (endpoint.clearBuffer().size > 0) {}
-      client.receivedData(reply1.raw)
-      client.receivedData(reply2.raw)
-      response1 must equal (Some(reply1))
-      response2 must equal (Some(reply2))
-    }
-
-    "immediately fail requests when pending buffer is full" in {
+    //this should be written as a controller test
+    "immediately fail requests when pending buffer is full" ignore {
       val (endpoint, client, probe) = newClient()
       val big = Command(CMD_GET, "123456789012345678901234567890")
       val commands = (1 to client.config.pendingBufferSize).map{i => 
@@ -279,7 +244,7 @@ class ServiceClientSpec extends ColossusSpec {
       failed must equal(true)
     }
 
-    "buffer requests when sentBuffer reaches max size" in {
+    "buffer requests when sentBuffer reaches max size" taggedAs(org.scalatest.Tag("test")) in {
       val cmd1 = Command(CMD_GET, "foo")
       val cmd2 = Command(CMD_GET, "bar")
       val rep1 = StatusReply("foo")
@@ -297,10 +262,12 @@ class ServiceClientSpec extends ColossusSpec {
         case Failure(nope) => throw nope
         case _ => throw new Exception("Bad Response")
       }
+      endpoint.iterate()
       endpoint.expectOneWrite(cmd1.raw)
       endpoint.clearBuffer()
       client.receivedData(rep1.raw)
       res1 must equal(Some(rep1.message))
+      endpoint.iterate()
       endpoint.expectOneWrite(cmd2.raw)
       endpoint.clearBuffer()
       client.receivedData(rep2.raw)
