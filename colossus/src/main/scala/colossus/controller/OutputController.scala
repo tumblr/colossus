@@ -31,7 +31,6 @@ class DataQueue(maxBytes: Long) {
     val size = data.remaining
     total += size
     queue.add(data -> size)
-    println(s"adding $size, total $total, isFull $isFull")
     isFull
   }
 
@@ -286,7 +285,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   }
 
   @tailrec private def drainMessages() {
-    println("draining messages")
     outputState match {
       case a @ Alive(msgQ, dataQ, Dequeueing, _, true) if (!msgQ.isEmpty && !dataQ.isFull) => {
         val next = msgQ.dequeue
@@ -295,7 +293,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
             //TODO: benchmark if the if-statement if necessary
             if (dataQ.itemSize == 0) signalWrite()
             dataQ.enqueue(d)
-            println("pop")
             next.postWrite(OutputResult.Success)
             drainMessages()
           }
@@ -374,7 +371,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    println("pausing writes")
     outputState.ifAlive{s =>
       outputState = s.copy(writesEnabled = false)
     }
@@ -385,7 +381,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    */
   protected def resumeWrites() {
     outputState.ifAlive{s =>
-      println("resuming writes")
       outputState = s.copy(writesEnabled = true)
       s.liveState match {
         case Dequeueing => {
@@ -398,7 +393,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   def readyForData(buffer: DataOutBuffer) = outputState match {
     case state: Alive[Output] => {
-      println("beginning buffer write")
       if (checkOutputGracefulDisconnect(state)) {
         MoreDataResult.Complete
       } else {
