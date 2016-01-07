@@ -244,56 +244,26 @@ class ServiceClientSpec extends ColossusSpec {
       failed must equal(true)
     }
 
-    "buffer requests when sentBuffer reaches max size" taggedAs(org.scalatest.Tag("test")) in {
-      val cmd1 = Command(CMD_GET, "foo")
-      val cmd2 = Command(CMD_GET, "bar")
-      val rep1 = StatusReply("foo")
-      val rep2 = StatusReply("bar")
-      var res1: Option[String] = None
-      var res2: Option[String] = None
-      val (endpoint, client, probe) = newClient(true, 1)
-      val cb1 = client.send(cmd1).execute{
-        case Success(StatusReply(msg)) => res1 = Some(msg)
-        case Failure(nope) => throw nope
-        case _ => throw new Exception("Bad Response")
-      }
-      val cb2 = client.send(cmd2).execute{
-        case Success(StatusReply(msg)) => res2 = Some(msg)
-        case Failure(nope) => throw nope
-        case _ => throw new Exception("Bad Response")
-      }
-      endpoint.iterate()
-      endpoint.expectOneWrite(cmd1.raw)
-      endpoint.clearBuffer()
-      client.receivedData(rep1.raw)
-      res1 must equal(Some(rep1.message))
-      endpoint.iterate()
-      endpoint.expectOneWrite(cmd2.raw)
-      endpoint.clearBuffer()
-      client.receivedData(rep2.raw)
-      res2 must equal(Some(rep2.message))
-    }
-
     "not overflow sentBuffer when draining from pending" in {
       // here we're checking to make sure that if we've previously paused
       // writes, and then resume writing, that we continue to respect the max
       // sentBuffer size.
+      val cmd = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true, 1)
       val cmds = (0 to 3).map{i => 
-        client.send(Command(CMD_GET, "foo")).execute()
+        client.send(cmd).execute()
       }
       val reply = StatusReply("foo")
       (0 to 3).map{i => 
-        endpoint.expectNumWrites(1)
+        endpoint.iterate()
+        endpoint.expectOneWrite(cmd.raw)
         endpoint.clearBuffer()
-        endpoint.expectNumWrites(0)
         client.receivedData(reply.raw)
       }
     }
 
-    "gracefully disconnect" in {
+    "graceful disconnect allows outstanding request to complete" taggedAs(org.scalatest.Tag("test")) in {
       val cmd1 = Command(CMD_GET, "foo")
-      val cmd2 = Command(CMD_GET, "bar")
       val rep1 = StatusReply("foo")
       var res1: Option[String] = None
       val (endpoint, client, probe) = newClient(true, 10)
@@ -302,20 +272,28 @@ class ServiceClientSpec extends ColossusSpec {
         case Failure(nope) => throw nope
         case _ => throw new Exception("Bad Response")
       }
+      endpoint.iterate()
       endpoint.expectOneWrite(cmd1.raw)
       endpoint.clearBuffer()
       client.gracefulDisconnect()
       endpoint.disconnectCalled must equal(false)
+      client.receivedData(rep1.raw)
+      res1 must equal(Some(rep1.message))
+      endpoint.disconnectCalled must equal(true)
+    }
+
+    "graceful disconnect rejects new requests while disconnecting" in {
+      val (endpoint, client, probe) = newClient(true, 10)
+      client.send(Command("BLAH")).execute()
+      client.gracefulDisconnect()
+      endpoint.disconnectCalled must equal(false)
       intercept[CallbackExecutionException] {
-        client.send(cmd2).execute{
+        client.send(Command("BLEH")).execute{
           case Success(StatusReply(msg)) => {}
           case Failure(nope: NotConnectedException) => throw nope
           case _ => {}
         }
       }
-      client.receivedData(rep1.raw)
-      res1 must equal(Some(rep1.message))
-      endpoint.disconnectCalled must equal(true)
     }
 
     "graceful disconnect immediately disconnects if there's no outstanding requests" in {
@@ -347,9 +325,11 @@ class ServiceClientSpec extends ColossusSpec {
         client.gracefulDisconnect()
         r
       }.execute()
+      endpoint.iterate()
       endpoint.expectOneWrite(cmd.raw)
+      endpoint.disconnectCalled must equal(false)
       client.receivedData(reply.raw)
-      //TODO: is this test unfinished?
+      endpoint.disconnectCalled must equal(true)
     }
 
     "attempts to reconnect when server closes connection" in {
@@ -433,8 +413,8 @@ class ServiceClientSpec extends ColossusSpec {
       val cb = client.send(command).map{
         case wat => failed = false
       }
-      endpoint.expectNoWrite()
       cb.execute()
+      endpoint.iterate()
       endpoint.expectOneWrite(command.raw)
 
       Thread.sleep(150)

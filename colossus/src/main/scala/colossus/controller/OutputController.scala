@@ -179,7 +179,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
     outputState = Alive(msgs, new DataQueue(controllerConfig.dataBufferSize), Dequeueing, disconnecting = false, writesEnabled = true)
     if (!msgs.isEmpty) {
-      signalWrite()
+      drainMessages()
     }
 
   }
@@ -208,11 +208,35 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
   }
 
+  /**
+   * handle the output side of gracefully disconnecting.  If the output
+   * controller is currently idle, we can immediately switch the state to
+   * Terminated, otherwise, we switch disconnecting to true and wait for pending
+   * messages to either get sent or timeout
+   */
   private[controller] def outputGracefulDisconnect() {
-    outputState = outputState match {
-      case a @ Alive(_, _, _, false, _) => a.copy(disconnecting = true)
-      case other => other
+    outputState match {
+      case a @ Alive(_, _, _, false, _) => {
+        val n = a.copy(disconnecting = true)
+        if (!checkOutputGracefulDisconnect(n)) {
+          outputState = n
+        }
+      }
+      case other => {}
     }
+  }
+
+  
+  /**
+   * returns true if the state is switched to Terminated
+   */
+  private def checkOutputGracefulDisconnect(state: Alive[Output]): Boolean = {
+    if (state.disconnecting && state.msgQ.isEmpty && state.dataQ.isEmpty && state.liveState == Dequeueing) {
+      //this occurs as a continuation of below
+      outputState = Terminated()
+      checkControllerGracefulDisconnect()
+      true
+    } else false
   }
 
   private def signalWrite() {
@@ -264,7 +288,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   @tailrec private def drainMessages() {
     println("draining messages")
     outputState match {
-      case a @ Alive(msgQ, dataQ, Dequeueing, _, true) if (!msgQ.isEmpty) => {
+      case a @ Alive(msgQ, dataQ, Dequeueing, _, true) if (!msgQ.isEmpty && !dataQ.isFull) => {
         val next = msgQ.dequeue
         codec.encode(next.item) match {
           case d: DataBuffer => {
@@ -375,10 +399,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   def readyForData(buffer: DataOutBuffer) = outputState match {
     case state: Alive[Output] => {
       println("beginning buffer write")
-      if (state.disconnecting && state.msgQ.isEmpty && state.dataQ.isEmpty && state.liveState == Dequeueing) {
-        //this occurs as a continuation of below
-        outputState = Terminated()
-        checkControllerGracefulDisconnect()
+      if (checkOutputGracefulDisconnect(state)) {
         MoreDataResult.Complete
       } else {
         val fullBefore = state.dataQ.isFull
