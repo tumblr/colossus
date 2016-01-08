@@ -176,13 +176,51 @@ object Connection {
   }
 }
 
+case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
+
+  def apply(key: String) = singleValue(key).get
+
+  /**
+   * Get the value of a query string parameter when only at most one value is expected
+   **/
+  def singleValue(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
+
+  /**
+   * Get the values of all instances of key
+   *
+   * This is for urls like http://foo.com?bar=val1&bar=val2&bar=val3, which is a valid url
+   */
+  def multiValue(key: String) : Seq[String] = parameters.collect{case (k,v) if k == key => v}
+
+  /**
+   * return true if at least one parameter's key matches the given key
+   */
+  def contains(key: String): Boolean = parameters.exists{case (k,v) => k == key}
+
+}
+
 case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) extends HttpHeaderUtils {
-  import HttpHead._
   import HttpHeaders._
 
-  lazy val (host, port, path, query) = parseURL(url)
-  lazy val parameters = parseParameters(query)
+  lazy val (path, query) = {
+    val pieces = url.split("\\?",2)
+    (pieces(0), if (pieces.size > 1) Some(pieces(1)) else None)
+  }
 
+  lazy val parameters: QueryParameters = query.map { qstring =>
+    def decode(s: String) = java.net.URLDecoder.decode(s, "UTF-8")
+    var build = Vector[(String, String)]()
+    var remain = qstring
+    while (remain != "") {
+      val keyval = remain.split("&", 2)
+      val splitKV = keyval(0).split("=", 2)
+      val key = decode(splitKV(0))
+      val value = if (splitKV.size > 1) decode(splitKV(1)) else ""
+      build = build :+ (key -> value)
+      remain = if (keyval.size > 1) keyval(1) else ""
+    }
+    QueryParameters(build)
+  } getOrElse QueryParameters(Vector())
 
   def withHeader(header: String, value: String): HttpHead = {
     copy(headers = (header -> value) +: headers)
@@ -224,33 +262,3 @@ case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, heade
     }
 }
 
-object HttpHead {
-
-  import java.net.URI
-  // Notice, parameters with no value are legal, in which case we fill in with an empty string
-  def parseParameters(q: String): Map[String, String] = {
-    if (q != null && q.length > -1) {
-      val params = scala.collection.mutable.HashMap[String, String]()
-      val unparsedArgs = q.split('&')
-
-      for (str <- unparsedArgs) {
-        val unparsedArg = str.split("=", 2)
-        if (unparsedArg.size == 2) {
-          params += unparsedArg(0) -> unparsedArg(1)
-        } else {
-          params += unparsedArg(0) -> ""
-        }
-      }
-      collection.immutable.Map(params.toList: _*)
-    } else {
-      HashMap.empty[String, String]
-    }
-  }
-
-  def parseURL(url: String): (String, Int, String, String) = {
-    val parsed = new URI(url)
-    (parsed.getHost, parsed.getPort, parsed.getPath, parsed.getQuery)
-  }
-
-
-}

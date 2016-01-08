@@ -65,6 +65,13 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
     }
 
+    "parse request with no headers" in {
+      val req = "GET /hello HTTP/1.1\r\n\r\n"
+      val parser = requestParser
+      val expected = HttpRequest(HttpHead(method = HttpMethod.Get, url="/hello", version = HttpVersion.`1.1`, headers = Nil), None)
+      parser.parse(DataBuffer(ByteString(req))) must equal (Some(expected))
+    }
+
     "parse request with content" in {
       val body = ByteString("HELLO I AM A BODY")
       val len = body.size
@@ -207,6 +214,31 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       
 
       
+  }
+
+
+
+  "HttpHead parameter parsing" must {
+
+    def h(url: String) = HttpHead(HttpMethod.Get, url, HttpVersion.`1.1`, Nil).parameters
+    def p(params: (String, String)*) = QueryParameters(params.toSeq)
+      
+    "parse a basic url" in {
+      h("/hello/blah.php?foo=bar&baz=moo") must equal(p("foo" -> "bar" , "baz" -> "moo"))
+    }
+
+    "decode url-encoded stuff" in {
+      h("/x?he%26llo=wo%3F%3Dd") must equal(p("he&llo" -> "wo?=d"))
+    }
+
+    "handle terminating &" in {
+      h("/x?a=b&") must equal(p("a" -> "b"))
+    }
+    
+    "handle empty value" in {
+      h("/x?a=&b=c") must equal(p("a" -> "", "b" -> "c"))
+    }
+    
   }
 
   "Http Url Matcher" must {
