@@ -238,6 +238,28 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "handle empty value" in {
       h("/x?a=&b=c") must equal(p("a" -> "", "b" -> "c"))
     }
+
+    "getFirst" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.getFirst("a") must equal(Some("111"))
+      p.getFirst("b") must equal(Some("333"))
+      p.getFirst("c") must equal(None)
+    }
+
+    "getAll" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.getAll("a") must equal(Seq("111", "222"))
+      p.getAll("b") must equal(Seq("333"))
+      p.getAll("c") must equal(Seq())
+    }
+
+    "contains" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.contains("a") must equal(true)
+      p.contains("b") must equal(true)
+      p.contains("c") must equal(false)
+    }
+      
     
   }
 

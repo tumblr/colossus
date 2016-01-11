@@ -178,19 +178,21 @@ object Connection {
 
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
-  def apply(key: String) = singleValue(key).get
+  def apply(key: String) = getFirst(key).get
 
   /**
-   * Get the value of a query string parameter when only at most one value is expected
+   * Get the value of a query string parameter when only at most one value is
+   * expected.  If there are multiple instances of the parameter then only the
+   * value of the first is returned
    **/
-  def singleValue(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
+  def getFirst(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
 
   /**
    * Get the values of all instances of key
    *
    * This is for urls like http://foo.com?bar=val1&bar=val2&bar=val3, which is a valid url
    */
-  def multiValue(key: String) : Seq[String] = parameters.collect{case (k,v) if k == key => v}
+  def getAll(key: String) : Seq[String] = parameters.collect{case (k,v) if k == key => v}
 
   /**
    * return true if at least one parameter's key matches the given key
