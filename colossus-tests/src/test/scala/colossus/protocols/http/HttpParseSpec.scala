@@ -65,6 +65,13 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
     }
 
+    "parse request with no headers" in {
+      val req = "GET /hello HTTP/1.1\r\n\r\n"
+      val parser = requestParser
+      val expected = HttpRequest(HttpHead(method = HttpMethod.Get, url="/hello", version = HttpVersion.`1.1`, headers = Nil), None)
+      parser.parse(DataBuffer(ByteString(req))) must equal (Some(expected))
+    }
+
     "parse request with content" in {
       val body = ByteString("HELLO I AM A BODY")
       val len = body.size
@@ -207,6 +214,53 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       
 
       
+  }
+
+
+
+  "HttpHead parameter parsing" must {
+
+    def h(url: String) = HttpHead(HttpMethod.Get, url, HttpVersion.`1.1`, Nil).parameters
+    def p(params: (String, String)*) = QueryParameters(params.toSeq)
+      
+    "parse a basic url" in {
+      h("/hello/blah.php?foo=bar&baz=moo") must equal(p("foo" -> "bar" , "baz" -> "moo"))
+    }
+
+    "decode url-encoded stuff" in {
+      h("/x?he%26llo=wo%3F%3Dd") must equal(p("he&llo" -> "wo?=d"))
+    }
+
+    "handle terminating &" in {
+      h("/x?a=b&") must equal(p("a" -> "b"))
+    }
+    
+    "handle empty value" in {
+      h("/x?a=&b=c") must equal(p("a" -> "", "b" -> "c"))
+    }
+
+    "getFirst" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.getFirst("a") must equal(Some("111"))
+      p.getFirst("b") must equal(Some("333"))
+      p.getFirst("c") must equal(None)
+    }
+
+    "getAll" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.getAll("a") must equal(Seq("111", "222"))
+      p.getAll("b") must equal(Seq("333"))
+      p.getAll("c") must equal(Seq())
+    }
+
+    "contains" in {
+      val p = h("/x?a=111&a=222&b=333")
+      p.contains("a") must equal(true)
+      p.contains("b") must equal(true)
+      p.contains("c") must equal(false)
+    }
+      
+    
   }
 
   "Http Url Matcher" must {
