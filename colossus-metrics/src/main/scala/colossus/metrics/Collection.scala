@@ -5,6 +5,7 @@ import akka.actor._
 import scala.concurrent.duration._
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.language.higherKinds
 import scala.reflect.ClassTag
@@ -23,6 +24,42 @@ trait MetricValue {
   def value: RawMetricValue
 }
 
+class CollectionMap {
+
+  private val map = new ConcurrentHashMap[TagMap, AtomicLong]
+
+  def increment(tags: TagMap, num: Long = 1) {
+    Option(map.get(tags)) match {
+      case Some(got) => got.addAndGet(num)
+      case None => {
+        map.putIfAbsent(tags, new AtomicLong(0))
+        map.get(tags).addAndGet(num)
+      }
+    }
+  }
+}
+
+object Bench {
+  
+  def time(num: Long)(op: () => Unit) {
+    val start = System.nanoTime
+    var n = 0L
+    while (n < num) {
+      op()
+      n += 1
+    }
+    val end = System.nanoTime
+    println((end - start) / 1000.0)
+  }
+
+  val r = new ConcreteRate(RateParams("/foo", false), CollectorConfig(List(1.second)))
+  val c = new CollectionMap
+
+  val doR = () => { r.hit(tags) }
+  val doC = () => { c.increment(tags) }
+
+  val tags = Map("foo" -> "bar", "baz" -> "biz")
+}
 
 class EventCollectorException(message: String) extends Exception(message)
 

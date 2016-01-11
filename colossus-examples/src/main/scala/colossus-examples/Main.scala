@@ -38,4 +38,36 @@ object Main extends App {
 
   val benchmarkServer = BenchmarkService.start(9007)
 
+  {
+    import colossus.metrics._
+    import colossus.protocols.http._
+    import colossus.service._
+
+    val c = new CollectionMap
+    Service.serve[Http]("foo", 11111){ctx =>
+      ctx.handle{con =>
+        con.become {
+          case any => {
+            (0 to 5).foreach{i => c.increment(Map("foo" -> "bar")) }
+            Callback.successful(any.ok("done"))
+          }
+        }
+      }
+    }
+    Service.serve[Http]("bar", 11112){ctx =>
+      val r = ctx.worker.metrics.getOrAdd(Rate("bleh"))
+      ctx.handle{con =>
+        con.become {
+          case any => {
+            r.hit(Map("foo" -> "bar"))
+            Callback.successful(any.ok("done"))
+          }
+        }
+      }
+    }
+  }
+
+
+            
+
 }
