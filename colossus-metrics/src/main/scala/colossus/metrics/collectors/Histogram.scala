@@ -148,7 +148,16 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
     while (index < mBuckets.size) {
       val v = mBuckets(index).getAndSet(0)
       if (v > 0) {
-        values = values :+ BucketValue(value = ranges(index), count = v.toInt)
+        //since our bucket ranges are lower bounds, we assume that the average
+        //value in each bucket is the mean between the range of this bucket and
+        //the range of the next bucket
+        // 
+        // for example, if we have a two buckets with range values of 10 and 20,
+        // and we add the values 14, 15, 16, they all get added to the 10
+        // bucket, so we take 15 as our average value (this assumes uniform
+        // distribution within a bucket, which might be wrong)
+        val weightedValue = if (index < mBuckets.size - 1) (ranges(index) + ranges(index + 1)) / 2 else infinity
+        values = values :+ BucketValue(value = weightedValue, count = v.toInt)
       }
     }    
     Snapshot(smin.toInt, smax.toInt, scount.toInt, values)

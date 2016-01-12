@@ -16,7 +16,7 @@ class Counter(val address: MetricAddress, config: CollectorConfig) extends Colle
     counters.set(tags, num)
   }
 
-  def get(tags: TagMap = TagMap.Empty): Long = Option(counters.get(tags)).getOrElse(0)
+  def get(tags: TagMap = TagMap.Empty): Long = counters.get(tags).getOrElse(0)
 
   def tick(interval: FiniteDuration): MetricMap  = {
     Map(address -> counters.snapshot(false, false))

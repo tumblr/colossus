@@ -3,24 +3,23 @@ package colossus.metrics
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import colossus.metrics.IntervalAggregator.ReportMetrics
-import colossus.metrics.MetricValues.SumValue
 
-class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) with MetricSystemMatchers {
+class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) {
 
   def this() = this(ActorSystem("MetricSpec"))
 
   implicit val sys = _system
 
   val metricMap: MetricMap = Map(
-    MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->SumValue(0L)),
-    MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->SumValue(0L)),
-    MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->SumValue(0L)),
-    MetricAddress("/bar")->Map(Map("bar" -> "a")->SumValue(1L)))
+    MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
+    MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->0L),
+    MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L),
+    MetricAddress("/bar")->Map(Map("bar" -> "a")->1L))
 
   "MetricReportFilters" must {
 
     "Filter nothing if MetricReporterFilter.All is used" in {
-      val expectedRawMetrics: RawMetricMap = Map(
+      val expectedRawMetrics: MetricMap = Map(
         MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L),
@@ -30,14 +29,14 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
     }
 
     "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (wild card) - 1" in {
-      val expectedRawMetrics: RawMetricMap = Map(
+      val expectedRawMetrics: MetricMap = Map(
         MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L))
       testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/*/foo"))), expectedRawMetrics)
     }
 
     "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (wild card) - 2" in {
-      val expectedRawMetrics: RawMetricMap = Map(
+      val expectedRawMetrics: MetricMap = Map(
         MetricAddress("/foo/foo/foo")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L),
         MetricAddress("/foo/foo/bar")->Map(Map("foo" -> "a")->0L))
@@ -45,23 +44,23 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
     }
 
     "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (no wild card) - 1" in {
-      val expectedRawMetrics: RawMetricMap = Map(
+      val expectedRawMetrics: MetricMap = Map(
         MetricAddress("/foo/bar/foo")->Map(Map("foo" -> "a")->0L))
       testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/bar/foo"))), expectedRawMetrics)
     }
 
     "Only include matching MetricAddresses if MetricReporterFilter.WhiteList is used (no wild card) - 2" in {
-      val expectedRawMetrics: RawMetricMap = Map.empty
+      val expectedRawMetrics: MetricMap = Map.empty
       testFilter(MetricReporterFilter.WhiteList(Seq(MetricAddress("/foo/bar"))), expectedRawMetrics)
     }
 
     "Filter out metrics if MetricReporterFilter.BlackList is used" in {
-      val expectedRawMetrics: RawMetricMap = Map(MetricAddress("/bar")->Map(Map("bar" -> "a")->1L))
+      val expectedRawMetrics: MetricMap = Map(MetricAddress("/bar")->Map(Map("bar" -> "a")->1L))
       testFilter(MetricReporterFilter.BlackList(Seq(MetricAddress("/foo/*"))), expectedRawMetrics)
     }
   }
 
-  private def testFilter(filter : MetricReporterFilter, expected : RawMetricMap) {
+  private def testFilter(filter : MetricReporterFilter, expected : MetricMap) {
     val probe = TestProbe()
 
     val mockAggregator = TestProbe()

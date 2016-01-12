@@ -49,6 +49,8 @@ class CollectionMap[T] {
     }
   }
 
+  def get(tags: T): Option[Long] = Option(map.get(tags).get)
+
   def snapshot(pruneEmpty: Boolean, reset: Boolean): Map[T, Long] = {
     val keys = map.keys
     var build = Map[T, Long]()
