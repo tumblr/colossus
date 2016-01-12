@@ -4,7 +4,7 @@ import akka.actor._
 
 import scala.concurrent.duration._
 
-class Rate(val address: MetricAddress)(implicit collection: Collection) extends Collector(collection) {
+class Rate(val address: MetricAddress)(implicit collection: Collection) extends Collector {
 
   val maps = collection.config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
 

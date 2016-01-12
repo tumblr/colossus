@@ -138,12 +138,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   }
 
   implicit val mylog = log
-  val metricSystem = config.io.metrics
-  override def globalTags = Map()
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  import metricSystem.base
+  import config.io.metrics.base
 
   val eventLoops              = new Rate(io.namespace / "worker" / "event_loops")
   val numConnections          = new Counter(io.namespace / "worker" / "connections")

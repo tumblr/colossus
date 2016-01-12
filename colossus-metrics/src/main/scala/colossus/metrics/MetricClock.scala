@@ -28,6 +28,8 @@ class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, sna
       collections.foreach{ collection =>
         build = build ++ collection.tick(interval)
       }
+
+      snapshot.send(build)
       reporters.foreach{ reporter =>
         reporter ! ReportMetrics(build)
       }

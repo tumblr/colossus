@@ -184,11 +184,11 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
 
   //initialize metrics
   import io.metrics.base
-  val connections   = new Counter(name / "connections")
-  val refused       = new Rate(name / "refused_connections")
-  val connects      = new Rate(name / "connects")
-  val closed        = new Rate(name / "closed")
-  val highwaters    = new Rate(name / "highwaters")
+  val connections   = base getOrAdd new Counter(name / "connections")
+  val refused       = base getOrAdd new Rate(name / "refused_connections")
+  val connects      = base getOrAdd new Rate(name / "connects")
+  val closed        = base getOrAdd new Rate(name / "closed")
+  val highwaters    = base getOrAdd new Rate(name / "highwaters")
 
   private var openConnections = 0
 

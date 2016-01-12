@@ -3,6 +3,7 @@ package colossus.metrics
 import akka.actor._
 
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -22,9 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 case class CollectorConfig(intervals: Seq[FiniteDuration])
 
-abstract class Collector(collection : Collection) {
-
-  collection.add(this)
+trait Collector {
 
   def address: MetricAddress
   def tick(interval: FiniteDuration): MetricMap
@@ -79,6 +78,7 @@ class CollectionMap[T] {
 
 }
 
+class DuplicateMetricException(message: String) extends Exception(message)
 
 class Collection(val config: CollectorConfig) {
 
@@ -86,6 +86,14 @@ class Collection(val config: CollectorConfig) {
 
   def add(collector: Collector) {
     collectors.put(collector.address, collector)
+  }
+
+  def getOrAdd[T <: Collector : ClassTag](created: T): T = {
+    collectors.putIfAbsent(created.address, created) match {
+      case null => created
+      case exists: T => exists
+      case other => throw new DuplicateMetricException(s"An event collector of type ${other.getClass.getSimpleName} already exists")
+    }
   }
 
   def tick(interval: FiniteDuration): MetricMap = {
@@ -99,7 +107,5 @@ class Collection(val config: CollectorConfig) {
     }
     build
   }
-
-  
 
 }

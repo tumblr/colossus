@@ -54,16 +54,12 @@ case class Snapshot(min: Int, max: Int, count: Int, bucketValues: Vector[BucketV
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
-        println(s"$num, $index, $build, $remain")
         if (perc <= 0.0 || count == 0) {
-          println(s"a $perc $count")
           p(num, index, build :+ 0, remain.tail)
         } else if (perc >= 1.0) {
-          println("b")
           p(num, index, build :+ max, remain.tail)          
         } else {
           val bound = count * perc
-          println(bound)
           if (index < bucketValues.size - 1 && num < count * perc) {
             p(num + bucketValues(index).count, index + 1, build, remain)
           } else {
@@ -171,7 +167,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram(val address: MetricAddress, percentiles: Seq[Double])(implicit collection: Collection) extends Collector(collection) {
+class Histogram(val address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection) extends Collector {
 
   val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]

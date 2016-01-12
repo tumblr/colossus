@@ -14,7 +14,7 @@ import protocols.http._
 import java.net.InetSocketAddress
 import net.liftweb.json._
 
-
+/*
 
 class JsonMetricSenderActor(io: IOSystem, host: String, port: Int, path: String) extends Actor with ActorLogging {
   import MetricSender._
@@ -47,3 +47,6 @@ case class JsonMetricSender(host: String, port: Int, path: String, sys: IOSystem
   def name = "json"
   def props = Props(classOf[JsonMetricSenderActor], sys, host, port, path)
 }
+
+
+*/
