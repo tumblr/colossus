@@ -4,9 +4,9 @@ import akka.actor._
 
 import scala.concurrent.duration._
 
-class Rate(val address: MetricAddress, config: CollectorConfig) extends Collector {
+class Rate(val address: MetricAddress)(implicit collection: Collection) extends Collector(collection) {
 
-  val maps = config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
+  val maps = collection.config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
 
   def hit(tags: TagMap = TagMap.Empty, num: Long = 1) {
     maps.foreach{ case (_, map) => map.increment(tags) }

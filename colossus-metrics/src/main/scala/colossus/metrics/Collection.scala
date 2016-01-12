@@ -22,7 +22,10 @@ import java.util.concurrent.atomic.AtomicLong
  */
 case class CollectorConfig(intervals: Seq[FiniteDuration])
 
-trait Collector {
+abstract class Collector(collection : Collection) {
+
+  collection.add(this)
+
   def address: MetricAddress
   def tick(interval: FiniteDuration): MetricMap
 }
@@ -77,7 +80,7 @@ class CollectionMap[T] {
 }
 
 
-class Collection {
+class Collection(val config: CollectorConfig) {
 
   val collectors = new ConcurrentHashMap[MetricAddress, Collector]
 

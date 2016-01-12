@@ -37,7 +37,7 @@ case class WorkerConfig(
  * @param worker The ActorRef of the Worker
  * @param system The IOSystem to which this Worker belongs
  */
-case class WorkerRef private[colossus](id: Int, metrics: LocalCollection, worker: ActorRef, system: IOSystem) {
+case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSystem) {
   /**
    * Send this Worker a message
    * @param message The message to send
@@ -117,7 +117,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
 
 
 
-private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMetrics with ActorLogging with CallbackExecution {
+private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLogging with CallbackExecution {
   import Server._
   import Worker._
   import WorkerManager._
@@ -143,9 +143,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  val eventLoops              = metrics getOrAdd Rate(io.namespace / "worker" / "event_loops")
-  val numConnections          = metrics getOrAdd Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = metrics getOrAdd Rate(io.namespace / "worker" / "rejected_connections")
+  import metricSystem.base
+
+  val eventLoops              = new Rate(io.namespace / "worker" / "event_loops")
+  val numConnections          = new Counter(io.namespace / "worker" / "connections")
+  val rejectedConnections     = new Rate(io.namespace / "worker" / "rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -158,7 +160,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
   //mapping of registered servers to their delegators
   val delegators = collection.mutable.Map[ActorRef, Delegator]()
 
-  val me = WorkerRef(workerId, metrics, self, io)
+  val me = WorkerRef(workerId, self, io)
 
   //collection of all the bound WorkerItems, including connection handlers
   val workerItems = new WorkerItemManager(me, log)
@@ -173,7 +175,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorMet
 
   def receive = handleCallback orElse accepting
 
-  def accepting: Receive = handleMetrics orElse {
+  def accepting: Receive = {
     case Select => {
       selectLoop()
       self ! Select

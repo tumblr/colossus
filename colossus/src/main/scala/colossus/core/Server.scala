@@ -165,7 +165,7 @@ object ConnectionVolumeState {
   case object HighWater extends ConnectionVolumeState
 }
 
-private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : Agent[ServerState]) extends Actor with ActorMetrics with ActorLogging with Stash {
+private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
   import Server._
   import context.dispatcher
   import config._
@@ -183,11 +183,12 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val me = ServerRef(config, self, io, stateAgent)
 
   //initialize metrics
-  val connections   = metrics getOrAdd Counter(name / "connections")
-  val refused       = metrics getOrAdd Rate(name / "refused_connections")
-  val connects      = metrics getOrAdd Rate(name / "connects")
-  val closed        = metrics getOrAdd Rate(name / "closed")
-  val highwaters    = metrics getOrAdd Rate(name / "highwaters")
+  import io.metrics.base
+  val connections   = new Counter(name / "connections")
+  val refused       = new Rate(name / "refused_connections")
+  val connects      = new Rate(name / "connects")
+  val closed        = new Rate(name / "closed")
+  val highwaters    = new Rate(name / "highwaters")
 
   private var openConnections = 0
 
@@ -218,7 +219,7 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
     updateServerStatus(status)
   }
 
-  def alwaysHandle : Receive = handleMetrics orElse handleShutdown orElse handleStatus
+  def alwaysHandle : Receive = handleShutdown orElse handleStatus
 
   def receive = waitForWorkers
 

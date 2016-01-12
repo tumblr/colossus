@@ -171,9 +171,9 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram(val address: MetricAddress, percentiles: Seq[Double], config: CollectorConfig) extends Collector {
+class Histogram(val address: MetricAddress, percentiles: Seq[Double])(implicit collection: Collection) extends Collector(collection) {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = config.intervals.map{i => 
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap

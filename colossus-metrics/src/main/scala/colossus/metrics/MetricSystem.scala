@@ -35,6 +35,9 @@ class MetricInterval private[metrics](val namespace : MetricAddress, val interva
  */
 case class MetricSystem private [metrics](namespace: MetricAddress, metricIntervals : Map[FiniteDuration, MetricInterval]) {
 
+  implicit val base = new Collection(CollectorConfig(metricIntervals.keys.toSeq))
+  registerCollection(base)
+
   def registerCollection(collection: Collection): Unit = {
     metricIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
   }
