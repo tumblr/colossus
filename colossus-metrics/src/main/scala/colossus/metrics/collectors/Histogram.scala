@@ -2,24 +2,13 @@ package colossus.metrics
 
 import akka.actor._
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.duration._
 
-trait Histogram extends EventCollector {
-  def add(value: Int, tags: TagMap = TagMap.Empty)
-}
 
 case class BucketList(buckets: Vector[Int]) extends AnyVal
   
-case class HistogramParams (
-  address: MetricAddress, 
-  bucketRanges: BucketList = Histogram.defaultBucketRanges, 
-  percentiles: List[Double] = Histogram.defaultPercentiles,
-  sampleRate: Double = 1.0,
-  pruneEmpty: Boolean = false
-) extends MetricParams[Histogram, HistogramParams] {
-  def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
-}
-
 /**
  * A Basic log-scale histogram, mainly designed to measure latency
  *
@@ -54,19 +43,6 @@ object Histogram {
       }
     }.toVector
     BucketList(buckets)
-  }
-
-  def apply(
-    address: MetricAddress, 
-    bucketRanges: BucketList = Histogram.defaultBucketRanges, 
-    percentiles: List[Double] = Histogram.defaultPercentiles,
-    sampleRate: Double = 1.0,
-    pruneEmpty: Boolean = false
-  ) : HistogramParams = HistogramParams(address, bucketRanges, percentiles, sampleRate, pruneEmpty)
-
-  implicit object HistogramGenerator extends Generator[Histogram, HistogramParams] {
-    def local(params: HistogramParams, config: CollectorConfig) = new PeriodicHistogram(params, config)
-    def shared(params: HistogramParams, config: CollectorConfig)(implicit actor: ActorRef) = new SharedHistogram(params, actor)
   }
 
 }

@@ -7,9 +7,6 @@ import scala.concurrent.duration._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.language.higherKinds
-import scala.reflect.ClassTag
-
 
 /**
  * This is passed to new event collectors in addition to their own config.
@@ -38,14 +35,18 @@ class CollectionMap[T] {
     Option(map.get(tags)) match {
       case Some(got) => got.addAndGet(num)
       case None => {
-        map.putIfAbsent(tags, new AtomicLong(0))
-        map.get(tags).addAndGet(num)
+        map.putIfAbsent(tags, new AtomicLong(num))
       }
     }
   }
 
   def set(tags: T, num: Long) {
-    map.put(tags, num)
+    Option(map.get(tags)) match {
+      case Some(got) => got.set(num)
+      case None => {
+        map.putIfAbsent(tags, new AtomicLong(num))
+      }
+    }
   }
 
   def snapshot(pruneEmpty: Boolean, reset: Boolean): Map[T, Long] = {

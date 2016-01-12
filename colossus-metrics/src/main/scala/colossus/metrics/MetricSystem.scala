@@ -2,7 +2,6 @@ package colossus.metrics
 
 import akka.actor._
 import akka.agent.Agent
-import colossus.metrics.IntervalAggregator.RegisterCollector
 import colossus.metrics.MetricAddress.Root
 
 import scala.concurrent.duration._
@@ -36,13 +35,8 @@ class MetricInterval private[metrics](val namespace : MetricAddress, val interva
  */
 case class MetricSystem private [metrics](namespace: MetricAddress, metricIntervals : Map[FiniteDuration, MetricInterval]) {
 
-  def sharedCollection(globalTags: TagMap = TagMap.Empty)(implicit fact: ActorRefFactory) = {
-    implicit val me = this
-    SharedCollection(globalTags)
-  }
-
-  def registerCollector(ref : ActorRef): Unit = {
-    metricIntervals.values.foreach(_.intervalAggregator ! RegisterCollector(ref))
+  def registerCollection(collection: Collection): Unit = {
+    metricIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
   }
 
 }

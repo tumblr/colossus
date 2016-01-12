@@ -77,12 +77,6 @@ object MetricAddress {
 
 }
 
-case class MetricFragment(address: MetricAddress, tags: TagMap, value: RawMetricValue)
+case class MetricFragment(address: MetricAddress, tags: TagMap, value: MetricValue)
 
 
-/**
- * Anything that eventually expands to a set of raw stats extends this
- */
-trait MetricProducer {
-  def metrics(context: CollectionContext): MetricMap
-}
