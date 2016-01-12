@@ -46,7 +46,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
   def binding: Receive = {
     case Bound(id) => {
-      println(s"service client bound $id")
+      log.info(s"service client bound $id")
       context.become(proxy(id, sender))
       unstashAll()
     }
@@ -57,7 +57,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
   def proxy(connectionId: Long, worker: ActorRef): Receive = {
     case Bound(wat) => {
-      println(s"RECEIVED BOUND AGAIN! $connectionId vs $wat")
+      log.info(s"RECEIVED BOUND AGAIN! $connectionId vs $wat")
     }
     case Unbound => context.become(dead)
     case Connected => {} //we ignore this because there's nothing to do with it.  Maybe add a callback in the future
@@ -66,7 +66,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
       context.become(dying)
     }
     case m: Worker.MessageDeliveryFailed => {
-      println(s"received failed message delivery $m")
+      log.info(s"received failed message delivery $m")
     }
     case x => worker ! Message(connectionId, x)
   }
