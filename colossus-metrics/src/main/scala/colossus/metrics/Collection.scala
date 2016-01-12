@@ -49,7 +49,7 @@ class CollectionMap[T] {
     }
   }
 
-  def get(tags: T): Option[Long] = Option(map.get(tags).get)
+  def get(tags: T): Option[Long] = Option(map.get(tags)).map{_.get}
 
   def snapshot(pruneEmpty: Boolean, reset: Boolean): Map[T, Long] = {
     val keys = map.keys

@@ -54,11 +54,16 @@ case class Snapshot(min: Int, max: Int, count: Int, bucketValues: Vector[BucketV
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
+        println(s"$num, $index, $build, $remain")
         if (perc <= 0.0 || count == 0) {
+          println(s"a $perc $count")
           p(num, index, build :+ 0, remain.tail)
         } else if (perc >= 1.0) {
+          println("b")
           p(num, index, build :+ max, remain.tail)          
         } else {
+          val bound = count * perc
+          println(bound)
           if (index < bucketValues.size - 1 && num < count * perc) {
             p(num + bucketValues(index).count, index + 1, build, remain)
           } else {
@@ -159,6 +164,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
         val weightedValue = if (index < mBuckets.size - 1) (ranges(index) + ranges(index + 1)) / 2 else infinity
         values = values :+ BucketValue(value = weightedValue, count = v.toInt)
       }
+      index += 1
     }    
     Snapshot(smin.toInt, smax.toInt, scount.toInt, values)
   }
