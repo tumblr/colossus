@@ -57,7 +57,7 @@ class CollectionMap[T] {
 }
 
 
-class Rate(val address: MetricAddress, config: CollectorConfig) {
+class Rate(val address: MetricAddress, config: CollectorConfig) extends Collector {
 
   val maps = config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
 
@@ -74,8 +74,6 @@ class Rate(val address: MetricAddress, config: CollectorConfig) {
 
 case class BucketValue(value: Int, count: Int)
 case class Snapshot(min: Int, max: Int, count: Int, bucketValues: Vector[BucketValue]) {
-
-  import MetricValues._
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
@@ -187,7 +185,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram(address: MetricAddress, percentiles: Seq[Double], config: CollectorConfig) {
+class Histogram(val address: MetricAddress, percentiles: Seq[Double], config: CollectorConfig) extends Collector {
 
   val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = config.intervals.map{i => 
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
@@ -207,7 +205,7 @@ class Histogram(address: MetricAddress, percentiles: Seq[Double], config: Collec
     }
   }
 
-  def snapshot(interval: FiniteDuration): MetricMap = {
+  def tick(interval: FiniteDuration): MetricMap = {
     val taghist = tagHists(interval)
     val keys = taghist.keys
     var build: MetricMap = Map()
@@ -218,6 +216,31 @@ class Histogram(address: MetricAddress, percentiles: Seq[Double], config: Collec
     }
     build
   }
+
+}
+
+
+class Collection {
+
+  val collectors = new ConcurrentHashMap[MetricAddress, Collector]
+
+  def add(collector: Collector) {
+    collectors.put(collector.address, collector)
+  }
+
+  def tick(interval: FiniteDuration): MetricMap = {
+    val keys = collectors.keys
+    var build: MetricMap = Map()
+    while (keys.hasMoreElements) {
+      val key = keys.nextElement
+      Option(collectors.get(key)) foreach { c =>
+        build = build ++ c.tick(interval)
+      }
+    }
+    build
+  }
+
+  
 
 }
 
