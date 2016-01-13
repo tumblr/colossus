@@ -1,72 +1,26 @@
 package colossus.metrics
 
-import akka.actor._
+import scala.concurrent.duration._
 
-trait Counter extends EventCollector {
-  def Δ(Δ: Long, tags: TagMap = TagMap.Empty) //HURR DURR LOOK AT MY FANCY METHOD NAME
-  def delta(amount: Long, tags: TagMap = TagMap.Empty) {
-    Δ(amount, tags)
-  }
-  def increment(tags: TagMap = TagMap.Empty) {
-    Δ(1, tags)
-  }
-  def decrement(tags: TagMap = TagMap.Empty) {
-    Δ(-1, tags)
-  }
-}
-object Counter {
-  
-  case class Delta(address: MetricAddress, d: Long, tags: TagMap) extends MetricEvent
+class Counter(val address: MetricAddress)(implicit collection: Collection) extends Collector {
 
-  def apply(address: MetricAddress) = CounterParams(address)
+  private val counters = new CollectionMap[TagMap]
 
-  implicit object CounterGenerator extends Generator[Counter, CounterParams] {
-    def local(params: CounterParams, config: CollectorConfig) = new LocalCounter(params)
-    def shared(params: CounterParams, config: CollectorConfig)(implicit collector: ActorRef) = new SharedCounter(params, collector)
+  def increment(tags: TagMap = TagMap.Empty, num: Long = 1) {
+    counters.increment(tags, num)
   }
+
+  def decrement(tags: TagMap = TagMap.Empty, num: Long = 1) = increment(tags, 0 - num)
+
+  def set(tags: TagMap = TagMap.Empty, num: Long) {
+    counters.set(tags, num)
+  }
+
+  def get(tags: TagMap = TagMap.Empty): Long = counters.get(tags).getOrElse(0)
+
+  def tick(interval: FiniteDuration): MetricMap  = {
+    Map(address -> counters.snapshot(false, false))
+  }
+    
 
 }
-
-case class CounterParams(address: MetricAddress) extends MetricParams[Counter, CounterParams] {
-  type E = Counter
-  def transformAddress(f: MetricAddress => MetricAddress) = copy(address = f(address))
-}
-
-class BasicCounter(params: CounterParams) extends Counter{
-  var num: Long = 0
-  protected val counters = collection.mutable.Map[TagMap, Long]()
-
-  def Δ(Δ: Long, tags: TagMap = TagMap.Empty) {
-    if (!counters.contains(tags)) {
-      counters(tags) = Δ
-    } else {
-      counters(tags) += Δ
-    }
-  }
-
-  def value(tags: TagMap = TagMap.Empty): Option[Long] = counters.get(tags)
-
-  val address = params.address
-}
-
-class LocalCounter(params: CounterParams) extends BasicCounter(params) with LocalLocality {
-  import Counter._
-
-
-  def metrics(context: CollectionContext): MetricMap = Map(
-    params.address -> counters.toMap.map{case (tags, value) => (tags ++ context.globalTags, MetricValues.SumValue(value))}
-  )
-
-  def event = {
-    case Delta(_, d, t) => Δ(d, t)
-  }
-
-}
-
-class SharedCounter(params: CounterParams, collector: ActorRef) extends Counter with SharedLocality {
-  def address = params.address
-  def Δ(d: Long, tags: TagMap = TagMap.Empty) {
-    collector ! Counter.Delta(params.address, d, tags)
-  }
-}
-

@@ -62,11 +62,11 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
     }
   }
 
-  private def filterMetrics(m : MetricMap) : RawMetricMap = {
+  private def filterMetrics(m : MetricMap) : MetricMap = {
     filters match {
-      case MetricReporterFilter.All => m.toRawMetrics
-      case MetricReporterFilter.WhiteList(x) => m.filterKeys(k => x.exists(_.matches(k))).toRawMetrics
-      case MetricReporterFilter.BlackList(x) => m.filterKeys(k => !x.exists(_.matches(k))).toRawMetrics
+      case MetricReporterFilter.All => m
+      case MetricReporterFilter.WhiteList(x) => m.filterKeys(k => x.exists(_.matches(k)))
+      case MetricReporterFilter.BlackList(x) => m.filterKeys(k => !x.exists(_.matches(k)))
     }
   }
 
@@ -95,7 +95,7 @@ trait MetricSender {
 }
 
 object MetricSender {
-  case class Send(metrics: RawMetricMap, globalTags: TagMap, timestamp: Long) {
+  case class Send(metrics: MetricMap, globalTags: TagMap, timestamp: Long) {
     def fragments = metrics.fragments(globalTags)
   }
 }

@@ -8,7 +8,7 @@ import colossus.service.Codec._
 import colossus.service._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.language.higherKinds
 
 package object redis {
@@ -282,7 +282,22 @@ package object redis {
     def sdiffstore(destination : ByteString, key : ByteString, keys : ByteString*) : M[Long] =
       integerReplyCommand(cmd(CMD_SDIFFSTORE, destination +: key +: keys : _*), key)
 
-    def set(key : ByteString, value : ByteString) : M[Boolean] = stringReplyCommand(cmd(CMD_SET, key, value), key)
+    def set(key : ByteString, value : ByteString, notExists: Boolean = false, exists: Boolean = false, ttl: Duration = Duration.Inf) : M[Boolean] = {
+      var args = Seq(key, value)
+      if (notExists) {
+        args = args :+ SET_PARAM_NX
+      } else if (exists) {
+        args = args :+ SET_PARAM_XX
+      }
+      if (ttl.isFinite) {
+        args = args :+ SET_PARAM_PX
+        args = args :+ ByteString(ttl.toMillis.toString)
+      }
+      executeCommand(Command(CMD_SET, args), key){
+        case StatusReply(_) => success(true)
+        case NilReply       => success(false)
+      }
+    }
 
     def setnx(key : ByteString, value : ByteString) : M[Boolean] = integerReplyBoolCommand(cmd(CMD_SETNX, key, value), key)
 

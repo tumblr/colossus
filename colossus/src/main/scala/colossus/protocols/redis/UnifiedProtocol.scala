@@ -119,6 +119,11 @@ import akka.util.ByteString
     val CMD_ZSCORE           = "ZSCORE"
     val CMD_ZUNIONSTORE      = "ZUNIONSTORE"
 
+    val SET_PARAM_NX    = ByteString("NX")
+    val SET_PARAM_EX    = ByteString("EX")
+    val SET_PARAM_PX    = ByteString("PX")
+    val SET_PARAM_XX    = ByteString("XX")
+
     //complete nil reply
     val NIL_REPLY   = BULK_REPLY ++ ByteString("-1") ++ RN
     //complete empty mbulk reply

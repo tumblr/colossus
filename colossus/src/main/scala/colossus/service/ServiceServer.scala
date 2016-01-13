@@ -68,11 +68,12 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
   val log = Logging(worker.system.actorSystem, name.toString())
 
-  val requests  = worker.metrics.getOrAdd(Rate(name / "requests"))
-  val latency   = worker.metrics.getOrAdd(Histogram(name / "latency", sampleRate = 0.25))
-  val errors    = worker.metrics.getOrAdd(Rate(name / "errors"))
-  val requestsPerConnection = worker.metrics.getOrAdd(Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
-  val concurrentRequests = worker.metrics.getOrAdd(Counter(name / "concurrent_requests"))
+  implicit val col = worker.system.metrics.base
+  val requests  = col.getOrAdd(new Rate(name / "requests"))
+  val latency   = col.getOrAdd(new Histogram(name / "latency", sampleRate = 0.25))
+  val errors    = col.getOrAdd(new Rate(name / "errors"))
+  val requestsPerConnection = col.getOrAdd(new Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
+  val concurrentRequests = col.getOrAdd(new Counter(name / "concurrent_requests"))
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false
@@ -139,7 +140,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
     requestsPerConnection.add(numRequests)
-    concurrentRequests.delta(- requestBuffer.size)
+    concurrentRequests.decrement(num = requestBuffer.size)
   }
 
   override def connectionLost(cause : DisconnectError) {
