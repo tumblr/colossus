@@ -25,7 +25,7 @@ object FakeIOSystem {
   def fakeWorkerRef(implicit system: ActorSystem): (TestProbe, WorkerRef) = {
     val probe = TestProbe()
     implicit val aref = probe.ref
-    val ref = WorkerRef(0, new LocalCollection, probe.ref, apply())
+    val ref = WorkerRef(0, probe.ref, apply())
     (probe, ref)
   }
 
@@ -34,7 +34,7 @@ object FakeIOSystem {
    */
   def fakeExecutorWorkerRef(implicit system: ActorSystem): WorkerRef = {
     val ex = testExecutor
-    WorkerRef(0, new LocalCollection, testExecutor.executor, FakeIOSystem())
+    WorkerRef(0, testExecutor.executor, FakeIOSystem())
   }
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {
