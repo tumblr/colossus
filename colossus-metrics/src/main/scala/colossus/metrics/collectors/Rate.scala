@@ -9,7 +9,7 @@ class Rate(val address: MetricAddress)(implicit collection: Collection) extends 
   //note - the totals are shared amongst all intervals, and we use the smallest
   //interval to update them
   private val totals = new CollectionMap[TagMap]
-  private val minInterval = collection.config.intervals.min
+  private val minInterval = if (collection.config.intervals.size > 0) collection.config.intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, num: Long = 1) {
     maps.foreach{ case (_, map) => map.increment(tags) }
