@@ -23,6 +23,12 @@ class CounterSpec extends MetricIntegrationSpec {
       c.get() must equal(0)
     }
 
+    "set" in {
+      val c = counter
+      c.set(num = 3456)
+      c.get() must equal(3456)
+    }
+
     "correctly handle tags" in {
       val c = counter
       c.increment(Map("a" -> "a"))

@@ -76,6 +76,7 @@ object MetricSystem {
   def deadSystem(implicit system: ActorSystem) = {
     MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval]())
   }
+
 }
 
 

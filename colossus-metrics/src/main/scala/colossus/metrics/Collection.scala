@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import akka.actor._
-
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
@@ -70,7 +68,9 @@ class CollectionMap[T] {
       } else {
         map.get(key).get
       }
-      build = build + (key -> value)
+      if (!(pruneEmpty &&  value == 0)) {
+        build = build + (key -> value)
+      }
     }
 
     build
