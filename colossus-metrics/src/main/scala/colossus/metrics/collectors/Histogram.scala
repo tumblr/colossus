@@ -1,9 +1,8 @@
 package colossus.metrics
 
-import akka.actor._
-
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.ThreadLocalRandom
 import scala.concurrent.duration._
 
 
@@ -175,13 +174,15 @@ class Histogram(val address: MetricAddress, percentiles: Seq[Double] = Histogram
   }.toMap
 
   def add(value: Int, tags: TagMap = TagMap.Empty) {
-    tagHists.foreach{ case (_, taghists) =>
-      Option(taghists.get(tags)) match {
-        case Some(got) => got.add(value)
-        case None => {
-          taghists.putIfAbsent(tags, new BaseHistogram)
-          //TODO: possible race condition if removed between these lines
-          taghists.get(tags).add(value)
+    if (sampleRate < 1.0 && ThreadLocalRandom.current.nextDouble(1.0) < sampleRate) {
+      tagHists.foreach{ case (_, taghists) =>
+        Option(taghists.get(tags)) match {
+          case Some(got) => got.add(value)
+          case None => {
+            taghists.putIfAbsent(tags, new BaseHistogram)
+            //TODO: possible race condition if removed between these lines
+            taghists.get(tags).add(value)
+          }
         }
       }
     }

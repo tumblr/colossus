@@ -33,22 +33,22 @@ class CollectionMap[T] {
 
   private val map = new ConcurrentHashMap[T, AtomicLong]
 
-  def increment(tags: T, num: Long = 1) {
+  def update(tags: T, num: Long, op: AtomicLong => Long => Unit) {
     Option(map.get(tags)) match {
-      case Some(got) => got.addAndGet(num)
+      case Some(got) => op(got)(num)
       case None => {
         map.putIfAbsent(tags, new AtomicLong(num))
       }
     }
+
+  }
+
+  def increment(tags: T, num: Long = 1) {
+    update(tags, num, _.addAndGet _)
   }
 
   def set(tags: T, num: Long) {
-    Option(map.get(tags)) match {
-      case Some(got) => got.set(num)
-      case None => {
-        map.putIfAbsent(tags, new AtomicLong(num))
-      }
-    }
+    update(tags, num, _.set _)
   }
 
   def get(tags: T): Option[Long] = Option(map.get(tags)).map{_.get}

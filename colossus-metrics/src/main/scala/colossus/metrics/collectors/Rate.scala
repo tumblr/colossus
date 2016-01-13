@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import akka.actor._
-
 import scala.concurrent.duration._
 
 class Rate(val address: MetricAddress)(implicit collection: Collection) extends Collector {
