@@ -66,7 +66,8 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
    */
   def iterateAndClear() {
     handler.foreach{handler =>
-      while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer, handler)) {
+      while (writeReadyEnabled) {
+        handleWrite(new encoding.DynamicBuffer, handler)
         clearBuffer()
       }
     }

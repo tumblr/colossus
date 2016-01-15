@@ -5,6 +5,7 @@ import core._
 import testkit._
 import akka.util.ByteString
 
+import scala.concurrent.duration._
 
 
 class OutputControllerSpec extends ColossusSpec {
@@ -49,7 +50,7 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.writeReadyEnabled must equal(false)
     }
 
-    "properly react to full output buffer" taggedAs(org.scalatest.Tag("test"))  in {
+    "properly react to full output buffer"   in {
       val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 100)
       val data = ByteString("123456")
       endpoint.iterate {
@@ -91,14 +92,19 @@ class OutputControllerSpec extends ColossusSpec {
     }
 
     "timeout queued messages that haven't been sent" in {
-      val (endpoint, controller) = createController()
-      val data = ByteString(List.fill(endpoint.maxWriteSize + 1)("x").mkString)
+      val (endpoint, controller) = createController(10, 10)
+      val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
       val message = TestOutput(Source.one(DataBuffer(data)))
       val message2 = TestOutput(Source.one(DataBuffer(data)))
 
-      controller.testPush(message){_ must equal (OutputResult.Success)}
-      controller.testPush(message2){_ must equal (OutputResult.Cancelled)}
+      val p1 = controller.pPush(message)
+      val p2 = controller.pPush(message2)
+      Thread.sleep(300)
+      controller.idleCheck(1.millisecond)
+      p1.result.isDefined must equal(false) //in the process of being sent
+      p2.result.get.isInstanceOf[OutputResult.Cancelled] must equal(true)
+      
 
     }
 
@@ -107,6 +113,43 @@ class OutputControllerSpec extends ColossusSpec {
       controller.testGracefulDisconnect()
       //this used to throw an exception
       controller.testGracefulDisconnect()
+    }
+
+    "fail pending messages on connectionClosed while gracefully disconnecting" taggedAs(org.scalatest.Tag("test")) in {
+      val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
+      val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
+
+      val message = TestOutput(Source.one(DataBuffer(data)))
+      val message2 = TestOutput(Source.one(DataBuffer(data)))
+
+      val p1 = controller.pPush(message)
+      val p2 = controller.pPush(message2)
+      p1.pushed must equal(true)
+      p2.pushed must equal(true)
+      controller.testGracefulDisconnect()
+      endpoint.disconnectCalled must equal(false)
+      endpoint.disrupt()
+      p1.result.get.isInstanceOf[OutputResult.Failure] must equal(true)
+      p2.result.get.isInstanceOf[OutputResult.Cancelled] must equal(true)
+
+      
+    }
+
+    "fail pending messages when graceful disconnect after connection disrupted" in {
+      val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
+      val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
+
+      val message = TestOutput(Source.one(DataBuffer(data)))
+      val message2 = TestOutput(Source.one(DataBuffer(data)))
+
+      val p1 = controller.pPush(message)
+      val p2 = controller.pPush(message2)
+      endpoint.disrupt()
+      p1.result.get.isInstanceOf[OutputResult.Failure] must equal(true)
+      p2.isSet must equal(false)
+      controller.testGracefulDisconnect()
+      p2.result.get.isInstanceOf[OutputResult.Cancelled] must equal(true)
+
     }
 
 

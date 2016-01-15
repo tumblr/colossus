@@ -195,7 +195,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
           case _ => {}
         }
         if (disconnecting) {
-          //todo: flush msgq
+          while (!msgq.isEmpty) {
+            msgq.dequeue.postWrite(OutputResult.Cancelled(reason))
+          }
+
           outputState = Terminated()
         } else {
           outputState = Suspended(msgq)
@@ -220,6 +223,13 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         if (!checkOutputGracefulDisconnect(n)) {
           outputState = n
         }
+      }
+      case Suspended(msgq) => {
+        val reason = new NotConnectedException("Connection Closed")
+        while (!msgq.isEmpty) {
+          msgq.dequeue.postWrite(OutputResult.Cancelled(reason))
+        }
+        outputState = Terminated()
       }
       case other => {}
     }

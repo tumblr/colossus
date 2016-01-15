@@ -36,7 +36,22 @@ class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   def reset(){}
 }
 
-class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 1.second)) {
+//simple helper class for testing push results, just stores the value so we can
+//check if it gets set at all and to the right value
+class PushPromise {
+
+  private var _result: Option[OutputResult] = None
+  var pushed = false
+
+  def result = _result
+
+  val func: OutputResult => Unit = r => _result = Some(r)
+
+  def isSet = result.isDefined
+
+}
+
+class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 50.milliseconds)) {
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
@@ -49,6 +64,14 @@ class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends 
   def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
     push(message)(onPush)
   }
+
+  def pPush(message: TestOutput): PushPromise = {
+    val p = new PushPromise
+    p.pushed = push(message)(p.func)
+    p
+  }
+
+
   def testGracefulDisconnect() {
     gracefulDisconnect()
   }
