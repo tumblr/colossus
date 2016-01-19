@@ -7,6 +7,8 @@ import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
 import java.net.InetSocketAddress
 
+import encoding.DataOutBuffer
+
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.
  */
@@ -74,15 +76,12 @@ trait ConnectionInfo {
  */
 trait WriteEndpoint extends ConnectionInfo {
 
-
   /**
-   * Write some data to the connection.  Because connections are non-blocking,
-   * it's possible that the underlying write buffer will fill up and not all of
-   * the DataBuffer will be written.  When that occurs, the endpoint will keep
-   * a copy of the unwritten data until the buffer empties.
+   * Signals to the worker that this connection wishes to write some data.  It
+   * will trigger a call to the handler's readyForData when the connection is
+   * able to write.
    */
-
-  def write(data: DataBuffer): WriteStatus
+  def requestWrite()
 
   /**
    * Returns true if data can be written to the connection.  This will
@@ -198,6 +197,11 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
 
+  def handleWrite(data: DataOutBuffer) {
+    handleWrite(data, handler) //see WriteBuffer
+  }
+
+
   def consoleString = {
     val now = System.currentTimeMillis
     val age = now - startTime
@@ -206,9 +210,11 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-    disconnectBuffer{() => 
-      sender ! WorkerCommand.Disconnect(id)
-    }
+    gracefulDisconnect()
+  }
+
+  def completeDisconnect() {
+    sender ! WorkerCommand.Disconnect(id)
   }
 
   /**
@@ -230,12 +236,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
       }
     }
   }
-
-
-  def onBufferClear() {
-    handler.readyForData()
-  }
-
 
 }
 

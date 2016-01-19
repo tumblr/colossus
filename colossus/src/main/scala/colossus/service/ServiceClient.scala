@@ -99,13 +99,15 @@ class StaleClientException(msg : String) extends Exception(msg)
  * so when using the default constructor a service client will not connect on
  * it's own.  You must either call `bind` on the client or use the constructor
  * that accepts a worker
+ *
+ * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[I,O](
   codec: Codec[I,O], 
   val config: ClientConfig,
   val worker: WorkerRef
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
@@ -219,7 +221,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config
   private def purgeBuffers(reason : Throwable) {
     sentBuffer.foreach(failRequest(_, reason))
     sentBuffer.clear()
-    purgeOutgoing(reason)
     if (failFast) {
       purgePending(reason)
     }

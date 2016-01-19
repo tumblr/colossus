@@ -21,10 +21,12 @@ trait StreamMessage {
  * Configuration for the controller
  *
  * @param outputBufferSize the maximum number of outbound messages that can be queued for sending at once
+ * @param dataBufferSize The threshold for encoding batches of messages to be sent (this should generally match the worker's output buffer size), a higher number will mean faster writing but higher memory usage during heavy-traffic situations, rarely will more than a few KB be needed
  * @param sendTimeout if a queued outbound message becomes older than this it will be cancelled
  */
 case class ControllerConfig(
   outputBufferSize: Int,
+  dataBufferSize: Int,
   sendTimeout: Duration
 )
 
@@ -147,7 +149,7 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
 
   private[controller] def checkControllerGracefulDisconnect() {
     (state, inputState, outputState) match {
-      case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated) => {
+      case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated()) => {
         endpoint.disconnect()
         state = NotConnected
       }

@@ -8,6 +8,7 @@ import colossus.service.{Codec, DecodedResult}
 import colossus.controller._
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
+import colossus.encoding._
 
 /*
  * The controller layer adds generalized message processing to a connection.  A
@@ -38,7 +39,7 @@ class ChatCodec extends Codec[ChatMessage, String]{
 
   def decode(data: DataBuffer): Option[DecodedResult[String]] = parser.parse(data).map{DecodedResult.Static(_)}
 
-  def encode(message: ChatMessage): DataReader = DataBuffer(ByteString(message.formatted))
+  def encode(message: ChatMessage)= DataBuffer(ByteString(message.formatted))
 
   def reset(){}
 
@@ -74,7 +75,7 @@ object Broadcaster {
   case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds)) with ServerConnectionHandler {
+class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 100, 10.seconds)) with ServerConnectionHandler {
   implicit lazy val sender = boundWorker.get.worker
 
   sealed trait State

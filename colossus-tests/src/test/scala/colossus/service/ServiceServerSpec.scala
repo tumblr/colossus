@@ -36,6 +36,8 @@ class ServiceServerSpec extends ColossusSpec {
     def processRequest(input: ByteString) = handler(input)
 
     def receivedMessage(x: Any, s: ActorRef){}
+
+    def testCanPush = canPush //expose protected method
   }
 
   case class ServiceTest(service: FakeService, endpoint: MockWriteEndpoint, workerProbe: TestProbe)
@@ -54,6 +56,7 @@ class ServiceServerSpec extends ColossusSpec {
     "process a request" in {
       val t = fakeService()
       t.service.receivedData(DataBuffer(ByteString("hello")))
+      t.endpoint.iterate()
       t.endpoint.expectOneWrite(ByteString("hello"))
     }
 
@@ -69,12 +72,14 @@ class ServiceServerSpec extends ColossusSpec {
       t.service.receivedData(DataBuffer(r1))
       t.service.receivedData(DataBuffer(r2))
       promises.size must equal(2)
+      t.endpoint.iterate()
       t.endpoint.expectNoWrite()
       promises(1).success(ByteString("B"))
+      t.endpoint.iterate()
       t.endpoint.expectNoWrite()
       promises(0).success(ByteString("A"))
-      t.endpoint.expectWrite(ByteString("A"))
-      t.endpoint.expectWrite(ByteString("B"))
+      t.endpoint.iterate()
+      t.endpoint.expectOneWrite(ByteString("AB"))
     }
 
     "graceful disconnect allows pending requests to complete" in {
@@ -90,44 +95,47 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.readsEnabled must equal(false)
       t.endpoint.status must equal(ConnectionStatus.Connected)
       promises(0).success(ByteString("BBBB"))
+      t.endpoint.iterate()
       t.endpoint.expectOneWrite(ByteString("BBBB"))
       t.endpoint.status must equal(ConnectionStatus.NotConnected)
     }
 
-    "handle backpressure from output controller" taggedAs(org.scalatest.Tag("test")) in {
-      def bytes(n: Int) = ByteString((1 to 10).map{i => n.toString}.mkString)
-      def data(n: Int) = DataBuffer(bytes(n))
-      val s = fakeService()
+    "handle backpressure from output controller" in {
+      var promises = Vector[CallbackPromise[ByteString]]()
+      val s = fakeService(x => {
+        val p = new CallbackPromise[ByteString]()
+        promises = promises :+ p
+        p.callback
+      })
 
       //this request will fill up the write buffer
-      s.service.receivedData(data(1))
-      s.endpoint.expectOneWrite(bytes(1))
-      s.service.outputQueueFull must equal(false)
+      val big = ByteString(List.fill(controller.OutputController.DefaultDataBufferSize * 2)("b").mkString)
+      s.service.receivedData(DataBuffer(ByteString("ASDF")))
+      promises(0).success(big)
+      s.service.testCanPush must equal(true)
 
-      //these next two fill up the output controller's buffer (set to 2 in fakeService())
-      s.service.receivedData(data(2))
-      s.service.receivedData(data(3))
-      s.endpoint.expectNoWrite()
-      s.service.outputQueueFull must equal(true)
+
+      //these next two fill up the output controller's message queue (set to 2 in fakeService())
+      s.service.receivedData(DataBuffer(ByteString("G")))
+      s.service.receivedData(DataBuffer(ByteString("H")))
+      promises(1).success(ByteString("A"))
+      promises(2).success(ByteString("B"))
+      s.service.testCanPush must equal(false)
       s.service.currentRequestBufferSize must equal(0)
 
       //this last one should not even attempt to write and instead keep the
       //response waiting in the request buffer
-      s.service.receivedData(data(4))
-      s.endpoint.expectNoWrite()
+      s.service.receivedData(DataBuffer(ByteString("I")))
+      promises(3).success(ByteString("C"))
       s.service.currentRequestBufferSize must equal(1)
-      s.service.outputQueueFull must equal(true)
+      s.service.testCanPush must equal(false)
 
       //now as we begin draining the write buffer, both the controller and
       //service layers should begin clearing their buffers
-      (2 to 4).foreach { i =>
-        s.endpoint.clearBuffer()
-        s.endpoint.expectOneWrite(bytes(i))
-      }
+      s.endpoint.iterateAndClear()
 
-      s.service.outputQueueFull must equal(false)
+      s.service.testCanPush must equal(true)
       s.service.currentRequestBufferSize must equal(0)
-      s.endpoint.expectNoWrite()
     }
 
 
@@ -169,16 +177,19 @@ class ServiceServerSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect" in {
+    "graceful disconnect"  taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{implicit io => 
-        val server = Service.serve[Redis]("test", TEST_PORT, 1.second){_.handle{con => con.become{
+        val server = Service.serve[Redis]("graceful-test", TEST_PORT, 1.second){_.handle{con => con.become{
           case x if (x.command == "DIE") => {
+
+            println("GOT DIE!!!!")
             con.gracefulDisconnect()
             StatusReply("BYE")
           }
           case other => {
             import con.callbackExecutor
-            Callback.schedule(200.milliseconds)(StatusReply("FOO"))
+            println("GOT $other")
+            Callback.schedule(20.milliseconds)(StatusReply("FOO"))
           }
         }}}
         withServer(server) {

@@ -22,24 +22,25 @@ class MockWriteBufferSpec extends WordSpec with MustMatchers{
     "return partial when exceeds size" in {
       val m = new MockWriteBuffer(2)
       m.write(DataBuffer(ByteString("abcd"))) must equal(WriteStatus.Partial)
-      m.expectOneWrite(ByteString("abcd"))
+      m.expectOneWrite(ByteString("ab"))
     }
 
     "return zero when full" in {
       val m = new MockWriteBuffer(2)
       m.write(DataBuffer(ByteString("abcd"))) must equal(WriteStatus.Partial)
       m.write(DataBuffer(ByteString("1234"))) must equal(WriteStatus.Zero)
-      m.expectOneWrite(ByteString("abcd"))
+      m.expectOneWrite(ByteString("ab"))
       m.expectNoWrite()
     }
 
     "clear buffer" in {
       val m = new MockWriteBuffer(2)
       m.write(DataBuffer(ByteString("abcd"))) must equal(WriteStatus.Partial)
-      m.expectOneWrite(ByteString("abcd"))
+      m.expectOneWrite(ByteString("ab"))
       m.clearBuffer()
+      m.continueWrite() must equal(true)
       m.write(DataBuffer(ByteString("1234"))) must equal(WriteStatus.Partial)
-      m.expectOneWrite(ByteString("1234"))
+      m.expectOneWrite(ByteString("cd"))
     }
 
       

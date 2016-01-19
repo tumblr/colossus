@@ -60,7 +60,7 @@ class DroppedReply extends Error("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
-extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Duration.Inf)) with ServerConnectionHandler {
+extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._
@@ -122,13 +122,13 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && outputQueueFull == false) {
+    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
       concurrentRequests.decrement()
       pushResponse(done.request, comp, done.creationTime) 
     }
-    if (outputQueueFull) {
+    if (!canPush) {
       //this means the output buffer cannot accept any more messages, so we have
       //to pause dequeuing responses and wait for the next message in the output
       //buffer to be written
@@ -189,7 +189,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Durati
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
     response match {
-      case ConstantCallback(v) if (requestBuffer.size == 0 && !outputQueueFull) => {
+      case ConstantCallback(v) if (requestBuffer.size == 0 && canPush) => {
         //a constant callback means the result was produced immmediately, so if
         //request buffer is empty and we know we can write the result
         //immediately, we can totally skip the request buffering process

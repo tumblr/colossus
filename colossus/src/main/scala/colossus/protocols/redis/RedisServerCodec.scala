@@ -4,7 +4,6 @@ package protocols.redis
 import core._
 import service._
 
-
 class RedisServerCodec extends Codec.ServerCodec[Command, Reply] {
   private var commandParser = RedisCommandParser.command
   def reset() {
