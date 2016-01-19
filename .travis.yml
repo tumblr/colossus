@@ -15,7 +15,8 @@ env:
   - secure: KOt7FSG8FckBl49tfassG/fQKFMSAU/Xaz83UvEY0oAnFBbBSuSR/OkUd6NAHxFy/RotFsVoAxed8NgL8Nh7nsut3clXmhXuxhWsIOpR+q4wWrqA7KG+Fw4Q3SUsrICKGm92LnVsTeHKQ57qZ3mQaV/j/srmc+mrbi2kIYdmpFk=
   - secure: JjPl0W+YTRiANGnmPilLM0lZywkoH26YdQ5C9KrdMwbb92dxxR2D+qEbxVlH36sjOual3txeETTbmCbcTTdQCkbrND7+hSaHNx4vmj05P8HT5TwgQXmp9U4Sp7BapRezRS5KCr12fYaoaDE5xS3Anq/F5ErJDVv5x2HoXhmXEdo=
 before_install:
-- if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf secrets.tar; fi
+- if [[ "$TRAVIS_TAG" =~ "^v*$" || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" ) && "$TRAVIS_PULL_REQUEST" = "false")  ]] ; then SHOULD_PUBLISH=0; fi
+- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_aa756c3a201c_key -iv $encrypted_aa756c3a201c_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf secrets.tar; fi
 after_success:
-- if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned; fi
+- if (( $SHOULD_PUBLISH == 0)) ; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned; fi
 - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash <(curl -s https://codecov.io/bash); elif [ "$TRAVIS_BRANCH" = "master" ]; then bash <(curl -s https://codecov.io/bash); fi
