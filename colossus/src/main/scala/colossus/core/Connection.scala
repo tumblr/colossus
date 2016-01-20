@@ -95,6 +95,18 @@ trait WriteEndpoint extends ConnectionInfo {
    */
   def disconnect()
 
+  def gracefulDisconnect()
+
+  def become(newHandler: => ConnectionHandler): Boolean
+
+  /**
+   * The handler should call this after shutdownRequest has been called and the
+   * handler is ready to finish the process
+   *
+   * Be aware calling this will take no action if the connection is already disconnected
+   */
+  def completeShutdown()
+
 
   /**
    * Gets the worker this connection is bound to.
@@ -117,26 +129,88 @@ trait WriteEndpoint extends ConnectionInfo {
 
 }
 
-private[core] abstract class Connection(val id: Long, val key: SelectionKey, _channel: SocketChannel, val handler: ConnectionHandler)(implicit val sender: ActorRef)
+sealed abstract class ShutdownAction(val rank: Int) {
+  
+  def >=(a: ShutdownAction): Boolean = rank >= a.rank
+
+}
+
+object ShutdownAction {
+  case object DefaultDisconnect extends ShutdownAction(0)
+  case class Become(newHandler: () => ConnectionHandler) extends ShutdownAction(1)
+  case object Disconnect extends ShutdownAction(2)
+}
+
+private[core] abstract class Connection(val id: Long, val key: SelectionKey, val channel: SocketChannel, initialHandler: ConnectionHandler)(implicit val worker: ActorRef)
   extends LiveWriteBuffer with WriteEndpoint {
 
+  private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
+  private var _handler: ConnectionHandler = initialHandler
+  def handler = _handler
 
+  def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
+    shutdownAction = action
+    true
+  } else false
+
+  override def gracefulDisconnect() {
+    setShutdownAction(ShutdownAction.Disconnect)
+    shutdownHandler()
+  }
+
+  def become(nh: => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(() => nh))) {
+    shutdownHandler()
+    true
+  } else false
+
+  /**
+   * Begin the process of shutting down the connection handler.
+   */
+  def shutdownHandler() {
+    handler.shutdownRequest()
+  }
+
+  def completeShutdown() {
+    shutdownAction match {
+      case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
+      case ShutdownAction.Become(newHandlerFactory) if (status != ConnectionStatus.NotConnected) => {
+        worker ! WorkerCommand.SwapHandler(id, newHandlerFactory)
+      }
+      case _ => {}
+    }
+  }
+
+  /**
+   * replace the existing handler with a new one.  The old handler is terminated
+   * with the `Disconnect` cause and connected is called on the new handler if
+   * the connection is connected.  No action is taken if the connection is closed
+   */
+  def setHandler(newHandler: ConnectionHandler) {
+    if (status != ConnectionStatus.NotConnected) {
+      handler.connectionTerminated(DisconnectCause.Disconnect)
+      _handler = newHandler
+      if (status == ConnectionStatus.Connected) {
+        handler.connected(this)
+      }
+    }
+  }
+    
   val startTime = System.currentTimeMillis
 
   def remoteAddress = try {
-    Some(_channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
+    Some(channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
   } catch {
     case t: Throwable => None
   }
 
   //dont make these vals, doesn't work with client connections
   lazy val host: String = try {
-    _channel.socket.getInetAddress.getHostName
+    channel.socket.getInetAddress.getHostName
   } catch {
     case n: NullPointerException => "[Disconnected]"
   }
   def port: Int = try {
-    _channel.socket.getPort
+    channel.socket.getPort
   } catch {
     case n: NullPointerException => 0
   }
@@ -157,8 +231,6 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
     maxIdleTime != Duration.Inf && timeIdle(currentTime) > maxIdleTime.toMillis
   }
 
-  protected val channel = _channel
-  val worker = sender
   private var myBytesReceived = 0L
 
   def bytesReceived = myBytesReceived
@@ -166,7 +238,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   def info(now: Long): ConnectionSnapshot = {
     ConnectionSnapshot(
       domain = domain,
-      host = _channel.socket.getInetAddress,
+      host = channel.socket.getInetAddress,
       port = port,
       id = id,
       timeOpen = now - startTime,
@@ -210,11 +282,11 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, _ch
   }
 
   def disconnect() {
-    gracefulDisconnect()
+    super.gracefulDisconnect()
   }
 
   def completeDisconnect() {
-    sender ! WorkerCommand.Disconnect(id)
+    worker ! WorkerCommand.Disconnect(id)
   }
 
   /**

@@ -83,6 +83,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 
   private[controller] def inputOnConnected() {
     _readsEnabled = true
+    resumeReads()
     inputState = Decoding
   }
 
