@@ -78,11 +78,12 @@ class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends 
 }
 
 object TestController {
-  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = {
+  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
     val controller = new TestController(dataBufferSize, processor)
     val (probe, worker) = FakeIOSystem.fakeWorkerRef
+    val (probe, server) = FakeIOSystem.fakeServerRef
     controller.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(outputBufferSize, probe, Some(controller))
+    val endpoint = new MockConnection.server(outputBufferSize, probe, controller, server)
     controller.connected(endpoint)
     (endpoint, controller)
   }

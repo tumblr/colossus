@@ -5,6 +5,7 @@ import core._
 import metrics._
 import service._
 
+import akka.agent.Agent
 import akka.actor._
 import akka.testkit.TestProbe
 import akka.testkit.CallingThreadDispatcher
@@ -26,6 +27,21 @@ object FakeIOSystem {
     val probe = TestProbe()
     implicit val aref = probe.ref
     val ref = WorkerRef(0, probe.ref, apply())
+    (probe, ref)
+  }
+
+  /**
+   * Returns a ServerRef representing a server in the Bound state
+   */
+  def fakeServerRef(implicit system: ActorSystem): (TestProbe, ServerRef) = {
+    import system.dispatcher
+    val probe = TestProbe()
+    val config = ServerConfig(
+      "/foo",
+      (s,w) => ???,
+      ServerSettings(987)
+    )
+    val ref = ServerRef(config, probe.ref, apply(), Agent(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
     (probe, ref)
   }
 

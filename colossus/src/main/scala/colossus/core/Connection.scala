@@ -141,8 +141,8 @@ object ShutdownAction {
   case object Disconnect extends ShutdownAction(2)
 }
 
-private[core] abstract class Connection(val id: Long, val key: SelectionKey, val channel: SocketChannel, initialHandler: ConnectionHandler)(implicit val worker: ActorRef)
-  extends LiveWriteBuffer with WriteEndpoint {
+abstract class Connection(val id: Long, initialHandler: ConnectionHandler)(implicit val worker: ActorRef)
+  extends WriteBuffer with WriteEndpoint {
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _handler: ConnectionHandler = initialHandler
@@ -153,6 +153,10 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
     true
   } else false
 
+  /**
+   * begin the graceful disconnect process.  Be aware that this is different
+   * from gracefully disconnecting the WriteBuffer.
+   */
   override def gracefulDisconnect() {
     setShutdownAction(ShutdownAction.Disconnect)
     shutdownHandler()
@@ -197,23 +201,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
     
   val startTime = System.currentTimeMillis
 
-  def remoteAddress = try {
-    Some(channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
-  } catch {
-    case t: Throwable => None
-  }
+  def remoteAddress: Option[InetSocketAddress] = None
 
-  //dont make these vals, doesn't work with client connections
-  lazy val host: String = try {
-    channel.socket.getInetAddress.getHostName
-  } catch {
-    case n: NullPointerException => "[Disconnected]"
-  }
-  def port: Int = try {
-    channel.socket.getPort
-  } catch {
-    case n: NullPointerException => 0
-  }
 
   def timeOpen = System.currentTimeMillis - startTime
 
@@ -235,6 +224,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
 
   def bytesReceived = myBytesReceived
 
+/*
   def info(now: Long): ConnectionSnapshot = {
     ConnectionSnapshot(
       domain = domain,
@@ -248,14 +238,8 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
       bytesReceived = bytesReceived
     )
   }
+  */
 
-  def status = if (channel.isConnectionPending) {
-    ConnectionStatus.Connecting
-  } else if (channel.isConnected) {
-    ConnectionStatus.Connected
-  } else {
-    ConnectionStatus.NotConnected
-  }
 
   def isWritable = status == ConnectionStatus.Connected && !isDataBuffered
 
@@ -269,17 +253,36 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
   }
 
 
-  def handleWrite(data: DataOutBuffer) {
-    handleWrite(data, handler) //see WriteBuffer
+  /**
+   * The main entry point for allowing a connection handler to write data to the
+   * connection.  Handlers cannot write data whenever they please, instead they
+   * must initiate a write request.  The worker then calls this method to
+   * fullfill the request and provide the handler with a DataOutBuffer to which
+   * it can write data.
+   */
+  def handleWrite(data: DataOutBuffer): Boolean = {
+    if (continueWrite()) {
+      //the WriteBuffer is ready to accept more data, so let's get some.  Notice
+      //this method (usually) only gets called if the handler had previously made a write
+      //request, so it should have something to write
+      val more  = handler.readyForData(data)
+      val toWrite = data.data
+      
+      //its possible for the handler to not actually have written anything, this
+      //can occur due to the fact that we use the writeReady flag to track both
+      //pending data from the handler and from the partial buffer, so we can end up
+      //calling handler.readyForData even when it didn't request a write
+      val result = if (toWrite.remaining > 0) write(toWrite) else WriteStatus.Complete
+
+      //we want to leave writeReady enabled if either the handler has more data
+      //to write, or if the writebuffer couldn't write everything
+      if (more == MoreDataResult.Complete && result == WriteStatus.Complete) {
+        disableWriteReady()
+      }
+      true
+    } else false
   }
 
-
-  def consoleString = {
-    val now = System.currentTimeMillis
-    val age = now - startTime
-    val idle = timeIdle(now)
-    s"$id: $host:  age: $age idle: $idle"
-  }
 
   def disconnect() {
     super.gracefulDisconnect()
@@ -294,7 +297,7 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
    * NOTE - This is only called by the worker, because otherwise the worker does not know about the connection being closed
    */
   def close(cause : DisconnectCause) {
-    channel.close()
+    channelClose()
     try {
       handler.connectionTerminated(cause)
     } catch {
@@ -311,8 +314,57 @@ private[core] abstract class Connection(val id: Long, val key: SelectionKey, val
 
 }
 
-private[core] class ServerConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ServerConnectionHandler, val server: ServerRef)(implicit sender: ActorRef)
-  extends Connection(id, key, channel, handler)(sender) {
+/**
+ * This mixin is used with all real connections, not in tests
+ */
+private[core] trait LiveConnection extends ChannelActions { self: Connection => 
+
+  protected def channel: SocketChannel
+  def key: SelectionKey
+
+  def channelClose() { channel.close() }
+  def finishConnect(){ channel.finishConnect() } //maybe move into a subtrait extending it
+
+  def channelWrite(raw: DataBuffer): Int = raw.writeTo(channel)
+
+  def keyInterestOps(ops: Int) {
+    key.interestOps(ops)
+  }
+
+  override def remoteAddress: Option[InetSocketAddress] = try {
+    Some(channel.getRemoteAddress.asInstanceOf[InetSocketAddress])
+  } catch {
+    case t: Throwable => None
+  }
+
+  //dont make these vals, doesn't work with client connections
+  lazy val host: String = try {
+    channel.socket.getInetAddress.getHostName
+  } catch {
+    case n: NullPointerException => "[Disconnected]"
+  }
+  def port: Int = try {
+    channel.socket.getPort
+  } catch {
+    case n: NullPointerException => 0
+  }
+
+  def status = if (channel.isConnectionPending) {
+    ConnectionStatus.Connecting
+  } else if (channel.isConnected) {
+    ConnectionStatus.Connected
+  } else {
+    ConnectionStatus.NotConnected
+  }
+
+
+}
+
+abstract class ServerConnection(
+  id: Long, 
+  handler: ServerConnectionHandler,
+  val server: ServerRef
+) (implicit sender: ActorRef) extends Connection(id, handler)(sender) {
 
   def domain: String = server.name.toString
   val outgoing: Boolean = false
@@ -330,22 +382,23 @@ private[core] class ServerConnection(id: Long, key: SelectionKey, channel: Socke
 
 }
 
-private[core] class ClientConnection(id: Long, key: SelectionKey, channel: SocketChannel, handler: ClientConnectionHandler)(implicit sender: ActorRef)
-  extends Connection(id, key, channel, handler)(sender) {
+abstract class ClientConnection(
+  id: Long, 
+  val clientHandler: ClientConnectionHandler
+) (implicit sender: ActorRef) extends Connection(id, clientHandler)(sender) {
+
 
   def domain: String = "client" //TODO: fix this
   val outgoing: Boolean = true
 
-  //used by workers to access the connectionFailed callback
-  val clientHandler: ClientConnectionHandler = handler
-
   def handleConnected() = {
-    channel.finishConnect()
-    key.interestOps(SelectionKey.OP_READ)
+    finishConnect()
+    //TODO: is this needed?
+    //key.interestOps(SelectionKey.OP_READ)
     handler.connected(this)
   }
 
-  def isTimedOut(time: Long) = isTimedOut(handler.maxIdleTime, time)
+  def isTimedOut(time: Long) = isTimedOut(clientHandler.maxIdleTime, time)
 
   def unbindHandlerOnClose = handler match {
     case u: ManualUnbindHandler => false

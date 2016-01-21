@@ -5,8 +5,8 @@ import core._
 
 import akka.actor._
 import akka.testkit.TestProbe
-
-class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Option[ConnectionHandler] = None) 
+/*
+class MockConnection(maxBufferSize: Int, workerProbe: TestProbe,handler: Option[ConnectionHandler] = None) 
   extends MockWriteBuffer(maxBufferSize) with WriteEndpoint {
 
   var disconnectCalled = false
@@ -46,6 +46,12 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
 
   def timeOpen = 0
 
+
+}
+*/
+
+trait MockConnection {self: Connection with MockChannelActions =>
+  
   /**
    * Simulate event-loop iterations, calling readyForData until this buffer
    * fills or everything is written.  This can be used to test backpressure
@@ -55,9 +61,7 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
    */
   def iterate[T](f: => T): T = {
     val res = f
-    handler.foreach{handler =>
-      while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer, handler)) {}
-    }
+    while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer)) {}
     res
   }
 
@@ -65,15 +69,29 @@ class MockWriteEndpoint(maxBufferSize: Int, workerProbe: TestProbe,handler: Opti
    * Simulates event loop iteration, clearing the buffer on each iteration to avoid any backpressure
    */
   def iterateAndClear() {
-    handler.foreach{handler =>
-      while (writeReadyEnabled) {
-        handleWrite(new encoding.DynamicBuffer, handler)
-        clearBuffer()
-      }
+    while (writeReadyEnabled) {
+      handleWrite(new encoding.DynamicBuffer)
+      clearBuffer()
     }
   }
     
 
   def iterate() = iterate[Unit]({})
 
+
+}
+
+object MockConnection {
+
+  def server(_maxWriteSize: Int, handler: ServerConnectionHandler, workerProbe: TestProbe, server: ServerRef): ServerConnection with MockChannelActions = {
+    new ServerConnection(1, handler, server)(workerProbe.ref) with MockChannelActions {
+      def maxWriteSize = _maxWriteSize
+    }
+  }
+
+  def client(_maxWriteSize: Int, handler: ClientConnectionHandler, workerProbe: TestProbe): ClientConnection with MockChannelActions = {
+    new ClientConnection(1, handler)(workerProbe.ref) with MockChannelActions {
+      def maxWriteSize = _maxWriteSize
+    }
+  }
 }

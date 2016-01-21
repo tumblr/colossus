@@ -269,7 +269,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     }
     case ConnectionSummaryRequest => {
       val now = System.currentTimeMillis //save a few thousand calls by doing this
-      sender ! ConnectionSummary(connections.values.map{_.info(now)}.toSeq)
+      //sender ! ConnectionSummary(connections.values.map{_.info(now)}.toSeq)
     }
   }
 
@@ -295,11 +295,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   //start the connection process for either a new client or a reconnecting client
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
-    val channel = SocketChannel.open()
-    channel.configureBlocking(false)
-    val key = channel.register(selector, SelectionKey.OP_CONNECT)
-    val connection = new ClientConnection(newId(), key, channel, handler)
-    key.attach(connection)
+    val newChannel = SocketChannel.open()
+    newChannel.configureBlocking(false)
+    val newKey = newChannel.register(selector, SelectionKey.OP_CONNECT)
+    val connection = new ClientConnection(newId(), handler) with LiveConnection {
+      val key = newKey
+      val channel = newChannel
+    }
+    newKey.attach(connection)
     connections(connection.id) = connection
     numConnections.increment(workerIdTag)
     handler match {
@@ -310,7 +313,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       case _ =>{}
     }
     try {
-      channel.connect(address)
+      newChannel.connect(address)
     } catch {
       case t: Throwable => {
         log.error(t, s"Failed to establish connection to $address: $t")
@@ -375,7 +378,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
-      val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
+      val connection = new ServerConnection(newId(), handler, server)(self) with LiveConnection {
+        val key = newKey
+        val channel = sc
+      }
       newKey.attach(connection)
       connections(connection.id) = connection
       numConnections.increment(workerIdTag)
