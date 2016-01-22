@@ -25,7 +25,6 @@ class ConnectionHandlerSpec extends ColossusSpec {
           probe.ref ! "BOUND"
         }
 
-        def shutdownRequest(){}
 
         def receivedData(data: DataBuffer) {}
       }
@@ -47,7 +46,6 @@ class ConnectionHandlerSpec extends ColossusSpec {
           println(s"Terminated: $cause")
         }
         def receivedData(data: DataBuffer){}
-        def shutdownRequest(){}
       }
       withIOSystemAndServer(Delegator.basic(() => new MyHandler)){ (io, server) => {
           val c = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)

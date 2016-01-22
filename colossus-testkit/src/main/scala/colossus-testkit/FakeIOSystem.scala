@@ -13,6 +13,8 @@ import akka.testkit.CallingThreadDispatcher
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.concurrent.duration._
 
+case class FakeWorker(probe: TestProbe, worker: WorkerRef)
+
 object FakeIOSystem {
   def apply()(implicit system: ActorSystem): IOSystem = {
     IOSystem(system.deadLetters, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
@@ -28,6 +30,11 @@ object FakeIOSystem {
     implicit val aref = probe.ref
     val ref = WorkerRef(0, probe.ref, apply())
     (probe, ref)
+  }
+  //use this for new tests
+  def fakeWorker(implicit system: ActorSystem) = {
+    val (p, w) = fakeWorkerRef
+    FakeWorker(p, w)
   }
 
   /**

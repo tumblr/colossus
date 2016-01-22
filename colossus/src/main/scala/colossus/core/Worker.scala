@@ -298,7 +298,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     val newChannel = SocketChannel.open()
     newChannel.configureBlocking(false)
     val newKey = newChannel.register(selector, SelectionKey.OP_CONNECT)
-    val connection = new ClientConnection(newId(), handler) with LiveConnection {
+    val connection = new ClientConnection(newId(), handler, me) with LiveConnection {
       val key = newKey
       val channel = newChannel
     }
@@ -378,7 +378,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
-      val connection = new ServerConnection(newId(), handler, server)(self) with LiveConnection {
+      val connection = new ServerConnection(newId(), handler, server, me) with LiveConnection {
         val key = newKey
         val channel = sc
       }

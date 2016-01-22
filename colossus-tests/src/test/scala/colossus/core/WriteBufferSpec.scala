@@ -10,39 +10,6 @@ import akka.util.ByteString
 import WriteStatus._
 
 class WriteBufferSpec extends ColossusSpec {
-/*
-
-  class FakeWriteBuffer(val internalBufferSize: Int, channelBufferSize: Int = Int.MaxValue) extends WriteBuffer {
-  
-    protected var writes = collection.mutable.Queue[ByteString]()
-    
-    protected var clearCalled = false
-    def onBufferClear() {
-      clearCalled = true
-    }
-
-    def channelWrite(data: DataBuffer): Int = {
-      val d = if (data.remaining <= channelBufferSize) ByteString(data.takeAll) else ByteString(data.take(channelBufferSize))
-      writes.enqueue(d)
-      d.size
-    }
-
-    def expectChannelWrite(expected: String) {
-      writes.dequeue must equal(ByteString(expected))
-    }
-
-    def expectClearCalled() {
-      clearCalled must equal(true)
-    }
-    def expectNoClearCalled() {
-      clearCalled must equal(false)
-    }
-
-    protected def setKeyInterest() {}
-
-  }
-
-  */
 
   def data(s: String) = DataBuffer(ByteString(s))
 
@@ -50,13 +17,13 @@ class WriteBufferSpec extends ColossusSpec {
   "WriteBuffer" must {
     "buffer some data and clear it" in {
       val b = new MockWriteBuffer(20)
-      b.write(data("hello world")) must equal(Complete)
+      b.testWrite(data("hello world")) must equal(Complete)
       b.expectOneWrite(ByteString("hello world"))
     }
 
     "buffer and drain data too large for internal buffer" in {
       val b = new MockWriteBuffer(4)
-      b.write(data("1234567890")) must equal(Partial)
+      b.testWrite(data("1234567890")) must equal(Partial)
       b.expectOneWrite(ByteString("1234"))
       b.clearBuffer()
       b.continueWrite() must equal(false)
@@ -68,27 +35,27 @@ class WriteBufferSpec extends ColossusSpec {
 
     "immediately call disconnect callback when no data buffered" in {
       val b = new MockWriteBuffer(4)
-      b.write(data("hell"))
-      b.connectionStatus must equal (ConnectionStatus.Connected)
+      b.testWrite(data("hell"))
+      b.status must equal (ConnectionStatus.Connected)
       b.gracefulDisconnect()
       println(b.isDataBuffered)
-      b.connectionStatus must equal (ConnectionStatus.NotConnected)
+      b.status must equal (ConnectionStatus.NotConnected)
     }
 
     "call disconnect callback only when all data is written" in {
       val b = new MockWriteBuffer(4)
-      b.write(data("12345678"))
+      b.testWrite(data("12345678"))
       b.gracefulDisconnect()
-      b.connectionStatus must equal (ConnectionStatus.Connected)
+      b.status must equal (ConnectionStatus.Connected)
       b.clearBuffer()
       b.continueWrite() must equal(true)
-      b.connectionStatus must equal (ConnectionStatus.NotConnected)
+      b.status must equal (ConnectionStatus.NotConnected)
     }
 
     "disallow more writes after disconnect callback has been set" in {
       val b = new MockWriteBuffer(4)
       b.gracefulDisconnect()
-      b.write(data("asf")) must equal(Failed)
+      b.testWrite(data("asf")) must equal(Failed)
     }
 
   }

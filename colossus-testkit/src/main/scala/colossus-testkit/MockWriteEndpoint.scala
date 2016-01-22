@@ -5,52 +5,8 @@ import core._
 
 import akka.actor._
 import akka.testkit.TestProbe
-/*
-class MockConnection(maxBufferSize: Int, workerProbe: TestProbe,handler: Option[ConnectionHandler] = None) 
-  extends MockWriteBuffer(maxBufferSize) with WriteEndpoint {
 
-  var disconnectCalled = false
-  var disconnectCompleted = false
-  def id: Long = 9876L
-
-  def disconnect() {
-    disconnectCalled = true
-    gracefulDisconnect()
-  }
-
-  override def completeDisconnect() {
-    super.completeDisconnect()
-    sendDisconnect(DisconnectCause.Disconnect)
-  }
-
-  def disrupt() {
-    sendDisconnect(DisconnectCause.Closed)
-  }
-
-  protected def sendDisconnect(cause : DisconnectCause) {
-    disconnectCompleted = true
-    handler.foreach{_.connectionTerminated(cause)}
-  }
-
-  def status: ConnectionStatus = connection_status
-
-  val worker: ActorRef = workerProbe.ref
-
-  def isWritable = connection_status == ConnectionStatus.Connected && bytesAvailable > 0
-
-  def remoteAddress = None
-
-  def lastTimeDataReceived = 0
-
-  def bytesReceived = 0
-
-  def timeOpen = 0
-
-
-}
-*/
-
-trait MockConnection {self: Connection with MockChannelActions =>
+trait MockConnection extends WriteBuffer with MockChannelActions {self: Connection =>
   
   /**
    * Simulate event-loop iterations, calling readyForData until this buffer
@@ -78,20 +34,44 @@ trait MockConnection {self: Connection with MockChannelActions =>
 
   def iterate() = iterate[Unit]({})
 
+  def disrupt() {
+    close(DisconnectCause.Closed)
+  }
+
+  def testWrite(d: DataBuffer): WriteStatus = write(d)
+
+
+  def workerProbe: TestProbe
+  def serverProbe: Option[TestProbe]
+
 
 }
 
 object MockConnection {
 
-  def server(_maxWriteSize: Int, handler: ServerConnectionHandler, workerProbe: TestProbe, server: ServerRef): ServerConnection with MockChannelActions = {
-    new ServerConnection(1, handler, server)(workerProbe.ref) with MockChannelActions {
+  def server(handler: ServerConnectionHandler, _maxWriteSize: Int = 1024)(implicit sys: ActorSystem): ServerConnection with MockConnection = {
+    val (_workerProbe, worker) = FakeIOSystem.fakeWorkerRef
+    val (_serverProbe, server) = FakeIOSystem.fakeServerRef
+    handler.setBind(1, worker)
+    new ServerConnection(1, handler, server, worker) with MockConnection {
       def maxWriteSize = _maxWriteSize
+      def workerProbe = _workerProbe
+      def serverProbe = Some(_serverProbe)
     }
   }
 
-  def client(_maxWriteSize: Int, handler: ClientConnectionHandler, workerProbe: TestProbe): ClientConnection with MockChannelActions = {
-    new ClientConnection(1, handler)(workerProbe.ref) with MockChannelActions {
+  def client(handler: ClientConnectionHandler, fakeworker: FakeWorker, _maxWriteSize: Int)(implicit sys: ActorSystem): ClientConnection with MockConnection = {
+    new ClientConnection(1, handler, fakeworker.worker) with MockConnection {
       def maxWriteSize = _maxWriteSize
+      def workerProbe = fakeworker.probe
+      def serverProbe = None
     }
+  }
+
+
+  def client(handler: ClientConnectionHandler, _maxWriteSize: Int = 1024 )(implicit sys: ActorSystem): ClientConnection with MockConnection = {
+    val fakeworker = FakeIOSystem.fakeWorker
+    handler.setBind(1, fakeworker.worker)
+    client(handler, fakeworker, _maxWriteSize)
   }
 }

@@ -52,6 +52,10 @@ trait MockChannelActions extends ChannelActions {
   }
   */
 
+
+  //legacy method
+  def disconnectCalled = status == ConnectionStatus.NotConnected
+
   def clearBuffer(): ByteString = {
     println("clearing buffer")
     val lastsize = bytesAvailable
@@ -99,7 +103,7 @@ trait MockChannelActions extends ChannelActions {
 }
 
 class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer with MockChannelActions {
-  def completeDisconnect(){}
+  def completeDisconnect(){channelClose()}
 
   def testWrite(d: DataBuffer): WriteStatus = write(d)
 }

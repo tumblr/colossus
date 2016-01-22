@@ -167,7 +167,7 @@ class ServerSpec extends ColossusSpec {
         val probe = TestProbe()
         class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
           def receivedData(data: DataBuffer){}
-          def shutdownRequest() {probe.ref ! "SHUTDOWN"}
+          override def shutdownRequest() {probe.ref ! "SHUTDOWN"}
           override def connectionTerminated(cause: DisconnectCause) {
             probe.ref ! "TERMINATED"
           }
@@ -186,7 +186,6 @@ class ServerSpec extends ColossusSpec {
       "immediately terminate when last open connection closes" in {
         class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
           def receivedData(data: DataBuffer){}
-          def shutdownRequest() {endpoint.disconnect()}
         }
         val config = ServerConfig(
           name = "/test",

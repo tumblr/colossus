@@ -110,10 +110,8 @@ trait WriteEndpoint extends ConnectionInfo {
 
   /**
    * Gets the worker this connection is bound to.
-   *
-   * todo: should be a WorkerRef.  Also is this even needed anymore?
    */
-  def worker: ActorRef
+  def worker: WorkerRef
 
   /**
    * Disable all read events to the connection.  Once disabled, the connection
@@ -141,7 +139,7 @@ object ShutdownAction {
   case object Disconnect extends ShutdownAction(2)
 }
 
-abstract class Connection(val id: Long, initialHandler: ConnectionHandler)(implicit val worker: ActorRef)
+abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val worker: WorkerRef)
   extends WriteBuffer with WriteEndpoint {
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
@@ -178,7 +176,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler)(impli
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
       case ShutdownAction.Become(newHandlerFactory) if (status != ConnectionStatus.NotConnected) => {
-        worker ! WorkerCommand.SwapHandler(id, newHandlerFactory)
+        worker.worker ! WorkerCommand.SwapHandler(id, newHandlerFactory)
       }
       case _ => {}
     }
@@ -289,7 +287,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler)(impli
   }
 
   def completeDisconnect() {
-    worker ! WorkerCommand.Disconnect(id)
+    worker.worker ! WorkerCommand.Disconnect(id)
   }
 
   /**
@@ -363,8 +361,9 @@ private[core] trait LiveConnection extends ChannelActions { self: Connection =>
 abstract class ServerConnection(
   id: Long, 
   handler: ServerConnectionHandler,
-  val server: ServerRef
-) (implicit sender: ActorRef) extends Connection(id, handler)(sender) {
+  val server: ServerRef,
+  worker: WorkerRef
+) extends Connection(id, handler, worker) {
 
   def domain: String = server.name.toString
   val outgoing: Boolean = false
@@ -384,8 +383,9 @@ abstract class ServerConnection(
 
 abstract class ClientConnection(
   id: Long, 
-  val clientHandler: ClientConnectionHandler
-) (implicit sender: ActorRef) extends Connection(id, clientHandler)(sender) {
+  val clientHandler: ClientConnectionHandler,
+  worker: WorkerRef
+)  extends Connection(id, clientHandler, worker) {
 
 
   def domain: String = "client" //TODO: fix this

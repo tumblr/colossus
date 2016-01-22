@@ -24,14 +24,15 @@ import org.scalatest.Tag
 
 class ServiceClientSpec extends ColossusSpec {
 
+  //TODO: we no longer need to return a triple, just the connection, as the others are members
   def newClient(
     failFast: Boolean = false, 
     maxSentSize: Int = 10, 
     connectionAttempts: PollingDuration = PollingDuration(1.second, None),
     requestTimeout: Duration = 10.seconds
-  ): (MockWriteEndpoint, ServiceClient[Command,Reply], TestProbe) = {
+  ): (MockConnection, ServiceClient[Command,Reply], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
-    val (workerProbe, worker) = FakeIOSystem.fakeWorkerRef
+    val fakeWorker = FakeIOSystem.fakeWorker
     val config = ClientConfig(
       address, 
       requestTimeout,
@@ -42,17 +43,17 @@ class ServiceClientSpec extends ColossusSpec {
       connectionAttempts = connectionAttempts
     )
     //haxor!
-    val client = (RedisClient.callbackClient(config, worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
+    val client = (RedisClient.callbackClient(config, fakeWorker.worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
 
-    workerProbe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
-    client.setBind(1, worker)
-    workerProbe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
-    val endpoint = new MockWriteEndpoint(30, workerProbe, Some(client))
+    fakeWorker.probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
+    client.setBind(1, fakeWorker.worker)
+    fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
+    val endpoint = MockConnection.client(client, fakeWorker, 30)
     client.connected(endpoint)
-    (endpoint, client, workerProbe)
+    (endpoint, client, fakeWorker.probe)
   }
 
-  def sendCommandReplies(client: ServiceClient[Command,Reply], endpoint: MockWriteEndpoint, commandReplies: Map[Command, Reply]) {
+  def sendCommandReplies(client: ServiceClient[Command,Reply], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
     var numCalledBack = 0
     commandReplies.foreach{case (command, reply) =>
       client.send(command).map{ r =>
@@ -168,7 +169,7 @@ class ServiceClientSpec extends ColossusSpec {
       cb.execute()
       endpoint.iterate()
       endpoint.expectOneWrite(command.raw)
-      endpoint.disconnect()
+      endpoint.disrupt()
       failed must equal(true)
     }
 
@@ -219,7 +220,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "immediately fail request when not connected and failFast is true" in {
       val (endpoint, client, probe) = newClient(true)
-      endpoint.disconnect()
+      endpoint.disrupt()
       val shouldFail = Command(CMD_GET, "fail")
       var failed = false
       client.send(shouldFail).execute{

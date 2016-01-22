@@ -40,15 +40,15 @@ class ServiceServerSpec extends ColossusSpec {
     def testCanPush = canPush //expose protected method
   }
 
-  case class ServiceTest(service: FakeService, endpoint: MockWriteEndpoint, workerProbe: TestProbe)
+  case class ServiceTest(service: FakeService, endpoint: MockConnection, workerProbe: TestProbe)
 
   def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): ServiceTest = {
-    val (probe, worker) = FakeIOSystem.fakeWorkerRef
-    val service = new FakeService(handler, worker)
-    service.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(10, probe, Some(service)) 
+    val fw = FakeIOSystem.fakeWorker
+    val service = new FakeService(handler, fw.worker)
+    service.setBind(1, fw.worker)
+    val endpoint = MockConnection.server(service)
     service.connected(endpoint)
-    ServiceTest(service, endpoint, probe)
+    ServiceTest(service, endpoint, fw.probe)
   }
 
   "ServiceServer" must {
