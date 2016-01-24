@@ -46,6 +46,8 @@ trait MockChannelActions extends ChannelActions {
     connection_status = ConnectionStatus.NotConnected
   }
 
+  def channelHost() = java.net.InetAddress.getLocalHost()
+
   /*
   def completeDisconnect() {
     connection_status = ConnectionStatus.NotConnected

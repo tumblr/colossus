@@ -278,9 +278,10 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.clearBuffer()
       client.gracefulDisconnect()
       endpoint.disconnectCalled must equal(false)
+      probe.expectNoMsg(100.milliseconds)
       client.receivedData(rep1.raw)
       res1 must equal(Some(rep1.message))
-      endpoint.disconnectCalled must equal(true)
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
     }
 
     "graceful disconnect rejects new requests while disconnecting" in {
@@ -300,7 +301,7 @@ class ServiceClientSpec extends ColossusSpec {
     "graceful disconnect immediately disconnects if there's no outstanding requests" in {
       val (endpoint, client, probe) = newClient(true, 10)
       client.gracefulDisconnect()
-      endpoint.disconnectCalled must equal(true)
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
     }
 
     "not attempt reconnect if connection is lost during graceful disconnect" in {
@@ -328,9 +329,9 @@ class ServiceClientSpec extends ColossusSpec {
       }.execute()
       endpoint.iterate()
       endpoint.expectOneWrite(cmd.raw)
-      endpoint.disconnectCalled must equal(false)
+      probe.expectNoMsg(100.milliseconds)
       client.receivedData(reply.raw)
-      endpoint.disconnectCalled must equal(true)
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
     }
 
     "attempts to reconnect when server closes connection" in {

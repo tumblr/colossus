@@ -94,10 +94,11 @@ class ServiceServerSpec extends ColossusSpec {
       t.service.gracefulDisconnect()
       t.endpoint.readsEnabled must equal(false)
       t.endpoint.status must equal(ConnectionStatus.Connected)
+      t.endpoint.workerProbe.expectNoMsg(100.milliseconds)
       promises(0).success(ByteString("BBBB"))
       t.endpoint.iterate()
       t.endpoint.expectOneWrite(ByteString("BBBB"))
-      t.endpoint.status must equal(ConnectionStatus.NotConnected)
+      t.endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.service.id.get))
     }
 
     "handle backpressure from output controller" in {

@@ -222,12 +222,10 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
 
   def bytesReceived = myBytesReceived
 
-/*
   def info(now: Long): ConnectionSnapshot = {
     ConnectionSnapshot(
       domain = domain,
-      host = channel.socket.getInetAddress,
-      port = port,
+      host = channelHost(),
       id = id,
       timeOpen = now - startTime,
       readIdle = now - lastTimeDataReceived,
@@ -236,7 +234,6 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
       bytesReceived = bytesReceived
     )
   }
-  */
 
 
   def isWritable = status == ConnectionStatus.Connected && !isDataBuffered
@@ -283,10 +280,12 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
 
 
   def disconnect() {
+    println("BEGINNING DISCONNECT")
     super.gracefulDisconnect()
   }
 
   def completeDisconnect() {
+    println("COMPLETE DISCONNECT")
     worker.worker ! WorkerCommand.Disconnect(id)
   }
 
@@ -322,6 +321,8 @@ private[core] trait LiveConnection extends ChannelActions { self: Connection =>
 
   def channelClose() { channel.close() }
   def finishConnect(){ channel.finishConnect() } //maybe move into a subtrait extending it
+
+  def channelHost() = channel.socket.getInetAddress
 
   def channelWrite(raw: DataBuffer): Int = raw.writeTo(channel)
 
@@ -394,7 +395,7 @@ abstract class ClientConnection(
   def handleConnected() = {
     finishConnect()
     //TODO: is this needed?
-    //key.interestOps(SelectionKey.OP_READ)
+    enableReads()
     handler.connected(this)
   }
 

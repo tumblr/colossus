@@ -269,7 +269,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     }
     case ConnectionSummaryRequest => {
       val now = System.currentTimeMillis //save a few thousand calls by doing this
-      //sender ! ConnectionSummary(connections.values.map{_.info(now)}.toSeq)
+      sender ! ConnectionSummary(connections.values.map{_.info(now)}.toSeq)
     }
   }
 

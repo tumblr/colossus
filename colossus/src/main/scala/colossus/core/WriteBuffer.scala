@@ -1,6 +1,7 @@
 package colossus
 package core
 
+import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{CancelledKeyException, ClosedChannelException, SelectionKey, SocketChannel}
 
@@ -30,6 +31,8 @@ trait ChannelActions {
   protected def channelWrite(data: DataBuffer): Int
 
   protected def channelClose()
+
+  protected def channelHost(): InetAddress
 
   protected def keyInterestOps(ops: Int)
 

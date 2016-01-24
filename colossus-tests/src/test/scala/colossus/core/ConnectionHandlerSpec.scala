@@ -64,10 +64,12 @@ class ConnectionHandlerSpec extends ColossusSpec {
         if (sendBind) probe ! "BOUND"
       }
       override def onUnbind() {
+        println("UNBOUND")
         if (sendUnbind) probe ! "UNBOUND"
       }
 
       override def connected(endpoint: WriteEndpoint) {
+        println("CONNECTED")
         if (disconnect) endpoint.disconnect()
       }
 
@@ -109,7 +111,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
     }
 
-    "automatically unbind on disrupted connection" in {
+    "automatically unbind on disrupted connection" taggedAs(org.scalatest.Tag("test")) in {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
         val server = Service.become[Raw]("test", TEST_PORT){case x => x}
@@ -120,7 +122,8 @@ class ConnectionHandlerSpec extends ColossusSpec {
           probe.expectMsg(500.milliseconds, "BOUND")
         }
         end(server)
-        probe.expectMsg(500.milliseconds, "UNBOUND")
+        println("server ENDED")
+        probe.expectMsg(5000.milliseconds, "UNBOUND")
       }
 
     }
