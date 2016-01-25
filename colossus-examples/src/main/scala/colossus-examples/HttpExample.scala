@@ -5,7 +5,7 @@ import colossus.IOSystem
 import colossus.core.{DataBuffer, ServerRef, WorkerRef}
 import colossus.protocols.http._
 import colossus.protocols.redis._
-import colossus.service.{Callback, Service}
+import colossus.service.{Callback, ConnectionContext, Service}
 import java.net.InetSocketAddress
 
 import UrlParsing._
@@ -25,12 +25,17 @@ object HttpExample {
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
-    def handler: PartialFunction[HttpRequest, Callback[HttpResponse]] = {
+    def handler(connection: ConnectionContext[Http]): PartialFunction[HttpRequest, Callback[HttpResponse]] = {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "shutdown" => {
         worker.system.actorSystem.shutdown
         req.ok("bye")
+      }
+
+      case req @ Get on Root / "close" => {
+        connection.gracefulDisconnect()
+        req.ok("closing")
       }
 
       case req @ Get on Root / "get"  / key => redis.get(ByteString(key)).map{x => req.ok(x.utf8String)}
@@ -53,7 +58,7 @@ object HttpExample {
       val routes = new HttpRoutes(redis, context.worker)
 
       context.handle{connection => 
-        connection.become(routes.handler)
+        connection.become(routes.handler(connection))
       }
     }
   }
