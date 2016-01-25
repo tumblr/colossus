@@ -280,12 +280,10 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
 
 
   def disconnect() {
-    println("BEGINNING DISCONNECT")
     super.gracefulDisconnect()
   }
 
   def completeDisconnect() {
-    println("COMPLETE DISCONNECT")
     worker.worker ! WorkerCommand.Disconnect(id)
   }
 
