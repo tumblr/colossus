@@ -320,3 +320,26 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     s.handler(Failure(exception))
   }
 }
+
+object ServiceClient {
+
+  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    new ServiceClient(provider.clientCodec(), config, worker)
+  }
+
+  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    apply[D](new InetSocketAddress(host, port), requestTimeout)
+  }
+
+  def apply[D <: CodecDSL]
+  (address: InetSocketAddress, requestTimeout: Duration)
+  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    val config = ClientConfig(
+      address = address,
+      requestTimeout = requestTimeout,
+      name = MetricAddress.Root / provider.name
+    )
+    apply[D](config)
+  }
+
+}

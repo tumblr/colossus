@@ -69,12 +69,38 @@ trait ConnectionInfo {
   
 }
 
+/**
+ * This trait contains all connection-level functions that should be accessable
+ * to a top-level user.  It is primarily used by the Server DSL and subsequently
+ * the Service DSL, where we want to give users control over
+ * disconnecting/become, but not over lower-level tasks like requesting writes.
+ *
+ */
+trait ConnectionHandle extends ConnectionInfo {
+
+  /**
+   * Terminate the connection
+   */
+  def disconnect()
+
+  /**
+   * Terminate the connection, but allow all internal buffers to drain so that
+   * anything mid-completion can finish
+   */
+  def gracefulDisconnect()
+
+  /**
+   * set a new handler as the handler for this connection
+   */
+  def become(newHandler: => ConnectionHandler): Boolean
+
+}
 
 /**
  * This is passed to handlers to give them a way to synchronously write to the
  * connection.  Services wrap this
  */
-trait WriteEndpoint extends ConnectionInfo {
+trait WriteEndpoint extends ConnectionHandle {
 
   /**
    * Signals to the worker that this connection wishes to write some data.  It
@@ -90,14 +116,6 @@ trait WriteEndpoint extends ConnectionInfo {
    */
   def isWritable: Boolean
 
-  /**
-   * Terminate the connection
-   */
-  def disconnect()
-
-  def gracefulDisconnect()
-
-  def become(newHandler: => ConnectionHandler): Boolean
 
   /**
    * The handler should call this after shutdownRequest has been called and the

@@ -36,10 +36,13 @@ package object http {
       case other => request.error(reason.toString)
     }
 
+    /*
+     * TODO: implement HttpService as subclass of Service
     override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
                                (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator[Http]): DSLHandler[Http] = {
       new HttpServiceHandler[Http](config, worker, this, initializer)
     }
+    */
 
   }
 
@@ -53,7 +56,7 @@ package object http {
     }
   }
 
-
+  /*
   class HttpServiceHandler[D <: BaseHttp]
   (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])
   (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output])
@@ -65,7 +68,9 @@ package object http {
     }
 
   }
+  */
 
+  /*
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
     def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
@@ -83,6 +88,7 @@ package object http {
     }
 
   }
+  */
 
   implicit object HttpClientProvider extends ClientCodecProvider[Http] {
     def clientCodec = new HttpClientCodec

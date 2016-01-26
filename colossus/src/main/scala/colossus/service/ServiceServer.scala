@@ -58,17 +58,16 @@ class DroppedReply extends Error("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
+  (codec: ServerCodec[I,O], config: ServiceConfig[I, O])(implicit io: IOSystem) 
 extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._
 
-  implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
-  val log = Logging(worker.system.actorSystem, name.toString())
+  val log = Logging(io.actorSystem, name.toString())
+  def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
 
-  implicit val col = worker.system.metrics.base
+  implicit val col = io.metrics.base
   val requests  = col.getOrAdd(new Rate(name / "requests"))
   val latency   = col.getOrAdd(new Histogram(name / "latency", sampleRate = 0.25))
   val errors    = col.getOrAdd(new Rate(name / "errors"))
@@ -221,12 +220,6 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
       log.error(reason, s"Error processing request: $formattedRequest: $reason")
     }
     processFailure(request, reason)
-  }
-
-  def schedule(in: FiniteDuration, message: Any) {
-    id.foreach{i =>
-      worker ! Schedule(in, Message(i, message))
-    }
   }
 
   /**
