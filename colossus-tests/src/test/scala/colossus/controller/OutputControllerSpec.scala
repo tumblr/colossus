@@ -82,13 +82,13 @@ class OutputControllerSpec extends ColossusSpec {
         controller.testGracefulDisconnect()
       }
       endpoint.expectOneWrite(data.take(endpoint.maxWriteSize))
-      endpoint.disconnectCalled must equal(false)
+      endpoint.workerProbe.expectNoMsg(100.milliseconds)
       endpoint.clearBuffer()
       endpoint.iterate({})
       //these occur as separate writes because the first comes from the partial buffer, the second from the controller
       endpoint.expectWrite(data.drop(endpoint.maxWriteSize))
       endpoint.expectWrite(data2)
-      endpoint.disconnectCalled must equal(true)  
+      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(controller.id.get))
     }
 
     "timeout queued messages that haven't been sent" in {

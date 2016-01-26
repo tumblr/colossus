@@ -26,7 +26,6 @@ class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
   }
       
 
-  def shutdownRequest() {}
 }
 
 object RawProtocol {

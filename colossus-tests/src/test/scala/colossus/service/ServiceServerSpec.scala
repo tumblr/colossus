@@ -40,15 +40,15 @@ class ServiceServerSpec extends ColossusSpec {
     def testCanPush = canPush //expose protected method
   }
 
-  case class ServiceTest(service: FakeService, endpoint: MockWriteEndpoint, workerProbe: TestProbe)
+  case class ServiceTest(service: FakeService, endpoint: MockConnection, workerProbe: TestProbe)
 
   def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): ServiceTest = {
-    val (probe, worker) = FakeIOSystem.fakeWorkerRef
-    val service = new FakeService(handler, worker)
-    service.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(10, probe, Some(service)) 
+    val fw = FakeIOSystem.fakeWorker
+    val service = new FakeService(handler, fw.worker)
+    service.setBind(1, fw.worker)
+    val endpoint = MockConnection.server(service)
     service.connected(endpoint)
-    ServiceTest(service, endpoint, probe)
+    ServiceTest(service, endpoint, fw.probe)
   }
 
   "ServiceServer" must {
@@ -94,10 +94,11 @@ class ServiceServerSpec extends ColossusSpec {
       t.service.gracefulDisconnect()
       t.endpoint.readsEnabled must equal(false)
       t.endpoint.status must equal(ConnectionStatus.Connected)
+      t.endpoint.workerProbe.expectNoMsg(100.milliseconds)
       promises(0).success(ByteString("BBBB"))
       t.endpoint.iterate()
       t.endpoint.expectOneWrite(ByteString("BBBB"))
-      t.endpoint.status must equal(ConnectionStatus.NotConnected)
+      t.endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.service.id.get))
     }
 
     "handle backpressure from output controller" in {

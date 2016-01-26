@@ -247,7 +247,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     }
   }
 
-  def shutdownRequest() {
+  override def shutdownRequest() {
     gracefulDisconnect()
   }
 

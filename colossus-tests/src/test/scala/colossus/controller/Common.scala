@@ -51,7 +51,7 @@ class PushPromise {
 
 }
 
-class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 50.milliseconds)) {
+class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 50.milliseconds)) with ServerConnectionHandler {
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
@@ -78,14 +78,12 @@ class TestController(dataBufferSize: Int, processor: TestInput => Unit) extends 
 }
 
 object TestController {
-  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = {
+  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
     val controller = new TestController(dataBufferSize, processor)
-    val (probe, worker) = FakeIOSystem.fakeWorkerRef
-    controller.setBind(1, worker)
-    val endpoint = new MockWriteEndpoint(outputBufferSize, probe, Some(controller))
+    val endpoint = MockConnection.server(controller, outputBufferSize)
     controller.connected(endpoint)
     (endpoint, controller)
   }
 
-  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockWriteEndpoint, TestController) = createController(100, 100, processor)
+  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockConnection, TestController) = createController(100, 100, processor)
 }

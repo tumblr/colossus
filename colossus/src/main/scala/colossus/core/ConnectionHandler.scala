@@ -79,22 +79,20 @@ trait ConnectionHandler extends WorkerItem {
    * @param period the frequency at which this method is called.  Currently this is hardcoded to `WorkerManager.IdleCheckFrequency`, but may become application dependent in the future.
    */
   def idleCheck(period: Duration)
+
+  /**
+   * the connection handler should begin its graceful shutdown procedure.  For
+   * both servers and clients this can be triggered either by a call to
+   * gracefulDisconnect or to become.  For ServerConnectionHandlers this can
+   * also occur when the Server begins shutting down.
+   */
+  def shutdownRequest()
 }
 
 /**
  * Mixin containing events just for server connection handlers
  */
-trait ServerConnectionHandler extends ConnectionHandler {
-
-  /**
-   * The server is beginning to shutdown and is signaling to the connection
-   * that it should cleanup and terminate.  This gives the connection time to
-   * gracefully shutdown, however eventually the server will timeout and
-   * forcefully close the connection
-   */
-  def shutdownRequest()
-
-}
+trait ServerConnectionHandler extends ConnectionHandler {}
 
 
 /**
@@ -156,6 +154,9 @@ trait BasicSyncHandler extends ConnectionHandler {
   def receivedMessage(message: Any, sender: ActorRef){}
   def readyForData(out: encoding.DataOutBuffer): MoreDataResult = MoreDataResult.Complete
   def idleCheck(period: Duration){}
+  def shutdownRequest (){
+    endpoint.completeShutdown()
+  }
 
   //this is the only method you have to implement
   //def receivedData(data: DataBuffer)

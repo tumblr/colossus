@@ -128,6 +128,10 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
     }
   }
 
+  def shutdownRequest() {
+    gracefulDisconnect()
+  }
+  
   /**
    * stops reading from the connection and accepting new writes, but waits for
    * pending/ongoing write operations to complete before disconnecting

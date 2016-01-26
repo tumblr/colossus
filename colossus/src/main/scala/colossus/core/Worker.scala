@@ -106,6 +106,24 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
     }
   }
 
+  /**
+   * Replace an existing worker item with a new one.  This happens, for example,
+   * as the last phase of swapping a live connection's handler.  The old
+   * WorkerItem is unbound before the new one is bound.  If no WorkerItem with
+   * the given id exists, the new one is not bound.  This is to avoid a possible
+   * race condition that could occur if a connection is severed during the
+   * process of swapping handlers.
+   */
+  def replace(id: Long, newWorkerItem: WorkerItem) {
+    get(id).map { old =>
+      unbind(old)
+      workerItems(id) = newWorkerItem
+      newWorkerItem.setBind(id, worker)
+    }.getOrElse{
+      log.error(s"Attempted to swap worker $id that is not bound to this worker")
+    }
+  }
+
   def unbind(workerItem: WorkerItem) {
     workerItem.id.map{i =>
       unbind(i)
@@ -277,11 +295,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   //start the connection process for either a new client or a reconnecting client
   def clientConnect(address: InetSocketAddress, handler: ClientConnectionHandler) {
-    val channel = SocketChannel.open()
-    channel.configureBlocking(false)
-    val key = channel.register(selector, SelectionKey.OP_CONNECT)
-    val connection = new ClientConnection(newId(), key, channel, handler)
-    key.attach(connection)
+    val newChannel = SocketChannel.open()
+    newChannel.configureBlocking(false)
+    val newKey = newChannel.register(selector, SelectionKey.OP_CONNECT)
+    val connection = new ClientConnection(newId(), handler, me) with LiveConnection {
+      val key = newKey
+      val channel = newChannel
+    }
+    newKey.attach(connection)
     connections(connection.id) = connection
     numConnections.increment(workerIdTag)
     handler match {
@@ -292,7 +313,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       case _ =>{}
     }
     try {
-      channel.connect(address)
+      newChannel.connect(address)
     } catch {
       case t: Throwable => {
         log.error(t, s"Failed to establish connection to $address: $t")
@@ -342,6 +363,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
         }
       }
+      case SwapHandler(id, factory) => {
+        connections.get(id).foreach{con =>
+          val handler = factory()
+          workerItems.replace(id, handler)
+          con.setHandler(handler)
+        }
+      }
     }
   }
 
@@ -350,7 +378,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
    */
   def registerConnection(sc: SocketChannel, server: ServerRef, handler: ServerConnectionHandler) {
       val newKey: SelectionKey = sc.register( selector, SelectionKey.OP_READ )
-      val connection = new ServerConnection(newId(), newKey, sc, handler, server)(self)
+      val connection = new ServerConnection(newId(), handler, server, me) with LiveConnection {
+        val key = newKey
+        val channel = sc
+      }
       newKey.attach(connection)
       connections(connection.id) = connection
       numConnections.increment(workerIdTag)
@@ -562,6 +593,7 @@ object WorkerCommand {
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand
   case class Disconnect(id: Long) extends WorkerCommand
+  case class SwapHandler(id: Long, newWorkerItem: () => ConnectionHandler) extends WorkerCommand
 
   //similar to Disconnect, this will shut down a connection, however it will
   //treat the disconnect as an error and forward the error cause to the
