@@ -105,7 +105,7 @@ class BasicServiceHandler[C <: CodecDSL](service: Service[C], worker: WorkerRef)
 abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Output])(implicit val provider: CodecProvider[C]) extends HandlerConstructor {
 
   //TODO: fix it
-  def this()(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", 1.second))(provider)
+  def this()(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider)
 
   private[colossus] def createHandler(worker: WorkerRef) = new BasicServiceHandler(this, worker)
 
