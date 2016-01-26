@@ -94,6 +94,11 @@ trait ConnectionHandle extends ConnectionInfo {
    */
   def become(newHandler: => ConnectionHandler): Boolean
 
+  /**
+   * Gets the worker this connection is bound to.
+   */
+  def worker: WorkerRef
+
 }
 
 /**
@@ -126,10 +131,6 @@ trait WriteEndpoint extends ConnectionHandle {
   def completeShutdown()
 
 
-  /**
-   * Gets the worker this connection is bound to.
-   */
-  def worker: WorkerRef
 
   /**
    * Disable all read events to the connection.  Once disabled, the connection

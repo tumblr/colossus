@@ -116,9 +116,18 @@ abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Outpu
    */
 
   private var currentHandle: Option[ConnectionHandle] = None
-  private[colossus] def doReceive(message: Any, sender: ActorRef) {}
+  private var currentSender: Option[ActorRef] = None
+  private[colossus] def doReceive(message: Any, sender: ActorRef) {
+    currentSender = Some(sender)
+    receive(message)
+    currentSender = None
+  }
   private[colossus] def setHandle(handle: Option[ConnectionHandle]) {
     currentHandle = handle
+  }
+
+  def sender(): ActorRef = currentSender.getOrElse {
+    throw new ReceiveException("No sender")
   }
 
   def disconnect() {
@@ -135,7 +144,7 @@ abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Outpu
     }
   }
 
-  def connectionInfo: Option[ConnectionInfo] = currentHandle
+  def connectionHandle: Option[ConnectionHandle] = currentHandle
 
   def handle: PartialHandler[C]
 
@@ -220,18 +229,28 @@ object Service {
   }
   */
 
+  def start(name: String, port: Int, handlerFactory: => HandlerConstructor)(implicit io: IOSystem): ServerRef = {
+    Server.start(name, port){context =>
+      context onConnect { connection =>
+        connection accept handlerFactory
+      }
+    }
+  }
+
   /** Quick-start a service, using default settings 
    *
    * @param name The name of the service
    * @param port The port to bind the server to
    */
-  /*
-  def serve[T <: CodecDSL]
-  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)
-  (handler: Initializer[T])
+  def basic[T <: CodecDSL]
+  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(handler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    serve[T](ServerSettings(port), ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout))(handler)
+    Server.start(name, port){context =>
+      context onConnect {connection =>
+        connection accept new Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)){ def handle = handler }
+      }
+    }
+      
   }
-  */
 
 }

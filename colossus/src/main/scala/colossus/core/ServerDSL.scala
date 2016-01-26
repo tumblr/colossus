@@ -6,11 +6,19 @@ object ServerDSL {
 }
 import ServerDSL._
 
+sealed trait MaybeHandler
+object MaybeHandler {
+  case object Reject extends MaybeHandler
+  case class Lazy(constructor: HandlerConstructor) extends MaybeHandler
+  case class Handler(handler: ServerConnectionHandler) extends MaybeHandler
+}
+
 trait ConnectionInitializer {
 
-  def accept(handler: HandlerConstructor): Option[HandlerConstructor] = Some(handler)
+  def accept(handler: HandlerConstructor): MaybeHandler = MaybeHandler.Lazy(handler)
+  def accept(handler: ServerConnectionHandler): MaybeHandler = MaybeHandler.Handler(handler)
 
-  def reject(): Option[HandlerConstructor] = None
+  def reject(): MaybeHandler = MaybeHandler.Reject
 
 }
 
@@ -23,7 +31,7 @@ trait HandlerConstructor {
 trait WorkerInitializer {
   implicit val worker: WorkerRef
 
-  def onConnect(init: ConnectionInitializer => Option[HandlerConstructor])
+  def onConnect(init: ConnectionInitializer => MaybeHandler)
 
   //delegator message handling
   def receive(receiver: Receive)
@@ -34,9 +42,9 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef) extends Delegator(se
 
 
   protected var currentReceiver: Receive = {case _ => ()}
-  protected var currentAcceptor: ConnectionInitializer => Option[HandlerConstructor] = x => None
+  protected var currentAcceptor: ConnectionInitializer => MaybeHandler = x => MaybeHandler.Reject
   
-  def onConnect(init: ConnectionInitializer => Option[HandlerConstructor]) {
+  def onConnect(init: ConnectionInitializer => MaybeHandler) {
     currentAcceptor = init
   }
 
@@ -46,7 +54,11 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef) extends Delegator(se
   }
 
   def acceptNewConnection: Option[ServerConnectionHandler] = {
-    currentAcceptor(new ConnectionInitializer {} ).map{_.createHandler(worker)}
+    currentAcceptor(new ConnectionInitializer {} ) match {
+      case MaybeHandler.Reject     => None
+      case MaybeHandler.Lazy(h)    => Some(h.createHandler(worker))
+      case MaybeHandler.Handler(h) => Some(h)
+    }
   }
 
   override def handleMessage: Receive = currentReceiver
@@ -72,6 +84,15 @@ trait ServerDSL {
   }
 
   def start(name: String, port: Int)(initializer: WorkerInitializer => Unit)(implicit io: IOSystem): ServerRef = start(name, ServerSettings(port))(initializer)
+
+
+  def basic(name: String, port: Int, handlerFactory: () => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+    start(name, port){context =>
+      context onConnect { connection =>
+        connection accept handlerFactory()
+      }
+    }
+  }
 
 }
 
