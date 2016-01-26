@@ -8,50 +8,35 @@ import ServerDSL._
 
 trait ConnectionInitializer {
 
-  def accept(handler: ServerConnectionHandler): Option[ServerConnectionHandler] = Some(handler)
+  def accept(handler: HandlerConstructor): Option[HandlerConstructor] = Some(handler)
 
-  def reject(): Option[ServerConnectionHandler] = None
+  def reject(): Option[HandlerConstructor] = None
+
+}
+
+trait HandlerConstructor {
+
+  private[colossus] def createHandler(worker: WorkerRef): ServerConnectionHandler
 
 }
 
 trait WorkerInitializer {
-  def worker: WorkerRef
+  implicit val worker: WorkerRef
 
-  def onConnect(init: ConnectionInitializer => Option[ServerConnectionHandler])
+  def onConnect(init: ConnectionInitializer => Option[HandlerConstructor])
 
   //delegator message handling
   def receive(receiver: Receive)
 
-  /* not sure if these should be here or not
-
-  def clientFor[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, worker)
-  }
-
-  def clientFor[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    clientFor[D](new InetSocketAddress(host, port), requestTimeout)
-  }
-
-  def clientFor[D <: CodecDSL]
-  (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    val config = ClientConfig(
-      address = address,
-      requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
-    )
-    clientFor[D](config)
-  }
-  */
-    
 }
 
-class DSLDelegator(server : ServerRef, worker : WorkerRef) extends Delegator(server, worker) with WorkerInitializer {
+class DSLDelegator(server : ServerRef, _worker : WorkerRef) extends Delegator(server, _worker) with WorkerInitializer {
+
 
   protected var currentReceiver: Receive = {case _ => ()}
-  protected var currentAcceptor: ConnectionInitializer => Option[ServerConnectionHandler] = x => None
+  protected var currentAcceptor: ConnectionInitializer => Option[HandlerConstructor] = x => None
   
-  def onConnect(init: ConnectionInitializer => Option[ServerConnectionHandler]) {
+  def onConnect(init: ConnectionInitializer => Option[HandlerConstructor]) {
     currentAcceptor = init
   }
 
@@ -61,7 +46,7 @@ class DSLDelegator(server : ServerRef, worker : WorkerRef) extends Delegator(ser
   }
 
   def acceptNewConnection: Option[ServerConnectionHandler] = {
-    currentAcceptor(new ConnectionInitializer {} )
+    currentAcceptor(new ConnectionInitializer {} ).map{_.createHandler(worker)}
   }
 
   override def handleMessage: Receive = currentReceiver

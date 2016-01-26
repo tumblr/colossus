@@ -5,7 +5,7 @@ import java.util.Date
 import java.text.SimpleDateFormat
 
 import colossus._
-import colossus.core.{ServerRef, ServerSettings}
+import colossus.core.{Server, ServerRef, ServerSettings}
 import service._
 import protocols.http._
 
@@ -14,6 +14,7 @@ import JsonDSL._
 import akka.actor._
 import akka.util.ByteString
 import scala.concurrent.duration._
+
 
 object BenchmarkService {
 
@@ -53,7 +54,7 @@ object BenchmarkService {
       requestMetrics = false
     )
 
-    val server = Service.serve[Http](serverConfig, serviceConfig) { context =>
+    val server = Server.start("benchmark", serverConfig) { context =>
 
       ///the ??? is filled in almost immediately
       var dateHeader = HttpResponseHeader("Date", "???")
@@ -62,27 +63,29 @@ object BenchmarkService {
         case ts: String => dateHeader = HttpResponseHeader("Date", ts)
       }
       
-      context.handle { connection =>
-        connection.become{ case request =>
-          if (request.head.url == "/plaintext") {
-            val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = response,
-              headers = Vector(plaintextHeader, serverHeader, dateHeader)
-            )
-            Callback.successful(res)
-          } else if (request.head.url == "/json") {
-            val json = ("message" -> "Hello, World!")
-            val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = compact(render(json)),
-              headers = Vector(jsonHeader, serverHeader, dateHeader)
-            )
-            Callback.successful(res)
-          } else {
-            Callback.successful(request.notFound("invalid path"))
+      context onConnect { connection =>
+        connection accept new Service[Http](serviceConfig){ 
+          def handle = { case request => 
+            if (request.head.url == "/plaintext") {
+              val res = HttpResponse(
+                version  = HttpVersion.`1.1`,
+                code    = HttpCodes.OK,
+                data    = response,
+                headers = Vector(plaintextHeader, serverHeader, dateHeader)
+              )
+              Callback.successful(res)
+            } else if (request.head.url == "/json") {
+              val json = ("message" -> "Hello, World!")
+              val res = HttpResponse(
+                version  = HttpVersion.`1.1`,
+                code    = HttpCodes.OK,
+                data    = compact(render(json)),
+                headers = Vector(jsonHeader, serverHeader, dateHeader)
+              )
+              Callback.successful(res)
+            } else {
+              Callback.successful(request.notFound("invalid path"))
+            }
           }
         }
       }
@@ -92,4 +95,5 @@ object BenchmarkService {
   }
 
 }
+
 

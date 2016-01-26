@@ -61,16 +61,67 @@ trait ClientCodecProvider[C <: CodecDSL] {
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Output])(implicit val provider: CodecProvider[C], io: IOSystem) 
-extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config) {
+class BasicServiceHandler[C <: CodecDSL](service: Service[C], worker: WorkerRef)
+  extends ServiceServer[C#Input, C#Output](service.provider.provideCodec(), service.config)(worker.system) 
+  {
+
+  protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
+    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
+  }
+
+  protected def unhandledReceive: Receive = {
+    case _ => {}
+  }
+
+  protected def unhandledError: ErrorHandler[C] = {
+    case (request, reason) => service.provider.errorResponse(request, reason)
+  }
+
+  override def connected(e: WriteEndpoint) {
+    super.connected(e)
+    service.setHandle(Some(e))
+  }
+
+  override def connectionTerminated(cause: DisconnectCause) {
+    super.connectionTerminated(cause)
+    //TODO: maybe propagate to the user class
+    service.setHandle(None)
+  }
+  
+  private val handler: PartialHandler[C] = service.handle orElse unhandled
+  private val errorHandler: ErrorHandler[C] = service.onError orElse unhandledError
+
+  def receivedMessage(message: Any, sender: ActorRef) {
+    service.doReceive(message, sender)
+  }
+    
+  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
+  
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
+
+}
+
+
+abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Output])(implicit val provider: CodecProvider[C]) extends HandlerConstructor {
 
   //TODO: fix it
-  def this()(implicit provider: CodecProvider[C], io: IOSystem) = this(ServiceConfig("FIX THIS", 1.second))(provider, io)
+  def this()(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", 1.second))(provider)
 
-  //TODO: it might make sense to create some kind of core base handler with this functionality
+  private[colossus] def createHandler(worker: WorkerRef) = new BasicServiceHandler(this, worker)
+
+  /*
+   * This class is called Service for fluidity in the DSL, but it is really more
+   * of a service handler initializer.  The user constructs an instance of this,
+   * and it is passed into a new DSLServiceHandler
+   */
+
   private var currentHandle: Option[ConnectionHandle] = None
+  private[colossus] def doReceive(message: Any, sender: ActorRef) {}
+  private[colossus] def setHandle(handle: Option[ConnectionHandle]) {
+    currentHandle = handle
+  }
 
-  def close() {
+  def disconnect() {
     currentHandle match {
       case Some(h) => h.gracefulDisconnect()
       case None => {}
@@ -84,43 +135,18 @@ extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config) {
     }
   }
 
-  private val handler: PartialHandler[C] = handle orElse {
-    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
-  }
-
-  private val errorHandler: ErrorHandler[C] = onError orElse {
-    case (request, reason) => provider.errorResponse(request, reason)
-  }
-
-  override def connected(e: WriteEndpoint) {
-    super.connected(e)
-    currentHandle = Some(e)
-  }
-
-  override def connectionTerminated(cause: DisconnectCause) {
-    super.connectionTerminated(cause)
-    currentHandle = None
-  }
-  
-
-  def receivedMessage(message: Any, sender: ActorRef) {
-    //receive(message, sender)
-  }
-    
-  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
-  
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
-
-
-  //*** ABSTRACT MEMBERS ***
+  def connectionInfo: Option[ConnectionInfo] = currentHandle
 
   def handle: PartialHandler[C]
 
-  def onError: ErrorHandler[C]
+  def onError: ErrorHandler[C] = Map()
 
-  def receive: Receive
+  def receive: Receive = Map()
+
+
 
 }
+
 
 
 

@@ -49,10 +49,6 @@ object HttpExample {
     Server.start("http-example", port){context =>
       import context.worker
       val redis = new RedisCallbackClient(ServiceClient[Redis](redisAddress.getHostName, redisAddress.getPort))
-      //because our routes object has no internal state, we can share it among
-      //connections.  If the class did have some per-connection internal state,
-      //we'd just create one per connection
-      val routes = new HttpRoutes(redis, context.worker)
 
       context onConnect {connection => 
         connection accept new HttpExampleService(redis, worker)

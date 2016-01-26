@@ -22,9 +22,15 @@ import scala.util.Try
  *  @param server reference to the server
  *  @param worker reference to the worker this delegator belongs to
  */
-abstract class Delegator(val server: ServerRef, val worker: WorkerRef) {
+abstract class Delegator(val server: ServerRef,  _worker: WorkerRef) {
+
+  //this is so users can do import context.worker
+  implicit val worker = _worker
+  
   val log = Logging(worker.system.actorSystem, s"${server.name}-delegator-${worker.id}")
+
   implicit val executor = server.system.actorSystem.dispatcher
+
 
   /**
    * Function which determines whether or not to accept a connection.
