@@ -17,7 +17,7 @@ import colossus.controller.IteratorGenerator
 
 object HttpExample {
 
-  class HttpExampleService(redis: RedisCallbackClient, worker: WorkerRef) extends Service[Http] {
+  class HttpExampleService(redis: RedisCallbackClient)(implicit io: IOSystem) extends Service[Http]{
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
@@ -25,7 +25,7 @@ object HttpExample {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "shutdown" => {
-        worker.system.actorSystem.shutdown
+        io.actorSystem.shutdown
         req.ok("bye")
       }
 
@@ -51,7 +51,7 @@ object HttpExample {
       val redis = new RedisCallbackClient(ServiceClient[Redis](redisAddress.getHostName, redisAddress.getPort))
 
       context onConnect {connection => 
-        connection accept new HttpExampleService(redis, worker)
+        connection accept new HttpExampleService(redis)
       }
     }
   }
