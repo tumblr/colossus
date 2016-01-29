@@ -15,24 +15,6 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
 
   "Connection" must {
 
-    "call handler.shutdownRequest during become" in {
-      val handler = mock[ServerConnectionHandler]
-      val con = MockConnection.server(handler)
-      verify(handler, never()).shutdownRequest()
-      con.become(throw new Exception("If this is thrown, the connection tried to instantiate the handler too early"))
-      verify(handler).shutdownRequest()
-    }
-
-    "not set shutdown action of lower priority" in {
-      import ShutdownAction._
-      val con = MockConnection.server(mock[ServerConnectionHandler])
-      con.setShutdownAction(DefaultDisconnect) must equal(true)
-      con.setShutdownAction(Become(() => ???))  must equal(true)
-      con.setShutdownAction(DefaultDisconnect) must equal(false)
-      con.setShutdownAction(Disconnect) must equal(true)
-      con.setShutdownAction(DefaultDisconnect) must equal(false)
-      con.setShutdownAction(Become(() => ???))  must equal(false)
-    }
 
     "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
       val handler = new BasicSyncHandler with ClientConnectionHandler {

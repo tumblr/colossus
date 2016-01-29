@@ -81,7 +81,7 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.expectOneWrite(ByteString("AB"))
     }
 
-    "graceful disconnect allows pending requests to complete" in {
+    "graceful disconnect allows pending requests to complete" taggedAs(org.scalatest.Tag("test")) in {
       var promises = Vector[CallbackPromise[ByteString]]()
       val t = fakeService(x => {
         val p = new CallbackPromise[ByteString]()
@@ -94,9 +94,9 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.readsEnabled must equal(false)
       t.endpoint.status must equal(ConnectionStatus.Connected)
       t.endpoint.workerProbe.expectNoMsg(100.milliseconds)
-      promises(0).success(ByteString("BBBB"))
+      promises(0).success(ByteString("B"))
       t.endpoint.iterate()
-      t.endpoint.expectOneWrite(ByteString("BBBB"))
+      t.endpoint.expectOneWrite(ByteString("B"))
       t.endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.service.id.get))
     }
 

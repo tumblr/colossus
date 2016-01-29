@@ -95,7 +95,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   }
 
   protected def pauseReads() {
-    state match {
+    connectionState match {
       case a : AliveState => {
         _readsEnabled = false
         a.endpoint.disableReads()
@@ -105,7 +105,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   }
 
   protected def resumeReads() {
-    state match {
+    connectionState match {
       case a: AliveState => {
         _readsEnabled = true
         a.endpoint.enableReads()
@@ -143,8 +143,8 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
       }
       case ReadingStream(sink) => sink.push(data) match {
         case PushResult.Ok => {}
-        case PushResult.Complete => state match{
-          case ConnectionState.Disconnecting(_) => {
+        case PushResult.Complete => connectionState match{
+          case ConnectionState.ShuttingDown(_) => {
             //gracefulDisconnect was called, so we allowed the connection to
             //finish reading in the stream, but now that it's done, disable
             //reads and drop any data still in the buffer
@@ -157,7 +157,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
           }
           case other => throw new InvalidConnectionStateException(other)
         }
-        case PushResult.Full(trigger) => state match {
+        case PushResult.Full(trigger) => connectionState match {
           case a: AliveState => {
             a.endpoint.disableReads()
             val copied = data.takeCopy
@@ -170,7 +170,7 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
           }
           case other => throw new InvalidConnectionStateException(other)
         }
-        case PushResult.Filled(trigger) => state match {
+        case PushResult.Filled(trigger) => connectionState match {
           case a: AliveState => {
             a.endpoint.disableReads()
             trigger.fill{() => 

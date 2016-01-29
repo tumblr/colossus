@@ -1,7 +1,8 @@
 package colossus
 package service
 
-import core.WorkerCommand
+import akka.util.ByteString
+import core.{ConnectionState, WorkerCommand}
 import colossus.testkit.{ColossusSpec, FakeIOSystem}
 import org.scalatest.{WordSpec, MustMatchers}
 import org.scalatest.mock.MockitoSugar
@@ -14,7 +15,8 @@ import scala.util.{Try, Success, Failure}
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
 
-
+import RawProtocol._
+import testkit.MockConnection
 
 class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
@@ -30,6 +32,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
     val c = mock[ServiceClient[String, Int]]
     when(c.send("hey")).thenReturn(Callback.complete(r))
     when(c.config).thenReturn(config)
+    when(c.connectionState).thenReturn(core.ConnectionState.Connected(mock[core.WriteEndpoint]))
     c        
   }
 
@@ -95,15 +98,24 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
     "close removed connection on update" in {
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
-      val l = new LoadBalancingClient[String, Int](worker, mockGenerator, maxTries = 2, initialClients = addrs(3))
+
+      implicit val w = worker
+      val generator = (i: InetSocketAddress) => {
+        val h = ServiceClient[Raw]("0.0.0.0", i.getPort, 1.second)
+        val x = MockConnection.client(h)
+        h.connected(x)
+        h
+      }
+      val l = new LoadBalancingClient[ByteString, ByteString](worker, generator, maxTries = 2, initialClients = addrs(3))
       val clients = l.currentClients
 
       val removed = clients(0)
+      removed.connectionState.isInstanceOf[ConnectionState.Connected] must equal(true)
 
       val newAddrs = clients.drop(1).map{_.config.address}
       l.update(newAddrs)
+      removed.connectionState.isInstanceOf[ConnectionState.ShuttingDown] must equal(true)
 
-      verify(removed).gracefulDisconnect()
     }
       
 

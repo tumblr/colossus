@@ -11,7 +11,7 @@ trait TestInput {
   def source: Source[DataBuffer]
 }
 
-case class TestInputImpl(data: FiniteBytePipe) extends StreamMessage with TestInput{
+case class TestInputImpl(data: FiniteBytePipe) extends TestInput{
   def source = data
   def sink = data
 }

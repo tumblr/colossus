@@ -340,9 +340,9 @@ class ServiceClientSpec extends ColossusSpec {
         import protocols.redis._
 
         val reply = StatusReply("LATER LOSER!!!")
-        val server = Service.start("test", TEST_PORT, new Service[Redis] { def handle = {
+        val server = Server.basic("test", TEST_PORT, new Service[Redis] { def handle = {
           case c if (c.command == "BYE") => {
-            disconnect()
+            gracefulDisconnect()
             reply
           }
           case other => {
@@ -369,7 +369,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
-        val server = Service.start("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
+        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
           case foo => {
             disconnect()
             foo
@@ -386,7 +386,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem{ implicit io =>
-        val server = Service.start("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
+        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
           case foo => {
             disconnect()
             foo

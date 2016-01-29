@@ -86,10 +86,10 @@ trait ServerDSL {
   def start(name: String, port: Int)(initializer: WorkerInitializer => Unit)(implicit io: IOSystem): ServerRef = start(name, ServerSettings(port))(initializer)
 
 
-  def basic(name: String, port: Int, handlerFactory: () => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+  def basic(name: String, port: Int, handlerFactory: => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
     start(name, port){context =>
       context onConnect { connection =>
-        connection accept handlerFactory()
+        connection accept handlerFactory
       }
     }
   }

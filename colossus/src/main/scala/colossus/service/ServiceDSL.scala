@@ -61,9 +61,13 @@ trait ClientCodecProvider[C <: CodecDSL] {
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-class BasicServiceHandler[C <: CodecDSL](service: Service[C], worker: WorkerRef)
-  extends ServiceServer[C#Input, C#Output](service.provider.provideCodec(), service.config)(worker.system) 
-  {
+abstract class Service[C <: CodecDSL]
+(val config: ServiceConfig[C#Input, C#Output])
+(implicit val provider: CodecProvider[C], io: IOSystem) 
+extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config)(io) {
+
+  //TODO: fix it, this should pull from some kind of default config
+  def this()(implicit provider: CodecProvider[C], io: IOSystem) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider, io)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
@@ -74,77 +78,28 @@ class BasicServiceHandler[C <: CodecDSL](service: Service[C], worker: WorkerRef)
   }
 
   protected def unhandledError: ErrorHandler[C] = {
-    case (request, reason) => service.provider.errorResponse(request, reason)
+    case (request, reason) => provider.errorResponse(request, reason)
   }
 
-  override def connected(e: WriteEndpoint) {
-    super.connected(e)
-    service.setHandle(Some(e))
-  }
-
-  override def connectionTerminated(cause: DisconnectCause) {
-    super.connectionTerminated(cause)
-    //TODO: maybe propagate to the user class
-    service.setHandle(None)
-  }
-  
-  private val handler: PartialHandler[C] = service.handle orElse unhandled
-  private val errorHandler: ErrorHandler[C] = service.onError orElse unhandledError
-
-  def receivedMessage(message: Any, sender: ActorRef) {
-    service.doReceive(message, sender)
-  }
-    
-  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
-  
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
-
-}
-
-
-abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Output])(implicit val provider: CodecProvider[C]) extends HandlerConstructor {
-
-  //TODO: fix it
-  def this()(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider)
-
-  private[colossus] def createHandler(worker: WorkerRef) = new BasicServiceHandler(this, worker)
-
-  /*
-   * This class is called Service for fluidity in the DSL, but it is really more
-   * of a service handler initializer.  The user constructs an instance of this,
-   * and it is passed into a new DSLServiceHandler
-   */
-
-  private var currentHandle: Option[ConnectionHandle] = None
   private var currentSender: Option[ActorRef] = None
-  private[colossus] def doReceive(message: Any, sender: ActorRef) {
-    currentSender = Some(sender)
-    receive(message)
-    currentSender = None
-  }
-  private[colossus] def setHandle(handle: Option[ConnectionHandle]) {
-    currentHandle = handle
-  }
 
   def sender(): ActorRef = currentSender.getOrElse {
     throw new ReceiveException("No sender")
   }
+  
+  private val handler: PartialHandler[C] = handle orElse unhandled
+  private val errorHandler: ErrorHandler[C] = onError orElse unhandledError
 
-  def disconnect() {
-    currentHandle match {
-      case Some(h) => h.gracefulDisconnect()
-      case None => {}
-    }
+  def receivedMessage(message: Any, sender: ActorRef) {
+    currentSender = Some(sender)
+    receive(message)
+    currentSender = None
   }
+    
+  final protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
+  
+  final protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
 
-  def become(newHandler : => ServerConnectionHandler) {
-    currentHandle match {
-      case Some(h) => h.become(newHandler)
-      case None => {}
-    }
-  }
-
-  def connectionHandle: Option[ConnectionHandle] = currentHandle
 
   def handle: PartialHandler[C]
 
@@ -152,10 +107,7 @@ abstract class Service[C <: CodecDSL](val config: ServiceConfig[C#Input, C#Outpu
 
   def receive: Receive = Map()
 
-
-
 }
-
 
 
 
@@ -229,14 +181,6 @@ object Service {
   }
   */
 
-  def start(name: String, port: Int, handlerFactory: => HandlerConstructor)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){context =>
-      context onConnect { connection =>
-        connection accept handlerFactory
-      }
-    }
-  }
-
   /** Quick-start a service, using default settings 
    *
    * @param name The name of the service
@@ -247,6 +191,7 @@ object Service {
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
     Server.start(name, port){context =>
       context onConnect {connection =>
+        import context.worker
         connection accept new Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)){ def handle = handler }
       }
     }

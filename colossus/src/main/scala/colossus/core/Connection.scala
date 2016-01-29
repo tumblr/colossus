@@ -84,17 +84,6 @@ trait ConnectionHandle extends ConnectionInfo {
   def disconnect()
 
   /**
-   * Terminate the connection, but allow all internal buffers to drain so that
-   * anything mid-completion can finish
-   */
-  def gracefulDisconnect()
-
-  /**
-   * set a new handler as the handler for this connection
-   */
-  def become(newHandler: => ConnectionHandler): Boolean
-
-  /**
    * Gets the worker this connection is bound to.
    */
   def worker: WorkerRef
@@ -121,17 +110,6 @@ trait WriteEndpoint extends ConnectionHandle {
    */
   def isWritable: Boolean
 
-
-  /**
-   * The handler should call this after shutdownRequest has been called and the
-   * handler is ready to finish the process
-   *
-   * Be aware calling this will take no action if the connection is already disconnected
-   */
-  def completeShutdown()
-
-
-
   /**
    * Disable all read events to the connection.  Once disabled, the connection
    * handler will stop receiving incoming data.  This can allow handlers to
@@ -146,60 +124,12 @@ trait WriteEndpoint extends ConnectionHandle {
 
 }
 
-sealed abstract class ShutdownAction(val rank: Int) {
-  
-  def >=(a: ShutdownAction): Boolean = rank >= a.rank
-
-}
-
-object ShutdownAction {
-  case object DefaultDisconnect extends ShutdownAction(0)
-  case class Become(newHandler: () => ConnectionHandler) extends ShutdownAction(1)
-  case object Disconnect extends ShutdownAction(2)
-}
 
 abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val worker: WorkerRef)
   extends WriteBuffer with WriteEndpoint {
 
-  private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _handler: ConnectionHandler = initialHandler
   def handler = _handler
-
-  def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
-    shutdownAction = action
-    true
-  } else false
-
-  /**
-   * begin the graceful disconnect process.  Be aware that this is different
-   * from gracefully disconnecting the WriteBuffer.
-   */
-  override def gracefulDisconnect() {
-    setShutdownAction(ShutdownAction.Disconnect)
-    shutdownHandler()
-  }
-
-  def become(nh: => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(() => nh))) {
-    shutdownHandler()
-    true
-  } else false
-
-  /**
-   * Begin the process of shutting down the connection handler.
-   */
-  def shutdownHandler() {
-    handler.shutdownRequest()
-  }
-
-  def completeShutdown() {
-    shutdownAction match {
-      case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
-      case ShutdownAction.Become(newHandlerFactory) if (status != ConnectionStatus.NotConnected) => {
-        worker.worker ! WorkerCommand.SwapHandler(id, newHandlerFactory)
-      }
-      case _ => {}
-    }
-  }
 
   /**
    * replace the existing handler with a new one.  The old handler is terminated
@@ -219,7 +149,6 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
   val startTime = System.currentTimeMillis
 
   def remoteAddress: Option[InetSocketAddress] = None
-
 
   def timeOpen = System.currentTimeMillis - startTime
 

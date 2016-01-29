@@ -146,7 +146,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     connectionClosed(cause)
   }
 
-  protected def pushResponse(request: I, response: O, startTime: Long) {
+  private def pushResponse(request: I, response: O, startTime: Long) {
     if (requestMetrics) {
       val tags = tagDecorator.tagsFor(request, response)
       requests.hit(tags = tags)
@@ -222,26 +222,18 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     processFailure(request, reason)
   }
 
-  /**
-   * Terminate the connection, but allow any outstanding requests to complete
-   * (or timeout) before disconnecting
-   */
-  override def gracefulDisconnect() {
+  private def checkGracefulDisconnect() {
+    if (disconnecting && requestBuffer.size == 0) {
+      super.shutdown()
+    }
+  }
+
+  override def shutdown() {
     pauseReads()
     disconnecting = true
     //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
     //disconnecting before we have a change to finish processing and write the response
-
-  }
-
-  private def checkGracefulDisconnect() {
-    if (disconnecting && requestBuffer.size == 0) {
-      super.gracefulDisconnect()
-    }
-  }
-
-  override def shutdownRequest() {
-    gracefulDisconnect()
+    //TODO: there is probably a bug here if this gets called outside of processing a request, we should probably just push onto the request buffer all the time
   }
 
   // ABSTRACT MEMBERS
