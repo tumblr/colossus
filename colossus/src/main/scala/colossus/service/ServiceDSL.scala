@@ -187,12 +187,15 @@ object Service {
    * @param port The port to bind the server to
    */
   def basic[T <: CodecDSL]
-  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(handler: PartialHandler[T])
+  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
+    class BasicService extends Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)) {
+      def handle = userHandler
+    }
     Server.start(name, port){context =>
       context onConnect {connection =>
         import context.worker
-        connection accept new Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)){ def handle = handler }
+        connection accept new BasicService
       }
     }
       
