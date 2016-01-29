@@ -36,14 +36,6 @@ package object http {
       case other => request.error(reason.toString)
     }
 
-    /*
-     * TODO: implement HttpService as subclass of Service
-    override def provideHandler(config: ServiceConfig[Http#Input, Http#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[Http])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[Http#Input, Http#Output] = new ReturnCodeTagDecorator[Http]): DSLHandler[Http] = {
-      new HttpServiceHandler[Http](config, worker, this, initializer)
-    }
-    */
-
   }
 
   implicit object DefaultHttpProvider extends HttpProvider
@@ -56,11 +48,11 @@ package object http {
     }
   }
 
-  /*
-  class HttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig[D#Input, D#Output], worker: WorkerRef, provider: CodecProvider[D], initializer: CodecDSL.HandlerGenerator[D])
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[D#Input, D#Output])
-  extends BasicServiceHandler[D](config, worker, provider, initializer) {
+  abstract class BaseHttpServiceHandler[D <: BaseHttp]
+  (config: ServiceConfig[D#Input, D#Output], provider: CodecProvider[D])(implicit io: IOSystem)
+  extends Service[D](config)(provider, io) {
+
+    override def tagDecorator = new ReturnCodeTagDecorator
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
       if(!input.head.persistConnection) gracefulDisconnect()
@@ -68,9 +60,11 @@ package object http {
     }
 
   }
-  */
 
-  /*
+  abstract class HttpService(config: ServiceConfig[HttpRequest, HttpResponse])(implicit io: IOSystem) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider)
+
+  abstract class StreamingHttpService(config: ServiceConfig[HttpRequest, StreamingHttpResponse])(implicit io: IOSystem) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider)
+
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
     def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
@@ -78,17 +72,11 @@ package object http {
       case other => toStreamed(request.error(reason.toString))
     }
 
-    override def provideHandler(config: ServiceConfig[StreamingHttp#Input, StreamingHttp#Output], worker: WorkerRef, initializer: CodecDSL.HandlerGenerator[StreamingHttp])
-                               (implicit ex: ExecutionContext, tagDecorator: TagDecorator[StreamingHttp#Input, StreamingHttp#Output] = new ReturnCodeTagDecorator[StreamingHttp]): DSLHandler[StreamingHttp] = {
-      new HttpServiceHandler[StreamingHttp](config, worker, this, initializer)
-    }
-
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
       StreamingHttpResponse.fromStatic(response)
     }
 
   }
-  */
 
   implicit object HttpClientProvider extends ClientCodecProvider[Http] {
     def clientCodec = new HttpClientCodec

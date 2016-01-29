@@ -96,9 +96,9 @@ extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config)(io) {
     currentSender = None
   }
     
-  final protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
+  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
   
-  final protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
 
 
   def handle: PartialHandler[C]
