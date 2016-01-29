@@ -340,16 +340,15 @@ class ServiceClientSpec extends ColossusSpec {
         import protocols.redis._
 
         val reply = StatusReply("LATER LOSER!!!")
-        val server = Service.serve[Redis]("test", TEST_PORT) {_.handle{con => con.become{
+        val server = Server.basic("test", TEST_PORT, new Service[Redis] { def handle = {
           case c if (c.command == "BYE") => {
-            con.gracefulDisconnect()
+            gracefulDisconnect()
             reply
           }
           case other => {
-            println(s"GOT $other")
             StatusReply("ok")
           }
-        }}}
+        }})
         withServer(server) {
           val config = ClientConfig(
             address = new InetSocketAddress("localhost", TEST_PORT),
@@ -370,12 +369,12 @@ class ServiceClientSpec extends ColossusSpec {
 
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
-        val server = Service.serve[Raw]("rawwww", TEST_PORT) {_.handle{con => con.become{
+        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
           case foo => {
-            con.gracefulDisconnect()
+            disconnect()
             foo
           }
-        }}}
+        }})
         withServer(server) {
           val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
           import server.system.actorSystem.dispatcher
@@ -387,12 +386,12 @@ class ServiceClientSpec extends ColossusSpec {
 
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem{ implicit io =>
-        val server = Service.serve[Raw]("rawwww", TEST_PORT) {_.handle{con => con.become{
+        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
           case foo => {
-            con.gracefulDisconnect()
+            disconnect()
             foo
           }
-        }}}
+        }})
         withServer(server) {
 
           val config = ClientConfig(

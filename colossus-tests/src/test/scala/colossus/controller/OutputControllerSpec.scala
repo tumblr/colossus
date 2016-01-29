@@ -115,7 +115,7 @@ class OutputControllerSpec extends ColossusSpec {
       controller.testGracefulDisconnect()
     }
 
-    "fail pending messages on connectionClosed while gracefully disconnecting" taggedAs(org.scalatest.Tag("test")) in {
+    "fail pending messages on connectionClosed while gracefully disconnecting"  in {
       val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
       val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
@@ -135,7 +135,12 @@ class OutputControllerSpec extends ColossusSpec {
       
     }
 
-    "fail pending messages when graceful disconnect after connection disrupted" in {
+    "not fail pending messages when graceful disconnect after connection disrupted" taggedAs(org.scalatest.Tag("test")) in {
+      //notice that disrupting a connection does not flush the pending buffer.
+      //The behavior used to be that calling gracefulDisconnect after a
+      //disruption would trigger a flush of the buffer, but since now the
+      //shutdown procedure does not occur if the connection is not connected,
+      //this doesn't happen anymore
       val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
       val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
@@ -148,7 +153,7 @@ class OutputControllerSpec extends ColossusSpec {
       p1.result.get.isInstanceOf[OutputResult.Failure] must equal(true)
       p2.isSet must equal(false)
       controller.testGracefulDisconnect()
-      p2.result.get.isInstanceOf[OutputResult.Cancelled] must equal(true)
+      p2.isSet must equal(false)
 
     }
 

@@ -155,7 +155,7 @@ trait BasicSyncHandler extends ConnectionHandler {
   def readyForData(out: encoding.DataOutBuffer): MoreDataResult = MoreDataResult.Complete
   def idleCheck(period: Duration){}
   def shutdownRequest (){
-    endpoint.completeShutdown()
+    endpoint.disconnect()
   }
 
   //this is the only method you have to implement

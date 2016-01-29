@@ -123,9 +123,9 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
     }
   }
 
-  override def shutdownRequest(){
-    push(Status("The server is shutting down, goodbye")){_ => ()}
-    super.shutdownRequest()
+  override def shutdown(){
+    push(Status("goodbye")){_ => ()}
+    super.shutdown()
   }
 
 

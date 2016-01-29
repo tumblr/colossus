@@ -28,9 +28,8 @@ class ServiceServerSpec extends ColossusSpec {
         requestBufferSize = 2,
         requestTimeout = 50.milliseconds
       ),
-      worker = worker,
       codec = RawCodec
-  ) {
+  )(worker.system) {
     def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR:" + reason.toString)
 
     def processRequest(input: ByteString) = handler(input)
@@ -82,7 +81,7 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.expectOneWrite(ByteString("AB"))
     }
 
-    "graceful disconnect allows pending requests to complete" in {
+    "graceful disconnect allows pending requests to complete" taggedAs(org.scalatest.Tag("test")) in {
       var promises = Vector[CallbackPromise[ByteString]]()
       val t = fakeService(x => {
         val p = new CallbackPromise[ByteString]()
@@ -95,9 +94,9 @@ class ServiceServerSpec extends ColossusSpec {
       t.endpoint.readsEnabled must equal(false)
       t.endpoint.status must equal(ConnectionStatus.Connected)
       t.endpoint.workerProbe.expectNoMsg(100.milliseconds)
-      promises(0).success(ByteString("BBBB"))
+      promises(0).success(ByteString("B"))
       t.endpoint.iterate()
-      t.endpoint.expectOneWrite(ByteString("BBBB"))
+      t.endpoint.expectOneWrite(ByteString("B"))
       t.endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.service.id.get))
     }
 
@@ -151,12 +150,12 @@ class ServiceServerSpec extends ColossusSpec {
         requestTimeout = 50.milliseconds
       )
       withIOSystem{implicit io => 
-        val server = Service.serve[Redis](serverSettings, serviceConfig) { context => 
-          context.handle{ connection =>
-            import connection.callbackExecutor
-            connection.become{
+        val server = Server.start("test", serverSettings) { context => 
+          import context.worker.callbackExecutor
+          context onConnect { connection =>
+            connection accept new Service[Redis]{ def handle = {
               case req => Callback.schedule(500.milliseconds)(Callback.successful(StatusReply("HEllo")))
-            }
+            }}
           }
         }
         withServer(server) {
@@ -178,50 +177,6 @@ class ServiceServerSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect"  taggedAs(org.scalatest.Tag("test")) in {
-      withIOSystem{implicit io => 
-        val server = Service.serve[Redis]("graceful-test", TEST_PORT, 1.second){_.handle{con => con.become{
-          case x if (x.command == "DIE") => {
-
-            println("GOT DIE!!!!")
-            con.gracefulDisconnect()
-            StatusReply("BYE")
-          }
-          case other => {
-            import con.callbackExecutor
-            println("GOT $other")
-            Callback.schedule(20.milliseconds)(StatusReply("FOO"))
-          }
-        }}}
-        withServer(server) {
-          val client = AsyncServiceClient[Redis]("localhost", TEST_PORT, 1.second)
-          val r1 = client.send(Command("TEST"))
-          val r2 = client.send(Command("DIE"))
-          Await.result(r1, 1.second) must equal(StatusReply("FOO"))
-          Await.result(r2, 1.second) must equal(StatusReply("BYE"))
-        }
-      }
-    }
-
   }
-
-  "Streaming Service" must {
-
-    import protocols.http._
-
-    "Serve a basic response as a stream" taggedAs(org.scalatest.Tag("Test")) in {
-      withIOSystem{implicit io =>
-        val server = Service.become[StreamingHttp]("stream-test", TEST_PORT) {
-          case req => StreamingHttpResponse.fromStatic(req.ok("Hello World"))
-        }
-        withServer(server) { 
-          val client = AsyncServiceClient[Http]("localhost", TEST_PORT)
-          Await.result(client.send(HttpRequest.get("/")), 1.second).body.get must equal(ByteString("Hello World"))
-        }
-      }
-    }
-  }
-
-      
 
 }

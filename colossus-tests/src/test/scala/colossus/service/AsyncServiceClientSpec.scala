@@ -18,9 +18,7 @@ import RawProtocol._
 class AsyncServiceClientSpec extends ColossusSpec {
 
   def makeServer()(implicit sys: IOSystem): ServerRef = {
-    Service.serve[Raw]("redis-test", TEST_PORT){_.handle{_.become{
-      case x => x
-    }}}
+    Service.basic[Raw]("redis-test", TEST_PORT){case x => x}
   }
 
   "AsyncServiceClient" must {

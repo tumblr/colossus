@@ -46,9 +46,9 @@ class ServerSpec extends ColossusSpec {
     "list all registered servers" in {
       withIOSystem { implicit io =>
         implicit val ec = io.actorSystem.dispatcher
-        val server1 = Server.basic("echo1", TEST_PORT, () => new EchoHandler)
+        val server1 = Server.basic("echo1", TEST_PORT, new EchoHandler)
         waitForServer(server1)
-        val server2 = Server.basic("echo2", TEST_PORT + 1, () => new EchoHandler)
+        val server2 = Server.basic("echo2", TEST_PORT + 1, new EchoHandler)
         waitForServer(server2)
         val servers = Await.result(io.registeredServers, 200 milliseconds)
         servers must have length 2
@@ -90,7 +90,7 @@ class ServerSpec extends ColossusSpec {
   "Server" must {
     "attach to a system and start" in {
       withIOSystem { implicit io =>
-        val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+        val server = Server.basic("echo", TEST_PORT, new EchoHandler)
         waitForServer(server)
         val c = TestClient(io, TEST_PORT)
         val data = ByteString("hello world!")
@@ -102,7 +102,7 @@ class ServerSpec extends ColossusSpec {
       implicit val io = IOSystem("test", 2)
       val probe = TestProbe()
       probe watch io.workerManager
-      val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+      val server = Server.basic("echo", TEST_PORT, new EchoHandler)
       val probe2 = TestProbe()
       probe2 watch server.server
       Thread.sleep(100)
@@ -113,7 +113,7 @@ class ServerSpec extends ColossusSpec {
 
     "shutdown when it cannot bind to a port when a duration is supplied" in {
         withIOSystem { implicit io =>
-          val existingServer = Server.basic("echo3", TEST_PORT, () => new EchoHandler)
+          val existingServer = Server.basic("echo3", TEST_PORT, new EchoHandler)
           waitForServer(existingServer)
           val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = PollingDuration(50 milliseconds, Some(1L)))
           val cfg = ServerConfig("echo2", Delegator.basic(() => new EchoHandler), settings)
@@ -139,7 +139,7 @@ class ServerSpec extends ColossusSpec {
       //note in this test the server is killed with PoisonPill, not its own Shutdown message
       "shutdown all associated connections when killed" in {
         withIOSystem{implicit io =>
-          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          val server = Server.basic("echo", TEST_PORT, new EchoHandler)
           withServer(server) {
             val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
             server.server ! PoisonPill
@@ -150,7 +150,7 @@ class ServerSpec extends ColossusSpec {
 
       "shutdown with Shutdown message" in {
         withIOSystem{implicit io =>
-          val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+          val server = Server.basic("echo", TEST_PORT, new EchoHandler)
           //spin up a client just to make sure the server is running
           withServer(server) {
             val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
@@ -173,7 +173,7 @@ class ServerSpec extends ColossusSpec {
           }
         }
         withIOSystem{implicit io =>
-          val server = Server.basic("echo", TEST_PORT, () => new MyHandler)
+          val server = Server.basic("echo", TEST_PORT, new MyHandler)
           withServer(server) {
             val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
             server.server ! Server.Shutdown
@@ -223,7 +223,7 @@ class ServerSpec extends ColossusSpec {
 
       "shutting down a system kills client connections"  in {
         implicit val io = IOSystem("test-system", 2)
-        val server = Server.basic("echo", TEST_PORT, () => new EchoHandler)
+        val server = Server.basic("echo", TEST_PORT, new EchoHandler)
         val probe = TestProbe()
         probe watch server.server
         withServer(server) {

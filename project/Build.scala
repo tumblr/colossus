@@ -18,7 +18,7 @@ object ColossusBuild extends Build {
     (testAll) <<= (test in Test) dependsOn (test in IntegrationTest),
     organization := "com.tumblr",
     scalaVersion  := "2.11.7",
-    crossScalaVersions := Seq("2.10.4", "2.11.7"),
+    crossScalaVersions := Seq("2.10.6", "2.11.7"),
     version                   := "0.7.0-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>

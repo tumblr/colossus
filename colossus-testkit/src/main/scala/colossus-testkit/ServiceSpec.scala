@@ -43,7 +43,11 @@ abstract class ServiceSpec[C <: CodecDSL](implicit provider: CodecProvider[C], c
 
   def expectResponse(request: Request, response: Response) {
     withClient{client =>
-      Await.result(client.send(request), requestTimeout) must equal(response)
+      try {
+        Await.result(client.send(request), requestTimeout) must equal(response)
+      } catch {
+        case timeout: java.util.concurrent.TimeoutException => fail(s"timed out waiting for a response after $requestTimeout")
+      }
     }
   }
 

@@ -169,18 +169,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
   }
 
   /**
-   * Allow any requests in transit to complete, but cancel all pending requests
-   * and don't allow any new ones
-   */
-  override def gracefulDisconnect() {
-    log.info(s"Terminating connection to $address")
-    purgePending(new NotConnectedException("Connection is closing"))
-    disconnecting = true
-    manuallyDisconnected = true
-    checkGracefulDisconnect()
-  }
-
-  /**
    * Sent a request to the service, along with a handler for processing the response.
    */
   private def sendNow(request: I)(handler: ResponseHandler){
@@ -250,9 +238,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     attemptReconnect()
   }
 
-  override def shutdownRequest() {
-    gracefulDisconnect()
-  }
 
   private def attemptReconnect() {
     connectionAttempts += 1
@@ -297,9 +282,17 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     }
   }
 
+  override def shutdown() {
+    log.info(s"Terminating connection to $address")
+    purgePending(new NotConnectedException("Connection is closing"))
+    disconnecting = true
+    manuallyDisconnected = true
+    checkGracefulDisconnect()
+  }
+
   private def checkGracefulDisconnect() {
     if (isConnected && disconnecting && sentBuffer.size == 0) {
-      super.gracefulDisconnect()
+      super.shutdown()
     }
   }
 
@@ -319,4 +312,27 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     errors.hit(tags = hpTags + ("type" -> exception.getClass.getName.replaceAll("[^\\w]", "")))
     s.handler(Failure(exception))
   }
+}
+
+object ServiceClient {
+
+  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    new ServiceClient(provider.clientCodec(), config, worker)
+  }
+
+  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    apply[D](new InetSocketAddress(host, port), requestTimeout)
+  }
+
+  def apply[D <: CodecDSL]
+  (address: InetSocketAddress, requestTimeout: Duration)
+  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    val config = ClientConfig(
+      address = address,
+      requestTimeout = requestTimeout,
+      name = MetricAddress.Root / provider.name
+    )
+    apply[D](config)
+  }
+
 }

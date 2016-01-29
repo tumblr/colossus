@@ -104,7 +104,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
+        withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
           probe.expectMsg(250.milliseconds, "UNBOUND")
         }
@@ -114,7 +114,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
     "automatically unbind on disrupted connection" taggedAs(org.scalatest.Tag("test")) in {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
-        val server = Service.become[Raw]("test", TEST_PORT){case x => x}
+        val server = Service.basic[Raw]("test", TEST_PORT){case x => x}
         withServer(server) {
           io ! IOCommand.BindAndConnectWorkerItem(
             new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
@@ -150,7 +150,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        withServer(Service.become[Raw]("test", TEST_PORT){case x => x}) {
+        withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
           probe.expectNoMsg(200.milliseconds)
         }

@@ -3,7 +3,7 @@ package colossus.examples
 import akka.actor._
 import akka.util.ByteString
 import colossus.IOSystem
-import colossus.core.ServerRef
+import colossus.core.{Server, ServerRef}
 import colossus.service._
 import colossus.protocols.redis._
 import scala.concurrent.{Promise, Future}
@@ -30,28 +30,31 @@ object KeyValDB {
 
 object KeyValExample {
   
+
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 
-    Service.serve[Redis]("key-value-example", port){ context =>
-      context.handle{ connection =>
-        import connection.callbackExecutor
-        connection.become {
-          case Command("GET", args) => {
-            val dbCmd = KeyValDB.Get(args(0))
-            db ! dbCmd
-            Callback.fromFuture(dbCmd.promise.future).map{
-              case Some(value) => BulkReply(value)
-              case None => NilReply
+    Server.start("key-value-example", port){ context =>
+      context onConnect { connection =>
+        import context.worker.callbackExecutor
+        connection accept new Service[Redis] {
+          def handle = {
+            case Command("GET", args) => {
+              val dbCmd = KeyValDB.Get(args(0))
+              db ! dbCmd
+              Callback.fromFuture(dbCmd.promise.future).map{
+                case Some(value) => BulkReply(value)
+                case None => NilReply
+              }
             }
-          }
-          case Command("SET", args) => {
-            val dbCmd = KeyValDB.Set(args(0), args(1))
-            db ! dbCmd
-            Callback.fromFuture(dbCmd.promise.future).map{_ =>
-              StatusReply("OK")
+            case Command("SET", args) => {
+              val dbCmd = KeyValDB.Set(args(0), args(1))
+              db ! dbCmd
+              Callback.fromFuture(dbCmd.promise.future).map{_ =>
+                StatusReply("OK")
+              }
             }
           }
         }
