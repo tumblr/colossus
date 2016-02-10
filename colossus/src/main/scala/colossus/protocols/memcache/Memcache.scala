@@ -183,10 +183,10 @@ sealed class MemcacheEmptyKeyException extends
   InvalidMemcacheKeyException("Memcache keys must be at least 1 character.")
 
 sealed class MemcacheKeyTooLongException(val key: ByteString) extends
-  InvalidMemcacheKeyException("Memcache keys must be no longer than 250 characters. Provided key: " + key.utf8String)
+  InvalidMemcacheKeyException(s"Memcache keys must be no longer than 250 characters. Provided key: ${key.utf8String}")
 
 sealed class MemcacheInvalidCharacterException(val key: ByteString, val position: Int) extends
-  InvalidMemcacheKeyException(s"Key contains invalid character at position $position.")
+  InvalidMemcacheKeyException(s"Key contains invalid character at position $position. Provided key: ${key.utf8String}")
 
 sealed trait MemcacheCommand {
 
