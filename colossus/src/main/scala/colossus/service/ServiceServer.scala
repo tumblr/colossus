@@ -124,7 +124,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
-      concurrentRequests.decrement()
+      if (requestMetrics) concurrentRequests.decrement()
       pushResponse(done.request, comp, done.creationTime) 
     }
     if (!canPush) {
@@ -138,8 +138,10 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
 
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
-    requestsPerConnection.add(numRequests)
-    concurrentRequests.decrement(num = requestBuffer.size)
+    if (requestMetrics) {
+      requestsPerConnection.add(numRequests)
+      concurrentRequests.decrement(num = requestBuffer.size)
+    }
   }
 
   override def connectionLost(cause : DisconnectError) {
@@ -195,29 +197,11 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     } else {
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
-    response match {
-      case ConstantCallback(v) if (requestBuffer.size == 1 && canPush) => {
-        //a constant callback means the result was produced immmediately, so if
-        //request buffer is empty and we know we can write the result
-        //immediately, we can totally skip the request buffering process
-        requestBuffer.remove()
-        val done = v match {
-          case Success(yay) => yay
-          case Failure(err) => handleFailure(request, err)
-        }
-        pushResponse(request, done, promise.creationTime)
-        checkGracefulDisconnect()
-      }
-      case other => {
-        concurrentRequests.increment()
-        other.execute{
-          case Success(res) => promise.complete(res)
-          case Failure(err) => promise.complete(handleFailure(promise.request, err))
-        }
-
-      }
+    if (requestMetrics) concurrentRequests.increment()
+    response.execute{
+      case Success(res) => promise.complete(res)
+      case Failure(err) => promise.complete(handleFailure(promise.request, err))
     }
-
   }
 
   private def handleFailure(request: I, reason: Throwable): O = {
