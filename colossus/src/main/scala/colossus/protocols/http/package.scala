@@ -49,7 +49,7 @@ package object http {
   }
 
   abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig[D#Input, D#Output], provider: CodecProvider[D])(implicit io: IOSystem)
+  (config: ServiceConfig, provider: CodecProvider[D])(implicit io: IOSystem)
   extends Service[D](config)(provider, io) {
 
     override def tagDecorator = new ReturnCodeTagDecorator
@@ -61,9 +61,9 @@ package object http {
 
   }
 
-  abstract class HttpService(config: ServiceConfig[HttpRequest, HttpResponse])(implicit io: IOSystem) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider)
+  abstract class HttpService(config: ServiceConfig)(implicit io: IOSystem) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider)
 
-  abstract class StreamingHttpService(config: ServiceConfig[HttpRequest, StreamingHttpResponse])(implicit io: IOSystem) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider)
+  abstract class StreamingHttpService(config: ServiceConfig)(implicit io: IOSystem) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider)
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec

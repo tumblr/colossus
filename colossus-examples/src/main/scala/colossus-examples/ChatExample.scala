@@ -8,7 +8,6 @@ import colossus.service.{Codec, DecodedResult}
 import colossus.controller._
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
-import colossus.encoding._
 
 /*
  * The controller layer adds generalized message processing to a connection.  A

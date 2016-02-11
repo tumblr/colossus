@@ -21,12 +21,11 @@ import Codec._
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
  * @param requestLogFormat if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
  */
-case class ServiceConfig[I,O](
+case class ServiceConfig(
   name: MetricAddress,
   requestTimeout: Duration,
   requestBufferSize: Int = 100,
   logErrors: Boolean = true,
-  requestLogFormat : Option[RequestFormatter[I]] = None,
   requestMetrics: Boolean = true
 )
 
@@ -58,14 +57,14 @@ class DroppedReply extends Error("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig[I, O])(implicit io: IOSystem) 
+  (codec: ServerCodec[I,O], config: ServiceConfig)(implicit io: IOSystem) 
 extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
-  import WorkerCommand._
   import config._
 
   val log = Logging(io.actorSystem, name.toString())
   def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
+  def requestLogFormat : Option[RequestFormatter[I]] = None
 
   implicit val col = io.metrics.base
   val requests  = col.getOrAdd(new Rate(name / "requests"))
@@ -101,6 +100,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     }
 
   }
+
 
   private val requestBuffer = new java.util.LinkedList[SyncPromise]()
   def currentRequestBufferSize = requestBuffer.size
@@ -159,7 +159,14 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
           checkBuffer()
         }
       }
-      case err => println(s"dropped reply: $err")
+      case f: OutputError => {
+        addError(f.reason)
+        if (logErrors) {
+          val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
+          log.error(f.reason, s"Dropped Reply for request: $formattedRequest: $f")
+        }
+      }
+
     }
 
     //this should never happen because we are always checking if the outputqueue
@@ -171,7 +178,8 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
 
   protected def processMessage(request: I) {
     numRequests += 1
-    val startTime = System.currentTimeMillis
+    val promise = new SyncPromise(request)
+    requestBuffer.add(promise)
     /**
      * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
@@ -188,20 +196,19 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
     response match {
-      case ConstantCallback(v) if (requestBuffer.size == 0 && canPush) => {
+      case ConstantCallback(v) if (requestBuffer.size == 1 && canPush) => {
         //a constant callback means the result was produced immmediately, so if
         //request buffer is empty and we know we can write the result
         //immediately, we can totally skip the request buffering process
+        requestBuffer.remove()
         val done = v match {
           case Success(yay) => yay
           case Failure(err) => handleFailure(request, err)
         }
-        pushResponse(request, done, startTime)
+        pushResponse(request, done, promise.creationTime)
         checkGracefulDisconnect()
       }
       case other => {
-        val promise = new SyncPromise(request)
-        requestBuffer.add(promise)
         concurrentRequests.increment()
         other.execute{
           case Success(res) => promise.complete(res)
@@ -231,9 +238,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   override def shutdown() {
     pauseReads()
     disconnecting = true
-    //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
-    //disconnecting before we have a change to finish processing and write the response
-    //TODO: there is probably a bug here if this gets called outside of processing a request, we should probably just push onto the request buffer all the time
+    checkGracefulDisconnect()
   }
 
   // ABSTRACT MEMBERS

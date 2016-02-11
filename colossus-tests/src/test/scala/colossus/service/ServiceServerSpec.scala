@@ -3,7 +3,6 @@ package service
 
 import testkit._
 import core._
-import Callback.Implicits._
 
 import scala.concurrent.duration._
 import akka.actor.ActorRef
@@ -145,7 +144,7 @@ class ServiceServerSpec extends ColossusSpec {
         maxIdleTime = Duration.Inf
       )
 
-      val serviceConfig = ServiceConfig[Redis#Input, Redis#Output] (
+      val serviceConfig = ServiceConfig (
         name = "/timeout-test",
         requestTimeout = 50.milliseconds
       )
