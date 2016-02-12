@@ -1,6 +1,7 @@
 package colossus
 package core
 
+import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{CancelledKeyException, ClosedChannelException, SelectionKey, SocketChannel}
 
@@ -16,14 +17,43 @@ object WriteStatus {
   case object Complete extends WriteStatus
 }
 
-trait KeyInterestManager {
+/**
+ * This trait abstracts actions performed on a raw socket channel.  
+ *
+ * This is essentially the only trait that should differ between live
+ * connections and fake connections in testing
+ */
+trait ChannelActions {
+
+  /**
+   * Hook to perform that actual operation of writing to a channel
+   */
+  protected def channelWrite(data: DataBuffer): Int
+
+  protected def channelClose()
+
+  protected def channelHost(): InetAddress
+
+  protected def keyInterestOps(ops: Int)
+
+  def finishConnect()
+
+  def status: ConnectionStatus
+
+
+}
+
+trait KeyInterestManager extends ChannelActions {
   private var _readsEnabled = true
   private var _writeReadyEnabled = false
 
   def readsEnabled = _readsEnabled
   def writeReadyEnabled = _writeReadyEnabled
 
-  protected def setKeyInterest()
+  protected def setKeyInterest() {
+    val ops = (if (readsEnabled) SelectionKey.OP_READ else 0) | (if (writeReadyEnabled) SelectionKey.OP_WRITE else 0)
+    keyInterestOps(ops)
+  }
 
   def enableReads() {
     _readsEnabled = true
@@ -44,17 +74,16 @@ trait KeyInterestManager {
   }
 }
 
+
 private[colossus] trait WriteBuffer extends KeyInterestManager {
   import WriteStatus._
 
-  //mostly for DI for testing
-  def channelWrite(data: DataBuffer): Int
 
   /**
    * The WriteBuffer calls this if it has been signaled to disconnect and
    * finishes writing any existing partial buffer
    */
-  def completeDisconnect()
+  protected def completeDisconnect()
 
   /**
    * This should be called when it's time to disconnect the connection, but we
@@ -113,7 +142,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     }
   }
 
-  def write(raw: DataBuffer): WriteStatus = {
+  protected def write(raw: DataBuffer): WriteStatus = {
     if (partialBuffer.isDefined) {
       Zero
     } else if (disconnecting) {
@@ -145,46 +174,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     }
   }
 
-  /**
-   * returns true if more data can be written, false otherwise
-   *
-   * Note - the return value is only used in testing
-   */
-  protected def handleWrite(data: encoding.DataOutBuffer, handler: ConnectionHandler) = {
-    if (continueWrite()) {
-      //partial buffer is empty, so we can get data from the handler to write
-      val more  = handler.readyForData(data)
-      val toWrite = data.data
-      //its possible for the handler to not actually have written anything, this
-      //can occur due to the fact that we use the writeReady flag to track both
-      //pending data from the handler and from the partial buffer, so we can end up
-      //calling handler.readyForData even when it didn't request a write
-      val result = if (toWrite.remaining > 0) write(toWrite) else WriteStatus.Complete
-      //we want to leave writeReady enabled if either the handler has more data to write, or if the writebuffer couldn't write everything
-      if (more == MoreDataResult.Complete && result == WriteStatus.Complete) {
-        disableWriteReady()
-      }
-      true
-    } else false
-  }
-
-
   def requestWrite() {
     enableWriteReady()
   }
 
 }
 
-private[core] trait LiveWriteBuffer extends WriteBuffer {
-
-  protected def channel: SocketChannel
-  def channelWrite(raw: DataBuffer): Int = raw.writeTo(channel)
-  def key: SelectionKey
-
-  def setKeyInterest() {
-    val ops = (if (readsEnabled) SelectionKey.OP_READ else 0) | (if (writeReadyEnabled) SelectionKey.OP_WRITE else 0)
-    key.interestOps(ops)
-  }
-
-
-}

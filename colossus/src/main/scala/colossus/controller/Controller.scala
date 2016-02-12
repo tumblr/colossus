@@ -6,17 +6,6 @@ import service.Codec
 
 import scala.concurrent.duration.Duration
 
-/** trait representing a decoded message that is actually a stream
- * 
- * When a codec decodes a message that contains a stream (perhaps an http
- * request with a very large body), the returned message MUST extend this
- * trait, otherwise the InputController will not know to push subsequent data
- * to the stream message and things will get all messed up. 
- */
-trait StreamMessage {
-  def sink: Sink[DataBuffer]
-}
-
 /**
  * Configuration for the controller
  *
@@ -34,17 +23,6 @@ case class ControllerConfig(
 class DisconnectingException(message: String) extends Exception(message)
 
 
-sealed trait ConnectionState
-sealed trait AliveState extends ConnectionState {
-  def endpoint: WriteEndpoint
-}
-
-object ConnectionState {
-  case object NotConnected extends ConnectionState
-  case class Connected(endpoint: WriteEndpoint) extends ConnectionState with AliveState
-  case class Disconnecting(endpoint: WriteEndpoint) extends ConnectionState with AliveState
-}
-class InvalidConnectionStateException(state: ConnectionState) extends Exception(s"Invalid connection State: $state")
 
 
 
@@ -54,7 +32,7 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
  * by both input and output controller
  */
 trait MasterController[Input, Output] extends ConnectionHandler {
-  protected def state: ConnectionState
+  protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig
 
@@ -80,32 +58,19 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * can be thought of as a duplex stream of messages.
  */
 abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig) 
-extends InputController[Input, Output] with OutputController[Input, Output] {
+extends CoreHandler with InputController[Input, Output] with OutputController[Input, Output] {
   import ConnectionState._
 
-  protected var state: ConnectionState = NotConnected
-  def isConnected = state != NotConnected
 
-  def connected(endpt: WriteEndpoint) {
-    state match {
-      case NotConnected => state = Connected(endpt)
-      case other => throw new InvalidConnectionStateException(other)
-    }
+  override def connected(endpt: WriteEndpoint) {
+    super.connected(endpt)
     codec.reset()
     outputOnConnected()
     inputOnConnected()
   }
 
-  /**
-   * Returns a read-only trait containing live information about the connection.
-   */
-  def connectionInfo: Option[ConnectionInfo] = state match {
-    case a: AliveState => Some(a.endpoint)
-    case _ => None
-  }
 
   private def onClosed() {
-    state = NotConnected
     inputOnClosed()
     outputOnClosed()
   }
@@ -118,40 +83,20 @@ extends InputController[Input, Output] with OutputController[Input, Output] {
     onClosed()
   }
 
-  def disconnect() {
-    //this has to be public to be used for clients
-    state match {
-      case a: AliveState => {
-        a.endpoint.disconnect()
-      }
-      case _ => {}
-    }
-  }
-
-  /**
-   * stops reading from the connection and accepting new writes, but waits for
-   * pending/ongoing write operations to complete before disconnecting
-   *
-   * This is an idempotent operation
-   */
-  def gracefulDisconnect() {
-    state match {
-      case Connected(e) => {
-        state = Disconnecting(e)
-      }
-      case Disconnecting(e) => {}
-      case NotConnected => {}
-    }
+  override def shutdown() {
     inputGracefulDisconnect()
     outputGracefulDisconnect()
     checkControllerGracefulDisconnect()
   }
-
+  
+  /**
+   * Checks the status of the shutdown procedure.  Only when both the input and
+   * output sides are terminated do we call shutdownRequest on the parent
+   */
   private[controller] def checkControllerGracefulDisconnect() {
-    (state, inputState, outputState) match {
-      case (Disconnecting(endpoint), InputState.Terminated, OutputState.Terminated()) => {
-        endpoint.disconnect()
-        state = NotConnected
+    (connectionState, inputState, outputState) match {
+      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated()) => {
+        super.shutdown()
       }
       case _ => {} 
     }

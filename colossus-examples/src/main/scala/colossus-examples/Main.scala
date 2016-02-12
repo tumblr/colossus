@@ -38,25 +38,5 @@ object Main extends App {
 
   val benchmarkServer = BenchmarkService.start(9007)
 
-  {
-    import colossus.metrics._
-    import colossus.protocols.http._
-    import colossus.service._
-    import scala.concurrent.duration._
-
-    val c = new CollectionMap
-    Service.serve[Http]("foo", 11111){ctx =>
-      ctx.handle{con =>
-        con.become {
-          case any => {
-            Callback.successful(any.ok(ioSystem.metrics.metricIntervals(1.second).last.toString))
-          }
-        }
-      }
-    }
-  }
-
-
-            
 
 }

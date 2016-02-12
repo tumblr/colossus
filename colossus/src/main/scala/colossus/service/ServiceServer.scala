@@ -58,17 +58,16 @@ class DroppedReply extends Error("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig[I, O], worker: WorkerRef)
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]) 
+  (codec: ServerCodec[I,O], config: ServiceConfig[I, O])(implicit io: IOSystem) 
 extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
   import WorkerCommand._
   import config._
 
-  implicit val callbackExecutor: CallbackExecutor = CallbackExecutor(worker.worker)
-  val log = Logging(worker.system.actorSystem, name.toString())
+  val log = Logging(io.actorSystem, name.toString())
+  def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
 
-  implicit val col = worker.system.metrics.base
+  implicit val col = io.metrics.base
   val requests  = col.getOrAdd(new Rate(name / "requests"))
   val latency   = col.getOrAdd(new Histogram(name / "latency", sampleRate = 0.25))
   val errors    = col.getOrAdd(new Rate(name / "errors"))
@@ -147,7 +146,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     connectionClosed(cause)
   }
 
-  protected def pushResponse(request: I, response: O, startTime: Long) {
+  private def pushResponse(request: I, response: O, startTime: Long) {
     if (requestMetrics) {
       val tags = tagDecorator.tagsFor(request, response)
       requests.hit(tags = tags)
@@ -223,32 +222,18 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     processFailure(request, reason)
   }
 
-  def schedule(in: FiniteDuration, message: Any) {
-    id.foreach{i =>
-      worker ! Schedule(in, Message(i, message))
+  private def checkGracefulDisconnect() {
+    if (disconnecting && requestBuffer.size == 0) {
+      super.shutdown()
     }
   }
 
-  /**
-   * Terminate the connection, but allow any outstanding requests to complete
-   * (or timeout) before disconnecting
-   */
-  override def gracefulDisconnect() {
+  override def shutdown() {
     pauseReads()
     disconnecting = true
     //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
     //disconnecting before we have a change to finish processing and write the response
-
-  }
-
-  private def checkGracefulDisconnect() {
-    if (disconnecting && requestBuffer.size == 0) {
-      super.gracefulDisconnect()
-    }
-  }
-
-  def shutdownRequest() {
-    gracefulDisconnect()
+    //TODO: there is probably a bug here if this gets called outside of processing a request, we should probably just push onto the request buffer all the time
   }
 
   // ABSTRACT MEMBERS

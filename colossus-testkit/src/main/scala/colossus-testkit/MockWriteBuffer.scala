@@ -8,16 +8,18 @@ import akka.util.{ByteString, ByteStringBuilder}
 /**
  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
  */
-class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer {
+trait MockChannelActions extends ChannelActions {
+
+  def maxWriteSize: Int
+
+
   protected var bytesAvailable = maxWriteSize
   private var writeCalls = collection.mutable.Queue[ByteString]()
   protected var connection_status: ConnectionStatus = ConnectionStatus.Connected
 
-  def connectionStatus = connection_status
+  def status = connection_status
 
   private var bufferCleared = false
-
-  protected def setKeyInterest(){}
 
   private val writtenData = new ByteStringBuilder
 
@@ -35,9 +37,26 @@ class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer {
 
   }
 
+
+  def finishConnect(){}
+
+  def keyInterestOps(ops: Int) {}
+
+  def channelClose() {
+    connection_status = ConnectionStatus.NotConnected
+  }
+
+  def channelHost() = java.net.InetAddress.getLocalHost()
+
+  /*
   def completeDisconnect() {
     connection_status = ConnectionStatus.NotConnected
   }
+  */
+
+
+  //legacy method
+  def disconnectCalled = status == ConnectionStatus.NotConnected
 
   def clearBuffer(): ByteString = {
     println("clearing buffer")
@@ -83,4 +102,10 @@ class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer {
     
 
     
+}
+
+class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer with MockChannelActions {
+  def completeDisconnect(){channelClose()}
+
+  def testWrite(d: DataBuffer): WriteStatus = write(d)
 }

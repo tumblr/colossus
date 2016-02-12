@@ -8,7 +8,6 @@ import java.net.InetAddress
  * with the Metrics library and ConnectionPageRenderer.
  * @param domain The domain of this Connection
  * @param host The host of this Connection
- * @param port The port of this Connection
  * @param id The id of this Connection
  * @param timeOpen The amount of time this Connection has been open
  * @param readIdle milliseconds since the last read activity on the connection
@@ -19,7 +18,6 @@ import java.net.InetAddress
 case class ConnectionSnapshot(
   domain: String, //either a server name or client
   host: InetAddress, //this is not a string because looking up the hostname takes time
-  port: Int,
   id: Long,
   timeOpen: Long = 0,
   readIdle: Long = 0,
@@ -30,15 +28,5 @@ case class ConnectionSnapshot(
 
   def timeIdle = math.min(readIdle, writeIdle)
   
-  def consoleString = f"$id%-10s $domain%-10s ${host.getHostName}%-10s $timeOpen%-10s $timeIdle%-10s $bytesSent%-10s $bytesReceived%-10s"
-
-  def itemValues = List(id.toString, domain, host.getHostName, timeOpen.toString, timeIdle.toString, bytesSent.toString, bytesReceived.toString)
-}
-//NOTE:  This feels weird here and is used in conjunction with the PageRenderer used for stats.  Should be moved to the metrics pkg
-object ConnectionSnapshot {
-  val items = List("id", "domain", "host", "ms-alive", "ms-idle", "b-sent", "b-received")
-  val consoleHeader = {
-    String.format(items.map{_ => "%-10s"}.mkString(" "), items:_*)
-  }
 }
 

@@ -446,7 +446,7 @@ object ServerStatus {
  * the Server is notified.
  *
  */
-object Server {
+object Server extends ServerDSL {
 
   val MaxConnectionRegisterAttempts = 3
   class MaxConnectionRegisterException extends Exception("Maximum number of connection register attempts reached")
@@ -486,21 +486,4 @@ object Server {
     ServerRef(config, actor, io, serverStateAgent)
   }
 
-  /**
-   * Create a Server with this name and port and use a Colossus provided delegator to invoke the ConnectionHandler
-   * factory function
-   * @param name Name of this Server
-   * @param port Port on which this Server will accept connections
-   * @param acceptor The factory function to generate ConnectionHandlers.  This will run inside of a very simple Delegator.
-   * @param io The IOSystem to which this Server will belong
-   * @return ServerRef which encapsulates the created Server
-   */
-  def basic(name: String, port: Int, acceptor: () => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    val config = ServerConfig(
-      name = name,
-      delegatorFactory = Delegator.basic(acceptor),
-      settings = ServerSettings(port = port) //all other settings are defaulted
-    )
-    apply(config)
-  }
 }

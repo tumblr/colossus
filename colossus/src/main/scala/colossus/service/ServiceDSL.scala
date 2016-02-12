@@ -18,17 +18,9 @@ trait CodecDSL {self =>
   type Output
 }
 
-trait DefaultHandler extends CodecDSL {self => 
-  type ConnectionHandler = BasicServiceHandler[self.type]
-}
-
 object CodecDSL {
 
   type PartialHandler[C <: CodecDSL] = PartialFunction[C#Input, Callback[C#Output]]
-
-  type HandlerGenerator[C <: CodecDSL] = ConnectionContext[C] => Unit
-
-  type Initializer[C <: CodecDSL] = ServiceContext[C] => HandlerGenerator[C]
 
   type Receive = PartialFunction[Any, Unit]
 
@@ -56,29 +48,6 @@ trait CodecProvider[C <: CodecDSL] {
    */
   def errorResponse(request: C#Input, reason: Throwable): C#Output
 
-  /**
-   * Provider of a ConnectionHandler using this Codec
-   * @param config ServiceConfig of the Server the ConnectionHandlers will operate in
-   * @param worker The Worker to which the Connection is bound
-   * @param ex ExecutionContext
-   * @return Handler
-   */
-  def provideHandler(config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, intializer: HandlerGenerator[C])(implicit ex: ExecutionContext, tagDecorator: TagDecorator[C#Input, C#Output] = TagDecorator.default[C#Input, C#Output]): DSLHandler[C] = {
-    new BasicServiceHandler[C](config,worker,this, intializer)
-  }
-
-  /**
-   * Provider of a Delegator using this Codec
-   * @param func Function which provides a Delegator for this Service
-   * @param server Server which this Delegator will operate in
-   * @param worker Worker which the Delegator will be bound
-   * @param provider The codecProvider
-   * @param config ServiceConfig
-   * @return Delegator
-   */
-  def provideDelegator(func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig[C#Input, C#Output]) = {
-    new BasicServiceDelegator(func, server, worker, provider, config)
-  }
 }
 
 trait ClientCodecProvider[C <: CodecDSL] {
@@ -86,126 +55,19 @@ trait ClientCodecProvider[C <: CodecDSL] {
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
 
-/**
- * This contains methods to interact with an individual connection.
- */
-trait ConnectionContext[C <: CodecDSL] {
 
-  /**
-   * Set a partial function for the request processing handler for the connection.  Any request that
-   * falls through the handler will be automatically converted into an error
-   * response with a `UnhandledRequestException` as the cause
-   */
-  def become(p: PartialHandler[C])
 
-  /**
-   * Set a function for the request processing handler for the connection
-   */
-  def process(f: C#Input => Callback[C#Output]){
-    become{case all => f(all)}
-  }
-
-  /**
-   * Set the handler for actor messages intended for this connection.
-   */
-  def receive(receiver: PartialFunction[Any, Unit])
-  /**
-   * Gets the sender of the current message being processed in the receive handler
-   */
-  def sender(): ActorRef
-
-  /**
-   * Immediately terminate the connection.  Note that requests that are in the
-   * middle of being processed will continue processing although their final
-   * response will be discarded.
-   */
-  def disconnect()
-
-  /**
-   * Terminate the connection, but allow any existing outstanding requests to
-   * complete processing before disconnecting.  Any new requests that come in
-   * will be automatically completed with an error.
-   */
-  def gracefulDisconnect()
-
-  /**
-   * Get current info about the connection
-   */
-  def connectionInfo: Option[ConnectionInfo]
-
-  /**
-   * Attach a handler for non-recoverable errors.  This includes uncaught
-   * exceptions, unhandled requests, request timeouts, and other server-level
-   * errors.  In every case, this handler should not attempt to actually
-   * process the request, but instead simply return an appropriately formatted
-   * error response.
-   */
-  def onError(handler: ErrorHandler[C])
-
-  implicit val callbackExecutor: CallbackExecutor
-}
-
-trait ServiceContext[C <: CodecDSL] {
-  def worker: WorkerRef
-  def handle(p: HandlerGenerator[C]) = p //this method is just for clarity
-  //delegator message handling
-  def receive(receiver: Receive)
-
-  def clientFor[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, worker)
-  }
-
-  def clientFor[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    clientFor[D](new InetSocketAddress(host, port), requestTimeout)
-  }
-
-  def clientFor[D <: CodecDSL]
-  (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D]): ServiceClient[D#Input, D#Output] = {
-    val config = ClientConfig(
-      address = address,
-      requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
-    )
-    clientFor[D](config)
-  }
-    
-}
-
-abstract class DSLDelegator[C <: CodecDSL](server : ServerRef, worker : WorkerRef) extends Delegator(server, worker) with ServiceContext[C]
-
-class BasicServiceDelegator[C <: CodecDSL](func: Initializer[C], server: ServerRef, worker: WorkerRef, provider: CodecProvider[C], config: ServiceConfig[C#Input, C#Output])
-  extends DSLDelegator[C](server, worker){
-
-  //note, this needs to be setup before func is called
-  private var currentReceiver: Receive = {case _ => ()}
-  
-  val handlerInitializer: HandlerGenerator[C] = func(this)
-
-  def acceptNewConnection: Option[ServerConnectionHandler] = {
-    val handler: DSLHandler[C] = provider.provideHandler(config, worker, handlerInitializer)
-    Some(handler)
-  }
-
-  def receive(r: Receive) {
-    currentReceiver = r
-  }
-
-  //TODO: This should be settable, or the currentReceiver needs to be settable, that way,
-  //in the Initializer[T] function that is invoked, custom behavior can be supplied to this delegator
-  override def handleMessage: Receive = currentReceiver
-}
-
-trait DSLHandler[C <: CodecDSL] extends ServiceServer[C#Input, C#Output] with ConnectionContext[C]
 
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-class BasicServiceHandler[C <: CodecDSL]
-  (config: ServiceConfig[C#Input, C#Output], worker: WorkerRef, provider: CodecProvider[C], val initializer: HandlerGenerator[C])
-  (implicit ex: ExecutionContext, tagDecorator: TagDecorator[C#Input, C#Output] = TagDecorator.default[C#Input, C#Output])
-  extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, worker) 
-  with DSLHandler[C] {
+abstract class Service[C <: CodecDSL]
+(val config: ServiceConfig[C#Input, C#Output])
+(implicit val provider: CodecProvider[C], io: IOSystem) 
+extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config)(io) {
+
+  //TODO: fix it, this should pull from some kind of default config
+  def this()(implicit provider: CodecProvider[C], io: IOSystem) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider, io)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
@@ -219,43 +81,34 @@ class BasicServiceHandler[C <: CodecDSL]
     case (request, reason) => provider.errorResponse(request, reason)
   }
 
-  override def connected(e: WriteEndpoint) {
-    super.connected(e)
-    initializer(this)
+  private var currentSender: Option[ActorRef] = None
+
+  def sender(): ActorRef = currentSender.getOrElse {
+    throw new ReceiveException("No sender")
   }
   
-  private var currentHandler: PartialHandler[C] = unhandled
-  private var currentMessageReceiver: Receive = unhandledReceive
-  private var currentSender: Option[ActorRef] = None
-  private var currentErrorHandler: ErrorHandler[C] = unhandledError
-
-  def onError(handler: ErrorHandler[C]) {
-    currentErrorHandler = handler
-  }
-
-  def become(handler: PartialHandler[C]) {
-    currentHandler = handler
-  }
-
-  def sender() = currentSender.getOrElse(throw new ReceiveException("cannot call sender outside of receive"))
-
-  def receive(handler: PartialFunction[Any, Unit]) {
-    currentMessageReceiver = handler
-  }
+  private val handler: PartialHandler[C] = handle orElse unhandled
+  private val errorHandler: ErrorHandler[C] = onError orElse unhandledError
 
   def receivedMessage(message: Any, sender: ActorRef) {
     currentSender = Some(sender)
-    (currentMessageReceiver orElse unhandledReceive)(message)
+    receive(message)
     currentSender = None
   }
     
-  protected def fullHandler: PartialFunction[C#Input, Callback[C#Output]] = currentHandler orElse unhandled
+  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
   
-  protected def processRequest(i: C#Input): Callback[C#Output] = fullHandler(i)
-  
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = (currentErrorHandler orElse unhandledError)((request, reason))
+  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
+
+
+  def handle: PartialHandler[C]
+
+  def onError: ErrorHandler[C] = Map()
+
+  def receive: Receive = Map()
 
 }
+
 
 
 /**
@@ -314,6 +167,7 @@ object Service {
    * @tparam T The codec to use, eg Http, Redis
    * @return A [[ServerRef]] for the server.
    */
+   /*
   def serve[T <: CodecDSL]
   (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
@@ -325,40 +179,26 @@ object Service {
     )
     Server(serverConfig)
   }
+  */
 
   /** Quick-start a service, using default settings 
    *
    * @param name The name of the service
    * @param port The port to bind the server to
    */
-  def serve[T <: CodecDSL]
-  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)
-  (handler: Initializer[T])
+  def basic[T <: CodecDSL]
+  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    serve[T](ServerSettings(port), ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout))(handler)
-  }
-
-  /** Start a simple, stateless service
-   *
-   * Unlike `Service.serve`, there is no room for per-worker or per-connection
-   * initialization.  Useful when starting simple services or testing
-   *
-   * @param name Name of this Service
-   * @param port Port on which this Server will accept connections
-   * @param handler 
-   * @param system The IOSystem to which this Server will belong
-   * @param provider CodecProvider
-   * @tparam T the type of codec this service uses
-   * @return
-   */
-  def become[T <: CodecDSL]
-  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)
-  (handler: PartialHandler[T])
-  (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
-    serve[T](name, port, requestTimeout){context =>
-      context.handle{connection =>
-        connection.become(handler)
+    class BasicService extends Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)) {
+      def handle = userHandler
+    }
+    Server.start(name, port){context =>
+      context onConnect {connection =>
+        import context.worker
+        connection accept new BasicService
       }
     }
+      
   }
+
 }

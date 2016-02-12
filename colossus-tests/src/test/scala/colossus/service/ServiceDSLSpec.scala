@@ -1,5 +1,7 @@
 package colossus
+package service
 
+import core.Server
 import testkit._
 
 import akka.actor._
@@ -9,8 +11,6 @@ import akka.util.ByteString
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-import protocols.telnet._
-import service._
 import Callback.Implicits._
 
 import RawProtocol.{RawCodec, Raw}
@@ -31,6 +31,9 @@ class ErrorTestDSL(probe: ActorRef) extends CodecProvider[Raw] {
 class ServiceDSLSpec extends ColossusSpec {
 
   "Service DSL" must {
+
+    /**
+     * TODO: move to Server DSL tests
     "receive delegator messages" in {
       withIOSystem{implicit system =>
         val probe = TestProbe()
@@ -47,12 +50,13 @@ class ServiceDSLSpec extends ColossusSpec {
         probe.expectMsg(250.milliseconds, "PONG")
       }
     }
+    */
 
     "throw UnhandledRequestException on unhandled request" in {
       val probe = TestProbe() 
       implicit val provider = new ErrorTestDSL(probe.ref)
       withIOSystem{ implicit system => 
-        val server = Service.become[Raw]("test", TEST_PORT) { 
+        val server = Service.basic[Raw]("test", TEST_PORT) { 
           case any if (false) => ByteString("WAT")
         }
         withServer(server) {
@@ -66,21 +70,22 @@ class ServiceDSLSpec extends ColossusSpec {
     "receive connection messages" in {
       val probe = TestProbe()
       withIOSystem{ implicit system =>
-        val server = Service.serve[Raw]("test", TEST_PORT) { context =>
-          context.handle{ connection =>
-            connection.receive{
+        val server = Server.basic("test", TEST_PORT, new Service[Raw] {
+            override def receive = {
               case "PING" => {
                 probe.ref ! "PONG"
               }
             }
-            connection.become{
+            def handle = {
               case x if (x == ByteString("PING")) => {
-                context.worker.worker ! core.WorkerCommand.Message(connection.connectionInfo.get.id, "PING")
+                connectionHandle.foreach{ h =>
+                  h.worker.worker ! core.WorkerCommand.Message(h.id, "PING")
+                }
                 Callback.successful(ByteString("WHATEVER"))
               }
             }
           }
-        }
+        )
         withServer(server) {
           val client = TestClient(system, TEST_PORT)
           client.send(ByteString("PING"))
@@ -91,16 +96,15 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "override error handler" in {
       withIOSystem{ implicit system =>
-        val server = Service.serve[Raw]("test", TEST_PORT) { context =>
-          context.handle{ connection => 
-            connection.onError{
+        val server = Server.basic("test", TEST_PORT, new Service[Raw] { 
+            override def onError = {
               case (request, c: UnhandledRequestException) => ByteString("OVERRIDE")
             }
-            connection.become{
+            def handle = {
               case x if (false) => ByteString("NOPE")
             }
           }
-        }
+        )
         withServer(server) {
           val client = TestClient(system, TEST_PORT)
           Await.result(client.send(ByteString("TEST")), 1.second).utf8String must equal("OVERRIDE")
