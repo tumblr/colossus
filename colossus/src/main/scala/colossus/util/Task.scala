@@ -12,8 +12,8 @@ import akka.actor._
  *
  */
 
-abstract class Task(implicit factory: ActorRefFactory) extends WorkerItem {
-  implicit val proxy = factory.actorOf(Props[TaskProxy])
+abstract class Task(context: Context) extends WorkerItem(context) {
+  implicit val proxy = context.worker.system.actorSystem.actorOf(Props[TaskProxy])
   import TaskProxy._
 
   override def onBind() {  

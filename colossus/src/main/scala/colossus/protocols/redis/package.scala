@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.core.WorkerRef
+import colossus.core.Context
 import colossus.parsing.DataSize
 import colossus.service.Codec._
 import colossus.service._
@@ -533,8 +533,8 @@ package object redis {
 
   object RedisClient {
 
-    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) : RedisCallbackClient = {
-      val serviceClient = new ServiceClient[Command, Reply](new RedisClientCodec(maxSize), config, worker)
+    def callbackClient(config: ClientConfig, context: Context, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) : RedisCallbackClient = {
+      val serviceClient = new ServiceClient[Command, Reply](new RedisClientCodec(maxSize), config, context)
       new RedisCallbackClient(serviceClient)
     }
 

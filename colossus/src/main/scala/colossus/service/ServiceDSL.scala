@@ -63,8 +63,8 @@ class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: CodecDSL]
 (val config: ServiceConfig)
-(implicit val provider: CodecProvider[C], io: IOSystem) 
-extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config)(io) {
+(implicit val provider: CodecProvider[C], context: Context) 
+extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, context) {
 
   //TODO: fix it, this should pull from some kind of default config
   def this()(implicit provider: CodecProvider[C], io: IOSystem) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider, io)

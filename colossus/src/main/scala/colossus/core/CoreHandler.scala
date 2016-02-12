@@ -8,7 +8,7 @@ sealed abstract class ShutdownAction(val rank: Int) {
 
 object ShutdownAction {
   case object DefaultDisconnect extends ShutdownAction(0)
-  case class Become(newHandler: () => ConnectionHandler) extends ShutdownAction(1)
+  case class Become(newHandler: Context => ConnectionHandler) extends ShutdownAction(1)
   case object Disconnect extends ShutdownAction(2)
 }
 
@@ -32,7 +32,7 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-abstract class CoreHandler extends ConnectionHandler {
+abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
@@ -80,7 +80,7 @@ abstract class CoreHandler extends ConnectionHandler {
    * Replace this connection handler with the given handler.  The actual swap
    * only occurs when the shutdown process complete
    */
-  final def become(nh: => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(() => nh))) {
+  final def become(nh: Context => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(nh))) {
     shutdownRequest()
     true
   } else false
@@ -107,13 +107,10 @@ abstract class CoreHandler extends ConnectionHandler {
   }
 
   protected def shutdown() {
-    binding.foreach{ case WorkerItemBinding(id, worker) => {
-      shutdownAction match {
-        case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
-        case ShutdownAction.Become(newHandlerFactory) => {
-            worker.worker ! WorkerCommand.SwapHandler(id, newHandlerFactory)
-          }
-        }
+    shutdownAction match {
+      case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
+      case ShutdownAction.Become(newHandlerFactory) => {
+        worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory(this.context))
       }
     }
   }
@@ -121,7 +118,7 @@ abstract class CoreHandler extends ConnectionHandler {
 
 }
 
-class BasicCoreHandler extends CoreHandler with ServerConnectionHandler {
+class BasicCoreHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler {
 
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}

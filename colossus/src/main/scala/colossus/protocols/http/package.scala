@@ -3,7 +3,7 @@ package protocols
 
 import colossus.metrics.TagMap
 import colossus.parsing.DataSize
-import core.WorkerRef
+import core.Context
 import service._
 
 import akka.util.ByteString
@@ -91,11 +91,11 @@ package object http {
   }
 
 
-  class HttpClient(config : ClientConfig, worker: WorkerRef, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
+  class HttpClient(config : ClientConfig, context: Context, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
     extends ServiceClient[HttpRequest, HttpResponse](
       codec = new HttpClientCodec,//(maxSize),
       config = config,
-      worker = worker
+      context = context
     )
 
 

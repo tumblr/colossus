@@ -105,9 +105,9 @@ class StaleClientException(msg : String) extends Exception(msg)
 class ServiceClient[I,O](
   codec: Codec[I,O], 
   val config: ClientConfig,
-  val worker: WorkerRef
+  context: Context
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout)) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout), context) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
 
   import colossus.core.WorkerCommand._
   import config._
@@ -144,8 +144,6 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
   private val hTags: TagMap = Map("client_host" -> address.getHostName)
 
-  worker.bind(this)
-
   /**
    *
    * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
@@ -161,8 +159,8 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
   override def onBind(){
     super.onBind()
     if(!manuallyDisconnected){
-      log.info(s"client ${id.get} connecting to $address")
-      worker ! Connect(address, id.get)
+      log.info(s"client ${id} connecting to $address")
+      worker ! Connect(address, id)
     }else{
       throw new StaleClientException("This client has already been manually disconnected and cannot be reused, create a new one.")
     }
@@ -202,7 +200,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
 
   override def connected(endpoint: WriteEndpoint) {
     super.connected(endpoint)
-    log.info(s"${id.get} Connected to $address")
+    log.info(s"${id} Connected to $address")
     connectionAttempts = 0
   }
 
@@ -225,12 +223,12 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     super.connectionLost(cause)
     cause match {
       case DisconnectCause.ConnectFailed(error) => {
-        log.warning(s"${id.get} failed to connect to ${address.toString}: ${error.getMessage}")
+        log.warning(s"${id} failed to connect to ${address.toString}: ${error.getMessage}")
         connectionFailures.hit(tags = hpTags)
         purgeBuffers(new NotConnectedException(s"${cause.logString}"))
       }
       case _ => {
-        log.warning(s"${id.get} connection lost to ${address.toString}: ${cause.logString}")
+        log.warning(s"${id} connection lost to ${address.toString}: ${cause.logString}")
         disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
         purgeBuffers(new ConnectionLostException(s"${cause.logString}"))
       }
@@ -244,14 +242,14 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     if(!disconnecting) {
       if(canReconnect) {
         log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
-        worker ! Schedule(config.connectionAttempts.interval, Connect(address, id.get))
+        worker ! Schedule(config.connectionAttempts.interval, Connect(address, id))
       }
       else {
         log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
-        worker.unbind(id.get)
+        worker.unbind(id)
       }
     } else {
-      worker.unbind(id.get)
+      worker.unbind(id)
     }
   }
 
@@ -303,7 +301,7 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
     if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
       // the oldest sent message has expired with no response - kill the connection
       // sending the Kill message instead of disconnecting will trigger the reconnection logic
-      worker ! Kill(id.get, DisconnectCause.TimedOut)
+      worker ! Kill(id, DisconnectCause.TimedOut)
     }
   }
 
@@ -316,17 +314,17 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
 
 object ServiceClient {
 
-  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, worker)
+  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
+    new ServiceClient(provider.clientCodec(), config, context)
   }
 
-  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
     apply[D](new InetSocketAddress(host, port), requestTimeout)
   }
 
   def apply[D <: CodecDSL]
   (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+  (implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,

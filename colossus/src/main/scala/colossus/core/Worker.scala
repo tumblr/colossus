@@ -6,6 +6,7 @@ import akka.event.LoggingAdapter
 import metrics._
 import service.CallbackExecution
 
+import java.util.concurrent.atomic.AtomicLong
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
@@ -39,6 +40,13 @@ case class WorkerConfig(
  * @param system The IOSystem to which this Worker belongs
  */
 case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSystem) {
+
+  private val idGenerator = new AtomicLong(1)
+
+  private[colossus] def generateId() = idGenerator.incrementAndGet()
+
+  private[colossus] def generateContext() = Context(generateId(), this)
+
   /**
    * Send this Worker a message
    * @param message The message to send
@@ -52,8 +60,11 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
    * and initialized within this worker to ensure that the worker item's
    * lifecycle is single-threaded.
    */
-  def bind(item: WorkerItem) {
+  def bind[T <: WorkerItem](creator: Context => T): T = {
+    val context = Context(generateId(), this)
+    val item = creator(context)
     worker ! IOCommand.BindWorkerItem(_ => item)
+    item
   }
 
   def unbind(workerItemId: Long) {
@@ -90,9 +101,8 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
     if (workerItem.isBound) {
       log.error(s"Attempted to bind worker ${workerItem} that was already bound")
     } else {
-      val id = newId()
-      workerItems(id) = workerItem
-      workerItem.setBind(id, worker)
+      workerItems(workerItem.id) = workerItem
+      workerItem.setBind()
     }
   }
 
@@ -113,24 +123,22 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
    * the given id exists, the new one is not bound.  This is to avoid a possible
    * race condition that could occur if a connection is severed during the
    * process of swapping handlers.
+   *
+   * Returns true if the replace successfully happened, false otherwise
    */
-  def replace(id: Long, newWorkerItem: WorkerItem) {
-    get(id).map { old =>
+  def replace(newWorkerItem: WorkerItem): Boolean = {
+    get(newWorkerItem.id).map { old =>
       unbind(old)
-      workerItems(id) = newWorkerItem
-      newWorkerItem.setBind(id, worker)
+      bind(newWorkerItem)
+      false
     }.getOrElse{
       log.error(s"Attempted to swap worker $id that is not bound to this worker")
+      false
     }
   }
 
   def unbind(workerItem: WorkerItem) {
-    workerItem.id.map{i =>
-      unbind(i)
-    }.getOrElse(
-      //maybe throw an exception instead?
-      log.error("Attempted to unbind worker item that was already not bound!")
-    )
+    unbind(workerItem.id)
   }
 }
 
@@ -146,15 +154,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   var trace = true
 
   val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
-
-  //these ids are used for both connections and worker items so a connection
-  //and it's attached handler will have different ids
-  //TODO - we can probably improve performance by making ids a case class containing the item as a private field
-  private var id: Long = 0L
-  def newId(): Long = {
-    id += 1
-    id
-  }
 
   implicit val mylog = log
 
@@ -180,6 +179,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   val delegators = collection.mutable.Map[ActorRef, Delegator]()
 
   val me = WorkerRef(workerId, self, io)
+
+  def newId() = me.generateId
 
   //collection of all the bound WorkerItems, including connection handlers
   val workerItems = new WorkerItemManager(me, log)
@@ -277,16 +278,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     import IOCommand._
     cmd match {
       case BindWorkerItem(itemFactory) => {
-        val item = itemFactory(me)
+        val item = itemFactory(me.generateContext)
         //the item may have already bound itself
         if (!item.isBound) {
           workerItems.bind(item)
         }
       }
       case BindAndConnectWorkerItem(address, itemFactory) => {
-        val item = itemFactory(me)
+        val item = itemFactory(me.generateContext)
         workerItems.bind(item)
-        self ! WorkerCommand.Connect(address, item.id.get)
+        self ! WorkerCommand.Connect(address, item.id)
       }
     }
   }
@@ -363,11 +364,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
         }
       }
-      case SwapHandler(id, factory) => {
-        connections.get(id).foreach{con =>
-          val handler = factory()
-          workerItems.replace(id, handler)
-          con.setHandler(handler)
+      case SwapHandler(newHandler) => {
+        connections.get(newHandler.id).foreach{con =>
+          workerItems.replace(newHandler)
+          con.setHandler(newHandler)
         }
       }
     }
@@ -593,7 +593,7 @@ object WorkerCommand {
   case class Schedule(in: FiniteDuration, message: Any) extends WorkerCommand
   case class Message(id: Long, message: Any) extends WorkerCommand
   case class Disconnect(id: Long) extends WorkerCommand
-  case class SwapHandler(id: Long, newWorkerItem: () => ConnectionHandler) extends WorkerCommand
+  case class SwapHandler(newHandler: ConnectionHandler) extends WorkerCommand
 
   //similar to Disconnect, this will shut down a connection, however it will
   //treat the disconnect as an error and forward the error cause to the

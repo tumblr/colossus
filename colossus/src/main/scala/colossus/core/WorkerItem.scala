@@ -16,7 +16,7 @@ class WorkerItemException(message: String) extends Exception(message)
  * @param id the id used to reference the worker item
  * @param worker the worker the item is bound to
  */
-case class WorkerItemBinding(id: Long, worker: WorkerRef) {
+case class Context(id: Long, worker: WorkerRef) {
   def send(message: Any) {
     worker.worker ! WorkerCommand.Message(id, message)
   }
@@ -31,29 +31,13 @@ case class WorkerItemBinding(id: Long, worker: WorkerRef) {
  * non-blocking.  Once a WorkerItem is bound to a worker, all of its methods
  * are executed in the event-loop thread of the bound worker.
  */
-trait WorkerItem {
-  private var _binding: Option[WorkerItemBinding] = None
-  //todo - change these from Option[x] to just x and rethrow None exception as WorkerItemException
-  def id = _binding.map{_.id}
-  def boundWorker = _binding.map{_.worker}
+abstract class WorkerItem(val context: Context) {
+  def id = context.id
+  def worker = context.worker
 
-  /** When bound to a worker, this contains the [WorkerItemBinding] */
-  def binding = _binding
-  def isBound = _binding.isDefined
+  private var bound = false
 
-  /**
-   * Attempt to bind this WorkerItem to the worker.  When the binding succeeds,
-   * `onBind()` is called and the item will be able to receive events and
-   * messages.  Notice that this method is asynchronous.
-   *
-   * @param worker The worker to bind to
-   */
-  private[colossus] def bind(worker: WorkerRef) {
-    if (isBound) {
-      throw new WorkerItemException(s"Cannot bind WorkerItem, already bound with id ${id.get}")
-    }
-    boundWorker.get.bind(this)
-  }
+  def isBound = bound
 
   /**
    * Unbinds the WorkerItem, if it is bound.  When unbinding is complete,
@@ -63,17 +47,17 @@ trait WorkerItem {
     if (!isBound) {
       throw new WorkerItemException(s"Cannot unbind WorkerItem, not bound to any worker")
     }
-    boundWorker.get.unbind(id.get)
+    worker.unbind(id)
   }
 
 
   /**
-   * bind the item to a Worker.
+   * Signal from the worker to the item that it is now bound
    * @param id  The id assigned to this Item.
    * @param worker The Worker whom was bound
    */
-  private[colossus] def setBind(id: Long, worker: WorkerRef) {
-    _binding = Some(WorkerItemBinding(id, worker))
+  private[colossus] def setBind() {
+    bound = true
     onBind()
   }
 
@@ -81,7 +65,7 @@ trait WorkerItem {
    * Called when this item is unbound from a Worker.
    */
   private[colossus] def setUnbind(){
-    _binding = None
+    bound = false
     onUnbind()
   }
 
