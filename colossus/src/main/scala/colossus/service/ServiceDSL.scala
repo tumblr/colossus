@@ -194,7 +194,6 @@ object Service {
     }
     Server.start(name, port){context =>
       context onConnect {connection =>
-        import context.worker
         connection accept new BasicService
       }
     }

@@ -40,7 +40,7 @@ class RequestBufferFullException extends ServiceServerException("Request Buffer 
 //if this exception is ever thrown it indicates a bug
 class FatalServiceServerException(message: String) extends ServiceServerException(message)
 
-class DroppedReply extends Error("Dropped Reply")
+class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
 
 /**
@@ -80,9 +80,13 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
+  def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
     errors.hit(tags = tags)
+    if (logErrors) {
+      val formattedRequest = requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+      log.error(err, s"Error processing request: $formattedRequest: $err")
+    }
   }
 
   case class SyncPromise(request: I) {
@@ -142,6 +146,10 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(num = requestBuffer.size)
     }
+    val exc = new DroppedReplyException
+    while (requestBuffer.size > 0) {
+      addError(requestBuffer.remove().request, exc)
+    }
   }
 
   override def connectionLost(cause : DisconnectError) {
@@ -162,13 +170,8 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
         }
       }
       case f: OutputError => {
-        addError(f.reason)
-        if (logErrors) {
-          val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
-          log.error(f.reason, s"Dropped Reply for request: $formattedRequest: $f")
-        }
+        addError(request, f.reason)
       }
-
     }
 
     //this should never happen because we are always checking if the outputqueue
@@ -205,11 +208,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   }
 
   private def handleFailure(request: I, reason: Throwable): O = {
-    addError(reason)
-    if (logErrors) {
-      val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
-      log.error(reason, s"Error processing request: $formattedRequest: $reason")
-    }
+    addError(request, reason)
     processFailure(request, reason)
   }
 
