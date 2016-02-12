@@ -22,8 +22,8 @@ import DataSize._
  * I've grabbed a snippet from memcached docs about ttls found here: https://github.com/memcached/memcached/blob/master/doc/protocol.txt
  *
  * TTLs can be a unix timestamp for an integer that is no more than 30 days in seconds (2592000 seconds). If the TTL is greater
- * than 30 days in seconds, the server will consider it to be real Unix time value rather than an offset from current time. 
- * 
+ * than 30 days in seconds, the server will consider it to be real Unix time value rather than an offset from current time.
+ *
  */
 
 object UnifiedProtocol {
@@ -79,7 +79,7 @@ object MemcacheCommand {
       b.sizeHint(GET.size + totalKeyBytes + 2)
       b.append(GET)
       keys.foreach{x =>
-        validateKey(x)
+        //validateKey(x)
         b.append(SP).append(x)
       }
       b.append(RN).result()
@@ -89,15 +89,15 @@ object MemcacheCommand {
   case class Set(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = SET
   }
-  
+
   case class Add(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = ADD
   }
-  
+
   case class Replace(key: ByteString, value: ByteString, ttl: Int = 0, flags : Int = 0) extends MemcacheWriteCommand {
     val commandName = REPLACE
   }
-  
+
   // Append does not take <flags> or <expiretime> but we have to provide them according to the protocol
   case class Append(key: ByteString, value: ByteString) extends MemcacheWriteCommand {
     val commandName = APPEND
@@ -137,7 +137,7 @@ object MemcacheCommand {
 
   sealed trait CounterCommand extends MemcacheCommand{
     def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
-      validateKey(key)
+      //validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
@@ -166,7 +166,7 @@ object MemcacheCommand {
     val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
-    validateKey(key)
+    //validateKey(key)
 
     def bytes(c: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
@@ -233,7 +233,7 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
     val sizeHint = commandName.length + flagsStr.length + ttlStr.length + dataSizeStr.length + value.size + padding
 
-    validateKey(key)
+    //validateKey(key)
 
     b.sizeHint(sizeHint)
     b.append(commandName)
@@ -295,7 +295,7 @@ object MemcacheReply {
   case object Deleted extends MemcacheReply with MemcacheHeader
   case object NotStored extends MemcacheReply with MemcacheHeader
   case object Exists extends MemcacheReply with MemcacheHeader
-  
+
 }
 
 class MemcacheReplyParser(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) {
@@ -336,7 +336,7 @@ object MemcacheReplyParser {
   }}
 
   def isNumeric(str : String) = str.forall(_.isDigit)
-                                
+
   //returns either a Value or Values object depending if 1 or >1 values received
   def values(build: Vector[Value]): Parser[DataReply] = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
     case "VALUE" => value(build, pieces(1), pieces(2).toInt, pieces(3).toInt)
