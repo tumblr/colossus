@@ -3,7 +3,6 @@ package service
 
 import testkit._
 import core._
-import Callback.Implicits._
 
 import scala.concurrent.duration._
 import akka.actor.ActorRef
@@ -30,7 +29,7 @@ class ServiceServerSpec extends ColossusSpec {
       ),
       codec = RawCodec
   )(worker.system) {
-    def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR:" + reason.toString)
+    def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR")
 
     def processRequest(input: ByteString) = handler(input)
 
@@ -57,6 +56,14 @@ class ServiceServerSpec extends ColossusSpec {
       t.service.receivedData(DataBuffer(ByteString("hello")))
       t.endpoint.iterate()
       t.endpoint.expectOneWrite(ByteString("hello"))
+    }
+
+    "return an error response for failed callback" in{
+      val t = fakeService(x => Callback.failed(new Exception("FAIL")))
+      t.service.receivedData(DataBuffer(ByteString("hello")))
+      t.endpoint.iterate()
+      t.endpoint.expectOneWrite(ByteString("ERROR"))
+
     }
 
     "send responses back in the right order" in {
@@ -145,7 +152,7 @@ class ServiceServerSpec extends ColossusSpec {
         maxIdleTime = Duration.Inf
       )
 
-      val serviceConfig = ServiceConfig[Redis#Input, Redis#Output] (
+      val serviceConfig = ServiceConfig (
         name = "/timeout-test",
         requestTimeout = 50.milliseconds
       )
@@ -162,7 +169,7 @@ class ServiceServerSpec extends ColossusSpec {
           val clientConfig = ClientConfig(
             name = "/test-client",
             address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = 500.milliseconds,
+            requestTimeout = 800.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
           val client = new RedisFutureClient(AsyncServiceClient(clientConfig, new RedisClientCodec))

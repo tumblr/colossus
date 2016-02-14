@@ -62,7 +62,7 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: CodecDSL]
-(val config: ServiceConfig[C#Input, C#Output])
+(val config: ServiceConfig)
 (implicit val provider: CodecProvider[C], io: IOSystem) 
 extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config)(io) {
 
@@ -189,12 +189,11 @@ object Service {
   def basic[T <: CodecDSL]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    class BasicService extends Service(ServiceConfig[T#Input, T#Output](name = name, requestTimeout = requestTimeout)) {
+    class BasicService extends Service(ServiceConfig(name = name, requestTimeout = requestTimeout)) {
       def handle = userHandler
     }
     Server.start(name, port){context =>
       context onConnect {connection =>
-        import context.worker
         connection accept new BasicService
       }
     }

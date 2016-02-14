@@ -21,12 +21,11 @@ import Codec._
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
  * @param requestLogFormat if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
  */
-case class ServiceConfig[I,O](
+case class ServiceConfig(
   name: MetricAddress,
   requestTimeout: Duration,
   requestBufferSize: Int = 100,
   logErrors: Boolean = true,
-  requestLogFormat : Option[RequestFormatter[I]] = None,
   requestMetrics: Boolean = true
 )
 
@@ -41,7 +40,7 @@ class RequestBufferFullException extends ServiceServerException("Request Buffer 
 //if this exception is ever thrown it indicates a bug
 class FatalServiceServerException(message: String) extends ServiceServerException(message)
 
-class DroppedReply extends Error("Dropped Reply")
+class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
 
 /**
@@ -58,14 +57,14 @@ class DroppedReply extends Error("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig[I, O])(implicit io: IOSystem) 
+  (codec: ServerCodec[I,O], config: ServiceConfig)(implicit io: IOSystem) 
 extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf)) with ServerConnectionHandler {
   import ServiceServer._
-  import WorkerCommand._
   import config._
 
   val log = Logging(io.actorSystem, name.toString())
   def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
+  def requestLogFormat : Option[RequestFormatter[I]] = None
 
   implicit val col = io.metrics.base
   val requests  = col.getOrAdd(new Rate(name / "requests"))
@@ -81,9 +80,13 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  def addError(err: Throwable, extraTags: TagMap = TagMap.Empty) {
+  def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
     errors.hit(tags = tags)
+    if (logErrors) {
+      val formattedRequest = requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+      log.error(err, s"Error processing request: $formattedRequest: $err")
+    }
   }
 
   case class SyncPromise(request: I) {
@@ -101,6 +104,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     }
 
   }
+
 
   private val requestBuffer = new java.util.LinkedList[SyncPromise]()
   def currentRequestBufferSize = requestBuffer.size
@@ -124,7 +128,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
-      concurrentRequests.decrement()
+      if (requestMetrics) concurrentRequests.decrement()
       pushResponse(done.request, comp, done.creationTime) 
     }
     if (!canPush) {
@@ -138,8 +142,14 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
 
   override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
-    requestsPerConnection.add(numRequests)
-    concurrentRequests.decrement(num = requestBuffer.size)
+    if (requestMetrics) {
+      requestsPerConnection.add(numRequests)
+      concurrentRequests.decrement(num = requestBuffer.size)
+    }
+    val exc = new DroppedReplyException
+    while (requestBuffer.size > 0) {
+      addError(requestBuffer.remove().request, exc)
+    }
   }
 
   override def connectionLost(cause : DisconnectError) {
@@ -159,7 +169,9 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
           checkBuffer()
         }
       }
-      case err => println(s"dropped reply: $err")
+      case f: OutputError => {
+        addError(request, f.reason)
+      }
     }
 
     //this should never happen because we are always checking if the outputqueue
@@ -171,12 +183,13 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
 
   protected def processMessage(request: I) {
     numRequests += 1
-    val startTime = System.currentTimeMillis
+    val promise = new SyncPromise(request)
+    requestBuffer.add(promise)
     /**
      * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
      */
-    val response: Callback[O] = if (requestBuffer.size < requestBufferSize) {
+    val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
       try {
         processRequest(request) 
       } catch {
@@ -187,38 +200,15 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
     } else {
       Callback.successful(handleFailure(request, new RequestBufferFullException))
     }
-    response match {
-      case ConstantCallback(v) if (requestBuffer.size == 0 && canPush) => {
-        //a constant callback means the result was produced immmediately, so if
-        //request buffer is empty and we know we can write the result
-        //immediately, we can totally skip the request buffering process
-        val done = v match {
-          case Success(yay) => yay
-          case Failure(err) => handleFailure(request, err)
-        }
-        pushResponse(request, done, startTime)
-        checkGracefulDisconnect()
-      }
-      case other => {
-        val promise = new SyncPromise(request)
-        requestBuffer.add(promise)
-        concurrentRequests.increment()
-        other.execute{
-          case Success(res) => promise.complete(res)
-          case Failure(err) => promise.complete(handleFailure(promise.request, err))
-        }
-
-      }
+    if (requestMetrics) concurrentRequests.increment()
+    response.execute{
+      case Success(res) => promise.complete(res)
+      case Failure(err) => promise.complete(handleFailure(promise.request, err))
     }
-
   }
 
   private def handleFailure(request: I, reason: Throwable): O = {
-    addError(reason)
-    if (logErrors) {
-      val formattedRequest = requestLogFormat.fold(request.toString)(_.format(request))
-      log.error(reason, s"Error processing request: $formattedRequest: $reason")
-    }
+    addError(request, reason)
     processFailure(request, reason)
   }
 
@@ -231,9 +221,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
   override def shutdown() {
     pauseReads()
     disconnecting = true
-    //notice - checkGracefulDisconnect must NOT be called here, since this is called in the middle of processing a request, it would end up
-    //disconnecting before we have a change to finish processing and write the response
-    //TODO: there is probably a bug here if this gets called outside of processing a request, we should probably just push onto the request buffer all the time
+    checkGracefulDisconnect()
   }
 
   // ABSTRACT MEMBERS

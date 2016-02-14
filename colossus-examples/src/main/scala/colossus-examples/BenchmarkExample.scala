@@ -48,7 +48,7 @@ object BenchmarkService {
       maxConnections = 16384,
       tcpBacklogSize = Some(1024)
     )
-    val serviceConfig = ServiceConfig[Http#Input, Http#Output](
+    val serviceConfig = ServiceConfig(
       name = "/sample",
       requestTimeout = Duration.Inf,
       requestMetrics = false

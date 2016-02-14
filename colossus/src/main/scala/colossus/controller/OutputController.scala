@@ -144,16 +144,19 @@ class InvalidOutputStateException[T](state: OutputState[T]) extends Exception(s"
 /** An ADT representing the result of a pushing a message to write
 */
 sealed trait OutputResult
+sealed trait OutputError extends OutputResult {
+  def reason: Throwable
+}
 object OutputResult {
 
   // the message was successfully written
   case object Success extends OutputResult
 
   // the message failed while it was being written, most likely due to the connection closing partway
-  case class Failure(reason: Throwable) extends OutputResult
+  case class Failure(reason: Throwable) extends OutputResult with OutputError
 
   // the message was cancelled before it was written
-  case class Cancelled(reason: Throwable) extends OutputResult
+  case class Cancelled(reason: Throwable) extends OutputResult with OutputError
 }
 
 /**
