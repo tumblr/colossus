@@ -130,7 +130,7 @@ trait WatchedHandler extends ConnectionHandler {
  * the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
  * for the functions they require.
  */
-trait BasicSyncHandler extends ConnectionHandler {
+abstract class BasicSyncHandler(context: Context) extends WorkerItem(context) with ConnectionHandler {
   private var _endpoint: Option[WriteEndpoint] = None
   def endpoint = _endpoint.getOrElse{
     throw new Exception("Handler is not connected")

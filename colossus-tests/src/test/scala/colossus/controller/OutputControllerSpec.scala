@@ -88,7 +88,7 @@ class OutputControllerSpec extends ColossusSpec {
       //these occur as separate writes because the first comes from the partial buffer, the second from the controller
       endpoint.expectWrite(data.drop(endpoint.maxWriteSize))
       endpoint.expectWrite(data2)
-      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(controller.id.get))
+      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(controller.id))
     }
 
     "timeout queued messages that haven't been sent" in {

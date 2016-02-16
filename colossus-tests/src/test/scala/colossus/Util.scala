@@ -11,7 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import colossus.encoding._
 
-class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
+class EchoHandler(c: Context) extends BasicSyncHandler(c) with ServerConnectionHandler {
 
   val buffer = new collection.mutable.Queue[ByteString]
   def receivedData(data: DataBuffer){

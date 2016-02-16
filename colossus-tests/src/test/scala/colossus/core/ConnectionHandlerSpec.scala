@@ -20,7 +20,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
   "Server Connection Handler" must {
     "bind to worker on creation" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ServerConnectionHandler {
+      class MyHandler(context: Context) extends BasicSyncHandler(context) with ServerConnectionHandler {
         override def onBind() {
           probe.ref ! "BOUND"
         }
@@ -28,16 +28,15 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
         def receivedData(data: DataBuffer) {}
       }
-      withIOSystemAndServer(Delegator.basic(() => new MyHandler)) { (io, server) => {
-        val c = TestClient(io, TEST_PORT)
+      withServer(context => new MyHandler(context)) { server => 
+        val c = TestClient(server.system, TEST_PORT)
         probe.expectMsg(100.milliseconds, "BOUND")
-      }
       }
     }
 
     "unbind on disconnect" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ServerConnectionHandler{
+      class MyHandler(context: Context) extends BasicSyncHandler(context) with ServerConnectionHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
@@ -47,19 +46,19 @@ class ConnectionHandlerSpec extends ColossusSpec {
         }
         def receivedData(data: DataBuffer){}
       }
-      withIOSystemAndServer(Delegator.basic(() => new MyHandler)){ (io, server) => {
-          val c = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
-          c.disconnect()
-          TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
-          probe.expectMsg(500.milliseconds, "UNBOUND")
-        }
+      withServer(context => new MyHandler(context)){ server =>
+        val c = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+        c.disconnect()
+        TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
+        probe.expectMsg(500.milliseconds, "UNBOUND")
       }
     }
   }
 
   "Client Connection Handler" must {
 
-    class MyHandler(probe: ActorRef, sendBind: Boolean, sendUnbind: Boolean, disconnect: Boolean = false) extends BasicSyncHandler with ClientConnectionHandler{
+    class MyHandler(context: Context, probe: ActorRef, sendBind: Boolean, sendUnbind: Boolean, disconnect: Boolean = false)
+    extends BasicSyncHandler(context) with ClientConnectionHandler{
       override def onBind() {
         if (sendBind) probe ! "BOUND"
       }
@@ -85,14 +84,14 @@ class ConnectionHandlerSpec extends ColossusSpec {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
         //obvious this will fail to connect, but we don't care here
-        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, false))
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), context => new MyHandler(context, probe.ref, true, false))
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
 
     "automatically unbind on manual disconnect" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler{
+      class MyHandler(context: Context) extends BasicSyncHandler(context) with ClientConnectionHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
@@ -105,7 +104,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem{ implicit io =>
         withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
           probe.expectMsg(250.milliseconds, "UNBOUND")
         }
       }
@@ -117,7 +116,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         val server = Service.basic[Raw]("test", TEST_PORT){case x => x}
         withServer(server) {
           io ! IOCommand.BindAndConnectWorkerItem(
-            new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
+            new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c, probe.ref, true, true)
           )
           probe.expectMsg(500.milliseconds, "BOUND")
         }
@@ -132,7 +131,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
         io ! IOCommand.BindAndConnectWorkerItem(
-          new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler(probe.ref, true, true)
+          new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c, probe.ref, true, true)
         )
         probe.expectMsg(250.milliseconds, "BOUND")
         probe.expectMsg(250.milliseconds, "UNBOUND")
@@ -141,7 +140,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
     "NOT automatically unbind with ManualUnbindHandler mixin on disrupted connection" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with ManualUnbindHandler{
+      class MyHandler(context: Context) extends BasicSyncHandler(context) with ClientConnectionHandler with ManualUnbindHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
@@ -151,7 +150,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem{ implicit io =>
         withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
-          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+          io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
           probe.expectNoMsg(200.milliseconds)
         }
         probe.expectNoMsg(200.milliseconds)
@@ -160,7 +159,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
     "NOT automatically unbind on failed connection with ManualUnbindHandler" in {
       val probe = TestProbe()
-      class MyHandler extends BasicSyncHandler with ClientConnectionHandler with ManualUnbindHandler{
+      class MyHandler(context: Context) extends BasicSyncHandler(context) with ClientConnectionHandler with ManualUnbindHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
@@ -169,7 +168,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def connectionFailed(){}
       }
       withIOSystem{ implicit io =>
-        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), _ => new MyHandler)
+        io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
         probe.expectNoMsg(200.milliseconds)
       }
 

@@ -66,6 +66,8 @@ abstract class Service[C <: CodecDSL]
 (implicit val provider: CodecProvider[C]) 
 extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, context) {
 
+  implicit val executor = context.worker.callbackExecutor
+
   //TODO: fix it, this should pull from some kind of default config
   def this(context: Context)(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf), context)(provider)
 
