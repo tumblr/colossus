@@ -51,21 +51,6 @@ object MemcacheCommand {
 
   import UnifiedProtocol._
 
-
-
-  def validateKey(key: ByteString) : Unit = {
-    if (key.isEmpty) throw new MemcacheEmptyKeyException
-    if (key.length > 250) throw new MemcacheKeyTooLongException(key)
-    if (key.length > 1) {
-      for (ix <- 0 until key.length - 1) {
-        if (key(ix) == 0x20 || (key(ix) == 0x0D && key(ix + 1) == 0x0A)) {
-          throw new MemcacheInvalidCharacterException(key, ix + 1)
-        }
-      }
-    }
-    if (key.last == 0x20) throw new MemcacheInvalidCharacterException(key, key.length)
-  }
-
   case class Get(keys: ByteString*) extends MemcacheCommand {
 
     val commandName = GET
@@ -79,7 +64,6 @@ object MemcacheCommand {
       b.sizeHint(GET.size + totalKeyBytes + 2)
       b.append(GET)
       keys.foreach{x =>
-        //validateKey(x)
         b.append(SP).append(x)
       }
       b.append(RN).result()
@@ -137,7 +121,6 @@ object MemcacheCommand {
 
   sealed trait CounterCommand extends MemcacheCommand{
     def formatCommand(commandName : ByteString, key : ByteString, value : Long) : ByteString = {
-      //validateKey(key)
       val b = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
@@ -166,7 +149,6 @@ object MemcacheCommand {
     val commandName = TOUCH
 
     assert(ttl > 0, "TTL Must be a non negative number")
-    //validateKey(key)
 
     def bytes(c: Compressor = NoCompressor) = {
       val b = new ByteStringBuilder
@@ -232,8 +214,6 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
 
     val sizeHint = commandName.length + flagsStr.length + ttlStr.length + dataSizeStr.length + value.size + padding
-
-    //validateKey(key)
 
     b.sizeHint(sizeHint)
     b.append(commandName)
