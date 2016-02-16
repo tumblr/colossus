@@ -3,7 +3,7 @@ package protocols
 
 import colossus.metrics.TagMap
 import colossus.parsing.DataSize
-import core.Context
+import core.{Context, WorkerRef}
 import service._
 
 import akka.util.ByteString
@@ -49,8 +49,8 @@ package object http {
   }
 
   abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: CodecProvider[D])(implicit io: IOSystem)
-  extends Service[D](config)(provider, io) {
+  (config: ServiceConfig, provider: CodecProvider[D], context: Context)
+  extends Service[D](config, context)(provider) {
 
     override def tagDecorator = new ReturnCodeTagDecorator
 
@@ -61,9 +61,9 @@ package object http {
 
   }
 
-  abstract class HttpService(config: ServiceConfig)(implicit io: IOSystem) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider)
+  abstract class HttpService(config: ServiceConfig, context: Context) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider, context)
 
-  abstract class StreamingHttpService(config: ServiceConfig)(implicit io: IOSystem) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider)
+  abstract class StreamingHttpService(config: ServiceConfig, context: Context) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
@@ -92,11 +92,7 @@ package object http {
 
 
   class HttpClient(config : ClientConfig, context: Context, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
-    extends ServiceClient[HttpRequest, HttpResponse](
-      codec = new HttpClientCodec,//(maxSize),
-      config = config,
-      context = context
-    )
+    extends ServiceClient[HttpRequest, HttpResponse](new HttpClientCodec,config, context)
 
 
   /*

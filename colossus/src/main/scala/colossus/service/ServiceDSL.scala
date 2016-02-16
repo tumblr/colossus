@@ -62,12 +62,12 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: CodecDSL]
-(val config: ServiceConfig)
-(implicit val provider: CodecProvider[C], context: Context) 
+(val config: ServiceConfig, context: Context)
+(implicit val provider: CodecProvider[C]) 
 extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, context) {
 
   //TODO: fix it, this should pull from some kind of default config
-  def this()(implicit provider: CodecProvider[C], io: IOSystem) = this(ServiceConfig("FIX THIS", Duration.Inf))(provider, io)
+  def this(context: Context)(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf), context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
@@ -189,15 +189,10 @@ object Service {
   def basic[T <: CodecDSL]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    class BasicService extends Service(ServiceConfig(name = name, requestTimeout = requestTimeout)) {
+    class BasicService(context: Context) extends Service(ServiceConfig(name = name, requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
-    Server.start(name, port){context =>
-      context onConnect {connection =>
-        connection accept new BasicService
-      }
-    }
-      
+    Server.basic(name, port, context => new BasicService(context))
   }
 
 }

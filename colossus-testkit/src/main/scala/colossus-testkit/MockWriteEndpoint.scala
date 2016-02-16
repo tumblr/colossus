@@ -52,7 +52,7 @@ object MockConnection {
   def server(handler: ServerConnectionHandler, _maxWriteSize: Int = 1024)(implicit sys: ActorSystem): ServerConnection with MockConnection = {
     val (_workerProbe, worker) = FakeIOSystem.fakeWorkerRef
     val (_serverProbe, server) = FakeIOSystem.fakeServerRef
-    handler.setBind(1, worker)
+    handler.setBind()
     new ServerConnection(1, handler, server, worker) with MockConnection {
       def maxWriteSize = _maxWriteSize
       def workerProbe = _workerProbe
@@ -71,7 +71,7 @@ object MockConnection {
 
   def client(handler: ClientConnectionHandler, _maxWriteSize: Int = 1024 )(implicit sys: ActorSystem): ClientConnection with MockConnection = {
     val fakeworker = FakeIOSystem.fakeWorker
-    handler.setBind(1, fakeworker.worker)
+    handler.setBind()
     client(handler, fakeworker, _maxWriteSize)
   }
 }

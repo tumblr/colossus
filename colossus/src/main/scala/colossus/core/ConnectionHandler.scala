@@ -135,13 +135,6 @@ trait BasicSyncHandler extends ConnectionHandler {
   def endpoint = _endpoint.getOrElse{
     throw new Exception("Handler is not connected")
   }
-  private var _worker: Option[WorkerRef] = None
-  def worker = _worker.getOrElse{
-    throw new Exception("Handler is not bound to a worker")
-  }
-  def bound(id: Long, worker: WorkerRef) {
-    _worker = Some(worker)
-  }
   def connected(e: WriteEndpoint) {
     _endpoint = Some(e)
   }

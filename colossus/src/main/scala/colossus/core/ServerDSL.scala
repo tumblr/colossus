@@ -6,92 +6,48 @@ object ServerDSL {
 }
 import ServerDSL._
 
-sealed trait MaybeHandler
-object MaybeHandler {
-  case object Reject extends MaybeHandler
-  case class Lazy(constructor: HandlerConstructor) extends MaybeHandler
-  case class Handler(handler: ServerConnectionHandler) extends MaybeHandler
-}
 
-trait ConnectionInitializer {
+abstract class Initializer(val worker: WorkerRef) {
 
-  def accept(handler: HandlerConstructor): MaybeHandler = MaybeHandler.Lazy(handler)
-  def accept(handler: ServerConnectionHandler): MaybeHandler = MaybeHandler.Handler(handler)
-
-  def reject(): MaybeHandler = MaybeHandler.Reject
-
-}
-
-trait HandlerConstructor {
-
-  private[colossus] def createHandler(worker: WorkerRef): ServerConnectionHandler
-
-}
-
-trait WorkerInitializer {
-  implicit val worker: WorkerRef
-
-  def onConnect(init: ConnectionInitializer => MaybeHandler)
+  def onConnect: Context => ServerConnectionHandler
 
   //delegator message handling
-  def receive(receiver: Receive)
+  def receive: Receive = Map() //empty receive
 
 }
 
-class DSLDelegator(server : ServerRef, _worker : WorkerRef) extends Delegator(server, _worker) with WorkerInitializer {
+//almost seems like we don't need delegator anymore
+class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initializer) extends Delegator(server, _worker) {
 
-
-  protected var currentReceiver: Receive = {case _ => ()}
-  protected var currentAcceptor: ConnectionInitializer => MaybeHandler = x => MaybeHandler.Reject
-  
-  def onConnect(init: ConnectionInitializer => MaybeHandler) {
-    currentAcceptor = init
-  }
-
-
-  def receive(r: Receive) {
-    currentReceiver = r
-  }
 
   def acceptNewConnection: Option[ServerConnectionHandler] = {
-    currentAcceptor(new ConnectionInitializer {} ) match {
-      case MaybeHandler.Reject     => None
-      case MaybeHandler.Lazy(h)    => Some(h.createHandler(worker))
-      case MaybeHandler.Handler(h) => Some(h)
-    }
+    Some(initializer.onConnect(worker.generateContext))
   }
 
-  override def handleMessage: Receive = currentReceiver
+  override def handleMessage: Receive = initializer.receive
 
 }
 
 //this is mixed in by Server
 trait ServerDSL {
 
-  def start(name: String, settings: ServerSettings)(initializer: WorkerInitializer => Unit)(implicit io: IOSystem) : ServerRef = {
+  def start(name: String, settings: ServerSettings)(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
       settings = settings,
-      delegatorFactory = (s,w) => {
-        val d = new DSLDelegator(s,w)
-        //notice - the worker will catch any exceptions thrown in the user's function
-        initializer(d)
-        d
-      }
+      delegatorFactory = (s,w) => new DSLDelegator(s,w, initializer(w))
     )
     Server(serverConfig)
 
   }
 
-  def start(name: String, port: Int)(initializer: WorkerInitializer => Unit)(implicit io: IOSystem): ServerRef = start(name, ServerSettings(port))(initializer)
+  def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = start(name, ServerSettings(port))(initializer)
 
 
-  def basic(name: String, port: Int, handlerFactory: => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, port){context =>
-      context onConnect { connection =>
-        connection accept handlerFactory
-      }
-    }
+  def basic(name: String, port: Int, handlerFactory: Context => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+    start(name, port){worker => new Initializer(worker){
+      def onConnect = handlerFactory
+    }}
   }
 
 }

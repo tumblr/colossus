@@ -20,6 +20,10 @@ import Codec._
  * @param requestBufferSize how many concurrent requests a single connection can be processing
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
  * @param requestLogFormat if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used
+ *
+ * TODO: remove name from config, this should be the same as a server's name and
+ * pulled from the ServerRef, though this requires giving the ServiceServer
+ * access to the ServerRef
  */
 case class ServiceConfig(
   name: MetricAddress,

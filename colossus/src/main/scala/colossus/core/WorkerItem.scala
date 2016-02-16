@@ -30,10 +30,23 @@ case class Context(id: Long, worker: WorkerRef) {
  * and external messages.  WorkerItems are expected to be single-threaded and
  * non-blocking.  Once a WorkerItem is bound to a worker, all of its methods
  * are executed in the event-loop thread of the bound worker.
+ *
+ * When instantiated, the WorkerItem will automatically register itself with the
+ * worker that generated the context.  When the actual bind occurs, the `onBind`
+ * callback method will be invoked.
+ *
+ * Note - WorkerItem cannot simply just always generate its own context, since
+ * in some cases we want one WorkerItem to replace another, in which case the
+ * context must be transferred
  */
 abstract class WorkerItem(val context: Context) {
+
+  def this(worker: WorkerRef) = this(worker.generateContext())
+
   def id = context.id
   def worker = context.worker
+
+  worker.worker ! WorkerCommand.Bind(this)
 
   private var bound = false
 
