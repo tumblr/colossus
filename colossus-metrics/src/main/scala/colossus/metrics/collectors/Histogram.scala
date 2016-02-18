@@ -47,7 +47,7 @@ object Histogram {
 }
 
 case class BucketValue(value: Int, count: Int)
-case class Snapshot(min: Int, max: Int, count: Int, bucketValues: Vector[BucketValue]) {
+case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vector[BucketValue]) {
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
@@ -74,12 +74,14 @@ case class Snapshot(min: Int, max: Int, count: Int, bucketValues: Vector[BucketV
   def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)
 
   def metrics(address: MetricAddress, tags: TagMap, percs: Seq[Double]): MetricMap = {
-    val pvalues = percentiles(percs)
+    val others = Map(("min" -> min), ("max" -> max), ("mean" -> mean)).map {
+      case (label, value) =>
+        (tags + ("label" -> label) -> value.toLong)
+    }
+
     Map (
-      (address / "min") -> Map(tags -> min),
-      (address / "max") -> Map(tags -> max),
       (address / "count") -> Map(tags -> count),
-      address -> pvalues.map{case (p, v) => tags + ("percentile" -> p.toString) -> v.toLong}
+      address -> (percentiles(percs).map {case (p, v) => tags + ("label" -> p.toString) -> v.toLong } ++ others)
     )
   }
 
@@ -93,14 +95,15 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
   private lazy val ranges = bucketList.buckets
 
-  private val infinity   = ranges.last
+  private val infinity = ranges.last
   private val mBuckets = Vector.fill(ranges.size)(new AtomicLong(0))
 
   private val mMax = new AtomicLong(0)
   private val mMin = new AtomicLong(infinity)
   private val mCount = new AtomicLong(0)
+  private val mTotal = new AtomicLong(0)
 
-  def min = if (count > 0) mMin.get else 0
+  def min = if (count > 0) mMin.get else 0L
   def max = mMax.get
   def count = mCount.get
   def buckets = mBuckets
@@ -135,6 +138,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
     compAndSet(mMax, value, _ < _)
     compAndSet(mMin, value, _ > _)
     mBuckets(bucketFor(value)).incrementAndGet
+    mTotal.getAndAdd(value)
   }
 
 
@@ -143,6 +147,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
     val smax = mMax.getAndSet(0)
     val smin = mMin.getAndSet(infinity)
     val scount = mCount.getAndSet(0)
+    val mean = if (scount > 0) mTotal.getAndSet(0)/scount else 0L
     var values = Vector[BucketValue]()
     var index = 0
     while (index < mBuckets.size) {
@@ -161,7 +166,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
       }
       index += 1
     }    
-    Snapshot(smin.toInt, smax.toInt, scount.toInt, values)
+    Snapshot(smin.toInt, smax.toInt, mean.toInt, scount.toInt, values)
   }
 
 }
