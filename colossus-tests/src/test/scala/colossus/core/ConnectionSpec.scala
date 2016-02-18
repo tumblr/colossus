@@ -17,7 +17,7 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
 
 
     "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
-      val handler = new BasicSyncHandler with ClientConnectionHandler {
+      val con = MockConnection.client(new BasicSyncHandler(_) with ClientConnectionHandler {
 
         override def connectionClosed(cause: DisconnectCause) {
           println("here")
@@ -29,8 +29,7 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
         }
 
         def receivedData(data: DataBuffer){}
-      }
-      val con = MockConnection.client(handler)
+      })
 
       //this test fails if this throws an exception
       con.close(DisconnectCause.Closed)
@@ -44,7 +43,7 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
     "timeout idle connection" in {
       val handler = mock[ClientConnectionHandler]
       when(handler.maxIdleTime).thenReturn(100.milliseconds)
-      val con = MockConnection.client(handler)
+      val con = MockConnection.client(_ => handler)
       val time = System.currentTimeMillis
       con.isTimedOut(time) must equal(false)
       con.isTimedOut(time + 101) must equal(true)

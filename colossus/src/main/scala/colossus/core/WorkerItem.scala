@@ -31,9 +31,11 @@ case class Context(id: Long, worker: WorkerRef) {
  * non-blocking.  Once a WorkerItem is bound to a worker, all of its methods
  * are executed in the event-loop thread of the bound worker.
  *
- * When instantiated, the WorkerItem will automatically register itself with the
- * worker that generated the context.  When the actual bind occurs, the `onBind`
- * callback method will be invoked.
+ * Note - WorkerItems currently do not automatically bind to a worker on
+ * construction.  This is because a worker does the binding itself for server
+ * connections immediately on construction.  Clients need to bind themselves,
+ * except when created through the BindAndCreateWorkerItem message.  Maybe this
+ * should change.
  *
  * Note - WorkerItem cannot simply just always generate its own context, since
  * in some cases we want one WorkerItem to replace another, in which case the
@@ -45,8 +47,6 @@ abstract class WorkerItem(val context: Context) {
 
   def id = context.id
   def worker = context.worker
-
-  worker.worker ! WorkerCommand.Bind(this)
 
   private var bound = false
 

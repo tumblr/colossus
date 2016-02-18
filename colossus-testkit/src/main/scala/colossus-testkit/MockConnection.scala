@@ -6,7 +6,7 @@ import core._
 import akka.actor._
 import akka.testkit.TestProbe
 
-trait MockConnection extends WriteBuffer with MockChannelActions {self: Connection =>
+trait MockConnection extends Connection with MockChannelActions {
   
   /**
    * Simulate event-loop iterations, calling readyForData until this buffer
@@ -47,32 +47,43 @@ trait MockConnection extends WriteBuffer with MockChannelActions {self: Connecti
 
 }
 
+trait TypedMockConnection[T <: ConnectionHandler] extends MockConnection{
+
+  def typedHandler: T
+}
+
 object MockConnection {
 
-  def server(handlerF: Context => ServerConnectionHandler, _maxWriteSize: Int = 1024)(implicit sys: ActorSystem): ServerConnection with MockConnection = {
-    val (_workerProbe, worker) = FakeIOSystem.fakeWorkerRef
+  def server[T <: ServerConnectionHandler](_handler: T, fakeWorker: FakeWorker, _maxWriteSize: Int)(implicit sys: ActorSystem): ServerConnection with TypedMockConnection[T] = {
     val (_serverProbe, server) = FakeIOSystem.fakeServerRef
-    val ctx = worker.generateContext()
-    val handler = handlerF(ctx)
-    handler.setBind()
-    new ServerConnection(ctx.id, handler, server, worker) with MockConnection {
+    new ServerConnection(_handler.context.id, _handler, server, fakeWorker.worker) with TypedMockConnection[T] {
       def maxWriteSize = _maxWriteSize
-      def workerProbe = _workerProbe
+      def workerProbe = fakeWorker.probe
       def serverProbe = Some(_serverProbe)
+      def typedHandler = _handler
     }
   }
 
-  def client(handler: ClientConnectionHandler, fakeworker: FakeWorker, _maxWriteSize: Int)(implicit sys: ActorSystem): ClientConnection with MockConnection = {
-    new ClientConnection(handler.id, handler, fakeworker.worker) with MockConnection {
+  def server[T <: ServerConnectionHandler](handlerF: Context => T, _maxWriteSize: Int = 1024)(implicit sys: ActorSystem): ServerConnection with TypedMockConnection[T] = {
+    val fw = FakeIOSystem.fakeWorker
+    val ctx = fw.worker.generateContext()
+    val handler = handlerF(ctx)
+    handler.setBind()
+    server(handler, fw, _maxWriteSize)
+  }
+
+  def client[T <: ClientConnectionHandler](_handler: T, fakeworker: FakeWorker, _maxWriteSize: Int)(implicit sys: ActorSystem): ClientConnection with TypedMockConnection[T] = {
+    new ClientConnection(_handler.id, _handler, fakeworker.worker) with TypedMockConnection[T] {
       def maxWriteSize = _maxWriteSize
       def workerProbe = fakeworker.probe
       def serverProbe = None
+      def typedHandler = _handler //don't rename _handler to handler, since Connection already has a member with that name
     }
 
   }
 
 
-  def client(handlerF: Context => ClientConnectionHandler, _maxWriteSize: Int = 1024 )(implicit sys: ActorSystem): ClientConnection with MockConnection = {
+  def client[T <: ClientConnectionHandler](handlerF: Context => T, _maxWriteSize: Int = 1024 )(implicit sys: ActorSystem): ClientConnection with TypedMockConnection[T] = {
     val fakeworker = FakeIOSystem.fakeWorker
     val ctx = fakeworker.worker.generateContext()
     val handler = handlerF(ctx)

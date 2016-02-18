@@ -194,7 +194,7 @@ object Service {
     class BasicService(context: Context) extends Service(ServiceConfig(name = name, requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
-    Server.basic(name, port, context => new BasicService(context))
+    Server.basic(name, port)(context => new BasicService(context))
   }
 
 }

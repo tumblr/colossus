@@ -107,7 +107,10 @@ class ServiceClient[I,O](
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout), context) with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler{
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout), context) 
+with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler {
+
+  context.worker.worker ! WorkerCommand.Bind(this)
 
   import colossus.core.WorkerCommand._
   import config._
@@ -314,17 +317,17 @@ extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, Output
 
 object ServiceClient {
 
-  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, context)
+  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
+    new ServiceClient(provider.clientCodec(), config, worker.generateContext())
   }
 
-  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
+  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
     apply[D](new InetSocketAddress(host, port), requestTimeout)
   }
 
   def apply[D <: CodecDSL]
   (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D], context: Context): ServiceClient[D#Input, D#Output] = {
+  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,

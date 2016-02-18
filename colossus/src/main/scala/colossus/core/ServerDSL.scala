@@ -44,10 +44,16 @@ trait ServerDSL {
   def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = start(name, ServerSettings(port))(initializer)
 
 
-  def basic(name: String, port: Int, handlerFactory: Context => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+  def basic(name: String, port: Int)(handlerFactory: Context => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
     start(name, port){worker => new Initializer(worker){
       def onConnect = handlerFactory
     }}
+  }
+
+  def basic(name: String, settings: ServerSettings)(handlerFactory: Context => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+    start(name, settings)(worker => new Initializer(worker) {
+      def onConnect = handlerFactory
+    })
   }
 
 }
