@@ -2,7 +2,7 @@ package colossus
 package service
 
 import akka.actor.ActorRef
-import core.{WorkerItem, Context}
+import core.{WorkerItem, WorkerRef, Context}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 
@@ -78,12 +78,13 @@ class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
  * TODO: does this need to actually be a WorkerItem anymore?
  */
 class LoadBalancingClient[I,O] (
-  context: Context,
+  worker: WorkerRef,
   generator: InetSocketAddress => ServiceClient[I,O], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends WorkerItem(context) with ServiceClientLike[I,O]  {
+) extends WorkerItem(worker.generateContext) with ServiceClientLike[I,O]  {
 
+  worker.bind(_ => this)
 
   private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
 

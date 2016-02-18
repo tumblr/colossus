@@ -14,13 +14,13 @@ class WorkerItemSpec extends ColossusSpec {
     "bind to a worker" in {
       withIOSystem{io => 
         val probe = TestProbe()
-        class MyItem extends WorkerItem {
+        class MyItem(c: Context) extends WorkerItem(c) {
           override def onBind() {
             probe.ref ! "BOUND"
           }
           def receivedMessage(message: Any, sender: ActorRef){}
         }
-        io ! IOCommand.BindWorkerItem(_ => new MyItem)
+        io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
@@ -28,16 +28,15 @@ class WorkerItemSpec extends ColossusSpec {
     "not bind more than once" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem extends WorkerItem {
+        class MyItem(c: Context) extends WorkerItem(c) {
           override def onBind() {
             probe.ref ! "BOUND"
+            io ! IOCommand.BindWorkerItem(_ => this)
           }
           def receivedMessage(message: Any, sender: ActorRef){}
         }
-        val item = new MyItem
-        io ! IOCommand.BindWorkerItem(_ => item)
+        io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "BOUND")
-        io ! IOCommand.BindWorkerItem(_ => item)
         probe.expectNoMsg(100.milliseconds)
       }       
 
@@ -46,9 +45,9 @@ class WorkerItemSpec extends ColossusSpec {
     "receive messages after binding" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem extends WorkerItem {
+        class MyItem(c: Context) extends WorkerItem(c) {
           override def onBind() {
-            boundWorker.get.worker ! WorkerCommand.Message(id.get, "PING")
+            worker.worker ! WorkerCommand.Message(id, "PING")
           }
           def receivedMessage(message: Any, sender: ActorRef){
             message match {
@@ -56,8 +55,7 @@ class WorkerItemSpec extends ColossusSpec {
             }
           }
         }
-        val item = new MyItem
-        io ! IOCommand.BindWorkerItem(_ => item)
+        io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "PONG")
       }       
     }
@@ -65,10 +63,10 @@ class WorkerItemSpec extends ColossusSpec {
     "not receive messages after unbinding" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem extends WorkerItem {
+        class MyItem(c: Context) extends WorkerItem(c) {
           override def onBind() {
-            boundWorker.get.worker ! WorkerCommand.UnbindWorkerItem(id.get)
-            boundWorker.get.worker ! WorkerCommand.Message(id.get, "PING")
+            worker.worker ! WorkerCommand.UnbindWorkerItem(id)
+            worker.worker ! WorkerCommand.Message(id, "PING")
           }
           def receivedMessage(message: Any, sender: ActorRef){
             message match {
@@ -76,8 +74,7 @@ class WorkerItemSpec extends ColossusSpec {
             }
           }
         }
-        val item = new MyItem
-        io ! IOCommand.BindWorkerItem(_ => item)
+        io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectNoMsg(100.milliseconds)
       }
     }

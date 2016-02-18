@@ -22,6 +22,8 @@ class TaskTest extends ColossusSpec {
    * in from ColossusSpec).  Normally you do not need to do that
   */
 
+  /*
+
   "Task" must {
     "bind to a worker" in {
       withIOSystem {sys =>
@@ -169,6 +171,7 @@ class TaskTest extends ColossusSpec {
       }
     }
   }
+  */
 
 }
 

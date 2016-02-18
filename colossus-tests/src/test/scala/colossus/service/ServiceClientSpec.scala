@@ -46,7 +46,7 @@ class ServiceClientSpec extends ColossusSpec {
     val client = (RedisClient.callbackClient(config, fakeWorker.worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
 
     fakeWorker.probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
-    client.setBind(1, fakeWorker.worker)
+    client.setBind()
     fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = MockConnection.client(client, fakeWorker, 30)
     client.connected(endpoint)
@@ -281,7 +281,7 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectNoMsg(100.milliseconds)
       client.receivedData(rep1.raw)
       res1 must equal(Some(rep1.message))
-      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
     "graceful disconnect rejects new requests while disconnecting" in {
@@ -301,7 +301,7 @@ class ServiceClientSpec extends ColossusSpec {
     "graceful disconnect immediately disconnects if there's no outstanding requests" in {
       val (endpoint, client, probe) = newClient(true, 10)
       client.gracefulDisconnect()
-      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
     "not attempt reconnect if connection is lost during graceful disconnect" in {
@@ -310,13 +310,13 @@ class ServiceClientSpec extends ColossusSpec {
       client.send(cmd1).execute()
       client.gracefulDisconnect()
       endpoint.disrupt()
-      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
+      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
 
     "unbind from the worker when not attempting to reconnect" in {
       val (endpoint, client, probe) = newClient(true, 10, connectionAttempts = PollingDuration.NoRetry)
       endpoint.disrupt()
-      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id.get))
+      probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
 
     "graceful disconnect inside a callback" in {
@@ -331,7 +331,7 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.expectOneWrite(cmd.raw)
       probe.expectNoMsg(100.milliseconds)
       client.receivedData(reply.raw)
-      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id.get))
+      probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
     "attempts to reconnect when server closes connection" in {
@@ -340,7 +340,7 @@ class ServiceClientSpec extends ColossusSpec {
         import protocols.redis._
 
         val reply = StatusReply("LATER LOSER!!!")
-        val server = Server.basic("test", TEST_PORT, new Service[Redis] { def handle = {
+        val server = Server.basic("test", TEST_PORT)( new Service[Redis](_) { def handle = {
           case c if (c.command == "BYE") => {
             gracefulDisconnect()
             reply
@@ -369,7 +369,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem{ implicit io => 
-        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
+        val server = Server.basic("rawwww", TEST_PORT)( new Service[Raw](_){ def handle = {
           case foo => {
             disconnect()
             foo
@@ -386,7 +386,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem{ implicit io =>
-        val server = Server.basic("rawwww", TEST_PORT, new Service[Raw]{ def handle = {
+        val server = Server.basic("rawwww", TEST_PORT)( new Service[Raw](_){ def handle = {
           case foo => {
             disconnect()
             foo
@@ -421,7 +421,7 @@ class ServiceClientSpec extends ColossusSpec {
       Thread.sleep(150)
       client.idleCheck(100.milliseconds)
 
-      probe.expectMsg(500.milliseconds, WorkerCommand.Kill(client.id.get, DisconnectCause.TimedOut))
+      probe.expectMsg(500.milliseconds, WorkerCommand.Kill(client.id, DisconnectCause.TimedOut))
 
       failed must equal(true)
     }

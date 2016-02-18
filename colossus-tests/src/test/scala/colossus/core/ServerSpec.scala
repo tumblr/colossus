@@ -342,8 +342,7 @@ class ServerSpec extends ColossusSpec {
 
       "attempt to re-register connection if refused by worker" in {
         val (sys, mprobe) = FakeIOSystem.withManagerProbe()
-        val config = EchoServerConfig
-        val server = Server(config)(sys)
+        val server = Server.basic("test", TEST_PORT)(new EchoHandler(_))(sys)
         val workerRouterProbe = TestProbe()
         mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
         server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
@@ -362,7 +361,7 @@ class ServerSpec extends ColossusSpec {
   }
 
   class TestDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
-    def acceptNewConnection = Some(context => new EchoHandler(context))
+    def acceptNewConnection = Some(new EchoHandler(worker.generateContext()))
     override def handleMessage = {
       case a: ActorRef => a.!(())
     }    
