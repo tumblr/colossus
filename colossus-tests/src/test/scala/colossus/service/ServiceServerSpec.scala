@@ -30,7 +30,7 @@ class ServiceServerSpec extends ColossusSpec {
       codec = RawCodec,
       context = context
   ) {
-    def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR:" + reason.toString)
+    def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR")
 
     def processRequest(input: ByteString) = handler(input)
 
@@ -53,6 +53,14 @@ class ServiceServerSpec extends ColossusSpec {
       t.handler.receivedData(DataBuffer(ByteString("hello")))
       t.iterate()
       t.expectOneWrite(ByteString("hello"))
+    }
+
+    "return an error response for failed callback" in{
+      val t = fakeService(x => Callback.failed(new Exception("FAIL")))
+      t.handler.receivedData(DataBuffer(ByteString("hello")))
+      t.iterate()
+      t.expectOneWrite(ByteString("ERROR"))
+
     }
 
     "send responses back in the right order" in {
@@ -155,7 +163,7 @@ class ServiceServerSpec extends ColossusSpec {
           val clientConfig = ClientConfig(
             name = "/test-client",
             address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = 500.milliseconds,
+            requestTimeout = 800.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
           val client = new RedisFutureClient(AsyncServiceClient(clientConfig, new RedisClientCodec))
