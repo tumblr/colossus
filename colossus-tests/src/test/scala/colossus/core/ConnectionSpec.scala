@@ -41,9 +41,10 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
 
   "ClientConnection" must {
     "timeout idle connection" in {
-      val handler = mock[ClientConnectionHandler]
-      when(handler.maxIdleTime).thenReturn(100.milliseconds)
-      val con = MockConnection.client(_ => handler)
+      val con = MockConnection.client(new BasicSyncHandler(_) with ClientConnectionHandler {
+        override def maxIdleTime = 100.milliseconds
+        def receivedData(data:DataBuffer){}
+      })
       val time = System.currentTimeMillis
       con.isTimedOut(time) must equal(false)
       con.isTimedOut(time + 101) must equal(true)

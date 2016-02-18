@@ -45,7 +45,7 @@ class ServiceClientSpec extends ColossusSpec {
     //haxor!
     val client = (RedisClient.callbackClient(config, fakeWorker.worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
 
-    fakeWorker.probe.expectMsgType[IOCommand.BindWorkerItem](100.milliseconds)
+    fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
     client.setBind()
     fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = MockConnection.client(client, fakeWorker, 30)

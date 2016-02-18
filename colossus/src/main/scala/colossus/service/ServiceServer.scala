@@ -193,7 +193,7 @@ extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, Output
      * Notice, if the request buffer is full we're still adding to it, but by skipping
      * processing of requests we can hope to alleviate overloading
      */
-    val response: Callback[O] = if (requestBuffer.size < requestBufferSize) {
+    val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
       try {
         processRequest(request) 
       } catch {

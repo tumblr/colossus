@@ -69,7 +69,7 @@ class ServerSpec extends ColossusSpec {
         val res = Await.result(server.system.connectionSummary, 2000.milliseconds)
         res.infos.size mustBe 4 //2 connections for each client since there are both clients and servers
         res.infos.count(_.domain == "client") mustBe 2
-        res.infos.count(_.domain == "/async-test") mustBe 2
+        res.infos.count(_.domain == "/test-server") mustBe 2
         c1.disconnect()
         c2.disconnect()
       }
@@ -187,8 +187,8 @@ class ServerSpec extends ColossusSpec {
         withIOSystem{ implicit io =>
           val serverProbe = TestProbe()
           val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(1L))))(new Initializer(_) {
+            Thread.sleep(600)
             def onConnect = {
-              Thread.sleep(400)
               new EchoHandler(_)
             }
           })
