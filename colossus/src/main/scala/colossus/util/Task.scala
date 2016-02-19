@@ -5,7 +5,7 @@ import core._
 
 import akka.actor._
 
-//TODO this whole thing needs a big overhaul
+case class TaskContext(proxy: ActorRef, workerContext: Context)
 
 /**
  * A Task is basically a way to run an arbitrary function inside a worker.
@@ -14,9 +14,11 @@ import akka.actor._
  *
  */
 
-abstract class Task(val proxy: ActorRef, context: Context) extends WorkerItem(context) {
+abstract class Task(context: TaskContext) extends WorkerItem(context.workerContext) {
   import TaskProxy._
   import Task._
+
+  implicit val proxy = context.proxy
 
   override def onBind() {  
     proxy ! Bound(id, worker.worker)
@@ -24,6 +26,8 @@ abstract class Task(val proxy: ActorRef, context: Context) extends WorkerItem(co
   }
 
   def run()
+
+  def receive: Receive = Map() //empty receive
 
   /**
    * Unbinds this Task from a Worker
@@ -33,14 +37,19 @@ abstract class Task(val proxy: ActorRef, context: Context) extends WorkerItem(co
   }
 
 
-  private var receiver: Receive = {
-    case a => println(s"unhandled task message $a")
-  }
+  private var receiver: Receive = receive
   private var _sender: Option[ActorRef] = None
-  def sender: ActorRef = _sender.getOrElse(throw new Exception("No Sender!"))
+  def sender(): ActorRef = _sender.getOrElse(throw new Exception("No Sender!"))
   def become(it: Receive) {
     receiver = it
   }
+
+  def receivedMessage(message: Any, sender: ActorRef) {
+    _sender = Some(sender)
+    receiver(message)
+    _sender = None
+  }
+
 }
 
 class TaskException(message: String) extends Exception(message)
@@ -49,11 +58,12 @@ object Task {
 
   type Receive = PartialFunction[Any, Unit]
 
-  def apply(creator: ActorRef => Context => Task)(implicit io: IOSystem): ActorRef = {
+  def start(creator: TaskContext => Task)(implicit io: IOSystem): ActorRef = {
     val proxy = io.actorSystem.actorOf(Props[TaskProxy])
-    io ! IOCommand.BindWorkerItem(creator(proxy))
+    io ! IOCommand.BindWorkerItem(context => creator(TaskContext(proxy, context)))
     proxy
   }
+
 }
 
 class TaskProxy extends Actor with ActorLogging with Stash{

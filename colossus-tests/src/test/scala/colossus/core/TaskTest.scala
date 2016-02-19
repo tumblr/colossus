@@ -23,97 +23,69 @@ class TaskTest extends ColossusSpec {
   */
 
   /*
+   * NOTICE - in real life you don't need to explicitly pass the proxy as the
+   * sender, just happens that the testkit already has an implicit sender
+   */
 
   "Task" must {
     "bind to a worker" in {
-      withIOSystem {sys =>
+      withIOSystem {implicit io =>
         val probe = TestProbe()
-        val task = new Task {
-          def start(id: Long, worker: WorkerRef) {
+        Task.start(new Task(_) {
+          def run() {
             probe.ref.!("BOUND")(proxy)
           }
-          def receivedMessage(message: Any, sender: ActorRef){}
-        }
-        sys ! BindWorkerItem(_ => task)
+        })
+            
         probe.expectMsg(500.milliseconds, "BOUND")
       }
     }    
 
-    "receive a message" in {
-      withIOSystem{ sys =>
+    "receive a message through worker" in {
+      withIOSystem{ implicit io =>
         val probe = TestProbe()
-        val task = new Task{
-          def start(id: Long, worker: WorkerRef) {
+        Task.start(new Task(_) {
+          def run(){
             worker.!(WorkerCommand.Message(id, "SEND"))(proxy)
           }
-          def receivedMessage(message: Any, sender: ActorRef){
-            message match {
-              case "SEND" => probe.ref.!("RECEIVED")(proxy)
-            }
+
+          override def receive = {
+            case "SEND" => probe.ref.!("RECEIVED")(proxy)
           }
-        }
-        sys ! BindWorkerItem(_ => task)
+        })
         probe.expectMsg(500.milliseconds, "RECEIVED")
       }
     }
 
     "receive through proxy" in {
-      withIOSystem{ sys => 
-        val task = new Task{
-          def start(id: Long, worker: WorkerRef){}
-          def receivedMessage(message: Any, sender: ActorRef) {
-            message match {
-              case "PING" => sender.!("PONG")(proxy)
-            }
-          }
-        }
-        sys ! BindWorkerItem(_ => task)
-        task.proxy ! "PING"
-        expectMsg(100.milliseconds, "PONG")
-      }
-    }
+      withIOSystem{ implicit io => 
+        val task = Task.start(new Task(_) {
+          def run(){}
 
-    "unbind using message" in {
-      withIOSystem{ sys =>
-        val probe = TestProbe()
-        val task = new Task{
-          def start(id: Long, worker: WorkerRef){}
-          def receivedMessage(message: Any, sender: ActorRef) {
-            message match {
-              case "PING" => sender.!("PONG")(proxy)
-            }
+          override def receive = {
+            case "PING" => sender.!( "PONG")(proxy)
           }
-          override def onUnbind() {
-            probe.ref.!("UNBOUND")(proxy)
-          }
-        }
-        sys ! BindWorkerItem(_ => task)
-        task.proxy ! "PING"
+        })
+        task ! "PING"
         expectMsg(100.milliseconds, "PONG")
-        task.proxy ! TaskProxy.Unbind
-        task.proxy ! "PING"
-        expectNoMsg(100.milliseconds)
-        probe.expectMsg(100.milliseconds, "UNBOUND")
-        
       }
     }
 
     "unbind by killing proxy actor" in {
-      withIOSystem{ sys =>
+      withIOSystem{ implicit io =>
         val probe = TestProbe()
-        val task = new Task{
-          def start(id: Long, worker: WorkerRef){
-            probe.ref.!("BOUND")(proxy)
+        val task = Task.start(new Task(_) {
+          def run(){
+            probe.ref.!( "BOUND")(proxy)
           }
-          def receivedMessage(message: Any, sender: ActorRef) {
-          }
+
           override def onUnbind() {
-            probe.ref.!("UNBOUND")(proxy)
+            super.onUnbind()
+            probe.ref.!( "UNBOUND")(proxy)
           }
-        }
-        sys ! BindWorkerItem(_ => task)
+        })
         probe.expectMsg(100.milliseconds, "BOUND")
-        task.proxy ! PoisonPill
+        task ! PoisonPill
         probe.expectMsg(100.milliseconds, "UNBOUND")
         
       }
@@ -122,56 +94,6 @@ class TaskTest extends ColossusSpec {
 
   }
 
-  "Basic Task" must {
-    "startup" in {
-      withIOSystem{ sys =>
-        val probe = TestProbe()
-        sys run new BasicTask {
-          onStart{
-            probe.ref.!(id)(proxy)
-          }
-        }
-        probe.expectMsg(300.milliseconds, Some(1L))
-      }
-    }
-    "receive and become" in {
-      withIOSystem{ sys => 
-        val probe = TestProbe()
-        val proxy = sys run new BasicTask {
-          onStart {
-            become {
-              case "PING" => become {
-                case "PING2" => probe.ref.!("PONG")(proxy)
-              }
-            }
-          }
-        }
-        proxy ! "PING"
-        probe.expectNoMsg(200.milliseconds)
-        proxy ! "PING2"
-        probe.expectMsg(200.milliseconds, "PONG")
-      }
-    }
-  }
-
-  "Task DSL" must {
-    "create simple task" in {
-      withIOSystem{implicit sys => 
-        val probe = TestProbe()
-        val task = Task{ctx =>
-          import ctx._
-          probe.ref.!("HELLO")(proxy)
-          become {
-            case "PING" => sender.!("PONG")(proxy)
-          }
-        }
-        probe.expectMsg(200.milliseconds, "HELLO")
-        task ! "PING"
-        expectMsg(200.milliseconds, "PONG")
-      }
-    }
-  }
-  */
 
 }
 
