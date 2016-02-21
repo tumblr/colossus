@@ -40,7 +40,7 @@ object UpgradeRequest {
       if (request.head.method == HttpMethod.Get)
       if (secver == "13")
       if (uheader.toLowerCase == "websocket")
-      if (cheader.toLowerCase == "upgrade")
+      if (cheader.toLowerCase.split(",").map{_.trim} contains "upgrade")
     } yield HttpResponse (
       HttpResponseHead(
         HttpVersion.`1.1`,
