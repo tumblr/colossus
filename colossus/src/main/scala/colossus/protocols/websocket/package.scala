@@ -5,16 +5,18 @@ import core._
 import controller._
 import service._
 import akka.util.{ByteString, ByteStringBuilder}
+import java.util.Random
 
 package object websocket {
 
   class WebsocketCodec extends Codec[Frame, Frame]{
     
+    private val random = new Random
     private val parser = FrameParser.frame
 
     def decode(data: DataBuffer) = parser.parse(data)
 
-    def encode(f: Frame) = f.encode
+    def encode(f: Frame) = f.encode(random)
 
     def reset(){}
   }

@@ -8,10 +8,11 @@ import akka.util.{ByteString, ByteStringBuilder}
 
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.Random
 import sun.misc.{BASE64Encoder, BASE64Decoder}
 
 
-object WebsocketUpgradeRequest {
+object UpgradeRequest {
   import protocols.http._
 
   val salt = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" //GUID for websocket
@@ -80,32 +81,43 @@ case class Header(opcode: Byte, mask: Boolean)
 case class Frame(header: Header, payload: ByteString) {
   import OpCodes.byteOrder
 
-  def encode: DataBuffer = {
+  def encode(random: Random): DataBuffer = {
     val b = new ByteStringBuilder
     b.sizeHint(payload.size + 20)
     b putByte ((header.opcode | 0x80).toByte) //set the fin bit for now every time
+    val maskBit: Byte = if (header.mask) 0x80.toByte else 0x00.toByte
     if (payload.size < 126) {
-      b putByte payload.size.toByte
+      b putByte (maskBit | payload.size.toByte).toByte
     } else if (payload.size < 65536) {
-      b putByte 0x7E
+      b putByte (maskBit | 0x7E).toByte
       b putShort(payload.size)
     } else {
-      b putByte 0x7F
+      b putByte (maskBit | 0x7F).toByte
       b putLong(payload.size)
     }
-    b append payload
+    if (header.mask) {
+      val arr = new Array[Byte](4)
+      random.nextBytes(arr)
+      val mask = ByteString(arr)
+      val masked = Frame.mask(mask, payload)
+      b append mask
+      b append masked
+    } else {
+      b append payload
+    }
     DataBuffer(b.result)
   }
 }
 
+object Frame {
 
-object FrameParser {
-  import parsing._
-  import Combinators._
-
-  def unmask(isMasked: Boolean, data: ByteString): ByteString = if (!isMasked) data else {
-    val mask = data.take(4)
-    val payload = data.drop(4)
+  /**
+   *
+   * This is used for both masking and unmasking
+   *
+   * mask must be 4 bytes long
+   */
+  def mask(mask: ByteString, payload: ByteString): ByteString = {
     val builder = new ByteStringBuilder
     builder.sizeHint(payload.size)
     var index = 0
@@ -114,10 +126,31 @@ object FrameParser {
       index += 1
     }
     builder.result
+
   }
 
+}
+
+
+object FrameParser {
+  import parsing._
+  import Combinators._
+
+  /**
+   * When the mask bit is set (always from client messages) we need to XOR the
+   * n-th data byte with the (n mod 4)th mask byte
+   */
+  def unmask(isMasked: Boolean, data: ByteString): ByteString = if (!isMasked) data else {
+    val mask = data.take(4)
+    val payload = data.drop(4)
+    Frame.mask(mask, payload)
+  }
   
+
+  
+  //see https://tools.ietf.org/html/rfc6455#section-5.2
   def frame = bytes(2) |> {head =>
+    val opcode = head(0) & 0x0F
     val payloadLen = head(1) & 0x7F //toss the first bit, len is 7 bits
     val mask = (head(1) & 0x80) == 0x80
     val maskKeyBytes = if (mask) 4 else 0
@@ -128,7 +161,7 @@ object FrameParser {
     } else {
       bytes(payloadLen + maskKeyBytes)
     }
-    p >> {data => DecodedResult.Static(Frame(Header(0, mask), unmask(mask,data)))}
+    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,data)))}
   }
 }
 
