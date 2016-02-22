@@ -49,8 +49,6 @@ object BenchmarkService {
       tcpBacklogSize = Some(1024)
     )
     val serviceConfig = ServiceConfig(
-      name = "/sample",
-      requestTimeout = Duration.Inf,
       requestMetrics = false
     )
 

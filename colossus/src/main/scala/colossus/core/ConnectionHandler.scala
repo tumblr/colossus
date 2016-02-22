@@ -131,6 +131,9 @@ trait WatchedHandler extends ConnectionHandler {
  * for the functions they require.
  */
 abstract class BasicSyncHandler(context: Context) extends WorkerItem(context) with ConnectionHandler {
+
+  def this(serverContext: ServerContext) = this(serverContext.context)
+
   private var _endpoint: Option[WriteEndpoint] = None
   def endpoint = _endpoint.getOrElse{
     throw new Exception("Handler is not connected")

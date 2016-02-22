@@ -62,15 +62,14 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: CodecDSL]
-(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, context: Context)(implicit provider: CodecProvider[C])
-extends ServiceServer[C#Input, C#Output](codec, config, context) {
+(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: CodecProvider[C])
+extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
-  implicit val executor = context.worker.callbackExecutor
+  implicit val executor   = context.worker.callbackExecutor
 
-  def this(config: ServiceConfig, context: Context)(implicit provider: CodecProvider[C]) = this(provider.provideCodec, config, context)
+  def this(config: ServiceConfig, context: ServerContext)(implicit provider: CodecProvider[C]) = this(provider.provideCodec, config, context)
 
-  //TODO: fix it, this should pull from some kind of default config
-  def this(context: Context)(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf), context)(provider)
+  def this(context: ServerContext)(implicit provider: CodecProvider[C]) = this(ServiceConfig(), context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
@@ -114,41 +113,6 @@ extends ServiceServer[C#Input, C#Output](codec, config, context) {
 
 
 
-/**
- * The Service object is an entry point into the the Service DSL which provide some convenience functions for quickly
- * creating a Server serving responses to requests utilizing a Codec(ie: memcached, http, redis, etc).
- *
- * One thing to always keep in mind is that code inside the Service.serve is placed inside a Delegator and ConnectionHandler,
- * which means that it directly runs inside of a Worker and its SelectLoop.
- * Be VERY mindful of the code that you place in here, as if there is any blocking code it will block the Worker.  Not good.
- *
- *
- * An example with full typing in place to illustrate :
- *
- * {{{
- * import colossus.protocols.http._  //imports an implicit codec
- *
- * implicit val ioSystem : IOSystem = myBootStrappingFunction()
- *
- * Service.serve[Http]("my-app", 9090) { context : ServiceContext[Http] =>
- *
- *   //everything in this block happens on delegator initialization, which is on application startup.  One time only.
- *
- *   context.handle { connection : ConnectionContext[Http] => {
- *       //This block is for connectionHandler initialization. Happens in the event loop.  Don't block.
- *       //Note, that a connection can handle multiple requests.
- *       connection.become {
- *         //this partial function is what "handles" a request.  Again.. don't block.
- *         case req @ Get on Text("test") => future(req.ok(someService.getDataFromStore()))
- *         case req @ Get on Text("path") => req.ok("path")
- *       }
- *     }
- *   }
- * }
- *}}}
- *
- *
- */
 object Service {
   /** Start a service with worker and connection initialization
    *
@@ -192,7 +156,7 @@ object Service {
   def basic[T <: CodecDSL]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
-    class BasicService(context: Context) extends Service(ServiceConfig(name = name, requestTimeout = requestTimeout), context) {
+    class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
     Server.basic(name, port)(context => new BasicService(context))

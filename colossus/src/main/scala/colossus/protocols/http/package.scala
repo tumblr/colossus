@@ -3,7 +3,7 @@ package protocols
 
 import colossus.metrics.TagMap
 import colossus.parsing.DataSize
-import core.{Context, WorkerRef}
+import core.{Context, ServerContext, WorkerRef}
 import service._
 
 import akka.util.ByteString
@@ -49,7 +49,7 @@ package object http {
   }
 
   abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: CodecProvider[D], context: Context)
+  (config: ServiceConfig, provider: CodecProvider[D], context: ServerContext)
   extends Service[D](config, context)(provider) {
 
     override def tagDecorator = new ReturnCodeTagDecorator
@@ -61,9 +61,9 @@ package object http {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: Context) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider, context)
+  abstract class HttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider, context)
 
-  abstract class StreamingHttpService(config: ServiceConfig, context: Context) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
+  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec

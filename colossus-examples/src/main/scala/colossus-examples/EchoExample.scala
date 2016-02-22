@@ -11,7 +11,7 @@ import colossus.encoding._
  * implementations for most of the methods.  It also stores the WriteEndpoint
  * that is passed in the connected method.
  */
-class EchoHandler(context: Context) extends BasicSyncHandler(context) with ServerConnectionHandler {
+class EchoHandler(context: ServerContext) extends BasicSyncHandler(context.context) with ServerConnectionHandler {
   var bytes = ByteString()
   def receivedData(data: DataBuffer){
     bytes = ByteString(data.takeAll)
