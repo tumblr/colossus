@@ -81,7 +81,7 @@ object TestController {
 
   //TODO just return TypedMockConnection instead of the tuple
   def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
-    val endpoint = MockConnection.server(context => new TestController(dataBufferSize, processor, context), outputBufferSize)
+    val endpoint = MockConnection.server(context => new TestController(dataBufferSize, processor, context.context), outputBufferSize)
     endpoint.handler.connected(endpoint)
     (endpoint, endpoint.typedHandler)
   }

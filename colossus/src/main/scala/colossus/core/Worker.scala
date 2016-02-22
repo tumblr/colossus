@@ -77,6 +77,8 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
    * default dispatcher of the worker's underlying ActorSystem.
    */
   implicit val callbackExecutor = service.CallbackExecutor(system.actorSystem.dispatcher, worker)
+
+  implicit val metrics = system.metrics.base
 }
 
 /**

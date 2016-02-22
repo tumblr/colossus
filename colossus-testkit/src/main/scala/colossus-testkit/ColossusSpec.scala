@@ -111,7 +111,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     }
   }
 
-  def withServer(handler: Context => ServerConnectionHandler)(op: ServerRef => Any) {
+  def withServer(handler: ServerContext => ServerConnectionHandler)(op: ServerRef => Any) {
     withIOSystem { implicit io =>
       val server = Server.basic("test-server", TEST_PORT)(handler)
       waitForServer(server)

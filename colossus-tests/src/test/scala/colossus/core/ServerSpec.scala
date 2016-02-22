@@ -154,7 +154,7 @@ class ServerSpec extends ColossusSpec {
 
       "signal open connections before termination when shutdown" in {
         val probe = TestProbe()
-        class MyHandler(c: Context) extends BasicSyncHandler(c) with ServerConnectionHandler {
+        class MyHandler(c: ServerContext) extends BasicSyncHandler(c) with ServerConnectionHandler {
           def receivedData(data: DataBuffer){}
           override def shutdownRequest() {probe.ref ! "SHUTDOWN"}
           override def connectionTerminated(cause: DisconnectCause) {
@@ -361,7 +361,7 @@ class ServerSpec extends ColossusSpec {
   }
 
   class TestDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
-    def acceptNewConnection = Some(new EchoHandler(worker.generateContext()))
+    def acceptNewConnection = Some(new EchoHandler(ServerContext(server, worker.generateContext())))
     override def handleMessage = {
       case a: ActorRef => a.!(())
     }    

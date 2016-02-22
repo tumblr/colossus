@@ -20,7 +20,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
   "Server Connection Handler" must {
     "bind to worker on creation" in {
       val probe = TestProbe()
-      class MyHandler(context: Context) extends BasicSyncHandler(context) with ServerConnectionHandler {
+      class MyHandler(context: ServerContext) extends BasicSyncHandler(context) with ServerConnectionHandler {
         override def onBind() {
           probe.ref ! "BOUND"
         }
@@ -36,7 +36,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
     "unbind on disconnect" in {
       val probe = TestProbe()
-      class MyHandler(context: Context) extends BasicSyncHandler(context) with ServerConnectionHandler{
+      class MyHandler(context: ServerContext) extends BasicSyncHandler(context) with ServerConnectionHandler{
         override def onUnbind() {
           probe.ref ! "UNBOUND"
         }
