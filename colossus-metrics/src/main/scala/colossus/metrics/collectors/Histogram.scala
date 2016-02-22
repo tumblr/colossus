@@ -43,6 +43,10 @@ object Histogram {
     }.toVector
     BucketList(buckets)
   }
+  
+  def apply(address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection): Histogram = {
+    collection.getOrAdd(new Histogram(address, percentiles, sampleRate))
+  }
 
 }
 
@@ -166,7 +170,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram(val address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection) extends Collector {
+class Histogram private[colossus](val address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection) extends Collector {
 
   val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]

@@ -65,17 +65,18 @@ abstract class ServiceServer[I,O]
 extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf), context) with ServerConnectionHandler {
   import ServiceServer._
   import config._
+  import context.worker.metrics
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
-  implicit val col = context.worker.system.metrics.base
-  val requests  = col.getOrAdd(new Rate(name / "requests"))
-  val latency   = col.getOrAdd(new Histogram(name / "latency", sampleRate = 0.25))
-  val errors    = col.getOrAdd(new Rate(name / "errors"))
-  val requestsPerConnection = col.getOrAdd(new Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99)))
-  val concurrentRequests = col.getOrAdd(new Counter(name / "concurrent_requests"))
+  
+  val requests  = Rate(name / "requests")
+  val latency   = Histogram(name / "latency", sampleRate = 0.25)
+  val errors    = Rate(name / "errors")
+  val requestsPerConnection = Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
+  val concurrentRequests = Counter(name / "concurrent_requests")
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false
