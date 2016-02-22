@@ -47,7 +47,7 @@ class HttpHeadParser extends Parser[HeadResult]{
     var body: Option[ByteString] = None
 
     def addHeader(rawName: String, rawValue: String) {
-      val name = rawName.toLowerCase
+      val name = rawName//.toLowerCase
       val value = rawValue//.trim
       headers = (name, value) :: headers
       if (name == HttpHeaders.ContentLength) {
@@ -126,10 +126,13 @@ class HttpHeadParser extends Parser[HeadResult]{
         builtKey = builder.toString
         builder.setLength(0)
         state = STATE_TRIM
-      } else if (state == STATE_VALUE){
-        builder.append(c)
-      } else if (c != ' ') {
+      } else if (state == STATE_TRIM && c != ' ') {
         state = STATE_VALUE
+        builder.append(c)
+      } else if (state == STATE_KEY && c >= 'A' && c <= 'Z') {
+        builder.append((c + 32).toChar)
+      } else {
+        builder.append(c)
       }
     }
     def end() {

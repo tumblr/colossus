@@ -36,6 +36,10 @@ object HttpExample {
         req.ok("closing")
       }
 
+      case req @ Get on Root / "echo" => {
+        req.ok(req.toString)
+      }
+
       case req @ Get on Root / "get"  / key => redis.get(ByteString(key)).map{x => req.ok(x.utf8String)}
 
       case req @ Get on Root / "set" / key / value => redis.set(ByteString(key), ByteString(value)).map{ x =>
