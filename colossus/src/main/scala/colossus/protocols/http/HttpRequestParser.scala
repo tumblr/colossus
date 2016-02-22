@@ -122,17 +122,29 @@ class HttpHeadParser extends Parser[HeadResult]{
     val builder = new StringBuilder
     var builtKey = ""
     def parse(c: Char) {
-      if (c == ':' && state == STATE_KEY) {
-        builtKey = builder.toString
-        builder.setLength(0)
-        state = STATE_TRIM
-      } else if (state == STATE_TRIM && c != ' ') {
-        state = STATE_VALUE
-        builder.append(c)
-      } else if (state == STATE_KEY && c >= 'A' && c <= 'Z') {
-        builder.append((c + 32).toChar)
-      } else {
-        builder.append(c)
+      state match {
+        case STATE_KEY => {
+          if (c == ':') {
+            builtKey = builder.toString
+            builder.setLength(0)
+            state = STATE_TRIM
+          } else {
+            if (c >= 'A' && c <= 'Z') {
+              builder.append((c + 32).toChar)
+            } else {
+              builder.append(c)
+            }
+          }
+        }
+        case STATE_TRIM => {
+          if (c != ' ') {
+            state = STATE_VALUE
+            builder.append(c)
+          }
+        }
+        case STATE_VALUE => {
+          builder.append(c)
+        }
       }
     }
     def end() {
