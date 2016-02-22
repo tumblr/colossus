@@ -17,9 +17,11 @@ class WorkerItemException(message: String) extends Exception(message)
  * @param worker the worker the item is bound to
  */
 case class Context(id: Long, worker: WorkerRef) {
-  def send(message: Any) {
+
+  def !(message: Any)(implicit sender: ActorRef) {
     worker.worker ! WorkerCommand.Message(id, message)
   }
+
   def unbind() {
     worker.worker ! WorkerCommand.UnbindWorkerItem(id)
   }
