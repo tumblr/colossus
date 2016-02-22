@@ -4,7 +4,7 @@ import colossus.testkit._
 
 import scala.concurrent.duration._
 
-class TestHandler(ctx: Context) extends BasicCoreHandler(ctx) {
+class TestHandler(ctx: ServerContext) extends BasicCoreHandler(ctx.context) {
 
   var shutdownCalled = false
 
@@ -26,7 +26,7 @@ class CoreHandlerSpec extends ColossusSpec {
   "Core Handler" must {
     
     "set connectionStatus to Connected" in {
-      val con = MockConnection.server(new BasicCoreHandler(_))
+      val con = MockConnection.server(srv => new BasicCoreHandler(srv.context))
       con.typedHandler.connectionState must equal(ConnectionState.NotConnected)
       con.typedHandler.connected(con)
       con.typedHandler.connectionState must equal(ConnectionState.Connected(con))

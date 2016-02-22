@@ -25,6 +25,7 @@ case class Context(id: Long, worker: WorkerRef) {
   }
 }
 
+
 /**
  * A WorkerItem is anything that can be bound to worker to receive both events
  * and external messages.  WorkerItems are expected to be single-threaded and

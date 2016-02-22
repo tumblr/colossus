@@ -21,14 +21,13 @@ class ServiceServerSpec extends ColossusSpec {
 
   import system.dispatcher
   
-  class FakeService(handler: ByteString => Callback[ByteString], context: Context) extends ServiceServer[ByteString, ByteString](
+  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[ByteString, ByteString](
       config = ServiceConfig (
-        name = "/test",
         requestBufferSize = 2,
         requestTimeout = 50.milliseconds
       ),
       codec = RawCodec,
-      context = context
+      serverContext = srv
   ) {
     def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR")
 
@@ -150,7 +149,6 @@ class ServiceServerSpec extends ColossusSpec {
       )
 
       val serviceConfig = ServiceConfig (
-        name = "/timeout-test",
         requestTimeout = 50.milliseconds
       )
       withIOSystem{implicit io => 

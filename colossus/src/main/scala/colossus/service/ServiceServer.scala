@@ -26,8 +26,7 @@ import Codec._
  * access to the ServerRef
  */
 case class ServiceConfig(
-  name: MetricAddress,
-  requestTimeout: Duration,
+  requestTimeout: Duration = Duration.Inf,
   requestBufferSize: Int = 100,
   logErrors: Boolean = true,
   requestMetrics: Boolean = true
@@ -61,11 +60,13 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  *
  */
 abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig, context: Context) 
-extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf), context) with ServerConnectionHandler {
+  (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext) 
+extends Controller[I,O](codec, ControllerConfig(config.requestBufferSize, OutputController.DefaultDataBufferSize, Duration.Inf), serverContext.context)
+with ServerConnectionHandler {
   import ServiceServer._
   import config._
   import context.worker.metrics
+  def name = serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
