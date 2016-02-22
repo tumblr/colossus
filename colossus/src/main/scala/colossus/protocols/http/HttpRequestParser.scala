@@ -46,9 +46,7 @@ class HttpHeadParser extends Parser[HeadResult]{
     var transferEncoding: Option[String] = None
     var body: Option[ByteString] = None
 
-    def addHeader(rawName: String, rawValue: String) {
-      val name = rawName//.toLowerCase
-      val value = rawValue//.trim
+    def addHeader(name: String, value: String) {
       headers = (name, value) :: headers
       if (name == HttpHeaders.ContentLength) {
         contentLength = Some(value.toInt)
