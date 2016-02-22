@@ -62,11 +62,12 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: CodecDSL]
-(val config: ServiceConfig, context: Context)
-(implicit val provider: CodecProvider[C]) 
-extends ServiceServer[C#Input, C#Output](provider.provideCodec(), config, context) {
+(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, context: Context)(implicit provider: CodecProvider[C])
+extends ServiceServer[C#Input, C#Output](codec, config, context) {
 
   implicit val executor = context.worker.callbackExecutor
+
+  def this(config: ServiceConfig, context: Context)(implicit provider: CodecProvider[C]) = this(provider.provideCodec, config, context)
 
   //TODO: fix it, this should pull from some kind of default config
   def this(context: Context)(implicit provider: CodecProvider[C]) = this(ServiceConfig("FIX THIS", Duration.Inf), context)(provider)
