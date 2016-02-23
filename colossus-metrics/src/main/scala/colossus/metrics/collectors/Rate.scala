@@ -20,7 +20,9 @@ class Rate private[colossus](val address: MetricAddress)(implicit collection: Co
     if (interval == minInterval) {
       snap.foreach{ case (tags, value) => totals.increment(tags, value) }
     }
-    Map(address -> snap, address / "count" -> totals.snapshot(false, false))
+    if (snap.isEmpty) Map() else {
+      Map(address -> snap, address / "count" -> totals.snapshot(false, false))
+    }
   }
     
 
