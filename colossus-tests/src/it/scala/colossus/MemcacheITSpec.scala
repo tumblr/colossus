@@ -9,6 +9,7 @@ import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
 import colossus.service.{AsyncServiceClient, ClientConfig}
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Millis, Seconds, Span}
 
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
@@ -24,9 +25,11 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   type AsyncMemacheClient = AsyncServiceClient[MemcacheCommand, MemcacheReply]
 
+  implicit val defaultPatience = PatienceConfig(timeout = Span(2, Seconds), interval = Span(50, Millis))
+
   implicit val sys = IOSystem("test-system", 2)
 
-  val client = MemcacheClient.asyncClient(ClientConfig(new InetSocketAddress("localhost", 11211), 1.second, "memcache"))
+  val client = MemcacheClient.asyncClient(ClientConfig(new InetSocketAddress("localhost", 11211), 2.seconds, "memcache"))
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 
