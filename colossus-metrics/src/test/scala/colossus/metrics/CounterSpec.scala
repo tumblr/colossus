@@ -38,6 +38,10 @@ class CounterSpec extends MetricIntegrationSpec {
       c.get(Map("a" -> "b")) must equal(2)
     }
 
+    "return no metrics when not used yet" in {
+      counter.tick(1.second) must equal(Map())
+    }
+
     
   }
 

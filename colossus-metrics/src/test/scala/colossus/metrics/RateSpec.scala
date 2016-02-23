@@ -48,6 +48,10 @@ class RateSpec extends MetricIntegrationSpec {
       r.tick(1.second)("/foo/count")(Map()) must equal(2)
     }
 
+    "not return any metrics when never hit" in {
+      rate().tick(1.second) must equal(Map())
+    }
+
 
   }
 

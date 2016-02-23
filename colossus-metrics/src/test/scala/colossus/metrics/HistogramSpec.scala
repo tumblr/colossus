@@ -47,6 +47,14 @@ class HistogramSpec extends MetricIntegrationSpec {
       h.bucketFor(5) must equal (5)
     }
 
+    "return 0 for min when empty" in {
+      (new BaseHistogram).snapshot.min must equal(0)
+    }
+
+    "return 0 for mean when empty" in {
+      (new BaseHistogram).snapshot.mean must equal(0)
+    }
+
   }
 
 

@@ -19,7 +19,8 @@ class Counter private[colossus](val address: MetricAddress)(implicit collection:
   def get(tags: TagMap = TagMap.Empty): Long = counters.get(tags).getOrElse(0)
 
   def tick(interval: FiniteDuration): MetricMap  = {
-    Map(address -> counters.snapshot(false, false))
+    val values = counters.snapshot(false, false)
+    if (values.isEmpty) Map() else Map(address -> values)
   }
     
 

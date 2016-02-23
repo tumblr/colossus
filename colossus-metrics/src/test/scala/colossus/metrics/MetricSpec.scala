@@ -1,10 +1,8 @@
 package colossus.metrics
 
-import colossus.metrics.IntervalAggregator._
 import org.scalatest._
 
 import akka.actor._
-import scala.concurrent.duration._
 import MetricAddress._
 
 
@@ -13,8 +11,6 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
   def this() = this(ActorSystem("MetricSpec"))
 
   implicit val sys = _system
-
-  import akka.testkit._
 
   "MetricAddress" must {
     "startsWith" in {

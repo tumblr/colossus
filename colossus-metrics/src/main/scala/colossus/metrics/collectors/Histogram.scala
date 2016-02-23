@@ -149,8 +149,8 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
   def snapshot = {
 
     val smax = mMax.getAndSet(0)
-    val smin = mMin.getAndSet(infinity)
     val scount = mCount.getAndSet(0)
+    val smin = if (scount > 0) mMin.getAndSet(infinity) else 0L
     val mean = if (scount > 0) mTotal.getAndSet(0)/scount else 0L
     var values = Vector[BucketValue]()
     var index = 0
