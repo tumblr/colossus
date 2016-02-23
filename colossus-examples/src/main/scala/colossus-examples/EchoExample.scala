@@ -11,7 +11,7 @@ import colossus.encoding._
  * implementations for most of the methods.  It also stores the WriteEndpoint
  * that is passed in the connected method.
  */
-class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
+class EchoHandler(context: ServerContext) extends BasicSyncHandler(context.context) with ServerConnectionHandler {
   var bytes = ByteString()
   def receivedData(data: DataBuffer){
     bytes = ByteString(data.takeAll)
@@ -24,22 +24,11 @@ class EchoHandler extends BasicSyncHandler with ServerConnectionHandler {
   }
 }
 
-class EchoDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
-
-  def acceptNewConnection = Some(new EchoHandler)
-}
-
 object EchoExample {
 
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
-    val echoConfig = ServerConfig(
-      name = "echo",
-      settings = ServerSettings(
-        port = port
-      ),
-      delegatorFactory = (server, worker) => new EchoDelegator(server, worker)
-    )
-    Server(echoConfig)
+
+    Server.basic("echo", port)(new EchoHandler(_))
   
   }
 

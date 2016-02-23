@@ -5,6 +5,8 @@ import core._
 
 import akka.actor._
 
+case class TaskContext(proxy: ActorRef, workerContext: Context)
+
 /**
  * A Task is basically a way to run an arbitrary function inside a worker.
  * Tasks can open connections and interact with actors through a built-in proxy
@@ -12,17 +14,20 @@ import akka.actor._
  *
  */
 
-abstract class Task(implicit factory: ActorRefFactory) extends WorkerItem {
-  implicit val proxy = factory.actorOf(Props[TaskProxy])
+abstract class Task(context: TaskContext) extends WorkerItem(context.workerContext) {
   import TaskProxy._
+  import Task._
+
+  implicit val proxy = context.proxy
 
   override def onBind() {  
-    proxy ! Bound(id.get, boundWorker.get.worker)
-    start(id.get, boundWorker.get)
+    proxy ! Bound(id, worker.worker)
+    run()
   }
 
-  def start(id: Long, worker: WorkerRef)
+  def run()
 
+  def receive: Receive = Map() //empty receive
 
   /**
    * Unbinds this Task from a Worker
@@ -30,70 +35,35 @@ abstract class Task(implicit factory: ActorRefFactory) extends WorkerItem {
   def unbindTask() {
     proxy ! TaskProxy.Unbind
   }
-}
 
-class TaskException(message: String) extends Exception(message)
 
-trait TaskContext {
-  implicit val proxy: ActorRef
-  def taskId: Long 
-  def taskWorker: WorkerRef
-
-  def sender: ActorRef
-  def become(it: Task.Receive)
-}
-  
-
-class BasicTask(implicit factory: ActorRefFactory) extends Task with TaskContext {
-  import Task._
-
-  //private stuff
-
-  private var startFunc: Function0[Unit] = () => ()
-  private var receiver: Receive = {
-    case a => println(s"unhandled task message $a")
-  }
+  private var receiver: Receive = receive
   private var _sender: Option[ActorRef] = None
-
-
-  def start(i: Long, w: WorkerRef) {
-    startFunc()
-  }
-
-  def receivedMessage(message: Any, sender: ActorRef){
-    _sender = Some(sender)
-    receiver(message)
-  }
-
-  //api methods
-
-  def taskId: Long = id.getOrElse(throw new TaskException("Cannot access id, task not bound"))
-  def taskWorker: WorkerRef = boundWorker.getOrElse(throw new TaskException("Cannot access worker, task not bound"))
-
-  def onStart(f: => Unit) {
-    startFunc = () => f
-  }
-
-  def sender: ActorRef = _sender.getOrElse(throw new Exception("No Sender!"))
+  def sender(): ActorRef = _sender.getOrElse(throw new Exception("No Sender!"))
   def become(it: Receive) {
     receiver = it
   }
-  def run(f: => Any) {
-    f
-    unbindTask()
+
+  def receivedMessage(message: Any, sender: ActorRef) {
+    _sender = Some(sender)
+    receiver(message)
+    _sender = None
   }
+
 }
+
+class TaskException(message: String) extends Exception(message)
 
 object Task {
 
   type Receive = PartialFunction[Any, Unit]
 
-  def apply(runner: TaskContext => Unit)(implicit io: IOSystem): ActorRef = {
-    val task: BasicTask = new BasicTask()(io.actorSystem)
-    task.onStart(runner(task))
-    io ! IOCommand.BindWorkerItem(_ => task)
-    task.proxy
+  def start(creator: TaskContext => Task)(implicit io: IOSystem): ActorRef = {
+    val proxy = io.actorSystem.actorOf(Props[TaskProxy])
+    io ! IOCommand.BindWorkerItem(context => creator(TaskContext(proxy, context)))
+    proxy
   }
+
 }
 
 class TaskProxy extends Actor with ActorLogging with Stash{

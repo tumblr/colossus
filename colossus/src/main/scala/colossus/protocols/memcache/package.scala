@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import akka.util.ByteString
-import colossus.core.WorkerRef
+import colossus.core.Context
 import colossus.parsing.DataSize
 import colossus.protocols.memcache.MemcacheCommand._
 import colossus.protocols.memcache.MemcacheReply._
@@ -144,8 +144,8 @@ package object memcache {
       new MemcacheCallbackClient(scl)
     }
 
-    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize) : MemcacheCallbackClient = {
-      val serviceClient = new ServiceClient[MemcacheCommand, MemcacheReply](new MemcacheClientCodec(maxSize), config, worker)
+    def callbackClient(config: ClientConfig, context: Context, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize) : MemcacheCallbackClient = {
+      val serviceClient = new ServiceClient[MemcacheCommand, MemcacheReply](new MemcacheClientCodec(maxSize), config, context)
       new MemcacheCallbackClient(serviceClient)
     }
 

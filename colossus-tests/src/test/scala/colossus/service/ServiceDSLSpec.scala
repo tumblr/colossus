@@ -70,7 +70,7 @@ class ServiceDSLSpec extends ColossusSpec {
     "receive connection messages" in {
       val probe = TestProbe()
       withIOSystem{ implicit system =>
-        val server = Server.basic("test", TEST_PORT, new Service[Raw] {
+        val server = Server.basic("test", TEST_PORT)(new Service[Raw](_) {
             override def receive = {
               case "PING" => {
                 probe.ref ! "PONG"
@@ -96,7 +96,7 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "override error handler" in {
       withIOSystem{ implicit system =>
-        val server = Server.basic("test", TEST_PORT, new Service[Raw] { 
+        val server = Server.basic("test", TEST_PORT)( new Service[Raw](_) { 
             override def onError = {
               case (request, c: UnhandledRequestException) => ByteString("OVERRIDE")
             }

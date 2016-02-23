@@ -111,6 +111,15 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
     }
   }
 
+  def withServer(handler: ServerContext => ServerConnectionHandler)(op: ServerRef => Any) {
+    withIOSystem { implicit io =>
+      val server = Server.basic("test-server", TEST_PORT)(handler)
+      waitForServer(server)
+      op(server)
+      end(server)
+    }
+  }
+
   /**
    * Shuts down, and asserts that a Server has been terminated.
    * @param server

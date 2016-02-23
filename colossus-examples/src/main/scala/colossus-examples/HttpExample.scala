@@ -2,7 +2,7 @@ package colossus.examples
 
 import akka.util.ByteString
 import colossus.IOSystem
-import colossus.core.{DataBuffer, Server, ServerRef, WorkerRef}
+import colossus.core.{ServerContext, DataBuffer, Initializer, Server, ServerRef, WorkerRef}
 import colossus.protocols.http._
 import colossus.protocols.redis._
 import colossus.service.{Callback, Service, ServiceClient, ServiceConfig}
@@ -14,12 +14,9 @@ import Callback.Implicits._
 
 import colossus.controller.IteratorGenerator
 
-import scala.concurrent.duration._
-
-
 object HttpExample {
 
-  class HttpExampleService(redis: RedisCallbackClient)(implicit io: IOSystem) extends Service[Http](ServiceConfig("/foo", 1.second, requestMetrics = false)){
+  class HttpExampleService(redis: RedisCallbackClient, context: ServerContext) extends HttpService(ServiceConfig(), context){
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
@@ -27,7 +24,7 @@ object HttpExample {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "shutdown" => {
-        io.actorSystem.shutdown
+        worker.system.actorSystem.shutdown
         req.ok("bye")
       }
 
@@ -52,14 +49,12 @@ object HttpExample {
 
 
   def start(port: Int, redisAddress: InetSocketAddress)(implicit system: IOSystem): ServerRef = {
-    Server.start("http-example", port){context =>
-      import context.worker
+    Server.start("http-example", port){implicit worker => new Initializer(worker) {
+
       val redis = new RedisCallbackClient(ServiceClient[Redis](redisAddress.getHostName, redisAddress.getPort))
 
-      context onConnect {connection => 
-        connection accept new HttpExampleService(redis)
-      }
-    }
+      def onConnect = context => new HttpExampleService(redis, context)
+    }}
   }
 
 }

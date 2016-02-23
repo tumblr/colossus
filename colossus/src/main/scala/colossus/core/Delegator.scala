@@ -1,7 +1,6 @@
 package colossus
 package core
 
-import akka.actor._
 import akka.event.Logging
 import java.nio.channels.SocketChannel
 
@@ -64,18 +63,5 @@ abstract class Delegator(val server: ServerRef,  _worker: WorkerRef) {
 
 object Delegator {
   type Factory = (ServerRef, WorkerRef) => Delegator
-
-  def basic(acceptor: () => ServerConnectionHandler): Factory = {(s,w) => new Delegator(s,w){
-    protected def acceptNewConnection = Some(acceptor())
-  }}
-}
-
-/**
- * Currently unused; but will eventually be for async delegators, if we decide to allow them
- */
-sealed trait DelegatorCommand
-object DelegatorCommand {
-  case class Reject(sock: SocketChannel) extends DelegatorCommand
-  case class Register(server: ActorRef, sock: SocketChannel, handler: ConnectionHandler) extends DelegatorCommand
 
 }

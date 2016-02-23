@@ -2,7 +2,7 @@ package colossus
 package service
 
 import akka.actor.ActorRef
-import core.{WorkerItem, WorkerRef}
+import core.{WorkerItem, WorkerRef, Context}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 
@@ -74,22 +74,23 @@ class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
  * Note that the balancer will never try the same client twice for a request,
  * so setting maxTries to a very large number will mean that every client will
  * be tried once
+ *
+ * TODO: does this need to actually be a WorkerItem anymore?
  */
 class LoadBalancingClient[I,O] (
   worker: WorkerRef,
   generator: InetSocketAddress => ServiceClient[I,O], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends ServiceClientLike[I,O] with WorkerItem {
+) extends WorkerItem(worker.generateContext) with ServiceClientLike[I,O]  {
 
+  worker.bind(_ => this)
 
   private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
 
   private var permutations = new PermutationGenerator(clients.toList)
 
   update(initialClients)
-
-  worker.bind(this)
 
   //note, this type must be inner to avoid type erasure craziness
   case class Send(request: I, promise: Promise[O])

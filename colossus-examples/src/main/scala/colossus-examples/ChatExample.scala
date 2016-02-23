@@ -74,8 +74,9 @@ object Broadcaster {
   case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 100, 10.seconds)) with ServerConnectionHandler {
-  implicit lazy val sender = boundWorker.get.worker
+class ChatHandler(broadcaster: ActorRef, context: ServerContext) 
+extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 100, 10.seconds), context.context) with ServerConnectionHandler {
+  implicit lazy val sender = worker.worker
 
   sealed trait State
   object State {
@@ -104,7 +105,7 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
         val user = message.split(" ")(0)
         currentState = LoggedIn(user)
         push(Status("Logged in :)")){_ => ()}
-        broadcaster ! Broadcaster.ClientOpened(user, id.get)
+        broadcaster ! Broadcaster.ClientOpened(user, id)
       }
       case LoggedIn(user) => {
         broadcaster ! Chat(user, message)
@@ -117,7 +118,7 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
     currentState match {
       case LoggingIn => {}
       case LoggedIn(user) => {
-        broadcaster ! Broadcaster.ClientClosed(user, id.get)
+        broadcaster ! Broadcaster.ClientClosed(user, id)
       }
     }
   }
@@ -131,23 +132,12 @@ class ChatHandler(broadcaster: ActorRef) extends Controller[String, ChatMessage]
 
 }
 
-class ChatDelegator(server: ServerRef, worker: WorkerRef, broadcaster: ActorRef) extends Delegator(server, worker) {
-
-  def acceptNewConnection = Some(new ChatHandler(broadcaster))
-}
-
 object ChatExample {
 
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
     val broadcaster = io.actorSystem.actorOf(Props[Broadcaster])
-    val echoConfig = ServerConfig(
-      name = "chat",
-      settings = ServerSettings(
-        port = port
-      ),
-      delegatorFactory = (server, worker) => new ChatDelegator(server, worker, broadcaster)
-    )
-    Server(echoConfig)
+
+    Server.basic("chat", port)(context => new ChatHandler(broadcaster, context))
   
   }
 

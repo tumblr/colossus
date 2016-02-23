@@ -36,30 +36,25 @@ object KeyValExample {
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 
-    Server.start("key-value-example", port){ context =>
-      context onConnect { connection =>
-        import context.worker.callbackExecutor
-        connection accept new Service[Redis] {
-          def handle = {
-            case Command("GET", args) => {
-              val dbCmd = KeyValDB.Get(args(0))
-              db ! dbCmd
-              Callback.fromFuture(dbCmd.promise.future).map{
-                case Some(value) => BulkReply(value)
-                case None => NilReply
-              }
-            }
-            case Command("SET", args) => {
-              val dbCmd = KeyValDB.Set(args(0), args(1))
-              db ! dbCmd
-              Callback.fromFuture(dbCmd.promise.future).map{_ =>
-                StatusReply("OK")
-              }
-            }
+    Server.basic("key-value-example", port){context => new Service[Redis](context) {
+      def handle = {
+        case Command("GET", args) => {
+          val dbCmd = KeyValDB.Get(args(0))
+          db ! dbCmd
+          Callback.fromFuture(dbCmd.promise.future).map{
+            case Some(value) => BulkReply(value)
+            case None => NilReply
+          }
+        }
+        case Command("SET", args) => {
+          val dbCmd = KeyValDB.Set(args(0), args(1))
+          db ! dbCmd
+          Callback.fromFuture(dbCmd.promise.future).map{_ =>
+            StatusReply("OK")
           }
         }
       }
-    }
+    }}
   }
 }
         

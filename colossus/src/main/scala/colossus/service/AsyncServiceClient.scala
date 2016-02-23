@@ -33,7 +33,7 @@ object ConnectionEvent {
 /**
  * This correctly routes messages to the right worker and handler
  */
-class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => WorkerRef => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
+class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorRef => Context => ClientConnectionHandler) extends Actor with ActorLogging  with Stash {
   import WorkerCommand._
   import ConnectionEvent._
 
@@ -148,13 +148,13 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
   class AsyncHandler(
     config: ClientConfig,
     val caller: ActorRef,
-    worker: WorkerRef
-  ) extends ServiceClient[I,O](codec, config, worker) with WatchedHandler {
+    context: Context
+  ) extends ServiceClient[I,O](codec, config, context) with WatchedHandler {
     val watchedActor = caller
 
     override def onBind() {
       super.onBind()
-      caller.!(ConnectionEvent.Bound(id.get))(boundWorker.get.worker)
+      caller.!(ConnectionEvent.Bound(id))(context.worker.worker)
     }
 
     override def onUnbind() {
@@ -205,6 +205,6 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     val clientConfig = cConfig
   }
 
-  val handlerFactory: ActorRef => WorkerRef =>  ConnectionHandler = caller => worker => new AsyncHandler(config, caller, worker)
+  val handlerFactory: ActorRef => Context =>  ConnectionHandler = caller => context => new AsyncHandler(config, caller, context)
 
 }

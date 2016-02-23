@@ -40,15 +40,15 @@ class AsyncServiceClientSpec extends ColossusSpec {
       }
     }
 
-    "disconnect from server" in {
+    "disconnect from server" taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{ implicit io =>
         val server = makeServer()
         withServer(server) {
           val client = TestClient(io, TEST_PORT)
           Await.result(client.connectionStatus, 100.milliseconds) must equal(ConnectionStatus.Connected)
           client.disconnect()
-          TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
           TestUtil.expectServerConnections(server, 0)
+          TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
       }
     }

@@ -12,17 +12,12 @@ import org.scalatest.exceptions.TestFailedException
 import Callback.Implicits._
 
 object TestService {
-  def apply()(implicit io: IOSystem) = Server.start("localhost", 3535){context => 
-    import context.worker.callbackExecutor
-    context onConnect {connection =>
-      connection accept new Service[Redis]{
-        def handle = {
-          case c: Command if (c.command == "GET") => StatusReply("OK")
-          case c: Command if (c.command == "DELAY") => Callback.schedule(1.second)(Callback.successful(StatusReply("OK")))
-        }
-      }
+  def apply()(implicit io: IOSystem) = Server.basic("localhost", 3535)( new Service[Redis](_){
+    def handle = {
+      case c: Command if (c.command == "GET") => StatusReply("OK")
+      case c: Command if (c.command == "DELAY") => Callback.schedule(1.second)(Callback.successful(StatusReply("OK")))
     }
-  }
+  })
 }
 
 

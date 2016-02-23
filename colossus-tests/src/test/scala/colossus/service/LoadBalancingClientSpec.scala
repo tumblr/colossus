@@ -97,16 +97,16 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
     }
 
     "close removed connection on update" in {
-      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val fw = FakeIOSystem.fakeWorker
 
-      implicit val w = worker
+      implicit val w = fw.worker
       val generator = (i: InetSocketAddress) => {
         val h = ServiceClient[Raw]("0.0.0.0", i.getPort, 1.second)
-        val x = MockConnection.client(h)
+        val x = MockConnection.client(h, fw, 1024)
         h.connected(x)
         h
       }
-      val l = new LoadBalancingClient[ByteString, ByteString](worker, generator, maxTries = 2, initialClients = addrs(3))
+      val l = new LoadBalancingClient[ByteString, ByteString](fw.worker, generator, maxTries = 2, initialClients = addrs(3))
       val clients = l.currentClients
 
       val removed = clients(0)
