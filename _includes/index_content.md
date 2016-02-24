@@ -6,24 +6,26 @@ Add the following to your build.sbt or Build.scala (2.10 or 2.11)
 libraryDependencies += "com.tumblr" %% "colossus" % "{{ site.latest_version }}"
 {% endhighlight %}
 
-Now let's make a little server.
+Here's a simple example service.
 
 {% highlight scala %}
-import colossus._
-import service._
-import protocols.http._
-import UrlParsing._
-import HttpMethod._
 
 object Main extends App {
   
   implicit val io_system = IOSystem()
 
-  Service.become[Http]("http-echo", 9000){
-    case request @ Get on Root => Callback.successful(request.ok("Hello world!"))
-    case request @ Get on Root / "echo" / str => Callback.successful(request.ok(str))
-  }
+  Server.basic("example-server", 9000){ new HttpService(_) {
+      
+    def handle = {
+      case request @ Get on Root => 
+        Callback.successful(request.ok("Hello world!"))
+      
+      case request @ Get on Root / "echo" / str => 
+        Callback.successful(request.ok(str))
+    }
+  }}
 }
+
 {% endhighlight %}
 
 

@@ -19,27 +19,23 @@ layout: intro
       </ul>
     </div>
     <h1>Colossus</h1>
-    <h2>I/O and Microservice library for Scala</h2>
+    <h2>Service I/O Framework</h2>
     <br class="clear" />
 
       <p>
       Colossus is a lightweight framework for building high-performance
-      applications in Scala that require non-blocking network I/O.  In
+      distributed services in Scala.  In
       particular Colossus is focused on low-latency stateless
-      <em>microservices</em> where often the service is little more than an
+      <em>microservices</em>, where often the service is little more than an
       abstraction over a database and/or cache.  For this use case, Colossus
       aims to maximize performance while keeping the interface clean and
       concise.
       </p>
 
-      <p>
-      Applications are built around a set of single-threaded event
-      loops which handle the low-level network interactions, but these event
-      loops are themselves actors which can send and receive messages.  The
-      result is an environment where you are able to write low-level
-      event-handling code directly in the event loop, but move other parts into
-      actors with ease.
-      </p>
+    <br class="clear" />
+    <div id="subintro">
+      {% include index_content.md %}
+    </div>
 
     <div id="features">
       <div class = "feature">
@@ -78,14 +74,7 @@ layout: intro
       </div>
     </div>
     <br class="clear" />
-    <div id="subintro">
-      {% include index_content.md %}
-    </div>
     <div id="moar">
-      <p>
-      Ready for more?  Take a look at:
-      </p>
-
       <ul id="moar">
         <li> <a href="{{ site.baseurl }}/docs/quickstart">Quickstart Guide</a>
         <li> <a href="{{ site.baseurl }}/docs">Full Documentation</a>
