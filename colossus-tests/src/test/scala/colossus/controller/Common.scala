@@ -73,7 +73,7 @@ class TestController(dataBufferSize: Int, processor: TestInput => Unit, context:
 
 
   def testGracefulDisconnect() {
-    gracefulDisconnect()
+    disconnect()
   }
 }
 

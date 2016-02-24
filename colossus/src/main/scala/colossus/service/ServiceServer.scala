@@ -32,6 +32,10 @@ case class ServiceConfig(
   requestMetrics: Boolean = true
 )
 
+object ServiceConfig {
+  val Default = ServiceConfig()
+}
+
 trait RequestFormatter[I] {
   def format(request : I) : String
 }

@@ -113,7 +113,7 @@ class LoadBalancingClient[I,O] (
   def addClient(address: InetSocketAddress): ServiceClient[I,O] = addClient(address, true)
 
   def removeClient(client: ServiceClient[I,O]) {
-    client.gracefulDisconnect()
+    client.disconnect()
     clients.remove(clients.indexOf(client))
     regeneratePermutations()
   }
@@ -141,8 +141,8 @@ class LoadBalancingClient[I,O] (
     regeneratePermutations()
   }
 
-  def gracefulDisconnect() {
-    clients.foreach{_.gracefulDisconnect()}
+  def disconnect() {
+    clients.foreach{_.disconnect()}
     clients.clear()
   }
       

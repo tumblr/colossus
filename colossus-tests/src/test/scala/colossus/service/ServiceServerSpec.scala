@@ -93,7 +93,7 @@ class ServiceServerSpec extends ColossusSpec {
       })
       val r1 = ByteString("AAAA")
       t.typedHandler.receivedData(DataBuffer(r1))
-      t.typedHandler.gracefulDisconnect()
+      t.typedHandler.disconnect()
       t.readsEnabled must equal(false)
       t.status must equal(ConnectionStatus.Connected)
       t.workerProbe.expectNoMsg(100.milliseconds)

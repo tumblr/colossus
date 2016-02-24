@@ -77,7 +77,7 @@ class RequestTimeoutException extends ServiceClientException("Request Timed out"
 class DataException(message: String) extends ServiceClientException(message)
 
 trait ServiceClientLike[I,O]  {
-  def gracefulDisconnect()
+  def disconnect()
   def send(request: I): Callback[O]
 }
 

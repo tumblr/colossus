@@ -2,7 +2,6 @@ package colossus
 package protocols
 
 import core._
-import controller._
 import service._
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.Random
