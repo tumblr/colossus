@@ -55,7 +55,7 @@ package object http {
     override def tagDecorator = new ReturnCodeTagDecorator
 
     override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
-      if(!input.head.persistConnection) gracefulDisconnect()
+      if(!input.head.persistConnection) disconnect()
       response
     }
 

@@ -68,10 +68,12 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
   }
 
   /**
-   * begin the graceful disconnect process.  Be aware that this is different
-   * from gracefully disconnecting the WriteBuffer.
+   * Close the underlying connection.  This is a "graceful" disconnect process,
+   * in that any action mid-completion will be given a chance to finish what
+   * they're doing before the connection actually closes.  For example, for a
+   * service this will allow any requests being processed to complete.
    */
-  final def gracefulDisconnect() {
+  final def disconnect() {
     setShutdownAction(ShutdownAction.Disconnect)
     shutdownRequest()
   }
@@ -89,7 +91,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
    * Immediately terminate the connection.  this is a kill action and completely
    * bypasses the shutdown process.
    */
-  final def disconnect() {
+  final def forceDisconnect() {
     connectionState match {
       case a: AliveState => a.endpoint.disconnect()
       case _ => {}
@@ -108,7 +110,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
 
   protected def shutdown() {
     shutdownAction match {
-      case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => disconnect()
+      case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
         worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory(this.context))
       }

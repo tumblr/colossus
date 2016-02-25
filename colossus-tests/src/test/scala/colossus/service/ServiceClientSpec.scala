@@ -276,7 +276,7 @@ class ServiceClientSpec extends ColossusSpec {
       endpoint.iterate()
       endpoint.expectOneWrite(cmd1.raw)
       endpoint.clearBuffer()
-      client.gracefulDisconnect()
+      client.disconnect()
       endpoint.disconnectCalled must equal(false)
       probe.expectNoMsg(100.milliseconds)
       client.receivedData(rep1.raw)
@@ -287,7 +287,7 @@ class ServiceClientSpec extends ColossusSpec {
     "graceful disconnect rejects new requests while disconnecting" in {
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(Command("BLAH")).execute()
-      client.gracefulDisconnect()
+      client.disconnect()
       endpoint.disconnectCalled must equal(false)
       intercept[CallbackExecutionException] {
         client.send(Command("BLEH")).execute{
@@ -300,7 +300,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "graceful disconnect immediately disconnects if there's no outstanding requests" in {
       val (endpoint, client, probe) = newClient(true, 10)
-      client.gracefulDisconnect()
+      client.disconnect()
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
@@ -308,7 +308,7 @@ class ServiceClientSpec extends ColossusSpec {
       val cmd1 = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
-      client.gracefulDisconnect()
+      client.disconnect()
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
@@ -324,7 +324,7 @@ class ServiceClientSpec extends ColossusSpec {
       val cmd = Command("BAH")
       val reply = StatusReply("WAT")
       client.send(Command("BAH")).map{r =>
-        client.gracefulDisconnect()
+        client.disconnect()
         r
       }.execute()
       endpoint.iterate()
@@ -342,7 +342,7 @@ class ServiceClientSpec extends ColossusSpec {
         val reply = StatusReply("LATER LOSER!!!")
         val server = Server.basic("test", TEST_PORT)( new Service[Redis](_) { def handle = {
           case c if (c.command == "BYE") => {
-            gracefulDisconnect()
+            disconnect()
             reply
           }
           case other => {

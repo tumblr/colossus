@@ -35,7 +35,7 @@ class ServiceClientPool[I,O, T <: ServiceClient[I, O]](val commonConfig: ClientC
     }
     removed.foreach{address =>
       val client = clients(address)
-      client.gracefulDisconnect()
+      client.disconnect()
       clients -= address
     }
   }

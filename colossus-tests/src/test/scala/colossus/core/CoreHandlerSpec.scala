@@ -38,16 +38,16 @@ class CoreHandlerSpec extends ColossusSpec {
       con.typedHandler.connectionState must equal(ConnectionState.NotConnected)
     }
 
-    "disconnect" in {
+    "forceDisconnect" in {
       val con = setup()
-      con.typedHandler.disconnect()
+      con.typedHandler.forceDisconnect()
       con.typedHandler.shutdownCalled must equal(false)
       con.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(con.id))
     }
 
-    "graceful disconnect" in {
+    "disconnect" in {
       val con = setup()
-      con.typedHandler.gracefulDisconnect()
+      con.typedHandler.disconnect()
       con.typedHandler.shutdownCalled must equal(true)
       con.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(con.id))
     }

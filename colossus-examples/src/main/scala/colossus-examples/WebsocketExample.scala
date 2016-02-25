@@ -81,7 +81,7 @@ object WebsocketExample {
                   sending = false
                 }
                 case "EXIT" => {
-                  gracefulDisconnect()
+                  disconnect()
                 }
               }
             }
