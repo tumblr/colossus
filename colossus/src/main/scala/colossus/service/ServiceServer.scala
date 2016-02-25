@@ -77,11 +77,11 @@ with ServerConnectionHandler {
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
   
-  val requests  = Rate(name / "requests")
-  val latency   = Histogram(name / "latency", sampleRate = 0.25)
-  val errors    = Rate(name / "errors")
-  val requestsPerConnection = Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
-  val concurrentRequests = Counter(name / "concurrent_requests")
+  private val requests  = Rate(name / "requests")
+  private val latency   = Histogram(name / "latency", sampleRate = 0.25)
+  private val errors    = Rate(name / "errors")
+  private val requestsPerConnection = Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
+  private val concurrentRequests = Counter(name / "concurrent_requests")
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false
@@ -90,7 +90,7 @@ with ServerConnectionHandler {
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
+  private def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
     errors.hit(tags = tags)
     if (logErrors) {
@@ -99,7 +99,7 @@ with ServerConnectionHandler {
     }
   }
 
-  case class SyncPromise(request: I) {
+  private case class SyncPromise(request: I) {
     val creationTime = System.currentTimeMillis
 
     def isTimedOut(time: Long) = !isComplete && requestTimeout.isFinite && (time - creationTime) > requestTimeout.toMillis
