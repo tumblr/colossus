@@ -15,9 +15,6 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import encoding.DynamicOutBuffer
-
-
 /**
  * Contains the configuration for each Worker. Created when Workers are spawned by the WorkerManager.
  * Notice - currently the worker config cannot contain the MetricSystem,

@@ -10,9 +10,6 @@ import controller._
 import HttpParse._
 import java.nio.ByteBuffer
 
-import encoding.DataOutBuffer
-
-
 case class HttpResponseHeader(key: ByteString, value: ByteString) {
   val keyArray = key.toArray
   val valueArray = value.toArray

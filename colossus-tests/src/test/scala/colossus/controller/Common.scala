@@ -51,7 +51,7 @@ class PushPromise {
 
 }
 
-class TestController(dataBufferSize: Int, processor: TestInput => Unit, context: Context) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 50.milliseconds), context) with ServerConnectionHandler {
+class TestController(processor: TestInput => Unit, context: Context) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, 50.milliseconds), context) with ServerConnectionHandler {
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
 
@@ -80,11 +80,11 @@ class TestController(dataBufferSize: Int, processor: TestInput => Unit, context:
 object TestController {
 
   //TODO just return TypedMockConnection instead of the tuple
-  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
-    val endpoint = MockConnection.server(context => new TestController(dataBufferSize, processor, context.context), outputBufferSize)
+  def createController(outputBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
+    val endpoint = MockConnection.server(context => new TestController(processor, context.context), outputBufferSize)
     endpoint.handler.connected(endpoint)
     (endpoint, endpoint.typedHandler)
   }
 
-  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockConnection, TestController) = createController(100, 100, processor)
+  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockConnection, TestController) = createController(100, processor)
 }

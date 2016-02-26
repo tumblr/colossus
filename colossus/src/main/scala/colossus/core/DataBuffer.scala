@@ -4,7 +4,6 @@ package core
 import akka.util.ByteString
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
-import encoding._
 
 /**
  * A DataReader is the result of codec's encode operation.  It can either

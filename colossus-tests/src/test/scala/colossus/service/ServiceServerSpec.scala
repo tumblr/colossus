@@ -112,10 +112,10 @@ class ServiceServerSpec extends ColossusSpec {
       })
 
       //this request will fill up the write buffer
-      val big = ByteString(List.fill(controller.OutputController.DefaultDataBufferSize * 2)("b").mkString)
-      s.typedHandler.receivedData(DataBuffer(ByteString("ASDF")))
-      promises(0).success(big)
-      s.typedHandler.testCanPush must equal(true)
+      //val big = ByteString(List.fill(controller.OutputController.DefaultDataBufferSize * 2)("b").mkString)
+      //s.typedHandler.receivedData(DataBuffer(ByteString("ASDF")))
+      //promises(0).success(big)
+      //s.typedHandler.testCanPush must equal(true)
 
 
       //these next two fill up the output controller's message queue (set to 2 in fakeService())

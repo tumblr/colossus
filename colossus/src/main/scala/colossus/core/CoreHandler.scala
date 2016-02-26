@@ -125,7 +125,7 @@ class BasicCoreHandler(context: Context) extends CoreHandler(context) with Serve
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
   def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
-  def readyForData(buffer: colossus.encoding.DataOutBuffer): colossus.core.MoreDataResult = MoreDataResult.Complete
+  def readyForData(buffer: DataOutBuffer): colossus.core.MoreDataResult = MoreDataResult.Complete
   def receivedData(data: colossus.core.DataBuffer): Unit = {}
   def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 

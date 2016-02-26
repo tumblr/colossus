@@ -36,40 +36,6 @@ class OutputControllerSpec extends ColossusSpec {
 
     }
 
-    "properly react to full data buffer" in {
-      val (endpoint, controller) = createController(outputBufferSize = 100, dataBufferSize = 10)
-      val data = ByteString("123456")
-      endpoint.iterate {
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-      }
-      //data buffer size is set to 10, so two messages should fill it, this means we should expect the three messages to occur as two writes to the WriteBuffer
-      endpoint.expectWrite((data ++ data))
-      endpoint.expectWrite(data)
-      endpoint.writeReadyEnabled must equal(false)
-    }
-
-    "properly react to full output buffer"   in {
-      val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 100)
-      val data = ByteString("123456")
-      endpoint.iterate {
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-        controller.testPush(TestOutput(Source.one(DataBuffer(data)))){_ must equal (OutputResult.Success)}
-      }
-      
-      endpoint.expectOneWrite((data ++ data).take(10), true)
-      endpoint.writeReadyEnabled must equal(true)
-      endpoint.clearBuffer()
-      endpoint.iterate({})
-      endpoint.expectOneWrite((data ++ data).drop(10) ++ data, true)
-      endpoint.writeReadyEnabled must equal(false)
-
-    }
-
-
-
     "drain output buffer on graceful disconnect" in {
       val (endpoint, controller) = createController()
       val data = ByteString(List.fill(endpoint.maxWriteSize + 1)("x").mkString)
@@ -92,7 +58,7 @@ class OutputControllerSpec extends ColossusSpec {
     }
 
     "timeout queued messages that haven't been sent" in {
-      val (endpoint, controller) = createController(10, 10)
+      val (endpoint, controller) = createController(10)
       val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
       val message = TestOutput(Source.one(DataBuffer(data)))
@@ -116,7 +82,7 @@ class OutputControllerSpec extends ColossusSpec {
     }
 
     "fail pending messages on connectionClosed while gracefully disconnecting"  in {
-      val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
+      val (endpoint, controller) = createController(outputBufferSize = 10)
       val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
       val message = TestOutput(Source.one(DataBuffer(data)))
@@ -141,7 +107,7 @@ class OutputControllerSpec extends ColossusSpec {
       //disruption would trigger a flush of the buffer, but since now the
       //shutdown procedure does not occur if the connection is not connected,
       //this doesn't happen anymore
-      val (endpoint, controller) = createController(outputBufferSize = 10, dataBufferSize = 10)
+      val (endpoint, controller) = createController(outputBufferSize = 10)
       val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
 
       val message = TestOutput(Source.one(DataBuffer(data)))

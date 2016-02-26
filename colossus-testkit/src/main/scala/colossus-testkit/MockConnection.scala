@@ -15,24 +15,26 @@ trait MockConnection extends Connection with MockChannelActions {
    *
    * Be aware you need to call clearBuffer yourself
    */
-  def iterate[T](f: => T): T = {
+  def iterate[T](outputBufferSize: Int = 100)(f: => T): T = {
     val res = f
-    while (writeReadyEnabled && handleWrite(new encoding.DynamicBuffer)) {}
+    while (writeReadyEnabled && handleWrite(new DynamicOutBuffer(outputBufferSize))) {}
     res
   }
 
   /**
    * Simulates event loop iteration, clearing the buffer on each iteration to avoid any backpressure
    */
-  def iterateAndClear() {
+  def iterateAndClear(outputBufferSize: Int = 100) {
+    val buf = new DynamicOutBuffer(outputBufferSize)
     while (writeReadyEnabled) {
-      handleWrite(new encoding.DynamicBuffer)
+      buf.reset()
+      handleWrite(buf)
       clearBuffer()
     }
   }
     
 
-  def iterate() = iterate[Unit]({})
+  def iterate(bsize: Int = 100) = iterate[Unit](bsize)({})
 
   def disrupt() {
     close(DisconnectCause.Closed)

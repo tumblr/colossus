@@ -2,7 +2,7 @@ package colossus.protocols.http.client
 
 import akka.util.ByteString
 import colossus.controller._
-import colossus.core.{DataBuffer, DataReader, DataStream}
+import colossus.core.{DataBuffer, DataReader, DataStream, DynamicOutBuffer}
 import colossus.protocols.http._
 import colossus.service.{Callback, DecodedResult}
 import colossus.testkit.{CallbackMatchers, ColossusSpec, FakeIOSystem, PipeFoldTester}
@@ -32,7 +32,9 @@ class StreamingHttpResponseParserSpec extends ColossusSpec with MustMatchers wit
 
       val clientProtocol = new StreamingHttpClientCodec()
 
-      val bytes = sent.encode()
+      val buf = new DynamicOutBuffer(100)
+      sent.encode(buf)
+      val bytes = buf.data
       val decodedResponse: Option[DecodedResult[StreamingHttpResponse]] = clientProtocol.decode(bytes)
 
       decodedResponse match {
