@@ -11,33 +11,23 @@ import service.{NotConnectedException, RequestTimeoutException}
 import encoding._
 
 
-class DataQueue(maxBytes: Long) {
+//this can probably be removed
+class DataQueue {
 
-  private var total = 0L
-  private val queue = new LinkedList[(DataBuffer, Long)]
+  private val queue = new LinkedList[Encoder]
 
-  def dataSize = total
   def itemSize = queue.size
-
-  def isFull = total >= maxBytes
   def isEmpty = itemSize == 0
-
-  def head = queue.peek._1
 
   /**
    * returns true if the queue can accept more data
    */
-  def enqueue(data: DataBuffer): Boolean = {
-    val size = data.remaining
-    total += size
-    queue.add(data -> size)
-    isFull
+  def enqueue(data: Encoder) {
+    queue.add(data)
   }
 
-  def dequeue: DataBuffer = {
-    val (data, size) = queue.remove
-    total -= size
-    data
+  def dequeue: Encoder = {
+    queue.remove
   }
 
 }
@@ -179,7 +169,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case Suspended(msgs) => msgs
       case _ => new MessageQueue[Output](controllerConfig.outputBufferSize)
     }
-    outputState = Alive(msgs, new DataQueue(controllerConfig.dataBufferSize), Dequeueing, disconnecting = false, writesEnabled = true)
+    outputState = Alive(msgs, new DataQueue, Dequeueing, disconnecting = false, writesEnabled = true)
     if (!msgs.isEmpty) {
       drainMessages()
     }
@@ -299,10 +289,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   @tailrec private def drainMessages() {
     outputState match {
-      case a @ Alive(msgQ, dataQ, Dequeueing, _, true) if (!msgQ.isEmpty && !dataQ.isFull) => {
+      case a @ Alive(msgQ, dataQ, Dequeueing, _, true) if (!msgQ.isEmpty) => {
         val next = msgQ.dequeue
         codec.encode(next.item) match {
-          case d: DataBuffer => {
+          case d: Encoder => {
             //TODO: benchmark if the if-statement if necessary
             if (dataQ.itemSize == 0) signalWrite()
             dataQ.enqueue(d)
@@ -325,9 +315,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case a: Alive[Output] => {
         if (a.dataQ.itemSize == 0) signalWrite()
         a.dataQ.enqueue(data)
-        if (!a.dataQ.isFull) {
-          drainSource(source, post)
-        }
+        drainSource(source, post)
       }
       case other => {
         val ex = new NotConnectedException("Connection Closed")
@@ -409,27 +397,13 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       if (checkOutputGracefulDisconnect(state)) {
         MoreDataResult.Complete
       } else {
-        val fullBefore = state.dataQ.isFull
-        var continue = state.dataQ.itemSize > 0
-        while (continue) {
-          val next = state.dataQ.head
-          buffer.copy(next)
-          if (next.remaining == 0) {
-            state.dataQ.dequeue
-          } else {
-            continue = false
-          }
-          if (state.dataQ.itemSize == 0) {
-            continue = false
-          }
+        while (state.dataQ.itemSize > 0 && ! buffer.isOverflowed) {
+          state.dataQ.dequeue.encode(buffer)
         }
-        //if dataQ can now accept more data, try to fill it again.
-        if (fullBefore && !state.dataQ.isFull) {
-          state.liveState match {
-            case Dequeueing => drainMessages()
-            case Streaming(source, post) => {
-              drainSource(source, post)
-            }
+        state.liveState match {
+          case Dequeueing => drainMessages()
+          case Streaming(source, post) => {
+            drainSource(source, post)
           }
         }
         if (!state.dataQ.isEmpty || state.disconnecting) {

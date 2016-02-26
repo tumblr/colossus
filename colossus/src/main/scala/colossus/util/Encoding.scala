@@ -9,17 +9,20 @@ import core.DataBuffer
 trait DataOutBuffer {
 
   def available: Long
+  def isOverflowed: Boolean
 
   /**
    * Copy as much as `src` into this buffer as possible.  
    */
-  def copy(src: DataBuffer)
+  def write(src: DataBuffer)
 
   /**
    * Attempt to write the entire contents of bytes into this buffer.  If there
    * is not enough available space an exeption is thrown
    */
   def write(bytes: ByteString)
+
+  def write(bytes: Array[Byte])
 
   /* Get a DataBuffer containing the data written into this DataOutBuffer.  This
    * generally renders this buffer unusable
@@ -34,12 +37,14 @@ trait DataOutBuffer {
 trait Encodable {
   def encode : DataBuffer
 }
-
+/*
 case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
 
   def available = underlying.remaining
 
-  def copy(data: DataBuffer) {
+  def isOverFlowed = available == 0
+
+  def write(data: DataBuffer) {
     val src = data.data
     val oldLimit = src.limit()
     val newLimit = if (src.remaining > underlying.remaining) {
@@ -63,22 +68,80 @@ case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
 
 
 }
+*/
 
-/*
-class DynamicBuffer extends DataOutBuffer {
+/**
+ * A ByteBuffer-backed growable buffer.  A fixed-size direct buffer is used for
+ * most of the time, but overflows are written to a eponentially growing
+ * non-direct buffer.
+ *
+ *
+ * Be aware, the DataBuffer returned from `data` merely wraps the underlying
+ * buffer to avoid copying
+ */
+class DynamicOutBuffer(baseSize: Int) extends DataOutBuffer {
   
-  private val builder = new ByteStringBuilder
+  private val base = ByteBuffer.allocateDirect(baseSize)
+
+  private var dyn: Option[ByteBuffer] = None
+
+  def size = baseSize + dyn.map{_.position}.getOrElse(0)
+
+  def isOverflowed: Boolean = dyn.isDefined
+
+  private def dynAvailable = dyn.map{_.remaining}.getOrElse(0)
+
+  private def growDyn() {
+    dyn match {
+      case Some(old) => {
+        val nd = ByteBuffer.allocate(old.capacity * 2)
+        old.flip
+        nd.put(old)
+        dyn = Some(nd)
+      }
+      case None => {
+        val nd = ByteBuffer.allocate(baseSize * 2)
+        base.flip
+        nd.put(base)
+        dyn = Some(nd)
+      }
+    }
+  }
+
+  def copyDestination(bytesNeeded: Long) : ByteBuffer = if (base.remaining >= bytesNeeded) base else {
+    while (dynAvailable < bytesNeeded) {
+      growDyn()
+    }
+    dyn.get
+  }
+
+  def reset() {
+    dyn = None
+    base.clear()
+  }
 
   def available = Long.MaxValue //maybe limit this somehow?
-  def copy(from: DataBuffer) {
-    builder ++= from.takeAll
+
+  def write(from: ByteBuffer) {
+    copyDestination(from.remaining).put(from)
   }
+
+
+  def write(from: DataBuffer) {
+    write(from.data)
+  }
+
   def write(bytes: ByteString) {
-    builder ++= bytes
+    write(bytes.asByteBuffer)
   }
 
-  def result = builder.result
+  def write(bytes: Array[Byte]) {
+    copyDestination(bytes.size).put(bytes)
+  }
 
-  def data = DataBuffer(result)
+  def data = {
+    val d = dyn.getOrElse(base)
+    d.flip
+    DataBuffer(d)
+  }
 }
-*/

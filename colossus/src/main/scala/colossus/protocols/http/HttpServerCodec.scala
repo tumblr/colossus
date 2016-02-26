@@ -11,7 +11,7 @@ class BaseHttpServerCodec[T <: BaseHttpResponse](maxSize: DataSize = 1.MB) exten
 
   private var parser = HttpRequestParser(maxSize)
 
-  def encode(response: T): DataReader = response.encode()
+  def encode(response: T): DataReader = response.toReader
 
   def decode(data: DataBuffer): Option[DecodedResult[HttpRequest]] = DecodedResult.static(parser.parse(data))
 
