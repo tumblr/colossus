@@ -9,6 +9,8 @@ import Combinators._
 object HttpParse {
 
   val NEWLINE = ByteString("\r\n")
+  val NEWLINE_ARRAY = NEWLINE.toArray
+  val N2 = (NEWLINE ++ NEWLINE).toArray
 
   //common parsers
   def headers: Parser[Vector[(String, String)]]    = repeatUntil(header, '\r') <~ byte

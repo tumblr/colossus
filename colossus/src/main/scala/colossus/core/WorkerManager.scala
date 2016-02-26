@@ -92,7 +92,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
       val nowReady = ready + 1
       if (nowReady == numWorkers) {
         log.info("All Workers reports ready, lets do this")
-        context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
+        //context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
         unstashAll()
         context.become(running(state))
       } else {

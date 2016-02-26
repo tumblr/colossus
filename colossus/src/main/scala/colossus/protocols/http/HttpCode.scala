@@ -11,6 +11,7 @@ trait NoBodyCode
 case class HttpCode(code: Int, description: String) {
   val headerSegment = s"$code $description"
   val headerBytes = ByteString(headerSegment)
+  val headerArr = headerBytes.toArray
 }
 object HttpCode {
   def apply(code: Int): HttpCode = HttpCodes(code)

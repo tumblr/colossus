@@ -64,6 +64,7 @@ case class ByteOutBuffer(underlying: ByteBuffer) extends DataOutBuffer {
 
 }
 
+/*
 class DynamicBuffer extends DataOutBuffer {
   
   private val builder = new ByteStringBuilder
@@ -80,3 +81,4 @@ class DynamicBuffer extends DataOutBuffer {
 
   def data = DataBuffer(result)
 }
+*/

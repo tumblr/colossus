@@ -8,6 +8,7 @@ import core._
 import service.Callback
 import controller._
 import HttpParse._
+import java.nio.ByteBuffer
 
 
 case class HttpResponseHeader(key: ByteString, value: ByteString)
@@ -19,6 +20,7 @@ object HttpResponseHeader {
   val TransferEncoding = ByteString("transfer-encoding")
 
   val DELIM = ByteString(": ")
+  val DELIM_ARRAY = DELIM.toArray
 
   def apply(key: String, value: String): HttpResponseHeader = {
     HttpResponseHeader(ByteString(key) , ByteString(value))
@@ -44,6 +46,19 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
       builder ++= HttpResponseHeader.DELIM
       builder ++= header.value
       builder ++= NEWLINE
+    }
+  }
+
+  def doit(buffer: ByteBuffer) {
+    buffer.put(version.messageArr)
+    buffer.putChar(' ')
+    buffer.put(code.headerArr)
+    buffer.put(NEWLINE_ARRAY)
+    headers.foreach{ case header =>
+      buffer.put(header.key.toArray)
+      buffer.put(HttpResponseHeader.DELIM_ARRAY)
+      buffer.put(header.value.toArray)
+      buffer.put(NEWLINE_ARRAY)
     }
   }
 
@@ -89,18 +104,26 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
   type Encoded = DataBuffer
 
   def encode() : DataBuffer = {
-    val builder = new ByteStringBuilder
+    //val builder = new ByteStringBuilder
     val dataSize = body.map{_.size}.getOrElse(0)
-    builder.sizeHint((50 * head.headers.size) + dataSize)
-    head.appendHeaderBytes(builder)
-    builder append HttpResponse.ContentLengthKey
-    builder putBytes dataSize.toString.getBytes
-    builder append NEWLINE
-    builder append NEWLINE
+    val buffer = ByteBuffer.allocate(200)
+    //builder.sizeHint((50 * head.headers.size) + dataSize)
+    //head.appendHeaderBytes(builder)
+    head.doit(buffer)
+    buffer.put(HttpResponse.ContentLengthKey.toArray)
+    buffer.put(dataSize.toString.getBytes)
+    buffer.put(N2)
+    //builder append HttpResponse.ContentLengthKey
+    //builder putBytes dataSize.toString.getBytes
+    //builder append NEWLINE
+    //builder append NEWLINE
     body.foreach{b => 
-      builder append b
+      //builder append b
+      buffer.put(b.toArray)
     }
-    DataBuffer(builder.result())
+    //DataBuffer(builder.result())
+    buffer.flip
+    DataBuffer(buffer)
   }
 
   def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}

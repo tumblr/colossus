@@ -31,6 +31,7 @@ object HttpMethod {
 sealed abstract class HttpVersion(versionString: String) {
   override def toString = versionString
   val messageBytes = ByteString("HTTP/" + versionString)
+  val messageArr = messageBytes.toArray
 }
 object HttpVersion {
   case object `1.0` extends HttpVersion("1.0")
