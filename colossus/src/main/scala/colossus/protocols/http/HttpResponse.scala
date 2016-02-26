@@ -11,7 +11,10 @@ import HttpParse._
 import java.nio.ByteBuffer
 
 
-case class HttpResponseHeader(key: ByteString, value: ByteString)
+case class HttpResponseHeader(key: ByteString, value: ByteString) {
+  val keyArray = key.toArray
+  val valueArray = value.toArray
+}
 
 object HttpResponseHeader {
 
@@ -51,13 +54,16 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
   def doit(buffer: ByteBuffer) {
     buffer.put(version.messageArr)
-    buffer.putChar(' ')
+    buffer.put(' '.toByte)
     buffer.put(code.headerArr)
     buffer.put(NEWLINE_ARRAY)
-    headers.foreach{ case header =>
-      buffer.put(header.key.toArray)
+    var i = 0
+    while (i < headers.size) {
+      val header = headers(i)
+      i += 1
+      buffer.put(header.keyArray)
       buffer.put(HttpResponseHeader.DELIM_ARRAY)
-      buffer.put(header.value.toArray)
+      buffer.put(header.valueArray)
       buffer.put(NEWLINE_ARRAY)
     }
   }
@@ -105,8 +111,8 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
 
   def encode() : DataBuffer = {
     //val builder = new ByteStringBuilder
-    val dataSize = body.map{_.size}.getOrElse(0)
     val buffer = ByteBuffer.allocate(200)
+    val dataSize = body.map{_.size}.getOrElse(0)
     //builder.sizeHint((50 * head.headers.size) + dataSize)
     //head.appendHeaderBytes(builder)
     head.doit(buffer)
