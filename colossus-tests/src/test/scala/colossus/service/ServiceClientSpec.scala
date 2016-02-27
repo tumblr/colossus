@@ -91,10 +91,10 @@ class ServiceClientSpec extends ColossusSpec {
       val command = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient()
       val cb = client.send(command)
-      endpoint.iterate({})
+      endpoint.iterate()
       endpoint.expectNoWrite()
       cb.execute()
-      endpoint.iterate({})
+      endpoint.iterate()
       endpoint.expectOneWrite(command.raw)
     }
 

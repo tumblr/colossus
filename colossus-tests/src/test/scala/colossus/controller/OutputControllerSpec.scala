@@ -17,9 +17,8 @@ class OutputControllerSpec extends ColossusSpec {
       val (endpoint, controller) = createController()
       val data = ByteString("Hello World!")
       val message = TestOutput(Source.one(DataBuffer(data)))
-      endpoint.iterate{
-        controller.testPush(message){_ must equal (OutputResult.Success)}
-      }
+      controller.testPush(message){_ must equal (OutputResult.Success)}
+      endpoint.iterate()
       endpoint.expectOneWrite(data)
 
     }
@@ -28,10 +27,9 @@ class OutputControllerSpec extends ColossusSpec {
       val data = ByteString("Hello World!")
       val message = TestOutput(Source.one(DataBuffer(data)))
       val message2 = TestOutput(Source.one(DataBuffer(data)))
-      endpoint.iterate{
-        controller.testPush(message){_ must equal (OutputResult.Success)}
-        controller.testPush(message2){_ must equal (OutputResult.Success)}
-      }
+      controller.testPush(message){_ must equal (OutputResult.Success)}
+      controller.testPush(message2){_ must equal (OutputResult.Success)}
+      endpoint.iterate()
       endpoint.expectOneWrite(data ++ data)
 
     }
@@ -42,15 +40,14 @@ class OutputControllerSpec extends ColossusSpec {
       val message = TestOutput(Source.one(DataBuffer(data)))
       val data2 = ByteString("m2")
       val message2 = TestOutput(Source.one(DataBuffer(data2)))
-      endpoint.iterate {
-        controller.testPush(message){_ must equal (OutputResult.Success)}
-        controller.testPush(message2){_ must equal (OutputResult.Success)}
-        controller.testGracefulDisconnect()
-      }
+      controller.testPush(message){_ must equal (OutputResult.Success)}
+      controller.testPush(message2){_ must equal (OutputResult.Success)}
+      controller.testGracefulDisconnect()
+      endpoint.iterate()
       endpoint.expectOneWrite(data.take(endpoint.maxWriteSize))
       endpoint.workerProbe.expectNoMsg(100.milliseconds)
       endpoint.clearBuffer()
-      endpoint.iterate({})
+      endpoint.iterate()
       //these occur as separate writes because the first comes from the partial buffer, the second from the controller
       endpoint.expectWrite(data.drop(endpoint.maxWriteSize))
       endpoint.expectWrite(data2)
