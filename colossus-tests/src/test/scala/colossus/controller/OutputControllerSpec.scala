@@ -2,81 +2,98 @@ package colossus
 package controller
 
 import core._
+import service._
 import testkit._
 import akka.util.ByteString
 
 import scala.concurrent.duration._
 
+import RawProtocol._
+
 
 class OutputControllerSpec extends ColossusSpec {
 
- import TestController.createController 
+  import TestController.createController 
+  val config = ControllerConfig(4, 50.milliseconds)
+
+  type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
+
+  def controller[I,O](codec: Codec[O,I]): TypedMockConnection[T[I,O]] = {
+    val con =MockConnection.server(
+      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler, 
+      500
+    )
+    con.handler.connected(con)
+    con
+  }
+
+  def static() = controller(RawCodec)
+  def stream() = controller(new TestCodec)
 
   "OutputController" must {
     "push a message" in {
-      val (endpoint, controller) = createController()
-      val data = ByteString("Hello World!")
-      val message = TestOutput(Source.one(DataBuffer(data)))
-      controller.testPush(message){_ must equal (OutputResult.Success)}
+      val endpoint = static()
+      val message = ByteString("Hello World!")
+      val p = endpoint.typedHandler.pPush(message)
+      p.isSet must equal(false)
       endpoint.iterate()
-      endpoint.expectOneWrite(data)
+      endpoint.expectOneWrite(message)
+      p.isSuccess must equal(true)
 
     }
     "push multiple messages" in {
-      val (endpoint, controller) = createController()
+      val endpoint = static()
       val data = ByteString("Hello World!")
-      val message = TestOutput(Source.one(DataBuffer(data)))
-      val message2 = TestOutput(Source.one(DataBuffer(data)))
-      controller.testPush(message){_ must equal (OutputResult.Success)}
-      controller.testPush(message2){_ must equal (OutputResult.Success)}
+      val p1 = endpoint.typedHandler.pPush(data)
+      val p2 = endpoint.typedHandler.pPush(data)
       endpoint.iterate()
       endpoint.expectOneWrite(data ++ data)
+      p1.expectSuccess()
+      p2.expectSuccess()
 
     }
 
-    "drain output buffer on graceful disconnect" in {
-      val (endpoint, controller) = createController()
-      val data = ByteString(List.fill(endpoint.maxWriteSize + 1)("x").mkString)
-      val message = TestOutput(Source.one(DataBuffer(data)))
-      val data2 = ByteString("m2")
-      val message2 = TestOutput(Source.one(DataBuffer(data2)))
-      controller.testPush(message){_ must equal (OutputResult.Success)}
-      controller.testPush(message2){_ must equal (OutputResult.Success)}
-      controller.testGracefulDisconnect()
+    "respect buffer soft overflow" in {
+      val endpoint = static()
+      val over = ByteString(List.fill(110)("a").mkString)
+      val next = ByteString("hey")
+      val p1 = endpoint.typedHandler.pPush(over)
+      val p2 = endpoint.typedHandler.pPush(next)
       endpoint.iterate()
-      endpoint.expectOneWrite(data.take(endpoint.maxWriteSize))
+      p1.expectSuccess()
+      p2.expectNoSet
+      endpoint.iterate()
+      p2.expectSuccess()
+    }
+      
+
+    "drain output buffer on disconnect" in {
+      val endpoint = static()
+      val over = ByteString(List.fill(110)("a").mkString)
+      val next = ByteString("hey")
+      val p1 = endpoint.typedHandler.pPush(over)
+      val p2 = endpoint.typedHandler.pPush(next)
+      endpoint.typedHandler.disconnect()
       endpoint.workerProbe.expectNoMsg(100.milliseconds)
-      endpoint.clearBuffer()
       endpoint.iterate()
-      //these occur as separate writes because the first comes from the partial buffer, the second from the controller
-      endpoint.expectWrite(data.drop(endpoint.maxWriteSize))
-      endpoint.expectWrite(data2)
-      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(controller.id))
+      p1.expectSuccess()
+      p2.expectNoSet
+      endpoint.iterate()
+      p2.expectSuccess()
+      //final iterate is needed to do the disconnect check
+      endpoint.iterate()
+      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(endpoint.id))
     }
 
     "timeout queued messages that haven't been sent" in {
-      val (endpoint, controller) = createController(10)
-      val data = ByteString(List.fill(endpoint.maxWriteSize * 2)("x").mkString)
-
-      val message = TestOutput(Source.one(DataBuffer(data)))
-      val message2 = TestOutput(Source.one(DataBuffer(data)))
-
-      val p1 = controller.pPush(message)
-      val p2 = controller.pPush(message2)
-      Thread.sleep(300)
-      controller.idleCheck(1.millisecond)
-      p1.result.isDefined must equal(false) //in the process of being sent
-      p2.result.get.isInstanceOf[OutputResult.Cancelled] must equal(true)
-      
-
+      val endpoint = static()
+      val p = endpoint.typedHandler.pPush(ByteString("wat"))
+      Thread.sleep(50)
+      endpoint.handler.idleCheck(1.millisecond)
+      println(p.result)
+      p.expectCancelled()
     }
 
-    "allow multiple calls to gracefulDisconnect" in {
-      val (endpoint, controller) = createController()
-      controller.testGracefulDisconnect()
-      //this used to throw an exception
-      controller.testGracefulDisconnect()
-    }
 
     "fail pending messages on connectionClosed while gracefully disconnecting"  in {
       val (endpoint, controller) = createController(outputBufferSize = 10)
@@ -89,7 +106,7 @@ class OutputControllerSpec extends ColossusSpec {
       val p2 = controller.pPush(message2)
       p1.pushed must equal(true)
       p2.pushed must equal(true)
-      controller.testGracefulDisconnect()
+      controller.disconnect()
       endpoint.disconnectCalled must equal(false)
       endpoint.disrupt()
       p1.result.get.isInstanceOf[OutputResult.Failure] must equal(true)
@@ -115,7 +132,7 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.disrupt()
       p1.result.get.isInstanceOf[OutputResult.Failure] must equal(true)
       p2.isSet must equal(false)
-      controller.testGracefulDisconnect()
+      controller.disconnect()
       p2.isSet must equal(false)
 
     }

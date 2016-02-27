@@ -17,7 +17,7 @@ trait MockConnection extends Connection with MockChannelActions {
    */
   def iterate[T](outputBufferSize: Int)(f: => T): T = {
     val res = f
-    while (writeReadyEnabled && handleWrite(new DynamicOutBuffer(outputBufferSize))) {}
+    if (writeReadyEnabled && handleWrite(new DynamicOutBuffer(outputBufferSize))) {}
     res
   }
 

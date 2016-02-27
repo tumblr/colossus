@@ -97,7 +97,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
         case Failure(err) => throw err
       }
       endpoint.readsEnabled must equal(true)
-      con.testGracefulDisconnect()
+      con.disconnect()
       //input stream is not done, so reads should still be enabled
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("cd")))

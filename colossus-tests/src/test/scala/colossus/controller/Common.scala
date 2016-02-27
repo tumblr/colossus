@@ -6,6 +6,7 @@ import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
 import scala.concurrent.duration._
+import org.scalatest._
 
 trait TestInput {
   def source: Source[DataBuffer]
@@ -48,43 +49,56 @@ class PushPromise {
   val func: OutputResult => Unit = r => _result = Some(r)
 
   def isSet = result.isDefined
+  def isSuccess = result == Some(OutputResult.Success)
+  def isCancelled = result.isDefined && result.get.isInstanceOf[OutputResult.Cancelled]
+  def isFailure = result.isDefined && result.get.isInstanceOf[OutputResult.Failure]
+
+  def expectNoSet() { assert(isSet == false) }
+  def expectSuccess() { assert(isSuccess == true) }
+  def expectFailure() {  assert(isFailure == true)}
+  def expectCancelled() {  assert(isCancelled == true)}
+
 
 }
 
-class TestController(processor: TestInput => Unit, context: Context) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, 50.milliseconds), context) with ServerConnectionHandler {
+trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
 
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
 
-  def processMessage(message: TestInput) {
-    processor(message)
+  def processMessage(message: I) {
+
   }
 
 
   //these methods just expose protected versions
-  def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
+  def testPush(message: O)(onPush: OutputResult => Unit) {
     push(message)(onPush)
   }
 
-  def pPush(message: TestOutput): PushPromise = {
+  def pPush(message: O): PushPromise = {
     val p = new PushPromise
     p.pushed = push(message)(p.func)
     p
   }
 
-
-  def testGracefulDisconnect() {
-    disconnect()
-  }
 }
 
 object TestController {
 
   //TODO just return TypedMockConnection instead of the tuple
-  def createController(outputBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
-    val endpoint = MockConnection.server(context => new TestController(processor, context.context), outputBufferSize)
+  def createController(outputBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem
+  ): (MockConnection, Controller[TestInput, TestOutput] with TestController[TestInput, TestOutput]) = {
+    val endpoint = MockConnection.server(
+      context => new Controller(
+        new TestCodec, ControllerConfig(4, 50.milliseconds), context.context
+      ) with TestController[TestInput, TestOutput] with ServerConnectionHandler,
+      outputBufferSize
+    )
     endpoint.handler.connected(endpoint)
     (endpoint, endpoint.typedHandler)
   }
 
-  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockConnection, TestController) = createController(100, processor)
+  def createController(processor: TestInput => Unit)(implicit system: ActorSystem
+  ): (MockConnection, Controller[TestInput, TestOutput] with TestController[TestInput, TestOutput]) = 
+    createController(100, processor)
 }

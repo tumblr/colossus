@@ -170,9 +170,6 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
   import LiveState._
-  import QueuedItem._
-
-
 
   private[controller] var outputState: OutputState[Output] = Suspended(new MessageQueue[Output](controllerConfig.outputBufferSize))
 

@@ -46,7 +46,7 @@ class DynamicOutBuffer(baseSize: Int) extends DataOutBuffer {
 
   private var dyn: Option[ByteBuffer] = None
 
-  def size = baseSize + dyn.map{_.position}.getOrElse(0)
+  def size = dyn.map{_.position}.getOrElse(base.position)
 
   def isOverflowed: Boolean = dyn.isDefined
 
