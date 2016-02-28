@@ -22,6 +22,10 @@ trait DataOutBuffer {
 
   def write(bytes: Array[Byte])
 
+  def write(bytes: Array[Byte], offset: Int, length: Int)
+
+  def write(byte: Byte)
+
   /* Get a DataBuffer containing the data written into this DataOutBuffer.  This
    * generally renders this buffer unusable
    *
@@ -98,6 +102,14 @@ class DynamicOutBuffer(baseSize: Int) extends DataOutBuffer {
 
   def write(bytes: Array[Byte]) {
     copyDestination(bytes.size).put(bytes)
+  }
+
+  def write(bytes: Array[Byte], offset: Int, length: Int) {
+    copyDestination(length).put(bytes, offset, length)
+  }
+
+  def write(byte: Byte) {
+    copyDestination(1).put(byte)
   }
 
   def data = {

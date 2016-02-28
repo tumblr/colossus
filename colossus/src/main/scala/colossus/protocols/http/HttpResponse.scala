@@ -52,6 +52,10 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
     }
   }
 
+      
+
+
+
   def doit(buffer: DataOutBuffer) {
     buffer.write(version.messageArr)
     buffer.write(HttpResponseHeader.SPACE_ARRAY)
@@ -105,11 +109,27 @@ sealed trait BaseHttpResponse {
 
 case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse with Encoder {
 
+  def fastIntToString(in: Int, buf: DataOutBuffer) {
+    if (in == 0) {
+      buf.write('0'.toByte)
+    } else {
+      val arr = new Array[Byte](10)
+      var r = in
+      var index = 9
+      while (r > 0) {
+        arr(index) = ((r % 10) + 48).toByte
+        r = r / 10
+        index -= 1
+      }
+      buf.write(arr, index + 1, 10 - (index + 1))
+    }
+  }
+
   def encode(buffer: DataOutBuffer) {
     val dataSize = body.map{_.size}.getOrElse(0)
     head.doit(buffer)
     buffer.write(HttpResponse.ContentLengthKey.toArray)
-    buffer.write(dataSize.toString.getBytes)
+    fastIntToString(dataSize, buffer)
     buffer.write(N2)
     body.foreach{b => 
       buffer.write(b.toArray)
