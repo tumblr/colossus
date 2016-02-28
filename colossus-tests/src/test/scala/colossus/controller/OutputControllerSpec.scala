@@ -84,7 +84,7 @@ class OutputControllerSpec extends ColossusSpec {
     "timeout queued messages that haven't been sent" in {
       val endpoint = static()
       val p = endpoint.typedHandler.pPush(ByteString("wat"))
-      Thread.sleep(50)
+      Thread.sleep(300)
       endpoint.handler.idleCheck(1.millisecond)
       p.expectCancelled()
     }
