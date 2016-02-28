@@ -222,6 +222,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private[controller] def outputGracefulDisconnect() {
     outputState match {
       case a @ Alive(_, _, false, _) => {
+        println(a.msgQ.size)
         val n = a.copy(disconnecting = true)
         if (!checkOutputGracefulDisconnect(n)) {
           outputState = n
@@ -245,6 +246,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private def checkOutputGracefulDisconnect(state: Alive[Output]): Boolean = {
     if (state.disconnecting && state.msgQ.isEmpty && state.liveState == Dequeueing) {
       //this occurs as a continuation of below
+      println("terminating")
       outputState = Terminated()
       checkControllerGracefulDisconnect()
       true
@@ -386,8 +388,9 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       } else state.liveState match {
         case Dequeueing => {
           var continue = true
-          while (continue && state.msgQ.size > 0 && ! buffer.isOverflowed) {
+          while (writesEnabled && continue && state.msgQ.size > 0 && ! buffer.isOverflowed) {
             val next = state.msgQ.dequeue
+            println("writing")
             codec.encode(next.item) match {
               case e: Encoder => {
                 e.encode(buffer)

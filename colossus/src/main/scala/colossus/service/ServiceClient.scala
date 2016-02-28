@@ -285,7 +285,6 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
 
   override def shutdown() {
     log.info(s"Terminating connection to $address")
-    purgePending(new NotConnectedException("Connection is closing"))
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()

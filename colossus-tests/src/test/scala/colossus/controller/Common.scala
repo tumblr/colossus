@@ -63,12 +63,18 @@ class PushPromise {
 
 trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
 
+  var _received : Seq[I] = Seq()
+  def received = _received
+
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
 
   def processMessage(message: I) {
-
+    _received = received :+ message
   }
 
+
+  def testPause() { pauseWrites() }
+  def testResume() { resumeWrites() }
 
   //these methods just expose protected versions
   def testPush(message: O)(onPush: OutputResult => Unit) {
@@ -83,22 +89,25 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
 
 }
 
-object TestController {
 
-  //TODO just return TypedMockConnection instead of the tuple
-  def createController(outputBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem
-  ): (MockConnection, Controller[TestInput, TestOutput] with TestController[TestInput, TestOutput]) = {
-    val endpoint = MockConnection.server(
-      context => new Controller(
-        new TestCodec, ControllerConfig(4, 50.milliseconds), context.context
-      ) with TestController[TestInput, TestOutput] with ServerConnectionHandler,
-      outputBufferSize
+
+object TestController {
+  import RawProtocol.RawCodec
+
+  val config = ControllerConfig(4, 50.milliseconds)
+
+  type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
+
+  def controller[I,O](codec: Codec[O,I])(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
+    val con =MockConnection.server(
+      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler, 
+      500
     )
-    endpoint.handler.connected(endpoint)
-    (endpoint, endpoint.typedHandler)
+    con.handler.connected(con)
+    con
   }
 
-  def createController(processor: TestInput => Unit)(implicit system: ActorSystem
-  ): (MockConnection, Controller[TestInput, TestOutput] with TestController[TestInput, TestOutput]) = 
-    createController(100, processor)
+  def static()(implicit sys: ActorSystem) = controller(RawCodec)
+  def stream()(implicit sys: ActorSystem) = controller(new TestCodec)
+
 }

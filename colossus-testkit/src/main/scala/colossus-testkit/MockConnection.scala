@@ -22,6 +22,15 @@ trait MockConnection extends Connection with MockChannelActions {
   }
 
   /**
+   * keep performing event loop iterations until the output buffer fills or
+   * there's no more to write
+   */
+  def loop(outputBufferSize: Int = 100) {
+    while (writeReadyEnabled && handleWrite(new DynamicOutBuffer(outputBufferSize))) {}
+
+  }
+
+  /**
    * Simulates event loop iteration, clearing the buffer on each iteration to avoid any backpressure
    */
   def iterateAndClear(outputBufferSize: Int = 100) {

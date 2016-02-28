@@ -263,7 +263,7 @@ class ServiceClientSpec extends ColossusSpec {
       }
     }
 
-    "graceful disconnect allows outstanding request to complete" taggedAs(org.scalatest.Tag("test")) in {
+    "graceful disconnect allows outstanding request to complete" in {
       val cmd1 = Command(CMD_GET, "foo")
       val rep1 = StatusReply("foo")
       var res1: Option[String] = None
@@ -304,11 +304,12 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
-    "not attempt reconnect if connection is lost during graceful disconnect" in {
+    "not attempt reconnect if connection is lost during graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
       val cmd1 = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
       client.disconnect()
+      probe.expectNoMsg(100.milliseconds)
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
