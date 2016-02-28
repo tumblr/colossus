@@ -44,11 +44,15 @@ trait DataOutBuffer {
  * Be aware, the DataBuffer returned from `data` merely wraps the underlying
  * buffer to avoid copying
  */
-class DynamicOutBuffer(baseSize: Int) extends DataOutBuffer {
+class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends DataOutBuffer {
   
-  private val base = ByteBuffer.allocateDirect(baseSize)
+  private val base = if (allocateDirect) {
+    ByteBuffer.allocateDirect(baseSize)
+  } else {
+    ByteBuffer.allocate(baseSize)
+  }
 
-  private var dyn: Option[ByteBuffer] = None
+  private var dyn: Option[ByteBuffer] = if (allocateDirect) None else Some(base)
 
   def size = dyn.map{_.position}.getOrElse(base.position)
 

@@ -39,24 +39,8 @@ object HttpResponseHeader {
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
-  def appendHeaderBytes(builder : ByteStringBuilder) {
-    builder append version.messageBytes
-    builder putByte ' '
-    builder append code.headerBytes
-    builder append NEWLINE
-    headers.foreach{case header =>
-      builder ++= header.key
-      builder ++= HttpResponseHeader.DELIM
-      builder ++= header.value
-      builder ++= NEWLINE
-    }
-  }
 
-      
-
-
-
-  def doit(buffer: DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     buffer.write(version.messageArr)
     buffer.write(HttpResponseHeader.SPACE_ARRAY)
     buffer.write(code.headerArr)
@@ -109,7 +93,7 @@ sealed trait BaseHttpResponse {
 
 case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse with Encoder {
 
-  def fastIntToString(in: Int, buf: DataOutBuffer) {
+  private def fastIntToString(in: Int, buf: DataOutBuffer) {
     if (in == 0) {
       buf.write('0'.toByte)
     } else {
@@ -125,9 +109,10 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
     }
   }
 
+
   def encode(buffer: DataOutBuffer) {
     val dataSize = body.map{_.size}.getOrElse(0)
-    head.doit(buffer)
+    head.encode(buffer)
     buffer.write(HttpResponse.ContentLengthKey.toArray)
     fastIntToString(dataSize, buffer)
     buffer.write(N2)
@@ -182,12 +167,11 @@ case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[Dat
   type Encoded = DataReader
 
   def toReader : DataReader = {
-    val builder = new ByteStringBuilder
-    builder.sizeHint(100)
-    head.appendHeaderBytes(builder)
-    builder append NEWLINE
+    val builder = new DynamicOutBuffer(100, false)
+    head.encode(builder)
+    builder write NEWLINE_ARRAY
 
-    val headerBytes = DataBuffer(builder.result())
+    val headerBytes = builder.data
     body.map{stream => 
       DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
     }.getOrElse(headerBytes)
