@@ -2,7 +2,7 @@
 title: Colossus
 email: none@none.com
 description: "Colossus IO Framework: Built at Tumblr"
-baseurl: "http://tumblr.github.io/colossus"
+baseurl: "https://tumblr.github.io/colossus"
 url: "https://github.com/tumblr/colossus"
 
 # Build settings
