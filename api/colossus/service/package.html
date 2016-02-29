@@ -1,0 +1,1386 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>service - colossus.service</title>
+          <meta name="description" content="service - colossus.service" />
+          <meta name="keywords" content="service colossus.service" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.service.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>service</h1><span class="permalink">
+      <a href="../../index.html#colossus.service.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">service</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.service.AsyncHandlerGenerator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AsyncHandlerGenerator[I,O]extendsAnyRef"></a>
+      <a id="AsyncHandlerGenerator[I,O]:AsyncHandlerGenerator[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="AsyncHandlerGenerator.html"><span class="name">AsyncHandlerGenerator</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@AsyncHandlerGenerator[I,O]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">So we need to take a type-parameterized request object, package it into a
+monomorphic case class to send to the worker, and have the handler that
+receives that object able to pattern match out the parameterized object, all
+without using reflection.</p><div class="fullcomment"><div class="comment cmt"><p>So we need to take a type-parameterized request object, package it into a
+monomorphic case class to send to the worker, and have the handler that
+receives that object able to pattern match out the parameterized object, all
+without using reflection.  We can do that with some nifty path-dependant
+types
+</p></div></div>
+    </li><li name="colossus.service.AsyncServiceClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="AsyncServiceClient[I,O]extendsAnyRef"></a>
+      <a id="AsyncServiceClient[I,O]:AsyncServiceClient[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="AsyncServiceClient.html"><span class="name">AsyncServiceClient</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@AsyncServiceClient[I,O]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.BasicServiceDelegator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicServiceDelegator[C&lt;:colossus.service.CodecDSL]extendsDSLDelegator[C]"></a>
+      <a id="BasicServiceDelegator[C&lt;:CodecDSL]:BasicServiceDelegator[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicServiceDelegator.html"><span class="name">BasicServiceDelegator</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="DSLDelegator.html" class="extype" name="colossus.service.DSLDelegator">DSLDelegator</a>[<span class="extype" name="colossus.service.BasicServiceDelegator.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@BasicServiceDelegator[C&lt;:colossus.service.CodecDSL]extendsDSLDelegator[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.BasicServiceHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicServiceHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withDSLHandler[C]"></a>
+      <a id="BasicServiceHandler[C&lt;:CodecDSL]:BasicServiceHandler[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicServiceHandler.html"><span class="name">BasicServiceHandler</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.CodecDSL.Input">service.BasicServiceHandler.C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">service.BasicServiceHandler.C.Output</span>] with <a href="DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>[<span class="extype" name="colossus.service.BasicServiceHandler.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@BasicServiceHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withDSLHandler[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Callback" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Callback[+O]extendsAnyRef"></a>
+      <a id="Callback[+O]:Callback[O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Callback.html"><span class="name">Callback</span></a><span class="tparams">[<span name="O">+O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@Callback[+O]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Callback is a Monad for doing in-thread non-blocking operations.</p><div class="fullcomment"><div class="comment cmt"><p>A Callback is a Monad for doing in-thread non-blocking operations.  It is
+essentially a &quot;function builder&quot; that uses function composition to chain
+together a callback function that is eventually passed to another function.</p><p>Normally if you have a function that requires a callback, the function looks something like:</p><pre><span class="kw">def</span> doSomething(param, param, callBack: result <span class="kw">=&gt;</span> <span class="std">Unit</span>)</pre><p>and then you'd call it like </p><pre>doSomething(arg1, arg2, result <span class="kw">=&gt;</span> println(<span class="lit">"got the result"</span>))</pre><p>This is the well-known continuation pattern, and it something we'd like to avoid due to the common occurrance of deeply nested &quot;callback hell&quot;.  Instead, the <code>Callback</code> allows us to define out function as</p><pre><span class="kw">def</span> doSomething(param1, param2): Callback[Result]</pre><p>and call it like </p><pre><span class="kw">val</span> c = doSomething(arg1, arg2)
+c.map{ result <span class="kw">=&gt;</span>
+  println(<span class="lit">"got the result"</span>)
+}.execute()</pre><p>Thus, in practice working with Callbacks is very similar to working with Futures.  The big differences from a future are:</p><p>1.  Callbacks are not thread safe at all.  They are entirely intended to stay inside a single worker.  Otherwise just use Futures.</p><p>2.  The execute() method needs to be called once the callback has been
+fully built, which unlike futures requires some part of the code to know when a callback is ready to be invoked</p><h4> Using Callbacks in Services </h4><p>When building services, particularly when working with service clients, you
+will usually be getting Callbacks back from clients when requests are sent.
+*Do not call <code>execute</code> yourself!* on these Callbacks.  They must be returned
+as part of request processing, and Colossus will invoke the callback itself.</p><h4> Using Callbacks elsewhere </h4><p>If you are using Callbacks in some custom situation outside of services, be
+aware that exceptions thrown inside a <code>map</code> or <code>flatMap</code> are properly caught
+and can be recovered using <code>recover</code> and <code>recoverWith</code>, however exceptions
+thrown in the &quot;final&quot; handler passed to <code>execute</code> are not caught.  This is
+because the final block cannot be mapped on (since it is only passed when
+the callback is executed) and throwing the exception is preferrable to
+suppressing it.</p><p>Any exception that is thrown in this block is however rethrown as a
+<code>CallbackExecutionException</code>.  Therefore, any &quot;trigger&quot; function you wrap
+inside a callback should properly catch this exception.</p></div></div>
+    </li><li name="colossus.service.CallbackExec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CallbackExecextendsProductwithSerializable"></a>
+      <a id="CallbackExec:CallbackExec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackExec.html"><span class="name">CallbackExec</span></a><span class="params">(<span name="cb">cb: () ⇒ <span class="extype" name="scala.Unit">Unit</span></span>, <span name="in">in: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackExecextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.CallbackExecution" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CallbackExecutionextendsActorwithActorLogging"></a>
+      <a id="CallbackExecution:CallbackExecution"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackExecution.html"><span class="name">CallbackExecution</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackExecutionextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.CallbackExecutionException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CallbackExecutionExceptionextendsException"></a>
+      <a id="CallbackExecutionException:CallbackExecutionException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackExecutionException.html"><span class="name">CallbackExecutionException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackExecutionExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This exception is only thrown when there's a uncaught exception in the execution block of a Callback.</p><div class="fullcomment"><div class="comment cmt"><p>This exception is only thrown when there's a uncaught exception in the execution block of a Callback.  For example, </p><pre><span class="kw">val</span> c: Callback[Foo] = getCallback()
+c.execute{
+  <span class="kw">case</span> Success(foo) <span class="kw">=&gt;</span> <span class="kw">throw</span> <span class="kw">new</span> Exception(<span class="lit">"exception"</span>)
+}</pre><p>will result in a <code>CallbackExecutionException</code> being thrown, however </p><pre>c.map{_ <span class="kw">=&gt;</span> <span class="kw">throw</span> <span class="kw">new</span> Exception(<span class="lit">"exception"</span>)}.execute()</pre><p>will not because the exception can still be recovered
+</p></div></div>
+    </li><li name="colossus.service.CallbackExecutor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CallbackExecutorextendsProductwithSerializable"></a>
+      <a id="CallbackExecutor:CallbackExecutor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackExecutor.html"><span class="name">CallbackExecutor</span></a><span class="params">(<span name="context">context: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="executor">executor: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackExecutorextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
+to complete the execution of a [Callback] that has been converted from a
+<code>Future</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
+to complete the execution of a [Callback] that has been converted from a
+<code>Future</code>.  In almost every case, the executor should be an actor running in
+a Pinned Dispatcher and shound be the same actor that created the original
+Callback, for example, a Colossus worker.</p><p>This type is generally only needed when converting a Future to a Callback,
+or scheduling a Callback for delayed execution.
+</p></div></div>
+    </li><li name="colossus.service.CallbackPromise" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CallbackPromise[T]extendsAnyRef"></a>
+      <a id="CallbackPromise[T]:CallbackPromise[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackPromise.html"><span class="name">CallbackPromise</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackPromise[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A CallbackPromise creates a callback which can be eventually filled in with
+a value.</p><div class="fullcomment"><div class="comment cmt"><p>A CallbackPromise creates a callback which can be eventually filled in with
+a value.  This works similarly to a scala Promise.  CallbackPromises are not
+thread-safe.  For thread-safety, simply use a scala Promise and use
+Callback.fromFuture on it's corresponding Future.
+</p></div></div>
+    </li><li name="colossus.service.CallbackResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CallbackResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,colossus.service.Callback]"></a>
+      <a id="CallbackResponseAdapter[C&lt;:CodecDSL]:CallbackResponseAdapter[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackResponseAdapter.html"><span class="name">CallbackResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ResponseAdapter.html" class="extype" name="colossus.service.ResponseAdapter">ResponseAdapter</a>[<span class="extype" name="colossus.service.CallbackResponseAdapter.C">C</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,colossus.service.Callback]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientCodecProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ClientCodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
+      <a id="ClientCodecProvider[C&lt;:CodecDSL]:ClientCodecProvider[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientCodecProvider.html"><span class="name">ClientCodecProvider</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientCodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ClientConfigextendsProductwithSerializable"></a>
+      <a id="ClientConfig:ClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration used to specify a Client's parameters</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectionAttempts</dt><dd class="cmt"><p>Polling configuration to govern retry behavior for both initial connect attempts
+                          and for connection lost events.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
+       receiving data) before it is closed.  This should be significantly higher
+       than requestTimeout.</p></dd></dl></div>
+    </li><li name="colossus.service.ClientConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ClientConnectionEventextendsConnectionEvent"></a>
+      <a id="ClientConnectionEvent:ClientConnectionEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientConnectionEvent.html"><span class="name">ClientConnectionEvent</span></a><span class="result"> extends <a href="ConnectionEvent.html" class="extype" name="colossus.service.ConnectionEvent">ConnectionEvent</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientConnectionEventextendsConnectionEvent" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientOverloadedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ClientOverloadedExceptionextendsServiceClientException"></a>
+      <a id="ClientOverloadedException:ClientOverloadedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientOverloadedException.html"><span class="name">ClientOverloadedException</span></a><span class="result"> extends <a href="ServiceClientException.html" class="extype" name="colossus.service.ServiceClientException">ServiceClientException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientOverloadedExceptionextendsServiceClientException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Thrown when the pending buffer is full</p>
+    </li><li name="colossus.service.ClientProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ClientProxyextendsActorwithActorLoggingwithStash"></a>
+      <a id="ClientProxy:ClientProxy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientProxy.html"><span class="name">ClientProxy</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span> with <span class="extype" name="akka.actor.Stash">Stash</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientProxyextendsActorwithActorLoggingwithStash" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This correctly routes messages to the right worker and handler
+</p>
+    </li><li name="colossus.service.Codec" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Codec[Output,Input]extendsAnyRef"></a>
+      <a id="Codec[Output,Input]:Codec[Output,Input]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Codec.html"><span class="name">Codec</span></a><span class="tparams">[<span name="Output">Output</span>, <span name="Input">Input</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@Codec[Output,Input]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Codec is a stateful object for converting requests/responses to/from DataBuffers.</p><div class="fullcomment"><div class="comment cmt"><p>A Codec is a stateful object for converting requests/responses to/from DataBuffers.
+IMPORTANT - when decoding, a codec must be able to handle both partial
+responses and multiple responses in a single DataBuffer.  This is why a
+codec is stateful and returns a Seq[O]
+</p></div></div>
+    </li><li name="colossus.service.CodecDSL" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CodecDSLextendsAnyRef"></a>
+      <a id="CodecDSL:CodecDSL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CodecDSL.html"><span class="name">CodecDSL</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CodecDSLextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.CodecProvider" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="CodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
+      <a id="CodecProvider[C&lt;:CodecDSL]:CodecProvider[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CodecProvider.html"><span class="name">CodecProvider</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CodecProvider[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provide a Codec as well as some convenience functions for usage within in a Service.</p><div class="fullcomment"><div class="comment cmt"><p>Provide a Codec as well as some convenience functions for usage within in a Service.</p></div><dl class="paramcmts block"><dt class="tparam">C</dt><dd class="cmt"><p>the type of codec this provider will supply</p></dd></dl></div>
+    </li><li name="colossus.service.ConnectionContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ConnectionContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
+      <a id="ConnectionContext[C&lt;:CodecDSL]:ConnectionContext[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionContext.html"><span class="name">ConnectionContext</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConnectionContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This contains methods to interact with an individual connection.</p>
+    </li><li name="colossus.service.ConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ConnectionEventextendsAnyRef"></a>
+      <a id="ConnectionEvent:ConnectionEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionEvent.html"><span class="name">ConnectionEvent</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConnectionEventextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ConnectionLostException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionLostExceptionextendsServiceClientException"></a>
+      <a id="ConnectionLostException:ConnectionLostException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionLostException.html"><span class="name">ConnectionLostException</span></a><span class="result"> extends <a href="ServiceClientException.html" class="extype" name="colossus.service.ServiceClientException">ServiceClientException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConnectionLostExceptionextendsServiceClientException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Thrown when a request is lost in transit</p>
+    </li><li name="colossus.service.ConstantCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConstantCallback[O]extendsCallback[O]withProductwithSerializable"></a>
+      <a id="ConstantCallback[O]:ConstantCallback[O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConstantCallback.html"><span class="name">ConstantCallback</span></a><span class="tparams">[<span name="O">O</span>]</span><span class="params">(<span name="value">value: <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>]</span>)</span><span class="result"> extends <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.ConstantCallback.O">O</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConstantCallback[O]extendsCallback[O]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DSLDelegator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DSLDelegator[C&lt;:colossus.service.CodecDSL]extendsDelegatorwithServiceContext[C]"></a>
+      <a id="DSLDelegator[C&lt;:CodecDSL]:DSLDelegator[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DSLDelegator.html"><span class="name">DSLDelegator</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="../core/Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a> with <a href="ServiceContext.html" class="extype" name="colossus.service.ServiceContext">ServiceContext</a>[<span class="extype" name="colossus.service.DSLDelegator.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DSLDelegator[C&lt;:colossus.service.CodecDSL]extendsDelegatorwithServiceContext[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DSLHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DSLHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withConnectionContext[C]"></a>
+      <a id="DSLHandler[C&lt;:CodecDSL]:DSLHandler[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DSLHandler.html"><span class="name">DSLHandler</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.CodecDSL.Input">service.DSLHandler.C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">service.DSLHandler.C.Output</span>] with <a href="ConnectionContext.html" class="extype" name="colossus.service.ConnectionContext">ConnectionContext</a>[<span class="extype" name="colossus.service.DSLHandler.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DSLHandler[C&lt;:colossus.service.CodecDSL]extendsServiceServer[C#Input,C#Output]withConnectionContext[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DataException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataExceptionextendsServiceClientException"></a>
+      <a id="DataException:DataException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataException.html"><span class="name">DataException</span></a><span class="result"> extends <a href="ServiceClientException.html" class="extype" name="colossus.service.ServiceClientException">ServiceClientException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DataExceptionextendsServiceClientException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Thrown when there's some kind of data error</p>
+    </li><li name="colossus.service.DecodedResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DecodedResult[+T]extendsAnyRef"></a>
+      <a id="DecodedResult[+T]:DecodedResult[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DecodedResult.html"><span class="name">DecodedResult</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DecodedResult[+T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DefaultHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DefaultHandlerextendsCodecDSL"></a>
+      <a id="DefaultHandler:DefaultHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DefaultHandler.html"><span class="name">DefaultHandler</span></a><span class="result"> extends <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DefaultHandlerextendsCodecDSL" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DefaultTagDecorator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DefaultTagDecorator[I,O]extendsTagDecorator[I,O]"></a>
+      <a id="DefaultTagDecorator[I,O]:DefaultTagDecorator[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DefaultTagDecorator.html"><span class="name">DefaultTagDecorator</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="TagDecorator.html" class="extype" name="colossus.service.TagDecorator">TagDecorator</a>[<span class="extype" name="colossus.service.DefaultTagDecorator.I">I</span>, <span class="extype" name="colossus.service.DefaultTagDecorator.O">O</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DefaultTagDecorator[I,O]extendsTagDecorator[I,O]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Delayer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DelayerextendsActorwithActorLogging"></a>
+      <a id="Delayer:Delayer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Delayer.html"><span class="name">Delayer</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DelayerextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This little actor is needed because apparently actors that are running in a
+pinned dispatcher AND are sending messages to themselves (like workers)
+cannot use the scheduler...the messages never get sent.</p><div class="fullcomment"><div class="comment cmt"><p>This little actor is needed because apparently actors that are running in a
+pinned dispatcher AND are sending messages to themselves (like workers)
+cannot use the scheduler...the messages never get sent.  So we get around
+this by sending a message to this actor living in the default dispatcher
+which then does the proper scheduling
+</p></div></div>
+    </li><li name="colossus.service.DroppedReply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DroppedReplyextendsError"></a>
+      <a id="DroppedReply:DroppedReply"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DroppedReply.html"><span class="name">DroppedReply</span></a><span class="result"> extends <span class="extype" name="scala.Error">Error</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DroppedReplyextendsError" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.FatalServiceServerException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FatalServiceServerExceptionextendsServiceServerException"></a>
+      <a id="FatalServiceServerException:FatalServiceServerException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="FatalServiceServerException.html"><span class="name">FatalServiceServerException</span></a><span class="result"> extends <a href="ServiceServerException.html" class="extype" name="colossus.service.ServiceServerException">ServiceServerException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@FatalServiceServerExceptionextendsServiceServerException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.FutureResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FutureResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,scala.concurrent.Future]"></a>
+      <a id="FutureResponseAdapter[C&lt;:CodecDSL]:FutureResponseAdapter[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FutureResponseAdapter.html"><span class="name">FutureResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ResponseAdapter.html" class="extype" name="colossus.service.ResponseAdapter">ResponseAdapter</a>[<span class="extype" name="colossus.service.FutureResponseAdapter.C">C</span>, <span class="extype" name="scala.concurrent.Future">Future</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@FutureResponseAdapter[C&lt;:colossus.service.CodecDSL]extendsResponseAdapter[C,scala.concurrent.Future]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.LoadBalancingClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="LoadBalancingClient[I,O]extendsServiceClientLike[I,O]withWorkerItem"></a>
+      <a id="LoadBalancingClient[I,O]:LoadBalancingClient[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="LoadBalancingClient.html"><span class="name">LoadBalancingClient</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>] with <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@LoadBalancingClient[I,O]extendsServiceClientLike[I,O]withWorkerItem" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The LoadBalancingClient will evenly distribute requests across a set of
+clients.</p><div class="fullcomment"><div class="comment cmt"><p>The LoadBalancingClient will evenly distribute requests across a set of
+clients.  If one client begins failing, the balancer will retry up to
+numRetries times across the other clients (with each failover hitting
+different clients to avoid a cascading pileup</p><p>Note that the balancer will never try the same client twice for a request,
+so setting maxTries to a very large number will mean that every client will
+be tried once
+</p></div></div>
+    </li><li name="colossus.service.LoadBalancingClientException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LoadBalancingClientExceptionextendsException"></a>
+      <a id="LoadBalancingClientException:LoadBalancingClientException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="LoadBalancingClientException.html"><span class="name">LoadBalancingClientException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@LoadBalancingClientExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.MappedCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MappedCallback[I,O]extendsCallback[O]withProductwithSerializable"></a>
+      <a id="MappedCallback[I,O]:MappedCallback[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MappedCallback.html"><span class="name">MappedCallback</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="params">(<span name="trigger">trigger: ((<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.MappedCallback.I">I</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>, <span name="handler">handler: (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.MappedCallback.I">I</span>]) ⇒ <span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.MappedCallback.O">O</span>]</span>)</span><span class="result"> extends <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.MappedCallback.O">O</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@MappedCallback[I,O]extendsCallback[O]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.MessageDecoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageDecoder[T]extendsAnyRef"></a>
+      <a id="MessageDecoder[T]:MessageDecoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageDecoder.html"><span class="name">MessageDecoder</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@MessageDecoder[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.MessageEncoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageEncoder[T]extendsAnyRef"></a>
+      <a id="MessageEncoder[T]:MessageEncoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageEncoder.html"><span class="name">MessageEncoder</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@MessageEncoder[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.NotConnectedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotConnectedExceptionextendsServiceClientException"></a>
+      <a id="NotConnectedException:NotConnectedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="NotConnectedException.html"><span class="name">NotConnectedException</span></a><span class="result"> extends <a href="ServiceClientException.html" class="extype" name="colossus.service.ServiceClientException">ServiceClientException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@NotConnectedExceptionextendsServiceClientException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Throw when a request is attempted while not connected</p>
+    </li><li name="colossus.service.PermutationGenerator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PermutationGenerator[T]extendsIterator[List[T]]"></a>
+      <a id="PermutationGenerator[T]:PermutationGenerator[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PermutationGenerator.html"><span class="name">PermutationGenerator</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.Iterator">Iterator</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="colossus.service.PermutationGenerator.T">T</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@PermutationGenerator[T]extendsIterator[List[T]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The PermutationGenerator creates permutations such that consecutive calls
+are guaranteed to cycle though all items as the first element.</p><div class="fullcomment"><div class="comment cmt"><p>The PermutationGenerator creates permutations such that consecutive calls
+are guaranteed to cycle though all items as the first element.</p><p>This currently doesn't iterate through every possible permutation, but it
+does evenly distribute 1st and 2nd tries...needs some more work
+</p></div></div>
+    </li><li name="colossus.service.PromiseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PromiseExceptionextendsException"></a>
+      <a id="PromiseException:PromiseException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PromiseException.html"><span class="name">PromiseException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@PromiseExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ReceiveException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReceiveExceptionextendsException"></a>
+      <a id="ReceiveException:ReceiveException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ReceiveException.html"><span class="name">ReceiveException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ReceiveExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.RequestBufferFullException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestBufferFullExceptionextendsServiceServerException"></a>
+      <a id="RequestBufferFullException:RequestBufferFullException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestBufferFullException.html"><span class="name">RequestBufferFullException</span></a><span class="result"> extends <a href="ServiceServerException.html" class="extype" name="colossus.service.ServiceServerException">ServiceServerException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@RequestBufferFullExceptionextendsServiceServerException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.RequestFormatter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RequestFormatter[I]extendsAnyRef"></a>
+      <a id="RequestFormatter[I]:RequestFormatter[I]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestFormatter.html"><span class="name">RequestFormatter</span></a><span class="tparams">[<span name="I">I</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@RequestFormatter[I]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.RequestTimeoutException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestTimeoutExceptionextendsServiceClientException"></a>
+      <a id="RequestTimeoutException:RequestTimeoutException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestTimeoutException.html"><span class="name">RequestTimeoutException</span></a><span class="result"> extends <a href="ServiceClientException.html" class="extype" name="colossus.service.ServiceClientException">ServiceClientException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@RequestTimeoutExceptionextendsServiceClientException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Returned when a request has been pending for too long
+</p>
+    </li><li name="colossus.service.ResponseAdapter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ResponseAdapter[C&lt;:colossus.service.CodecDSL,M[_]]extendsAnyRef"></a>
+      <a id="ResponseAdapter[C&lt;:CodecDSL,M[_]]:ResponseAdapter[C,M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseAdapter.html"><span class="name">ResponseAdapter</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>, <span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ResponseAdapter[C&lt;:colossus.service.CodecDSL,M[_]]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.SendFailedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SendFailedExceptionextendsException"></a>
+      <a id="SendFailedException:SendFailedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SendFailedException.html"><span class="name">SendFailedException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@SendFailedExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ServiceClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServiceClient[I,O]extendsController[O,I]withClientConnectionHandlerwithServiceClientLike[I,O]withManualUnbindHandler"></a>
+      <a id="ServiceClient[I,O]:ServiceClient[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceClient.html"><span class="name">ServiceClient</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceClient.O">O</span>, <span class="extype" name="colossus.service.ServiceClient.I">I</span>] with <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a> with <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.ServiceClient.I">I</span>, <span class="extype" name="colossus.service.ServiceClient.O">O</span>] with <a href="../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceClient[I,O]extendsController[O,I]withClientConnectionHandlerwithServiceClientLike[I,O]withManualUnbindHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A ServiceClient is a non-blocking, synchronous interface that handles
+sending atomic commands on a connection and parsing their replies</p><div class="fullcomment"><div class="comment cmt"><p>A ServiceClient is a non-blocking, synchronous interface that handles
+sending atomic commands on a connection and parsing their replies</p><p>Notice - The client will not begin to connect until it is bound to a worker,
+so when using the default constructor a service client will not connect on
+it's own.  You must either call <code>bind</code> on the client or use the constructor
+that accepts a worker
+</p></div></div>
+    </li><li name="colossus.service.ServiceClientException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceClientExceptionextendsException"></a>
+      <a id="ServiceClientException:ServiceClientException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceClientException.html"><span class="name">ServiceClientException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceClientExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ServiceClientLike" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ServiceClientLike[I,O]extendsAnyRef"></a>
+      <a id="ServiceClientLike[I,O]:ServiceClientLike[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceClientLike.html"><span class="name">ServiceClientLike</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceClientLike[I,O]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ServiceClientPool" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServiceClientPool[I,O,T&lt;:colossus.service.ServiceClient[I,O]]extendsAnyRef"></a>
+      <a id="ServiceClientPool[I,O,T&lt;:ServiceClient[I,O]]:ServiceClientPool[I,O,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceClientPool.html"><span class="name">ServiceClientPool</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>, <span name="T">T &lt;: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.ServiceClientPool.I">I</span>, <span class="extype" name="colossus.service.ServiceClientPool.O">O</span>]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceClientPool[I,O,T&lt;:colossus.service.ServiceClient[I,O]]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A ClientPool is a simple container of open connections.</p><div class="fullcomment"><div class="comment cmt"><p>A ClientPool is a simple container of open connections.  It can receive
+updates and will open/close connections accordingly.</p><p>note that config will be copied for each client, replacing only the address
+</p></div></div>
+    </li><li name="colossus.service.ServiceConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ServiceConfig[I,O]extendsProductwithSerializable"></a>
+      <a id="ServiceConfig[I,O]:ServiceConfig[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceConfig.html"><span class="name">ServiceConfig</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="requestLogFormat">requestLogFormat: <span class="extype" name="scala.Option">Option</span>[<a href="RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<span class="extype" name="colossus.service.ServiceConfig.I">I</span>]] = <span class="symbol">None</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceConfig[I,O]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the prefix to use for all metrics generated by the service</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestLogFormat</dt><dd class="cmt"><p>if logErrors is enabled, this can be used to format the request which caused an error.  If not set, the toString function of the request is used</p></dd></dl></div>
+    </li><li name="colossus.service.ServiceContext" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ServiceContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef"></a>
+      <a id="ServiceContext[C&lt;:CodecDSL]:ServiceContext[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceContext.html"><span class="name">ServiceContext</span></a><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceContext[C&lt;:colossus.service.CodecDSL]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ServiceServer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler"></a>
+      <a id="ServiceServer[I,O]:ServiceServer[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceServer.html"><span class="name">ServiceServer</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.ServiceServer.I">I</span>, <span class="extype" name="colossus.service.ServiceServer.O">O</span>] with <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The ServiceServer provides an interface and basic functionality to create a server that processes
+requests and returns responses over a codec.</p><div class="fullcomment"><div class="comment cmt"><p>The ServiceServer provides an interface and basic functionality to create a server that processes
+requests and returns responses over a codec.</p><p>A Codec is simply the format in which the data is represented.  Http, Redis protocol, Memcached protocl are all
+examples(and natively supported).  It is entirely possible to use an additional Codec by creating a Codec to parse
+the desired protocol.</p><p>Requests can be processed synchronously or
+asynchronously.  The server will ensure that all responses are written back
+in the order that they are received.</p></div></div>
+    </li><li name="colossus.service.ServiceServerException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceServerExceptionextendsException"></a>
+      <a id="ServiceServerException:ServiceServerException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceServerException.html"><span class="name">ServiceServerException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceServerExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.StaleClientException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="StaleClientExceptionextendsException"></a>
+      <a id="StaleClientException:StaleClientException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StaleClientException.html"><span class="name">StaleClientException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@StaleClientExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.</p><div class="fullcomment"><div class="comment cmt"><p>This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
+To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
+a new Client to reestablish a connection.</p></div></div>
+    </li><li name="colossus.service.TagDecorator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TagDecorator[I,O]extendsAnyRef"></a>
+      <a id="TagDecorator[I,O]:TagDecorator[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TagDecorator.html"><span class="name">TagDecorator</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@TagDecorator[I,O]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.UnhandledRequestException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UnhandledRequestExceptionextendsException"></a>
+      <a id="UnhandledRequestException:UnhandledRequestException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="UnhandledRequestException.html"><span class="name">UnhandledRequestException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@UnhandledRequestExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.UnmappedCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UnmappedCallback[I]extendsCallback[I]withProductwithSerializable"></a>
+      <a id="UnmappedCallback[I]:UnmappedCallback[I]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="UnmappedCallback.html"><span class="name">UnmappedCallback</span></a><span class="tparams">[<span name="I">I</span>]</span><span class="params">(<span name="trigger">trigger: ((<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.UnmappedCallback.I">I</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span>) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result"> extends <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.UnmappedCallback.I">I</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@UnmappedCallback[I]extendsCallback[I]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">UnmappedCallback is essentially an optimization that avoids needing to
+create a MappedCallback with an identity function
+</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.service.AsyncServiceClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AsyncServiceClient"></a>
+      <a id="AsyncServiceClient:AsyncServiceClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AsyncServiceClient$.html"><span class="name">AsyncServiceClient</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@AsyncServiceClient" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Callback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Callback"></a>
+      <a id="Callback:Callback"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Callback$.html"><span class="name">Callback</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@Callback" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.CallbackExecutor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CallbackExecutor"></a>
+      <a id="CallbackExecutor:CallbackExecutor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackExecutor$.html"><span class="name">CallbackExecutor</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CallbackExecutor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Codec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Codec"></a>
+      <a id="Codec:Codec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Codec$.html"><span class="name">Codec</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@Codec" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.CodecDSL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CodecDSL"></a>
+      <a id="CodecDSL:CodecDSL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CodecDSL$.html"><span class="name">CodecDSL</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@CodecDSL" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ConnectionEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionEvent"></a>
+      <a id="ConnectionEvent:ConnectionEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionEvent$.html"><span class="name">ConnectionEvent</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ConnectionEvent" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.DecodedResult" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DecodedResult"></a>
+      <a id="DecodedResult:DecodedResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DecodedResult$.html"><span class="name">DecodedResult</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@DecodedResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Service" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Service"></a>
+      <a id="Service:Service"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Service$.html"><span class="name">Service</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@Service" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The Service object is an entry point into the the Service DSL which provide some convenience functions for quickly
+creating a Server serving responses to requests utilizing a Codec(ie: memcached, http, redis, etc).</p><div class="fullcomment"><div class="comment cmt"><p>The Service object is an entry point into the the Service DSL which provide some convenience functions for quickly
+creating a Server serving responses to requests utilizing a Codec(ie: memcached, http, redis, etc).</p><p>One thing to always keep in mind is that code inside the Service.serve is placed inside a Delegator and ConnectionHandler,
+which means that it directly runs inside of a Worker and its SelectLoop.
+Be VERY mindful of the code that you place in here, as if there is any blocking code it will block the Worker.  Not good.</p><p>An example with full typing in place to illustrate :</p><pre><span class="kw">import</span> colossus.protocols.http._  <span class="cmt">//imports an implicit codec</span>
+
+<span class="kw">implicit</span> <span class="kw">val</span> ioSystem : IOSystem = myBootStrappingFunction()
+
+Service.serve[Http](<span class="lit">"my-app"</span>, <span class="num">9090</span>) { context : ServiceContext[Http] <span class="kw">=&gt;</span>
+
+  <span class="cmt">//everything in this block happens on delegator initialization, which is on application startup.  One time only.</span>
+
+  context.handle { connection : ConnectionContext[Http] <span class="kw">=&gt;</span> {
+      <span class="cmt">//This block is for connectionHandler initialization. Happens in the event loop.  Don't block.</span>
+      <span class="cmt">//Note, that a connection can handle multiple requests.</span>
+      connection.become {
+        <span class="cmt">//this partial function is what "handles" a request.  Again.. don't block.</span>
+        <span class="kw">case</span> req @ Get on Text(<span class="lit">"test"</span>) <span class="kw">=&gt;</span> future(req.ok(someService.getDataFromStore()))
+        <span class="kw">case</span> req @ Get on Text(<span class="lit">"path"</span>) <span class="kw">=&gt;</span> req.ok(<span class="lit">"path"</span>)
+      }
+    }
+  }
+}</pre></div></div>
+    </li><li name="colossus.service.ServiceServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceServer"></a>
+      <a id="ServiceServer:ServiceServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceServer$.html"><span class="name">ServiceServer</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceServer" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.TagDecorator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TagDecorator"></a>
+      <a id="TagDecorator:TagDecorator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="TagDecorator$.html"><span class="name">TagDecorator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@TagDecorator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

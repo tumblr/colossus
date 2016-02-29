@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Service Server</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/serviceserver/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Service Server</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <h2 id="introduction">Introduction</h2>
+
+<p>A service server is a server designed to process discrete requests into
+responses.  Most web servers and databases fall into this category, so the
+majority of use cases for Colossus fall under this paradigm.</p>
+
+<p>Essentially a service meets the following goals:</p>
+
+<ul>
+  <li>A server processes individual requests into responses using a well-defined application-layer protocol</li>
+  <li>A single connection is linear.  Responses are always returned in the order that their respective requests arrive</li>
+  <li>Connections can be (but are not necessarily) pipelined. A server must expect a client to send multiple requests without waiting for any responses.</li>
+</ul>
+
+<p>The service abstraction layer is a fully decoupled system built on top of the
+core Colossus framework.  It allows you to build high-performing non-blocking
+servers and clients that follow the service paradigm.  Essentially the only
+important logic you must handle is the actual processing of requests into
+responses.  Colossus will take care of all the linearization and parallelism.</p>
+
+<p>The service layer actually has two different ways of defining a service, one
+with a heavy functional feel and the other more object-oriented.  Both styles
+are equivalent and ultimately result in the same system being built.  It is
+simply up to you to decide which you feel more comfortable with.</p>
+
+<h2 id="writing-a-service">Writing a Service</h2>
+
+<h3 id="a-basic-service">A Basic service</h3>
+
+<p>The <a href="https://tumblr.github.io/colossus/docs/quickstart">quickstart guide</a> has a more introductory approach to building a service.</p>
+
+<p>The general form of starting a service looks like :</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Protocol</span><span class="o">](</span><span class="s">"name"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="c1">//partial function
+</span>    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>Let’s break down what’s happening here:</p>
+
+<p>The <code>Protocol</code> type parameter is a <code>CodecDSL</code>, which is a trait that describes the input
+and output types of a protocol.  For example, to start a server using the http
+protocol, we require the <code>Http</code> trait.  </p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">colossus.protocols.http._</span>
+
+<span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Http</span><span class="o">](</span><span class="s">"http-service"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span> 
+<span class="o">//...</span></code></pre></div>
+
+<p>More about Codecs and Protocols can be found <a href="">here</a>.</p>
+
+<p>We now have a few nested closures.  Each closure takes us closer to processing
+an individual request</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Protocol</span><span class="o">](</span><span class="s">"name"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="c1">//worker context - everything here is executed once per event loop
+</span>  <span class="n">context</span><span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="c1">//connection context - everything here is executed once per connections
+</span>    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="c1">//request context - everything here is executed once per request
+</span>    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The <strong>Worker Context</strong> is the place to add initialization per event loop.  In
+most cases, this is where client connections are established, metrics are
+setup, and other long-term initialization is performed.</p>
+
+<p>The <strong>Connection Context</strong> is the place to add initialization per new connection.</p>
+
+<p>The <strong>Request Context</strong> is a partial function that processes requests into
+responses.  Any request that fails to be matched is automatically converted
+into an error response defined by the protocol.</p>
+
+<h3 id="using-clients">Using clients</h3>
+
+<p>Service Clients provide in-thread, asynchronous client connections to external
+services.  Similar to servers, a client requires a protocol:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Protocol</span><span class="o">](</span><span class="s">"name"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">val</span> <span class="n">client</span> <span class="k">=</span> <span class="n">context</span><span class="o">.</span><span class="n">clientFor</span><span class="o">[</span><span class="kt">ClientProtocol</span><span class="o">](</span><span class="s">"host"</span><span class="o">,</span> <span class="n">port</span><span class="o">)</span>
+  <span class="c1">//...
+</span>
+<span class="o">}</span></code></pre></div>
+
+<p>In general, service clients are intended to be used for long-running persistent
+connections, such as to a cache, database, or other service.  So while it is
+perfectly fine to open a client connection per server connection (or even per
+request), the best place to start is per event loop.  </p>
+
+<p>Clients have numerous configuration options available concerning timeouts and
+failure handling.  By default if a client loses its connection, either by
+timing out, remote closing, or an error, it will automatically re-establish a
+connection and (depending on configuration) buffer requests during the
+reconnection period.</p>
+
+<h3 id="interacting-with-actors-and-futures">Interacting with Actors and Futures</h3>
+
+<p>Because the worker, connection, and request contexts all are single-threaded
+and execute in the event loop, performing certain tasks in-thread are either
+impractical or impossible.  For example, a CPU-intensive operation or blocking
+API call while processing one request would end up pausing the event loop,
+causing latency spikes for any other requests being processed in the loop.
+Furthermore, it’s pretty rare for a service to be truly stateless.  We need a
+way for connection handlers to interact with some sort of global shared state.</p>
+
+<p>Colossus was built with these use cases in mind and makes it easy to interact
+with Futures and Akka Actors.  Actors provide an easy way to manage shared
+state, and both actors and futures provide a way to perform operations in
+parallel with the event loops.</p>
+
+<p>Suppose we have a function <code>doTask()</code> that returns a <code>Future[T]</code>.  To execute
+this method in the processing of a request, we can do:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Protocol</span><span class="o">](</span><span class="s">"name"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">import</span> <span class="nn">context.callbackExecutor</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">=&gt;</span> <span class="nc">Callback</span><span class="o">.</span><span class="n">fromFuture</span><span class="o">(</span><span class="n">doTask</span><span class="o">()).</span><span class="n">map</span><span class="o">{</span><span class="n">result</span> <span class="k">=&gt;</span> <span class="nc">ProtocolResponse</span><span class="o">(</span><span class="n">result</span><span class="o">)}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p><code>Callback.fromFuture</code> converts a <code>Future[T]</code> into a <code>Callback[T]</code>.  This
+requires an implicit <code>CallbackExecutor</code> which is basically a reference to the
+event loop that should resume the processing of the Callback after the Future
+has completed execution.</p>
+
+<p>Thus, <code>fromFuture</code> gives us a way to “jump” out of the event-loop to do some
+work in another thread, and then jump back into the event-loop after it
+complete.  So any <code>map</code>, <code>flatMap</code>, or <code>recover</code> that occurs after <code>fromFuture</code>
+is still executed in the event loop and is thus thread-safe.</p>
+
+<p>It is very important not to accidentally call thread-local code from within a
+Future.  Take a look at the following service:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="nc">Service</span><span class="o">.</span><span class="n">serve</span><span class="o">[</span><span class="kt">Protocol</span><span class="o">](</span><span class="s">"name"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="n">context</span> <span class="k">=&gt;</span>
+  <span class="k">var</span> <span class="n">num</span> <span class="k">=</span> <span class="mi">0</span>
+  <span class="k">import</span> <span class="nn">context.callbackExecutor</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">handle</span> <span class="o">{</span> <span class="n">connection</span> <span class="k">=&gt;</span>
+    <span class="n">connection</span><span class="o">.</span><span class="n">become</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">RequestTypeA</span> <span class="k">=&gt;</span> <span class="nc">Callback</span><span class="o">.</span><span class="n">fromFuture</span><span class="o">(</span><span class="n">doTask</span><span class="o">()).</span><span class="n">map</span><span class="o">{</span><span class="n">result</span> <span class="k">=&gt;</span>
+        <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nc">ProtocolResponse</span><span class="o">(</span><span class="n">result</span><span class="o">)</span>
+      <span class="o">}</span>
+      <span class="k">case</span> <span class="nc">RequestTypeB</span> <span class="k">=&gt;</span> <span class="nc">Callback</span><span class="o">.</span><span class="n">fromFuture</span><span class="o">(</span><span class="n">doTask</span><span class="o">().</span><span class="n">map</span><span class="o">{</span><span class="n">result</span> <span class="k">=&gt;</span> 
+        <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">result</span>
+      <span class="o">}).</span><span class="n">map</span><span class="o">{</span><span class="n">result</span> <span class="k">=&gt;</span> <span class="nc">ProtocolResponse</span><span class="o">(</span><span class="n">result</span><span class="o">)}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>The case for <code>RequestTypeA</code> is thread-safe, since the increment <code>num</code> happens
+after the Future has been converted to a Callback, and all code executed inside
+a Callback is thread-safe.  However, the case for <code>RequestTypeB</code> is <strong>not</strong>
+thread-safe, since the <code>map</code> that increments <code>num</code> is a map on the Future, not
+on the Callback.</p>
+
+<p>In general, the same precautions should be taken as when working with Futures
+inside Actors: never expose local state.</p>
+
+<h3 id="more-on-callbacks">More on Callbacks</h3>
+
+<p>In event-based programming, a common pattern is continuation-passing.  If a
+method has to perform some action asynchronously, where completion of the
+action happens outside of the function, the function would look like:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">doSomething</span><span class="o">(</span><span class="n">arg1</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">arg2</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">continuation</span><span class="k">:</span> <span class="kt">Result</span> <span class="o">=&gt;</span> <span class="nc">Unit</span><span class="o">)</span>
+
+<span class="n">doSomething</span><span class="o">(</span><span class="s">"foo"</span><span class="o">,</span> <span class="s">"bar"</span><span class="o">,</span> <span class="n">result</span> <span class="k">=&gt;</span> <span class="n">someOtherCode</span><span class="o">())</span></code></pre></div>
+
+<p>with the expectaction that <code>continuation</code> is called whenever the event
+completes.  This is commonly considered an anti-pattern (sometimes referred to
+as “callback hell”) since chaining multiple such methods together involves
+nested functions within functions.  It’s also a sharp contrast to normal
+functions where you expect a return value that’s immediately usable.</p>
+
+<p>Colossus gets around these pitfalls with the <code>Callback</code> monad.  Internally, the
+<code>Callback</code> works the same way as a continuation, but instead of requiring the
+continuation as a function parameter, it behaves like a monad, where the
+continuation is implemented by mappiing and flatMapping on the returned
+<code>Callback[T]</code>.  Thus the above function becomes:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">doSomething</span><span class="o">(</span><span class="n">arg1</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">arg2</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span><span class="k">:</span> <span class="kt">Callback</span><span class="o">[</span><span class="kt">Result</span><span class="o">]</span>
+
+<span class="k">val</span> <span class="n">cb</span> <span class="k">=</span> <span class="n">doSomething</span><span class="o">(</span><span class="s">"foo"</span><span class="o">,</span> <span class="s">"bar"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">mapped</span> <span class="k">=</span> <span class="n">cb</span><span class="o">.</span><span class="n">map</span><span class="o">{</span><span class="n">result</span> <span class="k">=&gt;</span> <span class="n">someOtherCode</span><span class="o">()}</span></code></pre></div>
+
+<p>In otherwords, a <code>Callback</code> is a bit like a function builder, and only the end
+result is used as the continuation.  There is one catch, the Callback needs to
+know when the function is fully built in order to actually invoke the original
+method that required the continuation.  </p>
+
+<p>When using Callbacks in a service, Colossus does this for you.  You can map,
+flatMap, recover, all you want on a Callback, and so long as you return this
+Callback to Colossus in your request handler, everything is taken care of.</p>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#writing-a-service">Writing a Service</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

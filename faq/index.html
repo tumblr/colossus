@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>FAQ</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/faq/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>FAQ</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        
+<h3 id="in-a-nutshell-what-does-colossus-do">In a nutshell, what does Colossus do?</h3>
+
+<p>Colossus provides a lightweight framework for doing high-performance network
+I/O on the JVM.  It handles things like setting up servers, managing
+connections, and handling many of the low-level tasks required by applications.</p>
+
+<h3 id="should-i-use-colossus">Should I use Colossus?</h3>
+
+<p>Colossus has been built primarily around the use case of creating stateless,
+low-latency backend services.  While you can certainly build any kind of system
+you want using it, if you’re looking to build a web application or something
+that is more likely to be CPU bound than IO bound, then Colossus will probably
+not give you any major advantage over frameworks like Play! or Spray.</p>
+
+<p>Colossus is ideal for I/O heavy applications that do a lot of “bit pushing”.
+Proxies, load balancers, databases, and data streams are all examples of
+applications Colossus is well-suited for.</p>
+
+<h3 id="how-is-colossus-different-from-netty">How is Colossus different from Netty?</h3>
+
+<p>At a high level Colossus is similar to Netty.  Both frameworks use a pool of
+worker threads, each with their own NIO event loop.  Colossus is different in
+that it is tightly coupled to Akka, allowing near-seamless communication
+between event-loops and actors.</p>
+
+<p>Every component you can attach to an event-loop is also capable of hooking into
+the worker actor’s <code>receive</code> method, which opens the doors to mixed sync/async
+code.</p>
+
+<h3 id="how-is-colossus-different-from-akka-io">How is Colossus different from Akka I/O?</h3>
+
+<p>The biggest difference is your code sits <em>much</em> closer to the event loop than
+with Akka I/O, which requires all your connection handling code to reside in
+actors.  Being able to keep user-level code in-thread can result in
+significantly less overhead for low-level operations.  With Akka I/O, simply
+getting data from the wire to your code means sending it through several
+actors.  With colossus, your code is literally only a couple function calls
+away from NIO, which at very high loads makes a major difference in
+performance.</p>
+
+<p>Akka is generally very fast; the fact that Colossus is entirely built on Akka
+speaks for that.  But in many cases the actor model is not the most ideal when
+it comes to performance, and the small overhead of sending actor messages can
+add up very quickly when millions of messages are in transit.  Therefore
+Colossus is built on the premise than inter-actor communication is a
+non-trivial operation and should be avoided unless it’s actually necessary for
+concurrency.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>

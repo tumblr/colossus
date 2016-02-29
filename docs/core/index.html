@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Core Layer</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/core/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Core Layer</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>The Colossus Core layer is an actor-driven implementation of the multi-reactor model on NIO.</p>
+
+<h2 id="event-loops-are-actors">Event loops are Actors</h2>
+
+<p>The defining characteristic of the core layer is that <em>event loops are actors</em>.
+In most other systems, a typical event loop would look like (in pseudocode):</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">event_handlers</span> <span class="k">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">select</span><span class="o">()</span>
+  <span class="k">for</span> <span class="n">each</span> <span class="n">handler</span> <span class="n">in</span> <span class="n">event_handlers</span> <span class="o">{</span>
+    <span class="n">handler</span><span class="o">.</span><span class="n">handleEvent</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+
+<p>In Colossus, the physical iteration of the event loop is handled by the
+actor sending a message to itself.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">receive</span> <span class="n">message</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="n">`Select`</span> <span class="k">=&gt;</span> <span class="o">{</span>
+    <span class="n">event_handlers</span> <span class="k">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">select</span><span class="o">()</span>
+    <span class="o">...</span>
+    <span class="n">self</span> <span class="o">!</span> <span class="n">`Select`</span>
+  <span class="o">}</span>
+  <span class="o">...</span>
+<span class="o">}</span></code></pre></div>
+
+<p>This means that Colossus event loops can receive messages and process them in
+between each event loop iteration.  Furthermore, the event handlers attached to
+connections are able to tap into the actor’s mailbox, such that an event
+handler has the ability to send and receive messages both to itself and other
+actors.</p>
+
+<h2 id="the-io-system">The IO System</h2>
+
+<p>The heart of any Colossus project is the IO System.  This is essentially a
+collection of event loops, each running as an Akka actor.  These actors, called
+Workers, handle all I/O for the system.  Once an IO System is created, servers
+and clients can be attached to the system.  Servers, which listen on a port and
+accept incoming connections, will multiplex new connections across workers.
+Clients attach to exactly worker, however as we will see you will generally
+create one client per worker.  In both cases, once a connection has been
+established and attached to a worker it will remain attached to that worker for
+the duration of its lifetime.</p>
+
+<p>Creating an IO System is easy, all you need is an actor system:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">implicit</span> <span class="k">val</span> <span class="n">actor_system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">(</span><span class="s">"system"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">io_system</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">(</span><span class="s">"io-system"</span><span class="o">,</span> <span class="n">numWorkers</span> <span class="k">=</span> <span class="mi">4</span><span class="o">)</span></code></pre></div>
+
+<p>Here we’re creating an IO System with 4 worker event loops.</p>
+
+<p>While  many servers and clients can be attached to a single system, IO Systems
+are lightweight, and multiple IO Systems can exist simultaneously and can be
+attached to the same actor system.  An IO System with n workers will create n +
+1 actors and n threads.  So if you have a single application that needs to
+start up 2 independantly running servers, starting each server in its own IO
+System is not a bad idea.</p>
+
+<h3 id="worker-isolation-and-worker-local-state">Worker Isolation and Worker-local state</h3>
+
+<p>One of the most important aspects of workers is that being actors, they do not
+(and should not!) inherently share any mutable state.  This is why client
+connections must be setup for every worker, since two workers will not use the
+same connection.  Of course, you can get around this by creating an
+asynchronous wrapper around a client using an actor, and handing off the
+ActorRef to each worker, but in most cases whatever you’re connecting to will
+be ok with having multiple connections open.</p>
+
+<p>Inside a worker, mutable state can and should be shared when appropriate.  For
+example, all server connections on a single worker share the same interface for
+recording metrics.  Server connections on a worker can also share client
+connections.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#event-loops-are-actors">Event loops are Actors</a></li><li><a href="#the-io-system">The IO System</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2015 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
