@@ -85,6 +85,7 @@ object PipeCombinator {
 
 
       override def terminated: Boolean = input.terminated && output.terminated
+      def isClosed = input.isClosed && output.isClosed
 
       //after this is called, data can no longer be written, but can still be read until EOS
       override def complete() {

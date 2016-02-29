@@ -222,7 +222,6 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private[controller] def outputGracefulDisconnect() {
     outputState match {
       case a @ Alive(_, _, false, _) => {
-        println(a.msgQ.size)
         val n = a.copy(disconnecting = true)
         if (!checkOutputGracefulDisconnect(n)) {
           outputState = n
@@ -254,7 +253,9 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   private def signalWrite() {
     connectionState match {
-      case a: AliveState => a.endpoint.requestWrite()
+      case a: AliveState => {
+        a.endpoint.requestWrite()
+      }
       case _ => {}
     }
   }
@@ -312,12 +313,9 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       }
     }
     case Success(None) => {
-      outputState.ifAlive{s =>
-        val newState = s.copy(liveState = Dequeueing)
-        outputState = newState
-        ls.postWrite(OutputResult.Success)
-        if (!s.msgQ.isEmpty) signalWrite()
-      }
+      //there's actually nothing to do here, switching back to the dequeuing
+      //state is handled in readyForData
+      if (!ls.dataQ.isEmpty) signalWrite()
     }
     case Failure(err) => {
       //todo: where to propagate the error?
@@ -386,6 +384,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
         MoreDataResult.Complete
       } else state.liveState match {
         case Dequeueing => {
+          var streamState: Option[Streaming] = None
           var continue = true
           while (writesEnabled && continue && state.msgQ.size > 0 && ! buffer.isOverflowed) {
             val next = state.msgQ.dequeue
@@ -396,17 +395,29 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
               }
               case DataStream(source) => {
                 val ls = Streaming(source, new DataQueue(1000), next.postWrite)
+                streamState = Some(ls)
                 outputState = state.copy(liveState = ls)
                 drainSource(ls)
                 continue = false
               }
             }
           }
-          if (state.disconnecting || (state.msgQ.size > 0 && continue)) {
-            //return incomplete only if we overflowed the buffer and have more in the queue
-            MoreDataResult.Incomplete
+          //TODO this can be cleaned up somehow
+          if (continue) {
+            if (state.disconnecting || state.msgQ.size > 0) {
+              //return incomplete only if we overflowed the buffer and have more
+              //in the queue, or id disconnecting to finish the disconnect
+              //process
+              MoreDataResult.Incomplete
+            } else {
+              MoreDataResult.Complete
+            }
           } else {
-            MoreDataResult.Complete
+            if (state.disconnecting || !streamState.get.dataQ.isEmpty) {
+              MoreDataResult.Incomplete
+            } else {
+              MoreDataResult.Complete
+            }
           }
         }
         case ls @ Streaming(source, dataQ, post) => {
@@ -414,7 +425,14 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
             dataQ.dequeue.encode(buffer)
           }
           if (dataQ.isEmpty) {
-            drainSource(ls)
+            if (source.isClosed) {
+              //all done
+              post(OutputResult.Success)
+              outputState = state.copy(liveState = Dequeueing)
+            } else {
+              //ask for more
+              drainSource(ls)
+            }
           }
           if (!dataQ.isEmpty || state.disconnecting) {
             //we return Incomplete when disconnecting because even though we have
