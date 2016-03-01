@@ -8,9 +8,12 @@ import core._
 import service.Callback
 import controller._
 import HttpParse._
+import java.nio.ByteBuffer
 
-
-case class HttpResponseHeader(key: ByteString, value: ByteString)
+case class HttpResponseHeader(key: ByteString, value: ByteString) {
+  val keyArray = key.toArray
+  val valueArray = value.toArray
+}
 
 object HttpResponseHeader {
 
@@ -19,6 +22,8 @@ object HttpResponseHeader {
   val TransferEncoding = ByteString("transfer-encoding")
 
   val DELIM = ByteString(": ")
+  val DELIM_ARRAY = DELIM.toArray
+  val SPACE_ARRAY = Array(' '.toByte)
 
   def apply(key: String, value: String): HttpResponseHeader = {
     HttpResponseHeader(ByteString(key) , ByteString(value))
@@ -34,16 +39,20 @@ object HttpResponseHeader {
 
 case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
 
-  def appendHeaderBytes(builder : ByteStringBuilder) {
-    builder append version.messageBytes
-    builder putByte ' '
-    builder append code.headerBytes
-    builder append NEWLINE
-    headers.foreach{case header =>
-      builder ++= header.key
-      builder ++= HttpResponseHeader.DELIM
-      builder ++= header.value
-      builder ++= NEWLINE
+
+  def encode(buffer: DataOutBuffer) {
+    buffer.write(version.messageArr)
+    buffer.write(HttpResponseHeader.SPACE_ARRAY)
+    buffer.write(code.headerArr)
+    buffer.write(NEWLINE_ARRAY)
+    var i = 0
+    while (i < headers.size) {
+      val header = headers(i)
+      i += 1
+      buffer.write(header.keyArray)
+      buffer.write(HttpResponseHeader.DELIM_ARRAY)
+      buffer.write(header.valueArray)
+      buffer.write(NEWLINE_ARRAY)
     }
   }
 
@@ -61,8 +70,6 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
 
 sealed trait BaseHttpResponse { 
 
-  type Encoded <: DataReader
-
   def head: HttpResponseHead
 
   /**
@@ -74,9 +81,9 @@ sealed trait BaseHttpResponse {
    */
   def resolveBody(): Option[Callback[ByteString]]
 
-  def encode(): Encoded
-
   //def withHeader(key: String, value: String): self.type
+
+  def toReader: DataReader
 
 }
 
@@ -84,23 +91,34 @@ sealed trait BaseHttpResponse {
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse {
+case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse with Encoder {
 
-  type Encoded = DataBuffer
-
-  def encode() : DataBuffer = {
-    val builder = new ByteStringBuilder
-    val dataSize = body.map{_.size}.getOrElse(0)
-    builder.sizeHint((50 * head.headers.size) + dataSize)
-    head.appendHeaderBytes(builder)
-    builder append HttpResponse.ContentLengthKey
-    builder putBytes dataSize.toString.getBytes
-    builder append NEWLINE
-    builder append NEWLINE
-    body.foreach{b => 
-      builder append b
+  private def fastIntToString(in: Int, buf: DataOutBuffer) {
+    if (in == 0) {
+      buf.write('0'.toByte)
+    } else {
+      val arr = new Array[Byte](10)
+      var r = in
+      var index = 9
+      while (r > 0) {
+        arr(index) = ((r % 10) + 48).toByte
+        r = r / 10
+        index -= 1
+      }
+      buf.write(arr, index + 1, 10 - (index + 1))
     }
-    DataBuffer(builder.result())
+  }
+
+
+  def encode(buffer: DataOutBuffer) {
+    val dataSize = body.map{_.size}.getOrElse(0)
+    head.encode(buffer)
+    buffer.write(HttpResponse.ContentLengthKey.toArray)
+    fastIntToString(dataSize, buffer)
+    buffer.write(N2)
+    body.foreach{b => 
+      buffer.write(b.toArray)
+    }
   }
 
   def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
@@ -108,6 +126,8 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
   def code = head.code
+
+  def toReader = this
 
 }
 
@@ -146,13 +166,12 @@ case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[Dat
 
   type Encoded = DataReader
 
-  def encode() : DataReader = {
-    val builder = new ByteStringBuilder
-    builder.sizeHint(100)
-    head.appendHeaderBytes(builder)
-    builder append NEWLINE
+  def toReader : DataReader = {
+    val builder = new DynamicOutBuffer(100, false)
+    head.encode(builder)
+    builder write NEWLINE_ARRAY
 
-    val headerBytes = DataBuffer(builder.result())
+    val headerBytes = builder.data
     body.map{stream => 
       DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
     }.getOrElse(headerBytes)

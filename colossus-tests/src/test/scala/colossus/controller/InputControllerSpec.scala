@@ -9,42 +9,42 @@ import scala.util.{Try, Failure, Success}
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers{
   
-  import TestController.createController
+  import TestController._
 
   "Input Controller" must {
+
+    "receive a message" in {
+      val input = ByteString("hello")
+      val con = static()
+      con.typedHandler.receivedData(DataBuffer(input))
+      con.typedHandler.received.size must equal(1)
+      con.typedHandler.received.head must equal(input)
+    }
 
     "decode a stream message" in {
       val expected = ByteString("Hello world!")
       val request = ByteString(expected.size.toString) ++ ByteString("\r\n") ++ expected
-      var called = false
-      val (endpoint, con) = createController({input => 
-        input.source.pullCB().execute{
-          case Success(Some(data)) => {
-            ByteString(data.takeAll) must equal(expected)
-            called = true
-          }
-          case _ => throw new Exception("wrong result")
-        }
-      })
-      called must equal(false)
-      con.receivedData(DataBuffer(request))
-      called must equal(true)
+      var result = ByteString("na")
+      val con = stream()
+      con.typedHandler.receivedData(DataBuffer(request))
+      con.typedHandler.received.head.source.pullCB().execute{
+        case Success(Some(bytes)) => result = ByteString(bytes.takeAll)
+        case _ => {}
+      }
+      result must equal(expected)
     }
 
     "disconnect from read events when pipe fills up" in {
-      var source: Option[Source[DataBuffer]] = None
-      val (endpoint, con) = createController({input => 
-        source = Some(input.source)
-      })
-      endpoint.readsEnabled must equal(true)
-      con.receivedData(DataBuffer(ByteString("4\r\n")))
-      source.isDefined must equal(true)
-      endpoint.readsEnabled must equal(true)
-      con.receivedData(DataBuffer(ByteString("a")))
-      endpoint.readsEnabled must equal(false)
+      val con = stream()
+      con.readsEnabled must equal(true)
+      con.typedHandler.receivedData(DataBuffer(ByteString("4\r\n")))
+      val m = con.typedHandler.received.head
+      con.readsEnabled must equal(true)
+      con.typedHandler.receivedData(DataBuffer(ByteString("a")))
+      con.readsEnabled must equal(false)
 
       var executed = false
-      source.get.fold(0){(a, b) => b + a.takeAll.length}.execute{
+      m.source.fold(0){(a, b) => b + a.takeAll.length}.execute{
         case Success(4) => {executed = true}
         case other => {
           throw new Exception(s"bad result $other")
@@ -53,13 +53,14 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       //we have begun execution of the fold, which should drain the pipe, but
       //execution should not yet be complete
       executed must equal(false)
-      endpoint.readsEnabled must equal(true)
-      con.receivedData(DataBuffer(ByteString("b")))
-      con.receivedData(DataBuffer(ByteString("c")))
-      con.receivedData(DataBuffer(ByteString("d")))
+      con.readsEnabled must equal(true)
+      con.typedHandler.receivedData(DataBuffer(ByteString("b")))
+      con.typedHandler.receivedData(DataBuffer(ByteString("c")))
+      con.typedHandler.receivedData(DataBuffer(ByteString("d")))
       //now it should be done
       executed must equal(true)
     }
+    /*
 
     "stream is terminated when connection disrupted" in {
       var source: Option[Source[DataBuffer]] = None
@@ -97,7 +98,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
         case Failure(err) => throw err
       }
       endpoint.readsEnabled must equal(true)
-      con.testGracefulDisconnect()
+      con.disconnect()
       //input stream is not done, so reads should still be enabled
       endpoint.readsEnabled must equal(true)
       con.receivedData(DataBuffer(ByteString("cd")))
@@ -106,6 +107,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       total must equal(4)
 
     }
+    */
         
       
 

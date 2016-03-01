@@ -13,6 +13,8 @@ trait Transport {
   def terminate(reason: Throwable)
 
   def terminated : Boolean
+
+  def isClosed: Boolean
 }
 
 /**
@@ -88,8 +90,10 @@ trait Source[T] extends Transport {
 abstract class Generator[T] extends Source[T] {
   
   private var _terminated: Option[Throwable] = None
+  private var _closed = false
 
   def terminated = _terminated.isDefined
+  def isClosed = _closed
 
   def terminate(reason: Throwable) {
     _terminated = Some(reason)
@@ -99,7 +103,9 @@ abstract class Generator[T] extends Source[T] {
 
   def pull(f: Try[Option[T]] => Unit) {
     _terminated.map{t => f(Failure(new PipeTerminatedException(t)))}.getOrElse {
-      f(Success(generate()))
+      val r = generate()
+      if (r.isEmpty) _closed = true
+      f(Success(r))
     }
   }
 }
@@ -123,6 +129,7 @@ object Source {
     }
 
     def terminated = item.isFailure
+    def isClosed = item.filter{_.isEmpty}.isSuccess
   }
 }
 
@@ -274,6 +281,8 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
   }
 
   override def terminated: Boolean = a.terminated && b.terminated
+
+  def isClosed = a.isClosed && b.isClosed
 }
 
 

@@ -7,8 +7,6 @@ import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
 import java.net.InetSocketAddress
 
-import encoding.DataOutBuffer
-
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.
  */

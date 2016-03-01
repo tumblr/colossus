@@ -107,7 +107,7 @@ class ServiceClient[I,O](
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, OutputController.DefaultDataBufferSize , config.requestTimeout), context) 
+extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
 with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler {
 
   context.worker.worker ! WorkerCommand.Bind(this)
@@ -285,7 +285,6 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
 
   override def shutdown() {
     log.info(s"Terminating connection to $address")
-    purgePending(new NotConnectedException("Connection is closing"))
     disconnecting = true
     manuallyDisconnected = true
     checkGracefulDisconnect()

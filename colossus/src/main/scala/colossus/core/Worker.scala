@@ -15,9 +15,6 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import encoding.ByteOutBuffer
-
-
 /**
  * Contains the configuration for each Worker. Created when Workers are spawned by the WorkerManager.
  * Notice - currently the worker config cannot contain the MetricSystem,
@@ -170,7 +167,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
 
-  val outputBuffer = ByteOutBuffer(ByteBuffer.allocateDirect(1024 * 1024 * 4))
+  val outputBuffer = new DynamicOutBuffer(1024 * 1024 * 4)
 
 
   //collection of all the active connections
@@ -521,7 +518,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           key.attachment  match {
             case c: Connection => try {
               c.handleWrite(outputBuffer)
-              outputBuffer.underlying.clear()
+              outputBuffer.reset()
             } catch {
               case j: java.io.IOException => {
                 unregisterConnection(c, DisconnectCause.Error(j))

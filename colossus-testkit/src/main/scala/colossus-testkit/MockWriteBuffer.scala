@@ -29,7 +29,7 @@ trait MockChannelActions extends ChannelActions {
     } else {
       val toTake = math.min(bytesAvailable, data.remaining)
       bytesAvailable -= toTake
-      println(s"$toTake : $bytesAvailable")
+      //println(s"$toTake : $bytesAvailable")
       val bytes = ByteString(data.take(toTake))
       writeCalls.enqueue(bytes)
       bytes.size

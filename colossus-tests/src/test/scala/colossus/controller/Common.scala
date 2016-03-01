@@ -6,6 +6,7 @@ import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
 import scala.concurrent.duration._
+import org.scalatest._
 
 trait TestInput {
   def source: Source[DataBuffer]
@@ -48,43 +49,65 @@ class PushPromise {
   val func: OutputResult => Unit = r => _result = Some(r)
 
   def isSet = result.isDefined
+  def isSuccess = result == Some(OutputResult.Success)
+  def isCancelled = result.isDefined && result.get.isInstanceOf[OutputResult.Cancelled]
+  def isFailure = result.isDefined && result.get.isInstanceOf[OutputResult.Failure]
+
+  def expectNoSet() { assert(isSet == false) }
+  def expectSuccess() { assert(isSuccess == true) }
+  def expectFailure() {  assert(isFailure == true)}
+  def expectCancelled() {  assert(isCancelled == true)}
+
 
 }
 
-class TestController(dataBufferSize: Int, processor: TestInput => Unit, context: Context) extends Controller[TestInput, TestOutput](new TestCodec, ControllerConfig(4, dataBufferSize, 50.milliseconds), context) with ServerConnectionHandler {
+trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
 
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+  var _received : Seq[I] = Seq()
+  def received = _received
 
-  def processMessage(message: TestInput) {
-    processor(message)
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
+
+  def processMessage(message: I) {
+    _received = received :+ message
   }
 
 
+  def testPause() { pauseWrites() }
+  def testResume() { resumeWrites() }
+
   //these methods just expose protected versions
-  def testPush(message: TestOutput)(onPush: OutputResult => Unit) {
+  def testPush(message: O)(onPush: OutputResult => Unit) {
     push(message)(onPush)
   }
 
-  def pPush(message: TestOutput): PushPromise = {
+  def pPush(message: O): PushPromise = {
     val p = new PushPromise
     p.pushed = push(message)(p.func)
     p
   }
 
-
-  def testGracefulDisconnect() {
-    disconnect()
-  }
 }
 
-object TestController {
 
-  //TODO just return TypedMockConnection instead of the tuple
-  def createController(outputBufferSize: Int = 100, dataBufferSize: Int = 100, processor: TestInput => Unit = x => ())(implicit system: ActorSystem): (MockConnection, TestController) = {
-    val endpoint = MockConnection.server(context => new TestController(dataBufferSize, processor, context.context), outputBufferSize)
-    endpoint.handler.connected(endpoint)
-    (endpoint, endpoint.typedHandler)
+
+object TestController {
+  import RawProtocol.RawCodec
+
+  val config = ControllerConfig(4, 50.milliseconds)
+
+  type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
+
+  def controller[I,O](codec: Codec[O,I])(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
+    val con =MockConnection.server(
+      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler, 
+      500
+    )
+    con.handler.connected(con)
+    con
   }
 
-  def createController(processor: TestInput => Unit)(implicit system: ActorSystem): (MockConnection, TestController) = createController(100, 100, processor)
+  def static()(implicit sys: ActorSystem) = controller(RawCodec)
+  def stream()(implicit sys: ActorSystem) = controller(new TestCodec)
+
 }

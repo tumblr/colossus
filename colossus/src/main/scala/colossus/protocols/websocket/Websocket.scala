@@ -165,7 +165,7 @@ object FrameParser {
   }
 }
 
-abstract class WebsocketHandler(context: Context) extends Controller(new WebsocketCodec, ControllerConfig(50, 16384, scala.concurrent.duration.Duration.Inf), context) {
+abstract class WebsocketHandler(context: Context) extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
 
   def send(bytes: ByteString) {
     push(Frame(Header(OpCodes.Text, false), bytes)){_ => {}}

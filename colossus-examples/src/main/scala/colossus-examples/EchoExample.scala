@@ -4,7 +4,6 @@ import colossus.IOSystem
 import colossus.core._
 
 import akka.util.ByteString
-import colossus.encoding._
 
 /*
  * The BasicSyncHandler is a ConnectionHandler that has has default

@@ -118,21 +118,17 @@ class HttpSpec extends WordSpec with MustMatchers{
       val content = "Hello World!"
       val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
-      val res = response.encode()
-      res match {
-        case x : DataBuffer => {
-          val received = ByteString(x.takeAll).utf8String
-          received must equal (expected)
-        }
-        case y => throw new Exception(s"expected a DataBuffer, received a $y instead")
-      }
+      val buf = new DynamicOutBuffer(100)
+      val res = response.encode(buf)
+      val received = ByteString(buf.data.takeAll).utf8String
+      received must equal (expected)
     }
 
-    "encode a basic response as a stream" in {
+    "encode a basic response as a stream" ignore {
       val content = "Hello World!"
       val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
-      val stream: DataReader = StreamingHttpResponse.fromStatic(response).encode()
+      //val stream: DataReader = StreamingHttpResponse.fromStatic(response).encode(new DynamicOutBuffer(100))
     }
   }
 }

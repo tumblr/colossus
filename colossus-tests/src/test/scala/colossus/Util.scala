@@ -9,7 +9,6 @@ import colossus.service.{AsyncServiceClient, ClientConfig}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import colossus.encoding._
 
 class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with ServerConnectionHandler {
 

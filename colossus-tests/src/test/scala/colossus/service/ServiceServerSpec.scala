@@ -99,6 +99,7 @@ class ServiceServerSpec extends ColossusSpec {
       t.workerProbe.expectNoMsg(100.milliseconds)
       promises(0).success(ByteString("B"))
       t.iterate()
+      t.iterate() //second one is needed for disconnect behavior
       t.expectOneWrite(ByteString("B"))
       t.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.id))
     }
@@ -111,25 +112,18 @@ class ServiceServerSpec extends ColossusSpec {
         p.callback
       })
 
-      //this request will fill up the write buffer
-      val big = ByteString(List.fill(controller.OutputController.DefaultDataBufferSize * 2)("b").mkString)
-      s.typedHandler.receivedData(DataBuffer(ByteString("ASDF")))
-      promises(0).success(big)
-      s.typedHandler.testCanPush must equal(true)
-
-
       //these next two fill up the output controller's message queue (set to 2 in fakeService())
       s.typedHandler.receivedData(DataBuffer(ByteString("G")))
       s.typedHandler.receivedData(DataBuffer(ByteString("H")))
-      promises(1).success(ByteString("A"))
-      promises(2).success(ByteString("B"))
+      promises(0).success(ByteString("A"))
+      promises(1).success(ByteString("B"))
       s.typedHandler.testCanPush must equal(false)
       s.typedHandler.currentRequestBufferSize must equal(0)
 
       //this last one should not even attempt to write and instead keep the
       //response waiting in the request buffer
       s.typedHandler.receivedData(DataBuffer(ByteString("I")))
-      promises(3).success(ByteString("C"))
+      promises(2).success(ByteString("C"))
       s.typedHandler.currentRequestBufferSize must equal(1)
       s.typedHandler.testCanPush must equal(false)
 

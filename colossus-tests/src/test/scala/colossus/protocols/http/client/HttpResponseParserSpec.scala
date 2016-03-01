@@ -2,7 +2,7 @@ package colossus
 package protocols.http
 
 import colossus.service.DecodedResult
-import core.DataBuffer
+import core.{DataBuffer, DynamicOutBuffer}
 
 import akka.util.ByteString
 import org.scalatest.{WordSpec, MustMatchers}
@@ -90,11 +90,13 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val serverProtocol = new HttpServerCodec
       val clientProtocol = new HttpClientCodec
 
-      val encodedResponse = serverProtocol.encode(sent).asInstanceOf[DataBuffer]
+      val buf = new DynamicOutBuffer(100)
+      sent.encode(buf)
 
-      val decodedResponse = clientProtocol.decode(encodedResponse)
+      val encoded = buf.data
+      val decodedResponse = clientProtocol.decode(encoded)
       decodedResponse must equal(expected)
-      encodedResponse.remaining must equal(0)
+      encoded.remaining must equal(0)
     }
 
     "decode a response that was encoded by colossus with a body" in {
@@ -113,7 +115,9 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val serverProtocol = new HttpServerCodec
       val clientProtocol = new HttpClientCodec
 
-      val encodedResponse = serverProtocol.encode(sent).asInstanceOf[DataBuffer]
+      val buf = new DynamicOutBuffer(100)
+      sent.encode(buf)
+      val encodedResponse = buf.data
 
       val decodedResponse = clientProtocol.decode(encodedResponse)
       decodedResponse must equal(expected)

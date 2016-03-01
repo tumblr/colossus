@@ -59,7 +59,7 @@ trait ConnectionHandler extends WorkerItem {
    * This event allows handlers to write data to the connection.  The output
    * buffer is limited in size so handlers must properly deal with backpressure.
    */
-  def readyForData(buffer: encoding.DataOutBuffer) : MoreDataResult
+  def readyForData(buffer: DataOutBuffer) : MoreDataResult
 
   /**
    * This handler is called when a Worker new Connection is established.  A Connection can be
@@ -148,7 +148,7 @@ abstract class BasicSyncHandler(context: Context) extends WorkerItem(context) wi
     _endpoint = None
   }
   def receivedMessage(message: Any, sender: ActorRef){}
-  def readyForData(out: encoding.DataOutBuffer): MoreDataResult = MoreDataResult.Complete
+  def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
   def idleCheck(period: Duration){}
   def shutdownRequest (){
     endpoint.disconnect()

@@ -23,14 +23,18 @@ object HttpMethod {
 
   val methods: List[HttpMethod] = List(Get, Post, Put, Delete, Head, Options, Trace, Connect, Patch)
 
-  def apply(str: String): HttpMethod = methods.find{_.name == str.toUpperCase}.getOrElse(
-    throw new ParseException(s"Invalid http method $str")
-  )
+  def apply(str: String): HttpMethod = {
+    val ucase = str.toUpperCase
+    methods.find{_.name == ucase}.getOrElse(
+      throw new ParseException(s"Invalid http method $str")
+    )
+  }
 }
 
 sealed abstract class HttpVersion(versionString: String) {
   override def toString = versionString
   val messageBytes = ByteString("HTTP/" + versionString)
+  val messageArr = messageBytes.toArray
 }
 object HttpVersion {
   case object `1.0` extends HttpVersion("1.0")
