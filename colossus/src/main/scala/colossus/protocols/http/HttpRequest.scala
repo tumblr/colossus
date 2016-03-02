@@ -9,7 +9,7 @@ case class HttpRequest(head: HttpHead, entity: Option[ByteString]) {
 
   def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = {
     import HttpResponseHeader.Conversions._
-    HttpResponse(HttpResponseHead(version, code, headers.toVector), Some(ByteString(data)))
+    HttpResponse(HttpResponseHead(version, code, headers), Some(ByteString(data)))
   }
 
   def ok(data: String, headers: List[(String, String)] = Nil)              = respond(OK, data, headers)

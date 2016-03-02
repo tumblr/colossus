@@ -68,7 +68,7 @@ object BenchmarkService {
               version  = HttpVersion.`1.1`,
               code    = HttpCodes.OK,
               data    = response,
-              headers = Vector(plaintextHeader, serverHeader, dateHeader)
+              headers = Array(plaintextHeader, serverHeader, dateHeader)
             )
             Callback.successful(res)
           } else if (request.head.url == "/json") {
@@ -77,7 +77,7 @@ object BenchmarkService {
               version  = HttpVersion.`1.1`,
               code    = HttpCodes.OK,
               data    = compact(render(json)),
-              headers = Vector(jsonHeader, serverHeader, dateHeader)
+              headers = Array(jsonHeader, serverHeader, dateHeader)
             )
             Callback.successful(res)
           } else {

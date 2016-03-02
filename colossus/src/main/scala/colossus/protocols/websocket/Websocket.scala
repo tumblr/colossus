@@ -45,7 +45,7 @@ object UpgradeRequest {
       HttpResponseHead(
         HttpVersion.`1.1`,
         HttpCodes.SWITCHING_PROTOCOLS,
-        Vector(
+        Array(
           HttpResponseHeader("Upgrade", "websocket"),
           HttpResponseHeader("Connection", "Upgrade"),
           HttpResponseHeader("Sec-Websocket-Accept",processKey(seckey))

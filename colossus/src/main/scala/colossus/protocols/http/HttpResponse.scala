@@ -32,12 +32,12 @@ object HttpResponseHeader {
 
   object Conversions {
     implicit def stringTuple2Header(t: (String, String)): HttpResponseHeader = HttpResponseHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): Vector[HttpResponseHeader] = t.map{stringTuple2Header}.toVector
+    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): Array[HttpResponseHeader] = t.map{stringTuple2Header}.toArray
   }
 
 }
 
-case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
+case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] = Array()) {
 
 
   def encode(buffer: DataOutBuffer) {
@@ -144,12 +144,12 @@ object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] , data : T) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
-  def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
+  def apply(version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader]) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), None)
   }
 
@@ -192,7 +192,7 @@ object StreamingHttpResponse {
     StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector(), data : T) : StreamingHttpResponse = {
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] = Array(), data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
       Some(implicitly[ByteStringLike[T]].toByteString(data))
