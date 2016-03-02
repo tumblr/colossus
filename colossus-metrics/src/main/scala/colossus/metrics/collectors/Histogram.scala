@@ -183,7 +183,7 @@ class Histogram private[colossus](val address: MetricAddress, percentiles: Seq[D
   }.toMap
 
   def add(value: Int, tags: TagMap = TagMap.Empty) {
-    if (sampleRate < 1.0 && ThreadLocalRandom.current.nextDouble(1.0) < sampleRate) {
+    if (sampleRate >= 1.0 || ThreadLocalRandom.current.nextDouble(1.0) < sampleRate) {
       tagHists.foreach{ case (_, taghists) =>
         Option(taghists.get(tags)) match {
           case Some(got) => got.add(value)
@@ -200,13 +200,20 @@ class Histogram private[colossus](val address: MetricAddress, percentiles: Seq[D
   def tick(interval: FiniteDuration): MetricMap = {
     val taghist = tagHists(interval)
     val keys = taghist.keys
-    var build: MetricMap = Map()
+    val build = scala.collection.mutable.Map[MetricAddress, ValueMap]()
     while (keys.hasMoreElements) {
       val key = keys.nextElement
       val snap = taghist.get(key).snapshot
-      build = build ++ snap.metrics(address, TagMap.Empty, percentiles)
+      val keymap = snap.metrics(address, key, percentiles)
+      keymap.foreach{ case (addr, values) =>
+        if (build contains addr) {
+          build(addr) = build(addr) ++ values
+        } else {
+          build(addr) = values
+        }
+      }
     }
-    build
+    build.toMap
   }
 
 }

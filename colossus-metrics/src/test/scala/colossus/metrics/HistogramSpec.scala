@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import scala.concurrent.duration._
+
 class HistogramSpec extends MetricIntegrationSpec {
   "Bucket generator" must {
     "generate bucket ranges" in {
@@ -10,7 +12,7 @@ class HistogramSpec extends MetricIntegrationSpec {
     }
   }
 
-  "Histogram" must {
+  "BaseHistogram" must {
     "simple collection" in {
       val address = MetricAddress.Root / "latency"
       val tags = Map("route" -> "home")
@@ -40,7 +42,6 @@ class HistogramSpec extends MetricIntegrationSpec {
       snapshot.metrics(address, tags, percentiles) must equal (metrics)
     }
 
-
     "bucketFor" in {
       val h = new BaseHistogram
 
@@ -55,6 +56,23 @@ class HistogramSpec extends MetricIntegrationSpec {
       (new BaseHistogram).snapshot.mean must equal(0)
     }
 
+  }
+
+  "Histogram" must {
+    "get tags right" in {
+      implicit val col = new Collection(CollectorConfig(List(1.second)))
+      val addr = MetricAddress.Root / "hist"
+      val h = Histogram(addr)
+      h.add(10, Map("foo" -> "bar"))
+      h.add(20, Map("foo" -> "baz"))
+      h.add(20, Map("foo" -> "baz"))
+
+      val m = h.tick(1.second)
+      m(addr)(Map("foo" -> "bar", "label" -> "min")) must equal(10)
+      m(addr)(Map("foo" -> "baz", "label" -> "min")) must equal(20)
+      m(addr / "count")(Map("foo" -> "bar")) must equal(1)
+      m(addr / "count")(Map("foo" -> "baz")) must equal(2)
+    }
   }
 
 
