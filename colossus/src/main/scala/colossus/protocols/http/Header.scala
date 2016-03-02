@@ -25,9 +25,11 @@ object HttpMethod {
 
   def apply(str: String): HttpMethod = {
     val ucase = str.toUpperCase
-    methods.find{_.name == ucase}.getOrElse(
-      throw new ParseException(s"Invalid http method $str")
-    )
+    def loop(remain: List[HttpMethod]): HttpMethod = remain match {
+      case head :: tail => if (head.name == ucase) head else loop(tail)
+      case Nil => throw new ParseException(s"Invalid http method $str")
+    }
+    loop(methods)    
   }
 }
 
