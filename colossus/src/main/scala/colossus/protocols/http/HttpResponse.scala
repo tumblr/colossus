@@ -10,10 +10,6 @@ import controller._
 import HttpParse._
 import java.nio.ByteBuffer
 
-case class HttpResponseHeader(key: ByteString, value: ByteString) {
-  val keyArray = key.toArray
-  val valueArray = value.toArray
-}
 
 object HttpResponseHeader {
 
@@ -25,19 +21,10 @@ object HttpResponseHeader {
   val DELIM_ARRAY = DELIM.toArray
   val SPACE_ARRAY = Array(' '.toByte)
 
-  def apply(key: String, value: String): HttpResponseHeader = {
-    HttpResponseHeader(ByteString(key) , ByteString(value))
-  }
-
-
-  object Conversions {
-    implicit def stringTuple2Header(t: (String, String)): HttpResponseHeader = HttpResponseHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): Array[HttpResponseHeader] = t.map{stringTuple2Header}.toArray
-  }
 
 }
 
-case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] = Array()) {
+case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : HttpHeaders ) {
 
 
   def encode(buffer: DataOutBuffer) {
@@ -45,26 +32,15 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ar
     buffer.write(HttpResponseHeader.SPACE_ARRAY)
     buffer.write(code.headerArr)
     buffer.write(NEWLINE_ARRAY)
-    var i = 0
-    while (i < headers.size) {
-      val header = headers(i)
-      i += 1
-      buffer.write(header.keyArray)
-      buffer.write(HttpResponseHeader.DELIM_ARRAY)
-      buffer.write(header.valueArray)
+    var writing = headers.headers
+    while (writing != Nil) {
+      buffer.write(writing.head.encoded)
       buffer.write(NEWLINE_ARRAY)
+      writing = writing.tail
     }
   }
 
-  def withHeader(key: String, value: String) = copy(headers = headers :+ HttpResponseHeader(key, value))
-
-  def contentLength = {
-    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.ContentLength, v) => v.utf8String.toInt}
-  }
-
-  def transferEncoding : TransferEncoding = {
-    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.TransferEncoding, v) => v}.flatMap{t => TransferEncoding.unapply(t.utf8String)}.getOrElse(TransferEncoding.Identity)
-}
+  def withHeader(key: String, value: String) = copy(headers = headers + (key -> value))
 
 }
 
@@ -144,12 +120,12 @@ object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] , data : T) : HttpResponse = {
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
   }
 
 
-  def apply(version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader]) : HttpResponse = {
+  def apply(version : HttpVersion, code : HttpCode, headers : HttpHeaders) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), None)
   }
 
@@ -192,7 +168,7 @@ object StreamingHttpResponse {
     StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Array[HttpResponseHeader] = Array(), data : T) : StreamingHttpResponse = {
+  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
       Some(implicitly[ByteStringLike[T]].toByteString(data))

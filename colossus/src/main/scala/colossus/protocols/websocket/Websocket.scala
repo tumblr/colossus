@@ -29,13 +29,14 @@ object UpgradeRequest {
 
   //todo proper handling of key
   def unapply(request : HttpRequest): Option[HttpResponse] = {
+    val headers = request.head.headers
     for {
-      cheader   <- request.head.singleHeader("connection") 
-      uheader   <- request.head.singleHeader("upgrade") 
-      host      <- request.head.singleHeader("host")
-      origin    <- request.head.singleHeader("origin")
-      seckey    <- request.head.singleHeader("sec-websocket-key")
-      secver    <- request.head.singleHeader("sec-websocket-version") 
+      cheader   <- headers.singleHeader("connection") 
+      uheader   <- headers.singleHeader("upgrade") 
+      host      <- headers.singleHeader("host")
+      origin    <- headers.singleHeader("origin")
+      seckey    <- headers.singleHeader("sec-websocket-key")
+      secver    <- headers.singleHeader("sec-websocket-version") 
       if (request.head.version == HttpVersion.`1.1`)
       if (request.head.method == HttpMethod.Get)
       if (secver == "13")
@@ -45,10 +46,10 @@ object UpgradeRequest {
       HttpResponseHead(
         HttpVersion.`1.1`,
         HttpCodes.SWITCHING_PROTOCOLS,
-        Array(
-          HttpResponseHeader("Upgrade", "websocket"),
-          HttpResponseHeader("Connection", "Upgrade"),
-          HttpResponseHeader("Sec-Websocket-Accept",processKey(seckey))
+        HttpHeaders(
+          HttpHeader("Upgrade", "websocket"),
+          HttpHeader("Connection", "Upgrade"),
+          HttpHeader("Sec-Websocket-Accept",processKey(seckey))
         )
       ),
       None

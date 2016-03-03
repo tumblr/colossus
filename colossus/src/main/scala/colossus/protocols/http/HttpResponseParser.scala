@@ -31,8 +31,8 @@ object HttpResponseParser  {
   //TODO: Dechunk on static
 
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case TransferEncoding.Identity => parsedHead.contentLength match {
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
         case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
         case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
         case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
@@ -43,8 +43,8 @@ object HttpResponseParser  {
   }
 
   protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case TransferEncoding.Identity => parsedHead.contentLength match {
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
         case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         case Some(n) => streamingResponse(parsedHead, Some(n), false)
         case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
@@ -65,7 +65,7 @@ object HttpResponseParser  {
     
 
   protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case version ~ code ~ headers => 
-    HttpResponseHead(version, code, headers.map{case (k,v) => HttpResponseHeader(k,v)}.toArray)
+    HttpResponseHead(version, code, new HttpHeaders(headers.map{case (k,v) => HttpHeader(k,v)}.toList))
   }
 
   protected def firstLine = version ~ code 

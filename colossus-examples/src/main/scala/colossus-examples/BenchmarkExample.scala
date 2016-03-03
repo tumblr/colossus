@@ -36,9 +36,9 @@ object BenchmarkService {
     }
   }
   val response          = ByteString("Hello, World!")
-  val plaintextHeader   = HttpResponseHeader("Content-Type", "text/plain")
-  val jsonHeader        = HttpResponseHeader("Content-Type", "application/json")
-  val serverHeader      = HttpResponseHeader("Server", "Colossus")
+  val plaintextHeader   = HttpHeader("Content-Type", "text/plain")
+  val jsonHeader        = HttpHeader("Content-Type", "application/json")
+  val serverHeader      = HttpHeader("Server", "Colossus")
 
 
   def start(port: Int)(implicit io: IOSystem) {
@@ -55,10 +55,10 @@ object BenchmarkService {
     val server = Server.start("benchmark", serverConfig) { worker => new Initializer(worker) {
 
       ///the ??? is filled in almost immediately
-      var dateHeader = HttpResponseHeader("Date", "???")
+      var dateHeader = HttpHeader("Date", "???")
 
       override def receive = {
-        case ts: String => dateHeader = HttpResponseHeader("Date", ts)
+        case ts: String => dateHeader = HttpHeader("Date", ts)
       }
       
       def onConnect = ctx => new Service[Http](serviceConfig, ctx){ 
@@ -68,7 +68,7 @@ object BenchmarkService {
               version  = HttpVersion.`1.1`,
               code    = HttpCodes.OK,
               data    = response,
-              headers = Array(plaintextHeader, serverHeader, dateHeader)
+              headers = HttpHeaders(plaintextHeader, serverHeader, dateHeader)
             )
             Callback.successful(res)
           } else if (request.head.url == "/json") {
@@ -77,7 +77,7 @@ object BenchmarkService {
               version  = HttpVersion.`1.1`,
               code    = HttpCodes.OK,
               data    = compact(render(json)),
-              headers = Array(jsonHeader, serverHeader, dateHeader)
+              headers = HttpHeaders(jsonHeader, serverHeader, dateHeader)
             )
             Callback.successful(res)
           } else {

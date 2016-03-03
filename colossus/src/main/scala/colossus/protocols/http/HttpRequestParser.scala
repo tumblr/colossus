@@ -29,7 +29,7 @@ object HttpRequestParser {
   
 }
 
-case class HeadResult(head: HttpHead, contentLength: Option[Int], transferEncoding: Option[String] )
+case class HeadResult(head: HttpRequestHead, contentLength: Option[Int], transferEncoding: Option[String] )
 
 /**
  * This parser is optimized to reduce the number of operations per character
@@ -41,13 +41,13 @@ class HttpHeadParser extends Parser[HeadResult]{
     var method: String = ""
     var path: String = ""
     var version: String = ""
-    var headers: List[(String, String)] = Nil
+    var headers: List[HttpHeader] = Nil
     var contentLength: Option[Int] = None
     var transferEncoding: Option[String] = None
     var body: Option[ByteString] = None
 
     def addHeader(name: String, value: String) {
-      headers = (name, value) :: headers
+      headers = new DecodedHeader(name, value) :: headers
       if (name == HttpHeaders.ContentLength) {
         contentLength = Some(value.toInt)
       } else if (name == HttpHeaders.TransferEncoding) {
@@ -56,7 +56,7 @@ class HttpHeadParser extends Parser[HeadResult]{
     }
 
     def build: HeadResult = {
-      val r = HeadResult(HttpHead(HttpMethod(method), path, HttpVersion(version), headers), contentLength, transferEncoding)
+      val r = HeadResult(HttpRequestHead(HttpMethod(method), path, HttpVersion(version), new HttpHeaders(headers)), contentLength, transferEncoding)
       reset()
       r
     }

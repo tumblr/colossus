@@ -64,37 +64,68 @@ object HttpHeaders {
   val CookieHeader      = "cookie"
   val SetCookie         = "set-cookie"
   val TransferEncoding  = "transfer-encoding"
+
+  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toList)
 }
 
-//TODO: support for pulling values as types other than String
-trait HttpHeaderUtils {
+trait HttpHeader {
+  def key: String
+  def value: String
+  def encoded: Array[Byte]
 
-  def headers : Seq[(String, String)]
+}
+
+//generally created when encoding http responses
+class EncodedHeader(val encoded: Array[Byte], keyLength: Int, valueStart: Int) extends HttpHeader {
+  lazy val key = new String(encoded.take(keyLength))
+  lazy val value = new String(encoded.drop(valueStart))
+}
+
+//generally created when parsing http requests
+class DecodedHeader(val key: String, val value: String) extends HttpHeader {
+  lazy val encoded = (key + ": " + value).getBytes("UTF-8")
+
+  def toEncodedHeader = new EncodedHeader(encoded, key.length, key.length + 2)
+}
 
 
+object HttpHeader {
+  def apply(key: String, value: String): HttpHeader = (new DecodedHeader(key, value)).toEncodedHeader
+
+
+  object Conversions {
+    implicit def stringTuple2Header(t: (String, String)): HttpHeader = HttpHeader(t._1, t._2)
+    implicit def seqStringTuple2Headers(t: List[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toList)
+  }
+
+}
+    
+class HttpHeaders(val headers: List[HttpHeader]) {
   def singleHeader(name: String): Option[String] = {
     val l = name.toLowerCase
-    headers.collectFirst{ case (`l`, v) => v}
+    headers.collectFirst{ case x if (x.key == l) => x.value }
   }
 
   def multiHeader(name: String): Seq[String] = {
     val l = name.toLowerCase
-    headers.collect{ case (`l`, v) => v}
+    headers.collect{ case x if (x.key == l) => x.value }
   }
-
-  //TODO: These vals are probably inefficient, should be generated as the
-  //headers are being parsed.  Benchmark before changing
 
   /** Returns the value of the content-length header, if it exists.
    * 
    * Be aware that lacking this header may or may not be a valid request,
    * depending if the "transfer-encoding" header is set to "chunked"
    */
-  lazy val contentLength: Option[Int] = headers.collectFirst{case (HttpHeaders.ContentLength, l) => l.toInt}
+  lazy val contentLength: Option[Int] = singleHeader(HttpHeaders.ContentLength).map{_.toInt}
 
   lazy val transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
 
   lazy val connection: Option[Connection] = singleHeader(HttpHeaders.Connection).flatMap(Connection.unapply)
+
+  def + (kv: (String, String)) = new HttpHeaders(HttpHeader(kv._1, kv._2) :: headers)
+
+  def size = headers.size
+
 }
 
 
@@ -182,6 +213,8 @@ object Connection {
   }
 }
 
+
+
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
   def apply(key: String) = getFirst(key).get
@@ -207,66 +240,4 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
 }
 
-case class HttpHead(method: HttpMethod, url: String, version: HttpVersion, headers: Seq[(String, String)]) extends HttpHeaderUtils {
-  import HttpHeaders._
-
-  lazy val (path, query) = {
-    val pieces = url.split("\\?",2)
-    (pieces(0), if (pieces.size > 1) Some(pieces(1)) else None)
-  }
-
-  lazy val parameters: QueryParameters = query.map { qstring =>
-    def decode(s: String) = java.net.URLDecoder.decode(s, "UTF-8")
-    var build = Vector[(String, String)]()
-    var remain = qstring
-    while (remain != "") {
-      val keyval = remain.split("&", 2)
-      val splitKV = keyval(0).split("=", 2)
-      val key = decode(splitKV(0))
-      val value = if (splitKV.size > 1) decode(splitKV(1)) else ""
-      build = build :+ (key -> value)
-      remain = if (keyval.size > 1) keyval(1) else ""
-    }
-    QueryParameters(build)
-  } getOrElse QueryParameters(Vector())
-
-  def withHeader(header: String, value: String): HttpHead = {
-    copy(headers = (header -> value) +: headers)
-  }
-
-  lazy val cookies: Seq[Cookie] = multiHeader(CookieHeader).flatMap{Cookie.parseHeader}
-
-  //we should only encode if the string is decoded.
-  //To check for that, if we decode an already decoded URL, it should not change (this may not be necessary)
-  //the alternative is one big fat honkin ugly regex and knowledge of what characters are allowed where(gross)
-  //TODO: this doesn't work, "/test" becomes %2Ftest
-  private def getEncodedURL : String = url
-  /*{
-    if(URLDecoder.decode(url,"UTF-8") == url) {
-      URLEncoder.encode(url, "UTF-8")
-    }else {
-      url
-    }
-  }*/
-
-
-  //TODO: optimize
-  def bytes : ByteString = {
-    val reqString = ByteString(s"${method.name} $getEncodedURL HTTP/$version\r\n")
-    if (headers.size > 0) {
-      val headerString = ByteString(headers.map{case(k,v) => k + ": " + v}.mkString("\r\n"))
-      reqString ++ headerString ++ ByteString("\r\n\r\n")
-    } else {
-      reqString ++ ByteString("\r\n")
-    }
-  }
-
-  def persistConnection: Boolean =
-    (version, connection) match {
-      case (HttpVersion.`1.1`, Some(Close)) => false
-      case (HttpVersion.`1.1`, _) => true
-      case (HttpVersion.`1.0`, Some(KeepAlive)) => true
-      case (HttpVersion.`1.0`, _) => false
-    }
-}
 
