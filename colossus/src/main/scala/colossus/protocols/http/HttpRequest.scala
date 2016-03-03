@@ -49,8 +49,10 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
   def bytes : ByteString = {
     val reqString = ByteString(s"${method.name} $getEncodedURL HTTP/$version\r\n")
     if (headers.size > 0) {
-      val headerString = ByteString(headers.headers.map{h => h.key + ": " + h.value}.mkString("\r\n"))
-      reqString ++ headerString ++ ByteString("\r\n\r\n")
+      val buf = new core.DynamicOutBuffer(200, false)
+      headers.encode(buf)
+      val encodedHeaders = ByteString(buf.data.data)
+      reqString ++ encodedHeaders ++ ByteString("\r\n\r\n")
     } else {
       reqString ++ ByteString("\r\n")
     }
