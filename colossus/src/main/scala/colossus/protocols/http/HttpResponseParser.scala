@@ -33,12 +33,12 @@ object HttpResponseParser  {
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
     parsedHead.headers.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.headers.contentLength match {
-        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
-        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, None)))
-        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, HttpResponseBody.NoBody)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, HttpResponseBody.NoBody)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
       }
-      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, Some(body)))}
+      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
     }
   }
 

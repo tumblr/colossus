@@ -52,7 +52,7 @@ object UpgradeRequest {
           HttpHeader("Sec-Websocket-Accept",processKey(seckey))
         )
       ),
-      None
+      HttpResponseBody.NoBody
     )      
   }
 }

@@ -35,7 +35,7 @@ object BenchmarkService {
       }
     }
   }
-  val response          = ByteString("Hello, World!")
+  val response          = HttpResponseBody("Hello, World!")
   val plaintextHeader   = HttpHeader("Content-Type", "text/plain")
   val jsonHeader        = HttpHeader("Content-Type", "application/json")
   val serverHeader      = HttpHeader("Server", "Colossus")
@@ -65,10 +65,12 @@ object BenchmarkService {
         def handle = { case request => 
           if (request.head.url == "/plaintext") {
             val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = response,
-              headers = new HttpHeaders(Array(plaintextHeader, serverHeader, dateHeader))
+              HttpResponseHead(
+                version  = HttpVersion.`1.1`,
+                code    = HttpCodes.OK,
+                headers = new HttpHeaders(Array(plaintextHeader, serverHeader, dateHeader))
+              ),
+              response
             )
             Callback.successful(res)
           } else if (request.head.url == "/json") {
