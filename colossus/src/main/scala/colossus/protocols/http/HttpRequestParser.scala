@@ -56,7 +56,7 @@ class HttpHeadParser extends Parser[HeadResult]{
     }
 
     def build: HeadResult = {
-      val r = HeadResult(HttpRequestHead(HttpMethod(method), path, HttpVersion(version), new HttpHeaders(headers)), contentLength, transferEncoding)
+      val r = HeadResult(HttpRequestHead(HttpMethod(method), path, HttpVersion(version), new HttpHeaders(headers.toArray)), contentLength, transferEncoding)
       reset()
       r
     }

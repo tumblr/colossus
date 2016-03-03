@@ -196,11 +196,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   def accepting: Receive = {
     case Select => {
-      var n = 0
-      while (n < 5) {
-        selectLoop()
-        n += 1
-      }
+      selectLoop()
       self ! Select
     }
     case c: IOCommand => handleIOCommand(c)

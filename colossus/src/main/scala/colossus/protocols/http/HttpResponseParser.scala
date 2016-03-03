@@ -65,7 +65,7 @@ object HttpResponseParser  {
     
 
   protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case version ~ code ~ headers => 
-    HttpResponseHead(version, code, new HttpHeaders(headers.map{case (k,v) => HttpHeader(k,v)}.toList))
+    HttpResponseHead(version, code, new HttpHeaders(headers.map{case (k,v) => HttpHeader(k,v)}.toArray))
   }
 
   protected def firstLine = version ~ code 

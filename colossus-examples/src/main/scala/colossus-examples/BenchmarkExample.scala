@@ -68,7 +68,7 @@ object BenchmarkService {
               version  = HttpVersion.`1.1`,
               code    = HttpCodes.OK,
               data    = response,
-              headers = HttpHeaders(plaintextHeader, serverHeader, dateHeader)
+              headers = new HttpHeaders(Array(plaintextHeader, serverHeader, dateHeader))
             )
             Callback.successful(res)
           } else if (request.head.url == "/json") {

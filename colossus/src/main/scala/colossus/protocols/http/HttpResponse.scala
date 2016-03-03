@@ -32,12 +32,7 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ht
     buffer.write(HttpResponseHeader.SPACE_ARRAY)
     buffer.write(code.headerArr)
     buffer.write(NEWLINE_ARRAY)
-    var writing = headers.headers
-    while (writing != Nil) {
-      buffer.write(writing.head.encoded)
-      buffer.write(NEWLINE_ARRAY)
-      writing = writing.tail
-    }
+    headers.encode(buffer)
   }
 
   def withHeader(key: String, value: String) = copy(headers = headers + (key -> value))
@@ -66,6 +61,7 @@ sealed trait BaseHttpResponse {
 //TODO: We need to make some headers like Content-Length, Transfer-Encoding,
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
+
 
 case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse with Encoder {
 

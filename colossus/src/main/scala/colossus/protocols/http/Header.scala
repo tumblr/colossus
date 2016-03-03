@@ -65,7 +65,7 @@ object HttpHeaders {
   val SetCookie         = "set-cookie"
   val TransferEncoding  = "transfer-encoding"
 
-  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toList)
+  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toArray)
 }
 
 trait HttpHeader {
@@ -95,12 +95,12 @@ object HttpHeader {
 
   object Conversions {
     implicit def stringTuple2Header(t: (String, String)): HttpHeader = HttpHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: List[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toList)
+    implicit def seqStringTuple2Headers(t: List[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toArray)
   }
 
 }
     
-class HttpHeaders(val headers: List[HttpHeader]) {
+class HttpHeaders(private val headers: Array[HttpHeader]) extends AnyVal {
   def singleHeader(name: String): Option[String] = {
     val l = name.toLowerCase
     headers.collectFirst{ case x if (x.key == l) => x.value }
@@ -116,15 +116,25 @@ class HttpHeaders(val headers: List[HttpHeader]) {
    * Be aware that lacking this header may or may not be a valid request,
    * depending if the "transfer-encoding" header is set to "chunked"
    */
-  lazy val contentLength: Option[Int] = singleHeader(HttpHeaders.ContentLength).map{_.toInt}
+  def contentLength: Option[Int] = singleHeader(HttpHeaders.ContentLength).map{_.toInt}
 
-  lazy val transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
+  def transferEncoding : TransferEncoding = singleHeader(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
 
-  lazy val connection: Option[Connection] = singleHeader(HttpHeaders.Connection).flatMap(Connection.unapply)
+  def connection: Option[Connection] = singleHeader(HttpHeaders.Connection).flatMap(Connection.unapply)
 
-  def + (kv: (String, String)) = new HttpHeaders(HttpHeader(kv._1, kv._2) :: headers)
+  def + (kv: (String, String)) = new HttpHeaders(headers :+ HttpHeader(kv._1, kv._2))
 
   def size = headers.size
+
+  def encode(buffer: core.DataOutBuffer) {
+    var i = 0
+    while (i < headers.size) {
+      buffer.write(headers(i).encoded)
+      buffer.write(HttpParse.NEWLINE_ARRAY)
+      i += 1
+    }
+
+  }
 
 }
 
