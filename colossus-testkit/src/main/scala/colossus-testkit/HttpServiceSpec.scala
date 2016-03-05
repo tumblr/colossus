@@ -43,7 +43,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
     }
   }
 
-  def get(url: String) = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = url, headers = Nil), None)
+  def get(url: String) = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = url, headers = Nil), None)
 
   def testGetCode(url : String, expectedCode : HttpCode) {
     val req = get(url)
@@ -69,17 +69,17 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
   }
 
   def testPost(url: String, data: String, expectedCode: HttpCode) {
-    val req = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Post, url = url, headers = List(("content-length" ->data.length.toString))), Some(ByteString(data)))
+    val req = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Post, url = url, headers = List(("content-length" ->data.length.toString))), Some(ByteString(data)))
     expectCode(req, expectedCode)
   }
 
   def testPost(url: String, data: String, expectedCode: HttpCode, expectedBody : String) {
-    val req = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Post, url = url, headers = List(("content-length" ->data.length.toString))), Some(ByteString(data)))
+    val req = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Post, url = url, headers = List(("content-length" ->data.length.toString))), Some(ByteString(data)))
     expectCodeAndBody(req, expectedCode, expectedBody)
   }
 
   def testDelete(url: String, expectedCode: HttpCode) {
-    val req = HttpRequest(HttpHead(version = HttpVersion.`1.1`, method = HttpMethod.Delete, url = url, headers = List()), None)
+    val req = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Delete, url = url, headers = List()), None)
     expectCode(req, expectedCode)
   }
     
