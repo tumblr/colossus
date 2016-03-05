@@ -125,8 +125,9 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
   private val droppedRequests     = Rate(name / "dropped_requests")
   private val connectionFailures  = Rate(name / "connection_failures")
   private val disconnects         = Rate(name / "disconnects")
-  private val latency             = Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99))
-  private val queueTime           = Histogram(name / "queue_time", sampleRate = 0.10, percentiles = List(0.5, 0.99))
+  private val latency             = Histogram(name / "latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
+  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5, 0.99))
+  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5, 0.99))
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
@@ -208,7 +209,8 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
     val now = System.currentTimeMillis
     try {
       val source = sentBuffer.dequeue()
-      latency.add(tags = hpTags, value = (now - source.sendTime).toInt)
+      latency.add(tags = hpTags, value = (now - source.queueTime).toInt)
+      transitTime.add(tags = hpTags, value = (now - source.sendTime).toInt)
       source.handler(Success(response))
       requests.hit(tags = hpTags)
     } catch {
