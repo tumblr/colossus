@@ -126,8 +126,8 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
   private val connectionFailures  = Rate(name / "connection_failures")
   private val disconnects         = Rate(name / "disconnects")
   private val latency             = Histogram(name / "latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
-  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5, 0.99))
-  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5, 0.99))
+  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5))
+  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5))
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
