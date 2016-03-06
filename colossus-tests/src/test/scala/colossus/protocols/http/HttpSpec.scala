@@ -10,9 +10,11 @@ import akka.util.ByteString
 
 class HttpSpec extends WordSpec with MustMatchers{
 
+  import HttpHeader.Conversions._
+
   "http request" must {
     "encode to bytes" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -26,7 +28,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "encode request with headers and no body" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -40,7 +42,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to close HTTP/1.0 requests without the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.0`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -52,7 +54,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to close HTTP/1.0 requests without keep-alive in the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.0`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -64,7 +66,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to persist HTTP/1.0 requests with keep-alive in the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.0`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -76,7 +78,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to persist HTTP/1.1 requests without the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -88,7 +90,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to persist HTTP/1.1 requests without close in the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -100,7 +102,7 @@ class HttpSpec extends WordSpec with MustMatchers{
     }
 
     "want to close HTTP/1.1 requests with close in the Connection header" in {
-      val head = HttpHead(
+      val head = HttpRequestHead(
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
@@ -116,7 +118,7 @@ class HttpSpec extends WordSpec with MustMatchers{
   "http response" must {
     "encode basic response" in {
       val content = "Hello World!"
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
       val buf = new DynamicOutBuffer(100)
       val res = response.encode(buf)
@@ -126,7 +128,7 @@ class HttpSpec extends WordSpec with MustMatchers{
 
     "encode a basic response as a stream" ignore {
       val content = "Hello World!"
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(content))
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), ByteString(content))
       val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
       //val stream: DataReader = StreamingHttpResponse.fromStatic(response).encode(new DynamicOutBuffer(100))
     }

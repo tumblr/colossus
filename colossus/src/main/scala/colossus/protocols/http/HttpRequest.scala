@@ -52,7 +52,7 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
       val buf = new core.DynamicOutBuffer(200, false)
       headers.encode(buf)
       val encodedHeaders = ByteString(buf.data.data)
-      reqString ++ encodedHeaders ++ ByteString("\r\n\r\n")
+      reqString ++ encodedHeaders ++ ByteString("\r\n")
     } else {
       reqString ++ ByteString("\r\n")
     }

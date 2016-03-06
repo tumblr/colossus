@@ -73,6 +73,15 @@ trait HttpHeader {
   def value: String
   def encoded: Array[Byte]
 
+  override def equals(that: Any): Boolean = that match {
+    case that: HttpHeader => this.key == that.key && this.value == that.value
+    case other => false
+  }
+
+  override def hashCode = (key + value).hashCode
+
+  override def toString = s"($key,$value)"
+
 }
 
 //generally created when encoding http responses
@@ -95,12 +104,12 @@ object HttpHeader {
 
   object Conversions {
     implicit def stringTuple2Header(t: (String, String)): HttpHeader = HttpHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: List[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toArray)
+    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toArray)
   }
 
 }
     
-class HttpHeaders(private val headers: Array[HttpHeader]) extends AnyVal {
+class HttpHeaders(private val headers: Array[HttpHeader]) {
   def singleHeader(name: String): Option[String] = {
     val l = name.toLowerCase
     headers.collectFirst{ case x if (x.key == l) => x.value }
@@ -126,6 +135,8 @@ class HttpHeaders(private val headers: Array[HttpHeader]) extends AnyVal {
 
   def size = headers.size
 
+  def toSeq : Seq[HttpHeader] = headers
+
   def encode(buffer: core.DataOutBuffer) {
     var i = 0
     while (i < headers.size) {
@@ -135,6 +146,13 @@ class HttpHeaders(private val headers: Array[HttpHeader]) extends AnyVal {
     }
 
   }
+
+  override def equals(that: Any): Boolean = that match {
+    case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
+    case other => false
+  }
+
+  override def toString = "[" + headers.map{_.toString}.mkString(" ") + "]"
 
 }
 

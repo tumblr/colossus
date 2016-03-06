@@ -63,7 +63,7 @@ sealed trait BaseHttpResponse {
 //prevent things like creating a response with the wrong content length
 
 
-class HttpResponseBody(private val body: Array[Byte]) extends AnyVal {
+class HttpResponseBody(private val body: Array[Byte])  {
 
   def size = body.size
 
@@ -72,6 +72,13 @@ class HttpResponseBody(private val body: Array[Byte]) extends AnyVal {
   }
 
   def bytes: ByteString = ByteString(body)
+
+  override def equals(that: Any) = that match {
+    case that: HttpResponseBody => that.bytes == this.bytes
+    case other => false
+  }
+
+  override def toString = bytes.utf8String
 
 }
 
