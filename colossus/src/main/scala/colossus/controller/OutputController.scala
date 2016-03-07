@@ -254,7 +254,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private def signalWrite() {
     connectionState match {
       case a: AliveState => {
-        a.endpoint.requestWrite()
+        if (writesEnabled) a.endpoint.requestWrite()
       }
       case _ => {}
     }
@@ -404,7 +404,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
           }
           //TODO this can be cleaned up somehow
           if (continue) {
-            if (state.disconnecting || state.msgQ.size > 0) {
+            if (state.disconnecting || (writesEnabled && state.msgQ.size > 0)) {
               //return incomplete only if we overflowed the buffer and have more
               //in the queue, or id disconnecting to finish the disconnect
               //process

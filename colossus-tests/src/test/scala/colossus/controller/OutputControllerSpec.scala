@@ -64,7 +64,7 @@ class OutputControllerSpec extends ColossusSpec {
       p2.expectSuccess()
     }
 
-    "respect pausing writes" in {
+    "respect pausing writes while writing" in {
       val endpoint = static()
       val data = ByteString("hello")
       endpoint.typedHandler.testPush(data){ case _ => endpoint.typedHandler.testPause() }
@@ -76,6 +76,16 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.iterate()
       p.expectSuccess()
     }
+
+    "not request a write when writes are paused" in {
+      val endpoint = static()
+      val data = ByteString("hello")
+      endpoint.writeReadyEnabled must equal(false)
+      endpoint.typedHandler.testPause()
+      val p = endpoint.typedHandler.pPush(data)
+      endpoint.writeReadyEnabled must equal(false)
+    }
+
       
 
     "drain output buffer on disconnect" in {
