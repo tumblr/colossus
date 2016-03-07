@@ -31,12 +31,12 @@ object UpgradeRequest {
   def unapply(request : HttpRequest): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
-      cheader   <- headers.singleHeader("connection") 
-      uheader   <- headers.singleHeader("upgrade") 
-      host      <- headers.singleHeader("host")
-      origin    <- headers.singleHeader("origin")
-      seckey    <- headers.singleHeader("sec-websocket-key")
-      secver    <- headers.singleHeader("sec-websocket-version") 
+      cheader   <- headers.firstValue("connection") 
+      uheader   <- headers.firstValue("upgrade") 
+      host      <- headers.firstValue("host")
+      origin    <- headers.firstValue("origin")
+      seckey    <- headers.firstValue("sec-websocket-key")
+      secver    <- headers.firstValue("sec-websocket-version") 
       if (request.head.version == HttpVersion.`1.1`)
       if (request.head.method == HttpMethod.Get)
       if (secver == "13")

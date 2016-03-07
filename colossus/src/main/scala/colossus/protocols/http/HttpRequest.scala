@@ -29,7 +29,7 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
     copy(headers = headers + (header -> value))
   }
 
-  lazy val cookies: Seq[Cookie] = headers.multiHeader(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
+  lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
 
   //we should only encode if the string is decoded.
   //To check for that, if we decode an already decoded URL, it should not change (this may not be necessary)
@@ -96,7 +96,6 @@ object HttpRequest {
   def apply(method: HttpMethod, url: String, body: Option[String]): HttpRequest = {
     val bodybytes = body.map{ByteString(_)}
     val head = HttpRequestHead(method, url, HttpVersion.`1.1`, List((HttpHeaders.ContentLength -> bodybytes.map{_.size.toString}.getOrElse("0"))))
-    //val head = HttpHead(method, url, HttpVersion.`1.1`, Map(HttpHeaders.ContentLength -> List(bodybytes.map{_.size.toString}.getOrElse("0"))))
     HttpRequest(head, bodybytes)
   }
 
