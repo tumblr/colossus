@@ -179,9 +179,6 @@ abstract class WebsocketHandler(context: Context) extends Controller(new Websock
     fullHandler(message.payload)
   }
 
-  //TODO : generalize the stuff in Service and use it for this and for Task as well
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
-
   def preStart(){}
 
   def postStop(){}

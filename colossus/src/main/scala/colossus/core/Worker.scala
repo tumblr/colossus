@@ -42,7 +42,7 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
 
   private[colossus] def generateId() = idGenerator.incrementAndGet()
 
-  private[colossus] def generateContext() = Context(generateId(), this)
+  private[colossus] def generateContext() = new Context(generateId(), this)
 
   /**
    * Send this Worker a message
@@ -58,7 +58,7 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
    * lifecycle is single-threaded.
    */
   def bind[T <: WorkerItem](creator: Context => T): T = {
-    val context = Context(generateId(), this)
+    val context = generateContext()
     val item = creator(context)
     worker ! IOCommand.BindWorkerItem(_ => item)
     item
@@ -110,6 +110,9 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
       val item = workerItems(id)
       workerItems -= id
       item.setUnbind()
+      if (item.context.proxyExists) {
+        item.context.proxy ! PoisonPill
+      }
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
     }
