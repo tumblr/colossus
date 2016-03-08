@@ -14,7 +14,8 @@ import scala.concurrent.duration.Duration
  */
 case class ControllerConfig(
   outputBufferSize: Int,
-  sendTimeout: Duration
+  sendTimeout: Duration,
+  flushBufferOnClose: Boolean = true
 )
 
 //used to terminate input streams when a connection is closing
