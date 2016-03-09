@@ -6,7 +6,6 @@ import akka.event.LoggingAdapter
 import metrics._
 import service.CallbackExecution
 
-import java.util.concurrent.atomic.AtomicLong
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
@@ -38,11 +37,8 @@ case class WorkerConfig(
  */
 case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSystem) {
 
-  private val idGenerator = new AtomicLong(1)
 
-  private[colossus] def generateId() = idGenerator.incrementAndGet()
-
-  private[colossus] def generateContext() = new Context(generateId(), this)
+  private[colossus] def generateContext() = new Context(system.generateId(), this)
 
   /**
    * Send this Worker a message
@@ -181,8 +177,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   val delegators = collection.mutable.Map[ActorRef, Delegator]()
 
   val me = WorkerRef(workerId, self, io)
-
-  def newId() = me.generateId
 
   //collection of all the bound WorkerItems, including connection handlers
   val workerItems = new WorkerItemManager(me, log)

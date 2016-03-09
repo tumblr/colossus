@@ -2,6 +2,7 @@ package colossus
 package core
 
 import akka.actor._
+import akka.agent.Agent
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
@@ -24,7 +25,8 @@ private[colossus] case class WorkerManagerConfig(numWorkers: Int, metrics: Metri
  *
  * @param config configuration parameters
  */
-private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor with ActorLogging with Stash {
+private[colossus] class WorkerManager(config: WorkerManagerConfig, workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem) 
+extends Actor with ActorLogging with Stash {
   import config._
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -43,10 +45,13 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   }
 
   //NOTE: private?
-  case class State(workers: Seq[ActorRef], system: IOSystem) {
+  case class State(workers: Seq[ActorRef]) {
     val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
   }
 
+  //TODO : this can be totally eliminated since now we get the IOSystem during
+  //construction, we can also create the workers and the worker router during
+  //construction
   var currentState: Option[State] = None
 
 
@@ -68,30 +73,31 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   }
 
   def receive = startingUp orElse {
-    case Initialize(system) => {
+    case Initialize => {
       val workers = (1 to numWorkers).map{i =>
         val workerConfig = WorkerConfig(
           workerId = i,
-          io = system
+          io = ioSystem
         )
         val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$i")
         context.watch(worker)
         worker
       }
-      val state = State(workers, system)
+      val state = State(workers)
       currentState = Some(state)
-      context.become(waitForWorkers(state, 0))
+      context.become(waitForWorkers(state, Vector()))
     }
     case other => stash() //unstash happens when we enter the running state in waitForWorkers
   }
 
 
 
-  def waitForWorkers(state: State, ready: Int): Receive = startingUp orElse {
-    case WorkerReady => {
-      val nowReady = ready + 1
-      if (nowReady == numWorkers) {
+  def waitForWorkers(state: State, ready: Vector[WorkerRef]): Receive = startingUp orElse {
+    case WorkerReady(worker) => {
+      val nowReady = ready :+ worker
+      if (nowReady.size == numWorkers) {
         log.info("All Workers reports ready, lets do this")
+        workerAgent alter{_ => nowReady}
         context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
         unstashAll()
         context.become(running(state))
@@ -235,7 +241,7 @@ private[colossus] object WorkerManager {
   case object WorkersNotReady
 
   //send from workers to the manager
-  private[colossus] case object WorkerReady
+  private[colossus] case class WorkerReady(worker: WorkerRef)
   private[colossus] case object ServerRegistered
   private[colossus] case object RegistrationFailed
 
