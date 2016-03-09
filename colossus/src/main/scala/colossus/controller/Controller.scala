@@ -94,7 +94,7 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
    */
   private[controller] def checkControllerGracefulDisconnect() {
     (connectionState, inputState, outputState) match {
-      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated()) => {
+      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
         super.shutdown()
       }
       case _ => {} 
