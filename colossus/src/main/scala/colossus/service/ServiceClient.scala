@@ -125,16 +125,16 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
   private val droppedRequests     = Rate(name / "dropped_requests")
   private val connectionFailures  = Rate(name / "connection_failures")
   private val disconnects         = Rate(name / "disconnects")
-  private val latency             = Histogram(name / "latency", sampleRate = 0.10, percentiles = List(0.75,0.99))
+  private val latency             = Histogram(name / "latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
+  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5))
+  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5))
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
   private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
 
-  case class SourcedRequest(message: I, handler: ResponseHandler) {
-    val start: Long = System.currentTimeMillis
-
-    def isTimedOut(now: Long) = now > (start + responseTimeoutMillis)
+  case class SourcedRequest(message: I, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
+    def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
   }
 
 
@@ -173,8 +173,30 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
    * Sent a request to the service, along with a handler for processing the response.
    */
   private def sendNow(request: I)(handler: ResponseHandler){
-    val s = SourcedRequest(request, handler)
-    attemptWrite(s)
+    val queueTime = System.currentTimeMillis
+    if (disconnecting) {
+      // don't allow any new requests, appear as if we're dead
+      failRequest(handler, new NotConnectedException("Not Connected"))
+    } else if (isConnected || !failFast) {
+      val pushed = push(request, queueTime){
+        case OutputResult.Success         => {
+          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis) 
+          sentBuffer.enqueue(s)
+          this.queueTime.add((s.sendTime - s.queueTime).toInt, hpTags)
+          if (sentBuffer.size >= config.sentBufferSize) {
+            pauseWrites() //writes resumed in processMessage
+          }
+        }
+        case OutputResult.Failure(err)    => failRequest(handler, err)
+        case OutputResult.Cancelled(err)  => failRequest(handler, err)
+      }
+      if (!pushed) {
+        failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
+      }
+    } else {
+      droppedRequests.hit(tags = hpTags)
+      failRequest(handler, new NotConnectedException("Not Connected"))
+    }
   }
 
   /**
@@ -187,7 +209,8 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
     val now = System.currentTimeMillis
     try {
       val source = sentBuffer.dequeue()
-      latency.add(tags = hTags, value = (now - source.start).toInt) //notice only grouping by host for now
+      latency.add(tags = hpTags, value = (now - source.queueTime).toInt)
+      transitTime.add(tags = hpTags, value = (now - source.sendTime).toInt)
       source.handler(Success(response))
       requests.hit(tags = hpTags)
     } catch {
@@ -208,7 +231,7 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach(failRequest(_, reason))
+    sentBuffer.foreach { s => failRequest(s.handler, reason) } 
     sentBuffer.clear()
     if (failFast) {
       purgePending(reason)
@@ -260,27 +283,6 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
 
 
   private def attemptWrite(s: SourcedRequest) {
-    if (disconnecting) {
-      // don't allow any new requests, appear as if we're dead
-      failRequest(s, new NotConnectedException("Not Connected"))
-    } else if (isConnected || !failFast) {
-      val pushed = push(s.message, s.start){
-        case OutputResult.Success         => {
-          sentBuffer.enqueue(s)
-          if (sentBuffer.size >= config.sentBufferSize) {
-            pauseWrites() //writes resumed in processMessage
-          }
-        }
-        case OutputResult.Failure(err)    => failRequest(s, err)
-        case OutputResult.Cancelled(err)  => failRequest(s, err)
-      }
-      if (!pushed) {
-        failRequest(s, new ClientOverloadedException(s"Error sending ${s.message}: Client is overloaded"))
-      }
-    } else {
-      droppedRequests.hit(tags = hpTags)
-      failRequest(s, new NotConnectedException("Not Connected"))
-    }
   }
 
   override def shutdown() {
@@ -307,10 +309,10 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
     }
   }
 
-  private def failRequest(s: SourcedRequest, exception: Throwable): Unit = {
+  private def failRequest(handler: ResponseHandler, exception: Throwable): Unit = {
     // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
     errors.hit(tags = hpTags + ("type" -> exception.getClass.getName.replaceAll("[^\\w]", "")))
-    s.handler(Failure(exception))
+    handler(Failure(exception))
   }
 }
 

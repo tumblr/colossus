@@ -56,6 +56,11 @@ class HistogramSpec extends MetricIntegrationSpec {
       (new BaseHistogram).snapshot.mean must equal(0)
     }
 
+    "handle possible race condition" in {
+      val s = Snapshot(0,0 ,0, 1, Vector())
+      s.percentiles(Seq(0.5, 1.0)) must equal(Map(0.5 -> 0, 1.0 -> 0))
+    }
+
   }
 
   "Histogram" must {

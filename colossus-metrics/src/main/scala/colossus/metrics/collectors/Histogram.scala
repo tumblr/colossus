@@ -57,7 +57,7 @@ case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vec
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
-        if (perc <= 0.0 || count == 0) {
+        if (perc <= 0.0 || count == 0 || bucketValues.size == 0) {
           p(num, index, build :+ 0, remain.tail)
         } else if (perc >= 1.0) {
           p(num, index, build :+ max, remain.tail)          
