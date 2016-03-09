@@ -146,23 +146,21 @@ object ProxyActor {
 
 class WorkerItemProxy(id: Long, worker: WorkerRef) extends Actor {
   
+  println("STARTING PROXY " + id.toString)
   import WorkerItemProxy._
 
   def receive = {
     case p: ProxyCommand => p match {
       case _ => ()
     }
-    case x => worker.worker ! WorkerCommand.Message(id, x)
+    case Worker.MessageDeliveryFailed(_,_) => {
+      println("FAILED")
+    } //do anything here?
+    case x => { 
+      println(s"proxying $x")
+      worker.worker ! WorkerCommand.Message(id, x)
+    }
   }
-
-  override def preStart() {
-    println(s"starting proxy for $id")
-  }
-
-  override def postStop() {
-    println(s"stopping proxy for $id")
-  }
-
 
 }
 

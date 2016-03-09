@@ -185,7 +185,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   override def preStart() {
     super.preStart()
     log.debug(s"starting worker ${config.workerId}")
-    parent ! WorkerReady
+    parent ! WorkerReady(me)
     self ! Select
   }
 
@@ -284,6 +284,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         val item = itemFactory(me.generateContext)
         workerItems.bind(item)
         self ! WorkerCommand.Connect(address, item.id)
+      }
+      case BindWithContext(context, itemFactory) => {
+        if (context.worker != me) {
+          log.error("Attempted to bind to worker ${me.id} using a context for worker ${context.worker.id}")
+        } else {
+          val item = itemFactory(context)
+          if (!item.isBound) {
+            workerItems.bind(item)
+          }
+        }
       }
     }
   }

@@ -18,12 +18,12 @@ class TaskTest extends ColossusSpec {
   /* 
    * Notice in these tests we have to explicitly provide the sender when
    * sending an actor message from within the task, since there's ambiguous
-   * implicits (the task's proxy actor and the testkit implicit sender pulled
+   * implicits (the task's self actor and the testkit implicit sender pulled
    * in from ColossusSpec).  Normally you do not need to do that
   */
 
   /*
-   * NOTICE - in real life you don't need to explicitly pass the proxy as the
+   * NOTICE - in real life you don't need to explicitly pass the self as the
    * sender, just happens that the testkit already has an implicit sender
    */
 
@@ -33,55 +33,63 @@ class TaskTest extends ColossusSpec {
         val probe = TestProbe()
         Task.start(new Task(_) {
           def run() {
-            probe.ref.!("BOUND")(proxy)
+            probe.ref.!("BOUND")(self)
           }
+
+          def receive = {case _ => ()}
         })
             
         probe.expectMsg(500.milliseconds, "BOUND")
       }
     }    
 
-    "receive a message through worker" in {
-      withIOSystem{ implicit io =>
-        val probe = TestProbe()
-        Task.start(new Task(_) {
-          def run(){
-            worker.!(WorkerCommand.Message(id, "SEND"))(proxy)
-          }
-
-          override def receive = {
-            case "SEND" => probe.ref.!("RECEIVED")(proxy)
-          }
-        })
-        probe.expectMsg(500.milliseconds, "RECEIVED")
-      }
-    }
-
-    "receive through proxy" in {
+    "receive a message through the proxy" in {
       withIOSystem{ implicit io => 
+        val probe = TestProbe()
         val task = Task.start(new Task(_) {
-          def run(){}
+          def run(){
+          }
 
-          override def receive = {
-            case "PING" => sender.!( "PONG")(proxy)
+
+          def receive = {
+            case "PING" => probe.ref.!( "PONG")(self)
           }
         })
         task ! "PING"
-        expectMsg(100.milliseconds, "PONG")
+        probe.expectMsg(100.milliseconds, "PONG")
+      }
+
+    }
+
+    "receive through self" in {
+      withIOSystem{ implicit io => 
+        val probe = TestProbe()
+        val task = Task.start(new Task(_) {
+          def run(){
+            self ! "PING"
+          }
+
+
+          def receive = {
+            case "PING" => probe.ref.!( "PONG")(self)
+          }
+        })
+        probe.expectMsg(100.milliseconds, "PONG")
       }
     }
 
-    "unbind by killing proxy actor" in {
+    "unbind by killing self actor" ignore {
       withIOSystem{ implicit io =>
         val probe = TestProbe()
         val task = Task.start(new Task(_) {
           def run(){
-            probe.ref.!( "BOUND")(proxy)
+            probe.ref.!( "BOUND")(self)
           }
+          def receive = {case _ => ()}
 
           override def onUnbind() {
             super.onUnbind()
-            probe.ref.!( "UNBOUND")(proxy)
+            probe.ref.!( "UNBOUND")(self)
           }
         })
         probe.expectMsg(100.milliseconds, "BOUND")
