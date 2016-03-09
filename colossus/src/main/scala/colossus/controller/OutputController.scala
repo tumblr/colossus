@@ -204,7 +204,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private def signalWrite() {
     connectionState match {
       case a: AliveState => {
-        a.endpoint.requestWrite()
+        if (writesEnabled) a.endpoint.requestWrite()
       }
       case _ => {}
     }
