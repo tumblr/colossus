@@ -160,9 +160,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   import config.io.metrics.base
 
-  val eventLoops              = new Rate(io.namespace / "worker" / "event_loops")
-  val numConnections          = new Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = new Rate(io.namespace / "worker" / "rejected_connections")
+  val eventLoops              = Rate(io.namespace / "worker" / "event_loops")
+  val numConnections          = Counter(io.namespace / "worker" / "connections")
+  val rejectedConnections     = Rate(io.namespace / "worker" / "rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)

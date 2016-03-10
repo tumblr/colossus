@@ -180,7 +180,7 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram private[colossus](
+class Histogram private[metrics](
   val address: MetricAddress,
   percentiles: Seq[Double] = Histogram.defaultPercentiles,
   sampleRate: Double = 1.0, 

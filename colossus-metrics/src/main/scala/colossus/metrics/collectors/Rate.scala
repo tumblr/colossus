@@ -2,7 +2,7 @@ package colossus.metrics
 
 import scala.concurrent.duration._
 
-class Rate private[colossus](val address: MetricAddress, pruneEmpty: Boolean)(implicit collection: Collection) extends Collector {
+class Rate private[metrics](val address: MetricAddress, pruneEmpty: Boolean)(implicit collection: Collection) extends Collector {
 
   private val maps = collection.config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
 
