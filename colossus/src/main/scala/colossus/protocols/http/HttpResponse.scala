@@ -64,7 +64,7 @@ sealed trait BaseHttpResponse {
 
 
 
-case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends BaseHttpResponse with Encoder {
+case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttpResponse with Encoder {
 
   private def fastIntToString(in: Int, buf: DataOutBuffer) {
     if (in == 0) {
@@ -116,17 +116,17 @@ object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
 
-  def apply[T : ByteStringLike](head: HttpResponseHead, body: T): HttpResponse = {
-    HttpResponse(head, HttpResponseBody(implicitly[ByteStringLike[T]].toByteString(body)))
+  def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
+    HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), data)
   }
 
 
   def apply(version : HttpVersion, code : HttpCode, headers : HttpHeaders) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), new HttpResponseBody(Array()))
+    HttpResponse(HttpResponseHead(version, code, headers), HttpBody.NoBody)
   }
 
 }
@@ -168,10 +168,10 @@ object StreamingHttpResponse {
     StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.size.toString), Some(Source.one(DataBuffer(resp.body.bytes))))
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
-      HttpResponseBody(implicitly[ByteStringLike[T]].toByteString(data))
+      HttpBody(data)
     ))
   }
 

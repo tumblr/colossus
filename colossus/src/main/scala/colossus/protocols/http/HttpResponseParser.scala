@@ -26,6 +26,8 @@ object HttpResponseParser  {
 
   def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
 
+  import HttpBody._
+
 
   //TODO: eliminate duplicate code
   //TODO: Dechunk on static
@@ -33,9 +35,9 @@ object HttpResponseParser  {
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
     parsedHead.headers.transferEncoding match {
       case TransferEncoding.Identity => parsedHead.headers.contentLength match {
-        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, HttpResponseBody.NoBody)))
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
         case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
-        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, HttpResponseBody.NoBody)))
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
         case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
       }
       case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}

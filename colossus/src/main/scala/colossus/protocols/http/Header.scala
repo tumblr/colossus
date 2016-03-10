@@ -274,14 +274,14 @@ class HttpBody(private val body: Array[Byte])  {
 
   def size = body.size
 
-  def encode(buffer: DataOutBuffer) {
+  def encode(buffer: core.DataOutBuffer) {
     if (size > 0) buffer.write(body)
   }
 
   def bytes: ByteString = ByteString(body)
 
   override def equals(that: Any) = that match {
-    case that: HttpResponseBody => that.bytes == this.bytes
+    case that: HttpBody => that.bytes == this.bytes
     case other => false
   }
 
@@ -290,19 +290,19 @@ class HttpBody(private val body: Array[Byte])  {
 }
 
 trait HttpBodyEncoder[T] {
-  def encode: HttpBody
+  def encode(data: T): HttpBody
 }
 
 trait HttpBodyEncoders {
-  implicit object ByteStringEncoder extends HttpBodyEncodable[ByteString] {
-    def encode(b: ByteString): HttpBody = new HttpBody(data.toArray)
+  implicit object ByteStringEncoder extends HttpBodyEncoder[ByteString] {
+    def encode(data: ByteString): HttpBody = new HttpBody(data.toArray)
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    def encode(s: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"))
+    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"))
   }
 
-  implicit object IdentityEncoder extends HttpBodyEnvoder[HttpBody] {
+  implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
     def encode(b: HttpBody) = b
   }
 }
@@ -311,6 +311,6 @@ object HttpBody extends HttpBodyEncoders {
   
   val NoBody = HttpBody("")
   
-  def apply(data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder(data)
+  def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
 
 }

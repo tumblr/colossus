@@ -31,15 +31,15 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
 
   lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
 
-  def encode(buffer: DynamicOutBuffer) {
+  def encode(buffer: core.DataOutBuffer) {
     buffer write method.bytes
-    byffer write ' '
+    buffer write ' '
     buffer write url.getBytes("UTF-8")
     buffer write ' '
     buffer write version.messageArr
-    buffer write NEWLINE_ARRAY
+    buffer write HttpParse.NEWLINE_ARRAY
     headers encode buffer
-    buffer write NEWLINE_ARRAY
+    buffer write HttpParse.NEWLINE_ARRAY
   }
 
   def persistConnection: Boolean = {
@@ -68,8 +68,9 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) {
   def unauthorized[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(UNAUTHORIZED, message, headers)
   def forbidden[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)    = respond(FORBIDDEN, message, headers)
 
-  def encode(buffer: DataOutBuffer) {
+  def encode(buffer: core.DataOutBuffer) {
     head encode buffer
+    //TODO : write content-length
     body encode buffer
   }
 
@@ -78,7 +79,7 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) {
 
 object HttpRequest {
 
-  def apply[T : HttpBodyEcoder](method: HttpMethod, url: String, body: T): HttpRequest = {
+  def apply[T : HttpBodyEncoder](method: HttpMethod, url: String, body: T): HttpRequest = {
     val head = HttpRequestHead(method, url, HttpVersion.`1.1`, HttpHeaders.Empty)
     HttpRequest(head, HttpBody(body))
   }
