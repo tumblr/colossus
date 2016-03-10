@@ -9,7 +9,10 @@ import scala.collection.immutable.HashMap
 import parsing.ParseException
 
 
-sealed abstract class HttpMethod(val name: String)
+sealed abstract class HttpMethod(val name: String) {
+  val bytes: Array[Byte] = name.getBytes("UTF-8")
+}
+
 object HttpMethod {
   case object Get     extends HttpMethod("GET")
   case object Post    extends HttpMethod("POST")
@@ -47,26 +50,6 @@ object HttpVersion {
   }
 }
 
-object HttpHeaders {
-  /**
-   * by default we're going to disallow multivalues on everything except those
-   * defined below
-   */
-  val allowedMultiValues = List(
-    "set-cookie"
-  )
-
-  //make these all lower-case
-  val Accept            = "accept"
-  val Connection        = "connection"
-  val ContentLength     = "content-length"
-  val ContentType       = "content-type"
-  val CookieHeader      = "cookie"
-  val SetCookie         = "set-cookie"
-  val TransferEncoding  = "transfer-encoding"
-
-  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toArray)
-}
 
 trait HttpHeader {
   def key: String
@@ -100,12 +83,6 @@ class DecodedHeader(val key: String, val value: String) extends HttpHeader {
 
 object HttpHeader {
   def apply(key: String, value: String): HttpHeader = (new DecodedHeader(key, value)).toEncodedHeader
-
-
-  object Conversions {
-    implicit def stringTuple2Header(t: (String, String)): HttpHeader = HttpHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): HttpHeaders = new HttpHeaders(t.map{stringTuple2Header}.toArray)
-  }
 
 }
     
@@ -154,6 +131,30 @@ class HttpHeaders(private val headers: Array[HttpHeader]) {
 
   override def toString = "[" + headers.map{_.toString}.mkString(" ") + "]"
 
+}
+
+object HttpHeaders {
+
+  /**
+   * by default we're going to disallow multivalues on everything except those
+   * defined below
+   */
+  val allowedMultiValues = List(
+    "set-cookie"
+  )
+
+  //make these all lower-case
+  val Accept            = "accept"
+  val Connection        = "connection"
+  val ContentLength     = "content-length"
+  val ContentType       = "content-type"
+  val CookieHeader      = "cookie"
+  val SetCookie         = "set-cookie"
+  val TransferEncoding  = "transfer-encoding"
+
+  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toArray)
+
+  val Empty = new HttpHeaders(Array())
 }
 
 
@@ -269,3 +270,47 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 }
 
 
+class HttpBody(private val body: Array[Byte])  {
+
+  def size = body.size
+
+  def encode(buffer: DataOutBuffer) {
+    if (size > 0) buffer.write(body)
+  }
+
+  def bytes: ByteString = ByteString(body)
+
+  override def equals(that: Any) = that match {
+    case that: HttpResponseBody => that.bytes == this.bytes
+    case other => false
+  }
+
+  override def toString = bytes.utf8String
+
+}
+
+trait HttpBodyEncoder[T] {
+  def encode: HttpBody
+}
+
+trait HttpBodyEncoders {
+  implicit object ByteStringEncoder extends HttpBodyEncodable[ByteString] {
+    def encode(b: ByteString): HttpBody = new HttpBody(data.toArray)
+  }
+
+  implicit object StringEncoder extends HttpBodyEncoder[String] {
+    def encode(s: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"))
+  }
+
+  implicit object IdentityEncoder extends HttpBodyEnvoder[HttpBody] {
+    def encode(b: HttpBody) = b
+  }
+}
+
+object HttpBody extends HttpBodyEncoders {
+  
+  val NoBody = HttpBody("")
+  
+  def apply(data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder(data)
+
+}

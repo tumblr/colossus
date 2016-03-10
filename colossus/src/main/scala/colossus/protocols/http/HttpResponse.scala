@@ -63,33 +63,6 @@ sealed trait BaseHttpResponse {
 //prevent things like creating a response with the wrong content length
 
 
-class HttpResponseBody(private val body: Array[Byte])  {
-
-  def size = body.size
-
-  def encode(buffer: DataOutBuffer) {
-    if (size > 0) buffer.write(body)
-  }
-
-  def bytes: ByteString = ByteString(body)
-
-  override def equals(that: Any) = that match {
-    case that: HttpResponseBody => that.bytes == this.bytes
-    case other => false
-  }
-
-  override def toString = bytes.utf8String
-
-}
-
-object HttpResponseBody {
-  
-  val NoBody = HttpResponseBody("")
-  
-  def apply(data: ByteString): HttpResponseBody = new HttpResponseBody(data.toArray)
-  def apply(data: String) : HttpResponseBody = new HttpResponseBody(data.getBytes("UTF-8"))
-
-}
 
 case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends BaseHttpResponse with Encoder {
 
