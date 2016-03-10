@@ -52,6 +52,23 @@ class RateSpec extends MetricIntegrationSpec {
       rate().tick(1.second) must equal(Map())
     }
 
+    "prune empty values" in {
+      val r = rate()
+      r.hit(Map("a" -> "b"))
+      r.hit(Map("b" -> "c"))
+      r.hit(Map("b" -> "c"))
+      val s = r.tick(1.second)
+      s("foo").size must equal(2)
+      s("foo/count").size must equal(2)
+      r.hit(Map("a" -> "b"))
+      val s2 = t.tick(1.second)
+      s("foo").size must equal(1)
+      s("foo/count").size must equal(1)
+      s("foo")(Map("b" -> "c")) must equal(1)
+    }
+
+
+
 
   }
 
