@@ -78,6 +78,22 @@ class HistogramSpec extends MetricIntegrationSpec {
       m(addr / "count")(Map("foo" -> "bar")) must equal(1)
       m(addr / "count")(Map("foo" -> "baz")) must equal(2)
     }
+
+    "prune empty values" in {
+      implicit val col = new Collection(CollectorConfig(List(1.second)))
+      val addr = MetricAddress.Root / "hist"
+      val h = Histogram(addr, pruneEmpty = true)
+      h.add(10, Map("foo" -> "bar"))
+      h.add(20, Map("foo" -> "baz"))
+      h.add(20, Map("foo" -> "baz"))
+      val m = h.tick(1.second)
+      m(addr)(Map("foo" -> "bar", "label" -> "min")) must equal(10)
+      m(addr)(Map("foo" -> "baz", "label" -> "min")) must equal(20)
+      h.add(10, Map("foo" -> "bar"))
+      val m2 = h.tick(1.second)
+      m(addr)(Map("foo" -> "bar", "label" -> "min")) must equal(10)
+      m2(addr).get(Map("foo" -> "baz", "label" -> "min")).isEmpty must equal(true)
+    }
   }
 
 

@@ -44,8 +44,13 @@ object Histogram {
     BucketList(buckets)
   }
   
-  def apply(address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection): Histogram = {
-    collection.getOrAdd(new Histogram(address, percentiles, sampleRate))
+  def apply(
+    address: MetricAddress,
+    percentiles: Seq[Double] = Histogram.defaultPercentiles,
+    sampleRate: Double = 1.0,
+    pruneEmpty: Boolean = false
+  )(implicit collection: Collection): Histogram = {
+    collection.getOrAdd(new Histogram(address, percentiles, sampleRate, pruneEmpty))
   }
 
 }
@@ -175,7 +180,12 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-class Histogram private[colossus](val address: MetricAddress, percentiles: Seq[Double] = Histogram.defaultPercentiles, sampleRate: Double = 1.0)(implicit collection: Collection) extends Collector {
+class Histogram private[colossus](
+  val address: MetricAddress,
+  percentiles: Seq[Double] = Histogram.defaultPercentiles,
+  sampleRate: Double = 1.0, 
+  pruneEmpty: Boolean = false
+)(implicit collection: Collection) extends Collector {
 
   val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
@@ -204,12 +214,19 @@ class Histogram private[colossus](val address: MetricAddress, percentiles: Seq[D
     while (keys.hasMoreElements) {
       val key = keys.nextElement
       val snap = taghist.get(key).snapshot
-      val keymap = snap.metrics(address, key, percentiles)
-      keymap.foreach{ case (addr, values) =>
-        if (build contains addr) {
-          build(addr) = build(addr) ++ values
-        } else {
-          build(addr) = values
+      if (snap.count == 0 && pruneEmpty) {
+        //there is obviously a race condition here where another thead could be
+        //simultaneously hitting this histogram, but basically all that happens
+        //is one value is lost
+        taghist.remove(key)
+      } else {
+        val keymap = snap.metrics(address, key, percentiles)
+        keymap.foreach{ case (addr, values) =>
+          if (build contains addr) {
+            build(addr) = build(addr) ++ values
+          } else {
+            build(addr) = values
+          }
         }
       }
     }
