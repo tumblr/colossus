@@ -9,9 +9,8 @@ import service._
 import akka.util.ByteString
 import scala.concurrent.ExecutionContext
 
-package object http {
+package object http extends HttpBodyEncoders {
 
-  import HttpBody._
 
   class InvalidRequestException(message: String) extends Exception(message)
 

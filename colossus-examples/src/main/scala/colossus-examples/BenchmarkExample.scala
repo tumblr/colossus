@@ -35,7 +35,7 @@ object BenchmarkService {
       }
     }
   }
-  val response          = HttpResponseBody("Hello, World!")
+  val response          = HttpBody("Hello, World!")
   val plaintextHeader   = HttpHeader("Content-Type", "text/plain")
   val jsonHeader        = HttpHeader("Content-Type", "application/json")
   val serverHeader      = HttpHeader("Server", "Colossus")

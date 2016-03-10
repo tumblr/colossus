@@ -43,12 +43,12 @@ class HttpHeadParser extends Parser[HeadResult]{
     var method: String = ""
     var path: String = ""
     var version: String = ""
-    var headers = new java.util.ArrayList[HttpHeader]
+    var headers: List[HttpHeader] = Nil
     var contentLength: Option[Int] = None
     var transferEncoding: Option[String] = None
 
     def addHeader(name: String, value: String) {
-      headers add new DecodedHeader(name, value)
+      headers =  new DecodedHeader(name, value) :: headers
       if (name == HttpHeaders.ContentLength) {
         contentLength = Some(value.toInt)
       } else if (name == HttpHeaders.TransferEncoding) {
@@ -62,7 +62,7 @@ class HttpHeadParser extends Parser[HeadResult]{
           HttpMethod(method),
           path,
           HttpVersion(version),
-          new HttpHeaders(headers.toArray.asInstanceOf[Array[HttpHeader]])
+          new HttpHeaders(headers.toArray)
         ), 
         contentLength,
         transferEncoding
@@ -72,7 +72,7 @@ class HttpHeadParser extends Parser[HeadResult]{
     }
 
     def reset() {
-      headers = new java.util.ArrayList[HttpHeader]
+      headers = Nil
       contentLength = None
       transferEncoding = None
     }

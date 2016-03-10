@@ -53,7 +53,7 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
 
 }
 
-case class HttpRequest(head: HttpRequestHead, body: HttpBody) {
+case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends core.Encoder {
   import head._
   import HttpCodes._
 
