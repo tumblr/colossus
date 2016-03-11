@@ -85,7 +85,11 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttp
 
   def encode(buffer: DataOutBuffer) {
     head.encode(buffer)
-    buffer.write(HttpResponse.ContentLengthKey.toArray)
+    body.contentType.foreach{ctype =>
+      buffer.write(ctype.encoded)
+      buffer.write(HttpParse.NEWLINE_ARRAY)
+    }
+    buffer.write(HttpResponse.ContentLengthKeyArray)
     fastIntToString(body.size, buffer)
     buffer.write(N2)
     body.encode(buffer)
@@ -115,6 +119,7 @@ trait ByteStringLike[T] {
 object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
+  val ContentLengthKeyArray = ContentLengthKey.toArray
 
   def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
     HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))

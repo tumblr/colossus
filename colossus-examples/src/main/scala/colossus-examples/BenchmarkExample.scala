@@ -1,44 +1,24 @@
 package colossus.examples
 
 
-import java.util.Date
-import java.text.SimpleDateFormat
-
 import colossus._
 import colossus.core.{Initializer, Server, ServerRef, ServerSettings}
 import service._
 import Callback.Implicits._
 import protocols.http._
 
-import net.liftweb.json._
-import JsonDSL._
-import akka.actor._
-import akka.util.ByteString
-import scala.concurrent.duration._
-
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.json4s.JsonDSL._
 
 object BenchmarkService {
 
-  class Timestamp(server: ServerRef) extends Actor {
-        
-    val sdf = new SimpleDateFormat("EEE, MMM d yyyy HH:MM:ss z")
-    case object Tick
-    import context.dispatcher
-
-    override def preStart() {
-      self ! Tick
-    }
-
-    def receive = {
-      case Tick => {
-        server.delegatorBroadcast(sdf.format(new Date()))
-        context.system.scheduler.scheduleOnce(1.second, self, Tick)
-      }
-    }
+  implicit object JsonBody extends HttpBodyEncoder[JValue] {
+    val jsonHeader            = HttpHeader("Content-Type", "application/json")
+    def encode(json: JValue)  = new HttpBody(compact(render(json)).getBytes("UTF-8"), Some(jsonHeader))
   }
+
   val response          = HttpBody("Hello, World!")
-  val plaintextHeader   = HttpHeader("Content-Type", "text/plain")
-  val jsonHeader        = HttpHeader("Content-Type", "application/json")
   val serverHeader      = HttpHeader("Server", "Colossus")
 
 
@@ -55,21 +35,16 @@ object BenchmarkService {
 
     val server = Server.start("benchmark", serverConfig) { new Initializer(_) {
 
-      ///the ??? is filled in almost immediately
-      var dateHeader = HttpHeader("Date", "???")
+      val dateHeader = new DateHeader
 
-      override def receive = {
-        case ts: String => dateHeader = HttpHeader("Date", ts)
-      }
-      
       def onConnect = ctx => new Service[Http](serviceConfig, ctx){ 
         def handle = { 
           case request if (request.head.url == "/plaintext") => {
-            request.ok(response, HttpHeaders(plaintextHeader, serverHeader, dateHeader))
+            request.ok(response, HttpHeaders(serverHeader, dateHeader))
           } 
           case request if (request.head.url == "/json") => {
-            val json = ("message" -> "Hello, World!")
-            request.ok(compact(render(json)), HttpHeaders(jsonHeader, serverHeader, dateHeader))
+            val json: JValue = ("message" -> "Hello, World!")
+            request.ok(json, HttpHeaders(serverHeader, dateHeader))
           }
           case request => {
             request.notFound("invalid path")
@@ -78,7 +53,6 @@ object BenchmarkService {
       }
     }}
 
-    val timestamp = io.actorSystem.actorOf(Props(classOf[Timestamp], server))
   }
 
 }

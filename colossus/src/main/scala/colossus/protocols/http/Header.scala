@@ -269,8 +269,32 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
 }
 
+class DateHeader extends HttpHeader {
+  import java.util.Date
+  import java.text.SimpleDateFormat
 
-class HttpBody(private val body: Array[Byte])  {
+  private val formatter = new SimpleDateFormat("EEE, MMM d yyyy HH:MM:ss z")
+  
+  private def generate = HttpHeader("Date", formatter.format(new Date()))
+  private var lastDate = generate
+  private var lastTime = System.currentTimeMillis
+
+  def key = lastDate.key
+  def value = lastDate.value
+
+  def encoded = {
+    val t = System.currentTimeMillis
+    if (t > lastTime + 1000) {
+      lastDate = generate
+      lastTime = t
+    }
+    lastDate.encoded
+  }
+
+}
+
+
+class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeader] = None)  {
 
   def size = body.size
 
@@ -299,7 +323,8 @@ trait HttpBodyEncoders {
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"))
+    val ctype = HttpHeader("Content-Type", "text/plain")
+    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"), Some(ctype))
   }
 
   implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
