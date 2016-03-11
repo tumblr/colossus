@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat
 import colossus._
 import colossus.core.{Initializer, Server, ServerRef, ServerSettings}
 import service._
+import Callback.Implicits._
 import protocols.http._
 
 import net.liftweb.json._
@@ -52,7 +53,7 @@ object BenchmarkService {
       requestMetrics = false
     )
 
-    val server = Server.start("benchmark", serverConfig) { worker => new Initializer(worker) {
+    val server = Server.start("benchmark", serverConfig) { new Initializer(_) {
 
       ///the ??? is filled in almost immediately
       var dateHeader = HttpHeader("Date", "???")
@@ -62,28 +63,16 @@ object BenchmarkService {
       }
       
       def onConnect = ctx => new Service[Http](serviceConfig, ctx){ 
-        def handle = { case request => 
-          if (request.head.url == "/plaintext") {
-            val res = HttpResponse(
-              HttpResponseHead(
-                version  = HttpVersion.`1.1`,
-                code    = HttpCodes.OK,
-                headers = new HttpHeaders(Array(plaintextHeader, serverHeader, dateHeader))
-              ),
-              response
-            )
-            Callback.successful(res)
-          } else if (request.head.url == "/json") {
+        def handle = { 
+          case request if (request.head.url == "/plaintext") => {
+            request.ok(response, HttpHeaders(plaintextHeader, serverHeader, dateHeader))
+          } 
+          case request if (request.head.url == "/json") => {
             val json = ("message" -> "Hello, World!")
-            val res = HttpResponse(
-              version  = HttpVersion.`1.1`,
-              code    = HttpCodes.OK,
-              data    = compact(render(json)),
-              headers = HttpHeaders(jsonHeader, serverHeader, dateHeader)
-            )
-            Callback.successful(res)
-          } else {
-            Callback.successful(request.notFound("invalid path"))
+            request.ok(compact(render(json)), HttpHeaders(jsonHeader, serverHeader, dateHeader))
+          }
+          case request => {
+            request.notFound("invalid path")
           }
         }
       }
