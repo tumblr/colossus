@@ -46,9 +46,6 @@ object BenchmarkService {
             val json: JValue = ("message" -> "Hello, World!")
             request.ok(json, HttpHeaders(serverHeader, dateHeader))
           }
-          case request => {
-            request.notFound("invalid path")
-          }
         }
       }
     }}

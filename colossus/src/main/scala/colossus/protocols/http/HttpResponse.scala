@@ -87,7 +87,6 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttp
     head.encode(buffer)
     body.contentType.foreach{ctype =>
       buffer.write(ctype.encoded)
-      buffer.write(HttpParse.NEWLINE_ARRAY)
     }
     buffer.write(HttpResponse.ContentLengthKeyArray)
     fastIntToString(body.size, buffer)

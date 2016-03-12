@@ -70,18 +70,22 @@ trait HttpHeader {
 //generally created when encoding http responses
 class EncodedHeader(val encoded: Array[Byte], keyLength: Int, valueStart: Int) extends HttpHeader {
   lazy val key = new String(encoded.take(keyLength))
-  lazy val value = new String(encoded.drop(valueStart))
+  lazy val value = new String(encoded.drop(valueStart).dropRight(HttpHeader.NEWLINE.length))
 }
 
 //generally created when parsing http requests
 class DecodedHeader(val key: String, val value: String) extends HttpHeader {
-  lazy val encoded = (key + ": " + value).getBytes("UTF-8")
+  lazy val encoded = (key + HttpHeader.DELIM + value + HttpHeader.NEWLINE).getBytes("UTF-8")
 
-  def toEncodedHeader = new EncodedHeader(encoded, key.length, key.length + 2)
+  def toEncodedHeader = new EncodedHeader(encoded, key.length, key.length + HttpHeader.DELIM.length)
 }
 
 
 object HttpHeader {
+  val DELIM = ": "
+  val NEWLINE = "\r\n"
+
+
   def apply(key: String, value: String): HttpHeader = (new DecodedHeader(key, value)).toEncodedHeader
 
 }
@@ -118,7 +122,6 @@ class HttpHeaders(private val headers: Array[HttpHeader]) {
     var i = 0
     while (i < headers.size) {
       buffer.write(headers(i).encoded)
-      buffer.write(HttpParse.NEWLINE_ARRAY)
       i += 1
     }
 
