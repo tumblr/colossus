@@ -61,7 +61,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
           HttpCodes.OK,
           Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate")
         ),
-        HttpResponseBody(body)
+        HttpBody(body)
       ))
       parser.parse(DataBuffer(ByteString(res))) must equal(None)
       parser.endOfStream() must equal(Some(expected))

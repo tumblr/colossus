@@ -25,7 +25,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
       ("host" , "foo.bar"),
       ("origin", "http://foo.bar")
     )),
-    None
+    HttpBody.NoBody
   )
 
   "Http Upgrade Request" must {
@@ -48,7 +48,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
             HttpHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
           )
         ),
-        HttpResponseBody.NoBody
+        HttpBody.NoBody
       )
       UpgradeRequest.unapply(valid).get must equal(expected)
 

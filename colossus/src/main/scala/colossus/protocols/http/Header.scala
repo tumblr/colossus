@@ -88,6 +88,12 @@ object HttpHeader {
 
   def apply(key: String, value: String): HttpHeader = (new DecodedHeader(key, value)).toEncodedHeader
 
+  object Conversions {
+    implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = new HttpHeaders (
+      l.map{ case (k,v) => HttpHeader(k,v) }.toArray
+    )
+  }
+
 }
     
 class HttpHeaders(private val headers: Array[HttpHeader]) {
@@ -312,6 +318,8 @@ class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeade
     case other => false
   }
 
+  override def hashCode = body.hashCode
+
   override def toString = bytes.utf8String
 
 }
@@ -337,7 +345,7 @@ trait HttpBodyEncoders {
 
 object HttpBody extends HttpBodyEncoders {
   
-  val NoBody = HttpBody("")
+  val NoBody = new HttpBody(Array(), None)
   
   def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
 

@@ -74,6 +74,12 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends core.Encod
     body encode buffer
   }
 
+  def bytes: ByteString = {
+    val d = new core.DynamicOutBuffer(100, false)
+    encode(d)
+    ByteString(d.data.takeAll)
+  }
+
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key, value))
 }
 
