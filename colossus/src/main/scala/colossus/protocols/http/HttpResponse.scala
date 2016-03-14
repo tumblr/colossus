@@ -63,35 +63,8 @@ sealed trait BaseHttpResponse {
 //prevent things like creating a response with the wrong content length
 
 
-class HttpResponseBody(private val body: Array[Byte])  {
 
-  def size = body.size
-
-  def encode(buffer: DataOutBuffer) {
-    if (size > 0) buffer.write(body)
-  }
-
-  def bytes: ByteString = ByteString(body)
-
-  override def equals(that: Any) = that match {
-    case that: HttpResponseBody => that.bytes == this.bytes
-    case other => false
-  }
-
-  override def toString = bytes.utf8String
-
-}
-
-object HttpResponseBody {
-  
-  val NoBody = HttpResponseBody("")
-  
-  def apply(data: ByteString): HttpResponseBody = new HttpResponseBody(data.toArray)
-  def apply(data: String) : HttpResponseBody = new HttpResponseBody(data.getBytes("UTF-8"))
-
-}
-
-case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends BaseHttpResponse with Encoder {
+case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttpResponse with Encoder {
 
   private def fastIntToString(in: Int, buf: DataOutBuffer) {
     if (in == 0) {
@@ -112,7 +85,10 @@ case class HttpResponse(head: HttpResponseHead, body: HttpResponseBody) extends 
 
   def encode(buffer: DataOutBuffer) {
     head.encode(buffer)
-    buffer.write(HttpResponse.ContentLengthKey.toArray)
+    body.contentType.foreach{ctype =>
+      buffer.write(ctype.encoded)
+    }
+    buffer.write(HttpResponse.ContentLengthKeyArray)
     fastIntToString(body.size, buffer)
     buffer.write(N2)
     body.encode(buffer)
@@ -142,18 +118,19 @@ trait ByteStringLike[T] {
 object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
+  val ContentLengthKeyArray = ContentLengthKey.toArray
 
-  def apply[T : ByteStringLike](head: HttpResponseHead, body: T): HttpResponse = {
-    HttpResponse(head, HttpResponseBody(implicitly[ByteStringLike[T]].toByteString(body)))
+  def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
+    HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
     HttpResponse(HttpResponseHead(version, code, headers), data)
   }
 
 
   def apply(version : HttpVersion, code : HttpCode, headers : HttpHeaders) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), new HttpResponseBody(Array()))
+    HttpResponse(HttpResponseHead(version, code, headers), HttpBody.NoBody)
   }
 
 }
@@ -195,10 +172,10 @@ object StreamingHttpResponse {
     StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.size.toString), Some(Source.one(DataBuffer(resp.body.bytes))))
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
-      HttpResponseBody(implicitly[ByteStringLike[T]].toByteString(data))
+      HttpBody(data)
     ))
   }
 

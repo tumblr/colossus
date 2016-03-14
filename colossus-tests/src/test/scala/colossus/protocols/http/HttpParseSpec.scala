@@ -16,6 +16,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
   def requestParser = HttpRequestParser()
   import HttpHeader.Conversions._
+  import HttpBody._
 
   "http request parser" must {
     "parse a basic request" in {
@@ -32,7 +33,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
         )
-      ), None)        
+      ), HttpBody.NoBody)        
       
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
     }
@@ -51,7 +52,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
         )
-      ), None)        
+      ), HttpBody.NoBody)        
 
       (0 until req.length).foreach{splitIndex =>
         val p1 = req.take(splitIndex)
@@ -69,7 +70,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "parse request with no headers" in {
       val req = "GET /hello HTTP/1.1\r\n\r\n"
       val parser = requestParser
-      val expected = HttpRequest(HttpRequestHead(method = HttpMethod.Get, url="/hello", version = HttpVersion.`1.1`, headers = Nil), None)
+      val expected = HttpRequest(HttpRequestHead(method = HttpMethod.Get, url="/hello", version = HttpVersion.`1.1`, headers = Nil), HttpBody.NoBody)
       parser.parse(DataBuffer(ByteString(req))) must equal (Some(expected))
     }
 
@@ -86,7 +87,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" ->  "*/*",
           "content-length" -> len.toString
         )
-      ), Some(body))        
+      ), HttpBody(body))        
 
       val parser = requestParser
       
@@ -104,7 +105,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" -> "*/*",
           "content-length" -> "0"
         )
-      ), None)        
+      ), HttpBody.NoBody)        
 
       val parser = requestParser
       
@@ -136,10 +137,11 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "parse request with authorization header" taggedAs(Broke) in {
       val auth_info = "Basic YmI6Y29vbHBhc3N3b3JkYnJvNDI="// + Base64.encodeBase64String(StringUtils.getBytesUtf8("bb:coolpasswordbro42"))
       val url = "/foo"
-      val request = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = url, headers = List("authorization" -> auth_info)), None)
-      val bytes = request.bytes
+      val request = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = url, headers = List("authorization" -> auth_info)), HttpBody.NoBody)
+      val d = new DynamicOutBuffer(100, false)
+      request.encode(d)
       val parser = requestParser
-      parser.parse(DataBuffer(bytes)).isEmpty must equal(false)
+      parser.parse(d.data).isEmpty must equal(false)
     }
 
     //the current parser hangs instead of throwing an exception.  Need to
@@ -196,8 +198,10 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "parse a generated request" in {
-      val req = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = "/foo", headers = Nil), None)
-      val data = DataBuffer(req.bytes)
+      val req = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = "/foo", headers = Nil), HttpBody.NoBody)
+      val d = new DynamicOutBuffer(100, false)
+      req.encode(d)
+      val data = d.data
       val parser = requestParser
       parser.parse(data) must equal(Some(req))
       data.remaining must equal(0)
@@ -208,7 +212,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       val data = DataBuffer(ByteString(req))
       val parser = requestParser
       val parsed = parser.parse(data).get
-      parsed.entity must equal(Some(ByteString("foo123456789abcde")))
+      parsed.body must equal(HttpBody(ByteString("foo123456789abcde")))
       data.remaining must equal(0)
     }
     
@@ -297,7 +301,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "match on http request" in {
-      val h = HttpRequest(HttpRequestHead(Get, "/a/b/c", `1.1`, Nil), None)
+      val h = HttpRequest(HttpRequestHead(Get, "/a/b/c", `1.1`, Nil), HttpBody.NoBody)
       val res: Boolean = h match {
         case Get on Root / "a" / "b" / "c" => true
         case _ => false
@@ -305,7 +309,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       res must equal(true)
     }
     "match on http request with one route" in {
-      val h = HttpRequest(HttpRequestHead(Get, "/a", `1.1`, Nil), None)
+      val h = HttpRequest(HttpRequestHead(Get, "/a", `1.1`, Nil), HttpBody.NoBody)
       val res: Boolean = h match {
         case Get on Root / "a" => true
         case _ => false
@@ -314,7 +318,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "match http request with integer" in {
-      val h = HttpRequest(HttpRequestHead(Get, "/foo/bar/3", `1.1`, Nil), None)
+      val h = HttpRequest(HttpRequestHead(Get, "/foo/bar/3", `1.1`, Nil), HttpBody.NoBody)
       val res: Int = h match {
         case Get on Root / "foo" / "bar" / Integer(x) => x
         case _ => 0
@@ -325,7 +329,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
 
     "match http request with long" in {
-      val h = HttpRequest(HttpRequestHead(Get, "/foo/bar/17592186044416", `1.1`, Nil), None)
+      val h = HttpRequest(HttpRequestHead(Get, "/foo/bar/17592186044416", `1.1`, Nil), HttpBody.NoBody)
       val res: Long = h match {
         case Get on Root / "foo" / "bar" / Long(x) => x
         case _ => 0
@@ -334,7 +338,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "match root url" in {
-      val h = HttpRequest(HttpRequestHead(Get, "/", `1.1`, Nil), None)
+      val h = HttpRequest(HttpRequestHead(Get, "/", `1.1`, Nil), HttpBody.NoBody)
       val res: Boolean = h match {
         case Get on Root => true
         case _ => false
@@ -343,7 +347,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "parse requests with no request parameters" in {
-      val req = HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1", HttpVersion.`1.1`, Nil), None)
+      val req = HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1", HttpVersion.`1.1`, Nil), HttpBody.NoBody)
       req match {
         case r @ Get on Root / "a" / "path" / "with" / Integer(1) =>
         case _ => throw new Exception(s"$req failed to parse correctly")
@@ -351,7 +355,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     }
 
     "parse requests with request parameters" in {
-      val req = HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1?a=bla&b=2", HttpVersion.`1.1`, Nil), None)
+      val req = HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1?a=bla&b=2", HttpVersion.`1.1`, Nil), HttpBody.NoBody)
       req match {
         case r @ Get on Root / "a" / "path" / "with" / Integer(1) =>
         case _ => throw new Exception(s"$req failed to parse correctly")

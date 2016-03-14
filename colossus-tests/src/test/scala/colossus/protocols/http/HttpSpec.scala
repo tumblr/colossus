@@ -20,7 +20,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("foo" -> "bar")
       )
-      val request = HttpRequest(head, Some(ByteString("hello")))
+      val request = HttpRequest(head, HttpBody(ByteString("hello")))
 
       val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\n\r\nhello"
 
@@ -34,7 +34,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("foo" -> "bar")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\n\r\n"
 
@@ -48,7 +48,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("foo" -> "bar")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(false)
     }
@@ -60,7 +60,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("connection" -> "bar")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(false)
     }
@@ -72,7 +72,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("connection" -> "keep-alive")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(true)
     }
@@ -84,7 +84,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("foo" -> "bar")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(true)
     }
@@ -96,7 +96,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("connection" -> "bar")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(true)
     }
@@ -108,7 +108,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         method = HttpMethod.Post,
         headers = List("connection" -> "close")
       )
-      val request = HttpRequest(head, None)
+      val request = HttpRequest(head, HttpBody.NoBody)
 
       request.head.persistConnection must equal(false)
     }

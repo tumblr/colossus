@@ -31,74 +31,64 @@ case class HttpRequestHead(method: HttpMethod, url: String, version: HttpVersion
 
   lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
 
-  //we should only encode if the string is decoded.
-  //To check for that, if we decode an already decoded URL, it should not change (this may not be necessary)
-  //the alternative is one big fat honkin ugly regex and knowledge of what characters are allowed where(gross)
-  //TODO: this doesn't work, "/test" becomes %2Ftest
-  private def getEncodedURL : String = url
-  /*{
-    if(URLDecoder.decode(url,"UTF-8") == url) {
-      URLEncoder.encode(url, "UTF-8")
-    }else {
-      url
-    }
-  }*/
-
-
-  //TODO: optimize
-  def bytes : ByteString = {
-    val reqString = ByteString(s"${method.name} $getEncodedURL HTTP/$version\r\n")
-    if (headers.size > 0) {
-      val buf = new core.DynamicOutBuffer(200, false)
-      headers.encode(buf)
-      val encodedHeaders = ByteString(buf.data.data)
-      reqString ++ encodedHeaders ++ ByteString("\r\n")
-    } else {
-      reqString ++ ByteString("\r\n")
-    }
+  def encode(buffer: core.DataOutBuffer) {
+    buffer write method.bytes
+    buffer write ' '
+    buffer write url.getBytes("UTF-8")
+    buffer write ' '
+    buffer write version.messageArr
+    buffer write HttpParse.NEWLINE_ARRAY
+    headers encode buffer
+    buffer write HttpParse.NEWLINE_ARRAY
   }
 
-  def persistConnection: Boolean =
+  def persistConnection: Boolean = {
     (version, headers.connection) match {
       case (HttpVersion.`1.1`, Some(Connection.Close)) => false
       case (HttpVersion.`1.1`, _) => true
       case (HttpVersion.`1.0`, Some(Connection.KeepAlive)) => true
       case (HttpVersion.`1.0`, _) => false
     }
+  }
+
 }
 
-case class HttpRequest(head: HttpRequestHead, entity: Option[ByteString]) {
+case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends core.Encoder {
   import head._
   import HttpCodes._
 
-  def respond(code: HttpCode, data: String, headers: List[(String, String)] = Nil) = {
-    import HttpHeader.Conversions._
-    HttpResponse(HttpResponseHead(version, code, headers), HttpResponseBody(data))
+  def respond[T : HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
+    HttpResponse(HttpResponseHead(version, code, headers), HttpBody(data))
   }
 
-  def ok(data: String, headers: List[(String, String)] = Nil)              = respond(OK, data, headers)
-  def notFound(data: String = "", headers: List[(String, String)] = Nil)   = respond(NOT_FOUND, data, headers)
-  def error(message: String, headers: List[(String, String)] = Nil)        = respond(INTERNAL_SERVER_ERROR, message, headers)
-  def badRequest(message: String, headers: List[(String, String)] = Nil)   = respond(BAD_REQUEST, message, headers)
-  def unauthorized(message: String, headers: List[(String, String)] = Nil) = respond(UNAUTHORIZED, message, headers)
-  def forbidden(message: String, headers: List[(String, String)] = Nil)    = respond(FORBIDDEN, message, headers)
+  def ok[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)              = respond(OK, data, headers)
+  def notFound[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(NOT_FOUND, data, headers)
+  def error[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(INTERNAL_SERVER_ERROR, message, headers)
+  def badRequest[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)   = respond(BAD_REQUEST, message, headers)
+  def unauthorized[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(UNAUTHORIZED, message, headers)
+  def forbidden[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)    = respond(FORBIDDEN, message, headers)
 
-  //TODO optimize
-  def bytes : ByteString = {
-    head.bytes ++ entity.getOrElse(ByteString())
+  def encode(buffer: core.DataOutBuffer) {
+    head encode buffer
+    //TODO : write content-length
+    body encode buffer
+  }
+
+  def bytes: ByteString = {
+    val d = new core.DynamicOutBuffer(100, false)
+    encode(d)
+    ByteString(d.data.takeAll)
   }
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key, value))
 }
 
 object HttpRequest {
-  import HttpHeader.Conversions._
-  def apply(method: HttpMethod, url: String, body: Option[String]): HttpRequest = {
-    val bodybytes = body.map{ByteString(_)}
-    val head = HttpRequestHead(method, url, HttpVersion.`1.1`, List((HttpHeaders.ContentLength -> bodybytes.map{_.size.toString}.getOrElse("0"))))
-    HttpRequest(head, bodybytes)
+
+  def apply[T : HttpBodyEncoder](method: HttpMethod, url: String, body: T): HttpRequest = {
+    val head = HttpRequestHead(method, url, HttpVersion.`1.1`, HttpHeaders.Empty)
+    HttpRequest(head, HttpBody(body))
   }
 
-
-  def get(url: String) = HttpRequest(HttpMethod.Get, url, None)
+  def get(url: String) = HttpRequest(HttpMethod.Get, url, HttpBody.NoBody)
 }

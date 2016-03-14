@@ -14,7 +14,7 @@ class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[Dec
   private var parser : Parser[DecodedResult[T]] = parserFactory()
 
 
-  override def encode(out: HttpRequest): DataReader = DataBuffer(out.bytes)
+  override def encode(out: HttpRequest): DataReader = out
 
   override def decode(data: DataBuffer): Option[DecodedResult[T]] = parser.parse(data)
 

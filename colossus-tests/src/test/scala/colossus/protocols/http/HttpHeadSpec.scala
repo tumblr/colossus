@@ -2,6 +2,8 @@ package colossus.protocols.http
 
 
 import org.scalatest._
+import java.util.Date
+import java.text.SimpleDateFormat
 
 
 class HttpRequestHeadSuite extends WordSpec with MustMatchers{
@@ -86,6 +88,23 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       head.parameters("a") must equal("b")
       head.parameters("b") must equal("c=d")
       head.parameters("e") must equal("f=")
+    }
+
+  }
+
+  "DateHeader" must {
+
+    val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
+    def date(time: Long) = "Date: " + formatter.format(new Date(time)) + "\r\n"
+    
+    "generate a correct date" in {
+      new String((new DateHeader(123)).encoded(time = 1234567)) must equal(date(1234567))
+    }
+    "only generate a new date when more than a second past the last generated date" in {
+      val d = new DateHeader(123)
+      new String(d.encoded(time = 1234567)) must equal(date(1234567))
+      new String(d.encoded(time = 1235566)) must equal(date(1234567))
+      new String(d.encoded(time = 1235567)) must equal(date(1235567))
     }
   }
 
