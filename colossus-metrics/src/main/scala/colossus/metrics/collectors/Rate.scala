@@ -2,7 +2,7 @@ package colossus.metrics
 
 import scala.concurrent.duration._
 
-class Rate private[colossus](val address: MetricAddress)(implicit collection: Collection) extends Collector {
+class Rate private[metrics](val address: MetricAddress, pruneEmpty: Boolean)(implicit collection: Collection) extends Collector {
 
   private val maps = collection.config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap
 
@@ -16,12 +16,12 @@ class Rate private[colossus](val address: MetricAddress)(implicit collection: Co
   }
 
   def tick(interval: FiniteDuration): MetricMap  = {
-    val snap = maps(interval).snapshot(false, true)
+    val snap = maps(interval).snapshot(pruneEmpty, true)
     if (interval == minInterval) {
       snap.foreach{ case (tags, value) => totals.increment(tags, value) }
     }
     if (snap.isEmpty) Map() else {
-      Map(address -> snap, address / "count" -> totals.snapshot(false, false))
+      Map(address -> snap, address / "count" -> totals.snapshot(pruneEmpty, false))
     }
   }
     
@@ -30,8 +30,8 @@ class Rate private[colossus](val address: MetricAddress)(implicit collection: Co
 
 object Rate {
 
-  def apply(address: MetricAddress)(implicit collection: Collection): Rate = {
-    collection.getOrAdd(new Rate(address))
+  def apply(address: MetricAddress, pruneEmpty: Boolean = false)(implicit collection: Collection): Rate = {
+    collection.getOrAdd(new Rate(address, pruneEmpty))
   }
 }
 

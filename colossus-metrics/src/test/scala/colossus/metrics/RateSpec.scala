@@ -7,7 +7,8 @@ import akka.testkit.TestProbe
 
 class RateSpec extends MetricIntegrationSpec {
 
-  def rate() = new Rate("/foo")(new Collection(CollectorConfig(List(1.second, 1.minute))))
+  implicit val c = new Collection(CollectorConfig(List(1.second, 1.minute)))
+  def rate() = new Rate("/foo", false)
 
   "Rate" must {
     "increment in all intervals" in {
@@ -51,6 +52,24 @@ class RateSpec extends MetricIntegrationSpec {
     "not return any metrics when never hit" in {
       rate().tick(1.second) must equal(Map())
     }
+
+    "prune empty values" in {
+      val r = new Rate("/foo", true)
+      r.hit(Map("a" -> "b"))
+      r.hit(Map("b" -> "c"))
+      r.hit(Map("b" -> "c"))
+      val s = r.tick(1.second)
+      s("foo").size must equal(2)
+      s("foo/count").size must equal(2)
+      r.hit(Map("a" -> "b"))
+      val s2 = r.tick(1.second)
+      s2("foo").size must equal(1)
+      //counts don't get pruned since they're never 0...maybe this needs some thought
+      //s2("foo/count").size must equal(1)
+      s2("foo")(Map("a" -> "b")) must equal(1)
+    }
+
+
 
 
   }

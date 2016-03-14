@@ -2,7 +2,7 @@ package colossus.metrics
 
 import scala.concurrent.duration._
 
-class Counter private[colossus](val address: MetricAddress)(implicit collection: Collection) extends Collector {
+class Counter private[metrics](val address: MetricAddress)(implicit collection: Collection) extends Collector {
 
   private val counters = new CollectionMap[TagMap]
 
