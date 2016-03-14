@@ -282,7 +282,7 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.util.Date
   import java.text.SimpleDateFormat
 
-  private val formatter = new SimpleDateFormat("EEE, MMM d yyyy HH:MM:ss z")
+  private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
   
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
   private var lastDate = generate(start)
@@ -300,6 +300,12 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
     }
     lastDate.encoded
   }
+
+}
+
+object DateHeader {
+
+  val DATE_FORMAT = "EEE, MMM d yyyy HH:MM:ss z"
 
 }
 
