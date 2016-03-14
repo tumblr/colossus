@@ -22,9 +22,7 @@ class ServerSpec extends ColossusSpec {
   "IOSystem" must {
     "startup and shutdown" in {
       val io = IOSystem("test", 2)
-      io ! WorkerManager.ReadyCheck
-      expectMsg(100.milliseconds, WorkerManager.WorkersNotReady)
-      Thread.sleep(100) //if it takes longer than this we're in trouble
+      Thread.sleep(50)
       io ! WorkerManager.ReadyCheck
       val probe = TestProbe()
       probe watch io.workerManager

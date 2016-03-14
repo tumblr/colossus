@@ -6,7 +6,6 @@ import akka.event.LoggingAdapter
 import metrics._
 import service.CallbackExecution
 
-import java.util.concurrent.atomic.AtomicLong
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
@@ -38,11 +37,8 @@ case class WorkerConfig(
  */
 case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSystem) {
 
-  private val idGenerator = new AtomicLong(1)
 
-  private[colossus] def generateId() = idGenerator.incrementAndGet()
-
-  private[colossus] def generateContext() = Context(generateId(), this)
+  private[colossus] def generateContext() = new Context(system.generateId(), this)
 
   /**
    * Send this Worker a message
@@ -58,7 +54,7 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
    * lifecycle is single-threaded.
    */
   def bind[T <: WorkerItem](creator: Context => T): T = {
-    val context = Context(generateId(), this)
+    val context = generateContext()
     val item = creator(context)
     worker ! IOCommand.BindWorkerItem(_ => item)
     item
@@ -110,6 +106,9 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
       val item = workerItems(id)
       workerItems -= id
       item.setUnbind()
+      if (item.context.proxyExists) {
+        item.context.proxy ! PoisonPill
+      }
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
     }
@@ -179,8 +178,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   val me = WorkerRef(workerId, self, io)
 
-  def newId() = me.generateId
-
   //collection of all the bound WorkerItems, including connection handlers
   val workerItems = new WorkerItemManager(me, log)
   def getWorkerItem(id: Long): Option[WorkerItem] = workerItems.get(id)
@@ -188,7 +185,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   override def preStart() {
     super.preStart()
     log.debug(s"starting worker ${config.workerId}")
-    parent ! WorkerReady
+    parent ! WorkerReady(me)
     self ! Select
   }
 
@@ -287,6 +284,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         val item = itemFactory(me.generateContext)
         workerItems.bind(item)
         self ! WorkerCommand.Connect(address, item.id)
+      }
+      case BindWithContext(context, itemFactory) => {
+        if (context.worker != me) {
+          log.error("Attempted to bind to worker ${me.id} using a context for worker ${context.worker.id}")
+        } else {
+          val item = itemFactory(context)
+          if (!item.isBound) {
+            workerItems.bind(item)
+          }
+        }
       }
     }
   }

@@ -17,7 +17,7 @@ case class FakeWorker(probe: TestProbe, worker: WorkerRef)
 
 object FakeIOSystem {
   def apply()(implicit system: ActorSystem): IOSystem = {
-    IOSystem(system.deadLetters, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
+    new IOSystem(IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system, (x,y) => system.deadLetters)
   }
 
   /**
@@ -62,7 +62,7 @@ object FakeIOSystem {
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {
     val probe = TestProbe()
-    val sys = IOSystem(probe.ref, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
+    val sys = new IOSystem(IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system, (x,y) => probe.ref)
     (sys, probe)
   }
 
