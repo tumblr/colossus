@@ -14,7 +14,8 @@ import scala.concurrent.duration.Duration
  */
 case class ControllerConfig(
   outputBufferSize: Int,
-  sendTimeout: Duration
+  sendTimeout: Duration,
+  flushBufferOnClose: Boolean = true
 )
 
 //used to terminate input streams when a connection is closing
@@ -93,7 +94,7 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
    */
   private[controller] def checkControllerGracefulDisconnect() {
     (connectionState, inputState, outputState) match {
-      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated()) => {
+      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
         super.shutdown()
       }
       case _ => {} 
