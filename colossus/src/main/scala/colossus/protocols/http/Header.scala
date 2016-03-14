@@ -278,24 +278,25 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
 }
 
-class DateHeader extends HttpHeader {
+class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.util.Date
   import java.text.SimpleDateFormat
 
   private val formatter = new SimpleDateFormat("EEE, MMM d yyyy HH:MM:ss z")
   
-  private def generate = HttpHeader("Date", formatter.format(new Date()))
-  private var lastDate = generate
-  private var lastTime = System.currentTimeMillis
+  private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
+  private var lastDate = generate(start)
+  private var lastTime = start
 
   def key = lastDate.key
   def value = lastDate.value
 
-  def encoded = {
-    val t = System.currentTimeMillis
-    if (t > lastTime + 1000) {
-      lastDate = generate
-      lastTime = t
+  def encoded: Array[Byte] = encoded(System.currentTimeMillis)
+
+  def encoded(time: Long): Array[Byte] = {
+    if (time >= lastTime + 1000) {
+      lastDate = generate(time)
+      lastTime = time
     }
     lastDate.encoded
   }

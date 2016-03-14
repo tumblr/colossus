@@ -87,6 +87,19 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       head.parameters("b") must equal("c=d")
       head.parameters("e") must equal("f=")
     }
+
+  }
+
+  "DateHeader" must {
+    "generate a correct date" in {
+      new String((new DateHeader(123)).encoded(time = 1234567)) must equal("Date: Wed, Dec 31 1969 19:12:34 EST\r\n")
+    }
+    "only generate a new date when more than a second past the last generated date" in {
+      val d = new DateHeader(123)
+      new String(d.encoded(time = 1234567)) must equal("Date: Wed, Dec 31 1969 19:12:34 EST\r\n")
+      new String(d.encoded(time = 1235566)) must equal("Date: Wed, Dec 31 1969 19:12:34 EST\r\n")
+      new String(d.encoded(time = 1235567)) must equal("Date: Wed, Dec 31 1969 19:12:35 EST\r\n")
+    }
   }
 
 
