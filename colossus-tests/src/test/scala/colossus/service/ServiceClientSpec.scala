@@ -195,26 +195,22 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
     //this should be written as a controller test
-    "immediately fail requests when pending buffer is full" ignore {
+    "immediately fail requests when pending buffer is full" in {
       val (endpoint, client, probe) = newClient()
-      val big = Command(CMD_GET, "123456789012345678901234567890")
+      val big = Command(CMD_GET, "hello")
       val commands = (1 to client.config.pendingBufferSize).map{i => 
         Command(CMD_GET, i.toString)
       }
       val shouldFail = Command(CMD_GET, "fail")
       client.send(big).execute()
       commands.foreach{cmd =>
-        client.send(cmd).execute{
-          case _ => throw new Exception("Executed!")
-        }
+        client.send(cmd).execute()
       }
-      endpoint.expectOneWrite(big.raw)
       var failed = false
       client.send(shouldFail).execute{
         case Success(_) => throw new Exception("Didn't fail?!?!")
         case Failure(goodjob) => failed = true
       }
-
       failed must equal (true)
     }
 

@@ -10,18 +10,20 @@ import HttpParse._
 import Combinators._
 
 object HttpRequestParser {
+  import HttpBody._
 
   val DefaultMaxSize: DataSize = 1.MB
 
   def apply(size: DataSize = DefaultMaxSize) = maxSize(size, httpRequest)
 
+  //TODO : don't parse body as a bytestring
   protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) => 
     transferEncoding match { 
       case None | Some("identity") => contentLength match {
-        case Some(0) | None => const(HttpRequest(head, None))
-        case Some(n) => bytes(n) >> {body => HttpRequest(head, Some(body))}
+        case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
+        case Some(n) => bytes(n) >> {body => HttpRequest(head, HttpBody(body))}
       }
-      case Some(other)  => chunkedBody >> {body => HttpRequest(head, Some(body))}
+      case Some(other)  => chunkedBody >> {body => HttpRequest(head, HttpBody(body))}
     } 
   }
 
@@ -29,7 +31,7 @@ object HttpRequestParser {
   
 }
 
-case class HeadResult(head: HttpHead, contentLength: Option[Int], transferEncoding: Option[String] )
+case class HeadResult(head: HttpRequestHead, contentLength: Option[Int], transferEncoding: Option[String] )
 
 /**
  * This parser is optimized to reduce the number of operations per character
@@ -41,13 +43,12 @@ class HttpHeadParser extends Parser[HeadResult]{
     var method: String = ""
     var path: String = ""
     var version: String = ""
-    var headers: List[(String, String)] = Nil
+    var headers: List[HttpHeader] = Nil
     var contentLength: Option[Int] = None
     var transferEncoding: Option[String] = None
-    var body: Option[ByteString] = None
 
     def addHeader(name: String, value: String) {
-      headers = (name, value) :: headers
+      headers =  new DecodedHeader(name, value) :: headers
       if (name == HttpHeaders.ContentLength) {
         contentLength = Some(value.toInt)
       } else if (name == HttpHeaders.TransferEncoding) {
@@ -56,7 +57,16 @@ class HttpHeadParser extends Parser[HeadResult]{
     }
 
     def build: HeadResult = {
-      val r = HeadResult(HttpHead(HttpMethod(method), path, HttpVersion(version), headers), contentLength, transferEncoding)
+      val r = HeadResult(
+        HttpRequestHead(
+          HttpMethod(method),
+          path,
+          HttpVersion(version),
+          new HttpHeaders(headers.toArray)
+        ), 
+        contentLength,
+        transferEncoding
+      )
       reset()
       r
     }
@@ -65,7 +75,6 @@ class HttpHeadParser extends Parser[HeadResult]{
       headers = Nil
       contentLength = None
       transferEncoding = None
-      body = None
     }
   }
   var requestBuilder = new RBuilder

@@ -9,7 +9,8 @@ import service._
 import akka.util.ByteString
 import scala.concurrent.ExecutionContext
 
-package object http {
+package object http extends HttpBodyEncoders {
+
 
   class InvalidRequestException(message: String) extends Exception(message)
 
@@ -107,12 +108,5 @@ package object http {
     )
 
     */
-  implicit object ByteStringLikeString extends ByteStringLike[String] {
-    override def toByteString(t: String): ByteString = ByteString(t)
-  }
-
-  implicit object ByteStringLikeByteString extends ByteStringLike[ByteString] {
-    override def toByteString(t: ByteString): ByteString = t
-  }
 
 }

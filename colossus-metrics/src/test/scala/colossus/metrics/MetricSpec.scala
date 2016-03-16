@@ -32,43 +32,4 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
   }
 
-  "JSON Serialization" must {
-    import net.liftweb.json._
-
-    "serialize" in {
-      val map: MetricMap = Map(
-        Root / "foo" -> Map(
-          Map("a" -> "va") -> 3L,
-          Map("b" -> "vb") -> 4L
-        )
-      )
-      val expected = parse(
-        """{"/foo" : [ 
-          {"tags" : {"a" : "va"}, "value" : 3},
-          {"tags" : {"b" : "vb"}, "value" : 4}
-          ]}"""
-      )
-
-      map.toJson must equal(expected)
-
-    }
-
-    "unserialize" in {
-      val expected: MetricMap = Map(
-        Root / "foo" -> Map(
-          Map("a" -> "va") -> 3L,
-          Map("b" -> "vb") -> 4L
-        )
-      )
-      val json = parse(
-        """{"/foo" : [ 
-          {"tags" : {"a" : "va"}, "value" : 3},
-          {"tags" : {"b" : "vb"}, "value" : 4}
-          ]}"""
-      )
-
-      MetricMap.fromJson(json) must equal(expected)
-    }
-      
-  }
 }

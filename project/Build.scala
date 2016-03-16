@@ -53,9 +53,12 @@ object ColossusBuild extends Build {
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
   )
 
-  val MetricSettings = ColossusSettings ++ Seq(
+  val MetricSettings = ColossusSettings 
+
+  val ExamplesSettings = Seq (
     libraryDependencies ++= Seq(
-      "net.liftweb"       %% "lift-json"     % "2.6-RC1")
+      "org.json4s" %% "json4s-jackson" % "3.3.0"
+    )
   )
 
   lazy val RootProject = Project(id="root", base=file("."))
@@ -74,6 +77,7 @@ object ColossusBuild extends Build {
       .settings(noPubSettings:_*)
       .settings(Revolver.settings:_*)
       .configs(IntegrationTest)
+      .settings(ExamplesSettings:_*)
       .dependsOn(ColossusProject)
 
   lazy val ColossusMetricsProject = Project(id="colossus-metrics", base=file("colossus-metrics"))
