@@ -28,12 +28,10 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="HttpHead$.html" title="See companion object"><img alt="Class/Object" src="../../../lib/class_to_object_big.png" /></a>
+        <img alt="Class" src="../../../lib/class_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.http">http</a></p>
-        <h1><a href="HttpHead$.html" title="See companion object">HttpHead</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="HttpHead$.html" title="See companion object">object HttpHead</a>
-            | <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
+        <h1>HttpHead</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
           </div></span></h3><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.HttpHead" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
@@ -351,23 +349,6 @@ depending if the &quot;transfer-encoding&quot; header is set to &quot;chunked&qu
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpHead">HttpHead</a> → <a href="HttpHeaderUtils.html" class="extype" name="colossus.protocols.http.HttpHeaderUtils">HttpHeaderUtils</a></dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpHead#host" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="host:String"></a>
-      <a id="host:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">lazy val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">host</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpHead@host:String" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -471,18 +452,18 @@ depending if the &quot;transfer-encoding&quot; header is set to &quot;chunked&qu
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.protocols.http.HttpHead#parameters" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parameters:Map[String,String]"></a>
-      <a id="parameters:Map[String,String]"></a>
+      <a id="parameters:colossus.protocols.http.QueryParameters"></a>
+      <a id="parameters:QueryParameters"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">parameters</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">parameters</span><span class="result">: <a href="QueryParameters.html" class="extype" name="colossus.protocols.http.QueryParameters">QueryParameters</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpHead@parameters:Map[String,String]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpHead@parameters:colossus.protocols.http.QueryParameters" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -496,7 +477,7 @@ depending if the &quot;transfer-encoding&quot; header is set to &quot;chunked&qu
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">path</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">path</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.HttpHead@path:String" title="Permalink" target="_top">
@@ -521,36 +502,19 @@ depending if the &quot;transfer-encoding&quot; header is set to &quot;chunked&qu
       </a>
     </span>
       
-    </li><li name="colossus.protocols.http.HttpHead#port" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="port:Int"></a>
-      <a id="port:Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">lazy val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">port</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpHead@port:Int" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.protocols.http.HttpHead#query" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="query:String"></a>
-      <a id="query:String"></a>
+      <a id="query:Option[String]"></a>
+      <a id="query:Option[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">query</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">query</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.lang.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpHead@query:String" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpHead@query:Option[String]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

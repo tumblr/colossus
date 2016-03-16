@@ -56,10 +56,7 @@ Tasks can open connections and interact with actors through a built-in proxy
 actor.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="BasicTask.html" class="extype" name="colossus.task.BasicTask">BasicTask</a></div>
-          </div></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -96,7 +93,7 @@ actor.</p></div><div class="toggleContainer block">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.task.Task#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;()(implicitfactory:akka.actor.ActorRefFactory):colossus.task.Task"></a>
+      <a id="&lt;init&gt;(context:colossus.task.TaskContext):colossus.task.Task"></a>
       <a id="&lt;init&gt;:Task"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -104,10 +101,10 @@ actor.</p></div><div class="toggleContainer block">
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Task</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="factory">factory: <span class="extype" name="akka.actor.ActorRefFactory">ActorRefFactory</span></span>)</span>
+        <span class="name">Task</span><span class="params">(<span name="context">context: <a href="TaskContext.html" class="extype" name="colossus.task.TaskContext">TaskContext</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@&lt;init&gt;()(implicitfactory:akka.actor.ActorRefFactory):colossus.task.Task" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.task.Task@&lt;init&gt;(context:colossus.task.TaskContext):colossus.task.Task" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -119,38 +116,19 @@ actor.</p></div><div class="toggleContainer block">
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.core.WorkerItem#receivedMessage" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
-      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+              <ol><li name="colossus.task.Task#run" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="run():Unit"></a>
+      <a id="run():Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">run</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
-WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
-WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.task.Task#start" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="start(id:Long,worker:colossus.core.WorkerRef):Unit"></a>
-      <a id="start(Long,WorkerRef):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">start</span><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@start(id:Long,worker:colossus.core.WorkerRef):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.task.Task@run():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -228,40 +206,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
-      <a id="binding:Option[WorkerItemBinding]"></a>
+    </li><li name="colossus.task.Task#become" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="become(it:colossus.task.Task.Receive):Unit"></a>
+      <a id="become(Receive):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binding</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerItemBinding.html" class="extype" name="colossus.core.WorkerItemBinding">WorkerItemBinding</a>]</span>
+        <span class="name">become</span><span class="params">(<span name="it">it: <a href="Task$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.task.Task.Receive">Receive</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@binding:Option[colossus.core.WorkerItemBinding]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.task.Task@become(it:colossus.task.Task.Receive):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">When bound to a worker, this contains the [WorkerItemBinding]</p><div class="fullcomment"><div class="comment cmt"><p>When bound to a worker, this contains the [WorkerItemBinding]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#boundWorker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="boundWorker:Option[colossus.core.WorkerRef]"></a>
-      <a id="boundWorker:Option[WorkerRef]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">boundWorker</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@boundWorker:Option[colossus.core.WorkerRef]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -285,6 +246,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#context" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="context:colossus.core.Context"></a>
+      <a id="context:Context"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">context</span><span class="result">: <a href="../core/Context.html" class="extype" name="colossus.core.Context">Context</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@context:colossus.core.Context" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -377,18 +355,18 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="id:Option[Long]"></a>
-      <a id="id:Option[Long]"></a>
+      <a id="id:Long"></a>
+      <a id="id:Long"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.task.Task@id:Option[Long]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.task.Task@id:Long" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -532,6 +510,59 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       
+    </li><li name="colossus.task.Task#receive" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="receive:colossus.task.Task.Receive"></a>
+      <a id="receive:Receive"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receive</span><span class="result">: <a href="Task$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.task.Task.Receive">Receive</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@receive:colossus.task.Task.Receive" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.task.Task#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.task.Task">Task</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.task.Task#sender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sender():akka.actor.ActorRef"></a>
+      <a id="sender():ActorRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sender</span><span class="params">()</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@sender():akka.actor.ActorRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -653,6 +684,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li></ol>
             </div>
 

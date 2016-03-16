@@ -47,7 +47,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">OutputState</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">OutputState</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
@@ -56,7 +56,7 @@
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="OutputState$$Dequeueing$.html" class="extype" name="colossus.controller.OutputState.Dequeueing">Dequeueing</a>, <a href="OutputState$$Streaming.html" class="extype" name="colossus.controller.OutputState.Streaming">Streaming</a>, <a href="OutputState$$Terminated$.html" class="extype" name="colossus.controller.OutputState.Terminated">Terminated</a>, <a href="OutputState$$Writing.html" class="extype" name="colossus.controller.OutputState.Writing">Writing</a></div>
+            <div class="subClasses hiddenContent"><a href="OutputState$$Alive.html" class="extype" name="colossus.controller.OutputState.Alive">Alive</a>, <a href="OutputState$$Suspended.html" class="extype" name="colossus.controller.OutputState.Suspended">Suspended</a>, <a href="OutputState$$Terminated.html" class="extype" name="colossus.controller.OutputState.Terminated">Terminated</a></div>
           </div></div>
         
 
@@ -281,6 +281,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.controller.OutputState#ifAlive" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ifAlive(l:colossus.controller.OutputState.Alive[T]=&gt;Unit):Unit"></a>
+      <a id="ifAlive((Alive[T])⇒Unit):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ifAlive</span><span class="params">(<span name="l">l: (<a href="OutputState$$Alive.html" class="extype" name="colossus.controller.OutputState.Alive">Alive</a>[<span class="extype" name="colossus.controller.OutputState.T">T</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.OutputState@ifAlive(l:colossus.controller.OutputState.Alive[T]=&gt;Unit):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>

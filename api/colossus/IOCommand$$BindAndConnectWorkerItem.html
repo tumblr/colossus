@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">BindAndConnectWorkerItem</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="item">item: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">BindAndConnectWorkerItem</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="item">item: (<a href="core/Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result"> extends <a href="IOCommand.html" class="extype" name="colossus.IOCommand">IOCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -93,7 +93,7 @@ worker
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.IOCommand.BindAndConnectWorkerItem#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(address:java.net.InetSocketAddress,item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindAndConnectWorkerItem"></a>
+      <a id="&lt;init&gt;(address:java.net.InetSocketAddress,item:colossus.core.Context=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindAndConnectWorkerItem"></a>
       <a id="&lt;init&gt;:BindAndConnectWorkerItem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -101,10 +101,10 @@ worker
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BindAndConnectWorkerItem</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="item">item: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span>
+        <span class="name">BindAndConnectWorkerItem</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="item">item: (<a href="core/Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOCommand$$BindAndConnectWorkerItem@&lt;init&gt;(address:java.net.InetSocketAddress,item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindAndConnectWorkerItem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOCommand$$BindAndConnectWorkerItem@&lt;init&gt;(address:java.net.InetSocketAddress,item:colossus.core.Context=&gt;colossus.core.WorkerItem):colossus.IOCommand.BindAndConnectWorkerItem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -301,18 +301,18 @@ worker
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.IOCommand.BindAndConnectWorkerItem#item" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem"></a>
-      <a id="item:(WorkerRef)⇒WorkerItem"></a>
+      <a id="item:colossus.core.Context=&gt;colossus.core.WorkerItem"></a>
+      <a id="item:(Context)⇒WorkerItem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">item</span><span class="result">: (<a href="core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
+        <span class="name">item</span><span class="result">: (<a href="core/Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOCommand$$BindAndConnectWorkerItem@item:colossus.core.WorkerRef=&gt;colossus.core.WorkerItem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOCommand$$BindAndConnectWorkerItem@item:colossus.core.Context=&gt;colossus.core.WorkerItem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

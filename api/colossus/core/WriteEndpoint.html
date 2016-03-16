@@ -45,7 +45,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">WriteEndpoint</span><span class="result"> extends <a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a></span>
+        <span class="name">WriteEndpoint</span><span class="result"> extends <a href="ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a></span>
       </span>
       </h4>
       
@@ -53,8 +53,11 @@
 connection.  Services wrap this
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+          <div class="superTypes hiddenContent"><a href="ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a>, <a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="ClientConnection.html" class="extype" name="colossus.core.ClientConnection">ClientConnection</a>, <a href="Connection.html" class="extype" name="colossus.core.Connection">Connection</a>, <a href="ServerConnection.html" class="extype" name="colossus.core.ServerConnection">ServerConnection</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -71,7 +74,7 @@ connection.  Services wrap this
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.core.WriteEndpoint"><span>WriteEndpoint</span></li><li class="in" name="colossus.core.ConnectionInfo"><span>ConnectionInfo</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.WriteEndpoint"><span>WriteEndpoint</span></li><li class="in" name="colossus.core.ConnectionHandle"><span>ConnectionHandle</span></li><li class="in" name="colossus.core.ConnectionInfo"><span>ConnectionInfo</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -152,7 +155,7 @@ connection.  Services wrap this
 handler will stop receiving incoming data.  This can allow handlers to
 provide backpressure to the remote host.
 </p></div></div>
-    </li><li name="colossus.core.WriteEndpoint#disconnect" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.ConnectionHandle#disconnect" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="disconnect():Unit"></a>
       <a id="disconnect():Unit"></a>
       <h4 class="signature">
@@ -169,7 +172,8 @@ provide backpressure to the remote host.
       </a>
     </span>
       <p class="shortcomment cmt">Terminate the connection
-</p>
+</p><div class="fullcomment"><div class="comment cmt"><p>Terminate the connection
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a></dd></dl></div>
     </li><li name="colossus.core.WriteEndpoint#enableReads" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="enableReads():Unit"></a>
       <a id="enableReads():Unit"></a>
@@ -284,6 +288,26 @@ has been terminated.
       <p class="shortcomment cmt">The address of the remote host for this connection, if connected
 </p><div class="fullcomment"><div class="comment cmt"><p>The address of the remote host for this connection, if connected
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a></dd></dl></div>
+    </li><li name="colossus.core.WriteEndpoint#requestWrite" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="requestWrite():Unit"></a>
+      <a id="requestWrite():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">requestWrite</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WriteEndpoint@requestWrite():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Signals to the worker that this connection wishes to write some data.</p><div class="fullcomment"><div class="comment cmt"><p>Signals to the worker that this connection wishes to write some data.  It
+will trigger a call to the handler's readyForData when the connection is
+able to write.
+</p></div></div>
     </li><li name="colossus.core.ConnectionInfo#status" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="status:colossus.core.ConnectionStatus"></a>
       <a id="status:ConnectionStatus"></a>
@@ -321,45 +345,24 @@ has been terminated.
       <p class="shortcomment cmt">How long, in milliseconds, since the connection was opened
 </p><div class="fullcomment"><div class="comment cmt"><p>How long, in milliseconds, since the connection was opened
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a></dd></dl></div>
-    </li><li name="colossus.core.WriteEndpoint#worker" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="worker:akka.actor.ActorRef"></a>
-      <a id="worker:ActorRef"></a>
+    </li><li name="colossus.core.ConnectionHandle#worker" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">worker</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
+        <span class="name">worker</span><span class="result">: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WriteEndpoint@worker:akka.actor.ActorRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.WriteEndpoint@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Gets the worker this connection is bound to.</p><div class="fullcomment"><div class="comment cmt"><p>Gets the worker this connection is bound to.</p><p>todo: should be a WorkerRef.  Also is this even needed anymore?
-</p></div></div>
-    </li><li name="colossus.core.WriteEndpoint#write" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="write(data:colossus.core.DataBuffer):colossus.core.WriteStatus"></a>
-      <a id="write(DataBuffer):WriteStatus"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="data">data: <a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <a href="WriteStatus.html" class="extype" name="colossus.core.WriteStatus">WriteStatus</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.WriteEndpoint@write(data:colossus.core.DataBuffer):colossus.core.WriteStatus" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Write some data to the connection.</p><div class="fullcomment"><div class="comment cmt"><p>Write some data to the connection.  Because connections are non-blocking,
-it's possible that the underlying write buffer will fill up and not all of
-the DataBuffer will be written.  When that occurs, the endpoint will keep
-a copy of the unwritten data until the buffer empties.
-</p></div></div>
+      <p class="shortcomment cmt">Gets the worker this connection is bound to.</p><div class="fullcomment"><div class="comment cmt"><p>Gets the worker this connection is bound to.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -727,7 +730,9 @@ a copy of the unwritten data until the buffer empties.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.core.ConnectionInfo">
+        <div class="parent" name="colossus.core.ConnectionHandle">
+              <h3>Inherited from <a href="ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a></h3>
+            </div><div class="parent" name="colossus.core.ConnectionInfo">
               <h3>Inherited from <a href="ConnectionInfo.html" class="extype" name="colossus.core.ConnectionInfo">ConnectionInfo</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>

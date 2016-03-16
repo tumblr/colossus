@@ -58,7 +58,7 @@ that a Worker captures in its SelectLoop.
           <div class="superTypes hiddenContent"><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../service/BasicServiceHandler.html" class="extype" name="colossus.service.BasicServiceHandler">BasicServiceHandler</a>, <a href="BasicSyncHandler.html" class="extype" name="colossus.core.BasicSyncHandler">BasicSyncHandler</a>, <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="../service/DSLHandler.html" class="extype" name="colossus.service.DSLHandler">DSLHandler</a>, <a href="../protocols/http/package$$HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>, <a href="../protocols/http/package$$HttpServiceHandler.html" class="extype" name="colossus.protocols.http.HttpServiceHandler">HttpServiceHandler</a>, <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>, <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="../protocols/redis/RedisMonitorClient.html" class="extype" name="colossus.protocols.redis.RedisMonitorClient">RedisMonitorClient</a>, <a href="ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="BasicCoreHandler.html" class="extype" name="colossus.core.BasicCoreHandler">BasicCoreHandler</a>, <a href="BasicSyncHandler.html" class="extype" name="colossus.core.BasicSyncHandler">BasicSyncHandler</a>, <a href="ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../protocols/http/package$$HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>, <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a></div>
           </div></div>
         
 
@@ -173,28 +173,23 @@ for checking if an ongoing operation has timed out.</p><div class="fullcomment">
 for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
 which is only based on the last time there was any I/O.
 </p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.</p></dd></dl></div>
-    </li><li name="colossus.core.ConnectionHandler#readyForData" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="readyForData():Unit"></a>
-      <a id="readyForData():Unit"></a>
+    </li><li name="colossus.core.ConnectionHandler#readyForData" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="readyForData(buffer:colossus.core.DataOutBuffer):colossus.core.MoreDataResult"></a>
+      <a id="readyForData(DataOutBuffer):MoreDataResult"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">readyForData</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">readyForData</span><span class="params">(<span name="buffer">buffer: <a href="DataOutBuffer.html" class="extype" name="colossus.core.DataOutBuffer">DataOutBuffer</a></span>)</span><span class="result">: <a href="MoreDataResult.html" class="extype" name="colossus.core.MoreDataResult">MoreDataResult</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionHandler@readyForData():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ConnectionHandler@readyForData(buffer:colossus.core.DataOutBuffer):colossus.core.MoreDataResult" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">This function is called to signal to the handler that it can resume writing data.</p><div class="fullcomment"><div class="comment cmt"><p>This function is called to signal to the handler that it can resume writing data.
-It is called as part of the WriteEndPoint event loop write cycle, where previously this handler
-attempted to write data, but the buffers were filled up.  This is called once the buffers
-are empty again and able to receive data.  This handler should be in a state where it is paused on writing
-data until this handler is invoked.
-</p></div></div>
+      
     </li><li name="colossus.core.ConnectionHandler#receivedData" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="receivedData(data:colossus.core.DataBuffer):Unit"></a>
       <a id="receivedData(DataBuffer):Unit"></a>
@@ -231,6 +226,27 @@ data until this handler is invoked.
       <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.ConnectionHandler#shutdownRequest" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionHandler@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">the connection handler should begin its graceful shutdown procedure.</p><div class="fullcomment"><div class="comment cmt"><p>the connection handler should begin its graceful shutdown procedure.  For
+both servers and clients this can be triggered either by a call to
+gracefulDisconnect or to become.  For ServerConnectionHandlers this can
+also occur when the Server begins shutting down.
+</p></div></div>
     </li></ol>
             </div>
 
@@ -304,40 +320,6 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#binding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binding:Option[colossus.core.WorkerItemBinding]"></a>
-      <a id="binding:Option[WorkerItemBinding]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">binding</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="WorkerItemBinding.html" class="extype" name="colossus.core.WorkerItemBinding">WorkerItemBinding</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionHandler@binding:Option[colossus.core.WorkerItemBinding]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">When bound to a worker, this contains the [WorkerItemBinding]</p><div class="fullcomment"><div class="comment cmt"><p>When bound to a worker, this contains the [WorkerItemBinding]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#boundWorker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="boundWorker:Option[colossus.core.WorkerRef]"></a>
-      <a id="boundWorker:Option[WorkerRef]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">boundWorker</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionHandler@boundWorker:Option[colossus.core.WorkerRef]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -378,6 +360,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       <p class="shortcomment cmt">Called from Worker when a connection has been terminated either by an error or by normal means.</p><div class="fullcomment"><div class="comment cmt"><p>Called from Worker when a connection has been terminated either by an error or by normal means.</p></div><dl class="paramcmts block"><dt class="param">cause</dt><dd class="cmt"><p>why the connection was terminated</p></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#context" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="context:colossus.core.Context"></a>
+      <a id="context:Context"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">context</span><span class="result">: <a href="Context.html" class="extype" name="colossus.core.Context">Context</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionHandler@context:colossus.core.Context" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -470,18 +469,18 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="id:Option[Long]"></a>
-      <a id="id:Option[Long]"></a>
+      <a id="id:Long"></a>
+      <a id="id:Long"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ConnectionHandler@id:Option[Long]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ConnectionHandler@id:Long" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -711,6 +710,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ConnectionHandler@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li></ol>
             </div>
 

@@ -58,7 +58,7 @@ Delegators live inside workers and run as part of the worker’s event loop</p><
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../service/BasicServiceDelegator.html" class="extype" name="colossus.service.BasicServiceDelegator">BasicServiceDelegator</a>, <a href="../service/DSLDelegator.html" class="extype" name="colossus.service.DSLDelegator">DSLDelegator</a></div>
+            <div class="subClasses hiddenContent"><a href="DSLDelegator.html" class="extype" name="colossus.core.DSLDelegator">DSLDelegator</a></div>
           </div></div>
         
 
@@ -96,7 +96,7 @@ Delegators live inside workers and run as part of the worker’s event loop</p><
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.Delegator#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(server:colossus.core.ServerRef,worker:colossus.core.WorkerRef):colossus.core.Delegator"></a>
+      <a id="&lt;init&gt;(server:colossus.core.ServerRef,_worker:colossus.core.WorkerRef):colossus.core.Delegator"></a>
       <a id="&lt;init&gt;:Delegator"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -104,14 +104,14 @@ Delegators live inside workers and run as part of the worker’s event loop</p><
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Delegator</span><span class="params">(<span name="server">server: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="worker">worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span>
+        <span class="name">Delegator</span><span class="params">(<span name="server">server: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>, <span name="_worker">_worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Delegator@&lt;init&gt;(server:colossus.core.ServerRef,worker:colossus.core.WorkerRef):colossus.core.Delegator" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.Delegator@&lt;init&gt;(server:colossus.core.ServerRef,_worker:colossus.core.WorkerRef):colossus.core.Delegator" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">server</dt><dd class="cmt"><p>reference to the server</p></dd><dt class="param">worker</dt><dd class="cmt"><p>reference to the worker this delegator belongs to</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">server</dt><dd class="cmt"><p>reference to the server</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -602,7 +602,7 @@ Delegators live inside workers and run as part of the worker’s event loop</p><
       <a id="worker:WorkerRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">implicit </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
@@ -613,7 +613,7 @@ Delegators live inside workers and run as part of the worker’s event loop</p><
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">reference to the worker this delegator belongs to</p>
+      
     </li></ol>
             </div>
 

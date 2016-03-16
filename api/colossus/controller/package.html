@@ -66,42 +66,8 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.controller.AliveState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="AliveStateextendsConnectionState"></a>
-      <a id="AliveState:AliveState"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="AliveState.html"><span class="name">AliveState</span></a><span class="result"> extends <a href="ConnectionState.html" class="extype" name="colossus.controller.ConnectionState">ConnectionState</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@AliveStateextendsConnectionState" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.controller.ConnectionState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ConnectionStateextendsAnyRef"></a>
-      <a id="ConnectionState:ConnectionState"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionState.html"><span class="name">ConnectionState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@ConnectionStateextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.controller.Controller" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="Controller[Input,Output]extendsInputController[Input,Output]withOutputController[Input,Output]"></a>
+              <ol><li name="colossus.controller.Controller" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Controller[Input,Output]extendsCoreHandlerwithInputController[Input,Output]withOutputController[Input,Output]"></a>
       <a id="Controller[Input,Output]:Controller[Input,Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -109,10 +75,10 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Controller.html"><span class="name">Controller</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>] with <a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>]</span>
+        <a href="Controller.html"><span class="name">Controller</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a> with <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>] with <a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@Controller[Input,Output]extendsInputController[Input,Output]withOutputController[Input,Output]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@Controller[Input,Output]extendsCoreHandlerwithInputController[Input,Output]withOutputController[Input,Output]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -143,6 +109,27 @@ can be thought of as a duplex stream of messages.
       <p class="shortcomment cmt">Configuration for the controller
 </p><div class="fullcomment"><div class="comment cmt"><p>Configuration for the controller
 </p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd></dl></div>
+    </li><li name="colossus.controller.DataQueue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DataQueueextendsAnyRef"></a>
+      <a id="DataQueue:DataQueue"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataQueue.html"><span class="name">DataQueue</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@DataQueueextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The DataQueue is used only when processing a stream.</p><div class="fullcomment"><div class="comment cmt"><p>The DataQueue is used only when processing a stream.  It is used to buffer
+data in between when the stream produces it and when it is ready to write to
+the output buffer.  It also ensures that we don't pull too much data from a
+stream, for example if a stream is infinite
+</p></div></div>
     </li><li name="colossus.controller.DisconnectingException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DisconnectingExceptionextendsException"></a>
       <a id="DisconnectingException:DisconnectingException"></a>
@@ -235,7 +222,7 @@ buffer may still contain unread data meant for another consumer
     </span>
       
     </li><li name="colossus.controller.InputController" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="InputController[Input,Output]extendsMasterController[Input,Output]"></a>
+      <a id="InputController[Input,Output]extendsWorkerItemwithMasterController[Input,Output]"></a>
       <a id="InputController[Input,Output]:InputController[Input,Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -243,10 +230,10 @@ buffer may still contain unread data meant for another consumer
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="InputController.html"><span class="name">InputController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.controller.InputController.Input">Input</span>, <span class="extype" name="colossus.controller.InputController.Output">Output</span>]</span>
+        <a href="InputController.html"><span class="name">InputController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.controller.InputController.Input">Input</span>, <span class="extype" name="colossus.controller.InputController.Output">Output</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@InputController[Input,Output]extendsMasterController[Input,Output]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@InputController[Input,Output]extendsWorkerItemwithMasterController[Input,Output]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -274,23 +261,6 @@ stream</p><p>When pushing data into a stream, the controller has some very speci
       </a>
     </span>
       
-    </li><li name="colossus.controller.InvalidConnectionStateException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="InvalidConnectionStateExceptionextendsException"></a>
-      <a id="InvalidConnectionStateException:InvalidConnectionStateException"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="InvalidConnectionStateException.html"><span class="name">InvalidConnectionStateException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@InvalidConnectionStateExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.controller.InvalidInputStateException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="InvalidInputStateExceptionextendsException"></a>
       <a id="InvalidInputStateException:InvalidInputStateException"></a>
@@ -309,18 +279,18 @@ stream</p><p>When pushing data into a stream, the controller has some very speci
     </span>
       
     </li><li name="colossus.controller.InvalidOutputStateException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="InvalidOutputStateExceptionextendsException"></a>
-      <a id="InvalidOutputStateException:InvalidOutputStateException"></a>
+      <a id="InvalidOutputStateException[T]extendsException"></a>
+      <a id="InvalidOutputStateException[T]:InvalidOutputStateException[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="InvalidOutputStateException.html"><span class="name">InvalidOutputStateException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+        <a href="InvalidOutputStateException.html"><span class="name">InvalidOutputStateException</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@InvalidOutputStateExceptionextendsException" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@InvalidOutputStateException[T]extendsException" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -344,8 +314,25 @@ is ever thrown, there is a bug!
       </a>
     </span>
       
+    </li><li name="colossus.controller.LiveState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="LiveStateextendsAnyRef"></a>
+      <a id="LiveState:LiveState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="LiveState.html"><span class="name">LiveState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@LiveStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.controller.MasterController" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="MasterController[Input,Output]extendsConnectionHandler"></a>
+      <a id="MasterController[Input,Output]extendsWorkerItemwithConnectionHandler"></a>
       <a id="MasterController[Input,Output]:MasterController[Input,Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -353,10 +340,10 @@ is ever thrown, there is a bug!
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="MasterController.html"><span class="name">MasterController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+        <a href="MasterController.html"><span class="name">MasterController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@MasterController[Input,Output]extendsConnectionHandler" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@MasterController[Input,Output]extendsWorkerItemwithConnectionHandler" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -365,8 +352,25 @@ ultimately implemented by Controller.</p><div class="fullcomment"><div class="co
 ultimately implemented by Controller.  This merely contains methods needed
 by both input and output controller
 </p></div></div>
+    </li><li name="colossus.controller.MessageQueue" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MessageQueue[T]extendsAnyRef"></a>
+      <a id="MessageQueue[T]:MessageQueue[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageQueue.html"><span class="name">MessageQueue</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@MessageQueue[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.controller.OutputController" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="OutputController[Input,Output]extendsMasterController[Input,Output]"></a>
+      <a id="OutputController[Input,Output]extendsWorkerItemwithMasterController[Input,Output]"></a>
       <a id="OutputController[Input,Output]:OutputController[Input,Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -374,10 +378,10 @@ by both input and output controller
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="OutputController.html"><span class="name">OutputController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.controller.OutputController.Input">Input</span>, <span class="extype" name="colossus.controller.OutputController.Output">Output</span>]</span>
+        <a href="OutputController.html"><span class="name">OutputController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.controller.OutputController.Input">Input</span>, <span class="extype" name="colossus.controller.OutputController.Output">Output</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@OutputController[Input,Output]extendsMasterController[Input,Output]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@OutputController[Input,Output]extendsWorkerItemwithMasterController[Input,Output]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -386,6 +390,23 @@ controller.</p><div class="fullcomment"><div class="comment cmt"><p>The OutputCo
 controller.  It maintains a queue of messages pending write and properly
 handles writing both regular messages as well as streams.
 </p></div></div>
+    </li><li name="colossus.controller.OutputError" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="OutputErrorextendsOutputResult"></a>
+      <a id="OutputError:OutputError"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="OutputError.html"><span class="name">OutputError</span></a><span class="result"> extends <a href="OutputResult.html" class="extype" name="colossus.controller.OutputResult">OutputResult</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@OutputErrorextendsOutputResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.controller.OutputResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="OutputResultextendsAnyRef"></a>
       <a id="OutputResult:OutputResult"></a>
@@ -404,18 +425,18 @@ handles writing both regular messages as well as streams.
     </span>
       <p class="shortcomment cmt">An ADT representing the result of a pushing a message to write</p>
     </li><li name="colossus.controller.OutputState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="OutputStateextendsAnyRef"></a>
-      <a id="OutputState:OutputState"></a>
+      <a id="OutputState[T]extendsAnyRef"></a>
+      <a id="OutputState[T]:OutputState[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">sealed </span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="OutputState.html"><span class="name">OutputState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="OutputState.html"><span class="name">OutputState</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@OutputStateextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@OutputState[T]extendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -532,6 +553,23 @@ some reason the receiver decides to cancel for some business-logic reason.
       </a>
     </span>
       
+    </li><li name="colossus.controller.QueuedItem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueuedItem[T]extendsProductwithSerializable"></a>
+      <a id="QueuedItem[T]:QueuedItem[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="QueuedItem.html"><span class="name">QueuedItem</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="item">item: <span class="extype" name="colossus.controller.QueuedItem.T">T</span></span>, <span name="postWrite">postWrite: <a href="QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>, <span name="creationTimeMillis">creationTimeMillis: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@QueuedItem[T]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.controller.Sink" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Sink[T]extendsTransport"></a>
       <a id="Sink[T]:Sink[T]"></a>
@@ -574,27 +612,6 @@ is ready and the Source will call it.  Note that if the underlying pipe has
 multiple items ready, onReady will only be called once.  This is so that the
 consumer of the sink can implicitly apply backpressure by only pulling when
 it is able to
-</p></div></div>
-    </li><li name="colossus.controller.StreamMessage" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="StreamMessageextendsAnyRef"></a>
-      <a id="StreamMessage:StreamMessage"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="StreamMessage.html"><span class="name">StreamMessage</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@StreamMessageextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">trait representing a decoded message that is actually a stream</p><div class="fullcomment"><div class="comment cmt"><p>trait representing a decoded message that is actually a stream</p><p>When a codec decodes a message that contains a stream (perhaps an http
-request with a very large body), the returned message MUST extend this
-trait, otherwise the InputController will not know to push subsequent data
-to the stream message and things will get all messed up.
 </p></div></div>
     </li><li name="colossus.controller.Transport" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="TransportextendsAnyRef"></a>
@@ -644,24 +661,7 @@ determine if the pipe is dead or not.
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="colossus.controller.ConnectionState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ConnectionState"></a>
-      <a id="ConnectionState:ConnectionState"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionState$.html"><span class="name">ConnectionState</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@ConnectionState" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.controller.InputState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.controller.InputState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="InputState"></a>
       <a id="InputState:InputState"></a>
       <h4 class="signature">
@@ -674,6 +674,23 @@ determine if the pipe is dead or not.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@InputState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.LiveState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LiveState"></a>
+      <a id="LiveState:LiveState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="LiveState$.html"><span class="name">LiveState</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@LiveState" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -742,6 +759,23 @@ determine if the pipe is dead or not.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@PushResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.QueuedItem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueuedItem"></a>
+      <a id="QueuedItem:QueuedItem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="QueuedItem$.html"><span class="name">QueuedItem</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@QueuedItem" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

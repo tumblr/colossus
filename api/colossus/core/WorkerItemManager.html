@@ -417,6 +417,29 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.WorkerItemManager#replace" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replace(newWorkerItem:colossus.core.WorkerItem):Boolean"></a>
+      <a id="replace(WorkerItem):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replace</span><span class="params">(<span name="newWorkerItem">newWorkerItem: <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.WorkerItemManager@replace(newWorkerItem:colossus.core.WorkerItem):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replace an existing worker item with a new one.</p><div class="fullcomment"><div class="comment cmt"><p>Replace an existing worker item with a new one.  This happens, for example,
+as the last phase of swapping a live connection's handler.  The old
+WorkerItem is unbound before the new one is bound.  If no WorkerItem with
+the given id exists, the new one is not bound.  This is to avoid a possible
+race condition that could occur if a connection is severed during the
+process of swapping handlers.</p><p>Returns true if the replace successfully happened, false otherwise
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

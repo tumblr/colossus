@@ -45,13 +45,13 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">KeyInterestManager</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">KeyInterestManager</span><span class="result"> extends <a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -69,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.core.KeyInterestManager"><span>KeyInterestManager</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.KeyInterestManager"><span>KeyInterestManager</span></li><li class="in" name="colossus.core.ChannelActions"><span>ChannelActions</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -92,23 +92,110 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.core.KeyInterestManager#setKeyInterest" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="setKeyInterest():Unit"></a>
-      <a id="setKeyInterest():Unit"></a>
+              <ol><li name="colossus.core.ChannelActions#channelClose" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="channelClose():Unit"></a>
+      <a id="channelClose():Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">setKeyInterest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">channelClose</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.KeyInterestManager@setKeyInterest():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.KeyInterestManager@channelClose():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
+    </li><li name="colossus.core.ChannelActions#channelHost" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="channelHost():java.net.InetAddress"></a>
+      <a id="channelHost():InetAddress"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelHost</span><span class="params">()</span><span class="result">: <span class="extype" name="java.net.InetAddress">InetAddress</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@channelHost():java.net.InetAddress" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
+    </li><li name="colossus.core.ChannelActions#channelWrite" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="channelWrite(data:colossus.core.DataBuffer):Int"></a>
+      <a id="channelWrite(DataBuffer):Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@channelWrite(data:colossus.core.DataBuffer):Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Hook to perform that actual operation of writing to a channel
+</p><div class="fullcomment"><div class="comment cmt"><p>Hook to perform that actual operation of writing to a channel
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
+    </li><li name="colossus.core.ChannelActions#finishConnect" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="finishConnect():Unit"></a>
+      <a id="finishConnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finishConnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@finishConnect():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
+    </li><li name="colossus.core.ChannelActions#keyInterestOps" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="keyInterestOps(ops:Int):Unit"></a>
+      <a id="keyInterestOps(Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">keyInterestOps</span><span class="params">(<span name="ops">ops: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@keyInterestOps(ops:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
+    </li><li name="colossus.core.ChannelActions#status" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="status:colossus.core.ConnectionStatus"></a>
+      <a id="status:ConnectionStatus"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">status</span><span class="result">: <a href="ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@status:colossus.core.ConnectionStatus" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -449,6 +536,23 @@
       </a>
     </span>
       
+    </li><li name="colossus.core.KeyInterestManager#setKeyInterest" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="setKeyInterest():Unit"></a>
+      <a id="setKeyInterest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setKeyInterest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.KeyInterestManager@setKeyInterest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -578,7 +682,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="colossus.core.ChannelActions">
+              <h3>Inherited from <a href="ChannelActions.html" class="extype" name="colossus.core.ChannelActions">ChannelActions</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
