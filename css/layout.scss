@@ -9,8 +9,8 @@ Licence: <a href="http://www.os-templates.com/template-terms">Website Template L
 */
 
 
-$back-light : #FFFFFF;
-$back-dark : #999999;
+$back-light : #FFFEFC;
+$back-dark : #028;
 
 $back-medium : #CCCCCC;
 
@@ -43,6 +43,7 @@ body{
 	padding:0;
 	font-size:14px;
 	font-family:verdana, Arial, Helvetica, sans-serif;
+  //font-family: 'Titillium Web', sans-serif;
 	color:#FFFFFF;
 	background-color:$back-light;
 	}
@@ -76,9 +77,9 @@ div.wrapper{
 div.wrapper h1, div.wrapper h2, div.wrapper h3, div.wrapper h4, div.wrapper h5, div.wrapper h6{
 	margin:0 0 15px 0;
 	padding:0 0 8px 0;
+  font-family: 'Titillium Web', sans-serif;
 	font-size:22px;
-	font-weight:normal;
-	font-family:Georgia, "Times New Roman", Times, serif;
+	font-weight:bold;
 	border-bottom:1px dotted $highlight-dark;
 	}
 
@@ -143,6 +144,8 @@ div.wrapper h4 {
 #header h1{
 	margin:0;
 	padding:0;
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: bold;
 	font-size:28px;
 	border:none;
 	}
@@ -190,6 +193,8 @@ div.wrapper h4 {
 
 #intro h1{
 	margin-bottom:4px;
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: bold;
 	font-size:70px;
 	border:none;
 	}
@@ -202,6 +207,7 @@ div.wrapper h4 {
 
 #intro h2{
   margin-bottom: 10px;
+  font-weight: bold;
 	padding:0 0 8px 0;
 	border-bottom:1px dotted $highlight-dark;
 }
@@ -217,7 +223,7 @@ div.wrapper h4 {
 
 #intro #intronav li{
 	display:block;
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 4px;
  }
 
@@ -548,7 +554,6 @@ div.wrapper h4 {
 	padding:0 0 14px 0;
 	font-size:20px;
 	font-weight:normal;
-	font-family:Georgia, "Times New Roman", Times, serif;
 	line-height:normal;
 	}
 

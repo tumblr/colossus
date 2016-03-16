@@ -43,7 +43,7 @@ user-code lives.
 
 
 
-## SBT
+## Build a Hello World Service
 
 Add the following to your Build.scala or build.sbt:
 
@@ -55,7 +55,6 @@ libraryDependencies += "com.tumblr" %% "colossus" % "{{ site.latest_version }}"
 
 Colossus is compiled for Scala 2.10 and 2.11 and built against Akka 2.3.
 
-## Build a Hello World Service
 
 We'll start with a simple "hello world" http service written in a fairly verbose
 manner to make things easy to follow:

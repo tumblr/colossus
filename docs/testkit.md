@@ -16,20 +16,19 @@ libraryDependencies += "com.tumblr" %% "colossus" % "{{ site.latest_version }}"
 libraryDependencies += "com.tumblr" %% "colossus-testkit" % "{{ site.latest_version }}" % "test"
 {% endhighlight %}
 
-## Testing Core Servers
 
-TODO
+## Unit Testing
 
-## Testing Services
+### Testing Callbacks
 
-The `ServiceSpec` class has some basic methods for doing integration testing on services.  You are required to provide two values:
- 
-* `service: ServerRef` : This is a running instance of your service, bound to `ServiceSpec.TestPort` (19999)
-* `requestTimeout: FiniteDuration` : How long the matchers should wait for responses
+`colossus.testkit.CallbackAwait` works similarly to Scala's `Await` for futures.  
 
-Some helpful matchers are:
+## Integration Testing
 
-* `expectResponse(request: Request, response: Response)`
-* `expectResponseType[T <: Response](request: Request)`
+`ColossusSpec` is a scalatest-based integration testing suite that contains a
+bunch of useful functions that help with spinning up instances of a service for
+testing
 
-For http, the `HttpServiceSpec` contains some more helpful functions specifically for http.
+`withIOSystem(f: IOSystem => Unit)` will spin up a new `IOSystem` for the duration of a test and shut it down at the end.
+
+`withServer(server: ServerRef)(f: => Unit)` will shutdown the given server after the test completes

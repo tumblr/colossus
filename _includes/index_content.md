@@ -6,7 +6,7 @@ Add the following to your build.sbt or Build.scala (2.10 or 2.11)
 libraryDependencies += "com.tumblr" %% "colossus" % "{{ site.latest_version }}"
 {% endhighlight %}
 
-Here's a simple example service.
+Start a simple Hello-world Service
 
 {% highlight scala %}
 
@@ -27,6 +27,5 @@ object Main extends App {
 }
 
 {% endhighlight %}
-
 
 

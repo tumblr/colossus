@@ -15,10 +15,12 @@ Starting a simple task is very easy
 
 implicit val io_system = //...
 
-Task{context =>
-  log.info("HELLO FROM INSIDE A WORKER LOOP")
-  context.unbind()
-}
+Task.start(context => new Task(context) {
+  
+  def run() {
+    //do your stuff here
+  }
+})
 
 {% endhighlight %}
 
@@ -35,14 +37,13 @@ to communicate with the task
 
 {% highlight scala %}
 
-val proxy = Task{context =>
-  import context._
-  become {
-    case "PING" => sender ! "PONG"
+val proxy = Task.start(new Task(_) {
+
+  def run(){}
+
+  override def receive = {
+    case "PING" => sender() ! "PONG"
   }
-}
-(proxy ? "PING").onSuccess{
-  case "PONG" => proxy ! PoisonPill
 }
 
 {% endhighlight %}
