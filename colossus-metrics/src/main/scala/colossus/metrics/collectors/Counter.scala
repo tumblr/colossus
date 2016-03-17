@@ -12,7 +12,7 @@ class Counter private[metrics](val address: MetricAddress)(implicit collection: 
 
   def decrement(tags: TagMap = TagMap.Empty, num: Long = 1) = increment(tags, 0 - num)
 
-  def set(tags: TagMap = TagMap.Empty, num: Long) {
+  def set(num: Long, tags: TagMap = TagMap.Empty) {
     counters.set(tags, num)
   }
 
