@@ -58,6 +58,9 @@ object MetricSystem {
     * @param namespace the base of the url describing the location of metrics within the system
    * @param metricIntervals How often to report metrics
    * @param collectSystemMetrics whether to collect metrics from the system as well
+   * @param config Typesafe Config source which shoudl contain configuration for a MetricSystem.  This Configuration object is used during
+   *               Collector(Rate, Histogram specifically) creation.  If this Config does not have the corresponding colossus.metrics.collectors.defaults for those
+   *               then Collector creation will fail if it tries to reference them.
    * @param system the actor system the metric system should use
    * @return
    */
@@ -86,22 +89,48 @@ object MetricSystem {
     MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval](), false, ConfigFactory.defaultReference())
   }
 
+  /**
+    * Create a new MetricSystem, using only the defaults provided by the corresponding "colossus.metrics" config path.
+    * A Config object will be created via "ConfigFactory.load()"
+    * @param system
+    * @return
+    */
   def apply()(implicit system : ActorSystem) : MetricSystem = {
     apply("colossus.metrics")
   }
 
-  def apply(name : String)(implicit system : ActorSystem) : MetricSystem = {
-    apply(name, ConfigFactory.load()) //reference?
+  /**
+    * Create a new MetricSystem using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.metrics"
+    * config path.
+    * A Config object will be created via "ConfigFactory.load()"
+    *
+    * @param configPath  The path to the configuration.
+    * @param system
+    * @return
+    */
+  def apply(configPath : String)(implicit system : ActorSystem) : MetricSystem = {
+    apply(configPath, ConfigFactory.load()) //reference?
   }
 
-  def apply(name : String, config : Config)(implicit system : ActorSystem) : MetricSystem = {
+  /**
+    * Create a new MetricSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.metrics" config path.
+    *
+    * @param configPath The path to the configuration
+    * @param config The Config source to query
+    * @param system
+    * @return
+    */
+  def apply(configPath : String, config : Config)(implicit system : ActorSystem) : MetricSystem = {
 
     import MetricSystemConfigHelpers._
 
-    val userPathObject = config.getObject(name)
+    val userPathObject = config.getObject(configPath)
     val metricsObject = userPathObject.withFallback(config.getObject("colossus.metrics"))
     val metricsConfig = metricsObject.toConfig
-    val mergedConfig = config.withValue("colossus.metrics", metricsObject) //<-- see, I told you
+
+    //after creating the merged config object, overwrite colossus.metrics with this value and use that internally,
+    //This simplifies Collector creation.
+    val mergedConfig = config.withValue("colossus.metrics", metricsObject)
 
     val collectSystemMetrics = metricsConfig.getBoolean("collect-system-metrics")
     val metricIntervals = metricsConfig.getFiniteDurations("metric-intervals")

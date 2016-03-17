@@ -37,11 +37,11 @@ object Rate extends CollectorConfigLoader {
 
   /**
     * Create a Rate with the following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * Configuration is resolved and overlaid as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
     * 1) metricSystemConfigPath.address
-    * 2) metricSystemConfigPath.default-collectors.rate
-    * 3) colossus.metrics.default-collectors.rate
+    * 2) metricSystemConfigPath.collectors-defaults.rate
+    * 3) colossus.metrics.collectors-defaults.rate
  *
     * @param address The address relative to the Collection's MetricSystem Root.
     * @param collection The Collection this Metric will become a part of.
@@ -60,11 +60,11 @@ object Rate extends CollectorConfigLoader {
 
   /**
     * Create a Rate with the following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * Configuration is resolved and overlaid as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
-    * 1) configPath.$address
-    * 2) metricSystemConfigPath.default-collectors.rate
-    * 3) colossus.metrics.default-collectors.rate
+    * 1) configPath.address
+    * 2) metricSystemConfigPath.collectors.defaults.rate
+    * 3) colossus.metrics.collectors.defaults.rate
  *
     * @param address The address relative to the Collection's MetricSystem Root.
     * @param configPath The path in the ConfigFile that this rate is located.

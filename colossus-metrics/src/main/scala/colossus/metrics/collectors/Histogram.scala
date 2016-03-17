@@ -48,11 +48,11 @@ object Histogram extends CollectorConfigLoader{
 
   /**
     * Create a Histogram with the following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
     * 1) metricSystemConfigPath.address
-    * 2) metricSystemConfigPath.default-collectors.histogram
-    * 3) colossus.metrics.default-collectors.histogram
+    * 2) metricSystemConfigPath.collectors-defaults.histogram
+    * 3) colossus.metrics.collectors-defaults.histogram
     * @param address The address relative to the Collection's MetricSystem Root.
     * @param collection The Collection this Metric will become a part of.
     * @return Created Histogram.
@@ -70,11 +70,11 @@ object Histogram extends CollectorConfigLoader{
 
   /**
     * Create a Histogram with following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
-    * 1) configPath.$address
-    * 2) metricSystemConfigPath.default-collectors.histogram
-    * 3) colossus.metrics.default-collectors.histogram
+    * 1) configPath.address
+    * 2) metricSystemConfigPath.collectors-defaults.histogram
+    * 3) colossus.metrics.collectors-defaults.histogram
     * @param address The address relative to the Collection's MetricSystem Root.
     * @param configPath The path in the ConfigFile that this Histogram is located.
     * @param collection The Collection this Metric will become a part of.
