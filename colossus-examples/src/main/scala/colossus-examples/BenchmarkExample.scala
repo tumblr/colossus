@@ -18,9 +18,9 @@ object BenchmarkService {
     def encode(json: JValue)  = new HttpBody(compact(render(json)).getBytes("UTF-8"), Some(jsonHeader))
   }
 
-  val response          = HttpBody("Hello, World!")
+  val json : JValue     = ("message" -> "Hello, World!")
+  val plaintext         = HttpBody("Hello, World!")
   val serverHeader      = HttpHeader("Server", "Colossus")
-
 
   def start(port: Int)(implicit io: IOSystem) {
 
@@ -29,25 +29,23 @@ object BenchmarkService {
       maxConnections = 16384,
       tcpBacklogSize = Some(1024)
     )
+
     val serviceConfig = ServiceConfig(
       requestMetrics = false
     )
 
-    val server = Server.start("benchmark", serverConfig) { new Initializer(_) {
+    Server.start("benchmark", serverConfig) { new Initializer(_) {
 
       val dateHeader = new DateHeader
+      val headers = HttpHeaders(serverHeader, dateHeader)
 
       def onConnect = ctx => new Service[Http](serviceConfig, ctx){ 
         def handle = { 
-          case request if (request.head.url == "/plaintext") => {
-            request.ok(response, HttpHeaders(serverHeader, dateHeader))
-          } 
-          case request if (request.head.url == "/json") => {
-            val json: JValue = ("message" -> "Hello, World!")
-            request.ok(json, HttpHeaders(serverHeader, dateHeader))
-          }
+          case req if (req.head.url == "/plaintext")  => req.ok(plaintext, headers)
+          case req if (req.head.url == "/json")       => req.ok(json, headers)
         }
       }
+
     }}
 
   }
