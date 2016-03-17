@@ -1,7 +1,8 @@
 package colossus.metrics
 
+import com.typesafe.config.{ConfigFactory, Config}
+
 import scala.concurrent.duration._
-import scala.reflect.ClassTag
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -19,7 +20,9 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
  */
-case class CollectorConfig(intervals: Seq[FiniteDuration])
+case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
+
+trait CollectorParameterDefaults
 
 trait Collector {
 
@@ -88,7 +91,7 @@ class Collection(val config: CollectorConfig) {
     collectors.put(collector.address, collector)
   }
 
-  def getOrAdd[T <: Collector : ClassTag](created: T): T = {
+  def getOrAdd[T <: Collector](created: T): T = {
     collectors.putIfAbsent(created.address, created) match {
       case null => created
       case exists: T => exists

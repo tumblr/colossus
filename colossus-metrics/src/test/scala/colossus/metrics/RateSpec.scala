@@ -68,12 +68,6 @@ class RateSpec extends MetricIntegrationSpec {
       //s2("foo/count").size must equal(1)
       s2("foo")(Map("a" -> "b")) must equal(1)
     }
-
-
-
-
   }
-
-
 }
 

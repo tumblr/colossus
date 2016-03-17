@@ -13,7 +13,9 @@ case class BucketList(buckets: Vector[Int]) extends AnyVal
  *
  * Each bucket handles an increasingly large range of values from 0 to MAX_INT.
  */
-object Histogram {
+object Histogram extends CollectorConfigLoader{
+
+  private val DefaultConfigPath = "colossus.metrics.collectors-defaults.histogram"
 
   val NUM_BUCKETS = 100
   //note, the value at index i is the lower bound of that bucket
@@ -43,7 +45,54 @@ object Histogram {
     }.toVector
     BucketList(buckets)
   }
-  
+
+  /**
+    * Create a Histogram with the following address.  Note, the address will be prefixed by the MetricSystem's root.
+    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * passed into the MetricSystem.apply function):
+    * 1) metricSystemConfigPath.address
+    * 2) metricSystemConfigPath.default-collectors.histogram
+    * 3) colossus.metrics.default-collectors.histogram
+    * @param address The address relative to the Collection's MetricSystem Root.
+    * @param collection The Collection this Metric will become a part of.
+    * @return Created Histogram.
+    */
+  def apply(address : MetricAddress)(implicit collection : Collection) : Histogram = {
+
+    import scala.collection.JavaConversions._
+
+    val params = resolveConfig(collection.config.config, s"colossus.metrics.$address", DefaultConfigPath)
+    val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
+    val sampleRate = params.getDouble("sample-rate")
+    val pruneEmpty = params.getBoolean("prune-empty")
+    apply(address, percentiles, sampleRate, pruneEmpty)
+  }
+
+  /**
+    * Create a Histogram with following address.  Note, the address will be prefixed by the MetricSystem's root.
+    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the config path, if any, that was
+    * passed into the MetricSystem.apply function):
+    * 1) configPath.$address
+    * 2) metricSystemConfigPath.default-collectors.histogram
+    * 3) colossus.metrics.default-collectors.histogram
+    * @param address The address relative to the Collection's MetricSystem Root.
+    * @param configPath The path in the ConfigFile that this Histogram is located.
+    * @param collection The Collection this Metric will become a part of.
+    * @return
+    */
+  def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Histogram = {
+
+    import scala.collection.JavaConversions._
+
+    val params = resolveConfig(collection.config.config, s"$configPath.$address", DefaultConfigPath)
+
+    val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
+    val sampleRate = params.getDouble("sample-rate")
+    val pruneEmpty = params.getBoolean("prune-empty")
+    apply(address, percentiles, sampleRate, pruneEmpty)
+  }
+
+
   def apply(
     address: MetricAddress,
     percentiles: Seq[Double] = Histogram.defaultPercentiles,
@@ -65,8 +114,8 @@ case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vec
         if (perc <= 0.0 || count == 0 || bucketValues.size == 0) {
           p(num, index, build :+ 0, remain.tail)
         } else if (perc >= 1.0) {
-          p(num, index, build :+ max, remain.tail)          
-        } else {
+          p(num, index, build :+ max, remain.tail)
+      } else {
           val bound = count * perc
           if (index < bucketValues.size - 1 && num < count * perc) {
             p(num + bucketValues(index).count, index + 1, build, remain)
@@ -174,20 +223,24 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
         values = values :+ BucketValue(value = weightedValue, count = v.toInt)
       }
       index += 1
-    }    
+    }
     Snapshot(smin.toInt, smax.toInt, mean.toInt, scount.toInt, values)
   }
 
 }
 
+case class HistogramParameterDefaults(percentiles : Seq[Double] = Histogram.defaultPercentiles,
+                                      sampleRate : Double = 1.0,
+                                      pruneEmpty : Boolean = false) extends CollectorParameterDefaults
+
 class Histogram private[metrics](
   val address: MetricAddress,
-  percentiles: Seq[Double] = Histogram.defaultPercentiles,
-  sampleRate: Double = 1.0, 
-  pruneEmpty: Boolean = false
+  val percentiles: Seq[Double] = Histogram.defaultPercentiles,
+  val sampleRate: Double = 1.0,
+  val pruneEmpty: Boolean = false
 )(implicit collection: Collection) extends Collector {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap
