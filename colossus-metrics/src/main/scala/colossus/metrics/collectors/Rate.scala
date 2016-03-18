@@ -4,9 +4,6 @@ import com.typesafe.config.Config
 
 import scala.concurrent.duration._
 
-
-case class RateParameterDefaults(pruneEmpty : Boolean = false) extends CollectorParameterDefaults
-
 class Rate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean)(implicit collection: Collection) extends Collector {
 
   private val maps = collection.config.intervals.map{i => (i, new CollectionMap[TagMap])}.toMap

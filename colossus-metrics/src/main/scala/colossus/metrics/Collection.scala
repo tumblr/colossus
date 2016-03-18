@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicLong
  */
 case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
 
-trait CollectorParameterDefaults
-
 trait Collector {
 
   def address: MetricAddress

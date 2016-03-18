@@ -224,10 +224,6 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
 
 }
 
-case class HistogramParameterDefaults(percentiles : Seq[Double] = Histogram.defaultPercentiles,
-                                      sampleRate : Double = 1.0,
-                                      pruneEmpty : Boolean = false) extends CollectorParameterDefaults
-
 class Histogram private[metrics](
   val address: MetricAddress,
   val percentiles: Seq[Double] = Histogram.defaultPercentiles,
