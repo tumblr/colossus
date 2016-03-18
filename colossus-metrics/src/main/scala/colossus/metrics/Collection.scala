@@ -41,7 +41,7 @@ trait Collector {
   def tick(interval: FiniteDuration): MetricMap
 }
 
-class CollectionMap[T] {
+private[metrics] class CollectionMap[T] {
 
   private val map = new ConcurrentHashMap[T, AtomicLong]
 

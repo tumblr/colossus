@@ -8,7 +8,7 @@ import akka.testkit.TestProbe
 class RateSpec extends MetricIntegrationSpec {
 
   implicit val c = new Collection(CollectorConfig(List(1.second, 1.minute)))
-  def rate() = new Rate("/foo", false)
+  def rate() = new DefaultRate("/foo", false)
 
   "Rate" must {
     "increment in all intervals" in {
@@ -54,7 +54,7 @@ class RateSpec extends MetricIntegrationSpec {
     }
 
     "prune empty values" in {
-      val r = new Rate("/foo", true)
+      val r = new DefaultRate("/foo", true)
       r.hit(Map("a" -> "b"))
       r.hit(Map("b" -> "c"))
       r.hit(Map("b" -> "c"))

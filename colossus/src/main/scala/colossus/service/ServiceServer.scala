@@ -139,7 +139,7 @@ with ServerConnectionHandler {
       val done = requestBuffer.remove()
       val comp = done.response
       if (requestMetrics) concurrentRequests.decrement()
-      pushResponse(done.request, comp, done.creationTime) 
+      pushResponse(done.request, comp, done.creationTime)
     }
     if (!canPush) {
       //this means the output buffer cannot accept any more messages, so we have
@@ -154,7 +154,7 @@ with ServerConnectionHandler {
     super.connectionClosed(cause)
     if (requestMetrics) {
       requestsPerConnection.add(numRequests)
-      concurrentRequests.decrement(num = requestBuffer.size)
+      concurrentRequests.decrement(amount = requestBuffer.size)
     }
     val exc = new DroppedReplyException
     while (requestBuffer.size > 0) {
