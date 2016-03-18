@@ -54,6 +54,44 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       }
     }
 
+    "fail to load if metric intervals contains an infinite value" in {
+      val userOverrides =
+        """
+          |my-metrics{
+          |  metric-intervals : ["Inf", "10 minutes"]
+          |  metric-address : "/mypath"
+          |  collectors-defaults {
+          |   rate {
+          |    prune-empty : true
+          |   }
+          |  }
+          |}
+        """.stripMargin
+
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      a[FiniteDurationExpectedException] must be thrownBy MetricSystem("my-metrics", c)
+
+    }
+
+    "fail to load if metric intervals contains a non duration string" in {
+      val userOverrides =
+        """
+          |my-metrics{
+          |  metric-intervals : ["foo", "10 minutes"]
+          |  metric-address : "/mypath"
+          |  collectors-defaults {
+          |   rate {
+          |    prune-empty : true
+          |   }
+          |  }
+          |}
+        """.stripMargin
+
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      a[NumberFormatException] must be thrownBy MetricSystem("my-metrics", c)
+
+    }
+
   }
 
   "Rate initialization" must {
