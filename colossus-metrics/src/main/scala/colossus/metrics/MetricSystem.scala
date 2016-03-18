@@ -52,10 +52,13 @@ case class MetricSystem private[metrics] (namespace: MetricAddress, metricInterv
 }
 
 object MetricSystem {
+
+  val ConfigRoot = "colossus.metrics"
+
   /**
    * Constructs a metric system
-    *
-    * @param namespace the base of the url describing the location of metrics within the system
+   *
+   * @param namespace the base of the url describing the location of metrics within the system
    * @param metricIntervals How often to report metrics
    * @param collectSystemMetrics whether to collect metrics from the system as well
    * @param config Typesafe Config source which shoudl contain configuration for a MetricSystem.  This Configuration object is used during
@@ -96,7 +99,7 @@ object MetricSystem {
     * @return
     */
   def apply()(implicit system : ActorSystem) : MetricSystem = {
-    apply("colossus.metrics")
+    apply(ConfigRoot)
   }
 
   /**
@@ -109,7 +112,7 @@ object MetricSystem {
     * @return
     */
   def apply(configPath : String)(implicit system : ActorSystem) : MetricSystem = {
-    apply(configPath, ConfigFactory.load()) //reference?
+    apply(configPath, ConfigFactory.load())
   }
 
   /**
@@ -125,12 +128,12 @@ object MetricSystem {
     import MetricSystemConfigHelpers._
 
     val userPathObject = config.getObject(configPath)
-    val metricsObject = userPathObject.withFallback(config.getObject("colossus.metrics"))
+    val metricsObject = userPathObject.withFallback(config.getObject(ConfigRoot))
     val metricsConfig = metricsObject.toConfig
 
     //after creating the merged config object, overwrite colossus.metrics with this value and use that internally,
     //This simplifies Collector creation.
-    val mergedConfig = config.withValue("colossus.metrics", metricsObject)
+    val mergedConfig = config.withValue(ConfigRoot, metricsObject)
 
     val collectSystemMetrics = metricsConfig.getBoolean("collect-system-metrics")
     val metricIntervals = metricsConfig.getFiniteDurations("metric-intervals")

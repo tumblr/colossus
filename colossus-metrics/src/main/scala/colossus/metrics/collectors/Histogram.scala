@@ -47,37 +47,25 @@ object Histogram extends CollectorConfigLoader{
   }
 
   /**
-    * Create a Histogram with the following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
-    * passed into the MetricSystem.apply function):
-    * 1) metricSystemConfigPath.address
-    * 2) metricSystemConfigPath.collectors-defaults.histogram
-    * 3) colossus.metrics.collectors-defaults.histogram
-    * @param address The address relative to the Collection's MetricSystem Root.
-    * @param collection The Collection this Metric will become a part of.
-    * @return Created Histogram.
+    * Create a Rate with the following address.  This will use the "colossus.metrics" config path to locate configuration.
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param collection The collection which will contain this Collector.
+    * @return
     */
   def apply(address : MetricAddress)(implicit collection : Collection) : Histogram = {
-
-    import scala.collection.JavaConversions._
-
-    val params = resolveConfig(collection.config.config, s"colossus.metrics.$address", DefaultConfigPath)
-    val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
-    val sampleRate = params.getDouble("sample-rate")
-    val pruneEmpty = params.getBoolean("prune-empty")
-    apply(address, percentiles, sampleRate, pruneEmpty)
+    apply(address, MetricSystem.ConfigRoot)
   }
 
   /**
-    * Create a Histogram with following address.  Note, the address will be prefixed by the MetricSystem's root.
+    * Create a Histogram with following address.  Note, the address will be prefixed with the MetricSystem's root.
     * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
     * 1) configPath.address
     * 2) metricSystemConfigPath.collectors-defaults.histogram
     * 3) colossus.metrics.collectors-defaults.histogram
-    * @param address The address relative to the Collection's MetricSystem Root.
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the ConfigFile that this Histogram is located.
-    * @param collection The Collection this Metric will become a part of.
+    * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Histogram = {
@@ -92,7 +80,14 @@ object Histogram extends CollectorConfigLoader{
     apply(address, percentiles, sampleRate, pruneEmpty)
   }
 
-
+  /**
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param percentiles The percentiles that this Histogram should distribute its values.
+    * @param sampleRate How often to collect values.
+    * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
+    * @param collection The collection which will contain this Collector.
+    * @return
+    */
   def apply(
     address: MetricAddress,
     percentiles: Seq[Double] = Histogram.defaultPercentiles,

@@ -36,39 +36,25 @@ object Rate extends CollectorConfigLoader {
   private val DefaultConfigPath = "colossus.metrics.collectors-defaults.rate"
 
   /**
-    * Create a Rate with the following address.  Note, the address will be prefixed by the MetricSystem's root.
-    * Configuration is resolved and overlaid as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
-    * passed into the MetricSystem.apply function):
-    * 1) metricSystemConfigPath.address
-    * 2) metricSystemConfigPath.collectors-defaults.rate
-    * 3) colossus.metrics.collectors-defaults.rate
- *
-    * @param address The address relative to the Collection's MetricSystem Root.
-    * @param collection The Collection this Metric will become a part of.
-    * @return Created Rate.
+    * Create a Rate with the following address.  This will use the "colossus.metrics" config path to locate configuration.
+    * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param collection The collection which will contain this Collector.
+    * @return
     */
   def apply(address : MetricAddress)(implicit collection : Collection) : Rate = {
-
-    /*
-      wait, you are lying! This isn't looking at the "metricSystemConfigPath"!
-      Yes, yes it is! Don't forget that in the MetricSystem.apply, we are merging the supplied path with the reference path and
-      writing that as "colossus.metrics".
-     */
-    val params = resolveConfig(collection.config.config, s"colossus.metrics.$address", DefaultConfigPath)
-    apply(address, params.getBoolean("prune-empty"))
+    apply(address, MetricSystem.ConfigRoot)
   }
-
   /**
-    * Create a Rate with the following address.  Note, the address will be prefixed by the MetricSystem's root.
+    * Create a Rate with the following address.  Note, the address will be prefixed with the MetricSystem's root.
     * Configuration is resolved and overlaid as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
     * passed into the MetricSystem.apply function):
     * 1) configPath.address
     * 2) metricSystemConfigPath.collectors.defaults.rate
     * 3) colossus.metrics.collectors.defaults.rate
  *
-    * @param address The address relative to the Collection's MetricSystem Root.
+    * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the ConfigFile that this rate is located.
-    * @param collection The Collection this Metric will become a part of.
+    * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Rate = {
@@ -77,6 +63,13 @@ object Rate extends CollectorConfigLoader {
     apply(address, params.getBoolean("prune-empty"))
   }
 
+  /**
+    * Create a new Rate which will be contained by the specified Collection
+    * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
+    * @param collection The collection which will contain this Collector.
+    * @return
+    */
   def apply(address: MetricAddress, pruneEmpty: Boolean = false)(implicit collection: Collection): Rate = {
     collection.getOrAdd(new Rate(address, pruneEmpty))
   }
