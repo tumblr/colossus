@@ -68,7 +68,7 @@ class NopCounter private[metrics](val address : MetricAddress) extends Counter {
 
   override def set(tags: TagMap, value: MetricValue): Unit = {}
 
-  override def get(tags: TagMap): MetricValue = -1
+  override def get(tags: TagMap): MetricValue = 0
 }
 
 object Counter extends CollectorConfigLoader{

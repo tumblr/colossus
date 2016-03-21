@@ -91,6 +91,17 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       a[NumberFormatException] must be thrownBy MetricSystem("my-metrics", c)
 
     }
+    "load a dead system if the MetricSystem is disabled" in {
+      val userOverrides = """
+        |my-metrics{
+        |  enabled : false
+        |}
+      """.stripMargin
+
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val ms = MetricSystem("my-metrics", c)
+      ms.namespace mustBe MetricAddress.Root / "DEAD"
+    }
 
   }
 
