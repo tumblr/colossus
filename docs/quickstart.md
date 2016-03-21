@@ -362,11 +362,3 @@ In this case, all of the memcached interactions are still happening entirely in
 the worker's thread, with cache misses being offloaded to abother thread to keep
 the event loop unblocked.  On modern hardware, this service could easily handle
 hundreds of thousands of requests per second.
-
-## Where to go from here
-
-The rest of docs provide more detail about how all this works and how to
-leverage more advanced features, particularly the section on [building a
-service server](../serviceserver).  Also be sure to check out the
-[examples]({{site.github_examples_url}}) sub-project in the Colossus repo.
-

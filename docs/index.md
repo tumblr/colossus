@@ -13,4 +13,4 @@ categories: docs
 [Tasks](tasks)
 
 
-[API Docs]({{site.baseurl}}/api/index.html#colossus.package) (0.6.8)
+[API Docs]({{site.baseurl}}/api/index.html#colossus.package) ({{ site.latest_version }})
