@@ -47,7 +47,7 @@ object Histogram extends CollectorConfigLoader{
   }
 
   /**
-    * Create a Rate with the following address.  This will use the "colossus.metrics" config path to locate configuration.
+    * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem for details on configuration]]
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param collection The collection which will contain this Collector.
     * @return
@@ -57,14 +57,12 @@ object Histogram extends CollectorConfigLoader{
   }
 
   /**
-    * Create a Histogram with following address.  Note, the address will be prefixed with the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
-    * passed into the MetricSystem.apply function):
-    * 1) configPath.address
-    * 2) metricSystemConfigPath.collectors-defaults.histogram
-    * 3) colossus.metrics.collectors-defaults.histogram
+    * Create a Histogram with following address.
+    * This constructor tells the MetricSystem to look for this Metric's configuration outside of the configuration which
+    * was used to construct the MetricSystem.
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the ConfigFile that this Histogram is located.
+    * @param configPath The path in the ConfigFile that this Histogram is located.This will take precedent over any existing configuration
+    *                   inside the MetricSystem.
     * @param collection The collection which will contain this Collector.
     * @return
     */

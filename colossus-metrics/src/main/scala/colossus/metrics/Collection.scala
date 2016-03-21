@@ -22,9 +22,22 @@ import java.util.concurrent.atomic.AtomicLong
  */
 case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
 
+/**
+  * Base trait required by all metric types.
+  */
 trait Collector {
 
+  /**
+    * The MetricAddress of this Collector.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @return
+    */
   def address: MetricAddress
+
+  /**
+    * TODO
+    * @param interval
+    * @return
+    */
   def tick(interval: FiniteDuration): MetricMap
 }
 

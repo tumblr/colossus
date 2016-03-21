@@ -8,7 +8,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
 
   val PrefixRoot = "colossus.metrics."
 
-  val expectedPaths = Seq("collect-system-metrics", "metric-intervals", "metric-address", "collector-defaults.rate.prune-empty",
+  val expectedPaths = Seq("collect-system-metrics", "collection-intervals", "namespace", "collector-defaults.rate.prune-empty",
                           "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
                           "collector-defaults.histogram-percentiles")
 
@@ -17,7 +17,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
 
       val ms = MetricSystem()
       ms.namespace mustBe MetricAddress.Root
-      ms.metricIntervals.keys mustBe Set(1.second, 1.minute)
+      ms.collectionIntervals.keys mustBe Set(1.second, 1.minute)
       ms.collectionSystemMetrics mustBe true
 
       expectedPaths.foreach{ x =>
@@ -29,8 +29,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val userOverrides =
         """
           |my-metrics{
-          |  metric-intervals : ["1 minute", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["1 minute", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   rate {
           |    prune-empty : true
@@ -45,7 +45,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val ms = MetricSystem("my-metrics", c)
 
       ms.namespace mustBe MetricAddress("/mypath")
-      ms.metricIntervals.keys mustBe Set(1.minute, 10.minutes)
+      ms.collectionIntervals.keys mustBe Set(1.minute, 10.minutes)
       ms.collectionSystemMetrics mustBe true
 
 
@@ -58,8 +58,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val userOverrides =
         """
           |my-metrics{
-          |  metric-intervals : ["Inf", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["Inf", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   rate {
           |    prune-empty : true
@@ -77,8 +77,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val userOverrides =
         """
           |my-metrics{
-          |  metric-intervals : ["foo", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["foo", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   rate {
           |    prune-empty : true
@@ -102,8 +102,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |  /myrate {
           |    prune-empty : false
           |  }
-          |  metric-intervals : ["1 minute", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["1 minute", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   rate {
           |    prune-empty : true
@@ -132,7 +132,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |  "/myrate" {
           |    prune-empty : false
           |  }
-          |  metric-intervals : ["1 minute", "10 minutes"]
+          |  collection-intervals : ["1 minute", "10 minutes"]
           |}
         """.stripMargin
 
@@ -150,8 +150,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val userOverrides =
         """
           |my-metrics{
-          |  metric-intervals : ["1 minute", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["1 minute", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   rate {
           |    prune-empty : true
@@ -188,8 +188,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |    prune-empty : false
           |    percentiles : [.50, .75]
           |  }
-          |  metric-intervals : ["1 minute", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["1 minute", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   histogram {
           |    prune-empty : true
@@ -219,8 +219,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val userOverrides =
         """
           |my-metrics{
-          |  metric-intervals : ["1 minute", "10 minutes"]
-          |  metric-address : "/mypath"
+          |  collection-intervals : ["1 minute", "10 minutes"]
+          |  namespace : "/mypath"
           |  collectors-defaults {
           |   histogram {
           |    prune-empty : true
@@ -254,8 +254,4 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       h2.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
     }
   }
-
-
-
-
 }

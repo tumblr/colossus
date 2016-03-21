@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import com.typesafe.config.Config
-
 import scala.concurrent.duration._
 
 class Rate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean)(implicit collection: Collection) extends Collector {
@@ -33,7 +31,7 @@ object Rate extends CollectorConfigLoader {
   private val DefaultConfigPath = "colossus.metrics.collectors-defaults.rate"
 
   /**
-    * Create a Rate with the following address.  This will use the "colossus.metrics" config path to locate configuration.
+    * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem for details on configuration]]
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param collection The collection which will contain this Collector.
     * @return
@@ -42,15 +40,12 @@ object Rate extends CollectorConfigLoader {
     apply(address, MetricSystem.ConfigRoot)
   }
   /**
-    * Create a Rate with the following address.  Note, the address will be prefixed with the MetricSystem's root.
-    * Configuration is resolved and overlaid as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
-    * passed into the MetricSystem.apply function):
-    * 1) configPath.address
-    * 2) metricSystemConfigPath.collectors.defaults.rate
-    * 3) colossus.metrics.collectors.defaults.rate
- *
+    * Create a Rate with the following address.
+    * This constructor tells the MetricSystem to look for this Metric's configuration outside of the configuration which
+    * was used to construct the MetricSystem.
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the ConfigFile that this rate is located.
+    * @param configPath The path in the ConfigFile that this rate's configuration is located.  This will take precedent over any existing configuration
+    *                   inside the MetricSystem.
     * @param collection The collection which will contain this Collector.
     * @return
     */
@@ -71,20 +66,4 @@ object Rate extends CollectorConfigLoader {
     collection.getOrAdd(new Rate(address, pruneEmpty))
   }
 }
-
-private[metrics] trait CollectorConfigLoader {
-
-  def resolveConfig(config : Config,
-                    metricPath : String,
-                    defaultCollectorPath : String) : Config = {
-    if(config.hasPath(metricPath)) {
-      config.getConfig(metricPath).withFallback(config.getConfig(defaultCollectorPath))
-    }else{
-      config.getConfig(defaultCollectorPath)
-    }
-
-  }
-
-}
-
 
