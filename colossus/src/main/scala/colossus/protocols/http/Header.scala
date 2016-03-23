@@ -2,8 +2,10 @@ package colossus
 package protocols.http
 
 import akka.util.ByteString
-import colossus.protocols.http.Connection.{Close, KeepAlive}
+import Connection.{Close, KeepAlive}
 import com.github.nscala_time.time.Imports._
+import core.{DataOutBuffer, Encoder}
+import java.util.{LinkedList, List => JList}
 
 import scala.collection.immutable.HashMap
 import parsing.ParseException
@@ -11,6 +13,7 @@ import parsing.ParseException
 
 sealed abstract class HttpMethod(val name: String) {
   val bytes: Array[Byte] = name.getBytes("UTF-8")
+  val encodedSize = bytes.length
 }
 
 object HttpMethod {
@@ -25,6 +28,30 @@ object HttpMethod {
   case object Patch   extends HttpMethod("PATCH")
 
   val methods: List[HttpMethod] = List(Get, Post, Put, Delete, Head, Options, Trace, Connect, Patch)
+
+  def apply(line: Array[Byte]): HttpMethod = {
+    val guess = line(0) match {
+      case 'G' => Get
+      case 'P' => line(1) match {
+        case 'A' => Patch
+        case 'O' => Post
+        case 'U' => Put
+      }
+      case 'D' => Delete
+      case 'H' => Head
+      case 'O' => Options
+      case 'T' => Trace
+      case 'C' => Connect
+      case other => HttpMethod(new String(line, 0, line.indexOf(' '.toByte)))
+    }
+    //make a best effort to ensure we're actually getting the method we think we are
+    if (line(guess.encodedSize) != ' ') {
+      throw new ParseException(s"Invalid http method")
+    } else {
+      guess
+    }
+  }
+
 
   def apply(str: String): HttpMethod = {
     val ucase = str.toUpperCase
@@ -48,63 +75,86 @@ object HttpVersion {
   def apply(str: String): HttpVersion = {
     if (str == "HTTP/1.1") `1.1` else if (str=="HTTP/1.0") `1.0` else throw new ParseException(s"Invalid http version '$str'")
   }
+
+  def apply(bytes: Array[Byte], start: Int, length: Int): HttpVersion = {
+    val b = bytes(start + length - 1).toChar
+    if (b == '1') `1.1` else if (b == '0') `1.0` else throw new ParseException(s"Invalid http version")
+  }
 }
 
 
-trait HttpHeader {
+
+trait HttpHeader extends Encoder {
+
   def key: String
   def value: String
-  def encoded: Array[Byte]
-
-  override def equals(that: Any): Boolean = that match {
-    case that: HttpHeader => this.key == that.key && this.value == that.value
-    case other => false
-  }
-
-  override def hashCode = (key + value).hashCode
-
-  override def toString = s"($key,$value)"
 
 }
-
-//generally created when encoding http responses
-class EncodedHeader(val encoded: Array[Byte], keyLength: Int, valueStart: Int) extends HttpHeader {
-  lazy val key = new String(encoded.take(keyLength))
-  lazy val value = new String(encoded.drop(valueStart).dropRight(HttpHeader.NEWLINE.length))
-}
-
-//generally created when parsing http requests
-class DecodedHeader(val key: String, val value: String) extends HttpHeader {
-  lazy val encoded = (key + HttpHeader.DELIM + value + HttpHeader.NEWLINE).getBytes("UTF-8")
-
-  def toEncodedHeader = new EncodedHeader(encoded, key.length, key.length + HttpHeader.DELIM.length)
-}
-
 
 object HttpHeader {
   val DELIM = ": "
   val NEWLINE = "\r\n"
 
 
-  def apply(key: String, value: String): HttpHeader = (new DecodedHeader(key, value)).toEncodedHeader
-
   object Conversions {
-    implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = new HttpHeaders (
-      l.map{ case (k,v) => HttpHeader(k,v) }.toArray
+    implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = HttpHeaders.fromSeq (
+      l.map{ case (k,v) => HttpHeader(k,v) }
     )
   }
 
+  def apply(data: Array[Byte]): EncodedHttpHeader = new EncodedHttpHeader(data)
+
+  def apply(key: String, value: String) : HttpHeader = new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
+
+  implicit object FPHZero extends parsing.Zero[EncodedHttpHeader] {
+    def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n 
+  }
+
+}
+
+class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsing {
+
+  //BE AWARE - data contains the \r\n
+
+  protected def parseErrorMessage = "Malformed header"
+
+  private lazy val valueStart = parsed { data.indexOf(':'.toByte) + 1 }
+  lazy val key        = parsed { new String(data, 0, valueStart - 1).toLowerCase }
+  lazy val value      = parsed { new String(data, valueStart, data.length - valueStart - 2).trim }
+
+  def encode(out: DataOutBuffer) {
+    out.write(data)
+  }
+
+  /**
+   * Faster version of checking if the header key matches the given key.  It
+   * will check the first character before attempting to build the full string
+   * of the header, amortizing the costs
+   */
+  def matches(matchkey: String) = {
+    val c = matchkey(0).toByte
+    if (data(0) == c || data(0) + 32 == c) matchkey == key else false
+  }
+
+  override def toString = key + ":" + value
+
+  override def equals(that: Any): Boolean = that match {
+    case that: HttpHeader => this.key == that.key && this.value == that.value
+    case other => false
+  }
+
+  override def hashCode = toString.hashCode
 }
     
-class HttpHeaders(private val headers: Array[HttpHeader]) {
+class HttpHeaders(private val headers: JList[HttpHeader]) {
   def firstValue(name: String): Option[String] = {
     val l = name.toLowerCase
-    headers.collectFirst{ case x if (x.key == l) => x.value }
+    toSeq.collectFirst{ case x if (x.key == l) => x.value }
   }
 
   def allValues(name: String): Seq[String] = {
     val l = name.toLowerCase
-    headers.collect{ case x if (x.key == l) => x.value }
+    toSeq.collect{ case x if (x.key == l) => x.value }
   }
 
   /** Returns the value of the content-length header, if it exists.
@@ -118,17 +168,19 @@ class HttpHeaders(private val headers: Array[HttpHeader]) {
 
   def connection: Option[Connection] = firstValue(HttpHeaders.Connection).flatMap(Connection.unapply)
 
-  def + (kv: (String, String)) = new HttpHeaders(headers :+ HttpHeader(kv._1, kv._2))
+  def + (kv: (String, String)) = {
+    val n = HttpHeader(kv._1, kv._2)
+    HttpHeaders.fromSeq(toSeq :+ n)
+  }
 
   def size = headers.size
 
-  def toSeq : Seq[HttpHeader] = headers
+  def toSeq : Seq[HttpHeader] = headers.toArray(Array[HttpHeader]())
 
   def encode(buffer: core.DataOutBuffer) {
-    var i = 0
-    while (i < headers.size) {
-      buffer.write(headers(i).encoded)
-      i += 1
+    val it = headers.iterator
+    while (it.hasNext) {
+      it.next.encode(buffer)
     }
 
   }
@@ -138,7 +190,7 @@ class HttpHeaders(private val headers: Array[HttpHeader]) {
     case other => false
   }
 
-  override def toString = "[" + headers.map{_.toString}.mkString(" ") + "]"
+  override def toString = "[" + toSeq.map{_.toString}.mkString(" ") + "]"
 
 }
 
@@ -161,9 +213,15 @@ object HttpHeaders {
   val SetCookie         = "set-cookie"
   val TransferEncoding  = "transfer-encoding"
 
-  def apply(hdrs: HttpHeader*) : HttpHeaders = new HttpHeaders(hdrs.toArray)
+  def apply(hdrs: HttpHeader*) : HttpHeaders = HttpHeaders.fromSeq(hdrs)
 
-  val Empty = new HttpHeaders(Array())
+  def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = {
+    val l = new LinkedList[HttpHeader]
+    seq.foreach(l.add)
+    new HttpHeaders(l)
+  }
+
+  val Empty = new HttpHeaders(new LinkedList)
 }
 
 
@@ -291,14 +349,21 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   def key = lastDate.key
   def value = lastDate.value
 
-  def encoded: Array[Byte] = encoded(System.currentTimeMillis)
-
-  def encoded(time: Long): Array[Byte] = {
+  private def check(time: Long) {
     if (time >= lastTime + 1000) {
       lastDate = generate(time)
       lastTime = time
     }
-    lastDate.encoded
+  }
+
+  def encode(out: DataOutBuffer) {
+    check(System.currentTimeMillis)
+    lastDate.encode(out)
+  }
+
+  def bytes(time: Long): ByteString = {
+    check(time)
+    bytes
   }
 
 }

@@ -32,13 +32,12 @@ class StreamingHttpResponseParserSpec extends ColossusSpec with MustMatchers wit
 
       val clientProtocol = new StreamingHttpClientCodec()
 
-      val buf = new DynamicOutBuffer(100)
-      sent.encode(buf)
-      val bytes = buf.data
+      val bytes = DataBuffer(sent.bytes)
       val decodedResponse: Option[DecodedResult[StreamingHttpResponse]] = clientProtocol.decode(bytes)
 
       decodedResponse match {
         case Some(DecodedResult.Stream(res, s)) => {
+          println(bytes.remaining)
           s.push(bytes) match {
             case PushResult.Full(trig) => trig.fill{() => s.push(bytes)}
             case _ => throw new Exception("wrong result")

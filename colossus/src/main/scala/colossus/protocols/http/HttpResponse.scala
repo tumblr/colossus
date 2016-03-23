@@ -24,7 +24,37 @@ object HttpResponseHeader {
 
 }
 
-case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : HttpHeaders ) {
+trait ResponseFL {
+  def version : HttpVersion
+  def code : HttpCode
+
+  override def toString = version.toString + " " + code.toString
+
+  override def equals(that: Any): Boolean = that match {
+    case t : ResponseFL => this.toString == that.toString
+    case _ => false
+  }
+
+  override def hashCode = toString.hashCode
+}
+
+case class ParsedResponseFL(data: Array[Byte]) extends ResponseFL with LazyParsing {
+
+  protected def parseErrorMessage = "malformed head"
+
+  lazy val codeStart = fastIndex(data, ' '.toByte) + 1
+  lazy val codemsgStart = fastIndex(data, ' '.toByte, codeStart) + 1
+
+  lazy val version: HttpVersion = parsed { HttpVersion(data, 0, codeStart - 1) }
+  lazy val code: HttpCode = parsed { HttpCode((new String(data, codeStart, codemsgStart - codeStart - 1)).toInt) }
+}
+
+case class BasicResponseFL(version : HttpVersion, code: HttpCode) extends ResponseFL
+
+case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) {
+
+  def version = fl.version
+  def code = fl.code
 
 
   def encode(buffer: DataOutBuffer) {
@@ -38,6 +68,14 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ht
   def withHeader(key: String, value: String) = copy(headers = headers + (key -> value))
 
 }
+
+object HttpResponseHead{
+
+  def apply(version: HttpVersion, code: HttpCode, headers: HttpHeaders): HttpResponseHead = {
+    HttpResponseHead(BasicResponseFL(version, code), headers)
+  }
+}
+  
 
 sealed trait BaseHttpResponse { 
 
@@ -86,7 +124,7 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttp
   def encode(buffer: DataOutBuffer) {
     head.encode(buffer)
     body.contentType.foreach{ctype =>
-      buffer.write(ctype.encoded)
+      ctype.encode(buffer)
     }
     buffer.write(HttpResponse.ContentLengthKeyArray)
     fastIntToString(body.size, buffer)

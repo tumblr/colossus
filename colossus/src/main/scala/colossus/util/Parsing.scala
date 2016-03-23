@@ -61,8 +61,10 @@ class ParserSizeTracker(maxSize: Option[DataSize]) {
   }
 }
 
-//NOTICE - these classes need to have as little overhead as possible.  No fancy scala stuff here!!!
 
+trait Zero[T] {
+  def isZero(t: T): Boolean
+}
 
 class UnsizedParseBuffer(terminus: ByteString, includeTerminusInData: Boolean = false, skip: Int = 0) {
   private val data = new ByteStringBuilder()
@@ -169,6 +171,16 @@ trait IntegerParser{self: UnsizedParseBuffer =>
 
  */
 object Combinators {
+
+  class MapParser[A,B](orig: Parser[A], f: A => B) extends Parser[B] {
+    def parse(data: DataBuffer) = orig.parse(data) match {
+      case Some(r) => Some(f(r))
+      case None => None
+    }
+    override def endOfStream() = orig.endOfStream().map(f)
+  }
+
+
   trait Parser[+T] {
     def parse(data: DataBuffer): Option[T]
 
@@ -233,16 +245,8 @@ object Combinators {
     //combines two parsers but discards the result from the first.
     def ~>[B](b: Parser[B]): Parser[B] = this ~ b >> {_.b}
 
+    def >>[B](f: T => B): Parser[B] = new MapParser[T,B](this, f)
 
-
-    
-    def >>[B](f: T => B): Parser[B] = {
-      val orig = this
-      new Parser[B]{
-        def parse(data: DataBuffer) = orig.parse(data).map{r => f(r)}
-        override def endOfStream() = orig.endOfStream().map(f)
-      }
-    }
     def map[B](f: T => B): Parser[B] = >>(f)
 
     def |>[B](f: T => Parser[B]): Parser[B] = {
@@ -690,6 +694,151 @@ object Combinators {
       res
     }
   }
+
+
+
+
+
+  class RepeatZeroParser[T : scala.reflect.ClassTag](parser: Parser[T])(implicit zero: Zero[T]) extends Parser[Array[T]] {
+    val build = new java.util.LinkedList[T]()
+
+    def parse(data: DataBuffer): Option[Array[T]] = {
+      var done = false
+      while (data.hasUnreadData && !done) {
+        parser.parse(data) match {
+          case Some(res) => if (!zero.isZero(res)) {
+            build.add(res)
+          } else {
+            done = true
+          }
+          case None => {}
+        }
+      }
+      if (done) {
+        val h = new Array[T](build.size)
+        val it = build.iterator
+        var i = 0
+        while (it.hasNext) {
+          h(i) = it.next
+          i += 1
+        }
+        build.clear()
+        Some(h)
+      } else {
+        None
+      }
+    }
+  }
+
+  class FoldZeroParser[T, U](parser: Parser[T], init: => U)(folder: (T, U) => U)(implicit zero: Zero[T]) extends Parser[U] {
+    
+    var current: U = init
+
+    def parse(data: DataBuffer): Option[U] = {
+      var res: Option[U] = None
+      while (data.hasUnreadData && res == None) {
+        parser.parse(data) match {
+          case Some(v) => if (!zero.isZero(v)) {
+            current = folder(v, current)
+          } else {
+            res = Some(current)
+            current = init
+          }
+          case None => {}
+        }
+      }
+      res
+    }
+  }
+
+
+  /**
+   * Repeat using a parser until it returns a zero value.  An array of non-zero
+   * values is returned
+   */
+  def repeatZero[T : scala.reflect.ClassTag](parser: Parser[T])(implicit zero: Zero[T]) = new RepeatZeroParser(parser)
+
+  def foldZero[T, U](parser: Parser[T], init: => U)(folder: (T, U) => U)(implicit zero: Zero[T]) = new FoldZeroParser(parser, init)(folder)
+
+  class FastArrayBuilder(initSize: Int, shrinkOnComplete: Boolean = false) {
+    private var build: Array[Byte] = new Array[Byte](initSize)
+
+    private var writePos = 0
+
+    def write(b: Byte) {
+      if (writePos == build.length) {
+        val nb = new Array[Byte](build.length * 2)
+        System.arraycopy(build, 0, nb, 0, build.length)
+        build = nb
+      }
+      build(writePos) = b
+      writePos += 1
+    }
+
+    def complete(): Array[Byte] = {
+      val res = new Array[Byte](writePos)
+      System.arraycopy(build, 0, res, 0, writePos)
+      writePos = 0
+      if (shrinkOnComplete && build.length > initSize) {
+        build = new Array(initSize)
+      }
+      res
+    }
+  }
+
+  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false) extends Parser[T] {
+    private val CR    = '\r'.toByte
+    private val LF    = '\n'.toByte
+    private val empty = Array[Byte]()
+    private val build = new FastArrayBuilder(100)
+
+    var scanByte = CR
+
+    def complete() : T = {
+      scanByte = CR
+      constructor(build.complete)
+    }
+
+    def parse(buffer: DataBuffer): Option[T] = {
+      var res: Option[T] = None
+      while (buffer.hasUnreadData && res == None) {
+        val byte = buffer.data.get
+        if (byte == scanByte) {
+          if (scanByte == CR) {
+            //the -1 is so we don't copy-in the \r
+            if (includeNewline) {
+              build.write(byte)
+              build.write(LF)
+            } 
+            if (buffer.hasUnreadData) {
+              //usually we can skip scanning for the \n
+              //do an extra get to read in the \n
+              buffer.data.position(buffer.data.position + 1)
+              res = Some(complete())
+            } else {
+              //this would only happen if the \n is in the next packet/buffer,
+              //very rare but it can happen, but we can't complete until we've read it in
+              scanByte = LF
+            }
+          } else {
+            //this happens when the LF is the first byte of the data buffer
+            res = Some(complete())
+          }
+        } else {
+          build.write(byte)
+        }
+      }
+      res
+    }
+
+
+
+  }
+  def line: Parser[Array[Byte]] = line(false)
+
+  def line(includeNewline: Boolean): Parser[Array[Byte]] = new LineParser(x => x, includeNewline)
+
+  def line[T](constructor: Array[Byte] => T, includeNewLine: Boolean) : Parser[T] = new LineParser(constructor, includeNewLine)
 
 
   //this is just a tuple that allows for cleaner pattern matching

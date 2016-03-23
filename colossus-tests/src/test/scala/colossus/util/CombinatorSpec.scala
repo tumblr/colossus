@@ -182,6 +182,29 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(DataBuffer(d1)) must equal(None)
       parser.endOfStream() must equal(expected)
     }
+
+    "line" in {
+      val parser = line(false)
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4).toSeq))
+    }
+
+    "line (split at the newline)" in {
+      val parser = line(false)
+      parser.parse(DataBuffer(Array[Byte](1, 2, 13))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](10, 4))).map{_.toSeq} must equal(Some(Array[Byte](1,2).toSeq))
+
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](13, 10, 4))).map{_.toSeq} must equal(Some(Array[Byte](1,2).toSeq))
+
+    }
+
+    "line (include newline)" in {
+      val parser = line(true)
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4, 13, 10).toSeq))
+    }
+
       
 
 
