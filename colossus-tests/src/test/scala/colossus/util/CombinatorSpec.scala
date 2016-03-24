@@ -262,11 +262,14 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       implicit val bZero = new Zero[Byte] {
         def isZero(b: Byte) = b == 123
       }
-      val data = DataBuffer(ByteString(3, 2, 1, 123, 4))
+      val data1 = DataBuffer(ByteString(3,2))
+      val data2 = DataBuffer(ByteString(1, 123, 4))
       val parser = repeatZero(byte)
       val expected = Seq(3, 2, 1)
-      parser.parse(data).get.toSeq must equal(expected)
-      data.remaining must equal(1)
+      parser.parse(data1) must equal(None)
+      data1.remaining must equal(0)
+      parser.parse(data2).get.toSeq must equal(expected)
+      data2.remaining must equal(1)
     }
   }
 

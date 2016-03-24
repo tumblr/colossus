@@ -31,6 +31,7 @@ object ColossusBuild extends Build {
       )
       if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
     },
+    scalacOptions in (Compile, console) := Seq(),
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
