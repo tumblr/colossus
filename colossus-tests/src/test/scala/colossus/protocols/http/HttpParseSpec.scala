@@ -221,6 +221,37 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       
   }
 
+  "HttpMethod" must {
+    "parse itself" in {
+      HttpMethod.methods.foreach{method =>
+        HttpMethod(method.bytes) must equal(method)
+      }
+    }
+
+    "reject some lookalike methods" in {
+      def m(s: String) = s.getBytes("UTF-8")
+
+      intercept[ParseException] {
+        HttpMethod(m("GOT"))
+      }
+      intercept[ParseException] {
+        HttpMethod(m("PET"))
+      }
+      intercept[ParseException] {
+        HttpMethod(m("GOODMORNING"))
+      }
+      intercept[ParseException] {
+        HttpMethod(m("OPTOIN"))
+      }
+      intercept[ParseException] {
+        HttpMethod(m("PITCH"))
+      }
+      intercept[ParseException] {
+        HttpMethod(m("ZZZZ"))
+      }
+    }
+  }
+
 
 
   "HttpRequestHead parameter parsing" must {

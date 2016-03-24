@@ -184,7 +184,7 @@ class CombinatorSuite extends WordSpec with MustMatchers{
     }
 
     "line" in {
-      val parser = line(false)
+      val parser = line
       parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
       parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4).toSeq))
     }
@@ -203,6 +203,14 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val parser = line(true)
       parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
       parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4, 13, 10).toSeq))
+    }
+
+    "line (grow internal buffer" in {
+      val parser = new LineParser(x => x, internalBufferBaseSize = 2)
+      val buf = data("abcdefghijklmnop\r\n123456")
+      val expected = ByteString("abcdefghijklmnop").toArray.toSeq
+      parser.parse(buf).get.toSeq must equal(expected)
+      buf.remaining must equal(6)
     }
 
       
@@ -248,6 +256,17 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(d1) must equal(None)
       parser.parse(d2) must equal(None)
       parser.endOfStream() must equal(Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
+    }
+
+    "repeatZero" in {
+      implicit val bZero = new Zero[Byte] {
+        def isZero(b: Byte) = b == 123
+      }
+      val data = DataBuffer(ByteString(3, 2, 1, 123, 4))
+      val parser = repeatZero(byte)
+      val expected = Seq(3, 2, 1)
+      parser.parse(data).get.toSeq must equal(expected)
+      data.remaining must equal(1)
     }
   }
 

@@ -786,11 +786,11 @@ object Combinators {
     }
   }
 
-  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false) extends Parser[T] {
+  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] {
     private val CR    = '\r'.toByte
     private val LF    = '\n'.toByte
     private val empty = Array[Byte]()
-    private val build = new FastArrayBuilder(100)
+    private val build = new FastArrayBuilder(internalBufferBaseSize)
 
     var scanByte = CR
 

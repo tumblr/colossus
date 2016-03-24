@@ -30,26 +30,31 @@ object HttpMethod {
   val methods: List[HttpMethod] = List(Get, Post, Put, Delete, Head, Options, Trace, Connect, Patch)
 
   def apply(line: Array[Byte]): HttpMethod = {
+    def fail = throw new ParseException(s"Invalid http method")
     val guess = line(0) match {
       case 'G' => Get
       case 'P' => line(1) match {
         case 'A' => Patch
         case 'O' => Post
         case 'U' => Put
+        case _   => fail
       }
       case 'D' => Delete
       case 'H' => Head
       case 'O' => Options
       case 'T' => Trace
       case 'C' => Connect
-      case other => HttpMethod(new String(line, 0, line.indexOf(' '.toByte)))
+      case other => fail
     }
-    //make a best effort to ensure we're actually getting the method we think we are
-    if (line(guess.encodedSize) != ' ') {
-      throw new ParseException(s"Invalid http method")
-    } else {
-      guess
+    //ensure we're actually getting the method we think we are
+    var i = 1
+    while (i < guess.encodedSize) {
+      if (guess.bytes(i) != line(i)) {
+        fail
+      }
+      i += 1
     }
+    guess
   }
 
 
