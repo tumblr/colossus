@@ -154,10 +154,15 @@ object MetricSystem {
     //This simplifies Collector creation.
     val mergedConfig = config.withValue(ConfigRoot, metricsObject)
 
-    val collectSystemMetrics = metricsConfig.getBoolean("collect-system-metrics")
-    val metricIntervals = metricsConfig.getFiniteDurations("collection-intervals")
-    val metricAddress = metricsConfig.getString("namespace")
-    MetricSystem(MetricAddress(metricAddress), metricIntervals, collectSystemMetrics, mergedConfig)
+    val enabled = metricsConfig.getBoolean("enabled")
+    if(enabled){
+      val collectSystemMetrics = metricsConfig.getBoolean("collect-system-metrics")
+      val metricIntervals = metricsConfig.getFiniteDurations("collection-intervals")
+      val metricAddress = metricsConfig.getString("namespace")
+      MetricSystem(MetricAddress(metricAddress), metricIntervals, collectSystemMetrics, mergedConfig)
+    }else{
+      deadSystem
+    }
   }
 }
 

@@ -91,6 +91,17 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       a[NumberFormatException] must be thrownBy MetricSystem("my-metrics", c)
 
     }
+    "load a dead system if the MetricSystem is disabled" in {
+      val userOverrides = """
+        |my-metrics{
+        |  enabled : false
+        |}
+      """.stripMargin
+
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val ms = MetricSystem("my-metrics", c)
+      ms.namespace mustBe MetricAddress.Root / "DEAD"
+    }
 
   }
 
@@ -177,6 +188,29 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val r2 = Rate(MetricAddress("/foo"), "my-app")
       r2.pruneEmpty mustBe true
     }
+
+    "load a NopRate when disabled" in {
+      val userOverrides =
+        """
+          |my-metrics{
+          |   /disabledRate {
+          |    enabled : false
+          |   }
+          |  }
+        """.stripMargin
+
+      //to imitate an already loaded configuration
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val ms = MetricSystem("my-metrics", c)
+
+      implicit val m = ms.base
+
+      val r = Rate(MetricAddress("/disabledRate"))
+      r mustBe a[NopRate]
+
+      val r2 = Rate(MetricAddress("/foo"))
+      r2 mustBe a[DefaultRate]
+    }
   }
 
   "Histogram initialization" must {
@@ -252,6 +286,54 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       h2.pruneEmpty mustBe true
       h2.sampleRate mustBe 1
       h2.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
+    }
+
+    "load a NopHistogram when disabled" in {
+      val userOverrides =
+        """
+          |my-metrics{
+          |   /disabledHistogram {
+          |    enabled : false
+          |   }
+          |  }
+        """.stripMargin
+
+      //to imitate an already loaded configuration
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val ms = MetricSystem("my-metrics", c)
+
+      implicit val m = ms.base
+
+      val h = Histogram(MetricAddress("/disabledHistogram "))
+      h mustBe a[NopHistogram]
+
+      val h2 = Histogram(MetricAddress("/foo"))
+      h2 mustBe a[DefaultHistogram]
+    }
+  }
+
+  "Counter initialization" must {
+    "load a NopCounter when disabled" in {
+      val userOverrides =
+        """
+          |my-metrics{
+          |   /disabledCounter {
+          |    enabled : false
+          |   }
+          |  }
+        """.stripMargin
+
+      //to imitate an already loaded configuration
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val ms = MetricSystem("my-metrics", c)
+
+      implicit val m = ms.base
+
+      val c1 = Counter(MetricAddress("/disabledCounter"))
+      c1 mustBe a[NopCounter]
+
+      val c2 = Counter(MetricAddress("/foo"))
+      c2 mustBe a[DefaultCounter]
     }
   }
 }
