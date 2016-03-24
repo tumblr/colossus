@@ -60,7 +60,8 @@ case class IOSystemConfig(name: String, numWorkers: Int){
  * to keep in mind is that all actors in a single IOSystem will share event
  * loops.
  */
-case class IOSystem private[colossus](workerManager: ActorRef, config: IOSystemConfig, metrics: MetricSystem, actorSystem: ActorSystem) {
+case class
+IOSystem private[colossus](workerManager: ActorRef, config: IOSystemConfig, metrics: MetricSystem, actorSystem: ActorSystem) {
   import IOCommand._
 
   import akka.pattern.ask
