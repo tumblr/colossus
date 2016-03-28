@@ -178,22 +178,5 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
     val parser = replyParser
     parser.parse(reply.raw) should equal(Some(reply))
   }
-
-  it should "accept reply under the size limit" in {
-    val reply = ByteString("+OK\r\n")
-    val parser = RedisReplyParser(reply.size.bytes)
-    val actual = parser.parse(DataBuffer.fromByteString(reply) )
-    actual should equal (Some(StatusReply("OK")))
-  }
-
-  it should "reject reply over the size limit" in {
-    val reply = ByteString("+OK\r\n")
-    val parser = RedisReplyParser((reply.size - 1).bytes)
-    intercept[ParseException]{
-      parser.parse(DataBuffer(reply))
-    }
-  }
-
-
 }
 

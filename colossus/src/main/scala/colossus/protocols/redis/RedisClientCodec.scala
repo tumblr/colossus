@@ -4,13 +4,11 @@ package protocols.redis
 import core._
 import service._
 
-import colossus.parsing.DataSize
-
-class RedisClientCodec(maxSize: DataSize = RedisReplyParser.DefaultMaxSize) extends Codec.ClientCodec[Command, Reply] {
-  private var replyParser = RedisReplyParser(maxSize)
+class RedisClientCodec() extends Codec.ClientCodec[Command, Reply] {
+  private var replyParser = RedisReplyParser()
 
   def reset(){
-    replyParser = RedisReplyParser(maxSize)
+    replyParser = RedisReplyParser()
   }
 
   def encode(cmd: Command) = DataBuffer(cmd.raw)

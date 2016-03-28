@@ -3,7 +3,6 @@ package protocols
 
 import akka.util.ByteString
 import colossus.core.Context
-import colossus.parsing.DataSize
 import colossus.protocols.memcache.MemcacheCommand._
 import colossus.protocols.memcache.MemcacheReply._
 import service._
@@ -144,15 +143,15 @@ package object memcache {
       new MemcacheCallbackClient(scl)
     }
 
-    def callbackClient(config: ClientConfig, context: Context, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize) : MemcacheCallbackClient = {
-      val serviceClient = new ServiceClient[MemcacheCommand, MemcacheReply](new MemcacheClientCodec(maxSize), config, context)
+    def callbackClient(config: ClientConfig, context: Context) : MemcacheCallbackClient = {
+      val serviceClient = new ServiceClient[MemcacheCommand, MemcacheReply](new MemcacheClientCodec(), config, context)
       new MemcacheCallbackClient(serviceClient)
     }
 
 
-    def asyncClient(config : ClientConfig, maxSize : DataSize = MemcacheReplyParser.DefaultMaxSize)(implicit io : IOSystem) : MemcacheFutureClient = {
+    def asyncClient(config : ClientConfig)(implicit io : IOSystem) : MemcacheFutureClient = {
       implicit val ec = io.actorSystem.dispatcher
-      val client = AsyncServiceClient(config, new MemcacheClientCodec(maxSize))
+      val client = AsyncServiceClient(config, new MemcacheClientCodec())
       new MemcacheFutureClient(client)
     }
 

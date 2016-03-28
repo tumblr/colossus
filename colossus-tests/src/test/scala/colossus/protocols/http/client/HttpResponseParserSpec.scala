@@ -7,10 +7,6 @@ import core.{DataBuffer, DynamicOutBuffer}
 import akka.util.ByteString
 import org.scalatest.{WordSpec, MustMatchers}
 
-import parsing.ParseException
-import parsing.DataSize._
-
-
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
 class HttpResponseParserSpec extends WordSpec with MustMatchers {
@@ -23,7 +19,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
     "parse a basic response" in {
       val res = ByteString("HTTP/1.1 204 NO_CONTENT\r\n\r\n")
-      val parser = HttpResponseParser.static(res.size.bytes)
+      val parser = HttpResponseParser.static()
       val data = DataBuffer(res)
       parser.parse(data) must equal(Some(Static(HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.NO_CONTENT, Vector()), None))))
       data.remaining must equal(0)
@@ -122,20 +118,6 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val decodedResponse = clientProtocol.decode(encodedResponse)
       decodedResponse must equal(expected)
       encodedResponse.remaining must equal(0)
-    }
-
-    "accept a response under the size limit" in {
-      val res = ByteString("HTTP/1.1 304 NOT_MODIFIED\r\n\r\n")
-      val parser = HttpResponseParser.static(res.size.bytes)
-      parser.parse(DataBuffer(res)) must equal(Some(Static(HttpResponse(HttpVersion.`1.1`, HttpCodes.NOT_MODIFIED, Vector()))))
-    }
-
-    "reject a response over the size limit" in {
-      val res = ByteString("HTTP/1.1 200 OK\r\n\r\n")
-      val parser = HttpResponseParser.static((res.size - 1).bytes)
-      intercept[ParseException] {
-        parser.parse(DataBuffer(res))
-      }
     }
 
     "parse a response with chunked transfer encoding" in {

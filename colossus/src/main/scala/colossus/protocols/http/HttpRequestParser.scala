@@ -5,24 +5,21 @@ import akka.util.ByteString
 
 import core.DataBuffer
 import parsing._
-import DataSize._
 import HttpParse._
 import Combinators._
 
 object HttpRequestParser {
+  
+  def apply() = httpRequest
 
-  val DefaultMaxSize: DataSize = 1.MB
-
-  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, httpRequest)
-
-  protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) => 
-    transferEncoding match { 
+  protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) =>
+    transferEncoding match {
       case None | Some("identity") => contentLength match {
         case Some(0) | None => const(HttpRequest(head, None))
         case Some(n) => bytes(n) >> {body => HttpRequest(head, Some(body))}
       }
       case Some(other)  => chunkedBody >> {body => HttpRequest(head, Some(body))}
-    } 
+    }
   }
 
   protected def httpHead = new HttpHeadParser

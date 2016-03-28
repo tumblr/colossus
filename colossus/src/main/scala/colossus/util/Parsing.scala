@@ -1,6 +1,7 @@
 package colossus
 package parsing
 
+import colossus.metrics.Histogram
 import core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
@@ -28,9 +29,9 @@ object DataSize {
  * cases databuffers are fairly small (128Kb right now for buffers coming out
  * of the event loop), and since the primary purpose for this is to prevent OOM
  * exceptions due to very large requests, the lack of precision isn't a huge
- * issue. 
+ * issue.
 */
-class ParserSizeTracker(maxSize: Option[DataSize]) {
+class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogram] = None) {
 
   //this tracker would probably not work if the DataBuffer ever represents some
   //large/infinite value. we could get around the precision issue by breaking a
@@ -42,6 +43,7 @@ class ParserSizeTracker(maxSize: Option[DataSize]) {
   private var used = 0L
 
   def reset() {
+    histogramOpt.foreach{_.add(used.toInt)}
     used = 0
   }
 

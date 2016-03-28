@@ -42,18 +42,4 @@ class MemcacheParserSpec extends FlatSpec with ShouldMatchers{
     val p = new MemcacheReplyParser
     p.parse(reply) should equal (Some(Error))
   }
-
-  it should "accept a reply under the size limit" in {
-    val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
-    val p = MemcacheReplyParser(DataSize(reply.size))
-    p.parse(reply) should equal (Some(Value(ByteString("foo"), ByteString("hello"), 0)))
-  }
-
-  it should "reject a reply over the size limit" in {
-    val reply = DataBuffer(ByteString("VALUE foo 0 5\r\nhello\r\nEND\r\n"))
-    val p = MemcacheReplyParser(DataSize(reply.size -1))
-    intercept[ParseException] {
-      p.parse(reply)
-    }
-  }
 }

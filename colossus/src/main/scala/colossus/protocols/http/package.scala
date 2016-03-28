@@ -91,7 +91,7 @@ package object http {
   }
 
 
-  class HttpClient(config : ClientConfig, context: Context, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
+  class HttpClient(config : ClientConfig, context: Context)
     extends ServiceClient[HttpRequest, HttpResponse](new HttpClientCodec,config, context)
 
 

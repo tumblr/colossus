@@ -8,7 +8,6 @@ import org.scalatest._
 import akka.util.ByteString
 
 import parsing._
-import DataSize._
 
 object Broke extends Tag("broke")
 
@@ -109,16 +108,6 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
 
-    }
-
-    "not accept a request that's too large" in {
-      val req = s"POST /hello/world HTTP/1.1\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nContent-Length: 0\r\n\r\n"
-      (1L until req.size).foreach{s => 
-        val parser = HttpRequestParser(s.bytes)
-        a [ParseException] must be thrownBy {
-          parser.parse(DataBuffer(ByteString(req)))
-        }
-      }
     }
 
     "properly reset request size tracking on new request" in {
