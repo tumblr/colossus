@@ -37,7 +37,7 @@ object RawProtocol {
     def reset(){}
   }
 
-  trait Raw extends CodecDSL {
+  trait Raw extends Protocol {
     type Input = ByteString
     type Output = ByteString
   }
