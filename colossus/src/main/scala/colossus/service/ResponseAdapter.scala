@@ -5,13 +5,13 @@ import scala.language.higherKinds
 
 
 
-trait Sender[C <: CodecDSL, M[_]] {
+trait Sender[C <: Protocol, M[_]] {
 
   def send(input: C#Input): M[C#Output]
 
 }
 
-trait ResponseAdapter[C <: CodecDSL, M[_]] extends Sender[C,M] {
+trait ResponseAdapter[C <: Protocol, M[_]] extends Sender[C,M] {
 
   protected def client : Sender[C, M]
 
@@ -28,7 +28,7 @@ trait ResponseAdapter[C <: CodecDSL, M[_]] extends Sender[C,M] {
   protected def failure[T](ex : Throwable) : M[T]
 }
 
-trait CallbackResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Callback] {
+trait CallbackResponseAdapter[C <: Protocol] extends ResponseAdapter[C, Callback] {
 
   override protected def map[T, U](t: Callback[T])(f: (T) => U): Callback[U] = t.map(f)
 
@@ -39,7 +39,7 @@ trait CallbackResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Callback
   override protected def failure[T](ex: Throwable): Callback[T] = Callback.failed(ex)
 }
 
-trait FutureResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Future] {
+trait FutureResponseAdapter[C <: Protocol] extends ResponseAdapter[C, Future] {
 
   implicit protected def executionContext : ExecutionContext
 

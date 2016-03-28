@@ -7,7 +7,7 @@ import service._
 
 package object redis {
 
-  trait Redis extends CodecDSL {
+  trait Redis extends Protocol {
     type Input = Command
     type Output = Reply
   }

@@ -322,7 +322,7 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
 
 object ServiceClient {
 
-  def apply[C <: CodecDSL] = ClientFactory.serviceClientFactory[C]
+  def apply[C <: Protocol] = ClientFactory.serviceClientFactory[C]
 
 }
 

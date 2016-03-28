@@ -8,7 +8,7 @@ import scala.language.higherKinds
 
 package object memcache {
 
-  trait Memcache extends CodecDSL {
+  trait Memcache extends Protocol {
     type Input = MemcacheCommand
     type Output = MemcacheReply
   }

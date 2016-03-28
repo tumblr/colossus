@@ -14,7 +14,7 @@ package object http extends HttpBodyEncoders {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
-  trait BaseHttp extends CodecDSL {
+  trait BaseHttp extends Protocol {
     type Input <: HttpRequest
     type Output <: BaseHttpResponse
   }

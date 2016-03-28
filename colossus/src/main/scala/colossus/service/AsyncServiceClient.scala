@@ -104,7 +104,7 @@ trait AsyncServiceClient[I,O] {
   def clientConfig : ClientConfig
 }
 
-trait FutureClient[C <: CodecDSL] extends AsyncServiceClient[C#Input, C#Output] with Sender[C, Future]
+trait FutureClient[C <: Protocol] extends AsyncServiceClient[C#Input, C#Output] with Sender[C, Future]
 
 object AsyncServiceClient {
 
@@ -113,7 +113,7 @@ object AsyncServiceClient {
   case object Disconnect extends ClientCommand
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[C <: CodecDSL](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] with FutureClient[C] = {
+  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] with FutureClient[C] = {
     val gen = new AsyncHandlerGenerator(config, provider.clientCodec())
     val actor = io.actorSystem.actorOf(Props(classOf[ClientProxy], config, io, gen.handlerFactory))
     gen.client(actor, config)
@@ -127,7 +127,7 @@ object AsyncServiceClient {
  * without using reflection.  We can do that with some nifty path-dependant
  * types
  */
-class AsyncHandlerGenerator[C <: CodecDSL](config: ClientConfig, codec: Codec[C#Input,C#Output]) {
+class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, codec: Codec[C#Input,C#Output]) {
 
   type I = C#Input
   type O = C#Output
