@@ -41,8 +41,10 @@ object BenchmarkService {
 
       def onConnect = ctx => new Service[Http](serviceConfig, ctx){ 
         def handle = { 
+          //case req => req.ok(plaintext, headers)
           case req if (req.head.url == "/plaintext")  => req.ok(plaintext, headers)
-          case req if (req.head.url == "/json")       => req.ok(json, headers)
+          //case req if (req.head.url == "/json")       => req.ok(json, headers)
+          case req if (req.head.url == "/echo")       => req.ok(req.toString, headers)
         }
       }
 
@@ -51,5 +53,8 @@ object BenchmarkService {
   }
 
 }
+
+
+
 
 

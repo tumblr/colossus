@@ -12,6 +12,20 @@ class HttpSpec extends WordSpec with MustMatchers{
 
   import HttpHeader.Conversions._
 
+  "first line" must {
+
+    "respect equality" in {
+      val fl1 : FirstLine = HttpRequest(HttpMethod.Get, "/foobar", HttpHeaders(), HttpBody.NoBody).head.firstLine
+      val fl2 : FirstLine = ParsedFL(ByteString("GET /foobar HTTP/1.1\t\n").toArray)
+      val fl3 : FirstLine = ParsedFL(ByteString("GET /foobaz HTTP/1.1\t\n").toArray)
+      fl1 == fl2 must equal(true)
+      fl1 == fl3 must equal(false)
+      fl1 == "bleh" must equal(false)
+    }
+  }
+
+
+
   "http request" must {
     "encode to bytes" in {
       val head = HttpRequestHead(

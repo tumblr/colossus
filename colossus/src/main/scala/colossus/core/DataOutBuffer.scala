@@ -30,7 +30,7 @@ trait DataOutBuffer {
   }
 
   def write(bytes: Array[Byte]) {
-    copyDestination(bytes.size).put(bytes)
+    copyDestination(bytes.length).put(bytes)
   }
 
   def write(bytes: Array[Byte], offset: Int, length: Int) {

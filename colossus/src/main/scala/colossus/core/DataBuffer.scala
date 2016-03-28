@@ -16,6 +16,12 @@ case class DataStream(source: controller.Source[DataBuffer]) extends DataReader
 
 trait Encoder extends DataReader{
   def encode(out: DataOutBuffer)
+
+  def bytes: ByteString = {
+    val out = new DynamicOutBuffer(100, false)
+    encode(out)
+    ByteString(out.data.takeAll)
+  }
 }
 
 /** A thin wrapper around a NIO ByteBuffer with data to read
