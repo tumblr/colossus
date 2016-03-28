@@ -7,8 +7,9 @@ import akka.util.{ByteString, Timeout}
 import colossus.core._
 import colossus.service.{AsyncServiceClient, ClientConfig}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.language.higherKinds
 
 class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with ServerConnectionHandler {
 
@@ -40,6 +41,33 @@ object RawProtocol {
     type Input = ByteString
     type Output = ByteString
   }
+  implicit object ServiceClientLifter extends ServiceClientLifter[Raw, RawClient[Callback]] {
+
+    def lift(_client: CodecClient[Raw])(implicit worker: WorkerRef): RawClient[Callback] = new RawClient[Callback] with CallbackResponseAdapter[Raw] {
+      val client = _client
+    }
+  }
+
+  implicit object FutureClientLifter extends FutureClientLifter[Raw, RawClient[Future]] {
+    def lift(_client: FutureClient[Raw])(implicit io: IOSystem): RawClient[Future] = {
+      import io.actorSystem.dispatcher
+      new RawClient[Future] with FutureResponseAdapter[Raw] {
+        val client = _client
+        implicit val executionContext: ExecutionContext = implicitly[ExecutionContext]
+      }
+    }
+  }
+
+  object Raw extends ClientFactories[Raw, RawClient]{
+    
+  }
+
+  trait RawClient[M[_]] extends ResponseAdapter[Raw, M]
+
+  object RawClient {
+  }
+
+  
 
   implicit object RawCodecProvider extends CodecProvider[Raw] {
     def provideCodec() = RawCodec
@@ -55,6 +83,7 @@ object RawProtocol {
 }
 
 object TestClient {
+  import RawProtocol._
 
   def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true,
             connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)): AsyncServiceClient[ByteString, ByteString] = {
@@ -66,7 +95,7 @@ object TestClient {
       failFast = true,
       connectionAttempts = connectionAttempts
     )
-    val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
+    val client = AsyncServiceClient[Raw](config)(io, RawClientCodecProvider)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

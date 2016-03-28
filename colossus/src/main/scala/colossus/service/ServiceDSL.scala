@@ -5,7 +5,8 @@ import core._
 
 import akka.actor.ActorRef
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
@@ -13,9 +14,11 @@ import metrics.MetricAddress
 import Codec._
 
 
+//TODO : Rename to Protocol
 trait CodecDSL {self =>
   type Input
   type Output
+
 }
 
 object CodecDSL {
@@ -56,6 +59,22 @@ trait ClientCodecProvider[C <: CodecDSL] {
 }
 
 
+/**
+ * Mixed into base protocol objects to provide a default codec provider
+ */
+trait ServerDefaults[C <: CodecDSL] {
+  implicit def serverDefaults : CodecProvider[C]
+
+}
+
+/**
+ * Mixed into base protocol objects to provide a default client codec provider
+ */
+trait ClientDefaults[C <: CodecDSL] {
+  implicit def clientDefaults : ClientCodecProvider[C]
+}
+
+trait CodecDefaults[C <: CodecDSL] extends ServerDefaults[C] with ClientDefaults[C]
 
 
 class UnhandledRequestException(message: String) extends Exception(message)
@@ -163,3 +182,106 @@ object Service {
   }
 
 }
+
+
+trait CodecClient[C <: CodecDSL] extends ServiceClient[C#Input, C#Output] with Sender[C, Callback] 
+
+/**
+ * This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)
+ *
+ * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
+ */
+trait ClientLifter[C <: CodecDSL, M[_],B <: Sender[C,M], T <: Sender[C,M], E] {
+
+  def lift(baseClient: B)(implicit environment: E) : T
+
+}
+
+trait CallbackLifter[C <: CodecDSL, B <: Sender[C, Callback], T <: Sender[C, Callback]] extends ClientLifter[C, Callback, B, T, WorkerRef]
+trait FutureLifter[C <: CodecDSL, B <: Sender[C, Future], T <: Sender[C, Future]] extends ClientLifter[C, Future, B, T, IOSystem]
+
+trait ServiceClientLifter[C <: CodecDSL, T <: Sender[C, Callback]] extends CallbackLifter[C, CodecClient[C], T]
+trait FutureClientLifter[C <: CodecDSL, T <: Sender[C, Future]] extends FutureLifter[C, FutureClient[C], T]
+
+trait ClientFactory[C <: CodecDSL, M[_], T <: Sender[C,M], E] {
+  
+
+  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
+
+  def apply(host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[C], env: E): T = {
+    apply(new InetSocketAddress(host, port), requestTimeout)
+  }
+
+  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit provider: ClientCodecProvider[C], env: E): T = {
+    val config = ClientConfig(
+      address = address,
+      requestTimeout = requestTimeout,
+      name = MetricAddress.Root / provider.name
+    )
+    apply(config)
+  }
+
+}
+
+
+object ClientFactory {
+
+
+  implicit def serviceClientFactory[C <: CodecDSL] = new ClientFactory[C, Callback, CodecClient[C], WorkerRef] {
+    
+    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): CodecClient[C] = {
+      new ServiceClient(provider.clientCodec(), config, worker.generateContext()) with CodecClient[C]
+    }
+
+  }
+
+  implicit def futureClientFactory[C <: CodecDSL] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
+    
+    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
+      AsyncServiceClient(config)(io, provider)
+    }
+
+  }
+
+}
+
+class CodecClientFactory[C <: CodecDSL, M[_], B <: Sender[C, M], T <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,M,B,T,E])
+extends ClientFactory[C,M,T,E] {
+
+  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T =  lifter.lift(baseFactory(config))
+
+}
+
+/**
+ * Mixed into protocols to provide simple methods for creating clients.
+ */
+class ClientFactories[C <: CodecDSL, T[M[_]] <: Sender[C, M]] 
+(implicit serviceLifter: CallbackLifter[C, CodecClient[C], T[Callback]], futureLifter: FutureLifter[C, FutureClient[C], T[Future]]){
+
+  import ClientFactory._
+
+  
+  val client = new CodecClientFactory[C, Callback, CodecClient[C], T[Callback], WorkerRef]
+
+  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T[Future], IOSystem]
+
+}
+
+//TODO : These two classes can be combined if add an environment type as we do with the factories
+
+/**
+ * This is used by protocols and mixed in with a protocol-specific trait to
+ * provide a callback-based client
+ */
+class LiftedCallbackClient[C <: CodecDSL](val client : Sender[C, Callback]) 
+  extends CallbackResponseAdapter[C]
+
+
+/**
+ * This is used by protocols and mixed in with a protocol-specific trait to
+ * provide a future-based client
+ */
+class LiftedFutureClient[C <: CodecDSL](val client : Sender[C, Future])(implicit val executionContext : ExecutionContext)
+  extends FutureResponseAdapter[C]
+

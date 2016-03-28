@@ -3,11 +3,21 @@ package colossus.service
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 
-trait ResponseAdapter[C <: CodecDSL, M[_]] {
 
-  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = flatMap(execute(i))(f)
 
-  def execute(i : C#Input) : M[C#Output]
+trait Sender[C <: CodecDSL, M[_]] {
+
+  def send(input: C#Input): M[C#Output]
+
+}
+
+trait ResponseAdapter[C <: CodecDSL, M[_]] extends Sender[C,M] {
+
+  protected def client : Sender[C, M]
+
+  def send(i : C#Input) : M[C#Output] = client.send(i)
+
+  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = flatMap(send(i))(f)
 
   protected def map[T, U](t : M[T])(f : T => U)  : M[U]
 
@@ -20,10 +30,6 @@ trait ResponseAdapter[C <: CodecDSL, M[_]] {
 
 trait CallbackResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Callback] {
 
-  protected def client : ServiceClientLike[C#Input, C#Output]
-
-  def execute(i : C#Input) : Callback[C#Output] = client.send(i)
-
   override protected def map[T, U](t: Callback[T])(f: (T) => U): Callback[U] = t.map(f)
 
   override protected def flatMap[T](t: Callback[C#Output])(f: (C#Output) => Callback[T]): Callback[T] = t.flatMap(f)
@@ -34,10 +40,6 @@ trait CallbackResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Callback
 }
 
 trait FutureResponseAdapter[C <: CodecDSL] extends ResponseAdapter[C, Future] {
-
-  protected def client : AsyncServiceClient[C#Input, C#Output]
-
-  def execute(i : C#Input) : Future[C#Output] = client.send(i)
 
   implicit protected def executionContext : ExecutionContext
 

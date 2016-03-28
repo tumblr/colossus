@@ -110,6 +110,10 @@ class ServiceClient[I,O](
 extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
 with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler {
 
+  def this(codec: Codec[I,O], config: ClientConfig, worker: WorkerRef) {
+    this(codec, config, worker.generateContext())
+  }
+
   context.worker.worker ! WorkerCommand.Bind(this)
 
   import colossus.core.WorkerCommand._
@@ -318,23 +322,7 @@ with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandle
 
 object ServiceClient {
 
-  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, worker.generateContext())
-  }
-
-  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    apply[D](new InetSocketAddress(host, port), requestTimeout)
-  }
-
-  def apply[D <: CodecDSL]
-  (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    val config = ClientConfig(
-      address = address,
-      requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
-    )
-    apply[D](config)
-  }
+  def apply[C <: CodecDSL] = ClientFactory.serviceClientFactory[C]
 
 }
+

@@ -6,6 +6,7 @@ import colossus.core.{Initializer, Server, ServerRef, ServerSettings}
 import service._
 import Callback.Implicits._
 import protocols.http._
+import Http.defaults._
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._

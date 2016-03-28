@@ -15,6 +15,7 @@ import akka.util.ByteString
 import java.net.InetSocketAddress
 
 import protocols.redis._
+import Redis.defaults._
 import UnifiedProtocol._
 import scala.concurrent.Await
 
@@ -42,8 +43,7 @@ class ServiceClientSpec extends ColossusSpec {
       failFast = failFast,
       connectionAttempts = connectionAttempts
     )
-    //haxor!
-    val client = (RedisClient.callbackClient(config, fakeWorker.worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
+    val client = new ServiceClient(new RedisClientCodec, config, fakeWorker.worker)
 
     fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
     client.setBind()
@@ -352,7 +352,7 @@ class ServiceClientSpec extends ColossusSpec {
             name = "/test",
             requestTimeout = 1.second
           )
-          val client = AsyncServiceClient(config, new RedisClientCodec)
+          val client = AsyncServiceClient[Redis](config)//Redis.futureClient(config)
           TestClient.waitForConnected(client)
           TestUtil.expectServerConnections(server, 1)
           Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
@@ -397,7 +397,7 @@ class ServiceClientSpec extends ColossusSpec {
             address = new InetSocketAddress("localhost", TEST_PORT + 1),
             connectionAttempts = PollingDuration(50.milliseconds, Some(2L)))
 
-          val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
+          val client = AsyncServiceClient[Raw](config)//, RawProtocol.RawCodec)(io)
           TestUtil.expectServerConnections(server, 0)
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
