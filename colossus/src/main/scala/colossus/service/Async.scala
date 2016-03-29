@@ -41,6 +41,10 @@ trait Async[M[_]] {
 
 }
 
+/**
+ * A Typeclass for building Async instances, used internally by ClientFactory.
+ * This is needed to get the environment into the Async.  
+ */
 trait AsyncBuilder[M[_], E] {
 
   def build(env: E): Async[M]
@@ -58,17 +62,9 @@ object AsyncBuilder {
 }
 
 
-object Async {
-
-  implicit def cbAsync: Async[Callback] = CallbackAsync
-
-  implicit def fAsync(implicit io: IOSystem) : Async[Future] = new FutureAsync
-
-}
-
 object CallbackAsync extends Async[Callback] {
   
-  type E = Unit //we don't actually need the workerRef, but having the same environment var as the constructor for the base client works nicely
+  type E = Unit //we don't actually need any environment for callbacks
 
   implicit val environment: E = ()
 
