@@ -101,19 +101,19 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       }
     }
 
-    "close removed connection on update" ignore {
-     /* TODO this won't work until connectionState is added to Sender
+    "close removed connection on update" in {
       val fw = FakeIOSystem.fakeWorker
 
       implicit val w = fw.worker
+      val clients = collection.mutable.ArrayBuffer[ServiceClient[Raw]]()
       val generator = (i: InetSocketAddress) => {
         val h = ServiceClient[Raw]("0.0.0.0", i.getPort, 1.second)
+        clients += h
         val x = MockConnection.client(h, fw, 1024)
         h.connected(x)
         h
       }
       val l = new LoadBalancingClient[Raw](fw.worker, generator, maxTries = 2, initialClients = addrs(3))
-      val clients = l.currentClients
 
       val removed = clients(0)
       removed.connectionState.isInstanceOf[ConnectionState.Connected] must equal(true)
@@ -121,13 +121,46 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       val newAddrs = clients.drop(1).map{_.config.address}
       l.update(newAddrs)
       removed.connectionState.isInstanceOf[ConnectionState.ShuttingDown] must equal(true)
-      */
 
     }
       
+  }
 
+  "ServiceClientPool" must {
+    val fw = FakeIOSystem.fakeWorker
+    def pool() = new ServiceClientPool(
+      ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
+      fw.worker,
+      (config, worker) => {
+        implicit val w = worker
+        val x = MockConnection.client(ServiceClient[Raw](config), fw, 1024)
+        x.typedHandler.connected(x)
+        x.typedHandler
+      }
+    )
+    
+    
+    "create and get a client" in {
+      val p = pool
+      val addr = new InetSocketAddress("1.2.3.4", 123)
+      p.get(addr) must equal(None)
+      val client = p(addr)
+      client.config.address must equal(addr)
+      p.get(addr) must equal(Some(client))
+    }
 
+    "update" in {
+      val p = pool
+      val addr = new InetSocketAddress("1.2.3.5", 431)
+      val addr2 = new InetSocketAddress("1.2.3.5", 432)
+      val c = p(addr)
+      c.connectionState.isInstanceOf[ConnectionState.Connected] must equal(true)
 
+      p.update(List(addr2))
+      c.connectionState.isInstanceOf[ConnectionState.ShuttingDown] must equal(true)
+      p.get(addr) must equal(None)
+      p.get(addr2).isEmpty must equal(false)
+    }
   }
 
 

@@ -128,7 +128,7 @@ class LoadBalancingClient[P <: Protocol] (
    * existing list and closing connections not in the new list
    */
   def update(addresses: Seq[InetSocketAddress]) {
-    val toRemove = addresses.filter(clients.contains)
+    val toRemove = clients.filter{case (i, c) => !addresses.contains(i)}.keys
     toRemove.foreach(removeClient)
     addresses.foreach{address => 
       if (! (clients contains address)) {
