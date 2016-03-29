@@ -28,7 +28,9 @@ all reflective of the last minute of activity.
 
 Every metric has a url-like address used to identify it.  
 
-One of the most important aspects of metrics is that values can be tagged.  For example, a rate can track hits to API endpoints, using a "endpoint" tag to break down the usage by endpoint.
+One of the most important aspects of metrics is that values can be tagged.  For
+example, a rate can track hits to API endpoints, using a "endpoint" tag to break
+down the usage by endpoint.
 
 {% highlight scala %}
 

@@ -236,7 +236,7 @@ The client's `send` method returns a `Callback[Reply]` that can be mapped and
 flatMapped just like a regular Scala Future.  In fact Callback's implement most
 of the same methods as Futures, including `recover` and `sequence`.
 
-## Working with Actors and Futures
+## Working with Futures
 
 So far all the request-handling code we've seen has been effectively
 single-threaded.  Even though our service has multiple workers running in
@@ -362,3 +362,4 @@ In this case, all of the memcached interactions are still happening entirely in
 the worker's thread, with cache misses being offloaded to abother thread to keep
 the event loop unblocked.  On modern hardware, this service could easily handle
 hundreds of thousands of requests per second.
+
