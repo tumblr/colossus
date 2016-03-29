@@ -2,52 +2,97 @@ package colossus.service
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
+import colossus.IOSystem
+import colossus.core.WorkerRef
 
 
-
+/**
+ * A Sender is anything that is able to asynchronously send a request and
+ * receive a corresponding response
+ */
 trait Sender[C <: Protocol, M[_]] {
 
   def send(input: C#Input): M[C#Output]
 
+  def disconnect()
+
 }
 
-trait ResponseAdapter[C <: Protocol, M[_]] extends Sender[C,M] {
 
-  protected def client : Sender[C, M]
+/**
+ * A Typeclass for abstracting over callbacks and futures
+ */
+trait Async[M[_]] {
+  
+  //the environment type is really only needed by futures (the execution context
+  //when mapping and flatmapping)
+  type E
 
-  def send(i : C#Input) : M[C#Output] = client.send(i)
 
-  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = flatMap(send(i))(f)
+  implicit def environment: E
 
-  protected def map[T, U](t : M[T])(f : T => U)  : M[U]
+  def map[T, U](t : M[T])(f : T => U)  : M[U]
 
-  protected def flatMap[T](t : M[C#Output])(f : C#Output => M[T]) : M[T]
+  def flatMap[T, U](t : M[T])(f : T => M[U]) : M[U]
 
-  protected def success[T](t : T) : M[T]
+  def success[T](t : T) : M[T]
 
-  protected def failure[T](ex : Throwable) : M[T]
+  def failure[T](ex : Throwable) : M[T]
+
 }
 
-trait CallbackResponseAdapter[C <: Protocol] extends ResponseAdapter[C, Callback] {
+trait AsyncBuilder[M[_], E] {
 
-  override protected def map[T, U](t: Callback[T])(f: (T) => U): Callback[U] = t.map(f)
-
-  override protected def flatMap[T](t: Callback[C#Output])(f: (C#Output) => Callback[T]): Callback[T] = t.flatMap(f)
-
-  override protected def success[T](t: T): Callback[T] = Callback.successful(t)
-
-  override protected def failure[T](ex: Throwable): Callback[T] = Callback.failed(ex)
+  def build(env: E): Async[M]
 }
 
-trait FutureResponseAdapter[C <: Protocol] extends ResponseAdapter[C, Future] {
+object AsyncBuilder {
 
-  implicit protected def executionContext : ExecutionContext
+  implicit object CallbackAsyncBuilder extends AsyncBuilder[Callback, WorkerRef] {
+    def build(w: WorkerRef) = CallbackAsync
+  }
 
-  override protected def map[T, U](t: Future[T])(f: (T) => U): Future[U] = t.map(f)
-
-  override protected def flatMap[T](t: Future[C#Output])(f: (C#Output) => Future[T]): Future[T] = t.flatMap(f)
-
-  override protected def success[T](t: T): Future[T] = Future.successful(t)
-
-  override protected def failure[T](ex: Throwable): Future[T] = Future.failed(ex)
+  implicit object FutureAsyncBuilder extends AsyncBuilder[Future, IOSystem] {
+    def build(i: IOSystem) = new FutureAsync()(i)
+  }
 }
+
+
+object Async {
+
+  implicit def cbAsync: Async[Callback] = CallbackAsync
+
+  implicit def fAsync(implicit io: IOSystem) : Async[Future] = new FutureAsync
+
+}
+
+object CallbackAsync extends Async[Callback] {
+  
+  type E = Unit //we don't actually need the workerRef, but having the same environment var as the constructor for the base client works nicely
+
+  implicit val environment: E = ()
+
+  def map[T, U](t: Callback[T])(f: (T) => U): Callback[U] = t.map(f)
+
+  def flatMap[T, U](t: Callback[T])(f: T => Callback[U]): Callback[U] = t.flatMap(f)
+
+  def success[T](t: T): Callback[T] = Callback.successful(t)
+
+  def failure[T](ex: Throwable): Callback[T] = Callback.failed(ex)
+}
+
+class FutureAsync(implicit val environment: IOSystem) extends Async[Future] {
+
+  type E = IOSystem
+
+  import environment.actorSystem.dispatcher
+
+  def map[T, U](t: Future[T])(f: (T) => U): Future[U] = t.map(f)
+
+  def flatMap[T, U](t: Future[T])(f: T => Future[U]): Future[U] = t.flatMap(f)
+
+  def success[T](t: T): Future[T] = Future.successful(t)
+
+  def failure[T](ex: Throwable): Future[T] = Future.failed(ex)
+}
+

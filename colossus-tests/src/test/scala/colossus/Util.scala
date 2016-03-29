@@ -41,28 +41,17 @@ object RawProtocol {
     type Input = ByteString
     type Output = ByteString
   }
-  implicit object ServiceClientLifter extends ServiceClientLifter[Raw, RawClient[Callback]] {
 
-    def lift(_client: CodecClient[Raw])(implicit worker: WorkerRef): RawClient[Callback] = new RawClient[Callback] with CallbackResponseAdapter[Raw] {
-      val client = _client
-    }
-  }
-
-  implicit object FutureClientLifter extends FutureClientLifter[Raw, RawClient[Future]] {
-    def lift(_client: FutureClient[Raw])(implicit io: IOSystem): RawClient[Future] = {
-      import io.actorSystem.dispatcher
-      new RawClient[Future] with FutureResponseAdapter[Raw] {
-        val client = _client
-        implicit val executionContext: ExecutionContext = implicitly[ExecutionContext]
-      }
-    }
+  implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
+    
+    def lift[M[_]](client: Sender[Raw,M])(implicit async: Async[M]) = new LiftedClient(client) with RawClient[M]
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
     
   }
 
-  trait RawClient[M[_]] extends ResponseAdapter[Raw, M]
+  trait RawClient[M[_]] extends LiftedClient[Raw, M]
 
   object RawClient {
   }

@@ -6,24 +6,15 @@ import core._
 import service._
 import scala.concurrent.{ExecutionContext, Future}
 
-trait HttpClient[M[_]] extends ResponseAdapter[Http, M] {
+trait HttpClient[M[_]] extends LiftedClient[Http, M] {
 
 }
 
 object HttpClient {
 
-  implicit object ServiceClientLifter extends ServiceClientLifter[Http, HttpClient[Callback]] {
-
-    def lift(client: CodecClient[Http])(implicit worker: WorkerRef): HttpClient[Callback] = {
-      new LiftedCallbackClient(client) with HttpClient[Callback]
-    }
-  }
-
-  implicit object FutureClientLifter extends FutureClientLifter[Http, HttpClient[Future]] {
-    def lift(client: FutureClient[Http])(implicit io: IOSystem): HttpClient[Future] = {
-      import io.actorSystem.dispatcher
-      new LiftedFutureClient(client) with HttpClient[Future]
-    }
+  implicit object HttpClientLifter extends ClientLifter[Http, HttpClient] {
+    
+    def lift[M[_]](client: Sender[Http,M])(implicit async: Async[M]) = new LiftedClient(client) with HttpClient[M]
   }
 
 }

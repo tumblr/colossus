@@ -27,7 +27,10 @@ import scala.concurrent.{ExecutionContext, Future}
    *
    * @tparam M
    */
-  trait MemcacheClient[M[_]] extends ResponseAdapter[Memcache, M] {
+  trait MemcacheClient[M[_]] extends LiftedClient[Memcache, M] {
+
+    import async._
+
     protected def executeCommand[T](c : MemcacheCommand, key : ByteString)(goodCase : PartialFunction[MemcacheReply, M[T]]) : M[T] = {
       executeAndMap(c) {
         goodCase orElse {
@@ -115,26 +118,12 @@ import scala.concurrent.{ExecutionContext, Future}
   }
   object MemcacheClient {
 
-    implicit object ServiceClientLifter extends ServiceClientLifter[Memcache, MemcacheClient[Callback]] {
-
-      def lift(client: CodecClient[Memcache])(implicit worker: core.WorkerRef): MemcacheClient[Callback] = new MemcacheCallbackClient(client)
+  
+    implicit object MemcacheClientLifter extends ClientLifter[Memcache, MemcacheClient] {
+      
+      def lift[M[_]](client: Sender[Memcache,M])(implicit async: Async[M]) = new LiftedClient(client) with MemcacheClient[M]
     }
 
-    implicit object FutureClientLifter extends FutureClientLifter[Memcache, MemcacheClient[Future]] {
-      def lift(client: FutureClient[Memcache])(implicit io: IOSystem): MemcacheClient[Future] = {
-        import io.actorSystem.dispatcher
-        new MemcacheFutureClient(client)
-      }
-    }
   }
-
-  class MemcacheCallbackClient(val client : CodecClient[Memcache])
-    extends MemcacheClient[Callback] with CallbackResponseAdapter[Memcache]
-
-
-  class MemcacheFutureClient(val client : FutureClient[Memcache])
-                            (implicit val executionContext : ExecutionContext)
-    extends MemcacheClient[Future] with FutureResponseAdapter[Memcache]
-
 
   case class UnexpectedMemcacheReplyException(message : String) extends Exception

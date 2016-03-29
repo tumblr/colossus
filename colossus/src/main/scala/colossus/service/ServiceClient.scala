@@ -76,12 +76,6 @@ class RequestTimeoutException extends ServiceClientException("Request Timed out"
  */
 class DataException(message: String) extends ServiceClientException(message)
 
-trait ServiceClientLike[I,O]  {
-  def disconnect()
-  def send(request: I): Callback[O]
-}
-
-
 /**
  * This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
  * To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
@@ -102,15 +96,18 @@ class StaleClientException(msg : String) extends Exception(msg)
  *
  * TODO: make underlying output controller data size configurable
  */
-class ServiceClient[I,O](
-  codec: Codec[I,O], 
+class ServiceClient[P <: Protocol](
+  codec: Codec[P#Input,P#Output], 
   val config: ClientConfig,
   context: Context
-)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
-with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler {
+)(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
+extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
+with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
-  def this(codec: Codec[I,O], config: ClientConfig, worker: WorkerRef) {
+  type I = P#Input
+  type O = P#Output
+
+  def this(codec: Codec[P#Input,P#Output], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
   }
 

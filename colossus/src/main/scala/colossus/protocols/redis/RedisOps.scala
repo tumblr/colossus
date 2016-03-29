@@ -43,10 +43,11 @@ import scala.language.higherKinds
  *  behavior is noted in its docs.
  * @tparam M
  */
-trait RedisClient[M[_]] extends ResponseAdapter[Redis, M] {
+trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 
   import UnifiedProtocol._
   import Command.{c => cmd}
+  import async._
 
   private implicit def bs(l : Long) : ByteString = ByteString(l.toString)
   private implicit def bs(d : Double) : ByteString = ByteString(d.toString)
@@ -499,19 +500,11 @@ trait RedisClient[M[_]] extends ResponseAdapter[Redis, M] {
 
 object RedisClient {
 
-  implicit object ServiceClientLifter extends ServiceClientLifter[Redis, RedisClient[Callback]] {
-
-    def lift(client: CodecClient[Redis])(implicit worker: WorkerRef): RedisClient[Callback] = {
-      new LiftedCallbackClient(client) with RedisClient[Callback]
-    }
+  implicit object RedisClientLifter extends ClientLifter[Redis, RedisClient] {
+    
+    def lift[M[_]](client: Sender[Redis,M])(implicit async: Async[M]) = new LiftedClient(client) with RedisClient[M]
   }
 
-  implicit object FutureClientLifter extends FutureClientLifter[Redis, RedisClient[Future]] {
-    def lift(client: FutureClient[Redis])(implicit io: IOSystem): RedisClient[Future] = {
-      import io.actorSystem.dispatcher
-      new LiftedFutureClient(client) with RedisClient[Future]
-    }
-  }
 }
 
 

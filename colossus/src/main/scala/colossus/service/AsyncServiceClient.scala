@@ -141,8 +141,9 @@ class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, codec: Codec[C#
     config: ClientConfig,
     val caller: ActorRef,
     context: Context
-  ) extends ServiceClient[I,O](codec, config, context) with WatchedHandler {
+  ) extends ServiceClient[C](codec, config, context) with WatchedHandler {
     val watchedActor = caller
+
 
     override def onBind() {
       super.onBind()

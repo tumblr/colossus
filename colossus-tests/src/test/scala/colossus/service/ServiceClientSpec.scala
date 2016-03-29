@@ -31,7 +31,7 @@ class ServiceClientSpec extends ColossusSpec {
     maxSentSize: Int = 10, 
     connectionAttempts: PollingDuration = PollingDuration(1.second, None),
     requestTimeout: Duration = 10.seconds
-  ): (MockConnection, ServiceClient[Command,Reply], TestProbe) = {
+  ): (MockConnection, ServiceClient[Redis], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
     val fakeWorker = FakeIOSystem.fakeWorker
     val config = ClientConfig(
@@ -43,7 +43,8 @@ class ServiceClientSpec extends ColossusSpec {
       failFast = failFast,
       connectionAttempts = connectionAttempts
     )
-    val client = new ServiceClient(new RedisClientCodec, config, fakeWorker.worker)
+    implicit val w = fakeWorker.worker
+    val client = ServiceClient[Redis](config)
 
     fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
     client.setBind()
@@ -53,7 +54,7 @@ class ServiceClientSpec extends ColossusSpec {
     (endpoint, client, fakeWorker.probe)
   }
 
-  def sendCommandReplies(client: ServiceClient[Command,Reply], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
+  def sendCommandReplies(client: ServiceClient[Redis], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
     var numCalledBack = 0
     commandReplies.foreach{case (command, reply) =>
       client.send(command).map{ r =>
