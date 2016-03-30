@@ -398,7 +398,7 @@ class ServiceClientSpec extends ColossusSpec {
             address = new InetSocketAddress("localhost", TEST_PORT + 1),
             connectionAttempts = PollingDuration(50.milliseconds, Some(2L)))
 
-          val client = AsyncServiceClient[Raw](config)//, RawProtocol.RawCodec)(io)
+          val client = AsyncServiceClient[Raw](config)
           TestUtil.expectServerConnections(server, 0)
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
