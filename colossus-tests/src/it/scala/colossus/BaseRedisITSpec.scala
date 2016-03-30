@@ -3,6 +3,7 @@ package colossus
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
+import colossus.metrics.MetricSystem
 import colossus.protocols.redis.{Command, RedisClient, Reply}
 import colossus.service.{AsyncServiceClient, ClientConfig}
 import colossus.testkit.ColossusSpec
@@ -15,7 +16,7 @@ import scala.concurrent.duration._
 
 abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with ScaledTimeSpans {
 
-  implicit val sys = IOSystem("test-system", 2)
+  implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
   implicit val ec = system.dispatcher
 

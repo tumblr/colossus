@@ -6,7 +6,6 @@ import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
 import scala.concurrent.duration._
-import org.scalatest._
 
 trait TestInput {
   def source: Source[DataBuffer]
@@ -20,7 +19,7 @@ case class TestInputImpl(data: FiniteBytePipe) extends TestInput{
 case class TestOutput(data: Source[DataBuffer])
 
 
-class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{    
+class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   import parsing.Combinators._
   val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num))}
 
@@ -100,7 +99,7 @@ object TestController {
 
   def controller[I,O](codec: Codec[O,I])(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
     val con =MockConnection.server(
-      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler, 
+      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler,
       500
     )
     con.handler.connected(con)

@@ -2,6 +2,7 @@ package colossus
 
 import akka.util.Timeout
 import colossus.core.Worker.ConnectionSummary
+import com.typesafe.config.{ConfigFactory, Config}
 
 import core._
 
@@ -15,42 +16,70 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
-  def apply(config: IOSystemConfig, metrics: MetricSystem)(implicit system: ActorSystem): IOSystem = {
-    val workerManager = system.actorOf(Props(classOf[WorkerManager], WorkerManagerConfig(config.numWorkers, metrics)), name = s"${config.name}-manager")
-    val sys = IOSystem(workerManager, config, metrics, system)
+  val ConfigRoot = "colossus.io-system"
+
+  /**
+    * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.io-system" config path.
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    * @param sys
+    * @return
+    */
+  def apply()(implicit sys : ActorSystem) : IOSystem = {
+    apply(ConfigRoot)
+  }
+
+  /**
+    * Create a new IOSystem using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.io-system"
+    * config path.
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
+    * @param configPath  The path to the configuration.
+    * @param sys
+    * @return
+    */
+  def apply(configPath : String)(implicit sys : ActorSystem) : IOSystem = {
+    apply(configPath, ConfigFactory.load())
+  }
+
+  /**
+    * Create a new IOSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.io-system" config path.
+    * @param configPath The path to the configuration
+    * @param config The Config source to query
+    * @param sys
+    * @return
+    */
+  def apply(configPath : String, config : Config)(implicit sys : ActorSystem) : IOSystem = {
+    val ioConfig = config.getConfig(configPath).withFallback(config.getConfig(ConfigRoot))
+    val name = ioConfig.getString("name")
+    val workerCount : Option[Int] = if(config.hasPath("num-workers")){Some(config.getInt("num-workers"))} else{ None }
+    val ms = MetricSystem(s"$configPath.metrics", config)
+    apply(name, workerCount, ms)
+  }
+
+  /**
+    * Create a new IOSystem
+    * @param name Name of this IOSystem.  This will also be used as its MetricAddres.
+    * @param workerCount Number of workers to create
+    * @param metrics The MetricSystem used to report metrics
+    * @param system
+    * @return
+    */
+  def apply(name : String, workerCount : Option[Int], metrics : MetricSystem)(implicit system : ActorSystem) : IOSystem = {
+    val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
+
+    val workerManager = system.actorOf(Props(classOf[WorkerManager], WorkerManagerConfig(numWorkers, metrics)), s"iosystem-${actorFriendlyName(name)}-manager")
+    val sys = IOSystem(workerManager, name, numWorkers, metrics, system)
     workerManager ! WorkerManager.Initialize(sys)
     sys
   }
-
-  def apply(name: String, numWorkers: Int, metrics: MetricSystem)
-    (implicit system: ActorSystem): IOSystem = apply(IOSystemConfig(name, numWorkers), metrics)
-
-
-  def apply(name: String, numWorkers: Int)(implicit system: ActorSystem): IOSystem = apply(name, numWorkers, MetricSystem.deadSystem)
-
-  def apply(name: String, metrics: MetricSystem)(implicit  system: ActorSystem): IOSystem = {
-    val numWorkers = Runtime.getRuntime.availableProcessors()
-    apply(name, numWorkers, metrics)
+  private def actorFriendlyName(name : String) = {
+    name match {
+      case "" | "/" => ""
+      case s => s.replace("/", "-")
+    }
   }
-
-  def apply(name: String = "iosystem", numWorkers: Option[Int] = None)(implicit sys: ActorSystem = ActorSystem(name)): IOSystem = {
-    val workers = numWorkers.getOrElse (Runtime.getRuntime.availableProcessors())
-    val metrics = MetricSystem(MetricAddress.Root / name)
-    apply(name, workers, metrics)
-  }
-
 }
 
-/**
- * Configuration used to specify an IOSystem's parameters.
- * @param name The name of the IOSystem
- * @param numWorkers The amount of Worker actors to spawn.  Must be greater than 0.
- */
-case class IOSystemConfig(name: String, numWorkers: Int){
-  require (numWorkers >= 0) //FIX - we currently need to allow 0 workers for tests
-}
-
-/*NOTE: We should look into converting this case class into a trait with a private impl */
 /**
  * An IO System is basically a collection of worker actors.  You can attach
  * either servers or clients to an IOSystem.
@@ -61,22 +90,16 @@ case class IOSystemConfig(name: String, numWorkers: Int){
  * loops.
  */
 case class
-IOSystem private[colossus](workerManager: ActorRef, config: IOSystemConfig, metrics: MetricSystem, actorSystem: ActorSystem) {
+IOSystem private[colossus](workerManager: ActorRef, name : String, numWorkers : Int, metrics: MetricSystem, actorSystem: ActorSystem) {
   import IOCommand._
 
   import akka.pattern.ask
   import colossus.core.WorkerManager.RegisteredServers
 
   /**
-   * Name of the IOSystem as specified in the IOSystemConfig
-   * @return
-   */
-  def name = config.name
-
-  /**
    * MetricAddress of this IOSystem as seen from the MetricSystem
    */
-  val namespace = MetricAddress.Root / config.name
+  val namespace = metrics.namespace / name
 
   /**
    * Sends a message to the underlying WorkerManager.

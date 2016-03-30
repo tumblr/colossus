@@ -8,16 +8,15 @@ import service._
 import akka.agent.Agent
 import akka.actor._
 import akka.testkit.TestProbe
-import akka.testkit.CallingThreadDispatcher
 
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
+import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
 
 case class FakeWorker(probe: TestProbe, worker: WorkerRef)
 
 object FakeIOSystem {
   def apply()(implicit system: ActorSystem): IOSystem = {
-    IOSystem(system.deadLetters, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
+    IOSystem(system.deadLetters, "FAKE", 0, MetricSystem.deadSystem, system)
   }
 
   /**
@@ -62,7 +61,7 @@ object FakeIOSystem {
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {
     val probe = TestProbe()
-    val sys = IOSystem(probe.ref, IOSystemConfig("FAKE", 0), MetricSystem.deadSystem, system)
+    val sys = IOSystem(probe.ref, "FAKE", 0, MetricSystem.deadSystem, system)
     (sys, probe)
   }
 
