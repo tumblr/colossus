@@ -2,6 +2,7 @@ package colossus
 package core
 
 import akka.actor._
+import akka.agent.Agent
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
@@ -16,7 +17,6 @@ import scala.collection.immutable.Iterable
 import scala.util.{Failure, Success}
 
 
-private[colossus] case class WorkerManagerConfig(numWorkers: Int, metrics: MetricSystem)
 
 /**
  * A WorkerManager is just that, an Actor who is responsible for managing all of the Worker Actors in an IOSystem.
@@ -24,12 +24,14 @@ private[colossus] case class WorkerManagerConfig(numWorkers: Int, metrics: Metri
  *
  * @param config configuration parameters
  */
-private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor with ActorLogging with Stash {
-  import config._
+private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem) 
+extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
+
+  import ioSystem.config.numWorkers
 
 
   /*
@@ -42,12 +44,16 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
     }
   }
 
-  //NOTE: private?
-  case class State(workers: Seq[ActorRef], system: IOSystem) {
-    val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
+  val workers = (1 to numWorkers).map{i =>
+    val workerConfig = WorkerConfig(
+      workerId = i,
+      io = ioSystem
+    )
+    val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$i")
+    context.watch(worker)
+    worker
   }
-
-  var currentState: Option[State] = None
+  val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
 
 
   //we store the RegisterServer object and not just the ServerRef because we
@@ -60,69 +66,48 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   var latestSummary: Seq[ConnectionSnapshot] = Nil
   var latestSummaryTime = 0L
 
+  def receive = waitForWorkers(Vector())
 
-  def startingUp: Receive = {
+  def waitForWorkers(ready: Vector[WorkerRef]): Receive = {
     case ReadyCheck => {
       sender ! WorkersNotReady
     }
-  }
-
-  def receive = startingUp orElse {
-    case Initialize(system) => {
-      val workers = (1 to numWorkers).map{i =>
-        val workerConfig = WorkerConfig(
-          workerId = i,
-          io = system
-        )
-        val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$i")
-        context.watch(worker)
-        worker
-      }
-      val state = State(workers, system)
-      currentState = Some(state)
-      context.become(waitForWorkers(state, 0))
-    }
-    case other => stash() //unstash happens when we enter the running state in waitForWorkers
-  }
-
-
-
-  def waitForWorkers(state: State, ready: Int): Receive = startingUp orElse {
-    case WorkerReady => {
-      val nowReady = ready + 1
-      if (nowReady == numWorkers) {
+    case WorkerReady(worker) => {
+      val nowReady = ready :+ worker
+      if (nowReady.size == numWorkers) {
         log.info("All Workers reports ready, lets do this")
+        workerAgent alter{_ => nowReady}
         context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
         unstashAll()
-        context.become(running(state))
+        context.become(running)
       } else {
-        context.become(waitForWorkers(state, nowReady))
+        context.become(waitForWorkers(nowReady))
       }
     }
     case other => stash()
   }
 
-  def running(state: State): Receive = {
+  def running: Receive = {
     var nextWorkerIndex = 0
     def nextWorker = {
       nextWorkerIndex += 1
-      if (nextWorkerIndex >= state.workers.size) {
+      if (nextWorkerIndex >= workers.size) {
         nextWorkerIndex = 0
       }
-      state.workers(nextWorkerIndex)
+      workers(nextWorkerIndex)
     }
     serverRegistration orElse {
       case ReadyCheck => {
-        sender ! WorkersReady(state.workerRouter)
+        sender ! WorkersReady(workerRouter)
       }
       case IdleCheck => {
-        state.workers.foreach{_ ! Worker.CheckIdleConnections}
+        workers.foreach{_ ! Worker.CheckIdleConnections}
       }
       case WorkerCommand.Schedule(in, cmd) => context.system.scheduler.scheduleOnce(in, sender(), cmd)
       case GatherConnectionInfo(rOpt) => {
         implicit val timeout = Timeout(50.milliseconds)
         Future
-          .traverse(state.workers){worker => (worker ? Worker.ConnectionSummaryRequest).mapTo[Worker.ConnectionSummary]}
+          .traverse(workers){worker => (worker ? Worker.ConnectionSummaryRequest).mapTo[Worker.ConnectionSummary]}
           .map{seqs =>
             val summary = Worker.ConnectionSummary(seqs.flatMap{_.infos})
             self ! summary
@@ -148,7 +133,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         context.system.shutdown()
       }
       case c: IOCommand => nextWorker ! c
-      case WorkerReady => {
+      case WorkerReady(worker) => {
         log.warning("Received Ready Notification from new/restarted worker")
         registeredServers.foreach{sender ! _}
       }
@@ -159,7 +144,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   def serverRegistration: Receive = {
     case r : RegisterServer => {
       implicit val timeout = Timeout(r.server.config.settings.delegatorCreationDuration.interval)
-      currentState.foreach(registerServer(_, r))
+      registerServer(r)
     }
     case u: UnregisterServer => {
       val registeredServer = registeredServers.find(_.server == u.server)
@@ -178,12 +163,12 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
       sender ! RegisteredServers(registeredServers.map(_.server))
     }
 
-    case s:  ServerShutdownRequest => currentState.foreach{state => state.workers.foreach{_ ! s}}
+    case s:  ServerShutdownRequest => workers.foreach{_ ! s}
   }
 
-  private def registerServer(state : State, r : RegisterServer)(implicit to : Timeout) {
+  private def registerServer(r : RegisterServer)(implicit to : Timeout) {
     log.debug(s"attempting to register ${r.server.name}")
-    val s = Future.traverse(state.workers){ _ ? r }
+    val s = Future.traverse(workers){ _ ? r }
     s.onComplete {
       case Success(x) if !x.contains(RegistrationFailed) => {
         //closing over state..kind of a no no, if an "unregister" request comes through while a registration is processing.
@@ -191,7 +176,7 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
         //this is only additive, so i'm kind of ok with this, until we actually need to change it.
         registeredServers.append(r)
         context.watch(r.server.server)
-        r.server.server ! WorkersReady(state.workerRouter)
+        r.server.server ! WorkersReady(workerRouter)
       }
       case Failure(err)  => {
         log.error(err, s"Worker failed to register server ${r.server.name} after ${r.timesTried} tries with error: ${err.getMessage}")
@@ -218,15 +203,13 @@ private[colossus] class WorkerManager(config: WorkerManagerConfig) extends Actor
   private def unregisterServer(u : UnregisterServer, r : RegisterServer) {
     log.info(s"unregistering server: ${r.server.name}")
     registeredServers -= r
-    currentState.foreach{_.workers.foreach{worker =>
+    workers.foreach{worker =>
       worker ! u
-    }}
+    }
   }
 
   override def postStop() {
-    currentState.foreach{
-      _.workers.foreach{_ ! PoisonPill}
-    }
+    workers.foreach{_ ! PoisonPill}
   }
 }
 
@@ -235,7 +218,7 @@ private[colossus] object WorkerManager {
   case object WorkersNotReady
 
   //send from workers to the manager
-  private[colossus] case object WorkerReady
+  private[colossus] case class WorkerReady(worker: WorkerRef)
   private[colossus] case object ServerRegistered
   private[colossus] case object RegistrationFailed
 
@@ -252,7 +235,6 @@ private[colossus] object WorkerManager {
 
   case class RegisteredServers(servers : Seq[ServerRef])
 
-  private[colossus] case class Initialize(system: IOSystem)
   private[colossus] case class GatherConnectionInfo(requester: Option[ActorRef])
 
   //sent from a worker during restart

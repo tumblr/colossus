@@ -47,21 +47,20 @@ class ChatCodec extends Codec[ChatMessage, String]{
 class Broadcaster extends Actor {
   import Broadcaster._
 
-  case class Client(worker: ActorRef, id: Long)
 
-  val clients = collection.mutable.Set[Client]()
+  val clients = collection.mutable.Set[ActorRef]()
 
   def broadcast(message: ChatMessage) {
-    clients.foreach{case Client(worker, id) => worker ! WorkerCommand.Message(id, message)}
+    clients.foreach{_ ! message}
   }
 
   def receive = {
-    case ClientOpened(user, id) => {
-      clients += Client(sender, id)
+    case ClientOpened(user) => {
+      clients += sender()
       broadcast(Status(s"$user has joined"))
     }
-    case ClientClosed(user, id) => {
-      clients -= Client(sender, id)
+    case ClientClosed(user) => {
+      clients -= sender()
       broadcast(Status(s"$user has left"))
     }
     case m: ChatMessage => broadcast(m)
@@ -70,13 +69,13 @@ class Broadcaster extends Actor {
 
 object Broadcaster {
   sealed trait BroadcasterMessage
-  case class ClientOpened(user: String, id: Long) extends BroadcasterMessage
-  case class ClientClosed(user: String, id: Long) extends BroadcasterMessage
+  case class ClientOpened(user: String) extends BroadcasterMessage
+  case class ClientClosed(user: String) extends BroadcasterMessage
 }
 
 class ChatHandler(broadcaster: ActorRef, context: ServerContext)
-extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds, "test-chat-handler"), context.context) with ServerConnectionHandler {
-  implicit lazy val sender = worker.worker
+extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds, "test-chat-handler"), context.context)
+with ProxyActor with ServerConnectionHandler {
 
   sealed trait State
   object State {
@@ -92,11 +91,8 @@ extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.s
     push(Status("Please enter your name")){_ => ()}
   }
 
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef){
-    message match {
-      case c: ChatMessage => push(c){_ => ()}
-      case _ => {}
-    }
+  def receive = {
+    case c: ChatMessage => push(c){_ => ()}
   }
 
   def processMessage(message: String) {
@@ -105,7 +101,7 @@ extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.s
         val user = message.split(" ")(0)
         currentState = LoggedIn(user)
         push(Status("Logged in :)")){_ => ()}
-        broadcaster ! Broadcaster.ClientOpened(user, id)
+        broadcaster ! Broadcaster.ClientOpened(user)
       }
       case LoggedIn(user) => {
         broadcaster ! Chat(user, message)
@@ -118,7 +114,7 @@ extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.s
     currentState match {
       case LoggingIn => {}
       case LoggedIn(user) => {
-        broadcaster ! Broadcaster.ClientClosed(user, id)
+        broadcaster ! Broadcaster.ClientClosed(user)
       }
     }
   }

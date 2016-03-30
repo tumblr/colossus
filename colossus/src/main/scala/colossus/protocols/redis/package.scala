@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.core.{Context, WorkerRef}
+import colossus.core.WorkerRef
 import colossus.parsing.DataSize
 import colossus.service.Codec._
 import colossus.service._

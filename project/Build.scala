@@ -19,7 +19,7 @@ object ColossusBuild extends Build {
     organization := "com.tumblr",
     scalaVersion  := "2.11.7",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
-    version                   := "0.7.0-SNAPSHOT",
+    version                   := "0.7.1-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(
@@ -31,6 +31,7 @@ object ColossusBuild extends Build {
       )
       if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
     },
+    scalacOptions in (Compile, console) := Seq(),
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
@@ -53,9 +54,12 @@ object ColossusBuild extends Build {
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
   )
 
-  val MetricSettings = ColossusSettings ++ Seq(
+  val MetricSettings = ColossusSettings 
+
+  val ExamplesSettings = Seq (
     libraryDependencies ++= Seq(
-      "net.liftweb"       %% "lift-json"     % "2.6-RC1")
+      "org.json4s" %% "json4s-jackson" % "3.3.0"
+    )
   )
 
   lazy val RootProject = Project(id="root", base=file("."))
@@ -74,6 +78,7 @@ object ColossusBuild extends Build {
       .settings(noPubSettings:_*)
       .settings(Revolver.settings:_*)
       .configs(IntegrationTest)
+      .settings(ExamplesSettings:_*)
       .dependsOn(ColossusProject)
 
   lazy val ColossusMetricsProject = Project(id="colossus-metrics", base=file("colossus-metrics"))

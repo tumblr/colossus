@@ -17,28 +17,26 @@ class PrimeGenerator extends Actor {
   var lastPrime = 1
 
   def receive = {
-    case c: Context => context.become(sending(c))
+    case Next => sender() ! nextPrime
   }
 
-  def sending(c: Context): Receive = {
-    case Next => {
-      var nextPrime = lastPrime
-      var prime = false
-      while (!prime) {
-        nextPrime += 1
-        var n = 1
-        var ok = true
-        while (n < nextPrime - 1 && ok) {
-          n += 1
-          if (nextPrime % n == 0) {
-            ok = false
-          }
+  def nextPrime = {
+    var nextPrime = lastPrime
+    var prime = false
+    while (!prime) {
+      nextPrime += 1
+      var n = 1
+      var ok = true
+      while (n < nextPrime - 1 && ok) {
+        n += 1
+        if (nextPrime % n == 0) {
+          ok = false
         }
-        prime = ok
       }
-      lastPrime = nextPrime
-      c ! nextPrime
+      prime = ok
     }
+    lastPrime = nextPrime
+    nextPrime
   }
 }
 
@@ -49,21 +47,18 @@ case object Next
 object WebsocketExample {
 
   def start(port: Int)(implicit io: IOSystem) = {
+    
+    val generator = io.actorSystem.actorOf(Props[PrimeGenerator])
+
     Server.basic("websocket", port){ new Service[Http](_) {
       def handle = {
         case UpgradeRequest(resp) => {
-          become(new WebsocketHandler(_){
+          become(new WebsocketHandler(_) with ProxyActor {
 
-            val generator = io.actorSystem.actorOf(Props[PrimeGenerator])
-            generator ! context
             private var sending = false
 
             override def preStart() {
               send(ByteString("HELLO THERE!"))
-            }
-
-            override def postStop() {
-              generator ! PoisonPill
             }
 
             override def shutdown() {
@@ -86,7 +81,7 @@ object WebsocketExample {
               }
             }
 
-            override def receivedMessage(message: Any, sender: ActorRef){ message match {
+            def receive = {
               case prime: Integer => {
                 send(ByteString(s"PRIME: $prime"))
                 if(sending) {
@@ -94,7 +89,7 @@ object WebsocketExample {
                   io.actorSystem.scheduler.scheduleOnce(100.milliseconds, generator , Next)
                 }
               }
-            }}
+            }
 
           })
           Callback.successful(resp)

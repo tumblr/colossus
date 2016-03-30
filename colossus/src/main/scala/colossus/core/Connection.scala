@@ -201,7 +201,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
    * fullfill the request and provide the handler with a DataOutBuffer to which
    * it can write data.
    */
-  def handleWrite(data: DataOutBuffer): Boolean = {
+  def handleWrite(data: DynamicOutBuffer): Boolean = {
     if (continueWrite()) {
       //the WriteBuffer is ready to accept more data, so let's get some.  Notice
       //this method (usually) only gets called if the handler had previously made a write

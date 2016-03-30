@@ -14,8 +14,10 @@ import scala.util.Success
 
 class WebsocketSpec extends WordSpec with MustMatchers{
 
+  import HttpHeader.Conversions._
+
   val valid = HttpRequest(
-    HttpHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, Vector(
+    HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, Vector(
       ("connection", "Upgrade"),
       ("upgrade", "Websocket"),
       ("sec-websocket-version", "13"),
@@ -23,7 +25,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
       ("host" , "foo.bar"),
       ("origin", "http://foo.bar")
     )),
-    None
+    HttpBody.NoBody
   )
 
   "Http Upgrade Request" must {
@@ -40,13 +42,13 @@ class WebsocketSpec extends WordSpec with MustMatchers{
         HttpResponseHead(
           HttpVersion.`1.1`,
           HttpCodes.SWITCHING_PROTOCOLS,
-          Vector(
-            HttpResponseHeader("Upgrade", "websocket"),
-            HttpResponseHeader("Connection", "Upgrade"),
-            HttpResponseHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
+          HttpHeaders(
+            HttpHeader("Upgrade", "websocket"),
+            HttpHeader("Connection", "Upgrade"),
+            HttpHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
           )
         ),
-        None
+        HttpBody.NoBody
       )
       UpgradeRequest.unapply(valid).get must equal(expected)
 

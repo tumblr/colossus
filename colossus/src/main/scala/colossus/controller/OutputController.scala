@@ -73,75 +73,31 @@ class MessageQueue[T](maxSize: Int) {
 }
 
 
-sealed trait OutputState[T] {
-  def ifAlive(l: OutputState.Alive[T] => Unit) {}
+sealed trait OutputState {
+  def canPush : Boolean
+}
+sealed trait AliveOutputState extends OutputState {
+  val canPush = true
 }
 
 object OutputState{
 
-
-
-  /**
-   * The normal state for the output controller.  This state is largely
-   * independant of the underlying connection state.  Even if a connection has
-   * been severed, the output controller may remain in the alive state,
-   * especially if this is a client connection that is attempting to reconnect.
-   *
-   * @param msgQ The list of messages pending to be sent
-   * @param listState whether we are streaming or not
-   * @param disconnecting if true we allow currently enqueued messages to drain but not accept new messages, when queues are drained disconnect
-   * @param writesEnabled set by the user, if false new messages are always buffered to msgQ
-   */
-  case class Alive[T](msgQ: MessageQueue[T], liveState: LiveState, disconnecting: Boolean, writesEnabled: Boolean) extends OutputState[T] {
-    override def ifAlive(l: Alive[T] => Unit){ l(this) }
+  case object Dequeueing extends AliveOutputState
+  case class  Streaming(source: Source[DataBuffer], dataQ: DataQueue, post : QueuedItem.PostWrite) extends AliveOutputState
+  case object Suspended extends OutputState {
+    def canPush = true
+  }
+  case object Terminated extends OutputState {
+    def canPush = false
   }
 
-
-
-  /**
-   * The suspended state occurs when the controller is currently not able to
-   * send messages, but is expected to in the future.  This occurs primarily
-   * when the connection is being established or when an unexpected disconnect
-   * has occurred.  In these cases, the output controller is still able to
-   * buffer messages.
-   *
-   * This is the initial state of the output controller
-   */
-  case class Suspended[T](msgQ: MessageQueue[T]) extends OutputState[T]
-
-  
-  /**
-   * In this state, the controller is effectively disabled.  This generally
-   * only occurs once the underlying connection has been manually disconnected,
-   * and this controller no longer intends to be used.
-   */
-  case class Terminated[T]() extends OutputState[T] //only used when disconnecting
 }
-
-sealed trait LiveState
-object LiveState {
-  /**
-   * The controller is not in the middle of writing a message and is actively
-   * dequeuing pending messages.  This is the normal state when it is writing
-   * non-streamed messages and the entire message is written in one call to
-   * write
-   */
-  case object Dequeueing extends LiveState
-
-  /**
-   * The controller is actively writing out a stream.  No other messages can be
-   * encoded or written until this stream completes.  If the stream is
-   * terminated before completing, the connection must be closed.
-   */
-  case class Streaming(source: Source[DataBuffer], dataQ: DataQueue, postWrite: OutputResult => Unit) extends LiveState
-}
-  
 
 /**
  * This is thrown anytime we hit a state that shouldn't be possible.  If this
  * is ever thrown, there is a bug!
  */
-class InvalidOutputStateException[T](state: OutputState[T]) extends Exception(s"Invalid Output State: $state")
+class InvalidOutputStateException(message: String) extends Exception(message)
 
 
 /** An ADT representing the result of a pushing a message to write
@@ -169,18 +125,23 @@ object OutputResult {
  */
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
-  import LiveState._
 
-  private[controller] var outputState: OutputState[Output] = Suspended(new MessageQueue[Output](controllerConfig.outputBufferSize))
+  private[controller] var outputState: OutputState = Suspended
+  private var msgq = new MessageQueue[Output](controllerConfig.outputBufferSize)
+
+  //TODO : This functionality is only used for (and only makes sense) the
+  //ServiceClient.  It probably makes more sense to let ServiceClient do its own
+  //buffering
+  private var _writesEnabled = true
+
+  private var manualDisconnect = false
 
   private[controller] def outputOnConnected() {
 
-    val msgs = outputState match {
-      case Suspended(msgs) => msgs
-      case _ => new MessageQueue[Output](controllerConfig.outputBufferSize)
-    }
-    outputState = Alive(msgs, Dequeueing, disconnecting = false, writesEnabled = true)
-    if (!msgs.isEmpty) {
+    outputState = Dequeueing
+    _writesEnabled = true
+
+    if (!msgq.isEmpty) {
       signalWrite()
     }
 
@@ -189,27 +150,20 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   private[controller] def outputOnClosed() {
     val reason = new NotConnectedException("Connection Closed")
     outputState match {
-      case Alive(msgq, livestate, disconnecting, writesEnabled) => {
-        livestate match {
-          case Streaming(source, dataQ, post) => {
-            source.terminate(reason)
-            post(OutputResult.Failure(reason))
-          }
-          case _ => {}
-        }
-        if (disconnecting) {
-          while (!msgq.isEmpty) {
-            msgq.dequeue.postWrite(OutputResult.Cancelled(reason))
-          }
+      case Streaming(source, dataQ, post) => {
+        source.terminate(reason)
+        post(OutputResult.Failure(reason))
+      }
+      case _ => {}
+    }
+    if (manualDisconnect) {
+      while (!msgq.isEmpty) {
+        msgq.dequeue.postWrite(OutputResult.Cancelled(reason))
+      }
 
-          outputState = Terminated()
-        } else {
-          outputState = Suspended(msgq)
-        }
-      }
-      case _ => {
-        //do nothing?
-      }
+      outputState = Terminated
+    } else {
+      outputState = Suspended
     }
   }
 
@@ -220,21 +174,18 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * messages to either get sent or timeout
    */
   private[controller] def outputGracefulDisconnect() {
+    manualDisconnect = true 
     outputState match {
-      case a @ Alive(_, _, false, _) => {
-        val n = a.copy(disconnecting = true)
-        if (!checkOutputGracefulDisconnect(n)) {
-          outputState = n
-        }
+      case a : AliveOutputState => {
+        checkOutputGracefulDisconnect()
       }
-      case Suspended(msgq) => {
+      case other => {
         val reason = new NotConnectedException("Connection Closed")
         while (!msgq.isEmpty) {
           msgq.dequeue.postWrite(OutputResult.Cancelled(reason))
         }
-        outputState = Terminated()
+        outputState = Terminated
       }
-      case other => {}
     }
   }
 
@@ -242,10 +193,9 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   /**
    * returns true if the state is switched to Terminated
    */
-  private def checkOutputGracefulDisconnect(state: Alive[Output]): Boolean = {
-    if (state.disconnecting && state.msgQ.isEmpty && state.liveState == Dequeueing) {
-      //this occurs as a continuation of below
-      outputState = Terminated()
+  private def checkOutputGracefulDisconnect(): Boolean = {
+    if (manualDisconnect && msgq.isEmpty && outputState == Dequeueing) {
+      outputState = Terminated
       checkControllerGracefulDisconnect()
       true
     } else false
@@ -275,53 +225,38 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * @return true if the message was successfully enqueued, false if the queue is full
    */
   protected def push(item: Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
+    if (canPush) {
+      if (msgq.size == 0 && outputState == Dequeueing) signalWrite()
+      msgq.enqueue(item, postWrite, createdMillis)
+      true
+    } else {
+      false
+    }
+  }
+
+  protected def canPush = outputState.canPush && !msgq.isFull
+
+  private def drainSource(){ 
     outputState match {
-      case state @ Alive(msgq, liveState, false, _) if (!msgq.isFull) => {
-        if (msgq.size == 0 && liveState == Dequeueing) signalWrite()
-        msgq.enqueue(item, postWrite, createdMillis)
-        true
+      case Streaming(source, dataQ, post) => source.pull {
+        case Success(Some(data)) => {
+          if (dataQ.itemSize == 0) signalWrite()
+          dataQ.enqueue(data)
+          if (! dataQ.isFull) drainSource()
+        }
+        case Success(None) => {
+          //there's actually nothing to do here, switching back to the dequeuing
+          //state is handled in readyForData
+          if (!dataQ.isEmpty) signalWrite()
+        }
+        case Failure(err) => {
+          //todo: where to propagate the error?
+          disconnect()
+        }
       }
-      case Suspended(msgq) if (!msgq.isFull) => {
-        msgq.enqueue(item, postWrite, createdMillis)
-        true
-      }
-      case _ => false
+      case other => throw new InvalidOutputStateException("Attempted to drain source when not in streaming state")
     }
   }
-
-  protected def canPush = outputState match {
-    case state @ Alive(msgq, _, false, _) if (!msgq.isFull) => {
-      true
-    }
-    case Suspended(msgq) if (!msgq.isFull) => {
-      true
-    }
-    case _ => false
-  }
-
-  private def drainSource(ls: Streaming){ ls.source.pull{
-    case Success(Some(data)) => outputState match {
-      case a: Alive[Output] => {
-        if (ls.dataQ.itemSize == 0) signalWrite()
-        ls.dataQ.enqueue(data)
-        if (! ls.dataQ.isFull) drainSource(ls)
-      }
-      case other => {
-        val ex = new NotConnectedException("Connection Closed")
-        ls.source.terminate(ex)
-        ls.postWrite(OutputResult.Failure(ex))
-      }
-    }
-    case Success(None) => {
-      //there's actually nothing to do here, switching back to the dequeuing
-      //state is handled in readyForData
-      if (!ls.dataQ.isEmpty) signalWrite()
-    }
-    case Failure(err) => {
-      //todo: where to propagate the error?
-      disconnect()
-    }
-  }}
 
 
   /** Purge all pending messages
@@ -329,27 +264,13 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * If a message is currently being written, it is not affected
    */
   protected def purgePending(reason: Throwable) {
-    outputState match {
-      case a : Alive[Output] => {
-        while (!a.msgQ.isEmpty) {
-          val q = a.msgQ.dequeue
-          q.postWrite(OutputResult.Cancelled(reason))
-        }
-      }
-      case Suspended(msgs) => {
-        while (!msgs.isEmpty) {
-          val q = msgs.dequeue
-          q.postWrite(OutputResult.Cancelled(reason))
-        }
-      }
-      case _ => {}
+    while (!msgq.isEmpty) {
+      val q = msgq.dequeue
+      q.postWrite(OutputResult.Cancelled(reason))
     }
   }
 
-  protected def writesEnabled: Boolean = outputState match {
-    case a: Alive[Output] if (a.writesEnabled) => true
-    case _ => false
-  }
+  protected def writesEnabled: Boolean = _writesEnabled
 
   /** Purge both pending and outgoing messages */
   /**
@@ -358,105 +279,81 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * can still be pushed to the queue as long as it is not full
    */
   protected def pauseWrites() {
-    outputState.ifAlive{s =>
-      outputState = s.copy(writesEnabled = false)
-    }
+    _writesEnabled = false
   }
 
   /**
    * Resumes writing of messages if currently paused, otherwise has no affect
    */
   protected def resumeWrites() {
-    outputState.ifAlive{s =>
-      outputState = s.copy(writesEnabled = true)
-      s.liveState match {
-        case Dequeueing => {
-          if (!s.msgQ.isEmpty) signalWrite()
-        }
-        case _ => {} //pausing doesn't affect streaming, so nothing to do
-      }
-    }
+    _writesEnabled = true
+    if (!msgq.isEmpty) signalWrite()
   }
 
-  def readyForData(buffer: DataOutBuffer) = outputState match {
-    case state: Alive[Output] => {
-      if (checkOutputGracefulDisconnect(state)) {
-        MoreDataResult.Complete
-      } else state.liveState match {
-        case Dequeueing => {
-          var streamState: Option[Streaming] = None
-          var continue = true
-          while (writesEnabled && continue && state.msgQ.size > 0 && ! buffer.isOverflowed) {
-            val next = state.msgQ.dequeue
-            codec.encode(next.item) match {
-              case e: Encoder => {
-                e.encode(buffer)
-                next.postWrite(OutputResult.Success)
-              }
-              case DataStream(source) => {
-                val ls = Streaming(source, new DataQueue(1000), next.postWrite)
-                streamState = Some(ls)
-                outputState = state.copy(liveState = ls)
-                drainSource(ls)
-                continue = false
-              }
+  def readyForData(buffer: DataOutBuffer) =  {
+    if (checkOutputGracefulDisconnect()) {
+      MoreDataResult.Complete
+    } else outputState match {
+      case Dequeueing => {
+        while (writesEnabled && outputState == Dequeueing && msgq.size > 0 && ! buffer.isOverflowed) {
+          val next = msgq.dequeue
+          codec.encode(next.item) match {
+            case e: Encoder => {
+              e.encode(buffer)
+              next.postWrite(OutputResult.Success)
             }
-          }
-          //TODO this can be cleaned up somehow
-          if (continue) {
-            if (state.disconnecting || (writesEnabled && state.msgQ.size > 0)) {
-              //return incomplete only if we overflowed the buffer and have more
-              //in the queue, or id disconnecting to finish the disconnect
-              //process
-              MoreDataResult.Incomplete
-            } else {
-              MoreDataResult.Complete
+            case DataStream(source) => {
+              outputState = Streaming(source, new DataQueue(1000), next.postWrite)
+              drainSource()
             }
-          } else {
-            if (state.disconnecting || !streamState.get.dataQ.isEmpty) {
-              MoreDataResult.Incomplete
-            } else {
-              MoreDataResult.Complete
-            }
-          }
-        }
-        case ls @ Streaming(source, dataQ, post) => {
-          while (dataQ.itemSize > 0 && ! buffer.isOverflowed) {
-            dataQ.dequeue.encode(buffer)
-          }
-          if (dataQ.isEmpty) {
-            if (source.isClosed) {
-              //all done
-              post(OutputResult.Success)
-              outputState = state.copy(liveState = Dequeueing)
-            } else {
-              //ask for more
-              drainSource(ls)
-            }
-          }
-          if (!dataQ.isEmpty || state.disconnecting) {
-            //we return Incomplete when disconnecting because even though we have
-            //nothing more to write, if we disconnect now then the data we just
-            //buffered in this function call is not going to get written (since
-            //that happens after this function returns), so we have to wait until
-            //the next iteration to actually finish disconnecting.
-            MoreDataResult.Incomplete
-          } else {
-            MoreDataResult.Complete
           }
         }
       }
+      case ls @ Streaming(source, dataQ, post) => {
+        while (dataQ.itemSize > 0 && ! buffer.isOverflowed) {
+          dataQ.dequeue.encode(buffer)
+        }
+        if (dataQ.isEmpty) {
+          if (source.isClosed) {
+            //all done
+            post(OutputResult.Success)
+            outputState = Dequeueing
+          } else {
+            //ask for more
+            drainSource()
+          }
+        }
+      }
+      case _ => {}
     }
-    case _ => MoreDataResult.Complete //this should never happen
+
+    outputState match {
+      case Dequeueing => {
+        if (manualDisconnect || (writesEnabled && msgq.size > 0)) {
+          //return incomplete only if we overflowed the buffer and have more
+          //in the queue, or if disconnecting to finish the disconnect
+          //process
+          MoreDataResult.Incomplete
+        } else {
+          MoreDataResult.Complete
+        }
+      }
+      case Streaming(_, dataQ, _) => {
+        if (manualDisconnect || !dataQ.isEmpty) {
+          MoreDataResult.Incomplete
+        } else {
+          MoreDataResult.Complete
+        }
+      }
+      case _ => MoreDataResult.Complete
+    }
   }
         
   def idleCheck(period: Duration): Unit = {
-    outputState.ifAlive{state =>
-      val time = System.currentTimeMillis
-      while (!state.msgQ.isEmpty && state.msgQ.head.isTimedOut(time, controllerConfig.sendTimeout)) {
-        val expired = state.msgQ.dequeue
-        expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
-      }
+    val time = System.currentTimeMillis
+    while (!msgq.isEmpty && msgq.head.isTimedOut(time, controllerConfig.sendTimeout)) {
+      val expired = msgq.dequeue
+      expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
     }
   }
 

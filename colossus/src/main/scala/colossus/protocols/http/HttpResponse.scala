@@ -10,10 +10,6 @@ import controller._
 import HttpParse._
 import java.nio.ByteBuffer
 
-case class HttpResponseHeader(key: ByteString, value: ByteString) {
-  val keyArray = key.toArray
-  val valueArray = value.toArray
-}
 
 object HttpResponseHeader {
 
@@ -25,19 +21,40 @@ object HttpResponseHeader {
   val DELIM_ARRAY = DELIM.toArray
   val SPACE_ARRAY = Array(' '.toByte)
 
-  def apply(key: String, value: String): HttpResponseHeader = {
-    HttpResponseHeader(ByteString(key) , ByteString(value))
-  }
-
-
-  object Conversions {
-    implicit def stringTuple2Header(t: (String, String)): HttpResponseHeader = HttpResponseHeader(t._1, t._2)
-    implicit def seqStringTuple2Headers(t: Seq[(String, String)]): Vector[HttpResponseHeader] = t.map{stringTuple2Header}.toVector
-  }
 
 }
 
-case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector()) {
+trait ResponseFL {
+  def version : HttpVersion
+  def code : HttpCode
+
+  override def toString = version.toString + " " + code.toString
+
+  override def equals(that: Any): Boolean = that match {
+    case t : ResponseFL => this.toString == that.toString
+    case _ => false
+  }
+
+  override def hashCode = toString.hashCode
+}
+
+case class ParsedResponseFL(data: Array[Byte]) extends ResponseFL with LazyParsing {
+
+  protected def parseErrorMessage = "malformed head"
+
+  lazy val codeStart = fastIndex(data, ' '.toByte) + 1
+  lazy val codemsgStart = fastIndex(data, ' '.toByte, codeStart) + 1
+
+  lazy val version: HttpVersion = parsed { HttpVersion(data, 0, codeStart - 1) }
+  lazy val code: HttpCode = parsed { HttpCode((new String(data, codeStart, codemsgStart - codeStart - 1)).toInt) }
+}
+
+case class BasicResponseFL(version : HttpVersion, code: HttpCode) extends ResponseFL
+
+case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) {
+
+  def version = fl.version
+  def code = fl.code
 
 
   def encode(buffer: DataOutBuffer) {
@@ -45,28 +62,20 @@ case class HttpResponseHead(version : HttpVersion, code : HttpCode, headers : Ve
     buffer.write(HttpResponseHeader.SPACE_ARRAY)
     buffer.write(code.headerArr)
     buffer.write(NEWLINE_ARRAY)
-    var i = 0
-    while (i < headers.size) {
-      val header = headers(i)
-      i += 1
-      buffer.write(header.keyArray)
-      buffer.write(HttpResponseHeader.DELIM_ARRAY)
-      buffer.write(header.valueArray)
-      buffer.write(NEWLINE_ARRAY)
-    }
+    headers.encode(buffer)
   }
 
-  def withHeader(key: String, value: String) = copy(headers = headers :+ HttpResponseHeader(key, value))
+  def withHeader(key: String, value: String) = copy(headers = headers + (key -> value))
 
-  def contentLength = {
-    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.ContentLength, v) => v.utf8String.toInt}
+}
+
+object HttpResponseHead{
+
+  def apply(version: HttpVersion, code: HttpCode, headers: HttpHeaders): HttpResponseHead = {
+    HttpResponseHead(BasicResponseFL(version, code), headers)
   }
-
-  def transferEncoding : TransferEncoding = {
-    headers.collectFirst{case HttpResponseHeader(HttpResponseHeader.TransferEncoding, v) => v}.flatMap{t => TransferEncoding.unapply(t.utf8String)}.getOrElse(TransferEncoding.Identity)
 }
-
-}
+  
 
 sealed trait BaseHttpResponse { 
 
@@ -91,7 +100,9 @@ sealed trait BaseHttpResponse {
 //first-class citizens and separate them from the other headers.  This would
 //prevent things like creating a response with the wrong content length
 
-case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extends BaseHttpResponse with Encoder {
+
+
+case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttpResponse with Encoder {
 
   private def fastIntToString(in: Int, buf: DataOutBuffer) {
     if (in == 0) {
@@ -111,17 +122,19 @@ case class HttpResponse(head: HttpResponseHead, body: Option[ByteString]) extend
 
 
   def encode(buffer: DataOutBuffer) {
-    val dataSize = body.map{_.size}.getOrElse(0)
     head.encode(buffer)
-    buffer.write(HttpResponse.ContentLengthKey.toArray)
-    fastIntToString(dataSize, buffer)
-    buffer.write(N2)
-    body.foreach{b => 
-      buffer.write(b.toArray)
+    body.contentType.foreach{ctype =>
+      ctype.encode(buffer)
     }
+    buffer.write(HttpResponse.ContentLengthKeyArray)
+    fastIntToString(body.size, buffer)
+    buffer.write(N2)
+    body.encode(buffer)
   }
 
-  def resolveBody(): Option[Callback[ByteString]] = body.map{data => Callback.successful(data)}
+  def resolveBody(): Option[Callback[ByteString]] = if (body.size > 0) {
+    Some(Callback.successful(body.bytes))
+  } else None
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
 
@@ -143,14 +156,19 @@ trait ByteStringLike[T] {
 object HttpResponse {
 
   val ContentLengthKey = ByteString("Content-Length: ")
+  val ContentLengthKeyArray = ContentLengthKey.toArray
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] , data : T) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), Some(implicitly[ByteStringLike[T]].toByteString(data)))
+  def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
+    HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))
+  }
+
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders , data : T) : HttpResponse = {
+    HttpResponse(HttpResponseHead(version, code, headers), data)
   }
 
 
-  def apply(version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader]) : HttpResponse = {
-    HttpResponse(HttpResponseHead(version, code, headers), None)
+  def apply(version : HttpVersion, code : HttpCode, headers : HttpHeaders) : HttpResponse = {
+    HttpResponse(HttpResponseHead(version, code, headers), HttpBody.NoBody)
   }
 
 }
@@ -189,13 +207,13 @@ case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[Dat
 object StreamingHttpResponse {
 
   def fromStatic(resp: HttpResponse): StreamingHttpResponse = {
-    StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.map{_.size}.getOrElse(0).toString), resp.body.map{b => Source.one(DataBuffer(b))})
+    StreamingHttpResponse(resp.head.withHeader(HttpHeaders.ContentLength, resp.body.size.toString), Some(Source.one(DataBuffer(resp.body.bytes))))
   }
 
-  def apply[T : ByteStringLike](version : HttpVersion, code : HttpCode, headers : Vector[HttpResponseHeader] = Vector(), data : T) : StreamingHttpResponse = {
+  def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
       HttpResponseHead(version, code, headers), 
-      Some(implicitly[ByteStringLike[T]].toByteString(data))
+      HttpBody(data)
     ))
   }
 

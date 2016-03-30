@@ -12,19 +12,70 @@ object HttpParse {
   val NEWLINE_ARRAY = NEWLINE.toArray
   val N2 = (NEWLINE ++ NEWLINE).toArray
 
-  //common parsers
-  def headers: Parser[Vector[(String, String)]]    = repeatUntil(header, '\r') <~ byte
-  def header: Parser[(String, String)]     = {
-    stringUntil(':', toLower = true, allowWhiteSpace = false) ~ 
-    stringUntil('\r', allowWhiteSpace = true, ltrim = true) <~ 
-    byte >> {case key ~ value => (key, value)}
-  }
-
   def chunkedBody: Parser[ByteString] = chunkedBodyBuilder(new ByteStringBuilder)
+
+  implicit val z: Zero[EncodedHttpHeader] = HttpHeader.FPHZero
+  def header: Parser[EncodedHttpHeader] = line(HttpHeader.apply, true)
+  def folder(header: EncodedHttpHeader, builder: HeadersBuilder): HeadersBuilder = builder.add(header)
+  def headers: Parser[HeadersBuilder] = foldZero(header, new HeadersBuilder)(folder)
 
   private def chunkedBodyBuilder(builder: ByteStringBuilder): Parser[ByteString] = intUntil('\r', 16) <~ byte |> {
     case 0 => bytes(2) >> {_ => builder.result}
     case n => bytes(n.toInt) <~ bytes(2) |> {bytes => chunkedBodyBuilder(builder.append(bytes))}
   }
+
+
+  case class HeadResult[T](head: T, contentLength: Option[Int], transferEncoding: Option[String] )
+
+
+
+  class HeadersBuilder {
+
+    private var cl: Option[Int] = None
+    private var te: Option[String] = None
+
+    def contentLength = cl
+    def transferEncoding = te
+
+    private val build = new java.util.LinkedList[EncodedHttpHeader]()
+
+    def add(header: EncodedHttpHeader): HeadersBuilder = {
+      build.add(header)
+      if (cl.isEmpty && header.matches("content-length")) {
+        cl = Some(header.value.toInt)
+      }
+      if (te.isEmpty && header.matches("transfer-encoding")) {
+        te = Some(header.value)
+      }
+      
+      this
+    }
+
+
+    def buildHeaders: HttpHeaders = {
+      new HttpHeaders(build.asInstanceOf[java.util.List[HttpHeader]]) //silly invariant java collections :/
+    }
+    
+  }
+}
+
+
+trait LazyParsing {
+
+  protected def parseErrorMessage: String
+
+  def parsed[T](op: => T): T = try {
+    op
+  } catch {
+    case p: ParseException => throw p
+    case other : Throwable => throw new ParseException(parseErrorMessage + s": $other")
+  }
+
+  def fastIndex(data: Array[Byte], byte: Byte, start: Int = 0) = {
+    var pos = start
+    while (pos < data.length && data(pos) != byte) { pos += 1 }
+    if (pos >= data.length) -1 else pos
+  }
+
 }
 
