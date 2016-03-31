@@ -3,6 +3,7 @@ package colossus
 import akka.util.Timeout
 import akka.agent.Agent
 import colossus.core.Worker.ConnectionSummary
+import com.typesafe.config.{ConfigFactory, Config}
 
 import core._
 
@@ -16,49 +17,81 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
-  def apply(config: IOSystemConfig, metrics: MetricSystem)(implicit system: ActorSystem): IOSystem = {
-    new IOSystem(config, metrics, system, workerManagerFactory)
+  val ConfigRoot = "colossus.io-system"
+
+  /**
+    * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.io-system" config path.
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
+    * @param sys
+    * @return
+    */
+  def apply()(implicit sys : ActorSystem) : IOSystem = {
+    apply(ConfigRoot)
   }
 
-  def apply(name: String, numWorkers: Int, metrics: MetricSystem)
-    (implicit system: ActorSystem): IOSystem = apply(IOSystemConfig(name, numWorkers), metrics)
-
-
-  def apply(name: String, numWorkers: Int)(implicit system: ActorSystem): IOSystem = apply(name, numWorkers, MetricSystem.deadSystem)
-
-  def apply(name: String, metrics: MetricSystem)(implicit  system: ActorSystem): IOSystem = {
-    val numWorkers = Runtime.getRuntime.availableProcessors()
-    apply(name, numWorkers, metrics)
+  /**
+    * Create a new IOSystem using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.io-system"
+    * config path.
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
+    * @param configPath  The path to the configuration.
+    * @param sys
+    * @return
+    */
+  def apply(configPath : String)(implicit sys : ActorSystem) : IOSystem = {
+    apply(configPath, ConfigFactory.load())
   }
 
-  def apply(name: String = "iosystem", numWorkers: Option[Int] = None)(implicit sys: ActorSystem = ActorSystem(name)): IOSystem = {
-    val workers = numWorkers.getOrElse (Runtime.getRuntime.availableProcessors())
-    val metrics = MetricSystem(MetricAddress.Root / name)
-    apply(name, workers, metrics)
+  /**
+    * Create a new IOSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.io-system" config path.
+    *
+    * @param configPath The path to the configuration
+    * @param config The Config source to query
+    * @param sys
+    * @return
+    */
+  def apply(configPath : String, config : Config)(implicit sys : ActorSystem) : IOSystem = {
+    val ioConfig = config.getConfig(configPath).withFallback(config.getConfig(ConfigRoot))
+    val name = ioConfig.getString("name")
+    val workerCount : Option[Int] = if(config.hasPath("num-workers")){Some(config.getInt("num-workers"))} else{ None }
+    val ms = MetricSystem(s"$configPath.metrics", config)
+    apply(name, workerCount, ms)
+  }
+
+  /**
+    * Create a new IOSystem
+    *
+    * @param name Name of this IOSystem.  This will also be used as its MetricAddres.
+    * @param workerCount Number of workers to create
+    * @param metrics The MetricSystem used to report metrics
+    * @param system
+    * @return
+    */
+  def apply(name : String, workerCount : Option[Int], metrics : MetricSystem)(implicit system : ActorSystem) : IOSystem = {
+    val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
+    new IOSystem(name, numWorkers, metrics, system, workerManagerFactory)
+  }
+
+  private def actorFriendlyName(name : String) = {
+    name match {
+      case "" | "/" => "iosystem"
+      case s => s.replace("/", "-")
+    }
   }
 
   type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
 
   private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
     sys.actorSystem.actorOf(Props(
-      classOf[WorkerManager], 
+      classOf[WorkerManager],
       agent,
-      sys  
-    ), name = s"${sys.config.name}-manager")
+      sys
+    ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 
 }
 
-/**
- * Configuration used to specify an IOSystem's parameters.
- * @param name The name of the IOSystem
- * @param numWorkers The amount of Worker actors to spawn.  Must be greater than 0.
- */
-case class IOSystemConfig(name: String, numWorkers: Int){
-  require (numWorkers >= 0) //FIX - we currently need to allow 0 workers for tests
-}
-
-/*NOTE: We should look into converting this case class into a trait with a private impl */
 /**
  * An IO System is basically a collection of worker actors.  You can attach
  * either servers or clients to an IOSystem.
@@ -69,7 +102,8 @@ case class IOSystemConfig(name: String, numWorkers: Int){
  * loops.
  */
 class IOSystem private[colossus](
-  val config: IOSystemConfig,
+  val name: String,
+  val numWorkers : Int,
   val  metrics: MetricSystem,
   val actorSystem: ActorSystem,
   managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
@@ -105,27 +139,22 @@ class IOSystem private[colossus](
 
 
   /**
-   * Name of the IOSystem as specified in the IOSystemConfig
-   * @return
-   */
-  def name = config.name
-
-  /**
    * MetricAddress of this IOSystem as seen from the MetricSystem
    */
-  val namespace = MetricAddress.Root / config.name
+  val namespace = metrics.namespace / name
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
   private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
 
   // >[*]< SUPER HACK ALERT >[*]<
-  while (config.numWorkers > 0 && workers().size == 0) {
+  while (numWorkers > 0 && workers().size == 0) {
     Thread.sleep(25)
   }
 
   /**
    * Sends a message to the underlying WorkerManager.
-   * @param msg Msg to send
+    *
+    * @param msg Msg to send
    * @param sender The sender of the message, defaults to ActorRef.noSender
    * @return
    */
@@ -164,7 +193,8 @@ class IOSystem private[colossus](
 
   /**
    * Connect to the specified address and use the specified function to create a Handler to attach to it.
-   * @param address The address with which to connect.
+    *
+    * @param address The address with which to connect.
    * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
    *                to the handler.
    */
