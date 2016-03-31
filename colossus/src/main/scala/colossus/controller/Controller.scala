@@ -1,6 +1,9 @@
 package colossus
 package controller
 
+import colossus.metrics.MetricAddress
+import colossus.parsing.DataSize
+import colossus.parsing.DataSize._
 import core._
 import service.Codec
 
@@ -11,10 +14,14 @@ import scala.concurrent.duration.Duration
  *
  * @param outputBufferSize the maximum number of outbound messages that can be queued for sending at once
  * @param sendTimeout if a queued outbound message becomes older than this it will be cancelled
+ * @param name The MetricAddress associated with this controller
+ * @param inputMaxSize maximum allowed input size (in bytes)
  */
 case class ControllerConfig(
   outputBufferSize: Int,
   sendTimeout: Duration,
+  name: MetricAddress,
+  inputMaxSize: DataSize = 1L.MB,
   flushBufferOnClose: Boolean = true
 )
 

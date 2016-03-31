@@ -3,16 +3,13 @@ package protocols.redis
 
 
 import akka.util.ByteString
-import colossus.parsing.DataSize._
 import colossus.parsing._
 
 
 object RedisReplyParser {
   import Combinators._
 
-  val DefaultMaxSize: DataSize = 1.MB
-
-  def apply(size: DataSize = DefaultMaxSize): Parser[Reply] = maxSize(size, reply)
+  def apply(): Parser[Reply] = reply
   
 
   def reply: Parser[Reply] = byte |> {

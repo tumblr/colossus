@@ -1,34 +1,29 @@
 package colossus
 package protocols.http
 
-import akka.util.ByteString
-
-import core.{DataBuffer, DataOutBuffer}
+import core.DataOutBuffer
 import parsing._
-import DataSize._
 import Combinators._
 
 object HttpRequestParser {
   import HttpParse._
-
-  val DefaultMaxSize: DataSize = 1.MB
-
-  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, httpRequest)
+  
+  def apply() = httpRequest
 
   //TODO : don't parse body as a bytestring
-  protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) => 
-    transferEncoding match { 
+  protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) =>
+    transferEncoding match {
       case None | Some("identity") => contentLength match {
         case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
         case Some(n) => bytes(n) >> {body => HttpRequest(head, HttpBody(body))}
       }
       case Some(other)  => chunkedBody >> {body => HttpRequest(head, HttpBody(body))}
-    } 
+    }
   }
 
-  protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder => 
+  protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
     HeadResult(
-      HttpRequestHead(fl, headersBuilder.buildHeaders), 
+      HttpRequestHead(fl, headersBuilder.buildHeaders),
       headersBuilder.contentLength,
       headersBuilder.transferEncoding
     )
@@ -37,7 +32,6 @@ object HttpRequestParser {
   def firstLine = line(ParsedFL.apply, true)
   
 }
-
 
 
 case class ParsedFL(data: Array[Byte]) extends FirstLine with LazyParsing {
@@ -55,7 +49,7 @@ case class ParsedFL(data: Array[Byte]) extends FirstLine with LazyParsing {
   private def pathLength = data.length - 11 - pathStart //assumes the line ends with " HTTP/x/x\r\n", which it always should
 
   lazy val path       = parsed { new String(data, pathStart, pathLength) }
-  lazy val version    = parsed { 
+  lazy val version    = parsed {
     val vstart = data.length - 10
     HttpVersion(data, vstart, data.length - vstart - 2)
   }
