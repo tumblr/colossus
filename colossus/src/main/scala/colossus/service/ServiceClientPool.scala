@@ -11,11 +11,11 @@ import java.net.InetSocketAddress
  *
  * note that config will be copied for each client, replacing only the address
  */
-class ServiceClientPool[I,O, T <: ServiceClient[I, O]](val commonConfig: ClientConfig, worker: WorkerRef, creator: (ClientConfig, WorkerRef) => T) {
+class ServiceClientPool[T <: Sender[_, Callback]](val commonConfig: ClientConfig, worker: WorkerRef, creator: (ClientConfig, WorkerRef) => T) {
 
   private val clients = collection.mutable.Map[InetSocketAddress, T]()
 
-  def createClient(address: InetSocketAddress) = {
+  private def create(address: InetSocketAddress) = {
     val config = commonConfig.copy(
       address = address
     )
@@ -31,13 +31,19 @@ class ServiceClientPool[I,O, T <: ServiceClient[I, O]](val commonConfig: ClientC
     val added = addresses.filter{a => !clients.contains(a)}
     val removed = clients.keys.filter{a => !addresses.contains(a)}
     added.foreach{address =>
-      clients(address) = createClient(address)
+      clients(address) = create(address)
     }
     removed.foreach{address =>
       val client = clients(address)
       client.disconnect()
       clients -= address
     }
+  }
+
+  def apply(address: InetSocketAddress) = clients.get(address).getOrElse{
+    val c = create(address)
+    clients(address) = c
+    c
   }
 
   def get(address: InetSocketAddress) = clients.get(address)

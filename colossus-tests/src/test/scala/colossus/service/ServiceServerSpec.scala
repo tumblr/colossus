@@ -11,6 +11,7 @@ import akka.util.ByteString
 import java.net.InetSocketAddress
 
 import protocols.redis._
+import Redis.defaults._
 import scala.concurrent.Await
 
 import RawProtocol._
@@ -158,7 +159,7 @@ class ServiceServerSpec extends ColossusSpec {
             requestTimeout = 800.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
-          val client = new RedisFutureClient(AsyncServiceClient(clientConfig, new RedisClientCodec))
+          val client = Redis.futureClient(clientConfig)
           val t = Try {
             Await.result(client.get(ByteString("foo")), 1.second)
           }

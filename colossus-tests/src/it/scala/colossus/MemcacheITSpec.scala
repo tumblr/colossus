@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.util.ByteString
 import colossus.metrics.MetricSystem
-import colossus.protocols.memcache.MemcacheClient
+import colossus.protocols.memcache._
 import colossus.protocols.memcache.MemcacheReply._
 import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
 import colossus.service.{AsyncServiceClient, ClientConfig}
@@ -15,6 +15,9 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+
+import Memcache.defaults._
+
 /*
 Please be aware when running this test, that if you run it on a machine with a memcached server
 running on 11211, it will begin to interact with it.  Be mindful if you are running this on a server
@@ -30,7 +33,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-  val client = MemcacheClient.asyncClient(ClientConfig(new InetSocketAddress("localhost", 11211), 2.seconds, "memcache"))
+  val client = Memcache.futureClient(ClientConfig(new InetSocketAddress("localhost", 11211), 2.seconds, "memcache"))
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 

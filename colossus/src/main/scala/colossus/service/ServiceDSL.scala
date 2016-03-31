@@ -5,7 +5,8 @@ import core._
 
 import akka.actor.ActorRef
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
@@ -13,27 +14,29 @@ import metrics.MetricAddress
 import Codec._
 
 
-trait CodecDSL {self =>
+//TODO : Rename to Protocol
+trait Protocol {self =>
   type Input
   type Output
+
 }
 
-object CodecDSL {
+object Protocol {
 
-  type PartialHandler[C <: CodecDSL] = PartialFunction[C#Input, Callback[C#Output]]
+  type PartialHandler[C <: Protocol] = PartialFunction[C#Input, Callback[C#Output]]
 
   type Receive = PartialFunction[Any, Unit]
 
-  type ErrorHandler[C <: CodecDSL] = PartialFunction[(C#Input, Throwable), C#Output]
+  type ErrorHandler[C <: Protocol] = PartialFunction[(C#Input, Throwable), C#Output]
 }
 
-import CodecDSL._
+import Protocol._
 
 /**
  * Provide a Codec as well as some convenience functions for usage within in a Service.
  * @tparam C the type of codec this provider will supply
  */
-trait CodecProvider[C <: CodecDSL] {
+trait CodecProvider[C <: Protocol] {
   /**
    * The Codec which will be used.
    * @return
@@ -50,18 +53,34 @@ trait CodecProvider[C <: CodecDSL] {
 
 }
 
-trait ClientCodecProvider[C <: CodecDSL] {
+trait ClientCodecProvider[C <: Protocol] {
   def name: String
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
 
 
+/**
+ * Mixed into base protocol objects to provide a default codec provider
+ */
+trait ServerDefaults[C <: Protocol] {
+  implicit def serverDefaults : CodecProvider[C]
+
+}
+
+/**
+ * Mixed into base protocol objects to provide a default client codec provider
+ */
+trait ClientDefaults[C <: Protocol] {
+  implicit def clientDefaults : ClientCodecProvider[C]
+}
+
+trait CodecDefaults[C <: Protocol] extends ServerDefaults[C] with ClientDefaults[C]
 
 
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-abstract class Service[C <: CodecDSL]
+abstract class Service[C <: Protocol]
 (codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: CodecProvider[C])
 extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
@@ -135,7 +154,7 @@ object Service {
    * @return A [[ServerRef]] for the server.
    */
    /*
-  def serve[T <: CodecDSL]
+  def serve[T <: Protocol]
   (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
@@ -153,7 +172,7 @@ object Service {
    * @param name The name of the service
    * @param port The port to bind the server to
    */
-  def basic[T <: CodecDSL]
+  def basic[T <: Protocol]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
     class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
@@ -162,4 +181,93 @@ object Service {
     Server.basic(name, port)(context => new BasicService(context))
   }
 
+}
+
+
+/**
+ * This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)
+ *
+ * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
+ */
+trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
+
+  def lift[M[_]](baseClient: Sender[C, M])(implicit async: Async[M]) : T[M]
+
+}
+
+trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
+  
+
+  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
+
+  def apply(host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[C], env: E): T = {
+    apply(new InetSocketAddress(host, port), requestTimeout)
+  }
+
+  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit provider: ClientCodecProvider[C], env: E): T = {
+    val config = ClientConfig(
+      address = address,
+      requestTimeout = requestTimeout,
+      name = MetricAddress.Root / provider.name
+    )
+    apply(config)
+  }
+
+}
+
+
+object ClientFactory {
+
+
+  implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
+    
+    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
+      new ServiceClient(provider.clientCodec(), config, worker.generateContext())
+    }
+
+  }
+
+  implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
+    
+    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
+      AsyncServiceClient(config)(io, provider)
+    }
+
+  }
+
+}
+
+class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
+extends ClientFactory[C,M,T[M],E] {
+
+  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
+    lifter.lift(baseFactory(config))(builder.build(env))
+  }
+
+}
+
+/**
+ * Mixed into protocols to provide simple methods for creating clients.
+ */
+class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
+
+  import ClientFactory._
+
+  
+  val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
+
+  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
+
+}
+
+class LiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends Sender[C,M] {
+
+  def send(input: C#Input): M[C#Output] = client.send(input)
+
+  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = async.flatMap(send(i))(f)
+
+  def disconnect() {
+    client.disconnect()
+  }
 }

@@ -427,7 +427,7 @@ class RedisITSpec extends BaseRedisITSpec{
     }
 
     "generic command" in {
-      client.execute(Command.c("DBSIZE")).map{
+      client.send(Command.c("DBSIZE")).map{
         case IntegerReply(x) => //sweet
         case other => throw new Exception(s"bad response! $other")
       }

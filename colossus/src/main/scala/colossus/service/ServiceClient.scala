@@ -74,12 +74,6 @@ class RequestTimeoutException extends ServiceClientException("Request Timed out"
  */
 class DataException(message: String) extends ServiceClientException(message)
 
-trait ServiceClientLike[I,O]  {
-  def disconnect()
-  def send(request: I): Callback[O]
-}
-
-
 /**
  * This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
  * To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
@@ -100,18 +94,20 @@ class StaleClientException(msg : String) extends Exception(msg)
  *
  * TODO: make underlying output controller data size configurable
  */
-class ServiceClient[I,O](
-  codec: Codec[I,O],
+class ServiceClient[P <: Protocol](
+  codec: Codec[P#Input,P#Output], 
   val config: ClientConfig,
   context: Context
-)(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](
-  codec,
-  ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize),
-  context)
-with ClientConnectionHandler
-with ServiceClientLike[I,O]
-with ManualUnbindHandler {
+)(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
+extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize), context) 
+with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
+
+  type I = P#Input
+  type O = P#Output
+
+  def this(codec: Codec[P#Input,P#Output], config: ClientConfig, worker: WorkerRef) {
+    this(codec, config, worker.generateContext())
+  }
 
   context.worker.worker ! WorkerCommand.Bind(this)
 
@@ -321,23 +317,7 @@ with ManualUnbindHandler {
 
 object ServiceClient {
 
-  def apply[D <: CodecDSL](config: ClientConfig)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    new ServiceClient(provider.clientCodec(), config, worker.generateContext())
-  }
-
-  def apply[D <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    apply[D](new InetSocketAddress(host, port), requestTimeout)
-  }
-
-  def apply[D <: CodecDSL]
-  (address: InetSocketAddress, requestTimeout: Duration)
-  (implicit provider: ClientCodecProvider[D], worker: WorkerRef): ServiceClient[D#Input, D#Output] = {
-    val config = ClientConfig(
-      address = address,
-      requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
-    )
-    apply[D](config)
-  }
+  def apply[C <: Protocol] = ClientFactory.serviceClientFactory[C]
 
 }
+

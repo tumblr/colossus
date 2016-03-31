@@ -11,7 +11,7 @@ import core.ServerRef
 import service._
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[C <: CodecDSL](implicit provider: CodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
+abstract class ServiceSpec[C <: Protocol](implicit provider: CodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
   
   type Request = C#Input
   type Response = C#Output
@@ -35,7 +35,7 @@ abstract class ServiceSpec[C <: CodecDSL](implicit provider: CodecProvider[C], c
     requestTimeout = timeout
   )
 
-  def client(timeout: FiniteDuration = requestTimeout) = AsyncServiceClient(clientConfig(timeout), clientProvider.clientCodec)
+  def client(timeout: FiniteDuration = requestTimeout) = AsyncServiceClient(clientConfig(timeout))//, clientProvider.clientCodec)
 
   def withClient(f: AsyncServiceClient[Request, Response] => Unit) {
     val c = client()

@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.util.ByteString
 import colossus.metrics.MetricSystem
-import colossus.protocols.redis.{Command, RedisClient, Reply}
+import colossus.protocols.redis._
 import colossus.service.{AsyncServiceClient, ClientConfig}
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.{ScaledTimeSpans, ScalaFutures}
@@ -13,6 +13,8 @@ import org.scalatest.time._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import Redis.defaults._
 
 abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with ScaledTimeSpans {
 
@@ -26,9 +28,8 @@ abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with Scale
 
   def keyPrefix : String
 
-  type AsyncRedisClient = AsyncServiceClient[Command, Reply]
 
-  val client = RedisClient.asyncClient(ClientConfig(new InetSocketAddress("localhost", 6379), 1.second, "redis"))
+  val client = Redis.futureClient(ClientConfig(new InetSocketAddress("localhost", 6379), 1.second, "redis"))
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 

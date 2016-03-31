@@ -11,12 +11,13 @@ import java.net.InetSocketAddress
 import UrlParsing._
 import HttpMethod._
 import Callback.Implicits._
+import Redis.defaults._
 
 import colossus.controller.IteratorGenerator
 
 object HttpExample {
 
-  class HttpExampleService(redis: RedisCallbackClient, context: ServerContext) extends HttpService(ServiceConfig(), context){
+  class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig(), context){
     
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
 
@@ -51,7 +52,7 @@ object HttpExample {
   def start(port: Int, redisAddress: InetSocketAddress)(implicit system: IOSystem): ServerRef = {
     Server.start("http-example", port){implicit worker => new Initializer(worker) {
 
-      val redis = new RedisCallbackClient(ServiceClient[Redis](redisAddress.getHostName, redisAddress.getPort))
+      val redis = Redis.client(redisAddress.getHostName, redisAddress.getPort)
 
       def onConnect = context => new HttpExampleService(redis, context)
     }}

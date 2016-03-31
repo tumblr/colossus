@@ -15,6 +15,7 @@ import akka.util.ByteString
 import java.net.InetSocketAddress
 
 import protocols.redis._
+import Redis.defaults._
 import UnifiedProtocol._
 import scala.concurrent.Await
 
@@ -30,7 +31,7 @@ class ServiceClientSpec extends ColossusSpec {
     maxSentSize: Int = 10, 
     connectionAttempts: PollingDuration = PollingDuration(1.second, None),
     requestTimeout: Duration = 10.seconds
-  ): (MockConnection, ServiceClient[Command,Reply], TestProbe) = {
+  ): (MockConnection, ServiceClient[Redis], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
     val fakeWorker = FakeIOSystem.fakeWorker
     val config = ClientConfig(
@@ -42,8 +43,8 @@ class ServiceClientSpec extends ColossusSpec {
       failFast = failFast,
       connectionAttempts = connectionAttempts
     )
-    //haxor!
-    val client = (RedisClient.callbackClient(config, fakeWorker.worker)).asInstanceOf[RedisCallbackClient].client.asInstanceOf[ServiceClient[Command, Reply]]
+    implicit val w = fakeWorker.worker
+    val client = ServiceClient[Redis](config)
 
     fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
     client.setBind()
@@ -53,7 +54,7 @@ class ServiceClientSpec extends ColossusSpec {
     (endpoint, client, fakeWorker.probe)
   }
 
-  def sendCommandReplies(client: ServiceClient[Command,Reply], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
+  def sendCommandReplies(client: ServiceClient[Redis], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
     var numCalledBack = 0
     commandReplies.foreach{case (command, reply) =>
       client.send(command).map{ r =>
@@ -352,7 +353,7 @@ class ServiceClientSpec extends ColossusSpec {
             name = "/test",
             requestTimeout = 1.second
           )
-          val client = AsyncServiceClient(config, new RedisClientCodec)
+          val client = AsyncServiceClient[Redis](config)//Redis.futureClient(config)
           TestClient.waitForConnected(client)
           TestUtil.expectServerConnections(server, 1)
           Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
@@ -397,7 +398,7 @@ class ServiceClientSpec extends ColossusSpec {
             address = new InetSocketAddress("localhost", TEST_PORT + 1),
             connectionAttempts = PollingDuration(50.milliseconds, Some(2L)))
 
-          val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
+          val client = AsyncServiceClient[Raw](config)
           TestUtil.expectServerConnections(server, 0)
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
