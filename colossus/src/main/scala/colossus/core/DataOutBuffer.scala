@@ -4,34 +4,46 @@ package core
 import akka.util.{ByteString, ByteStringBuilder}
 import java.nio.ByteBuffer
 
+/**
+ * The DataOutBuffer is a ConnectionHandler's interface for writing data out to
+ * the connection.  DataOutBuffers support a "soft" overflow, which means it
+ * will dynamically allocate more space as needed, but is based off a
+ * fixed-length base size.  The idea is that writing should stop as soon as the
+ * overflow is hit, but it is not a requirement.
+ */
 trait DataOutBuffer {
 
-  def available: Long
   def isOverflowed: Boolean
 
-  /**
-   * Copy as much as `src` into this buffer as possible.  
-   */
-  def write(src: DataBuffer)
+  protected def copyDestination(bytesNeeded: Long): ByteBuffer
 
-  /**
-   * Attempt to write the entire contents of bytes into this buffer.  If there
-   * is not enough available space an exeption is thrown
-   */
-  def write(bytes: ByteString)
+  def write(from: ByteBuffer) {
+    copyDestination(from.remaining).put(from)
+  }
 
-  def write(bytes: Array[Byte])
+  def write(from: DataBuffer) {
+    write(from.data)
+  }
 
-  def write(bytes: Array[Byte], offset: Int, length: Int)
+  def write(bytes: ByteString) {
+    write(bytes.asByteBuffer)
+  }
 
-  def write(byte: Byte)
+  def write(bytes: Array[Byte]) {
+    copyDestination(bytes.length).put(bytes)
+  }
 
-  /* Get a DataBuffer containing the data written into this DataOutBuffer.  This
-   * generally renders this buffer unusable
-   *
-   * TODO: Unify this maybe with DataBuffer
-   */
-  def data: DataBuffer
+  def write(bytes: Array[Byte], offset: Int, length: Int) {
+    copyDestination(length).put(bytes, offset, length)
+  }
+
+  def write(byte: Byte) {
+    copyDestination(1).put(byte)
+  }
+
+  def write(char: Char) {
+    write(char.toByte)
+  }
 
 }
 
@@ -77,7 +89,7 @@ class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends Da
     }
   }
 
-  def copyDestination(bytesNeeded: Long) : ByteBuffer = if (base.remaining >= bytesNeeded) base else {
+  protected def copyDestination(bytesNeeded: Long) : ByteBuffer = if (base.remaining >= bytesNeeded) base else {
     while (dynAvailable < bytesNeeded) {
       growDyn()
     }
@@ -89,32 +101,6 @@ class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends Da
     base.clear()
   }
 
-  def available = Long.MaxValue //maybe limit this somehow?
-
-  def write(from: ByteBuffer) {
-    copyDestination(from.remaining).put(from)
-  }
-
-
-  def write(from: DataBuffer) {
-    write(from.data)
-  }
-
-  def write(bytes: ByteString) {
-    write(bytes.asByteBuffer)
-  }
-
-  def write(bytes: Array[Byte]) {
-    copyDestination(bytes.size).put(bytes)
-  }
-
-  def write(bytes: Array[Byte], offset: Int, length: Int) {
-    copyDestination(length).put(bytes, offset, length)
-  }
-
-  def write(byte: Byte) {
-    copyDestination(1).put(byte)
-  }
 
   def data = {
     val d = dyn.getOrElse(base)

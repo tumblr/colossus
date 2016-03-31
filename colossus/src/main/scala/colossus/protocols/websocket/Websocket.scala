@@ -29,13 +29,14 @@ object UpgradeRequest {
 
   //todo proper handling of key
   def unapply(request : HttpRequest): Option[HttpResponse] = {
+    val headers = request.head.headers
     for {
-      cheader   <- request.head.singleHeader("connection") 
-      uheader   <- request.head.singleHeader("upgrade") 
-      host      <- request.head.singleHeader("host")
-      origin    <- request.head.singleHeader("origin")
-      seckey    <- request.head.singleHeader("sec-websocket-key")
-      secver    <- request.head.singleHeader("sec-websocket-version") 
+      cheader   <- headers.firstValue("connection") 
+      uheader   <- headers.firstValue("upgrade") 
+      host      <- headers.firstValue("host")
+      origin    <- headers.firstValue("origin")
+      seckey    <- headers.firstValue("sec-websocket-key")
+      secver    <- headers.firstValue("sec-websocket-version") 
       if (request.head.version == HttpVersion.`1.1`)
       if (request.head.method == HttpMethod.Get)
       if (secver == "13")
@@ -45,13 +46,13 @@ object UpgradeRequest {
       HttpResponseHead(
         HttpVersion.`1.1`,
         HttpCodes.SWITCHING_PROTOCOLS,
-        Vector(
-          HttpResponseHeader("Upgrade", "websocket"),
-          HttpResponseHeader("Connection", "Upgrade"),
-          HttpResponseHeader("Sec-Websocket-Accept",processKey(seckey))
+        HttpHeaders(
+          HttpHeader("Upgrade", "websocket"),
+          HttpHeader("Connection", "Upgrade"),
+          HttpHeader("Sec-Websocket-Accept",processKey(seckey))
         )
       ),
-      None
+      HttpBody.NoBody
     )      
   }
 }
@@ -165,7 +166,8 @@ object FrameParser {
   }
 }
 
-abstract class WebsocketHandler(context: Context) extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
+abstract class WebsocketHandler(context: Context)
+  extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf, ""), context) {
 
   def send(bytes: ByteString) {
     push(Frame(Header(OpCodes.Text, false), bytes)){_ => {}}
@@ -178,9 +180,6 @@ abstract class WebsocketHandler(context: Context) extends Controller(new Websock
   def processMessage(message: Frame) = {
     fullHandler(message.payload)
   }
-
-  //TODO : generalize the stuff in Service and use it for this and for Task as well
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
   def preStart(){}
 

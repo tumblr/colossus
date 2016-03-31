@@ -16,7 +16,7 @@ class WorkerItemException(message: String) extends Exception(message)
  * @param id the id used to reference the worker item
  * @param worker the worker the item is bound to
  */
-case class Context(id: Long, worker: WorkerRef) {
+class Context(val id: Long, val worker: WorkerRef) {
 
   def !(message: Any)(implicit sender: ActorRef) {
     worker.worker ! WorkerCommand.Message(id, message)
@@ -25,6 +25,14 @@ case class Context(id: Long, worker: WorkerRef) {
   def unbind() {
     worker.worker ! WorkerCommand.UnbindWorkerItem(id)
   }
+
+  lazy val proxy : ActorRef = {
+    _proxyExists = true
+    worker.system.actorSystem.actorOf(Props(classOf[WorkerItemProxy], id, worker))
+  }
+
+  private var _proxyExists = false
+  private[colossus] def proxyExists = _proxyExists
 }
 
 
@@ -105,3 +113,47 @@ abstract class WorkerItem(val context: Context) {
 
 
 }
+
+trait ProxyActor { self: WorkerItem => 
+  
+  import ProxyActor._
+  
+  implicit lazy val self : ActorRef = context.proxy
+
+  private var currentReceiver : Receive = receive
+    
+  def becomeReceive(receive: Receive) {
+    currentReceiver = receive
+  }
+  
+  private var lastSender = ActorRef.noSender
+  def sender() : ActorRef = lastSender
+
+  def receivedMessage(message: Any, sender: ActorRef) {
+    lastSender = sender
+    currentReceiver.applyOrElse(message, (_: Any) => ())
+  }
+
+  def receive : Receive
+
+}
+
+object ProxyActor {
+
+  type Receive = PartialFunction[Any, Unit]
+
+}
+
+class WorkerItemProxy(id: Long, worker: WorkerRef) extends Actor {
+  
+  def receive = {
+    case Worker.MessageDeliveryFailed(_,_) => {} //do anything here?
+    case x => worker.worker ! WorkerCommand.Message(id, x)
+  }
+
+}
+
+object WorkerItemProxy {
+  sealed trait ProxyCommand
+}
+

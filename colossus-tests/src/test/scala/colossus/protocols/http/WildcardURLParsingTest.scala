@@ -12,7 +12,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
     "The wildcard url parser" should {
       "match a root url" in {
           val url = ""
-          val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
+          val request = HttpRequest(HttpRequestHead(Get, url, `1.1`, HttpHeaders()), HttpBody.NoBody)
           request match {
             case req @ Get on Root => {}
             case _ => fail()
@@ -21,7 +21,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
 
       "match a resource url" in {
         val url = "/moose.jpg"
-        val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
+        val request = HttpRequest(HttpRequestHead(Get, url, `1.1`, HttpHeaders()), HttpBody.NoBody)
         request match {
           case req @ Get on Root /: rest => rest must be("moose.jpg")
           case _ => fail("Failed to match url")
@@ -30,7 +30,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
 
       "match a complex resource url" in {
         val url = "/bronx/zoo/moose.jpg"
-        val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
+        val request = HttpRequest(HttpRequestHead(Get, url, `1.1`, HttpHeaders()), HttpBody.NoBody)
         request match {
           case req @ Get on base /: city /: place /: animal  =>
             base must be("/")
@@ -43,7 +43,7 @@ class WildcardURLParsingTest extends WordSpec with MustMatchers {
 
       "partially match a url" in {
         val url = "/bronx/zoo/moose.jpg"
-        val request = HttpRequest(HttpHead(Get, url, `1.1`, List()), None)
+        val request = HttpRequest(HttpRequestHead(Get, url, `1.1`, HttpHeaders()), HttpBody.NoBody)
         request match {
           case req @ Get on Root /: city /: placeAndAnimal => placeAndAnimal must be("zoo/moose.jpg")
           case _ => fail("Failed to match complex url")

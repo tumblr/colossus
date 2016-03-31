@@ -18,9 +18,9 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
 
     "be constuctable from a ByteStringLike" in {
 
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Vector(), "test conversion")
+      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, HttpHeaders(), "test conversion")
 
-      val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, Vector(), ByteString("test conversion"))
+      val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, HttpHeaders(), ByteString("test conversion"))
 
       response must equal(expected)
 
@@ -32,12 +32,12 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
     "be constructable from a StaticHttpResponse" in {
 
       val payload = "look ma, no hands!"
-      val res = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), ByteString(payload))
+      val res = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), ByteString(payload))
 
       val streamed = StreamingHttpResponse.fromStatic(res)
 
       streamed.body.get.pullCB() must evaluateTo{x : Option[DataBuffer] =>
-        ByteString(x.value.takeAll) must equal(res.body.get)
+        ByteString(x.value.takeAll) must equal(res.body.bytes)
       }
     }
 
@@ -46,11 +46,11 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
       val payload = "look ma, no hands!"
 
       val expected = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector(HttpResponseHeader("content-length", "18"))), 
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(HttpHeader("content-length", "18"))), 
         Some(Source.one(DataBuffer(ByteString("test conversion"))))
       )
 
-      val response = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK, Vector(), payload)
+      val response = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), payload)
 
       response.head must equal(expected.head)
 

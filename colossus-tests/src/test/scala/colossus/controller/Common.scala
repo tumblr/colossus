@@ -93,11 +93,11 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
 object TestController {
   import RawProtocol.RawCodec
 
-  val config = ControllerConfig(4, 50.milliseconds)
+  val defaultConfig = ControllerConfig(4, 50.milliseconds, "test-controller")
 
   type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
 
-  def controller[I,O](codec: Codec[O,I])(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
+  def controller[I,O](codec: Codec[O,I], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
     val con =MockConnection.server(
       c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler,
       500
@@ -106,7 +106,7 @@ object TestController {
     con
   }
 
-  def static()(implicit sys: ActorSystem) = controller(RawCodec)
-  def stream()(implicit sys: ActorSystem) = controller(new TestCodec)
+  def static(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(RawCodec, config)
+  def stream(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(new TestCodec, config)
 
 }

@@ -1,9 +1,5 @@
 package colossus
 
-import net.liftweb.json._
-
-//TODO: break up this whole thing
-
 package object metrics {
 
   type MetricValue = Long
@@ -25,7 +21,6 @@ package object metrics {
   object MetricMap {
     val Empty: MetricMap = Map()
 
-    implicit val formats = DefaultFormats
 
     case class TaggedValue(tags: TagMap, value: Long) {
       def tuple = (tags, value)
@@ -38,7 +33,6 @@ package object metrics {
       MetricAddress(addressString) -> tagvalues.map{_.tuple}.toMap
     }
 
-    def fromJson(j: JValue): MetricMap = unserialize(j.extract[SerializedMetricMap])
   }
 
   implicit class RichMetricMap(val underlying: MetricMap) extends AnyVal {
@@ -47,26 +41,6 @@ package object metrics {
       values.map{case (tags, value) => MetricFragment(address, tags ++ globalTags, value)}
     }.toSeq
     def fragments: Seq[MetricFragment] = fragments(TagMap.Empty)
-
-
-    def toJson: JValue = JObject(
-      underlying.map{case (metric, values) =>
-        val valueArray = JArray(
-          values.map{case (tags, value) =>
-            val tagObj = JObject(
-              tags.map{ case (key, value) =>
-                JField(key, JString(value))
-              }.toList
-            )
-            JObject(List(
-              JField("tags", tagObj),
-              JField("value", JInt(value))
-            ))
-          }.toList
-        )
-        JField(metric.toString, valueArray)
-      }.toList
-    )
 
   }
 

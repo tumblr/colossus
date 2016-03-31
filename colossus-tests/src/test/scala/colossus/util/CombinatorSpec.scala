@@ -182,6 +182,37 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(DataBuffer(d1)) must equal(None)
       parser.endOfStream() must equal(expected)
     }
+
+    "line" in {
+      val parser = line
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4).toSeq))
+    }
+
+    "line (split at the newline)" in {
+      val parser = line(false)
+      parser.parse(DataBuffer(Array[Byte](1, 2, 13))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](10, 4))).map{_.toSeq} must equal(Some(Array[Byte](1,2).toSeq))
+
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](13, 10, 4))).map{_.toSeq} must equal(Some(Array[Byte](1,2).toSeq))
+
+    }
+
+    "line (include newline)" in {
+      val parser = line(true)
+      parser.parse(DataBuffer(Array[Byte](1, 2))) must equal(None)
+      parser.parse(DataBuffer(Array[Byte](3, 4, 13, 10, 5))).map{_.toSeq} must equal(Some(Array[Byte](1, 2, 3, 4, 13, 10).toSeq))
+    }
+
+    "line (grow internal buffer" in {
+      val parser = new LineParser(x => x, internalBufferBaseSize = 2)
+      val buf = data("abcdefghijklmnop\r\n123456")
+      val expected = ByteString("abcdefghijklmnop").toArray.toSeq
+      parser.parse(buf).get.toSeq must equal(expected)
+      buf.remaining must equal(6)
+    }
+
       
 
 
@@ -225,6 +256,20 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(d1) must equal(None)
       parser.parse(d2) must equal(None)
       parser.endOfStream() must equal(Some(Vector(ByteString("aa"), ByteString("bb"), ByteString("cc"))))
+    }
+
+    "repeatZero" in {
+      implicit val bZero = new Zero[Byte] {
+        def isZero(b: Byte) = b == 123
+      }
+      val data1 = DataBuffer(ByteString(3,2))
+      val data2 = DataBuffer(ByteString(1, 123, 4))
+      val parser = repeatZero(byte)
+      val expected = Seq(3, 2, 1)
+      parser.parse(data1) must equal(None)
+      data1.remaining must equal(0)
+      parser.parse(data2).get.toSeq must equal(expected)
+      data2.remaining must equal(1)
     }
   }
 

@@ -1,6 +1,8 @@
 package colossus
 package controller
 
+import colossus.metrics.Histogram
+import colossus.parsing.ParserSizeTracker
 import core._
 import colossus.service.{DecodedResult, NotConnectedException}
 
@@ -54,6 +56,11 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   //maybe not
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
+  
+  import context.worker.metrics
+  
+  val inputSizeHistogram = Histogram(controllerConfig.name / "input_size", sampleRate = 0.10, percentiles = List(0.75,0.99))
+  val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), Some(inputSizeHistogram))
 
   private[controller] def inputOnClosed() {
     inputState match {
@@ -126,13 +133,13 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
       case Decoding => {
         var decoding = true
         while (decoding) {
-          codec.decode(data) match {
+          inputSizeTracker.track(data)(codec.decode(data)) match {
             case Some(DecodedResult.Static(msg)) => {
               processMessage(msg)
             }
             case None => {
               decoding = false
-            } 
+            }
             case Some(DecodedResult.Stream(msg, sink)) => {
               decoding = false
               inputState = ReadingStream(sink)

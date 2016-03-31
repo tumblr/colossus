@@ -1,6 +1,7 @@
 package colossus
 
 import akka.util.Timeout
+import akka.agent.Agent
 import colossus.core.Worker.ConnectionSummary
 import com.typesafe.config.{ConfigFactory, Config}
 
@@ -8,9 +9,9 @@ import core._
 
 import akka.actor._
 import metrics._
-import task._
 
 import java.net.InetSocketAddress
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,6 +22,7 @@ object IOSystem {
   /**
     * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.io-system" config path.
     * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
     * @param sys
     * @return
     */
@@ -43,6 +45,7 @@ object IOSystem {
 
   /**
     * Create a new IOSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.io-system" config path.
+    *
     * @param configPath The path to the configuration
     * @param config The Config source to query
     * @param sys
@@ -58,6 +61,7 @@ object IOSystem {
 
   /**
     * Create a new IOSystem
+    *
     * @param name Name of this IOSystem.  This will also be used as its MetricAddres.
     * @param workerCount Number of workers to create
     * @param metrics The MetricSystem used to report metrics
@@ -66,18 +70,26 @@ object IOSystem {
     */
   def apply(name : String, workerCount : Option[Int], metrics : MetricSystem)(implicit system : ActorSystem) : IOSystem = {
     val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
-
-    val workerManager = system.actorOf(Props(classOf[WorkerManager], WorkerManagerConfig(numWorkers, metrics)), s"iosystem-${actorFriendlyName(name)}-manager")
-    val sys = IOSystem(workerManager, name, numWorkers, metrics, system)
-    workerManager ! WorkerManager.Initialize(sys)
-    sys
+    new IOSystem(name, numWorkers, metrics, system, workerManagerFactory)
   }
+
   private def actorFriendlyName(name : String) = {
     name match {
       case "" | "/" => ""
       case s => s.replace("/", "-")
     }
   }
+
+  type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
+
+  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
+    sys.actorSystem.actorOf(Props(
+      classOf[WorkerManager],
+      agent,
+      sys
+    ), name = s"iosystem-${actorFriendlyName(sys.name)}-manager")
+  }
+
 }
 
 /**
@@ -89,21 +101,60 @@ object IOSystem {
  * to keep in mind is that all actors in a single IOSystem will share event
  * loops.
  */
-case class
-IOSystem private[colossus](workerManager: ActorRef, name : String, numWorkers : Int, metrics: MetricSystem, actorSystem: ActorSystem) {
+class IOSystem private[colossus](
+  val name: String,
+  val numWorkers : Int,
+  val  metrics: MetricSystem,
+  val actorSystem: ActorSystem,
+  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
+) {
   import IOCommand._
 
   import akka.pattern.ask
   import colossus.core.WorkerManager.RegisteredServers
+  import actorSystem.dispatcher
+
+  //TODO : there's a race condition here that could occur if you try to bind a
+  //item from here just after starting the IOSystem.
+  private val workers: Agent[IndexedSeq[WorkerRef]] = Agent(Vector())
+  private var workerMod = 0
+  private def nextWorker = {
+    val w = workers()
+    workerMod += 1
+    w(workerMod % w.size)
+  }
+  private val idGenerator = new AtomicLong(1)
+
+  private[colossus] def generateId() = idGenerator.incrementAndGet()
+
+  /**
+   * Generate Contexts by round-robining the workers.  Normally the Workers
+   * themselves will generate contexts upon receiving new connections from
+   * servers, but this is used mostly for attaching client connections from
+   * outside a worker or for creating tasks.  We need the context generated
+   * before sending the message to the worker so we can return the proxy actor
+   * immediately.
+   */
+  private[colossus] def generateContext() = new Context(generateId(), nextWorker)
+
 
   /**
    * MetricAddress of this IOSystem as seen from the MetricSystem
    */
   val namespace = metrics.namespace / name
 
+  //ENSURE THIS IS THE LAST THING INITIALIZED!!!
+  private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
+
+  // >[*]< SUPER HACK ALERT >[*]<
+  while (numWorkers > 0 && workers().size == 0) {
+    Thread.sleep(25)
+  }
+
   /**
    * Sends a message to the underlying WorkerManager.
-   * @param msg Msg to send
+    *
+    * @param msg Msg to send
    * @param sender The sender of the message, defaults to ActorRef.noSender
    * @return
    */
@@ -131,18 +182,19 @@ IOSystem private[colossus](workerManager: ActorRef, name : String, numWorkers : 
   }
 
   /**
-   * Run the specified task on a Worker thread.
-   * @param t The Task to run
-   * @return The Task's ActorRef
+   * Bind a new WorkerItem that uses a proxy actor, returning the actor
    */
-  def run(t: Task): ActorRef = {
-    workerManager ! IOCommand.BindWorkerItem(_ => t)
-    t.proxy
+  def bindWithProxy(item: Context => WorkerItem with ProxyActor): ActorRef = {
+    val context = generateContext()
+    context.worker ! IOCommand.BindWithContext(context, item)
+    context.proxy
   }
+
 
   /**
    * Connect to the specified address and use the specified function to create a Handler to attach to it.
-   * @param address The address with which to connect.
+    *
+    * @param address The address with which to connect.
    * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
    *                to the handler.
    */
@@ -179,5 +231,11 @@ object IOCommand {
    * robined across workers in an IOSystem
    */
   case class BindWorkerItem(item: Context => WorkerItem) extends IOCommand
+
+  /**
+   * Bind a worker item using a context generated by the IOSystem.  The
+   * WorkerItem is still created by the worker
+   */
+  case class BindWithContext(context: Context, item: Context => WorkerItem) extends IOCommand
 
 }
