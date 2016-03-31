@@ -1,6 +1,8 @@
 package colossus
 package testkit
 
+import colossus.metrics.MetricSystem
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
@@ -14,7 +16,7 @@ abstract class ServiceSpec[C <: CodecDSL](implicit provider: CodecProvider[C], c
   type Request = C#Input
   type Response = C#Output
 
-  implicit val sys = IOSystem("test-system", 2)
+  implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
   
   def service: ServerRef
@@ -59,8 +61,4 @@ abstract class ServiceSpec[C <: CodecDSL](implicit provider: CodecProvider[C], c
       }
     }
   }
-      
-
 }
-
-

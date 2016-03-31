@@ -82,7 +82,7 @@ object MetricSystem {
    * @return
    */
   def apply(namespace: MetricAddress, collectionIntervals: Seq[FiniteDuration] = Seq(1.second, 1.minute),
-            collectSystemMetrics: Boolean = true, config : Config = ConfigFactory.defaultReference())
+            collectSystemMetrics: Boolean = true, config : Config = ConfigFactory.load())
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
 
