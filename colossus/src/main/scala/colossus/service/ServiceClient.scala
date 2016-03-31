@@ -9,15 +9,12 @@ import akka.event.Logging
 import colossus.controller._
 import colossus.core._
 import colossus.metrics._
-
+import colossus.parsing.DataSize
+import colossus.parsing.DataSize._
 import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
-
-import com.github.nscala_time.time.Imports.DateTime
-
 
 /**
  * Configuration used to specify a Client's parameters
@@ -32,17 +29,18 @@ import com.github.nscala_time.time.Imports.DateTime
  * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
- *
+ * @param maxResponseSize max allowed response size -- larger responses are dropped
  */
 case class ClientConfig(
-  address: InetSocketAddress, 
-  requestTimeout: Duration, 
+  address: InetSocketAddress,
+  requestTimeout: Duration,
   name: MetricAddress,
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectionAttempts : PollingDuration = PollingDuration(500.milliseconds, None),
-  idleTimeout: Duration = Duration.Inf
+  idleTimeout: Duration = Duration.Inf,
+  maxResponseSize: DataSize = 1L.MB
 )
 
 class ServiceClientException(message: String) extends Exception(message)
@@ -103,12 +101,17 @@ class StaleClientException(msg : String) extends Exception(msg)
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[I,O](
-  codec: Codec[I,O], 
+  codec: Codec[I,O],
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O])
-extends Controller[O,I](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
-with ClientConnectionHandler with ServiceClientLike[I,O] with ManualUnbindHandler {
+extends Controller[O,I](
+  codec,
+  ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize),
+  context)
+with ClientConnectionHandler
+with ServiceClientLike[I,O]
+with ManualUnbindHandler {
 
   context.worker.worker ! WorkerCommand.Bind(this)
 

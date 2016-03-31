@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.core.{Context, WorkerRef}
+import colossus.core.WorkerRef
 import colossus.parsing.DataSize
 import colossus.service.Codec._
 import colossus.service._
@@ -533,8 +533,8 @@ package object redis {
 
   object RedisClient {
 
-    def callbackClient(config: ClientConfig, worker: WorkerRef, maxSize : DataSize = RedisReplyParser.DefaultMaxSize) : RedisCallbackClient = {
-      val serviceClient = new ServiceClient[Command, Reply](new RedisClientCodec(maxSize), config, worker.generateContext())
+    def callbackClient(config: ClientConfig, worker: WorkerRef) : RedisCallbackClient = {
+      val serviceClient = new ServiceClient[Command, Reply](new RedisClientCodec(), config, worker.generateContext())
       new RedisCallbackClient(serviceClient)
     }
 
@@ -542,9 +542,9 @@ package object redis {
       new RedisCallbackClient(scl)
     }
 
-    def asyncClient(config : ClientConfig, maxSize : DataSize = RedisReplyParser.DefaultMaxSize)(implicit io : IOSystem) : RedisFutureClient = {
+    def asyncClient(config : ClientConfig)(implicit io : IOSystem) : RedisFutureClient = {
       implicit val ec = io.actorSystem.dispatcher
-      val client = AsyncServiceClient(config, new RedisClientCodec(maxSize))
+      val client = AsyncServiceClient(config, new RedisClientCodec())
       new RedisFutureClient(client)
     }
 

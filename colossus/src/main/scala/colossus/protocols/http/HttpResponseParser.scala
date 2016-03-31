@@ -8,7 +8,6 @@ import akka.util.{ByteString, ByteStringBuilder}
 import colossus.parsing._
 import HttpParse._
 import Combinators._
-import DataSize._
 import controller._
 import service.DecodedResult
 import scala.language.higherKinds
@@ -20,9 +19,8 @@ object ResponseResult {
 }
 
 object HttpResponseParser  {
-  val DefaultMaxSize: DataSize = 10.MB
 
-  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
+  def static(): Parser[DecodedResult.Static[HttpResponse]] = staticBody(true)
 
   def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
 
