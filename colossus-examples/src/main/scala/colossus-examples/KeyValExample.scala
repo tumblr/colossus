@@ -8,6 +8,8 @@ import colossus.service._
 import colossus.protocols.redis._
 import scala.concurrent.{Promise, Future}
 
+import Redis.defaults._
+
 class KeyValDB extends Actor {
 
   import KeyValDB._

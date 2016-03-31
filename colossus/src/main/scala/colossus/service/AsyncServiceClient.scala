@@ -83,7 +83,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
 
 }
 
-trait AsyncServiceClient[I,O]  {
+trait AsyncServiceClient[I,O] {
   
   def send(request: I): Future[O]
 
@@ -104,6 +104,8 @@ trait AsyncServiceClient[I,O]  {
   def clientConfig : ClientConfig
 }
 
+trait FutureClient[C <: Protocol] extends AsyncServiceClient[C#Input, C#Output] with Sender[C, Future]
+
 object AsyncServiceClient {
 
   sealed trait ClientCommand
@@ -111,23 +113,10 @@ object AsyncServiceClient {
   case object Disconnect extends ClientCommand
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[Request, Response](config: ClientConfig, codec: Codec.ClientCodec[Request, Response])(implicit io: IOSystem): AsyncServiceClient[Request,Response] = {
-    val gen = new AsyncHandlerGenerator(config, codec)
+  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] with FutureClient[C] = {
+    val gen = new AsyncHandlerGenerator(config, provider.clientCodec())
     val actor = io.actorSystem.actorOf(Props(classOf[ClientProxy], config, io, gen.handlerFactory))
     gen.client(actor, config)
-  }
-
-  def apply[C <: CodecDSL](host: String, port: Int, requestTimeout: Duration = 100.milliseconds)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] = {
-    val config = ClientConfig(
-      name = provider.name,
-      address = new InetSocketAddress(host, port),
-      requestTimeout = requestTimeout
-    )
-    AsyncServiceClient[C](config)
-  }
-
-  def apply[C <: CodecDSL](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] = {
-    AsyncServiceClient(config, provider.clientCodec())
   }
 }
 
@@ -138,7 +127,10 @@ object AsyncServiceClient {
  * without using reflection.  We can do that with some nifty path-dependant
  * types
  */
-class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
+class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, codec: Codec[C#Input,C#Output]) {
+
+  type I = C#Input
+  type O = C#Output
 
   case class PackagedRequest(request: I, response: Promise[O])
 
@@ -149,8 +141,9 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
     config: ClientConfig,
     val caller: ActorRef,
     context: Context
-  ) extends ServiceClient[I,O](codec, config, context) with WatchedHandler {
+  ) extends ServiceClient[C](codec, config, context) with WatchedHandler {
     val watchedActor = caller
+
 
     override def onBind() {
       super.onBind()
@@ -177,7 +170,7 @@ class AsyncHandlerGenerator[I,O](config: ClientConfig, codec: Codec[I,O]) {
 
   implicit val timeout = Timeout(100.milliseconds)
 
-  def client(proxy: ActorRef, cConfig : ClientConfig): AsyncServiceClient[I,O] = new AsyncServiceClient[I,O] {
+  def client(proxy: ActorRef, cConfig : ClientConfig) = new AsyncServiceClient[I,O] with FutureClient[C]{
     def send(request: I): Future[O] = {
       val promise = Promise[O]()
       proxy ! PackagedRequest(request, promise)

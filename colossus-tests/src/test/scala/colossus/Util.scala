@@ -7,8 +7,9 @@ import akka.util.{ByteString, Timeout}
 import colossus.core._
 import colossus.service.{AsyncServiceClient, ClientConfig}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.language.higherKinds
 
 class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with ServerConnectionHandler {
 
@@ -36,10 +37,26 @@ object RawProtocol {
     def reset(){}
   }
 
-  trait Raw extends CodecDSL {
+  trait Raw extends Protocol {
     type Input = ByteString
     type Output = ByteString
   }
+
+  implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
+    
+    def lift[M[_]](client: Sender[Raw,M])(implicit async: Async[M]) = new LiftedClient(client) with RawClient[M]
+  }
+
+  object Raw extends ClientFactories[Raw, RawClient]{
+    
+  }
+
+  trait RawClient[M[_]] extends LiftedClient[Raw, M]
+
+  object RawClient {
+  }
+
+  
 
   implicit object RawCodecProvider extends CodecProvider[Raw] {
     def provideCodec() = RawCodec
@@ -55,6 +72,7 @@ object RawProtocol {
 }
 
 object TestClient {
+  import RawProtocol._
 
   def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true,
             connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)): AsyncServiceClient[ByteString, ByteString] = {
@@ -66,7 +84,7 @@ object TestClient {
       failFast = true,
       connectionAttempts = connectionAttempts
     )
-    val client = AsyncServiceClient(config, RawProtocol.RawCodec)(io)
+    val client = AsyncServiceClient[Raw](config)(io, RawClientCodecProvider)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

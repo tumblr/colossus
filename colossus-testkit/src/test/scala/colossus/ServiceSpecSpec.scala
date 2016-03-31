@@ -4,6 +4,7 @@ package testkit
 import scala.concurrent.duration._
 
 import protocols.redis._
+import Redis.defaults._
 import core.Server
 import service._
 

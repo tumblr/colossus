@@ -12,6 +12,8 @@ import akka.util.ByteString
 
 import scala.concurrent.duration._
 
+import Http.defaults._
+
 class PrimeGenerator extends Actor {
 
   var lastPrime = 1

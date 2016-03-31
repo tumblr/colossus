@@ -14,7 +14,7 @@ package object http extends HttpBodyEncoders {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
-  trait BaseHttp extends CodecDSL {
+  trait BaseHttp extends Protocol {
     type Input <: HttpRequest
     type Output <: BaseHttpResponse
   }
@@ -30,16 +30,35 @@ package object http extends HttpBodyEncoders {
     type Output = StreamingHttpResponse
   }
 
-  trait HttpProvider extends CodecProvider[Http] {
-    def provideCodec = new HttpServerCodec
-    def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
-      case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
-      case other => request.error(reason.toString)
+
+  object Http extends ClientFactories[Http, HttpClient] {
+
+    class ServerDefaults extends CodecProvider[Http] {
+      def provideCodec = new HttpServerCodec
+      def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
+        case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+        case other => request.error(reason.toString)
+      }
+
     }
+
+    class ClientDefaults extends ClientCodecProvider[Http] {
+      def clientCodec = new HttpClientCodec
+      def name = "http"
+    }
+
+    object defaults extends CodecDefaults[Http] {
+      
+      implicit val serverDefaults = new ServerDefaults
+
+      implicit val clientDefaults = new ClientDefaults
+
+    }
+  
 
   }
 
-  implicit object DefaultHttpProvider extends HttpProvider
+
 
 
 
@@ -62,7 +81,8 @@ package object http extends HttpBodyEncoders {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[Http](config, DefaultHttpProvider, context)
+  abstract class HttpService(config: ServiceConfig, context: ServerContext) 
+    extends BaseHttpServiceHandler[Http](config, Http.defaults.serverDefaults, context)
 
   abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
@@ -79,21 +99,11 @@ package object http extends HttpBodyEncoders {
 
   }
 
-  implicit object HttpClientProvider extends ClientCodecProvider[Http] {
-    def clientCodec = new HttpClientCodec
-    def name = "http"
-  }
-
-
   implicit object StreamingHttpClientProvider extends ClientCodecProvider[StreamingHttp] {
 
     def clientCodec = new StreamingHttpClientCodec
     def name = "streamingHttp"
   }
-
-
-  class HttpClient(config : ClientConfig, context: Context, maxSize : DataSize = HttpResponseParser.DefaultMaxSize)
-    extends ServiceClient[HttpRequest, HttpResponse](new HttpClientCodec,config, context)
 
 
   /*

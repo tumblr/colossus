@@ -13,7 +13,7 @@ package object telnet {
   import scala.language.higherKinds
   //type Telnet[M[_, _]] = M[TelnetCommand, TelnetReply]
 
-  trait Telnet extends CodecDSL {
+  trait Telnet extends Protocol {
     type Input = TelnetCommand
     type Output = TelnetReply
   }
