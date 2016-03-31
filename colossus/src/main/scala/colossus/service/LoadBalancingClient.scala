@@ -77,52 +77,49 @@ class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
  *
  * TODO: does this need to actually be a WorkerItem anymore?
  */
-class LoadBalancingClient[I,O] (
+class LoadBalancingClient[P <: Protocol] (
   worker: WorkerRef,
-  generator: InetSocketAddress => ServiceClient[I,O], 
+  generator: InetSocketAddress => Sender[P, Callback], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends WorkerItem(worker.generateContext) with ServiceClientLike[I,O]  {
+) extends WorkerItem(worker.generateContext) with Sender[P, Callback]  {
 
   worker.bind(_ => this)
 
-  private val clients = collection.mutable.ArrayBuffer[ServiceClient[I,O]]()
+  type Client = Sender[P, Callback]
 
-  private var permutations = new PermutationGenerator(clients.toList)
+  private val clients = collection.mutable.Map[InetSocketAddress, Client]()
+
+  private var permutations = new PermutationGenerator(clients.values.toList)
 
   update(initialClients)
 
   //note, this type must be inner to avoid type erasure craziness
-  case class Send(request: I, promise: Promise[O])
+  case class Send(request: P#Input, promise: Promise[P#Output])
 
 
   private def regeneratePermutations() {
-    permutations = new PermutationGenerator(clients.toList)
+    permutations = new PermutationGenerator(clients.values.toList)
   }
 
   def currentClients = clients.toList
 
     
-  private def addClient(address: InetSocketAddress, regen: Boolean): ServiceClient[I,O] = {
+  private def addClient(address: InetSocketAddress, regen: Boolean): Sender[P, Callback] = {
     val client = generator(address)
-    clients.append(client)
+    clients(address) = client
     regeneratePermutations()
     client
   }
 
-  def addClient(address: InetSocketAddress): ServiceClient[I,O] = addClient(address, true)
-
-  def removeClient(client: ServiceClient[I,O]) {
-    client.disconnect()
-    clients.remove(clients.indexOf(client))
-    regeneratePermutations()
-  }
+  def addClient(address: InetSocketAddress): Sender[P, Callback] = addClient(address, true)
 
   def removeClient(address: InetSocketAddress) {
-    val client = clients.find{_.config.address == address}.getOrElse(
+    val client = clients.get(address).getOrElse(
       throw new LoadBalancingClientException(s"Tried to remove non-existant client: $address")
     )
-    removeClient(client)
+    clients -= address
+    client.disconnect()
     regeneratePermutations()
   }
 
@@ -131,10 +128,10 @@ class LoadBalancingClient[I,O] (
    * existing list and closing connections not in the new list
    */
   def update(addresses: Seq[InetSocketAddress]) {
-    val toRemove = clients.filter{client => !addresses.contains(client.config.address)}
+    val toRemove = clients.filter{case (i, c) => !addresses.contains(i)}.keys
     toRemove.foreach(removeClient)
     addresses.foreach{address => 
-      if (!clients.exists{_.config.address == address}) {
+      if (! (clients contains address)) {
         addClient(address,false)
       }
     }
@@ -142,14 +139,14 @@ class LoadBalancingClient[I,O] (
   }
 
   def disconnect() {
-    clients.foreach{_.disconnect()}
+    clients.foreach{case (i,c) => c.disconnect()}
     clients.clear()
   }
       
 
-  def send(request: I): Callback[O] = {
+  def send(request: P#Input): Callback[P#Output] = {
     val retryList =  permutations.next().take(maxTries)
-    def go(next: ServiceClientLike[I,O], list: List[ServiceClientLike[I, O]]): Callback[O] = next.send(request).recoverWith{
+    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Output] = next.send(request).recoverWith{
       case err => list match {
         case head :: tail => go(head, tail)
         case Nil => Callback.failed(new SendFailedException(retryList.size, err))

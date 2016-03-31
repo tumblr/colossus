@@ -20,7 +20,7 @@ package object websocket {
     def reset(){}
   }
 
-  trait Websocket extends CodecDSL {
+  trait Websocket extends Protocol {
     type Input = Frame
     type Output = Frame
   }

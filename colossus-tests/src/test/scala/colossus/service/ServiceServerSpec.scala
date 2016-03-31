@@ -159,7 +159,7 @@ class ServiceServerSpec extends ColossusSpec {
             requestTimeout = 800.milliseconds,
             connectionAttempts = PollingDuration.NoRetry
           )
-          val client = Redis.futureClient(clientConfig)//new RedisFutureClient(AsyncServiceClient(clientConfig, new RedisClientCodec))
+          val client = Redis.futureClient(clientConfig)
           val t = Try {
             Await.result(client.get(ByteString("foo")), 1.second)
           }

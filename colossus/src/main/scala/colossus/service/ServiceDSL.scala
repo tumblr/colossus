@@ -15,28 +15,28 @@ import Codec._
 
 
 //TODO : Rename to Protocol
-trait CodecDSL {self =>
+trait Protocol {self =>
   type Input
   type Output
 
 }
 
-object CodecDSL {
+object Protocol {
 
-  type PartialHandler[C <: CodecDSL] = PartialFunction[C#Input, Callback[C#Output]]
+  type PartialHandler[C <: Protocol] = PartialFunction[C#Input, Callback[C#Output]]
 
   type Receive = PartialFunction[Any, Unit]
 
-  type ErrorHandler[C <: CodecDSL] = PartialFunction[(C#Input, Throwable), C#Output]
+  type ErrorHandler[C <: Protocol] = PartialFunction[(C#Input, Throwable), C#Output]
 }
 
-import CodecDSL._
+import Protocol._
 
 /**
  * Provide a Codec as well as some convenience functions for usage within in a Service.
  * @tparam C the type of codec this provider will supply
  */
-trait CodecProvider[C <: CodecDSL] {
+trait CodecProvider[C <: Protocol] {
   /**
    * The Codec which will be used.
    * @return
@@ -53,7 +53,7 @@ trait CodecProvider[C <: CodecDSL] {
 
 }
 
-trait ClientCodecProvider[C <: CodecDSL] {
+trait ClientCodecProvider[C <: Protocol] {
   def name: String
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
@@ -62,7 +62,7 @@ trait ClientCodecProvider[C <: CodecDSL] {
 /**
  * Mixed into base protocol objects to provide a default codec provider
  */
-trait ServerDefaults[C <: CodecDSL] {
+trait ServerDefaults[C <: Protocol] {
   implicit def serverDefaults : CodecProvider[C]
 
 }
@@ -70,17 +70,17 @@ trait ServerDefaults[C <: CodecDSL] {
 /**
  * Mixed into base protocol objects to provide a default client codec provider
  */
-trait ClientDefaults[C <: CodecDSL] {
+trait ClientDefaults[C <: Protocol] {
   implicit def clientDefaults : ClientCodecProvider[C]
 }
 
-trait CodecDefaults[C <: CodecDSL] extends ServerDefaults[C] with ClientDefaults[C]
+trait CodecDefaults[C <: Protocol] extends ServerDefaults[C] with ClientDefaults[C]
 
 
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-abstract class Service[C <: CodecDSL]
+abstract class Service[C <: Protocol]
 (codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: CodecProvider[C])
 extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
@@ -154,7 +154,7 @@ object Service {
    * @return A [[ServerRef]] for the server.
    */
    /*
-  def serve[T <: CodecDSL]
+  def serve[T <: Protocol]
   (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
@@ -172,7 +172,7 @@ object Service {
    * @param name The name of the service
    * @param port The port to bind the server to
    */
-  def basic[T <: CodecDSL]
+  def basic[T <: Protocol]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
     class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
@@ -184,26 +184,18 @@ object Service {
 }
 
 
-trait CodecClient[C <: CodecDSL] extends ServiceClient[C#Input, C#Output] with Sender[C, Callback] 
-
 /**
  * This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)
  *
  * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
  */
-trait ClientLifter[C <: CodecDSL, M[_],B <: Sender[C,M], T <: Sender[C,M], E] {
+trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
-  def lift(baseClient: B)(implicit environment: E) : T
+  def lift[M[_]](baseClient: Sender[C, M])(implicit async: Async[M]) : T[M]
 
 }
 
-trait CallbackLifter[C <: CodecDSL, B <: Sender[C, Callback], T <: Sender[C, Callback]] extends ClientLifter[C, Callback, B, T, WorkerRef]
-trait FutureLifter[C <: CodecDSL, B <: Sender[C, Future], T <: Sender[C, Future]] extends ClientLifter[C, Future, B, T, IOSystem]
-
-trait ServiceClientLifter[C <: CodecDSL, T <: Sender[C, Callback]] extends CallbackLifter[C, CodecClient[C], T]
-trait FutureClientLifter[C <: CodecDSL, T <: Sender[C, Future]] extends FutureLifter[C, FutureClient[C], T]
-
-trait ClientFactory[C <: CodecDSL, M[_], T <: Sender[C,M], E] {
+trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
   
 
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
@@ -227,15 +219,15 @@ trait ClientFactory[C <: CodecDSL, M[_], T <: Sender[C,M], E] {
 object ClientFactory {
 
 
-  implicit def serviceClientFactory[C <: CodecDSL] = new ClientFactory[C, Callback, CodecClient[C], WorkerRef] {
+  implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
     
-    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): CodecClient[C] = {
-      new ServiceClient(provider.clientCodec(), config, worker.generateContext()) with CodecClient[C]
+    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
+      new ServiceClient(provider.clientCodec(), config, worker.generateContext())
     }
 
   }
 
-  implicit def futureClientFactory[C <: CodecDSL] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
+  implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
     
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
       AsyncServiceClient(config)(io, provider)
@@ -245,43 +237,37 @@ object ClientFactory {
 
 }
 
-class CodecClientFactory[C <: CodecDSL, M[_], B <: Sender[C, M], T <: Sender[C,M], E]
-(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,M,B,T,E])
-extends ClientFactory[C,M,T,E] {
+class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
+extends ClientFactory[C,M,T[M],E] {
 
-  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T =  lifter.lift(baseFactory(config))
+  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
+    lifter.lift(baseFactory(config))(builder.build(env))
+  }
 
 }
 
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-class ClientFactories[C <: CodecDSL, T[M[_]] <: Sender[C, M]] 
-(implicit serviceLifter: CallbackLifter[C, CodecClient[C], T[Callback]], futureLifter: FutureLifter[C, FutureClient[C], T[Future]]){
+class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
 
   import ClientFactory._
 
   
-  val client = new CodecClientFactory[C, Callback, CodecClient[C], T[Callback], WorkerRef]
+  val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
 
-  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T[Future], IOSystem]
+  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
 
 }
 
-//TODO : These two classes can be combined if add an environment type as we do with the factories
+class LiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends Sender[C,M] {
 
-/**
- * This is used by protocols and mixed in with a protocol-specific trait to
- * provide a callback-based client
- */
-class LiftedCallbackClient[C <: CodecDSL](val client : Sender[C, Callback]) 
-  extends CallbackResponseAdapter[C]
+  def send(input: C#Input): M[C#Output] = client.send(input)
 
+  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = async.flatMap(send(i))(f)
 
-/**
- * This is used by protocols and mixed in with a protocol-specific trait to
- * provide a future-based client
- */
-class LiftedFutureClient[C <: CodecDSL](val client : Sender[C, Future])(implicit val executionContext : ExecutionContext)
-  extends FutureResponseAdapter[C]
-
+  def disconnect() {
+    client.disconnect()
+  }
+}
