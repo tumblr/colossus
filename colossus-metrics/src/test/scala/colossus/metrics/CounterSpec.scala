@@ -31,7 +31,7 @@ class CounterSpec extends MetricIntegrationSpec {
 
     "correctly handle tags" in {
       val c = counter
-      c.set(123, tags = Map("a" -> "a"))
+      c.set(tags = Map("a" -> "a"), 123)
       c.increment(tags = Map("a" -> "b"))
       c.increment(tags = Map("a" -> "b"))
       c.get(Map("a" -> "a")) must equal(123)

@@ -75,7 +75,7 @@ object IOSystem {
 
   private def actorFriendlyName(name : String) = {
     name match {
-      case "" | "/" => ""
+      case "" | "/" => "iosystem"
       case s => s.replace("/", "-")
     }
   }
@@ -87,7 +87,7 @@ object IOSystem {
       classOf[WorkerManager],
       agent,
       sys
-    ), name = s"iosystem-${actorFriendlyName(sys.name)}-manager")
+    ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 
 }

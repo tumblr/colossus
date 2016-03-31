@@ -31,7 +31,7 @@ extends Actor with ActorLogging with Stash {
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
 
-  import ioSystem.config.numWorkers
+  import ioSystem.numWorkers
 
 
   /*

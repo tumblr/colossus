@@ -24,9 +24,6 @@ class ServerSpec extends ColossusSpec {
       val io = IOSystem("test", Some(2), MetricSystem.deadSystem)
       Thread.sleep(50)
       io ! WorkerManager.ReadyCheck
-      expectMsg(100.milliseconds, WorkerManager.WorkersNotReady)
-      Thread.sleep(100) //if it takes longer than this we're in trouble
-      io ! WorkerManager.ReadyCheck
       val probe = TestProbe()
       probe watch io.workerManager
       expectMsgClass(50.milliseconds, classOf[WorkerManager.WorkersReady])
