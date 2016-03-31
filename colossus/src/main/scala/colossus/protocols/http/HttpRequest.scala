@@ -68,7 +68,6 @@ case class HttpRequestHead(firstLine: FirstLine, headers: HttpHeaders) extends E
   def encode(buffer: core.DataOutBuffer) {
     firstLine encode buffer
     headers encode buffer
-    buffer write HttpParse.NEWLINE_ARRAY
   }
 
   def persistConnection: Boolean = {
@@ -107,8 +106,14 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder {
 
   def encode(buffer: core.DataOutBuffer) {
     head encode buffer
-    //TODO : write content-length
-    body encode buffer
+    if (body.size == 0) {
+      buffer write HttpParse.NEWLINE_ARRAY
+    } else {
+      HttpHeader.encodeContentLength(buffer, body.size)
+      buffer write HttpParse.N2
+      body encode buffer
+    }
+      
   }
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(key, value))

@@ -100,6 +100,33 @@ object HttpHeader {
   val DELIM = ": "
   val NEWLINE = "\r\n"
 
+  private val ContentLengthKey = ByteString("Content-Length: ")
+  private val ContentLengthKeyArray = ContentLengthKey.toArray
+
+  /** 
+   * Directly write a content-length header to a buffer.  Note that this does
+   * NOT write the terminating newline
+   */
+  def encodeContentLength(buffer: DataOutBuffer, length: Int) {
+    def fastIntToString() {
+      if (length == 0) {
+        buffer.write('0'.toByte)
+      } else {
+        val arr = new Array[Byte](10)
+        var r = length
+        var index = 9
+        while (r > 0) {
+          arr(index) = ((r % 10) + 48).toByte
+          r = r / 10
+          index -= 1
+        }
+        buffer.write(arr, index + 1, 10 - (index + 1))
+      }
+    }
+    buffer.write(HttpHeader.ContentLengthKeyArray)
+    fastIntToString()
+  }
+
 
   object Conversions {
     implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = HttpHeaders.fromSeq (
@@ -382,7 +409,7 @@ object DateHeader {
 
 class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeader] = None)  {
 
-  def size = body.size
+  def size = body.length
 
   def encode(buffer: core.DataOutBuffer) {
     if (size > 0) buffer.write(body)
