@@ -104,21 +104,6 @@ sealed trait BaseHttpResponse {
 
 case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttpResponse with Encoder {
 
-  private def fastIntToString(in: Int, buf: DataOutBuffer) {
-    if (in == 0) {
-      buf.write('0'.toByte)
-    } else {
-      val arr = new Array[Byte](10)
-      var r = in
-      var index = 9
-      while (r > 0) {
-        arr(index) = ((r % 10) + 48).toByte
-        r = r / 10
-        index -= 1
-      }
-      buf.write(arr, index + 1, 10 - (index + 1))
-    }
-  }
 
 
   def encode(buffer: DataOutBuffer) {
@@ -126,8 +111,8 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttp
     body.contentType.foreach{ctype =>
       ctype.encode(buffer)
     }
-    buffer.write(HttpResponse.ContentLengthKeyArray)
-    fastIntToString(body.size, buffer)
+    //unlike requests, we always encode content-length, even if it's 0
+    HttpHeader.encodeContentLength(buffer, body.size)
     buffer.write(N2)
     body.encode(buffer)
   }
@@ -155,8 +140,6 @@ trait ByteStringLike[T] {
 
 object HttpResponse {
 
-  val ContentLengthKey = ByteString("Content-Length: ")
-  val ContentLengthKeyArray = ContentLengthKey.toArray
 
   def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
     HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))
