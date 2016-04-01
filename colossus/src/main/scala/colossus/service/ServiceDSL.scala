@@ -59,22 +59,6 @@ trait ClientCodecProvider[C <: Protocol] {
 }
 
 
-/**
- * Mixed into base protocol objects to provide a default codec provider
- */
-trait ServerDefaults[C <: Protocol] {
-  implicit def serverDefaults : CodecProvider[C]
-
-}
-
-/**
- * Mixed into base protocol objects to provide a default client codec provider
- */
-trait ClientDefaults[C <: Protocol] {
-  implicit def clientDefaults : ClientCodecProvider[C]
-}
-
-trait CodecDefaults[C <: Protocol] extends ServerDefaults[C] with ClientDefaults[C]
 
 
 class UnhandledRequestException(message: String) extends Exception(message)

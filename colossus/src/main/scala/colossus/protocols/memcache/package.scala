@@ -15,9 +15,9 @@ package object memcache {
 
   object Memcache extends ClientFactories[Memcache, MemcacheClient] {
 
-    object defaults extends ClientDefaults[Memcache] {
+    object defaults extends  {
 
-      implicit val clientDefaults = new ClientCodecProvider[Memcache] {
+      implicit val memcacheClientDefaults = new ClientCodecProvider[Memcache] {
         def clientCodec = new MemcacheClientCodec
         def name = "memcache"
       }
