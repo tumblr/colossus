@@ -102,238 +102,144 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val ms = MetricSystem("my-metrics", c)
       ms.namespace mustBe MetricAddress.Root / "DEAD"
     }
-
   }
 
   "Rate initialization" must {
-    "load configuration in the right order" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |  /myrate {
-          |    prune-empty : false
-          |  }
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |  namespace : "/mypath"
-          |  collectors-defaults {
-          |   rate {
-          |    prune-empty : true
-          |   }
-          |  }
-          |}
-        """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-      implicit val m = ms.base
+    val userOverrides =
+      """
+        |my-metrics{
+        |  pruned-rate {
+        |    prune-empty : false
+        |  }
+        |  off-rate{
+        |    enabled : false
+        |  }
+        |  collection-intervals : ["1 minute", "10 minutes"]
+        |  namespace : "/mypath"
+        |  collectors-defaults {
+        |   rate {
+        |    prune-empty : true
+        |   }
+        |  }
+        |}
+      """.stripMargin
+    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+    val ms = MetricSystem("my-metrics", c)
+    implicit val m = ms.base
 
-      val r = Rate(MetricAddress("/myrate"))
+    "load a rate using collector defaults" in {
+      val r = Rate(MetricAddress("/my-rate"))
+      r.pruneEmpty mustBe true
+    }
+    "load a rate using a defined configuration" in {
+      val r = Rate(MetricAddress("my-pruned-rate"), "pruned-rate")
       r.pruneEmpty mustBe false
-
-      val r2 = Rate(MetricAddress("/foo"))
-      r2.pruneEmpty mustBe true
-
+    }
+    "load defaults if a defined configuration isn't found" in {
+      val r = Rate(MetricAddress("my-crazy-rate"), "crazy-rate")
+      r.pruneEmpty mustBe true
     }
 
-    "fall back on default collector values" in {
-      val userOverridesNoDefaults =
-        """
-          |my-metrics{
-          |  "/myrate" {
-          |    prune-empty : false
-          |  }
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |}
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      val c2 = ConfigFactory.parseString(userOverridesNoDefaults).withFallback(ConfigFactory.defaultReference())
-      val ms2 = MetricSystem("my-metrics", c2)
-
-      implicit val m2 = ms2.base
-
-      val r3 = Rate(MetricAddress("/foo"))
-      r3.pruneEmpty mustBe false
-    }
-
-    "load configuration in the right order, when supplied with a configuration path" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |  namespace : "/mypath"
-          |  collectors-defaults {
-          |   rate {
-          |    prune-empty : true
-          |   }
-          |  }
-          |}
-          |my-app{
-          | "/myrate" {
-          |   prune-empty : false
-          | }
-          |}
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
-
-      val r = Rate(MetricAddress("/myrate"), "my-app")
-      r.pruneEmpty mustBe false
-
-      val r2 = Rate(MetricAddress("/foo"), "my-app")
-      r2.pruneEmpty mustBe true
-    }
-
-    "load a NopRate when disabled" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |   /disabledRate {
-          |    enabled : false
-          |   }
-          |  }
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
-
-      val r = Rate(MetricAddress("/disabledRate"))
+    "load a NopRate when its definition is disabled" in {
+      val r = Rate(MetricAddress("/my-disabled-rate"), "off-rate")
       r mustBe a[NopRate]
+    }
 
-      val r2 = Rate(MetricAddress("/foo"))
-      r2 mustBe a[DefaultRate]
+    "load a NopRate when the 'enabled' flag is set" in {
+      val r = Rate(MetricAddress("/some-rate"), enabled = false)
+      r mustBe a[NopRate]
     }
   }
 
   "Histogram initialization" must {
-    "load configuration in the right order" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |  /myhist {
-          |    prune-empty : false
-          |    percentiles : [.50, .75]
-          |  }
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |  namespace : "/mypath"
-          |  collectors-defaults {
-          |   histogram {
-          |    prune-empty : true
-          |    sample-rate : 1
-          |   }
-          |  }
-          |}
-        """.stripMargin
+    val userOverrides =
+      """
+        |my-metrics{
+        |  small-hist {
+        |    prune-empty : false
+        |    percentiles : [.50, .75]
+        |  }
+        |  off-hist{
+        |    enabled : false
+        |  }
+        |  collection-intervals : ["1 minute", "10 minutes"]
+        |  namespace : "/mypath"
+        |  collectors-defaults {
+        |   histogram {
+        |    prune-empty : true
+        |    sample-rate : 1
+        |   }
+        |  }
+        |}
+      """.stripMargin
+    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+    val ms = MetricSystem("my-metrics", c)
+    implicit val m = ms.base
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-      implicit val m = ms.base
-
-      val h: Histogram = Histogram(MetricAddress("/myhist"))
-      h.percentiles mustBe Seq(.50, .75)
-      h.pruneEmpty mustBe false
-      h.sampleRate mustBe 1
-
-      val h2 = Histogram(MetricAddress("/foo"))
-      h2.pruneEmpty mustBe true
-      h2.sampleRate mustBe 1
-      h2.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
+    "load a Histogram using collector defaults" in {
+      val r = Histogram(MetricAddress("/my-hist"))
+      r.pruneEmpty mustBe true
+      r.sampleRate mustBe 1.0
+      r.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
+    }
+    "load a Histogram using a defined configuration" in {
+      val r = Histogram(MetricAddress("my-small-hist"), "small-hist")
+      r.pruneEmpty mustBe false
+      r.sampleRate mustBe 1.0
+      r.percentiles mustBe Seq(0.5, 0.75)
+    }
+    "load defaults if a defined configuration isn't found" in {
+      val r = Histogram(MetricAddress("my-crazy-hist"), "crazy-hist")
+      r.pruneEmpty mustBe true
+      r.sampleRate mustBe 1.0
+      r.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
     }
 
-    "load configuration in the right order, when supplied with a configuration path" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |  namespace : "/mypath"
-          |  collectors-defaults {
-          |   histogram {
-          |    prune-empty : true
-          |    sample-rate : 1
-          |   }
-          |  }
-          |}
-          |my-app{
-          | "/myhist" {
-          |   prune-empty : false
-          |   sample-rate : .5
-          | }
-          |}
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
-
-      val h = Histogram(MetricAddress("/myhist"), "my-app")
-      h.pruneEmpty mustBe false
-      h.sampleRate mustBe .5
-      h.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
-
-
-      val h2 = Histogram(MetricAddress("/foo"), "my-app")
-      h2.pruneEmpty mustBe true
-      h2.sampleRate mustBe 1
-      h2.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
+    "load a NopHistogram when its definition is disabled" in {
+      val r = Histogram(MetricAddress("/my-disabled-hist"), "off-hist")
+      r mustBe a[NopHistogram]
     }
 
-    "load a NopHistogram when disabled" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |   /disabledHistogram {
-          |    enabled : false
-          |   }
-          |  }
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
-
-      val h = Histogram(MetricAddress("/disabledHistogram "))
-      h mustBe a[NopHistogram]
-
-      val h2 = Histogram(MetricAddress("/foo"))
-      h2 mustBe a[DefaultHistogram]
+    "load a NopHistogram when the 'enabled' flag is set" in {
+      val r = Histogram(MetricAddress("/some-hist"), enabled = false)
+      r mustBe a[NopHistogram]
     }
   }
 
   "Counter initialization" must {
-    "load a NopCounter when disabled" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |   /disabledCounter {
-          |    enabled : false
-          |   }
-          |  }
-        """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
+    val userOverrides =
+      """
+        |my-metrics{
+        |  off-counter{
+        |    enabled : false
+        |  }
+        |}
+      """.stripMargin
+    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+    val ms = MetricSystem("my-metrics", c)
+    implicit val m = ms.base
 
-      implicit val m = ms.base
 
-      val c1 = Counter(MetricAddress("/disabledCounter"))
-      c1 mustBe a[NopCounter]
+    "load a Counter using collector defaults" in {
+      val r = Counter(MetricAddress("/my-counter"))
+      r mustBe a[DefaultCounter]
+    }
 
-      val c2 = Counter(MetricAddress("/foo"))
-      c2 mustBe a[DefaultCounter]
+    "load defaults if a defined configuration isn't found" in {
+      val r = Counter(MetricAddress("my-crazy-counter"), "crazy-counter")
+      r mustBe a[DefaultCounter]
+    }
+
+    "load a NopCounter when its definition is disabled" in {
+      val r = Counter(MetricAddress("/my-disabled-counter"), "off-counter")
+      r mustBe a[NopCounter]
+    }
+
+    "load a NopCounter when the 'enabled' flag is set" in {
+      val r = Counter(MetricAddress("/some-counter"), enabled = false)
+      r mustBe a[NopCounter]
     }
   }
 }

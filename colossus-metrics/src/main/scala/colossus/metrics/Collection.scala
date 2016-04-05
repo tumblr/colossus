@@ -102,7 +102,7 @@ class Collection(val config: CollectorConfig) {
     collectors.put(collector.address, collector)
   }
 
-  def getOrAdd[T <: Collector](created: T): T = {
+  def getOrAdd[T <: Collector](created : => T): T = {
     collectors.putIfAbsent(created.address, created) match {
       case null => created
       case exists: T => exists

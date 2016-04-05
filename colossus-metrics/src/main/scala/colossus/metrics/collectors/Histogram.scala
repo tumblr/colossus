@@ -13,24 +13,28 @@ import scala.concurrent.duration._
 trait Histogram extends Collector{
   /**
     * The percentiles that this Histogram should distribute its values.
+    *
     * @return
     */
   def percentiles: Seq[Double]
 
   /**
     * How often to collect values.
+    *
     * @return
     */
   def sampleRate: Double
 
   /**
     * Instruct the collector to not report any values for tag combinations which were previously empty.
+    *
     * @return
     */
   def pruneEmpty: Boolean
 
   /**
     * Add a new value to this histogram,
+    *
     * @param value The value to add
     * @param tags The TagMap used to record this value
     */
@@ -46,7 +50,9 @@ private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
  */
 object Histogram extends CollectorConfigLoader{
 
-  private val DefaultConfigPath = "colossus.metrics.collectors-defaults.histogram"
+  import MetricSystem.ConfigRoot
+
+  private val DefaultConfigPath = "collectors-defaults.histogram"
 
   val NUM_BUCKETS = 100
   //note, the value at index i is the lower bound of that bucket
@@ -78,36 +84,37 @@ object Histogram extends CollectorConfigLoader{
   }
 
   /**
-    * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem for details on configuration]]
+    * Create a Histogram with the following address.  See the documentation for [[colossus.metrics.MetricSystem]]
+    *
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress)(implicit collection : Collection) : Histogram = {
-    apply(address, MetricSystem.ConfigRoot)
+    apply(address, DefaultConfigPath)
   }
 
   /**
-    * Create a Histogram with following address.
-    * This constructor tells the MetricSystem to look for this Metric's configuration outside of the configuration which
-    * was used to construct the MetricSystem.
+    * Create a Histogram with the following address, whose definitions is contained the specified configPath.
+    *
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the ConfigFile that this Histogram is located.This will take precedent over any existing configuration
-    *                   inside the MetricSystem.
+    * @param configPath The path in the config that this histogram's configuration is located.  This is relative to the MetricSystem config
+    *                   definition.
     * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Histogram = {
 
-    import scala.collection.JavaConversions._
+    collection.getOrAdd{
+      import scala.collection.JavaConversions._
 
-    val params = resolveConfig(collection.config.config, s"$configPath.$address", DefaultConfigPath)
-
-    val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
-    val sampleRate = params.getDouble("sample-rate")
-    val pruneEmpty = params.getBoolean("prune-empty")
-    val enabled = params.getBoolean("enabled")
-    apply(address, percentiles, sampleRate, pruneEmpty, enabled)
+      val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
+      val sampleRate = params.getDouble("sample-rate")
+      val pruneEmpty = params.getBoolean("prune-empty")
+      val enabled = params.getBoolean("enabled")
+      createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled)
+    }
   }
 
   /**
@@ -126,8 +133,17 @@ object Histogram extends CollectorConfigLoader{
     pruneEmpty: Boolean = false,
     enabled : Boolean = true
   )(implicit collection: Collection): Histogram = {
+    collection.getOrAdd(createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled))
+  }
+
+  private def createHistogram(address : MetricAddress,
+                              percentiles : Seq[Double],
+                              sampleRate : Double,
+                              pruneEmpty : Boolean,
+                              enabled : Boolean)
+                             (implicit collection : Collection) : Histogram = {
     if(enabled){
-      collection.getOrAdd(new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty))
+      new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty)
     }else{
       new NopHistogram(address, percentiles, sampleRate, pruneEmpty)
     }
