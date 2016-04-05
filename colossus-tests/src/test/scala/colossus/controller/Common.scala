@@ -64,7 +64,7 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
 
   implicit val namespace = {
     import metrics._
-    MetricContext("/", new Collection(CollectorConfig(List(1.second))))
+    MetricContext("/", new Collection(CollectorConfig(List())))
   }
 
   var _received : Seq[I] = Seq()
