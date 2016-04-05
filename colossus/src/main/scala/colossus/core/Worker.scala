@@ -71,7 +71,6 @@ case class WorkerRef private[colossus](id: Int, worker: ActorRef, system: IOSyst
    */
   implicit val callbackExecutor = service.CallbackExecutor(system.actorSystem.dispatcher, worker)
 
-  implicit val metrics = system.metrics.base
 }
 
 /**
@@ -157,11 +156,10 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  import config.io.metrics.base
-
-  val eventLoops              = Rate(io.namespace / "worker" / "event_loops")
-  val numConnections          = Counter(io.namespace / "worker" / "connections")
-  val rejectedConnections     = Rate(io.namespace / "worker" / "rejected_connections")
+  implicit val ns = io.metrics
+  val eventLoops              = Rate("worker/event_loops")
+  val numConnections          = Counter("worker/connections")
+  val rejectedConnections     = Rate("worker/rejected_connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)

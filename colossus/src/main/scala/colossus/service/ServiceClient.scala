@@ -99,7 +99,7 @@ class ServiceClient[P <: Protocol](
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize), context) 
+extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize), context) 
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   type I = P#Input
@@ -113,20 +113,20 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   import colossus.core.WorkerCommand._
   import config._
-  import context.worker.metrics
+  implicit val namespace = context.worker.system.metrics / config.name
 
   type ResponseHandler = Try[O] => Unit
 
   override val maxIdleTime = config.idleTimeout
 
-  private val requests            = Rate(name / "requests")
-  private val errors              = Rate(name / "errors")
-  private val droppedRequests     = Rate(name / "dropped_requests")
-  private val connectionFailures  = Rate(name / "connection_failures")
-  private val disconnects         = Rate(name / "disconnects")
-  private val latency             = Histogram(name / "latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
-  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5))
-  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5))
+  private val requests            = Rate("requests")
+  private val errors              = Rate("errors")
+  private val droppedRequests     = Rate("dropped_requests")
+  private val connectionFailures  = Rate("connection_failures")
+  private val disconnects         = Rate("disconnects")
+  private val latency             = Histogram("latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
+  private val transitTime         = Histogram("transit_time",  sampleRate = 0.02, percentiles = List(0.5))
+  private val queueTime           = Histogram("queue_time",    sampleRate = 0.02, percentiles = List(0.5))
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 

@@ -62,6 +62,11 @@ class PushPromise {
 
 trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
 
+  implicit val namespace = {
+    import metrics._
+    MetricContext("/", new Collection(CollectorConfig(List(1.second))))
+  }
+
   var _received : Seq[I] = Seq()
   def received = _received
 
@@ -93,7 +98,7 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
 object TestController {
   import RawProtocol.RawCodec
 
-  val defaultConfig = ControllerConfig(4, 50.milliseconds, "test-controller")
+  val defaultConfig = ControllerConfig(4, 50.milliseconds)
 
   type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
 

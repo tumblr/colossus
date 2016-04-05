@@ -65,7 +65,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
     
     "reject data above the size limit" in {
       val input = ByteString("hello")
-      val config = ControllerConfig(4, 50.milliseconds, "test-controller", 2L)
+      val config = ControllerConfig(4, 50.milliseconds, 2L)
       val con = static(config)
       intercept[ParseException] {
         con.typedHandler.receivedData(DataBuffer(input))

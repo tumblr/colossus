@@ -83,7 +83,7 @@ object Histogram extends CollectorConfigLoader{
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress)(implicit collection : Collection) : Histogram = {
+  def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Histogram = {
     apply(address, MetricSystem.ConfigRoot)
   }
 
@@ -97,11 +97,11 @@ object Histogram extends CollectorConfigLoader{
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Histogram = {
+  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Histogram = {
 
     import scala.collection.JavaConversions._
 
-    val params = resolveConfig(collection.config.config, s"$configPath.$address", DefaultConfigPath)
+    val params = resolveConfig(ns.collection.config.config, s"$configPath.$address", DefaultConfigPath)
 
     val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
     val sampleRate = params.getDouble("sample-rate")
@@ -125,11 +125,11 @@ object Histogram extends CollectorConfigLoader{
     sampleRate: Double = 1.0,
     pruneEmpty: Boolean = false,
     enabled : Boolean = true
-  )(implicit collection: Collection): Histogram = {
+  )(implicit ns : MetricNamespace): Histogram = {
     if(enabled){
-      collection.getOrAdd(new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty))
+      ns.collection.getOrAdd(new DefaultHistogram(ns.namespace / address, percentiles, sampleRate, pruneEmpty))
     }else{
-      new NopHistogram(address, percentiles, sampleRate, pruneEmpty)
+      new NopHistogram(ns.namespace / address, percentiles, sampleRate, pruneEmpty)
     }
   }
 }
@@ -265,9 +265,9 @@ class DefaultHistogram private[metrics](
   val percentiles: Seq[Double] = Histogram.defaultPercentiles,
   val sampleRate: Double = 1.0,
   val pruneEmpty: Boolean = false
-)(implicit collection: Collection) extends Histogram {
+)(implicit ns : MetricNamespace) extends Histogram {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i =>
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = ns.collection.config.intervals.map{i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap

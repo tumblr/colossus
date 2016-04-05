@@ -12,6 +12,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
                           "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
                           "collector-defaults.histogram-percentiles")
 
+  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+
+  def metricSystem(userOverrides: String): MetricSystem = MetricSystem("my-metrics", config(userOverrides))
+
   "MetricSystem initialization" must {
     "load defaults from reference implementation" in {
 
@@ -40,9 +44,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         """.stripMargin
 
       //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-
-      val ms = MetricSystem("my-metrics", c)
+      implicit val ms = metricSystem(userOverrides)
 
       ms.namespace mustBe MetricAddress("/mypath")
       ms.collectionIntervals.keys mustBe Set(1.minute, 10.minutes)
@@ -123,10 +125,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
+      
 
       val r = Rate(MetricAddress("/myrate"))
       r.pruneEmpty mustBe false
@@ -137,7 +137,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
     }
 
     "fall back on default collector values" in {
-      val userOverridesNoDefaults =
+      val userOverrides =
         """
           |my-metrics{
           |  "/myrate" {
@@ -147,11 +147,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c2 = ConfigFactory.parseString(userOverridesNoDefaults).withFallback(ConfigFactory.defaultReference())
-      val ms2 = MetricSystem("my-metrics", c2)
+      implicit val ms = metricSystem(userOverrides)
 
-      implicit val m2 = ms2.base
 
       val r3 = Rate(MetricAddress("/foo"))
       r3.pruneEmpty mustBe false
@@ -176,11 +173,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
 
       val r = Rate(MetricAddress("/myrate"), "my-app")
       r.pruneEmpty mustBe false
@@ -199,11 +192,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |  }
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
 
       val r = Rate(MetricAddress("/disabledRate"))
       r mustBe a[NopRate]
@@ -233,10 +222,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
 
       val h: Histogram = Histogram(MetricAddress("/myhist"))
       h.percentiles mustBe Seq(.50, .75)
@@ -270,11 +256,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
+      implicit val ms = metricSystem(userOverrides)
 
-      implicit val m = ms.base
 
       val h = Histogram(MetricAddress("/myhist"), "my-app")
       h.pruneEmpty mustBe false
@@ -298,11 +281,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |  }
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
 
       val h = Histogram(MetricAddress("/disabledHistogram "))
       h mustBe a[NopHistogram]
@@ -323,11 +302,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |  }
         """.stripMargin
 
-      //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
-
-      implicit val m = ms.base
+      implicit val ms = metricSystem(userOverrides)
 
       val c1 = Counter(MetricAddress("/disabledCounter"))
       c1 mustBe a[NopCounter]
