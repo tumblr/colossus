@@ -95,11 +95,11 @@ class StaleClientException(msg : String) extends Exception(msg)
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  codec: Codec[P#Input,P#Output], 
+  codec: Codec[P#Input,P#Output],
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize), context) 
+extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.name, config.maxResponseSize), context)
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   type I = P#Input
@@ -179,7 +179,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     } else if (isConnected || !failFast) {
       val pushed = push(request, queueTime){
         case OutputResult.Success         => {
-          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis) 
+          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
           sentBuffer.enqueue(s)
           this.queueTime.add((s.sendTime - s.queueTime).toInt, hpTags)
           if (sentBuffer.size >= config.sentBufferSize) {

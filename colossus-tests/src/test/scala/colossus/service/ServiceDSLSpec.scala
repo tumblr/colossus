@@ -19,9 +19,9 @@ class ErrorTestDSL(probe: ActorRef) extends CodecProvider[Raw] {
 
     def provideCodec() = RawCodec
 
-    def errorResponse(request: ByteString, reason: Throwable) = {
-      probe ! reason
-      ByteString(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+    def errorResponse(error: ProcessingFailure[ByteString]) = {
+      probe ! error.reason
+      ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
     }
   
 }
@@ -96,9 +96,9 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "override error handler" in {
       withIOSystem{ implicit system =>
-        val server = Server.basic("test", TEST_PORT)( new Service[Raw](_) { 
+        val server = Server.basic("test", TEST_PORT)( new Service[Raw](_) {
             override def onError = {
-              case (request, c: UnhandledRequestException) => ByteString("OVERRIDE")
+              case error => ByteString("OVERRIDE")
             }
             def handle = {
               case x if (false) => ByteString("NOPE")

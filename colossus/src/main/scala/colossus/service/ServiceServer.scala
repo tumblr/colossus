@@ -1,18 +1,14 @@
 package colossus
 package service
 
-import colossus.parsing.DataSize
+import colossus.parsing.{ParseException, DataSize}
 import colossus.parsing.DataSize._
 import core._
 import controller._
-
 import akka.event.Logging
 import metrics._
-
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-
 import Codec._
 
 /**
@@ -20,7 +16,7 @@ import Codec._
  * @param requestTimeout how long to wait until we timeout the request
  * @param requestBufferSize how many concurrent requests a single connection can be processing
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
- * @param requestMetrics
+ * @param requestMetrics toggle request metrics
  * @param maxRequestSize max size allowed for requests
  * TODO: remove name from config, this should be the same as a server's name and
  * pulled from the ServerRef, though this requires giving the ServiceServer
@@ -130,7 +126,7 @@ with ServerConnectionHandler {
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.peek.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
-      requestBuffer.peek.complete(handleFailure(requestBuffer.peek.request, new TimeoutError))
+      requestBuffer.peek.complete(handleFailure(RecoverableError(requestBuffer.peek.request, new TimeoutError)))
 
     }
   }
@@ -205,25 +201,36 @@ with ServerConnectionHandler {
      */
     val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
       try {
-        processRequest(request) 
+        processRequest(request)
       } catch {
+        case t: ParseException =>
+          Callback.successful(handleFailure(IrrecoverableError(t)))
         case t: Throwable => {
-          Callback.successful(handleFailure(request, t))
+          Callback.successful(handleFailure(RecoverableError(request, t)))
         }
       }
     } else {
-      Callback.successful(handleFailure(request, new RequestBufferFullException))
+      Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
     }
     if (requestMetrics) concurrentRequests.increment()
     response.execute{
       case Success(res) => promise.complete(res)
-      case Failure(err) => promise.complete(handleFailure(promise.request, err))
+      case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
     }
   }
+  
+  override def processBadRequest(reason: Throwable) = {
+    handleFailure(IrrecoverableError(reason))
+  }
 
-  private def handleFailure(request: I, reason: Throwable): O = {
-    addError(request, reason)
-    processFailure(request, reason)
+  private def handleFailure(error: ProcessingFailure[I]): O = {
+    error match {
+      case RecoverableError(request, reason) => addError(request, reason)
+      case _: IrrecoverableError[I] =>
+        // TODO: tick/log w/o request
+        disconnect()
+    }
+    processFailure(error)
   }
 
   private def checkGracefulDisconnect() {
@@ -243,9 +250,18 @@ with ServerConnectionHandler {
   protected def processRequest(request: I): Callback[O]
 
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
-  protected def processFailure(request: I, reason: Throwable): O
-
+ 
+ // protected def processFailure(request: I, reason: Throwable): O
+  protected def processFailure(error: ProcessingFailure[I]): O
+  
 }
+
+trait ProcessingFailure[C] {
+  def reason: Throwable
+}
+
+case class IrrecoverableError[C](reason: Throwable) extends ProcessingFailure[C]
+case class RecoverableError[C](request: C, reason: Throwable) extends ProcessingFailure[C]
 
 object ServiceServer {
   class TimeoutError extends Error("Request Timed out")

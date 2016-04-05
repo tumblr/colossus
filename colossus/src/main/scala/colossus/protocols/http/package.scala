@@ -35,10 +35,16 @@ package object http extends HttpBodyEncoders {
 
     class ServerDefaults extends CodecProvider[Http] {
       def provideCodec = new HttpServerCodec
-      def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
-        case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
-        case other => request.error(reason.toString)
+      def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
+        case RecoverableError(request, reason) => reason match {
+          case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+          case other => request.error(reason.toString)
+        }
+        case IrrecoverableError(reason) =>
+          HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
       }
+        
+        
 
     }
 
@@ -81,17 +87,26 @@ package object http extends HttpBodyEncoders {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext) 
+  abstract class HttpService(config: ServiceConfig, context: ServerContext)
     extends BaseHttpServiceHandler[Http](config, Http.defaults.serverDefaults, context)
 
-  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
+  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
+    extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
   implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
-    def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
-      case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
-      case other => toStreamed(request.error(reason.toString))
+    def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
+      case RecoverableError(request, reason) => reason match {
+        case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
+        case other => toStreamed(request.error(reason.toString))
+      }
+      case IrrecoverableError(reason) =>
+        toStreamed(
+          HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
+        )
+      
     }
+      
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
       StreamingHttpResponse.fromStatic(response)

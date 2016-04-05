@@ -1,10 +1,13 @@
 package colossus
 package controller
 
+import colossus.controller.OutputResult.Failure
 import colossus.metrics.Histogram
 import colossus.parsing.ParserSizeTracker
 import core._
 import colossus.service.{DecodedResult, NotConnectedException}
+
+import scala.util.{Success, Try, Failure => TFailure}
 
 sealed trait InputState
 object InputState {
@@ -133,18 +136,23 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
       case Decoding => {
         var decoding = true
         while (decoding) {
-          inputSizeTracker.track(data)(codec.decode(data)) match {
-            case Some(DecodedResult.Static(msg)) => {
-              processMessage(msg)
+          try {
+            inputSizeTracker.track(data)(codec.decode(data)) match {
+              case Some(DecodedResult.Static(msg)) => {
+                processMessage(msg)
+              }
+              case None => {
+                decoding = false
+              }
+              case Some(DecodedResult.Stream(msg, sink)) => {
+                decoding = false
+                inputState = ReadingStream(sink)
+                processAndContinue(msg, data)
+              }
             }
-            case None => {
-              decoding = false
-            }
-            case Some(DecodedResult.Stream(msg, sink)) => {
-              decoding = false
-              inputState = ReadingStream(sink)
-              processAndContinue(msg, data)
-            }
+          } catch {
+            case reason: Throwable =>
+              processBadRequest(reason)
           }
         }
       }
@@ -206,5 +214,10 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
 
 
   protected def processMessage(message: Input)
+  
+  protected def processBadRequest(reason: Throwable): Output = {
+    disconnect()
+    throw reason
+  }
 
 }

@@ -27,7 +27,9 @@ object Protocol {
 
   type Receive = PartialFunction[Any, Unit]
 
-  type ErrorHandler[C <: Protocol] = PartialFunction[(C#Input, Throwable), C#Output]
+  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Input], C#Output]
+
+  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Output]
 }
 
 import Protocol._
@@ -45,11 +47,10 @@ trait CodecProvider[C <: Protocol] {
 
   /**
    * Basic error response
-   * @param request Request that caused the error
-   * @param reason The resulting failure
+   * @param error Request that caused the error
    * @return A response which represents the failure encoded with the Codec
    */
-  def errorResponse(request: C#Input, reason: Throwable): C#Output
+  def errorResponse(error: ProcessingFailure[C#Input]): C#Output
 
 }
 
@@ -91,7 +92,8 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
   def this(context: ServerContext)(implicit provider: CodecProvider[C]) = this(ServiceConfig(), context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
-    case other => Callback.successful(processFailure(other, new UnhandledRequestException(s"Unhandled Request $other")))
+    case other =>
+      Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
 
   protected def unhandledReceive: Receive = {
@@ -99,7 +101,7 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
   }
 
   protected def unhandledError: ErrorHandler[C] = {
-    case (request, reason) => provider.errorResponse(request, reason)
+    case (error) => provider.errorResponse(error)
   }
 
   private var currentSender: Option[ActorRef] = None
@@ -119,7 +121,8 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
     
   protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
   
-  protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
+  //protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
+  protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
 
   def handle: PartialHandler[C]
@@ -167,14 +170,14 @@ object Service {
   }
   */
 
-  /** Quick-start a service, using default settings 
+  /** Quick-start a service, using default settings
    *
    * @param name The name of the service
    * @param port The port to bind the server to
    */
   def basic[T <: Protocol]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
-  (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = { 
+  (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
     class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
