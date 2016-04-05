@@ -102,8 +102,11 @@ class Collection(val config: CollectorConfig) {
     collectors.put(collector.address, collector)
   }
 
-  def getOrAdd[T <: Collector](created : => T): T = {
-    collectors.putIfAbsent(created.address, created) match {
+  //The MetricAddress here should be identical to the MetricAddress that comes from T.
+  //Created is 'call by name', as to only invoke it if it is missing from from the collectors Map
+  //This is to prevent potential expensive operations, like configuration loading, from happening if the Metric is already present.
+  def getOrAdd[T <: Collector](address : MetricAddress)(created : => T): T = {
+    collectors.putIfAbsent(address, created) match {
       case null => created
       case exists: T => exists
       case other => throw new DuplicateMetricException(s"An event collector of type ${other.getClass.getSimpleName} already exists")

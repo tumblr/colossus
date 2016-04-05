@@ -102,7 +102,7 @@ object Counter extends CollectorConfigLoader{
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Counter = {
-    collection.getOrAdd{
+    collection.getOrAdd(address){
       val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createCounter(address, params.getBoolean("enabled"))
     }
@@ -117,7 +117,7 @@ object Counter extends CollectorConfigLoader{
     * @return
     */
   def apply(address: MetricAddress, enabled: Boolean = true)(implicit collection: Collection): Counter = {
-    collection.getOrAdd(createCounter(address, enabled))
+    collection.getOrAdd(address)(createCounter(address, enabled))
   }
 
   private def createCounter(address : MetricAddress, enabled : Boolean)(implicit collection : Collection) : Counter = {

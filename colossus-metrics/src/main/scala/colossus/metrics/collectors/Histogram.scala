@@ -105,7 +105,7 @@ object Histogram extends CollectorConfigLoader{
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Histogram = {
 
-    collection.getOrAdd{
+    collection.getOrAdd(address){
       import scala.collection.JavaConversions._
 
       val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
@@ -133,7 +133,7 @@ object Histogram extends CollectorConfigLoader{
     pruneEmpty: Boolean = false,
     enabled : Boolean = true
   )(implicit collection: Collection): Histogram = {
-    collection.getOrAdd(createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled))
+    collection.getOrAdd(address)(createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled))
   }
 
   private def createHistogram(address : MetricAddress,

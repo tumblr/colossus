@@ -83,7 +83,7 @@ object Rate extends CollectorConfigLoader {
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Rate = {
-    collection.getOrAdd{
+    collection.getOrAdd(address){
       val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createRate(address, params.getBoolean("prune-empty"), params.getBoolean("enabled"))
     }
@@ -98,7 +98,7 @@ object Rate extends CollectorConfigLoader {
     * @return
     */
   def apply(address: MetricAddress, pruneEmpty: Boolean = false, enabled : Boolean = true)(implicit collection: Collection): Rate = {
-    collection.getOrAdd(createRate(address, pruneEmpty, enabled))
+    collection.getOrAdd(address)(createRate(address, pruneEmpty, enabled))
   }
 
   private def createRate(address: MetricAddress, pruneEmpty: Boolean, enabled : Boolean)(implicit collection : Collection) : Rate = {
