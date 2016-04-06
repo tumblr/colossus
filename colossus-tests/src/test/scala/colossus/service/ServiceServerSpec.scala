@@ -30,7 +30,7 @@ class ServiceServerSpec extends ColossusSpec {
       codec = RawCodec,
       serverContext = srv
   ) {
-    // def processFailure(request: ByteString, reason: Throwable) = ByteString("ERROR")
+
     def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
 
     def processRequest(input: ByteString) = handler(input)
