@@ -25,7 +25,8 @@ class ServiceServerSpec extends ColossusSpec {
   class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[ByteString, ByteString](
       config = ServiceConfig (
         requestBufferSize = 2,
-        requestTimeout = 50.milliseconds
+        requestTimeout = 50.milliseconds,
+        maxRequestSize = 300L
       ),
       codec = RawCodec,
       serverContext = srv
@@ -33,10 +34,12 @@ class ServiceServerSpec extends ColossusSpec {
 
     def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
 
+ //   override def processBadRequest(reason: Throwable) = Some(processFailure(IrrecoverableError(reason)))
+    
     def processRequest(input: ByteString) = handler(input)
 
     def receivedMessage(x: Any, s: ActorRef){}
-
+    
     def testCanPush = canPush //expose protected method
   }
 
@@ -147,8 +150,8 @@ class ServiceServerSpec extends ColossusSpec {
       val serviceConfig = ServiceConfig (
         requestTimeout = 50.milliseconds
       )
-      withIOSystem{implicit io => 
-        val server = Server.basic("test", serverSettings) { new Service[Redis](_){ 
+      withIOSystem{implicit io =>
+        val server = Server.basic("test", serverSettings) { new Service[Redis](_){
           def handle = {
               case req => Callback.schedule(500.milliseconds)(Callback.successful(StatusReply("HEllo")))
           }
@@ -170,6 +173,14 @@ class ServiceServerSpec extends ColossusSpec {
           }
         }
       }
+    }
+    
+    "gracefully handle bad input" in {
+      val t = fakeService()
+      // this is above  max request size
+      t.typedHandler.receivedData(DataBuffer(ByteString("G" * 301)))
+      t.iterate()
+      t.expectOneWrite(ByteString("ERROR"))
     }
 
   }

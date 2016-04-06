@@ -69,6 +69,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       val con = static(config)
       con.typedHandler.receivedData(DataBuffer(input))
       con.typedHandler.received.isEmpty must equal(true)
+      con.readsEnabled must equal(false)
     }
     /*
 
