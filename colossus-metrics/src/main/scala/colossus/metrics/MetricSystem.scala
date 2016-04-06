@@ -58,12 +58,21 @@ case class MetricContext(namespace: MetricAddress, collection: Collection) exten
   *
   * Metrics are collected and reported for each collectionInterval specified.
   *
-  * Metric Configuration
+  * A MetricSystem's configuration contains defaults for each metric type.  It can also contain configuration for additional metric definitions
   *
-  * A MetricSystem's configuration contains defaults for each metric type.  It can also contain configuration for individual metrics.
-  * When a new Metric is created, a MetricSystem will first look for a metric entry corresponding to the MetricAddress of the metric.
-  * If it finds one, it will use that entry overlaid on the default entry for that metric type to generate a complete configuration.
-  * If it does not find one, it will fallback to just using the default entry for that metric type.
+  * Metric Creation & Configuration
+  *
+  * All Metrics have 3 constructors.  Using [[colossus.metrics.Rate]] as an example:
+  *
+  *  - Rate(MetricAddress) => This will create a Rate with the MetricAddress, and use MetricSystem definition's default Rate configuration
+  *  - Rate(MetricAddress, configPath) => This will create a Rate with the MetricAddress.  configPath is relative to the MetricSystem's definition root.
+  *                                       Note, this configPath will fallback on the default Rate configuration if it is missing, or missing values.
+  *  - Rate(parameters) => Bypasses config, and creates the Rate directly with the passed in parameters
+  *
+  * Metric Disabling
+  * There are 2 ways to disable a Metric:
+  *  - set 'enabled : false' in its configuration. This will affect any Rate using that definition
+  *  - Directly at the construction site, set enabled = false
   *
   * @param namespace Base url for all metrics within this MetricSystem
   * @param collectionIntervals Intervals for which this MetricSystem reports its data.

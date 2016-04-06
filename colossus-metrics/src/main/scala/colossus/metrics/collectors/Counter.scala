@@ -11,6 +11,7 @@ trait Counter extends Collector {
 
   /**
     * Increment by the specified amount
+    *
     * @param tags Tags to record with this value
     * @param amount The amount to increment
     */
@@ -18,6 +19,7 @@ trait Counter extends Collector {
 
   /**
     * Decrement by the specified amount
+    *
     * @param tags Tags to record with this value
     * @param amount The amount to decrement
     */
@@ -25,6 +27,7 @@ trait Counter extends Collector {
 
   /**
     * Set the Counter to the specified value
+    *
     * @param tags Tags to record with this value
     * @param value Value to be set.
     */
@@ -32,6 +35,7 @@ trait Counter extends Collector {
 
   /**
     * Retrieve the value for the specified TagMap
+    *
     * @param tags TagMap identifier for fetching the value
     * @return
     */
@@ -73,45 +77,52 @@ class NopCounter private[metrics](val address : MetricAddress) extends Counter {
 
 object Counter extends CollectorConfigLoader{
 
-  private val DefaultConfigPath = "colossus.metrics.collectors-defaults.counter"
+  import MetricSystem.ConfigRoot
+
+  private val DefaultConfigPath = "collectors-defaults.counter"
 
   /**
-    * Create a Counter with the following address.  This will use the "colossus.metrics" config path to locate configuration.
+    * Create a Counter with the following address.   See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
+    *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Counter = {
-    apply(address, MetricSystem.ConfigRoot)
+    apply(address, DefaultConfigPath)
   }
 
   /**
-    * Create a Counter with following address.  Note, the address will be prefixed with the MetricSystem's root.
-    * Configuration is resolved and overlayed as follows('metricSystemConfigPath' is the configPath parameter, if any, that was
-    * passed into the MetricSystem.apply function):
-    * 1) configPath.address
-    * 2) metricSystemConfigPath.collectors-defaults.counter
-    * 3) colossus.metrics.collectors-defaults.counter
+    * Create a Counter with following address, whose definitions is contained the specified configPath.
+    *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the ConfigFile that this Histogram is located.
+    * @param configPath The path in the config that this counter's configuration is located.  This is relative to the MetricSystem config
+    *                   definition.
     * @param collection The collection which will contain this Collector.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
-    val params = resolveConfig(ns.collection.config.config, s"$configPath.$address", DefaultConfigPath)
-    apply(address, params.getBoolean("enabled"))
+    ns.collection.getOrAdd(address){
+      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      createCounter(address, params.getBoolean("enabled"))
+    }
   }
 
   /**
     * Create a Counter
+    *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param enabled If this Counter will actually be collected and reported.
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address: MetricAddress, enabled :Boolean = true)(implicit ns : MetricNamespace): Counter = {
+  def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns : MetricNamespace): Counter = {
+    ns.collection.getOrAdd(address)(createCounter(address, enabled))
+  }
+
+  private def createCounter(address : MetricAddress, enabled : Boolean)(implicit ns: MetricNamespace) : Counter = {
     if(enabled){
-      ns.collection.getOrAdd(new DefaultCounter(ns.namespace / address))
+      new DefaultCounter(ns.namespace / address)
     }else{
       new NopCounter(ns.namespace / address)
     }
