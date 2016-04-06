@@ -90,12 +90,15 @@ with ServerConnectionHandler {
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  private def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
-    val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
+  private def addError(error: ProcessingFailure[I], extraTags: TagMap = TagMap.Empty) {
+    val tags = extraTags + ("type" -> error.reason.getClass.getName.replaceAll("[^\\w]", ""))
     errors.hit(tags = tags)
     if (logErrors) {
-      val formattedRequest = requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
-      log.error(err, s"Error processing request: $formattedRequest: $err")
+      val formattedRequest = error match {
+        case RecoverableError(request, reason) => requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+        case IrrecoverableError(reason) => "Invalid Request"
+      }
+      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}")
     }
   }
 
@@ -158,7 +161,7 @@ with ServerConnectionHandler {
     }
     val exc = new DroppedReplyException
     while (requestBuffer.size > 0) {
-      addError(requestBuffer.remove().request, exc)
+      addError(RecoverableError(requestBuffer.remove().request, exc))
     }
   }
 
@@ -180,7 +183,7 @@ with ServerConnectionHandler {
         }
       }
       case f: OutputError => {
-        addError(request, f.reason)
+        addError(RecoverableError(request, f.reason))
       }
     }
 
@@ -224,10 +227,7 @@ with ServerConnectionHandler {
   }
 
   private def handleFailure(error: ProcessingFailure[I]): O = {
-    error match {
-      case RecoverableError(request, reason) => addError(request, reason)
-      case _: IrrecoverableError[I] => // TODO: tick/log w/o request
-    }
+    addError(error)
     processFailure(error)
   }
 
@@ -249,7 +249,6 @@ with ServerConnectionHandler {
 
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
  
- // protected def processFailure(request: I, reason: Throwable): O
   protected def processFailure(error: ProcessingFailure[I]): O
   
 }

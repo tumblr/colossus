@@ -121,7 +121,6 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
     
   protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
   
-  //protected def processFailure(request: C#Input, reason: Throwable): C#Output = errorHandler((request, reason))
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
 

@@ -148,9 +148,10 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
               }
             }
           } catch {
-            case reason: Throwable =>
+            case reason: Throwable => {
               decoding = false
               fatalInputError(reason)
+            }
           }
         }
       }
