@@ -174,10 +174,10 @@ trait HttpRequestBuilder[T] {
 
   def startMethod(method: HttpMethod, path: String) = build(base.withMethod(method).withPath(path))
 
-  def get(path: String)     = startMethod(HttpMethod.Get, path)
-  def post(path: String)    = startMethod(HttpMethod.Post, path)
-  def put(path: String)     = startMethod(HttpMethod.Put, path)
-  def delete(path: String)  = startMethod(HttpMethod.Delete, path)
+  def get(path: String)    : T = startMethod(HttpMethod.Get, path)
+  def post(path: String)   : T = startMethod(HttpMethod.Post, path)
+  def put(path: String)    : T = startMethod(HttpMethod.Put, path)
+  def delete(path: String) : T = startMethod(HttpMethod.Delete, path)
 }
 
 object HttpRequest extends HttpRequestBuilder[HttpRequest]{
