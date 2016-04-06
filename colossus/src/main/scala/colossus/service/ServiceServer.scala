@@ -220,15 +220,13 @@ with ServerConnectionHandler {
   }
   
   override def processBadRequest(reason: Throwable) = {
-    handleFailure(IrrecoverableError(reason))
+    Some(handleFailure(IrrecoverableError(reason)))
   }
 
   private def handleFailure(error: ProcessingFailure[I]): O = {
     error match {
       case RecoverableError(request, reason) => addError(request, reason)
-      case _: IrrecoverableError[I] =>
-        // TODO: tick/log w/o request
-        disconnect()
+      case _: IrrecoverableError[I] => // TODO: tick/log w/o request
     }
     processFailure(error)
   }
@@ -256,7 +254,7 @@ with ServerConnectionHandler {
   
 }
 
-trait ProcessingFailure[C] {
+sealed trait ProcessingFailure[C] {
   def reason: Throwable
 }
 

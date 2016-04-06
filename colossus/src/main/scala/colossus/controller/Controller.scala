@@ -63,7 +63,7 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * "response" message, the controller make no such pairing.  Thus a controller
  * can be thought of as a duplex stream of messages.
  */
-abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context) 
+abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context)
 extends CoreHandler(context) with InputController[Input, Output] with OutputController[Input, Output] {
   import ConnectionState._
 
@@ -95,6 +95,15 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
     checkControllerGracefulDisconnect()
   }
   
+  def fatalInputError(reason: Throwable) = {
+    
+    processBadRequest(reason).foreach { output =>
+      push(output) { _ => {} }
+    }
+    disconnect()
+    //throw reason
+  }
+  
   /**
    * Checks the status of the shutdown procedure.  Only when both the input and
    * output sides are terminated do we call shutdownRequest on the parent
@@ -104,7 +113,7 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
       case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
         super.shutdown()
       }
-      case _ => {} 
+      case _ => {}
     }
   }
 
