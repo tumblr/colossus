@@ -3,6 +3,7 @@ package colossus.metrics
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import colossus.metrics.IntervalAggregator.ReportMetrics
+import MetricAddress.Root
 
 class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) {
 
@@ -65,9 +66,9 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
 
     val mockAggregator = TestProbe()
 
-    val config = MetricReporterConfig("/sys1", Seq(EchoSender(probe.ref)), None, filter, false)
+    val config = MetricReporterConfig(Seq(EchoSender(probe.ref)), None, filter, false)
 
-    val reporter = sys.actorOf(Props(classOf[MetricReporter], mockAggregator.ref, config))
+    val reporter = sys.actorOf(Props(classOf[MetricReporter], mockAggregator.ref, config, Root / "sys1"))
 
     mockAggregator.send(reporter, ReportMetrics(metricMap))
 
