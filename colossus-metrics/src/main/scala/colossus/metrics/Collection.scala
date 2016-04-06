@@ -6,6 +6,7 @@ import scala.concurrent.duration._
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
+import scala.reflect.ClassTag
 
 /**
   * This is passed to new event collectors in addition to their own config.
@@ -104,24 +105,27 @@ class Collection(val config: CollectorConfig) {
     collectors.put(collector.address, collector)
   }
 
-  //The MetricAddress here should be identical to the MetricAddress that comes from T.
-  //Created is 'call by name', as to only invoke it if it is missing from from the collectors Map
-  //This is to prevent potential expensive operations, like configuration loading, from happening if the Metric is already present.
-  //TODO: Fix compiler warnings.  Look into TypeTags or ClassTags to fix this.
-  //This does not throw a DuplicateMetricException, rather it throws a ClassCastException for bad adds.
-  def getOrAdd[T <: Collector](address : MetricAddress)(created : => T): T = {
-    if(collectors.containsKey(address)){
-      val x = collectors.get(address)
-      collectors.get(address) match {
-        case exists : T => exists
-        case other => throw new DuplicateMetricException(s"An event collector of type ${other.getClass.getSimpleName} already exists")
+  /**
+   * Retrieve a collector of a specific type by address, creating a new one if
+   * it does not exist.  If an existing collector of a different type already
+   * exists, a `DuplicateMetricException` will be thrown.
+   */
+  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(created : => T): T = {
+    def cast(retrieved: Collector): T = retrieved match {
+      case t : T => t
+      case other => {
+        throw new DuplicateMetricException(
+          s"An event collector with address $address of type ${other.getClass.getSimpleName} already exists"
+        )
       }
-    }else{
+    }
+    if (collectors.containsKey(address)) {
+      cast(collectors.get(address))
+    } else {
       val c = created //invoke it
       collectors.putIfAbsent(address, c) match {
         case null => c
-        case exists: T => exists
-        case other => throw new DuplicateMetricException(s"An event collector of type ${other.getClass.getSimpleName} already exists")
+        case other => cast(other)
       }
     }
   }

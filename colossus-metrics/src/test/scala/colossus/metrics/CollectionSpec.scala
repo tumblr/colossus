@@ -35,8 +35,7 @@ class CollectionSpec extends WordSpec with MustMatchers{
     "getOrAdd should throw if a metric with the same address, but different type is used" in {
       val bar = MetricAddress("baz")
       val rate = Rate(bar, false, true)
-      //TODO FIX ME I need to be a DuplicateMetricException
-      intercept[ClassCastException]{
+      intercept[DuplicateMetricException]{
         Counter(bar, false)
       }
     }
