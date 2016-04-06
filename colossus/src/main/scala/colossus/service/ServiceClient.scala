@@ -113,7 +113,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   import colossus.core.WorkerCommand._
   import config._
-  implicit val namespace = context.worker.system.metrics / config.name
+  implicit val namespace = context.worker.system.namespace / config.name
 
   type ResponseHandler = Try[O] => Unit
 

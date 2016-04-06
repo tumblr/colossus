@@ -156,7 +156,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  implicit val ns = io.metrics
+  implicit val ns = io.namespace
   val eventLoops              = Rate("worker/event_loops")
   val numConnections          = Counter("worker/connections")
   val rejectedConnections     = Rate("worker/rejected_connections")

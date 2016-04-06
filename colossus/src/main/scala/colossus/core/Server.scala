@@ -95,7 +95,7 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
 
   def serverState = serverStateAgent.get()
 
-  val namespace : MetricNamespace = system.metrics / name
+  val namespace : MetricNamespace = system.namespace / name
 
   def maxIdleTime = {
     if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
