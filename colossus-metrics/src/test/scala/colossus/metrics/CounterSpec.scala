@@ -4,7 +4,7 @@ import scala.concurrent.duration._
 
 class CounterSpec extends MetricIntegrationSpec {
 
-  def counter = new DefaultCounter("/foo")(new Collection(CollectorConfig(List(1.second))))
+  def counter = new DefaultCounter("/foo")(MetricContext("/", new Collection(CollectorConfig(List(1.second)))))
 
   "Counter" must {
     "increment" in {

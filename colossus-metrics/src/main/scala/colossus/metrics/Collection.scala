@@ -6,10 +6,10 @@ import scala.concurrent.duration._
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
-
+import scala.reflect.ClassTag
 
 /**
- * This is passed to new event collectors in addition to their own config.
+  * This is passed to new event collectors in addition to their own config.
  *
  * TODO: we might want to include global tags in here as well, and remove them
  * from CollectionContext.  This would mean event collectors would be
@@ -29,12 +29,14 @@ trait Collector {
 
   /**
     * The MetricAddress of this Collector.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    *
     * @return
     */
   def address: MetricAddress
 
   /**
     * TODO
+    *
     * @param interval
     * @return
     */
@@ -98,15 +100,33 @@ class Collection(val config: CollectorConfig) {
 
   val collectors = new ConcurrentHashMap[MetricAddress, Collector]
 
+  //not used
   def add(collector: Collector) {
     collectors.put(collector.address, collector)
   }
 
-  def getOrAdd[T <: Collector](created: T): T = {
-    collectors.putIfAbsent(created.address, created) match {
-      case null => created
-      case exists: T => exists
-      case other => throw new DuplicateMetricException(s"An event collector of type ${other.getClass.getSimpleName} already exists")
+  /**
+   * Retrieve a collector of a specific type by address, creating a new one if
+   * it does not exist.  If an existing collector of a different type already
+   * exists, a `DuplicateMetricException` will be thrown.
+   */
+  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(created : => T): T = {
+    def cast(retrieved: Collector): T = retrieved match {
+      case t : T => t
+      case other => {
+        throw new DuplicateMetricException(
+          s"An event collector with address $address of type ${other.getClass.getSimpleName} already exists"
+        )
+      }
+    }
+    if (collectors.containsKey(address)) {
+      cast(collectors.get(address))
+    } else {
+      val c = created //invoke it
+      collectors.putIfAbsent(address, c) match {
+        case null => c
+        case other => cast(other)
+      }
     }
   }
 

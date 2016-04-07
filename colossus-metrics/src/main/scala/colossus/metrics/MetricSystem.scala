@@ -24,8 +24,27 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
     * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
    * @return
    */
-  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator)
+  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator, namespace)
 }
+
+
+/**
+ * A MetricNamespace is essentially just an address prefix and is needed when
+ * getting or creating collectors.  The `namespace` address is prefixed onto the
+ * given address for the collector to create the full address.
+ */
+trait MetricNamespace {
+  def namespace: MetricAddress
+  def collection : Collection
+
+
+  /**
+   * Get a new namespace by appending `subpath` to the namespace
+   */
+  def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
+}
+
+case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace
 
 /**
   * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
@@ -39,24 +58,33 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
   *
   * Metrics are collected and reported for each collectionInterval specified.
   *
-  * Metric Configuration
+  * A MetricSystem's configuration contains defaults for each metric type.  It can also contain configuration for additional metric definitions
   *
-  * A MetricSystem's configuration contains defaults for each metric type.  It can also contain configuration for individual metrics.
-  * When a new Metric is created, a MetricSystem will first look for a metric entry corresponding to the MetricAddress of the metric.
-  * If it finds one, it will use that entry overlaid on the default entry for that metric type to generate a complete configuration.
-  * If it does not find one, it will fallback to just using the default entry for that metric type.
+  * Metric Creation & Configuration
+  *
+  * All Metrics have 3 constructors.  Using [[colossus.metrics.Rate]] as an example:
+  *
+  *  - Rate(MetricAddress) => This will create a Rate with the MetricAddress, and use MetricSystem definition's default Rate configuration
+  *  - Rate(MetricAddress, configPath) => This will create a Rate with the MetricAddress.  configPath is relative to the MetricSystem's definition root.
+  *                                       Note, this configPath will fallback on the default Rate configuration if it is missing, or missing values.
+  *  - Rate(parameters) => Bypasses config, and creates the Rate directly with the passed in parameters
+  *
+  * Metric Disabling
+  * There are 2 ways to disable a Metric:
+  *  - set 'enabled : false' in its configuration. This will affect any Rate using that definition
+  *  - Directly at the construction site, set enabled = false
   *
   * @param namespace Base url for all metrics within this MetricSystem
   * @param collectionIntervals Intervals for which this MetricSystem reports its data.
   * @param config Config object from which Metric configurations will be sourced.
  */
 case class MetricSystem private[metrics] (namespace: MetricAddress, collectionIntervals : Map[FiniteDuration, MetricInterval],
-                                          collectionSystemMetrics : Boolean, config : Config) {
+                                          collectionSystemMetrics : Boolean, config : Config) extends MetricNamespace {
 
-  implicit val base = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
-  registerCollection(base)
+  val collection = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
+  registerCollection(collection)
 
-  def registerCollection(collection: Collection): Unit = {
+  protected def registerCollection(collection: Collection): Unit = {
     collectionIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
   }
 

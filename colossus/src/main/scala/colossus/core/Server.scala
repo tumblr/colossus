@@ -95,6 +95,8 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
 
   def serverState = serverStateAgent.get()
 
+  val namespace : MetricNamespace = system.namespace / name
+
   def maxIdleTime = {
     if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
       config.settings.highWaterMaxIdleTime
@@ -183,12 +185,12 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val me = ServerRef(config, self, io, stateAgent)
 
   //initialize metrics
-  import io.metrics.base
-  val connections   = Counter(name / "connections")
-  val refused       = Rate(name / "refused_connections")
-  val connects      = Rate(name / "connects")
-  val closed        = Rate(name / "closed")
-  val highwaters    = Rate(name / "highwaters")
+  implicit val ns = me.namespace
+  val connections   = Counter("connections")
+  val refused       = Rate("refused_connections")
+  val connects      = Rate("connects")
+  val closed        = Rate("closed")
+  val highwaters    = Rate("highwaters")
 
   private var openConnections = 0
 

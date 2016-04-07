@@ -7,7 +7,7 @@ import akka.testkit.TestProbe
 
 class RateSpec extends MetricIntegrationSpec {
 
-  implicit val c = new Collection(CollectorConfig(List(1.second, 1.minute)))
+  implicit val c = MetricContext("/", new Collection(CollectorConfig(List(1.second, 1.minute))))
   def rate() = new DefaultRate("/foo", false)
 
   "Rate" must {

@@ -57,10 +57,10 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
   
-  import context.worker.metrics
   
-  val inputSizeHistogram = Histogram(controllerConfig.name / "input_size", sampleRate = 0.10, percentiles = List(0.75,0.99))
-  val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), Some(inputSizeHistogram))
+  //this has to be lazy to avoid initialization-order NPE
+  lazy val inputSizeHistogram = Histogram("input_size", sampleRate = 0.10, percentiles = List(0.75,0.99))
+  lazy val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), Some(inputSizeHistogram))
 
   private[controller] def inputOnClosed() {
     inputState match {

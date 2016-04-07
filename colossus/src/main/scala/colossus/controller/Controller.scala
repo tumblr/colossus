@@ -20,7 +20,6 @@ import scala.concurrent.duration.Duration
 case class ControllerConfig(
   outputBufferSize: Int,
   sendTimeout: Duration,
-  name: MetricAddress,
   inputMaxSize: DataSize = 1L.MB,
   flushBufferOnClose: Boolean = true
 )
@@ -41,6 +40,8 @@ trait MasterController[Input, Output] extends ConnectionHandler {
   protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig
+
+  implicit def namespace : metrics.MetricNamespace
 
   //needs to be called after various actions complete to check if it's ok to disconnect
   private[controller] def checkControllerGracefulDisconnect()

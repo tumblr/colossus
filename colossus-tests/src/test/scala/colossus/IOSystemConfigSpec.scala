@@ -31,7 +31,7 @@ class IOSystemConfigSpec extends ColossusSpec{
       io.numWorkers mustBe Runtime.getRuntime.availableProcessors()
       io.metrics.namespace mustBe MetricAddress("/m")
       io.name mustBe "/my/path"
-      io.namespace mustBe MetricAddress("/m/my/path")
+      io.namespace.namespace mustBe MetricAddress("/m/my/path")
       shutdownIOSystem(io)
     }
   }
