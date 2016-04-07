@@ -15,7 +15,7 @@ import Callback.Implicits._
 
 import RawProtocol.{RawCodec, Raw}
 
-class ErrorTestDSL(probe: ActorRef) extends CodecProvider[Raw] {
+class ErrorTestDSL(probe: ActorRef) extends ServiceCodecProvider[Raw] {
 
     def provideCodec() = RawCodec
 

@@ -40,11 +40,13 @@ import Protocol._
  */
 trait CodecProvider[C <: Protocol] {
   /**
-   * The Codec which will be used.
-   * @return
-   */
-  def provideCodec(): ServerCodec[C#Input, C#Output]
+    * The Codec which will be used.
+    * @return
+    */
+  def provideCodec: ServerCodec[C#Input, C#Output]
+}
 
+trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
   /**
    * Basic error response
    * @param error Request that caused the error
@@ -66,14 +68,14 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: Protocol]
-(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: CodecProvider[C])
+(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: ServiceCodecProvider[C])
 extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
   implicit val executor   = context.worker.callbackExecutor
 
-  def this(config: ServiceConfig, context: ServerContext)(implicit provider: CodecProvider[C]) = this(provider.provideCodec, config, context)
+  def this(config: ServiceConfig, context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(provider.provideCodec, config, context)
 
-  def this(context: ServerContext)(implicit provider: CodecProvider[C]) = this(ServiceConfig(), context)(provider)
+  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig(), context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
@@ -119,6 +121,7 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
 
 object Service {
+  /*
   /** Start a service with worker and connection initialization
    *
    * The basic structure of a service using this method is:{{{
@@ -139,7 +142,7 @@ object Service {
    * @tparam T The codec to use, eg Http, Redis
    * @return A [[ServerRef]] for the server.
    */
-   /*
+   
   def serve[T <: Protocol]
   (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
@@ -160,7 +163,7 @@ object Service {
    */
   def basic[T <: Protocol]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
-  (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
+  (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = {
     class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
@@ -237,9 +240,6 @@ extends ClientFactory[C,M,T[M],E] {
  * Mixed into protocols to provide simple methods for creating clients.
  */
 class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
-
-  import ClientFactory._
-
   
   val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
 

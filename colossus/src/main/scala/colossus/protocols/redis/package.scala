@@ -15,7 +15,7 @@ package object redis {
   object Redis extends ClientFactories[Redis, RedisClient]{
     object defaults {
 
-      implicit val redisServerDefaults = new CodecProvider[Redis] {
+      implicit val redisServerDefaults = new ServiceCodecProvider[Redis] {
         def provideCodec() = new RedisServerCodec
         def errorResponse(error: ProcessingFailure[Command]) = ErrorReply(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
       }
