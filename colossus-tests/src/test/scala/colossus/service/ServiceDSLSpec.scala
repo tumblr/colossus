@@ -112,6 +112,20 @@ class ServiceDSLSpec extends ColossusSpec {
       }
     }
 
+    "be able to create two clients of differing codecs" in {
+      withIOSystem{ implicit sys =>
+        import protocols.http._
+        import protocols.memcache._
+        import Http.defaults._
+        import Memcache.defaults._
+        //this test passes if it compiles
+        val s = Http.futureClient("localhost", TEST_PORT)
+        val t = Memcache.futureClient("localhost", TEST_PORT)
+      }
+    }
+
+      
+
   }
 }
 

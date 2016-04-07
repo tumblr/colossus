@@ -36,7 +36,7 @@ class HttpSpec extends WordSpec with MustMatchers{
       )
       val request = HttpRequest(head, HttpBody(ByteString("hello")))
 
-      val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\n\r\nhello"
+      val expected = "POST /hello HTTP/1.1\r\nfoo: bar\r\nContent-Length: 5\r\n\r\nhello"
 
       request.bytes.utf8String must equal(expected)
     }

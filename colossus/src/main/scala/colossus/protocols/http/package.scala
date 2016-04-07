@@ -53,11 +53,11 @@ package object http extends HttpBodyEncoders {
       def name = "http"
     }
 
-    object defaults extends CodecDefaults[Http] {
+    object defaults  {
       
-      implicit val serverDefaults = new ServerDefaults
+      implicit val httpServerDefaults = new ServerDefaults
 
-      implicit val clientDefaults = new ClientDefaults
+      implicit val httpClientDefaults = new ClientDefaults
 
     }
   
@@ -87,8 +87,8 @@ package object http extends HttpBodyEncoders {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext)
-    extends BaseHttpServiceHandler[Http](config, Http.defaults.serverDefaults, context)
+  abstract class HttpService(config: ServiceConfig, context: ServerContext) 
+    extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context)
 
   abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
     extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
