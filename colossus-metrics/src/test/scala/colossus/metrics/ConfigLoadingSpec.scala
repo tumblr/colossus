@@ -12,6 +12,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
                           "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
                           "collector-defaults.histogram-percentiles")
 
+  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+
+  def metricSystem(userOverrides: String): MetricSystem = MetricSystem("my-metrics", config(userOverrides))
+
   "MetricSystem initialization" must {
     "load defaults from reference implementation" in {
 
@@ -40,9 +44,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         """.stripMargin
 
       //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-
-      val ms = MetricSystem("my-metrics", c)
+      implicit val ms = metricSystem(userOverrides)
 
       ms.namespace mustBe MetricAddress("/mypath")
       ms.collectionIntervals.keys mustBe Set(1.minute, 10.minutes)
@@ -124,9 +126,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  }
         |}
       """.stripMargin
-    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-    val ms = MetricSystem("my-metrics", c)
-    implicit val m = ms.base
+    implicit val ms = metricSystem(userOverrides)
 
     "load a rate using collector defaults" in {
       val r = Rate(MetricAddress("/my-rate"))
@@ -173,9 +173,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  }
         |}
       """.stripMargin
-    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-    val ms = MetricSystem("my-metrics", c)
-    implicit val m = ms.base
+    implicit val ms = metricSystem(userOverrides)
 
     "load a Histogram using collector defaults" in {
       val r = Histogram(MetricAddress("/my-hist"))
@@ -217,10 +215,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  }
         |}
       """.stripMargin
-    val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-    val ms = MetricSystem("my-metrics", c)
-    implicit val m = ms.base
-
+    implicit val ms = metricSystem(userOverrides)
 
     "load a Counter using collector defaults" in {
       val r = Counter(MetricAddress("/my-counter"))

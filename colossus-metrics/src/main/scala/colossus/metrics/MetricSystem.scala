@@ -24,8 +24,27 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
     * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
    * @return
    */
-  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator)
+  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator, namespace)
 }
+
+
+/**
+ * A MetricNamespace is essentially just an address prefix and is needed when
+ * getting or creating collectors.  The `namespace` address is prefixed onto the
+ * given address for the collector to create the full address.
+ */
+trait MetricNamespace {
+  def namespace: MetricAddress
+  def collection : Collection
+
+
+  /**
+   * Get a new namespace by appending `subpath` to the namespace
+   */
+  def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
+}
+
+case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace
 
 /**
   * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
@@ -60,12 +79,12 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
   * @param config Config object from which Metric configurations will be sourced.
  */
 case class MetricSystem private[metrics] (namespace: MetricAddress, collectionIntervals : Map[FiniteDuration, MetricInterval],
-                                          collectionSystemMetrics : Boolean, config : Config) {
+                                          collectionSystemMetrics : Boolean, config : Config) extends MetricNamespace {
 
-  implicit val base = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
-  registerCollection(base)
+  val collection = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
+  registerCollection(collection)
 
-  def registerCollection(collection: Collection): Unit = {
+  protected def registerCollection(collection: Collection): Unit = {
     collectionIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
   }
 

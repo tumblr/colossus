@@ -68,12 +68,12 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext)
 extends Controller[I,O](codec,
-  ControllerConfig(config.requestBufferSize, Duration.Inf, serverContext.server.config.name, config.maxRequestSize),
+  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize),
   serverContext.context)
 with ServerConnectionHandler {
   import ServiceServer._
   import config._
-  import context.worker.metrics
+  implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
@@ -81,11 +81,11 @@ with ServerConnectionHandler {
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
   
-  private val requests  = Rate(name / "requests")
-  private val latency   = Histogram(name / "latency", sampleRate = 0.25)
-  private val errors    = Rate(name / "errors")
-  private val requestsPerConnection = Histogram(name / "requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
-  private val concurrentRequests = Counter(name / "concurrent_requests")
+  private val requests  = Rate("requests")
+  private val latency   = Histogram("latency", sampleRate = 0.25)
+  private val errors    = Rate("errors")
+  private val requestsPerConnection = Histogram("requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
+  private val concurrentRequests = Counter("concurrent_requests")
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false

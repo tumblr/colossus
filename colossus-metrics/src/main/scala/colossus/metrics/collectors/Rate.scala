@@ -25,14 +25,14 @@ trait Rate extends Collector{
 }
 
 //working implementation of a Rate
-class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean)(implicit collection: Collection) extends Rate {
+class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean)(implicit ns: MetricNamespace) extends Rate {
 
-  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = collection.config.intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
+  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = ns.collection.config.intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
 
   //note - the totals are shared amongst all intervals, and we use the smallest
   //interval to update them
   private val totals = new CollectionMap[TagMap]
-  private val minInterval = if (collection.config.intervals.size > 0) collection.config.intervals.min else Duration.Inf
+  private val minInterval = if (ns.collection.config.intervals.size > 0) ns.collection.config.intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
     maps.foreach{ case (_, map) => map.increment(tags) }
@@ -50,7 +50,7 @@ class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: B
 }
 
 //Dummy implementation of a Rate, used when "enabled=false" is specified at creation
-class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)(implicit collection : Collection) extends Rate {
+class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)(implicit ns : MetricNamespace) extends Rate {
 
   private val empty : MetricMap = Map()
 
@@ -71,7 +71,7 @@ object Rate extends CollectorConfigLoader {
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress)(implicit collection : Collection) : Rate = {
+  def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Rate = {
     apply(address, DefaultConfigPath)
   }
   /**
@@ -82,9 +82,9 @@ object Rate extends CollectorConfigLoader {
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Rate = {
-    collection.getOrAdd(address){
-      val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Rate = {
+    ns.collection.getOrAdd(address){
+      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createRate(address, params.getBoolean("prune-empty"), params.getBoolean("enabled"))
     }
   }
@@ -97,15 +97,15 @@ object Rate extends CollectorConfigLoader {
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address: MetricAddress, pruneEmpty: Boolean = false, enabled : Boolean = true)(implicit collection: Collection): Rate = {
-    collection.getOrAdd(address)(createRate(address, pruneEmpty, enabled))
+  def apply(address: MetricAddress, pruneEmpty: Boolean = false, enabled : Boolean = true)(implicit ns: MetricNamespace): Rate = {
+    ns.collection.getOrAdd(address)(createRate(address, pruneEmpty, enabled))
   }
 
-  private def createRate(address: MetricAddress, pruneEmpty: Boolean, enabled : Boolean)(implicit collection : Collection) : Rate = {
+  private def createRate(address: MetricAddress, pruneEmpty: Boolean, enabled : Boolean)(implicit  ns: MetricNamespace) : Rate = {
     if(enabled){
-      new DefaultRate(address, pruneEmpty)
+      new DefaultRate(ns.namespace / address, pruneEmpty)
     }else{
-      new NopRate(address, pruneEmpty)
+      new NopRate(ns.namespace / address, pruneEmpty)
     }
   }
 }

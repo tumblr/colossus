@@ -167,7 +167,7 @@ object FrameParser {
 }
 
 abstract class WebsocketHandler(context: Context)
-  extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf, ""), context) {
+  extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
 
   def send(bytes: ByteString) {
     push(Frame(Header(OpCodes.Text, false), bytes)){_ => {}}
@@ -194,5 +194,11 @@ abstract class WebsocketHandler(context: Context)
     super.connectionTerminated(cause)
     postStop()
   }
+
+}
+
+abstract class WebsocketServerHandler(serverContext: ServerContext) extends WebsocketHandler(serverContext.context) with ServerConnectionHandler {
+
+  implicit val namespace = serverContext.server.namespace
 
 }

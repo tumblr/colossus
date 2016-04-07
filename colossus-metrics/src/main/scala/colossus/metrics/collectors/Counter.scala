@@ -43,7 +43,7 @@ trait Counter extends Collector {
 }
 
 //Working implementation of a Counter
-class DefaultCounter private[metrics](val address: MetricAddress)(implicit collection: Collection) extends Counter {
+class DefaultCounter private[metrics](val address: MetricAddress)(implicit ns : MetricNamespace) extends Counter {
 
   private val counters = new CollectionMap[TagMap]
 
@@ -88,7 +88,7 @@ object Counter extends CollectorConfigLoader{
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress)(implicit collection : Collection) : Counter = {
+  def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Counter = {
     apply(address, DefaultConfigPath)
   }
 
@@ -101,9 +101,9 @@ object Counter extends CollectorConfigLoader{
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit collection : Collection) : Counter = {
-    collection.getOrAdd(address){
-      val params = resolveConfig(collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
+    ns.collection.getOrAdd(address){
+      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createCounter(address, params.getBoolean("enabled"))
     }
   }
@@ -116,15 +116,15 @@ object Counter extends CollectorConfigLoader{
     * @param collection The collection which will contain this Collector.
     * @return
     */
-  def apply(address: MetricAddress, enabled: Boolean = true)(implicit collection: Collection): Counter = {
-    collection.getOrAdd(address)(createCounter(address, enabled))
+  def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns : MetricNamespace): Counter = {
+    ns.collection.getOrAdd(address)(createCounter(address, enabled))
   }
 
-  private def createCounter(address : MetricAddress, enabled : Boolean)(implicit collection : Collection) : Counter = {
+  private def createCounter(address : MetricAddress, enabled : Boolean)(implicit ns: MetricNamespace) : Counter = {
     if(enabled){
-      new DefaultCounter(address)
+      new DefaultCounter(ns.namespace / address)
     }else{
-      new NopCounter(address)
+      new NopCounter(ns.namespace / address)
     }
   }
 }
