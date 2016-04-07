@@ -67,11 +67,9 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       val input = ByteString("hello")
       val config = ControllerConfig(4, 50.milliseconds, 2L)
       val con = static(config)
-      intercept[ParseException] {
-        con.typedHandler.receivedData(DataBuffer(input))
-        con.typedHandler.received.size must equal(1)
-        con.typedHandler.received.head must equal(input)
-      }
+      con.typedHandler.receivedData(DataBuffer(input))
+      con.typedHandler.received.isEmpty must equal(true)
+      con.readsEnabled must equal(false)
     }
     /*
 
