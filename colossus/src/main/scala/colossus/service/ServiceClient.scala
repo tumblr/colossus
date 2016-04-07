@@ -139,7 +139,9 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
 
+  //set to true on either a call to disconnect or forceDisconnect()
   private var manuallyDisconnected = false
+
   private var connectionAttempts = 0
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
   private var disconnecting: Boolean = false //set to true during graceful disconnect
@@ -266,7 +268,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   private def attemptReconnect() {
     connectionAttempts += 1
-    if(!disconnecting) {
+    if(!disconnecting && !manuallyDisconnected) {
       if(canReconnect) {
         log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
         worker ! Schedule(config.connectionAttempts.interval, Connect(address, id))

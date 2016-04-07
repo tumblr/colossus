@@ -71,7 +71,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
   def dying: Receive = {
     case Unbound => context.become(dead)
     case AsyncServiceClient.GetConnectionStatus(promise) => {
-      promise.success(ConnectionStatus.Connected)  //we have to fulfill this since it will never reach the handler
+      promise.success(ConnectionStatus.NotConnected)  //we have to fulfill this since it will never reach the handler
     }
   }
 
