@@ -55,7 +55,7 @@ object WebsocketExample {
     Server.basic("websocket", port){ ctx => new Service[Http](ctx) {
       def handle = {
         case UpgradeRequest(resp) => {
-          become(_ => new WebsocketServerHandler(ctx) with ProxyActor {
+          become(() => new WebsocketServerHandler(ctx) with ProxyActor {
 
             private var sending = false
 

@@ -55,7 +55,7 @@ class CoreHandlerSpec extends ColossusSpec {
     "become" in {
       val con = setup()
       val f = new BasicCoreHandler(con.typedHandler.context)
-      con.typedHandler.become(_ => f)
+      con.typedHandler.become(() => f)
       con.typedHandler.shutdownCalled must equal(true)
       val m = con.workerProbe.receiveOne(100.milliseconds).asInstanceOf[WorkerCommand.SwapHandler]
       m.newHandler must equal(f)
