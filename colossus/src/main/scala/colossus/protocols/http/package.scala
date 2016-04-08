@@ -33,7 +33,7 @@ package object http extends HttpBodyEncoders {
 
   object Http extends ClientFactories[Http, HttpClient] {
 
-    class ServerDefaults extends CodecProvider[Http] {
+    class ServerDefaults extends ServiceCodecProvider[Http] {
       def provideCodec = new HttpServerCodec
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
         case RecoverableError(request, reason) => reason match {
@@ -75,7 +75,7 @@ package object http extends HttpBodyEncoders {
   }
 
   abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: CodecProvider[D], context: ServerContext)
+  (config: ServiceConfig, provider: ServiceCodecProvider[D], context: ServerContext)
   extends Service[D](config, context)(provider) {
 
     override def tagDecorator = new ReturnCodeTagDecorator
@@ -87,13 +87,13 @@ package object http extends HttpBodyEncoders {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext) 
+  abstract class HttpService(config: ServiceConfig, context: ServerContext)
     extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context)
 
   abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
     extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
-  implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
+  implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
     def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
       case RecoverableError(request, reason) => reason match {

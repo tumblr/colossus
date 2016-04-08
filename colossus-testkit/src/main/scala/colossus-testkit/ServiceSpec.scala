@@ -11,7 +11,7 @@ import core.ServerRef
 import service._
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[C <: Protocol](implicit provider: CodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
+abstract class ServiceSpec[C <: Protocol](implicit provider: ServiceCodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
   
   type Request = C#Input
   type Response = C#Output

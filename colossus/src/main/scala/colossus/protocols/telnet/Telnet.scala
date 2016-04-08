@@ -18,7 +18,7 @@ package object telnet {
     type Output = TelnetReply
   }
 
-  implicit object TelnetProvider extends CodecProvider[Telnet] {
+  implicit object TelnetProvider extends ServiceCodecProvider[Telnet] {
     def provideCodec() = TelnetServerCodec
 
     def errorResponse(error: ProcessingFailure[TelnetCommand]) = TelnetReply(s"Error: ${error.reason}")
