@@ -19,6 +19,7 @@ import scala.reflect.ClassTag
  * collector
  *
  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
+ * @param config The Configuration of the underlying [[MetricSystem]]
  */
 case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
 
@@ -109,8 +110,10 @@ class Collection(val config: CollectorConfig) {
    * Retrieve a collector of a specific type by address, creating a new one if
    * it does not exist.  If an existing collector of a different type already
    * exists, a `DuplicateMetricException` will be thrown.
-   */
-  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(created : => T): T = {
+   * @param address Address meant to be relative to this MetricNamespace's namespace
+   * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
+    */
+  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T): T = {
     def cast(retrieved: Collector): T = retrieved match {
       case t : T => t
       case other => {
@@ -122,7 +125,7 @@ class Collection(val config: CollectorConfig) {
     if (collectors.containsKey(address)) {
       cast(collectors.get(address))
     } else {
-      val c = created //invoke it
+      val c = f(address, config)
       collectors.putIfAbsent(address, c) match {
         case null => c
         case other => cast(other)

@@ -43,7 +43,7 @@ trait Counter extends Collector {
 }
 
 //Working implementation of a Counter
-class DefaultCounter private[metrics](val address: MetricAddress)(implicit ns : MetricNamespace) extends Counter {
+class DefaultCounter private[metrics](val address: MetricAddress) extends Counter {
 
   private val counters = new CollectionMap[TagMap]
 
@@ -85,7 +85,7 @@ object Counter extends CollectorConfigLoader{
     * Create a Counter with the following address.   See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
     *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Counter = {
@@ -98,13 +98,14 @@ object Counter extends CollectorConfigLoader{
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this counter's configuration is located.  This is relative to the MetricSystem config
     *                   definition.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
-    ns.collection.getOrAdd(address){
-      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
-      createCounter(address, params.getBoolean("enabled"))
+    ns.getOrAdd(address){ (fullAddress, config) =>
+      val addressPath = fullAddress.pieceString.replace('/','.')
+      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      createCounter(address, params.getBoolean("enabled"), config.intervals)
     }
   }
 
@@ -113,18 +114,20 @@ object Counter extends CollectorConfigLoader{
     *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param enabled If this Counter will actually be collected and reported.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns : MetricNamespace): Counter = {
-    ns.collection.getOrAdd(address)(createCounter(address, enabled))
+    ns.getOrAdd(address){(fullAddress, config) =>
+      createCounter(fullAddress, enabled, config.intervals)
+    }
   }
 
-  private def createCounter(address : MetricAddress, enabled : Boolean)(implicit ns: MetricNamespace) : Counter = {
+  private def createCounter(address : MetricAddress, enabled : Boolean, intervals : Seq[FiniteDuration]) : Counter = {
     if(enabled){
-      new DefaultCounter(ns.namespace / address)
+      new DefaultCounter(address)
     }else{
-      new NopCounter(ns.namespace / address)
+      new NopCounter(address)
     }
   }
 }

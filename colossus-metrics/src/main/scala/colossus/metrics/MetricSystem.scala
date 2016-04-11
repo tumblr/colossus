@@ -6,6 +6,7 @@ import colossus.metrics.MetricAddress.Root
 import com.typesafe.config.{ConfigFactory, Config}
 
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 class MetricInterval private[metrics](val namespace : MetricAddress,
                                       val interval : FiniteDuration,
@@ -34,9 +35,29 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
  * given address for the collector to create the full address.
  */
 trait MetricNamespace {
-  def namespace: MetricAddress
-  def collection : Collection
 
+  /**
+    * The root of this MetricNamespace.  All Metrics added to this namespace will be made to be relative to this address.
+    * @return
+    */
+  def namespace: MetricAddress
+
+
+  protected def collection : Collection
+
+  /**
+    * Retrieve a [[Collector]] of a specific type by address, creating a new one if
+    * it does not exist.  If an existing collector of a different type already
+    * exists, a `DuplicateMetricException` will be thrown.
+    * @param address Address meant to be relative to this MetricNamespace's namespace
+    * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
+    * @tparam T
+    * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
+    */
+  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T) : T = {
+    val fullAddress =  namespace / address
+    collection.getOrAdd(fullAddress)(f)
+  }
 
   /**
    * Get a new namespace by appending `subpath` to the namespace
@@ -132,6 +153,7 @@ object MetricSystem {
 
   /**
     * Create a system which does nothing.  Useful for testing/debugging.
+    *
     * @param system
     * @return
     */
@@ -142,6 +164,7 @@ object MetricSystem {
   /**
     * Create a new MetricSystem, using only the defaults provided by the corresponding "colossus.metrics" config path.
     * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
     * @param system
     * @return
     */

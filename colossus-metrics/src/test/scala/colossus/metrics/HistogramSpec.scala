@@ -95,7 +95,4 @@ class HistogramSpec extends MetricIntegrationSpec {
       m2(addr).get(Map("foo" -> "baz", "label" -> "min")).isEmpty must equal(true)
     }
   }
-
-
-
 }
