@@ -406,7 +406,7 @@ class ServiceClientSpec extends ColossusSpec {
       }
     }
 
-    "not try to reconnect if disconnect is called while failing to connect" taggedAs(org.scalatest.Tag("test")) in {
+    "not try to reconnect if disconnect is called while failing to connect" in {
       val fakeWorker = FakeIOSystem.fakeWorker
       implicit val w = fakeWorker.worker
       val client = ServiceClient[Raw]("localhost", TEST_PORT)
@@ -416,7 +416,7 @@ class ServiceClientSpec extends ColossusSpec {
       fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
 
       client.connectionTerminated(DisconnectCause.ConnectFailed(new Exception("HI!!")))
-      fakeWorker.probe.expectMsgType[WorkerCommand.Schedule](50.milliseconds)
+      fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
 
       client.disconnect()
       //no disconnect message is sent because it's not connected
