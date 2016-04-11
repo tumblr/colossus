@@ -198,15 +198,14 @@ any protocol is easy.
 
 Server.start("redis-http", 9000){ new Initializer(_) {
   
-  val redisClient = ServiceClient[Redis]("localhost", 6379)
+  val redisClient = Redis.client("localhost", 6379)
 
   def onConnect = context => new HttpService(context){
     def handle = {
       case req @ Get on Root / "get" / key => {
-        redisClient.send(Command("GET", key)).map{
-          case BulkReply(data)  => req.ok(data.utf8String)
-          case NilReply         => req.notFound("(N/A)")
-          case other            => req.error(s"Unepected Redis reply: $other")
+        redisClient.get(key).map{
+          case Some(data) => req.ok(data.utf8String)
+          case None       => req.notFound("(N/A)")
         }
       }
 
@@ -226,14 +225,14 @@ Here, we create a `ServiceClient` using the redis protocol in the service's
 `Initializer`.  This means that one connection to Redis is opened per Worker,
 and all connections handled by that worker will use this client.  Again, since
 everything here is per-worker and hence single-threaded, there are no issues
-with many request handler using the same redis client. 
+with many request handlers using the same redis client. 
 
 This gives us service that conceptually looks like:
 
 ![redis]({{site.baseurl}}/img/redis.png)
 
 The client's `send` method returns a `Callback[Reply]` that can be mapped and
-flatMapped just like a regular Scala Future.  In fact Callback's implement most
+flatMapped just like a regular Scala Future.  In fact Callbacks implement most
 of the same methods as Futures, including `recover` and `sequence`.
 
 ## Working with Futures
