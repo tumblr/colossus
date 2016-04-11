@@ -169,7 +169,7 @@ object Service {
 
 
 /**
- * This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)
+ * This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait
  *
  * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
  */
@@ -197,6 +197,7 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     apply(config)
   }
 
+
 }
 
 
@@ -214,7 +215,7 @@ object ClientFactory {
   implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
     
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
-      AsyncServiceClient(config)(io, provider)
+      AsyncServiceClient.create(config)(io, provider)
     }
 
   }
@@ -226,8 +227,10 @@ class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Send
 extends ClientFactory[C,M,T[M],E] {
 
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
-    lifter.lift(baseFactory(config))(builder.build(env))
+    apply(baseFactory(config))
   }
+
+  def apply(sender: Sender[C,M])(implicit env: E): T[M] = lifter.lift(sender)(builder.build(env))
 
 }
 

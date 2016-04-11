@@ -2,13 +2,19 @@ package colossus
 package protocols.http
 import scala.language.higherKinds
 
-import core._
 import service._
 import scala.concurrent.{ExecutionContext, Future}
 
-trait HttpClient[M[_]] extends LiftedClient[Http, M] {
+trait HttpClient[M[_]] extends LiftedClient[Http, M] with HttpRequestBuilder[M[HttpResponse]]{
+
+  protected def build(req: HttpRequest) = client.send(req)
+
+  val base = HttpRequest.base
+
 
 }
+
+
 
 object HttpClient {
 
