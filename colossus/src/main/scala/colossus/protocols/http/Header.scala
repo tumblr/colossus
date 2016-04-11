@@ -345,6 +345,13 @@ object Connection {
   }
 }
 
+object ContentType {
+
+  val TextPlain = "text/plain"
+  val ApplicationJson = "application/json"
+
+}
+
 
 
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
@@ -430,10 +437,16 @@ class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeade
 
   override def toString = bytes.utf8String
 
+  def withContentType(contentType: String) = new HttpBody(body, Some(HttpHeader("Content-Type", contentType)))
+
 }
 
 trait HttpBodyEncoder[T] {
+
   def encode(data: T): HttpBody
+
+  def contentTypeHeader(contentType: String): Option[HttpHeader] = HttpHeader("Content-Type", contentType)
+
 }
 
 trait HttpBodyEncoders {
@@ -456,5 +469,9 @@ object HttpBody extends HttpBodyEncoders {
   val NoBody = new HttpBody(Array(), None)
   
   def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
+
+  def apply[T](data: T, contentType: String)(implicit encoder: HttpBodyEncoder[T]) = {
+    encoder.encode(data).withContentType(contentType)
+  }
 
 }
