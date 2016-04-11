@@ -57,7 +57,7 @@ class AsyncServiceClientSpec extends ColossusSpec {
       var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
       withIOSystem{ implicit io =>
         withServer(makeServer()) {
-          client = Some(TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry))
+          client = Some(TestClient(io, TEST_PORT, connectRetry = NoRetry))
           Await.result(client.get.send(ByteString("foo")), 500.milliseconds) must equal(ByteString("foo"))
         }
         TestClient.waitForStatus(client.get, ConnectionStatus.NotConnected)

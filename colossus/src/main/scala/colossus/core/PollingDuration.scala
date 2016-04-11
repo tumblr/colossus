@@ -90,7 +90,7 @@ case class BackoffPolicy(
   def start() = new BackoffIncident
 }
 
-case object NoRetryPolicy extends RetryPolicy with RetryIncident {
+case object NoRetry extends RetryPolicy with RetryIncident {
   
   def start() = this
 

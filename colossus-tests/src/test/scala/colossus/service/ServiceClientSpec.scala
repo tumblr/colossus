@@ -29,7 +29,7 @@ class ServiceClientSpec extends ColossusSpec {
   def newClient(
     failFast: Boolean = false, 
     maxSentSize: Int = 10, 
-    connectionAttempts: PollingDuration = PollingDuration(1.second, None),
+    connectRetry: RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
     requestTimeout: Duration = 10.seconds
   ): (MockConnection, ServiceClient[Redis], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
@@ -41,7 +41,7 @@ class ServiceClientSpec extends ColossusSpec {
       pendingBufferSize = 100, 
       sentBufferSize = maxSentSize, 
       failFast = failFast,
-      connectionAttempts = connectionAttempts
+      connectRetry = connectRetry
     )
     implicit val w = fakeWorker.worker
     val client = ServiceClient[Redis](config)
@@ -312,13 +312,13 @@ class ServiceClientSpec extends ColossusSpec {
     }
 
     "unbind from the worker when not attempting to reconnect" in {
-      val (endpoint, client, probe) = newClient(true, 10, connectionAttempts = PollingDuration.NoRetry)
+      val (endpoint, client, probe) = newClient(true, 10, connectRetry = NoRetry)
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
 
     "graceful disconnect inside a callback" in {
-      val (endpoint, client, probe) = newClient(true, 10, connectionAttempts = PollingDuration.NoRetry)
+      val (endpoint, client, probe) = newClient(true, 10, connectRetry = NoRetry)
       val cmd = Command("BAH")
       val reply = StatusReply("WAT")
       client.send(Command("BAH")).map{r =>
@@ -374,7 +374,7 @@ class ServiceClientSpec extends ColossusSpec {
           }
         }})
         withServer(server) {
-          val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+          val client = TestClient(io, TEST_PORT, connectRetry = NoRetry)
           import server.system.actorSystem.dispatcher
           client.send(ByteString("blah")).onComplete(println)
           TestUtil.expectServerConnections(server, 0)
@@ -396,7 +396,8 @@ class ServiceClientSpec extends ColossusSpec {
             name = "/test",
             requestTimeout = 100.milliseconds,
             address = new InetSocketAddress("localhost", TEST_PORT + 1),
-            connectionAttempts = PollingDuration(50.milliseconds, Some(2L)))
+            connectRetry = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds), maxTries = Some(2))
+          )
 
           val client = AsyncServiceClient[Raw](config)
           TestUtil.expectServerConnections(server, 0)
@@ -407,7 +408,7 @@ class ServiceClientSpec extends ColossusSpec {
 
     "shutdown the connection when an in-flight request times out" in {
       val command = Command(CMD_GET, "foo")
-      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds, connectionAttempts = PollingDuration.NoRetry)
+      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds, connectRetry = NoRetry)
       var failed = true
       val cb = client.send(command).map{
         case wat => failed = false
