@@ -6,9 +6,10 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
-import colossus.controller._
-import colossus.core._
-import colossus.metrics._
+import controller._
+import core._
+import metrics._
+import util.ExceptionFormatter._
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -88,11 +89,10 @@ class StaleClientException(msg : String) extends Exception(msg)
 sealed trait ClientState
 object ClientState {
   
-  sealed trait Accepting extends ClientState
 
-  case object Initializing  extends ClientState with Accepting
-  case object Connecting    extends ClientState with Accepting
-  case object Connected     extends ClientState with Accepting
+  case object Initializing  extends ClientState 
+  case object Connecting    extends ClientState 
+  case object Connected     extends ClientState
   case object ShuttingDown  extends ClientState
   case object Terminated    extends ClientState
 
@@ -165,6 +165,13 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     case _ => ConnectionStatus.NotConnected
   }
 
+  /**
+   * returns true if the client is potentially able to send.  This does not
+   * necessarily mean any new requests will actually be sent, but rather that
+   * the client will make an attempt to send it.  This returns false when the
+   * client either failed to connect (including retries) or when it has been
+   * shut down.
+   */
   def canSend = clientState match {
     case ClientState.Connected => true
     case ClientState.Initializing | ClientState.Connecting => !failFast
@@ -331,7 +338,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   private def failRequest(handler: ResponseHandler, exception: Throwable): Unit = {
     // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
-    errors.hit(tags = hpTags + ("type" -> exception.getClass.getName.replaceAll("[^\\w]", "")))
+    errors.hit(tags = hpTags + ("type" -> exception.metricsName))
     handler(Failure(exception))
   }
 }

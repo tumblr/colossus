@@ -3,6 +3,7 @@ package service
 
 import core._
 import controller._
+import util.ExceptionFormatter._
 
 import akka.event.Logging
 import metrics._
@@ -91,7 +92,7 @@ with ServerConnectionHandler {
   private var dequeuePaused = false
 
   private def addError(request: I, err: Throwable, extraTags: TagMap = TagMap.Empty) {
-    val tags = extraTags + ("type" -> err.getClass.getName.replaceAll("[^\\w]", ""))
+    val tags = extraTags + ("type" -> err.metricsName)
     errors.hit(tags = tags)
     if (logErrors) {
       val formattedRequest = requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
