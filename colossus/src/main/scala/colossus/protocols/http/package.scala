@@ -2,12 +2,9 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import colossus.parsing.DataSize
-import core.{Context, ServerContext, WorkerRef}
+import core.ServerContext
 import service._
 
-import akka.util.ByteString
-import scala.concurrent.ExecutionContext
 
 package object http extends HttpBodyEncoders {
 
