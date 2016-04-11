@@ -45,14 +45,14 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">AsyncHandler</span><span class="result"> extends <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>] with <a href="../core/WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></span>
+        <span class="name">AsyncHandler</span><span class="result"> extends <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.C">C</span>] with <a href="../core/WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>this is used to communicate with an external actor being used as a service client.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../core/WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a>, <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>], <a href="../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>], <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>], <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../core/WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a>, <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.C">C</span>], <a href="../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a>, <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.C">C</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>], <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -70,7 +70,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.AsyncHandlerGenerator.AsyncHandler"><span>AsyncHandler</span></li><li class="in" name="colossus.core.WatchedHandler"><span>WatchedHandler</span></li><li class="in" name="colossus.service.ServiceClient"><span>ServiceClient</span></li><li class="in" name="colossus.core.ManualUnbindHandler"><span>ManualUnbindHandler</span></li><li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="colossus.core.ClientConnectionHandler"><span>ClientConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.CoreHandler"><span>CoreHandler</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.AsyncHandlerGenerator.AsyncHandler"><span>AsyncHandler</span></li><li class="in" name="colossus.core.WatchedHandler"><span>WatchedHandler</span></li><li class="in" name="colossus.service.ServiceClient"><span>ServiceClient</span></li><li class="in" name="colossus.core.ManualUnbindHandler"><span>ManualUnbindHandler</span></li><li class="in" name="colossus.service.Sender"><span>Sender</span></li><li class="in" name="colossus.core.ClientConnectionHandler"><span>ClientConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.CoreHandler"><span>CoreHandler</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -111,8 +111,42 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.service.ServiceClient.ResponseHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ResponseHandler=scala.util.Try[O]=&gt;Unit"></a>
+              <ol><li name="colossus.service.ServiceClient.I" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="I=P#Input"></a>
+      <a id="I:I"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">I</span><span class="result"> = <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@I=P#Input" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.O" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="O=P#Output"></a>
+      <a id="O:O"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">O</span><span class="result"> = <span class="extype" name="colossus.service.Protocol.Output">C.Output</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@O=P#Output" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a></dd></dl></div>
+    </li><li name="colossus.service.ServiceClient.ResponseHandler" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ResponseHandler=scala.util.Try[ServiceClient.this.O]=&gt;Unit"></a>
       <a id="ResponseHandler:ResponseHandler"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -120,10 +154,10 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">ResponseHandler</span><span class="result"> = (<span class="extype" name="scala.util.Try">Try</span>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">ResponseHandler</span><span class="result"> = (<span class="extype" name="scala.util.Try">Try</span>[<a href="#O=P#Output" class="extmbr" name="colossus.service.AsyncHandlerGenerator.AsyncHandler.O">O</a>]) ⇒ <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@ResponseHandler=scala.util.Try[O]=&gt;Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@ResponseHandler=scala.util.Try[ServiceClient.this.O]=&gt;Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -137,7 +171,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServiceClient$SourcedRequest.html"><span class="name">SourcedRequest</span></a><span class="params">(<span name="message">message: <span class="extype" name="colossus.service.ServiceClient.I">I</span></span>, <span name="handler">handler: <a href="ServiceClient.html#ResponseHandler=scala.util.Try[O]=&gt;Unit" class="extmbr" name="colossus.service.ServiceClient.ResponseHandler">ResponseHandler</a></span>, <span name="queueTime">queueTime: <span class="extype" name="scala.Long">Long</span></span>, <span name="sendTime">sendTime: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServiceClient$SourcedRequest.html"><span class="name">SourcedRequest</span></a><span class="params">(<span name="message">message: <a href="ServiceClient.html#I=P#Input" class="extmbr" name="colossus.service.ServiceClient.I">I</a></span>, <span name="handler">handler: <a href="ServiceClient.html#ResponseHandler=scala.util.Try[ServiceClient.this.O]=&gt;Unit" class="extmbr" name="colossus.service.ServiceClient.ResponseHandler">ResponseHandler</a></span>, <span name="queueTime">queueTime: <span class="extype" name="scala.Long">Long</span></span>, <span name="sendTime">sendTime: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.ServiceClient@SourcedRequestextendsProductwithSerializable" title="Permalink" target="_top">
@@ -298,14 +332,14 @@ only occurs when the shutdown process complete
         </dd></dl></div>
     </li><li name="colossus.controller.Controller#codec" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="codec:colossus.service.Codec[Output,Input]"></a>
-      <a id="codec:Codec[I,O]"></a>
+      <a id="codec:Codec[C.Input,C.Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">codec</span><span class="result">: <a href="Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</span>
+        <span class="name">codec</span><span class="result">: <a href="Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@codec:colossus.service.Codec[Output,Input]" title="Permalink" target="_top">
@@ -867,7 +901,7 @@ message in the process of writing, it will be unaffected.  New messages
 can still be pushed to the queue as long as it is not full
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
     </li><li name="colossus.service.ServiceClient#processMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="processMessage(response:O):Unit"></a>
+      <a id="processMessage(response:ServiceClient.this.O):Unit"></a>
       <a id="processMessage(O):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -875,10 +909,10 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processMessage</span><span class="params">(<span name="response">response: <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">processMessage</span><span class="params">(<span name="response">response: <a href="#O=P#Output" class="extmbr" name="colossus.service.AsyncHandlerGenerator.AsyncHandler.O">O</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@processMessage(response:O):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@processMessage(response:ServiceClient.this.O):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -903,14 +937,14 @@ can still be pushed to the queue as long as it is not full
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
     </li><li name="colossus.controller.OutputController#push" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="push(item:Output,createdMillis:Long)(postWrite:colossus.controller.QueuedItem.PostWrite):Boolean"></a>
-      <a id="push(I,Long)(PostWrite):Boolean"></a>
+      <a id="push(C.Input,Long)(PostWrite):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">push</span><span class="params">(<span name="item">item: <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">push</span><span class="params">(<span name="item">item: <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@push(item:Output,createdMillis:Long)(postWrite:colossus.controller.QueuedItem.PostWrite):Boolean" title="Permalink" target="_top">
@@ -1030,7 +1064,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
 </p><div class="fullcomment"><div class="comment cmt"><p>Resumes writing of messages if currently paused, otherwise has no affect
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
     </li><li name="colossus.service.ServiceClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="send(request:I):colossus.service.Callback[O]"></a>
+      <a id="send(request:ServiceClient.this.I):colossus.service.Callback[ServiceClient.this.O]"></a>
       <a id="send(I):Callback[O]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1038,16 +1072,16 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">send</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</span>
+        <span class="name">send</span><span class="params">(<span name="request">request: <a href="#I=P#Input" class="extmbr" name="colossus.service.AsyncHandlerGenerator.AsyncHandler.I">I</a></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="#O=P#Output" class="extmbr" name="colossus.service.AsyncHandlerGenerator.AsyncHandler.O">O</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@send(request:I):colossus.service.Callback[O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncHandlerGenerator$AsyncHandler@send(request:ServiceClient.this.I):colossus.service.Callback[ServiceClient.this.O]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Create a callback for sending a request.</p><div class="fullcomment"><div class="comment cmt"><p>Create a callback for sending a request.  this allows you to do something like
 service.send(&quot;request&quot;){response =&gt; &quot;YAY&quot;}.map{str =&gt; println(str)}.execute()
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a> → <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
     </li><li name="colossus.service.ServiceClient#shutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="shutdown():Unit"></a>
       <a id="shutdown():Unit"></a>
@@ -1252,21 +1286,21 @@ also occur when the Server begins shutting down.
         <div class="parent" name="colossus.core.WatchedHandler">
               <h3>Inherited from <a href="../core/WatchedHandler.html" class="extype" name="colossus.core.WatchedHandler">WatchedHandler</a></h3>
             </div><div class="parent" name="colossus.service.ServiceClient">
-              <h3>Inherited from <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</h3>
+              <h3>Inherited from <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.C">C</span>]</h3>
             </div><div class="parent" name="colossus.core.ManualUnbindHandler">
               <h3>Inherited from <a href="../core/ManualUnbindHandler.html" class="extype" name="colossus.core.ManualUnbindHandler">ManualUnbindHandler</a></h3>
-            </div><div class="parent" name="colossus.service.ServiceClientLike">
-              <h3>Inherited from <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>]</h3>
+            </div><div class="parent" name="colossus.service.Sender">
+              <h3>Inherited from <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.C">C</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</h3>
             </div><div class="parent" name="colossus.core.ClientConnectionHandler">
               <h3>Inherited from <a href="../core/ClientConnectionHandler.html" class="extype" name="colossus.core.ClientConnectionHandler">ClientConnectionHandler</a></h3>
             </div><div class="parent" name="colossus.controller.Controller">
-              <h3>Inherited from <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>]</h3>
+              <h3>Inherited from <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]</h3>
             </div><div class="parent" name="colossus.controller.OutputController">
-              <h3>Inherited from <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>]</h3>
+              <h3>Inherited from <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]</h3>
             </div><div class="parent" name="colossus.controller.InputController">
-              <h3>Inherited from <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>]</h3>
+              <h3>Inherited from <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]</h3>
             </div><div class="parent" name="colossus.controller.MasterController">
-              <h3>Inherited from <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.AsyncHandlerGenerator.O">O</span>, <span class="extype" name="colossus.service.AsyncHandlerGenerator.I">I</span>]</h3>
+              <h3>Inherited from <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]</h3>
             </div><div class="parent" name="colossus.core.CoreHandler">
               <h3>Inherited from <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a></h3>
             </div><div class="parent" name="colossus.core.ConnectionHandler">

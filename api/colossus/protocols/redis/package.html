@@ -277,7 +277,7 @@
     </span>
       
     </li><li name="colossus.protocols.redis.Redis" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RedisextendsCodecDSL"></a>
+      <a id="RedisextendsProtocol"></a>
       <a id="Redis:Redis"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -285,33 +285,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="package$$Redis.html"><span class="name">Redis</span></a><span class="result"> extends <a href="../../service/CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>
+        <a href="package$$Redis.html"><span class="name">Redis</span></a><span class="result"> extends <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisextendsCodecDSL" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisCallbackClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisCallbackClientextendspackage.RedisClient[colossus.service.Callback]withCallbackResponseAdapter[colossus.protocols.redis.package.Redis]"></a>
-      <a id="RedisCallbackClient:RedisCallbackClient"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisCallbackClient.html"><span class="name">RedisCallbackClient</span></a><span class="result"> extends <a href="package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>[<a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>] with <a href="../../service/CallbackResponseAdapter.html" class="extype" name="colossus.service.CallbackResponseAdapter">CallbackResponseAdapter</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisCallbackClientextendspackage.RedisClient[colossus.service.Callback]withCallbackResponseAdapter[colossus.protocols.redis.package.Redis]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package@RedisextendsProtocol" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="colossus.protocols.redis.RedisClient" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="RedisClient[M[_]]extendsAnyRef"></a>
+      <a id="RedisClient[M[_]]extendsLiftedClient[colossus.protocols.redis.Redis,M]"></a>
       <a id="RedisClient[M[_]]:RedisClient[M]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -319,10 +302,10 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="package$$RedisClient.html"><span class="name">RedisClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="RedisClient.html"><span class="name">RedisClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisClient[M[_]]extendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.redis.package@RedisClient[M[_]]extendsLiftedClient[colossus.protocols.redis.Redis,M]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -368,27 +351,10 @@ I went with all lower case for the API.  I just wanted something consistent look
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="package$$RedisException.html"><span class="name">RedisException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="RedisException.html"><span class="name">RedisException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.redis.package@RedisExceptionextendsExceptionwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisFutureClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisFutureClientextendspackage.RedisClient[scala.concurrent.Future]withFutureResponseAdapter[colossus.protocols.redis.package.Redis]"></a>
-      <a id="RedisFutureClient:RedisFutureClient"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisFutureClient.html"><span class="name">RedisFutureClient</span></a><span class="result"> extends <a href="package$$RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>[<span class="extype" name="scala.concurrent.Future">Future</span>] with <a href="../../service/FutureResponseAdapter.html" class="extype" name="colossus.service.FutureResponseAdapter">FutureResponseAdapter</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisFutureClientextendspackage.RedisClient[scala.concurrent.Future]withFutureResponseAdapter[colossus.protocols.redis.package.Redis]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -470,7 +436,7 @@ I went with all lower case for the API.  I just wanted something consistent look
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="package$$UnexpectedRedisReplyException.html"><span class="name">UnexpectedRedisReplyException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="UnexpectedRedisReplyException.html"><span class="name">UnexpectedRedisReplyException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.redis.package@UnexpectedRedisReplyExceptionextendsExceptionwithProductwithSerializable" title="Permalink" target="_top">
@@ -570,6 +536,23 @@ I went with all lower case for the API.  I just wanted something consistent look
       </a>
     </span>
       
+    </li><li name="colossus.protocols.redis.Redis" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Redis"></a>
+      <a id="Redis:Redis"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Redis$.html"><span class="name">Redis</span></a><span class="result"> extends <a href="../../service/ClientFactories.html" class="extype" name="colossus.service.ClientFactories">ClientFactories</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <a href="RedisClient.html" class="extype" name="colossus.protocols.redis.RedisClient">RedisClient</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.package@Redis" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.protocols.redis.RedisClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RedisClient"></a>
       <a id="RedisClient:RedisClient"></a>
@@ -579,61 +562,10 @@ I went with all lower case for the API.  I just wanted something consistent look
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="package$$RedisClient$.html"><span class="name">RedisClient</span></a>
+        <a href="RedisClient$.html"><span class="name">RedisClient</span></a>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.redis.package@RedisClient" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisClientCodecFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisClientCodecFactory"></a>
-      <a id="RedisClientCodecFactory:RedisClientCodecFactory"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisClientCodecFactory$.html"><span class="name">RedisClientCodecFactory</span></a><span class="result"> extends <a href="../../service/Codec$.html#ClientCodecFactory[Request,Response]=colossus.service.Codec.CodecFactory[Request,Response]" class="extmbr" name="colossus.service.Codec.ClientCodecFactory">ClientCodecFactory</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisClientCodecFactory" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisClientCodecProvider" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisClientCodecProvider"></a>
-      <a id="RedisClientCodecProvider:RedisClientCodecProvider"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisClientCodecProvider$.html"><span class="name">RedisClientCodecProvider</span></a><span class="result"> extends <a href="../../service/ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisClientCodecProvider" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisCodecProvider" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisCodecProvider"></a>
-      <a id="RedisCodecProvider:RedisCodecProvider"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisCodecProvider$.html"><span class="name">RedisCodecProvider</span></a><span class="result"> extends <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisCodecProvider" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -668,23 +600,6 @@ I went with all lower case for the API.  I just wanted something consistent look
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.redis.package@RedisReplyParser" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.redis.RedisServerCodecFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RedisServerCodecFactory"></a>
-      <a id="RedisServerCodecFactory:RedisServerCodecFactory"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RedisServerCodecFactory$.html"><span class="name">RedisServerCodecFactory</span></a><span class="result"> extends <a href="../../service/Codec$.html#ServerCodecFactory[Request,Response]=colossus.service.Codec.CodecFactory[Response,Request]" class="extmbr" name="colossus.service.Codec.ServerCodecFactory">ServerCodecFactory</a>[<a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a>, <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.redis.package@RedisServerCodecFactory" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -210,10 +210,7 @@ Server.start("redis-http", 9000){ new Initializer(_) {
       }
 
       case req @ Get on Root / "set" / key / value => {
-        redisClient.send(Command("SET", key, value)).map{
-          case StatusReply(_)   => req.ok("OK")
-          case other            => req.error(s"Unepected Redis reply: $other")
-        }
+        redisClient.set(key, value).map{_ => req.ok("OK")}
       }
     }
   }
@@ -331,7 +328,7 @@ Lastly, let's add some caching to this service by using Memcached
 {% highlight scala %}
 Server.start("fibonacci", 9000){ new Initializer(_) {
 
-  val cache = ServiceClient[Memcache]("memcached.foo.bar", 11211)
+  val cache = Memcache.client("memcached.foo.bar", 11211)
 
   def onConnect = new HttpService(_) {
 

@@ -47,13 +47,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Service</span><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.CodecDSL.Input">service.Service.C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">service.Service.C.Output</span>]</span>
+        <span class="name">Service</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.Protocol.Input">service.Service.C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">service.Service.C.Output</span>]</span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>], <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>], <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>], <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>], <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>], <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>], <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>], <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
             <div class="subClasses hiddenContent"><a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a></div>
@@ -136,7 +136,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Service</span><span class="params">(<span name="codec">codec: <a href="Codec$.html#ServerCodec[Request,Response]=colossus.service.Codec[Response,Request]" class="extmbr" name="colossus.service.Codec.ServerCodec">ServerCodec</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>, <span name="config">config: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>, <span name="srv">srv: <a href="../core/ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>)</span>
+        <span class="name">Service</span><span class="params">(<span name="codec">codec: <a href="Codec$.html#ServerCodec[Request,Response]=colossus.service.Codec[Response,Request]" class="extmbr" name="colossus.service.Codec.ServerCodec">ServerCodec</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</span>, <span name="config">config: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>, <span name="srv">srv: <a href="../core/ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@&lt;init&gt;(codec:colossus.service.Codec.ServerCodec[C#Input,C#Output],config:colossus.service.ServiceConfig,srv:colossus.core.ServerContext)(implicitprovider:colossus.service.CodecProvider[C]):colossus.service.Service[C]" title="Permalink" target="_top">
@@ -152,7 +152,7 @@
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="colossus.service.Service#handle" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="handle:colossus.service.CodecDSL.PartialHandler[C]"></a>
+      <a id="handle:colossus.service.Protocol.PartialHandler[C]"></a>
       <a id="handle:PartialHandler[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -160,10 +160,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">handle</span><span class="result">: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
+        <span class="name">handle</span><span class="result">: <a href="Protocol$.html#PartialHandler[C&lt;:colossus.service.Protocol]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.Protocol.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@handle:colossus.service.CodecDSL.PartialHandler[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@handle:colossus.service.Protocol.PartialHandler[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -309,7 +309,7 @@ only occurs when the shutdown process complete
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">codec</span><span class="result">: <a href="Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>, <span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>]</span>
+        <span class="name">codec</span><span class="result">: <a href="Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>, <span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@codec:colossus.service.Codec[Output,Input]" title="Permalink" target="_top">
@@ -814,7 +814,7 @@ which is only based on the last time there was any I/O.
       <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.Service#onError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="onError:colossus.service.CodecDSL.ErrorHandler[C]"></a>
+      <a id="onError:colossus.service.Protocol.ErrorHandler[C]"></a>
       <a id="onError:ErrorHandler[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -822,10 +822,10 @@ which is only based on the last time there was any I/O.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">onError</span><span class="result">: <a href="CodecDSL$.html#ErrorHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[(C#Input,Throwable),C#Output]" class="extmbr" name="colossus.service.CodecDSL.ErrorHandler">ErrorHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
+        <span class="name">onError</span><span class="result">: <a href="Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[(C#Input,Throwable),C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@onError:colossus.service.CodecDSL.ErrorHandler[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@onError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -895,7 +895,7 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processFailure</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span></span>
+        <span class="name">processFailure</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.Protocol.Output">C.Output</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@processFailure(request:C#Input,reason:Throwable):C#Output" title="Permalink" target="_top">
@@ -912,7 +912,7 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processMessage</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">processMessage</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@processMessage(request:I):Unit" title="Permalink" target="_top">
@@ -929,7 +929,7 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processRequest</span><span class="params">(<span name="i">i: <span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>
+        <span class="name">processRequest</span><span class="params">(<span name="i">i: <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@processRequest(i:C#Input):colossus.service.Callback[C#Output]" title="Permalink" target="_top">
@@ -964,7 +964,7 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">push</span><span class="params">(<span name="item">item: <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">push</span><span class="params">(<span name="item">item: <span class="extype" name="colossus.service.Protocol.Output">C.Output</span></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@push(item:Output,createdMillis:Long)(postWrite:colossus.controller.QueuedItem.PostWrite):Boolean" title="Permalink" target="_top">
@@ -1012,7 +1012,7 @@ whether a message should be pushed based on connection state.
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li><li name="colossus.service.Service#receive" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="receive:colossus.service.CodecDSL.Receive"></a>
+      <a id="receive:colossus.service.Protocol.Receive"></a>
       <a id="receive:Receive"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1020,10 +1020,10 @@ whether a message should be pushed based on connection state.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">receive</span><span class="result">: <a href="CodecDSL$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.CodecDSL.Receive">Receive</a></span>
+        <span class="name">receive</span><span class="result">: <a href="Protocol$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.Protocol.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@receive:colossus.service.CodecDSL.Receive" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@receive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1073,7 +1073,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">requestLogFormat</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>]]</span>
+        <span class="name">requestLogFormat</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@requestLogFormat:Option[colossus.service.RequestFormatter[I]]" title="Permalink" target="_top">
@@ -1198,7 +1198,7 @@ also occur when the Server begins shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">tagDecorator</span><span class="result">: <a href="TagDecorator.html" class="extype" name="colossus.service.TagDecorator">TagDecorator</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>
+        <span class="name">tagDecorator</span><span class="result">: <a href="TagDecorator.html" class="extype" name="colossus.service.TagDecorator">TagDecorator</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.Service@tagDecorator:colossus.service.TagDecorator[I,O]" title="Permalink" target="_top">
@@ -1224,7 +1224,7 @@ also occur when the Server begins shutting down.
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.Service#unhandled" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unhandled:colossus.service.CodecDSL.PartialHandler[C]"></a>
+      <a id="unhandled:colossus.service.Protocol.PartialHandler[C]"></a>
       <a id="unhandled:PartialHandler[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1232,16 +1232,16 @@ also occur when the Server begins shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unhandled</span><span class="result">: <a href="CodecDSL$.html#PartialHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.CodecDSL.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
+        <span class="name">unhandled</span><span class="result">: <a href="Protocol$.html#PartialHandler[C&lt;:colossus.service.Protocol]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.Protocol.PartialHandler">PartialHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@unhandled:colossus.service.CodecDSL.PartialHandler[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@unhandled:colossus.service.Protocol.PartialHandler[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="colossus.service.Service#unhandledError" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unhandledError:colossus.service.CodecDSL.ErrorHandler[C]"></a>
+      <a id="unhandledError:colossus.service.Protocol.ErrorHandler[C]"></a>
       <a id="unhandledError:ErrorHandler[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1249,16 +1249,16 @@ also occur when the Server begins shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unhandledError</span><span class="result">: <a href="CodecDSL$.html#ErrorHandler[C&lt;:colossus.service.CodecDSL]=PartialFunction[(C#Input,Throwable),C#Output]" class="extmbr" name="colossus.service.CodecDSL.ErrorHandler">ErrorHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
+        <span class="name">unhandledError</span><span class="result">: <a href="Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[(C#Input,Throwable),C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<span class="extype" name="colossus.service.Service.C">C</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@unhandledError:colossus.service.CodecDSL.ErrorHandler[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@unhandledError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="colossus.service.Service#unhandledReceive" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unhandledReceive:colossus.service.CodecDSL.Receive"></a>
+      <a id="unhandledReceive:colossus.service.Protocol.Receive"></a>
       <a id="unhandledReceive:Receive"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1266,10 +1266,10 @@ also occur when the Server begins shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unhandledReceive</span><span class="result">: <a href="CodecDSL$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.CodecDSL.Receive">Receive</a></span>
+        <span class="name">unhandledReceive</span><span class="result">: <a href="Protocol$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.Protocol.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Service@unhandledReceive:colossus.service.CodecDSL.Receive" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Service@unhandledReceive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1387,17 +1387,17 @@ also occur when the Server begins shutting down.
 
         <div id="inheritedMembers">
         <div class="parent" name="colossus.service.ServiceServer">
-              <h3>Inherited from <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</h3>
+              <h3>Inherited from <a href="ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</h3>
             </div><div class="parent" name="colossus.core.ServerConnectionHandler">
               <h3>Inherited from <a href="../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></h3>
             </div><div class="parent" name="colossus.controller.Controller">
-              <h3>Inherited from <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</h3>
+              <h3>Inherited from <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</h3>
             </div><div class="parent" name="colossus.controller.OutputController">
-              <h3>Inherited from <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</h3>
+              <h3>Inherited from <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</h3>
             </div><div class="parent" name="colossus.controller.InputController">
-              <h3>Inherited from <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</h3>
+              <h3>Inherited from <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</h3>
             </div><div class="parent" name="colossus.controller.MasterController">
-              <h3>Inherited from <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</h3>
+              <h3>Inherited from <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</h3>
             </div><div class="parent" name="colossus.core.CoreHandler">
               <h3>Inherited from <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a></h3>
             </div><div class="parent" name="colossus.core.ConnectionHandler">

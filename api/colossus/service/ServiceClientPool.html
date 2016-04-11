@@ -45,7 +45,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceClientPool</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>, <span name="T">T &lt;: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.ServiceClientPool.I">I</span>, <span class="extype" name="colossus.service.ServiceClientPool.O">O</span>]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">ServiceClientPool</span><span class="tparams">[<span name="T">T &lt;: <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[_, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
@@ -91,8 +91,8 @@ updates and will open/close connections accordingly.</p><p>note that config will
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.ServiceClientPool#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(commonConfig:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,creator:(colossus.service.ClientConfig,colossus.core.WorkerRef)=&gt;T):colossus.service.ServiceClientPool[I,O,T]"></a>
-      <a id="&lt;init&gt;:ServiceClientPool[I,O,T]"></a>
+      <a id="&lt;init&gt;(commonConfig:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,creator:(colossus.service.ClientConfig,colossus.core.WorkerRef)=&gt;T):colossus.service.ServiceClientPool[T]"></a>
+      <a id="&lt;init&gt;:ServiceClientPool[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
@@ -102,7 +102,7 @@ updates and will open/close connections accordingly.</p><p>note that config will
         <span class="name">ServiceClientPool</span><span class="params">(<span name="commonConfig">commonConfig: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="creator">creator: (<a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a>, <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <span class="extype" name="colossus.service.ServiceClientPool.T">T</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClientPool@&lt;init&gt;(commonConfig:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,creator:(colossus.service.ClientConfig,colossus.core.WorkerRef)=&gt;T):colossus.service.ServiceClientPool[I,O,T]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceClientPool@&lt;init&gt;(commonConfig:colossus.service.ClientConfig,worker:colossus.core.WorkerRef,creator:(colossus.service.ClientConfig,colossus.core.WorkerRef)=&gt;T):colossus.service.ServiceClientPool[T]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -167,6 +167,23 @@ updates and will open/close connections accordingly.</p><p>note that config will
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceClientPool#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(address:java.net.InetSocketAddress):T"></a>
+      <a id="apply(InetSocketAddress):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ServiceClientPool.T">T</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceClientPool@apply(address:java.net.InetSocketAddress):T" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -220,23 +237,6 @@ updates and will open/close connections accordingly.</p><p>note that config will
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.ServiceClientPool@commonConfig:colossus.service.ClientConfig" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.ServiceClientPool#createClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="createClient(address:java.net.InetSocketAddress):T"></a>
-      <a id="createClient(InetSocketAddress):T"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">createClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ServiceClientPool.T">T</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClientPool@createClient(address:java.net.InetSocketAddress):T" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

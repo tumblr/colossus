@@ -66,7 +66,24 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.controller.Controller" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="colossus.controller.AliveOutputState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="AliveOutputStateextendsOutputState"></a>
+      <a id="AliveOutputState:AliveOutputState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="AliveOutputState.html"><span class="name">AliveOutputState</span></a><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@AliveOutputStateextendsOutputState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.Controller" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Controller[Input,Output]extendsCoreHandlerwithInputController[Input,Output]withOutputController[Input,Output]"></a>
       <a id="Controller[Input,Output]:Controller[Input,Output]"></a>
       <h4 class="signature">
@@ -99,7 +116,7 @@ can be thought of as a duplex stream of messages.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@ControllerConfigextendsProductwithSerializable" title="Permalink" target="_top">
@@ -279,18 +296,18 @@ stream</p><p>When pushing data into a stream, the controller has some very speci
     </span>
       
     </li><li name="colossus.controller.InvalidOutputStateException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="InvalidOutputStateException[T]extendsException"></a>
-      <a id="InvalidOutputStateException[T]:InvalidOutputStateException[T]"></a>
+      <a id="InvalidOutputStateExceptionextendsException"></a>
+      <a id="InvalidOutputStateException:InvalidOutputStateException"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="InvalidOutputStateException.html"><span class="name">InvalidOutputStateException</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+        <a href="InvalidOutputStateException.html"><span class="name">InvalidOutputStateException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@InvalidOutputStateException[T]extendsException" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@InvalidOutputStateExceptionextendsException" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -310,23 +327,6 @@ is ever thrown, there is a bug!
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@IteratorGenerator[T]extendsGenerator[T]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.controller.LiveState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="LiveStateextendsAnyRef"></a>
-      <a id="LiveState:LiveState"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="LiveState.html"><span class="name">LiveState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@LiveStateextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -425,18 +425,18 @@ handles writing both regular messages as well as streams.
     </span>
       <p class="shortcomment cmt">An ADT representing the result of a pushing a message to write</p>
     </li><li name="colossus.controller.OutputState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="OutputState[T]extendsAnyRef"></a>
-      <a id="OutputState[T]:OutputState[T]"></a>
+      <a id="OutputStateextendsAnyRef"></a>
+      <a id="OutputState:OutputState"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">sealed </span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="OutputState.html"><span class="name">OutputState</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="OutputState.html"><span class="name">OutputState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@OutputState[T]extendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@OutputStateextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -674,23 +674,6 @@ determine if the pipe is dead or not.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@InputState" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.controller.LiveState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="LiveState"></a>
-      <a id="LiveState:LiveState"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="LiveState$.html"><span class="name">LiveState</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@LiveState" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

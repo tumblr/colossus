@@ -45,7 +45,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">LoadBalancingClient</span><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>
+        <span class="name">LoadBalancingClient</span><span class="tparams">[<span name="P">P &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
       </span>
       </h4>
       
@@ -57,7 +57,7 @@ so setting maxTries to a very large number will mean that every client will
 be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>], <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>], <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -75,7 +75,7 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.LoadBalancingClient"><span>LoadBalancingClient</span></li><li class="in" name="colossus.service.ServiceClientLike"><span>ServiceClientLike</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.LoadBalancingClient"><span>LoadBalancingClient</span></li><li class="in" name="colossus.service.Sender"><span>Sender</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -95,18 +95,18 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.LoadBalancingClient#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.ServiceClient[I,O],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[I,O]"></a>
-      <a id="&lt;init&gt;:LoadBalancingClient[I,O]"></a>
+      <a id="&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.Sender[P,colossus.service.Callback],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[P]"></a>
+      <a id="&lt;init&gt;:LoadBalancingClient[P]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">LoadBalancingClient</span><span class="params">(<span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="generator">generator: (<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>) ⇒ <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>, <span name="maxTries">maxTries: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">Int.MaxValue</span></span>, <span name="initialClients">initialClients: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>] = <span class="symbol">Nil</span></span>)</span>
+        <span class="name">LoadBalancingClient</span><span class="params">(<span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>, <span name="generator">generator: (<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>) ⇒ <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>, <span name="maxTries">maxTries: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">Int.MaxValue</span></span>, <span name="initialClients">initialClients: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>] = <span class="symbol">Nil</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.ServiceClient[I,O],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@&lt;init&gt;(worker:colossus.core.WorkerRef,generator:java.net.InetSocketAddress=&gt;colossus.service.Sender[P,colossus.service.Callback],maxTries:Int,initialClients:Seq[java.net.InetSocketAddress]):colossus.service.LoadBalancingClient[P]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -116,7 +116,24 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.service.LoadBalancingClient.Send" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.service.LoadBalancingClient.Client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Client=colossus.service.Sender[P,colossus.service.Callback]"></a>
+      <a id="Client:Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Client</span><span class="result"> = <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@Client=colossus.service.Sender[P,colossus.service.Callback]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.LoadBalancingClient.Send" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SendextendsProductwithSerializable"></a>
       <a id="Send:Send"></a>
       <h4 class="signature">
@@ -125,7 +142,7 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="LoadBalancingClient$Send.html"><span class="name">Send</span></a><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.LoadBalancingClient.I">I</span></span>, <span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="LoadBalancingClient$Send.html"><span class="name">Send</span></a><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">P.Input</span></span>, <span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<span class="extype" name="colossus.service.Protocol.Output">P.Output</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.LoadBalancingClient@SendextendsProductwithSerializable" title="Permalink" target="_top">
@@ -192,18 +209,18 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#addClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addClient(address:java.net.InetSocketAddress):colossus.service.ServiceClient[I,O]"></a>
-      <a id="addClient(InetSocketAddress):ServiceClient[I,O]"></a>
+      <a id="addClient(address:java.net.InetSocketAddress):colossus.service.Sender[P,colossus.service.Callback]"></a>
+      <a id="addClient(InetSocketAddress):Sender[P,Callback]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>
+        <span class="name">addClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(address:java.net.InetSocketAddress):colossus.service.ServiceClient[I,O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(address:java.net.InetSocketAddress):colossus.service.Sender[P,colossus.service.Callback]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -266,18 +283,18 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#currentClients" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="currentClients:List[colossus.service.ServiceClient[I,O]]"></a>
-      <a id="currentClients:List[ServiceClient[I,O]]"></a>
+      <a id="currentClients:List[(java.net.InetSocketAddress,colossus.service.Sender[P,colossus.service.Callback])]"></a>
+      <a id="currentClients:List[(InetSocketAddress,Sender[P,Callback])]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">currentClients</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]]</span>
+        <span class="name">currentClients</span><span class="result">: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>, <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>])]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@currentClients:List[colossus.service.ServiceClient[I,O]]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@currentClients:List[(java.net.InetSocketAddress,colossus.service.Sender[P,colossus.service.Callback])]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -298,7 +315,7 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a> → <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a> → <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -565,40 +582,23 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
       </a>
     </span>
       
-    </li><li name="colossus.service.LoadBalancingClient#removeClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="removeClient(client:colossus.service.ServiceClient[I,O]):Unit"></a>
-      <a id="removeClient(ServiceClient[I,O]):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removeClient</span><span class="params">(<span name="client">client: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@removeClient(client:colossus.service.ServiceClient[I,O]):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.service.LoadBalancingClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="send(request:I):colossus.service.Callback[O]"></a>
-      <a id="send(I):Callback[O]"></a>
+      <a id="send(request:P#Input):colossus.service.Callback[P#Output]"></a>
+      <a id="send(P.Input):Callback[P.Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">send</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.LoadBalancingClient.I">I</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</span>
+        <span class="name">send</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">P.Input</span></span>)</span><span class="result">: <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<span class="extype" name="colossus.service.Protocol.Output">P.Output</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@send(request:I):colossus.service.Callback[O]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@send(request:P#Input):colossus.service.Callback[P#Output]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a> → <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.service.LoadBalancingClient">LoadBalancingClient</a> → <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -747,8 +747,8 @@ existing list and closing connections not in the new list
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.service.ServiceClientLike">
-              <h3>Inherited from <a href="ServiceClientLike.html" class="extype" name="colossus.service.ServiceClientLike">ServiceClientLike</a>[<span class="extype" name="colossus.service.LoadBalancingClient.I">I</span>, <span class="extype" name="colossus.service.LoadBalancingClient.O">O</span>]</h3>
+        <div class="parent" name="colossus.service.Sender">
+              <h3>Inherited from <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</h3>
             </div><div class="parent" name="colossus.core.WorkerItem">
               <h3>Inherited from <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
             </div><div class="parent" name="scala.AnyRef">

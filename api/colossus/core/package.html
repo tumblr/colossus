@@ -335,25 +335,24 @@ longer than ServerSettings.highWaterMaxIdleTime will be reaped.  It does this
 in an effort to free up space.</p><p>The Server will return back to its normal state when the connection ratio
 recedes past the lowWater mark.
 </p></div></div>
-    </li><li name="colossus.core.Context" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ContextextendsProductwithSerializable"></a>
+    </li><li name="colossus.core.Context" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContextextendsAnyRef"></a>
       <a id="Context:Context"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">case class</span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Context.html"><span class="name">Context</span></a><span class="params">(<span name="id">id: <span class="extype" name="scala.Long">Long</span></span>, <span name="worker">worker: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="Context.html"><span class="name">Context</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ContextextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.package@ContextextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Represents the binding of an item to a worker
-</p><div class="fullcomment"><div class="comment cmt"><p>Represents the binding of an item to a worker
-</p></div><dl class="paramcmts block"><dt class="param">id</dt><dd class="cmt"><p>the id used to reference the worker item</p></dd><dt class="param">worker</dt><dd class="cmt"><p>the worker the item is bound to</p></dd></dl></div>
+</p>
     </li><li name="colossus.core.CoreHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="CoreHandlerextendsWorkerItemwithConnectionHandler"></a>
       <a id="CoreHandler:CoreHandler"></a>
@@ -414,7 +413,7 @@ implementing the ConnectionHandler trait
       <p class="shortcomment cmt">A thin wrapper around a NIO ByteBuffer with data to read</p><div class="fullcomment"><div class="comment cmt"><p>A thin wrapper around a NIO ByteBuffer with data to read</p><p>DataBuffers are the primary way that data is read from and written to a
 connection.  DataBuffers are mutable and not thread safe.  They can only be
 read from once and cannot be reset.</p></div></div>
-    </li><li name="colossus.core.DataOutBuffer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.DataOutBuffer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="DataOutBufferextendsAnyRef"></a>
       <a id="DataOutBuffer:DataOutBuffer"></a>
       <h4 class="signature">
@@ -430,7 +429,13 @@ read from once and cannot be reset.</p></div></div>
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">The DataOutBuffer is a ConnectionHandler's interface for writing data out to
+the connection.</p><div class="fullcomment"><div class="comment cmt"><p>The DataOutBuffer is a ConnectionHandler's interface for writing data out to
+the connection.  DataOutBuffers support a &quot;soft&quot; overflow, which means it
+will dynamically allocate more space as needed, but is based off a
+fixed-length base size.  The idea is that writing should stop as soon as the
+overflow is hit, but it is not a requirement.
+</p></div></div>
     </li><li name="colossus.core.DataReader" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="DataReaderextendsAnyRef"></a>
       <a id="DataReader:DataReader"></a>
@@ -669,6 +674,23 @@ process and bind to another connection
       </a>
     </span>
       <p class="shortcomment cmt">Simple class which contains parameters for configuring a polling operation</p><div class="fullcomment"><div class="comment cmt"><p>Simple class which contains parameters for configuring a polling operation</p></div><dl class="paramcmts block"><dt class="param">interval</dt><dd class="cmt"><p>The interval of the poll</p></dd><dt class="param">maximumTries</dt><dd class="cmt"><p>The number of times to execute the poll</p></dd></dl></div>
+    </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ProxyActorextendsAnyRef"></a>
+      <a id="ProxyActor:ProxyActor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ProxyActor.html"><span class="name">ProxyActor</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ProxyActorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.ServerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServerConfigextendsProductwithSerializable"></a>
       <a id="ServerConfig:ServerConfig"></a>
@@ -993,6 +1015,23 @@ context must be transferred
     </span>
       <p class="shortcomment cmt">This keeps track of all the bound worker items, and properly handles added/removing them
 </p>
+    </li><li name="colossus.core.WorkerItemProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WorkerItemProxyextendsActor"></a>
+      <a id="WorkerItemProxy:WorkerItemProxy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItemProxy.html"><span class="name">WorkerItemProxy</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemProxyextendsActor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.WorkerRef" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="WorkerRefextendsProductwithSerializable"></a>
       <a id="WorkerRef:WorkerRef"></a>
@@ -1191,6 +1230,23 @@ connection.  Services wrap this
       </a>
     </span>
       
+    </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ProxyActor"></a>
+      <a id="ProxyActor:ProxyActor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ProxyActor$.html"><span class="name">ProxyActor</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ProxyActor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.Server" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Server"></a>
       <a id="Server:Server"></a>
@@ -1301,6 +1357,23 @@ respond to java NIO select loop events and execute the corresponding reactors in
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@WorkerCommand" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.WorkerItemProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WorkerItemProxy"></a>
+      <a id="WorkerItemProxy:WorkerItemProxy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WorkerItemProxy$.html"><span class="name">WorkerItemProxy</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WorkerItemProxy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

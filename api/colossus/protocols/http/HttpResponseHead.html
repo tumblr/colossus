@@ -28,10 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Class" src="../../../lib/class_big.png" />
+        <a href="HttpResponseHead$.html" title="See companion object"><img alt="Class/Object" src="../../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.http">http</a></p>
-        <h1>HttpResponseHead</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
+        <h1><a href="HttpResponseHead$.html" title="See companion object">HttpResponseHead</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="HttpResponseHead$.html" title="See companion object">object HttpResponseHead</a>
+            | <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
           </div></span></h3><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.HttpResponseHead" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
@@ -45,7 +47,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpResponseHead</span><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>, <span name="code">code: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>, <span name="headers">headers: <span class="extype" name="scala.Vector">Vector</span>[<a href="HttpResponseHeader.html" class="extype" name="colossus.protocols.http.HttpResponseHeader">HttpResponseHeader</a>] = <span class="symbol">Vector()</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">HttpResponseHead</span><span class="params">(<span name="fl">fl: <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a></span>, <span name="headers">headers: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -89,7 +91,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.http.HttpResponseHead#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(version:colossus.protocols.http.HttpVersion,code:colossus.protocols.http.HttpCode,headers:Vector[colossus.protocols.http.HttpResponseHeader]):colossus.protocols.http.HttpResponseHead"></a>
+      <a id="&lt;init&gt;(fl:colossus.protocols.http.ResponseFL,headers:colossus.protocols.http.HttpHeaders):colossus.protocols.http.HttpResponseHead"></a>
       <a id="&lt;init&gt;:HttpResponseHead"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +99,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpResponseHead</span><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>, <span name="code">code: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>, <span name="headers">headers: <span class="extype" name="scala.Vector">Vector</span>[<a href="HttpResponseHeader.html" class="extype" name="colossus.protocols.http.HttpResponseHeader">HttpResponseHeader</a>] = <span class="symbol">Vector()</span></span>)</span>
+        <span class="name">HttpResponseHead</span><span class="params">(<span name="fl">fl: <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a></span>, <span name="headers">headers: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@&lt;init&gt;(version:colossus.protocols.http.HttpVersion,code:colossus.protocols.http.HttpCode,headers:Vector[colossus.protocols.http.HttpResponseHeader]):colossus.protocols.http.HttpResponseHead" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@&lt;init&gt;(fl:colossus.protocols.http.ResponseFL,headers:colossus.protocols.http.HttpHeaders):colossus.protocols.http.HttpResponseHead" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -211,30 +213,13 @@
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">code</span><span class="result">: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@code:colossus.protocols.http.HttpCode" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.http.HttpResponseHead#contentLength" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="contentLength:Option[Int]"></a>
-      <a id="contentLength:Option[Int]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">contentLength</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@contentLength:Option[Int]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -296,6 +281,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpResponseHead#fl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fl:colossus.protocols.http.ResponseFL"></a>
+      <a id="fl:ResponseFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fl</span><span class="result">: <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@fl:colossus.protocols.http.ResponseFL" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -314,18 +316,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.protocols.http.HttpResponseHead#headers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="headers:Vector[colossus.protocols.http.HttpResponseHeader]"></a>
-      <a id="headers:Vector[HttpResponseHeader]"></a>
+      <a id="headers:colossus.protocols.http.HttpHeaders"></a>
+      <a id="headers:HttpHeaders"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">headers</span><span class="result">: <span class="extype" name="scala.Vector">Vector</span>[<a href="HttpResponseHeader.html" class="extype" name="colossus.protocols.http.HttpResponseHeader">HttpResponseHeader</a>]</span>
+        <span class="name">headers</span><span class="result">: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@headers:Vector[colossus.protocols.http.HttpResponseHeader]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@headers:colossus.protocols.http.HttpHeaders" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -415,30 +417,13 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpResponseHead#transferEncoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="transferEncoding:colossus.protocols.http.TransferEncoding"></a>
-      <a id="transferEncoding:TransferEncoding"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">transferEncoding</span><span class="result">: <a href="TransferEncoding.html" class="extype" name="colossus.protocols.http.TransferEncoding">TransferEncoding</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpResponseHead@transferEncoding:colossus.protocols.http.TransferEncoding" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.protocols.http.HttpResponseHead#version" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="version:colossus.protocols.http.HttpVersion"></a>
       <a id="version:HttpVersion"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">version</span><span class="result">: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>

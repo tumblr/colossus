@@ -49,7 +49,12 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The DataOutBuffer is a ConnectionHandler's interface for writing data out to
+the connection.  DataOutBuffers support a &quot;soft&quot; overflow, which means it
+will dynamically allocate more space as needed, but is based off a
+fixed-length base size.  The idea is that writing should stop as soon as the
+overflow is hit, but it is not a requirement.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
@@ -95,40 +100,23 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.core.DataOutBuffer#available" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="available:Long"></a>
-      <a id="available:Long"></a>
+              <ol><li name="colossus.core.DataOutBuffer#copyDestination" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="copyDestination(bytesNeeded:Long):java.nio.ByteBuffer"></a>
+      <a id="copyDestination(Long):ByteBuffer"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">available</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+        <span class="name">copyDestination</span><span class="params">(<span name="bytesNeeded">bytesNeeded: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@available:Long" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.DataOutBuffer@copyDestination(bytesNeeded:Long):java.nio.ByteBuffer" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.DataOutBuffer#data" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="data:colossus.core.DataBuffer"></a>
-      <a id="data:DataBuffer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">data</span><span class="result">: <a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@data:colossus.core.DataBuffer" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="colossus.core.DataOutBuffer#isOverflowed" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="isOverflowed:Boolean"></a>
       <a id="isOverflowed:Boolean"></a>
@@ -146,93 +134,6 @@
       </a>
     </span>
       
-    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="write(byte:Byte):Unit"></a>
-      <a id="write(Byte):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="byte">byte: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@write(byte:Byte):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="write(bytes:Array[Byte],offset:Int,length:Int):Unit"></a>
-      <a id="write(Array[Byte],Int,Int):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>, <span name="offset">offset: <span class="extype" name="scala.Int">Int</span></span>, <span name="length">length: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:Array[Byte],offset:Int,length:Int):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="write(bytes:Array[Byte]):Unit"></a>
-      <a id="write(Array[Byte]):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:Array[Byte]):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="write(bytes:akka.util.ByteString):Unit"></a>
-      <a id="write(ByteString):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:akka.util.ByteString):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Attempt to write the entire contents of bytes into this buffer.</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to write the entire contents of bytes into this buffer.  If there
-is not enough available space an exeption is thrown
-</p></div></div>
-    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="write(src:colossus.core.DataBuffer):Unit"></a>
-      <a id="write(DataBuffer):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">write</span><span class="params">(<span name="src">src: <a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.DataOutBuffer@write(src:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Copy as much as <code>src</code> into this buffer as possible.</p>
     </li></ol>
             </div>
 
@@ -591,6 +492,125 @@ is not enough available space an exeption is thrown
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(char:Char):Unit"></a>
+      <a id="write(Char):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="char">char: <span class="extype" name="scala.Char">Char</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(char:Char):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(byte:Byte):Unit"></a>
+      <a id="write(Byte):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="byte">byte: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(byte:Byte):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(bytes:Array[Byte],offset:Int,length:Int):Unit"></a>
+      <a id="write(Array[Byte],Int,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>, <span name="offset">offset: <span class="extype" name="scala.Int">Int</span></span>, <span name="length">length: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:Array[Byte],offset:Int,length:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(bytes:Array[Byte]):Unit"></a>
+      <a id="write(Array[Byte]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:Array[Byte]):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(bytes:akka.util.ByteString):Unit"></a>
+      <a id="write(ByteString):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(bytes:akka.util.ByteString):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(from:colossus.core.DataBuffer):Unit"></a>
+      <a id="write(DataBuffer):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="from">from: <a href="DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(from:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataOutBuffer#write" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="write(from:java.nio.ByteBuffer):Unit"></a>
+      <a id="write(ByteBuffer):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="from">from: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.DataOutBuffer@write(from:java.nio.ByteBuffer):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li></ol>
             </div>
 

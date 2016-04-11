@@ -92,70 +92,23 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.controller.OutputState.Alive" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Alive[T]extendsOutputState[T]withProductwithSerializable"></a>
-      <a id="Alive[T]:Alive[T]"></a>
+              <ol><li name="colossus.controller.OutputState.Streaming" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingextendsAliveOutputStatewithProductwithSerializable"></a>
+      <a id="Streaming:Streaming"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="OutputState$$Alive.html"><span class="name">Alive</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="msgQ">msgQ: <a href="MessageQueue.html" class="extype" name="colossus.controller.MessageQueue">MessageQueue</a>[<span class="extype" name="colossus.controller.OutputState.Alive.T">T</span>]</span>, <span name="liveState">liveState: <a href="LiveState.html" class="extype" name="colossus.controller.LiveState">LiveState</a></span>, <span name="disconnecting">disconnecting: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="writesEnabled">writesEnabled: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a>[<span class="extype" name="colossus.controller.OutputState.Alive.T">T</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="OutputState$$Streaming.html"><span class="name">Streaming</span></a><span class="params">(<span name="source">source: <a href="Source.html" class="extype" name="colossus.controller.Source">Source</a>[<a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a>]</span>, <span name="dataQ">dataQ: <a href="DataQueue.html" class="extype" name="colossus.controller.DataQueue">DataQueue</a></span>, <span name="post">post: <a href="QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result"> extends <a href="AliveOutputState.html" class="extype" name="colossus.controller.AliveOutputState">AliveOutputState</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.OutputState$@Alive[T]extendsOutputState[T]withProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.OutputState$@StreamingextendsAliveOutputStatewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The normal state for the output controller.</p><div class="fullcomment"><div class="comment cmt"><p>The normal state for the output controller.  This state is largely
-independant of the underlying connection state.  Even if a connection has
-been severed, the output controller may remain in the alive state,
-especially if this is a client connection that is attempting to reconnect.
-</p></div><dl class="paramcmts block"><dt class="param">msgQ</dt><dd class="cmt"><p>The list of messages pending to be sent</p></dd><dt class="param">disconnecting</dt><dd class="cmt"><p>if true we allow currently enqueued messages to drain but not accept new messages, when queues are drained disconnect</p></dd><dt class="param">writesEnabled</dt><dd class="cmt"><p>set by the user, if false new messages are always buffered to msgQ</p></dd></dl></div>
-    </li><li name="colossus.controller.OutputState.Suspended" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Suspended[T]extendsOutputState[T]withProductwithSerializable"></a>
-      <a id="Suspended[T]:Suspended[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="OutputState$$Suspended.html"><span class="name">Suspended</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="msgQ">msgQ: <a href="MessageQueue.html" class="extype" name="colossus.controller.MessageQueue">MessageQueue</a>[<span class="extype" name="colossus.controller.OutputState.Suspended.T">T</span>]</span>)</span><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a>[<span class="extype" name="colossus.controller.OutputState.Suspended.T">T</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.OutputState$@Suspended[T]extendsOutputState[T]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The suspended state occurs when the controller is currently not able to
-send messages, but is expected to in the future.</p><div class="fullcomment"><div class="comment cmt"><p>The suspended state occurs when the controller is currently not able to
-send messages, but is expected to in the future.  This occurs primarily
-when the connection is being established or when an unexpected disconnect
-has occurred.  In these cases, the output controller is still able to
-buffer messages.</p><p>This is the initial state of the output controller
-</p></div></div>
-    </li><li name="colossus.controller.OutputState.Terminated" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Terminated[T]extendsOutputState[T]withProductwithSerializable"></a>
-      <a id="Terminated[T]:Terminated[T]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="OutputState$$Terminated.html"><span class="name">Terminated</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">()</span><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a>[<span class="extype" name="colossus.controller.OutputState.Terminated.T">T</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.OutputState$@Terminated[T]extendsOutputState[T]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">In this state, the controller is effectively disabled.</p><div class="fullcomment"><div class="comment cmt"><p>In this state, the controller is effectively disabled.  This generally
-only occurs once the underlying connection has been manually disconnected,
-and this controller no longer intends to be used.
-</p></div></div>
+      
     </li></ol>
             </div>
 
@@ -214,6 +167,57 @@ and this controller no longer intends to be used.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.controller.OutputState.Dequeueing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Dequeueing"></a>
+      <a id="Dequeueing:Dequeueing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OutputState$$Dequeueing$.html"><span class="name">Dequeueing</span></a><span class="result"> extends <a href="AliveOutputState.html" class="extype" name="colossus.controller.AliveOutputState">AliveOutputState</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.OutputState$@Dequeueing" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.OutputState.Suspended" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Suspended"></a>
+      <a id="Suspended:Suspended"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OutputState$$Suspended$.html"><span class="name">Suspended</span></a><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.OutputState$@Suspended" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.OutputState.Terminated" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Terminated"></a>
+      <a id="Terminated:Terminated"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OutputState$$Terminated$.html"><span class="name">Terminated</span></a><span class="result"> extends <a href="OutputState.html" class="extype" name="colossus.controller.OutputState">OutputState</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.OutputState$@Terminated" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>

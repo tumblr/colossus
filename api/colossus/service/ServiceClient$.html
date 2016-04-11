@@ -148,52 +148,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.ServiceClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[D&lt;:colossus.service.CodecDSL](address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]"></a>
-      <a id="apply[D&lt;:CodecDSL](InetSocketAddress,Duration)(ClientCodecProvider[D],WorkerRef):ServiceClient[ServiceClient.apply.D.Input,ServiceClient.apply.D.Output]"></a>
+      <a id="apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,colossus.service.Callback,colossus.service.ServiceClient[C],colossus.core.WorkerRef]"></a>
+      <a id="apply[C&lt;:Protocol]:ClientFactory[C,Callback,ServiceClient[C],WorkerRef]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="D">D &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ServiceClient.apply.D">D</span>]</span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.CodecDSL.Input">ServiceClient.apply.D.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">ServiceClient.apply.D.Output</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result">: <a href="ClientFactory.html" class="extype" name="colossus.service.ClientFactory">ClientFactory</a>[<span class="extype" name="colossus.service.ServiceClient.apply.C">C</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>, <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.ServiceClient.apply.C">C</span>], <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClient$@apply[D&lt;:colossus.service.CodecDSL](address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.ServiceClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[D&lt;:colossus.service.CodecDSL](host:String,port:Int,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]"></a>
-      <a id="apply[D&lt;:CodecDSL](String,Int,Duration)(ClientCodecProvider[D],WorkerRef):ServiceClient[ServiceClient.apply.D.Input,ServiceClient.apply.D.Output]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="D">D &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">1.second</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ServiceClient.apply.D">D</span>]</span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.CodecDSL.Input">ServiceClient.apply.D.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">ServiceClient.apply.D.Output</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClient$@apply[D&lt;:colossus.service.CodecDSL](host:String,port:Int,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.ServiceClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[D&lt;:colossus.service.CodecDSL](config:colossus.service.ClientConfig)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]"></a>
-      <a id="apply[D&lt;:CodecDSL](ClientConfig)(ClientCodecProvider[D],WorkerRef):ServiceClient[ServiceClient.apply.D.Input,ServiceClient.apply.D.Output]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="D">D &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ServiceClient.apply.D">D</span>]</span>, <span name="worker">worker: <a href="../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>)</span><span class="result">: <a href="ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>[<span class="extype" name="colossus.service.CodecDSL.Input">ServiceClient.apply.D.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">ServiceClient.apply.D.Output</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceClient$@apply[D&lt;:colossus.service.CodecDSL](config:colossus.service.ClientConfig)(implicitprovider:colossus.service.ClientCodecProvider[D],implicitworker:colossus.core.WorkerRef):colossus.service.ServiceClient[D#Input,D#Output]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceClient$@apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,colossus.service.Callback,colossus.service.ServiceClient[C],colossus.core.WorkerRef]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

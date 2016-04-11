@@ -45,7 +45,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">CodecProvider</span><span class="tparams">[<span name="C">C &lt;: <a href="CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">CodecProvider</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
@@ -54,7 +54,7 @@
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../protocols/http/package$$DefaultHttpProvider$.html" class="extype" name="colossus.protocols.http.DefaultHttpProvider">DefaultHttpProvider</a>, <a href="../protocols/http/package$$HttpProvider.html" class="extype" name="colossus.protocols.http.HttpProvider">HttpProvider</a>, <a href="../protocols/redis/package$$RedisCodecProvider$.html" class="extype" name="colossus.protocols.redis.RedisCodecProvider">RedisCodecProvider</a>, <a href="../protocols/http/package$$StreamingHttpProvider$.html" class="extype" name="colossus.protocols.http.StreamingHttpProvider">StreamingHttpProvider</a>, <a href="../protocols/telnet/package$$TelnetProvider$.html" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a>, <a href="../protocols/websocket/package$$WebsocketCodecProvider$.html" class="extype" name="colossus.protocols.websocket.WebsocketCodecProvider">WebsocketCodecProvider</a></div>
+            <div class="subClasses hiddenContent"><a href="../protocols/http/package$$Http$$ServerDefaults.html" class="extype" name="colossus.protocols.http.Http.ServerDefaults">ServerDefaults</a>, <a href="../protocols/http/package$$StreamingHttpProvider$.html" class="extype" name="colossus.protocols.http.StreamingHttpProvider">StreamingHttpProvider</a>, <a href="../protocols/telnet/package$$TelnetProvider$.html" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a>, <a href="../protocols/websocket/package$$WebsocketCodecProvider$.html" class="extype" name="colossus.protocols.websocket.WebsocketCodecProvider">WebsocketCodecProvider</a></div>
           </div></div>
         
 
@@ -104,7 +104,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span></span>
+        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">C.Input</span></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.Protocol.Output">C.Output</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.CodecProvider@errorResponse(request:C#Input,reason:Throwable):C#Output" title="Permalink" target="_top">
@@ -121,7 +121,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">provideCodec</span><span class="params">()</span><span class="result">: <a href="Codec$.html#ServerCodec[Request,Response]=colossus.service.Codec[Response,Request]" class="extmbr" name="colossus.service.Codec.ServerCodec">ServerCodec</a>[<span class="extype" name="colossus.service.CodecDSL.Input">C.Input</span>, <span class="extype" name="colossus.service.CodecDSL.Output">C.Output</span>]</span>
+        <span class="name">provideCodec</span><span class="params">()</span><span class="result">: <a href="Codec$.html#ServerCodec[Request,Response]=colossus.service.Codec[Response,Request]" class="extmbr" name="colossus.service.Codec.ServerCodec">ServerCodec</a>[<span class="extype" name="colossus.service.Protocol.Input">C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">C.Output</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.CodecProvider@provideCodec():colossus.service.Codec.ServerCodec[C#Input,C#Output]" title="Permalink" target="_top">

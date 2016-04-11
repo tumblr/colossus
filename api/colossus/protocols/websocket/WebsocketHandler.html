@@ -129,6 +129,25 @@
       </a>
     </span>
       
+    </li><li name="colossus.core.WorkerItem#receivedMessage" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHandler@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -904,25 +923,6 @@ whether a message should be pushed based on connection state.
       </a>
     </span>
       <p class="shortcomment cmt">Handler which is called when data is received from a Connection.</p><div class="fullcomment"><div class="comment cmt"><p>Handler which is called when data is received from a Connection.</p></div><dl class="paramcmts block"><dt class="param">data</dt><dd class="cmt"><p>DataBuffer read from the underlying Connection.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a> → <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
-    </li><li name="colossus.protocols.websocket.WebsocketHandler#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
-      <a id="receivedMessage(Any,ActorRef):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHandler@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
-WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
-WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a> → <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.controller.InputController#resumeReads" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="resumeReads():Unit"></a>
       <a id="resumeReads():Unit"></a>

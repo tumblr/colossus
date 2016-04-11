@@ -123,7 +123,7 @@
     </span>
       
     </li><li name="colossus.protocols.memcache.Memcache" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="MemcacheextendsCodecDSL"></a>
+      <a id="MemcacheextendsProtocol"></a>
       <a id="Memcache:Memcache"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -131,33 +131,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="package$$Memcache.html"><span class="name">Memcache</span></a><span class="result"> extends <a href="../../service/CodecDSL.html" class="extype" name="colossus.service.CodecDSL">CodecDSL</a></span>
+        <a href="package$$Memcache.html"><span class="name">Memcache</span></a><span class="result"> extends <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheextendsCodecDSL" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheCallbackClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MemcacheCallbackClientextendspackage.MemcacheClient[colossus.service.Callback]withCallbackResponseAdapter[colossus.protocols.memcache.package.Memcache]"></a>
-      <a id="MemcacheCallbackClient:MemcacheCallbackClient"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$MemcacheCallbackClient.html"><span class="name">MemcacheCallbackClient</span></a><span class="result"> extends <a href="package$$MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>[<a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>] with <a href="../../service/CallbackResponseAdapter.html" class="extype" name="colossus.service.CallbackResponseAdapter">CallbackResponseAdapter</a>[<a href="package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheCallbackClientextendspackage.MemcacheClient[colossus.service.Callback]withCallbackResponseAdapter[colossus.protocols.memcache.package.Memcache]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheextendsProtocol" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="colossus.protocols.memcache.MemcacheClient" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="MemcacheClient[M[_]]extendsAnyRef"></a>
+      <a id="MemcacheClient[M[_]]extendsLiftedClient[colossus.protocols.memcache.Memcache,M]"></a>
       <a id="MemcacheClient[M[_]]:MemcacheClient[M]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -165,10 +148,10 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="package$$MemcacheClient.html"><span class="name">MemcacheClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="MemcacheClient.html"><span class="name">MemcacheClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a>, <span class="extype" name="colossus.protocols.memcache.MemcacheClient.M">M</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheClient[M[_]]extendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheClient[M[_]]extendsLiftedClient[colossus.protocols.memcache.Memcache,M]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -277,23 +260,6 @@ with what the <a href="MemcacheReply.html" class="extype" name="colossus.protoco
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheFutureClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MemcacheFutureClientextendspackage.MemcacheClient[scala.concurrent.Future]withFutureResponseAdapter[colossus.protocols.memcache.package.Memcache]"></a>
-      <a id="MemcacheFutureClient:MemcacheFutureClient"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$MemcacheFutureClient.html"><span class="name">MemcacheFutureClient</span></a><span class="result"> extends <a href="package$$MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>[<span class="extype" name="scala.concurrent.Future">Future</span>] with <a href="../../service/FutureResponseAdapter.html" class="extype" name="colossus.service.FutureResponseAdapter">FutureResponseAdapter</a>[<a href="package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheFutureClientextendspackage.MemcacheClient[scala.concurrent.Future]withFutureResponseAdapter[colossus.protocols.memcache.package.Memcache]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -426,7 +392,7 @@ with what the <a href="MemcacheReply.html" class="extype" name="colossus.protoco
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="package$$UnexpectedMemcacheReplyException.html"><span class="name">UnexpectedMemcacheReplyException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="UnexpectedMemcacheReplyException.html"><span class="name">UnexpectedMemcacheReplyException</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.package@UnexpectedMemcacheReplyExceptionextendsExceptionwithProductwithSerializable" title="Permalink" target="_top">
@@ -458,7 +424,24 @@ with what the <a href="MemcacheReply.html" class="extype" name="colossus.protoco
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="colossus.protocols.memcache.MemcacheClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.protocols.memcache.Memcache" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Memcache"></a>
+      <a id="Memcache:Memcache"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Memcache$.html"><span class="name">Memcache</span></a><span class="result"> extends <a href="../../service/ClientFactories.html" class="extype" name="colossus.service.ClientFactories">ClientFactories</a>[<a href="package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a>, <a href="MemcacheClient.html" class="extype" name="colossus.protocols.memcache.MemcacheClient">MemcacheClient</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.memcache.package@Memcache" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.memcache.MemcacheClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MemcacheClient"></a>
       <a id="MemcacheClient:MemcacheClient"></a>
       <h4 class="signature">
@@ -467,27 +450,10 @@ with what the <a href="MemcacheReply.html" class="extype" name="colossus.protoco
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="package$$MemcacheClient$.html"><span class="name">MemcacheClient</span></a>
+        <a href="MemcacheClient$.html"><span class="name">MemcacheClient</span></a>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheClient" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.memcache.MemcacheClientProvider" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MemcacheClientProvider"></a>
-      <a id="MemcacheClientProvider:MemcacheClientProvider"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$MemcacheClientProvider$.html"><span class="name">MemcacheClientProvider</span></a><span class="result"> extends <a href="../../service/ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<a href="package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.memcache.package@MemcacheClientProvider" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
