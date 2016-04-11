@@ -125,6 +125,9 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |   }
         |  }
         |}
+        |mypath.config-rate{
+        |  prune-empty : false
+        |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
@@ -150,6 +153,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val r = Rate(MetricAddress("/some-rate"), enabled = false)
       r mustBe a[NopRate]
     }
+    "use a MetricAddress as the primary config source" in {
+      val r = Rate(MetricAddress("config-rate"))
+      r.pruneEmpty mustBe false
+    }
   }
 
   "Histogram initialization" must {
@@ -171,6 +178,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |    sample-rate : 1
         |   }
         |  }
+        |}
+        |mypath.config-hist{
+        |  sample-rate : .33
+        |  percentiles : [.25]
         |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
@@ -203,6 +214,11 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       val r = Histogram(MetricAddress("/some-hist"), enabled = false)
       r mustBe a[NopHistogram]
     }
+    "use a MetricAddress as the primary config source" in {
+      val r = Histogram(MetricAddress("config-hist"))
+      r.sampleRate mustBe 0.33
+      r.percentiles mustBe Seq(0.25)
+    }
   }
 
   "Counter initialization" must {
@@ -213,6 +229,9 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  off-counter{
         |    enabled : false
         |  }
+        |}
+        |config-counter{
+        |  enabled : false
         |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
@@ -234,6 +253,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
 
     "load a NopCounter when the 'enabled' flag is set" in {
       val r = Counter(MetricAddress("/some-counter"), enabled = false)
+      r mustBe a[NopCounter]
+    }
+    "use a MetricAddress as the primary config source" in {
+      val r = Counter(MetricAddress("config-counter"))
       r mustBe a[NopCounter]
     }
   }
