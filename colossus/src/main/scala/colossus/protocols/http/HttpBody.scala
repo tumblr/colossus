@@ -2,6 +2,7 @@ package colossus
 package protocols.http
 
 import akka.util.ByteString
+import scala.util.Try
 
 class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeader] = None)  {
 
@@ -12,6 +13,8 @@ class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeade
   }
 
   def bytes: ByteString = ByteString(body)
+
+  def as[T](implicit decoder: HttpBodyDecoder[T]): Try[T] = decoder.decode(body)
 
   override def equals(that: Any) = that match {
     case that: HttpBody => that.bytes == this.bytes
@@ -25,6 +28,37 @@ class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeade
   def withContentType(contentType: String) = withContentTypeHeader(HttpHeader("Content-Type", contentType))
 
   def withContentTypeHeader(header: HttpHeader) = new HttpBody(body, Some(header))
+
+}
+
+/**
+ * A Typeclass to decode a raw http body into some specific type
+ */
+trait HttpBodyDecoder[T] {
+
+  //maybe somehow incorporate checking the content-type header?
+
+  def decode(body: Array[Byte]): Try[T]
+
+}
+
+trait HttpBodyDecoders {
+
+  implicit object StringDecoder extends HttpBodyDecoder[String] {
+    def decode(body: Array[Byte]) = Try {
+      new String(body)
+    }
+  }
+
+  implicit object ByteStringDecoder extends HttpBodyDecoder[ByteString] {
+    def decode(body: Array[Byte]) = Try {
+      ByteString(body)
+    }
+  }
+
+  implicit object ArrayDecoder extends HttpBodyDecoder[Array[Byte]] {
+    def decode(body: Array[Byte]) = Try { body }
+  }
 
 }
 
