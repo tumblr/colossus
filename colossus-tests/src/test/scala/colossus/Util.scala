@@ -88,7 +88,7 @@ object TestClient {
       failFast = true,
       connectRetry = connectRetry
     )
-    val client = AsyncServiceClient[Raw](config)(io, RawClientCodecProvider)
+    val client = AsyncServiceClient[Raw](config)(RawClientCodecProvider, io)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

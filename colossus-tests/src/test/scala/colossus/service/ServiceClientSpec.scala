@@ -301,7 +301,7 @@ class ServiceClientSpec extends ColossusSpec {
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
-    "not attempt reconnect if connection is lost during graceful disconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "not attempt reconnect if connection is lost during graceful disconnect" in {
       val cmd1 = Command(CMD_GET, "foo")
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
@@ -404,6 +404,28 @@ class ServiceClientSpec extends ColossusSpec {
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }
       }
+    }
+
+    "not try to reconnect if disconnect is called while failing to connect" taggedAs(org.scalatest.Tag("test")) in {
+      val fakeWorker = FakeIOSystem.fakeWorker
+      implicit val w = fakeWorker.worker
+      val client = ServiceClient[Raw]("localhost", TEST_PORT)
+
+      fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
+      client.setBind()
+      fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
+
+      client.connectionTerminated(DisconnectCause.ConnectFailed(new Exception("HI!!")))
+      fakeWorker.probe.expectMsgType[WorkerCommand.Schedule](50.milliseconds)
+
+      client.disconnect()
+      //no disconnect message is sent because it's not connected
+      fakeWorker.probe.expectNoMsg(50.milliseconds)
+
+      client.connectionTerminated(DisconnectCause.ConnectFailed(new Exception("HI!!")))
+      fakeWorker.probe.expectMsg(50.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
+      fakeWorker.probe.expectNoMsg(50.milliseconds)
+
     }
 
     "shutdown the connection when an in-flight request times out" in {

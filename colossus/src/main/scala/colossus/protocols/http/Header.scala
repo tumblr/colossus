@@ -200,9 +200,13 @@ class HttpHeaders(private val headers: JList[HttpHeader]) {
 
   def connection: Option[Connection] = firstValue(HttpHeaders.Connection).flatMap(Connection.unapply)
 
-  def + (kv: (String, String)) = {
+  def + (kv: (String, String)): HttpHeaders = {
     val n = HttpHeader(kv._1, kv._2)
-    HttpHeaders.fromSeq(toSeq :+ n)
+    this + n
+  }
+
+  def + (header: HttpHeader): HttpHeaders = {
+    HttpHeaders.fromSeq(toSeq :+ header)
   }
 
   def size = headers.size

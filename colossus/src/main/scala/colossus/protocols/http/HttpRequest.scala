@@ -32,8 +32,29 @@ case class BuildFL(method: HttpMethod, path: String, version: HttpVersion) exten
   }
 }
 
+case class BuiltHead(firstLine: BuildFL, headers: HttpHeaders) extends HttpRequestHead
 
-case class HttpRequestHead(firstLine: FirstLine, headers: HttpHeaders) extends Encoder {
+case class ParsedHead(firstLine: ParsedFL, headers: HttpHeaders) extends HttpRequestHead
+
+trait HttpRequestHead extends Encoder {
+  def firstLine: FirstLine
+  def headers: HttpHeaders
+
+  def copy(
+    method  : HttpMethod  = firstLine.method, 
+    path    : String      = firstLine.path,
+    version : HttpVersion = firstLine.version,
+    headers : HttpHeaders = headers
+  ): HttpRequestHead = {
+    BuiltHead(BuildFL(method, path, version), headers)
+  }
+
+  override def hashCode = firstLine.hashCode + headers.hashCode
+
+  override def equals(that: Any) = that match {
+    case that : HttpRequestHead => this.firstLine == that.firstLine && this.headers == that.headers
+    case _ => false
+  }
 
   lazy val method = firstLine.method
   lazy val url = firstLine.path
@@ -84,14 +105,18 @@ case class HttpRequestHead(firstLine: FirstLine, headers: HttpHeaders) extends E
 object HttpRequestHead {
   
   def apply(method: HttpMethod, url: String, version: HttpVersion, headers: HttpHeaders): HttpRequestHead = {
-    HttpRequestHead(BuildFL(method, url, version), headers)
-
+    BuiltHead(BuildFL(method, url, version), headers)
   }
+
 }
 
-case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder {
+case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder with HttpRequestBuilding[HttpRequest] {
   import head._
   import HttpCodes._
+
+  protected def current = this
+
+  protected def next(req: HttpRequest) = req
 
   def respond[T : HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
     HttpResponse(HttpResponseHead(version, code, headers), HttpBody(data))
@@ -116,13 +141,53 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder {
       
   }
 
-  def withHeader(key: String, value: String) = copy(head = head.withHeader(key, value))
 }
 
-object HttpRequest {
+trait HttpRequestBuilding[T] {
+
+  protected def current: HttpRequest
+
+  protected def next(req: HttpRequest): T
+
+  protected def transformHead(f: HttpRequestHead => HttpRequestHead): T = next(current.copy(head = f(current.head)))
+
+
+  def withHeader(header: HttpHeader): T = transformHead(_.copy(headers = (current.head.headers + header)))
+
+  def withHeader(key: String, value: String): T = withHeader(HttpHeader(key, value))
+
+  def withPath(path: String): T = transformHead(_.copy(path = path))
+
+  def withMethod(method: HttpMethod): T = transformHead(_.copy(method = method))
+
+  def withVersion(version: HttpVersion) : T = transformHead(_.copy(version = version))
+
+  def withBody(body: HttpBody): T = next(current.copy(body = body))
+
+}
+
+trait HttpRequestBuilder[T] {
+
+  def base: HttpRequest
+
+  protected def build(f: HttpRequest): T
+
+  def startMethod(method: HttpMethod, path: String) = build(base.withMethod(method).withPath(path))
+
+  def get(path: String)    : T = startMethod(HttpMethod.Get, path)
+  def post(path: String)   : T = startMethod(HttpMethod.Post, path)
+  def put(path: String)    : T = startMethod(HttpMethod.Put, path)
+  def delete(path: String) : T = startMethod(HttpMethod.Delete, path)
+}
+
+object HttpRequest extends HttpRequestBuilder[HttpRequest]{
+
+  val base = HttpRequest(HttpMethod.Get, "/", HttpHeaders(), HttpBody.NoBody)
+
+  protected def build(r: HttpRequest) = r
 
   def apply[T : HttpBodyEncoder](method: HttpMethod, url: String, headers: HttpHeaders, body: T): HttpRequest = {
-    val head = HttpRequestHead(BuildFL(method, url, HttpVersion.`1.1`), headers)
+    val head = BuiltHead(BuildFL(method, url, HttpVersion.`1.1`), headers)
     HttpRequest(head, HttpBody(body))
   }
 
@@ -130,5 +195,4 @@ object HttpRequest {
     HttpRequest(method, url, HttpHeaders.Empty, body)
   }
 
-  def get(url: String) = HttpRequest(HttpMethod.Get, url, HttpBody.NoBody)
 }
