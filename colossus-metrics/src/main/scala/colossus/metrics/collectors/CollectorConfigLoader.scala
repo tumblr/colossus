@@ -11,7 +11,6 @@ private[metrics] trait CollectorConfigLoader {
     * @return
     */
   def resolveConfig(config : Config, paths : String*) : Config = {
-    //starting from empty, walk back from the lowest priority, stacking higher priorities on top of it.
     paths.reverse.foldLeft(ConfigFactory.empty()) {
       case (acc, path) =>if(config.hasPath(path)){
         config.getConfig(path).withFallback(acc)
