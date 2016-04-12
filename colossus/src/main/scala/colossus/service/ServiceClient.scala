@@ -6,9 +6,10 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
-import colossus.controller._
-import colossus.core._
-import colossus.metrics._
+import controller._
+import core._
+import metrics._
+import util.ExceptionFormatter._
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -41,7 +42,7 @@ case class ClientConfig(
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
-  connectionAttempts : PollingDuration = PollingDuration(500.milliseconds, None),
+  connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
   idleTimeout: Duration = Duration.Inf
 )
 
@@ -85,6 +86,17 @@ class DataException(message: String) extends ServiceClientException(message)
 class StaleClientException(msg : String) extends Exception(msg)
 
 
+sealed trait ClientState
+object ClientState {
+  
+
+  case object Initializing  extends ClientState 
+  case object Connecting    extends ClientState 
+  case object Connected     extends ClientState
+  case object ShuttingDown  extends ClientState
+  case object Terminated    extends ClientState
+
+}
 /**
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
@@ -138,35 +150,41 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
   }
 
+  private var clientState: ClientState = ClientState.Initializing
 
-  //set to true on either a call to disconnect or forceDisconnect()
-  private var manuallyDisconnected = false
-
-  private var connectionAttempts = 0
+  private var retryIncident: Option[RetryIncident] = None
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
-  private var disconnecting: Boolean = false //set to true during graceful disconnect
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
   private val hTags: TagMap = Map("client_host" -> address.getHostName)
 
+  def connectionStatus: ConnectionStatus = clientState match {
+    case ClientState.Connected => ConnectionStatus.Connected
+    case ClientState.Initializing | ClientState.Connecting => ConnectionStatus.Connecting
+    case _ => ConnectionStatus.NotConnected
+  }
+
   /**
-   *
-   * @return Underlying WriteEndpoint's ConnectionStatus, defaults to Connecting if there is no WriteEndpoint
+   * returns true if the client is potentially able to send.  This does not
+   * necessarily mean any new requests will actually be sent, but rather that
+   * the client will make an attempt to send it.  This returns false when the
+   * client either failed to connect (including retries) or when it has been
+   * shut down.
    */
-  def connectionStatus: ConnectionStatus = if (isConnected) {
-    ConnectionStatus.Connected 
-  } else if (canReconnect && !manuallyDisconnected) {
-    ConnectionStatus.Connecting
-  } else {
-    ConnectionStatus.NotConnected
+  def canSend = clientState match {
+    case ClientState.Connected => true
+    case ClientState.Initializing | ClientState.Connecting => !failFast
+    case _ => false
   }
 
   override def onBind(){
     super.onBind()
-    if(!manuallyDisconnected){
+    if(clientState == ClientState.Initializing){
       log.info(s"client ${id} connecting to $address")
       worker ! Connect(address, id)
+      clientState = ClientState.Connecting
+      
     }else{
       throw new StaleClientException("This client has already been manually disconnected and cannot be reused, create a new one.")
     }
@@ -176,11 +194,8 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
    * Sent a request to the service, along with a handler for processing the response.
    */
   private def sendNow(request: I)(handler: ResponseHandler){
-    val queueTime = System.currentTimeMillis
-    if (disconnecting) {
-      // don't allow any new requests, appear as if we're dead
-      failRequest(handler, new NotConnectedException("Not Connected"))
-    } else if (isConnected || !failFast) {
+    if (canSend) {
+      val queueTime = System.currentTimeMillis
       val pushed = push(request, queueTime){
         case OutputResult.Success         => {
           val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis) 
@@ -230,7 +245,8 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   override def connected(endpoint: WriteEndpoint) {
     super.connected(endpoint)
     log.info(s"${id} Connected to $address")
-    connectionAttempts = 0
+    clientState = ClientState.Connected
+    retryIncident = None
   }
 
   private def purgeBuffers(reason : Throwable) {
@@ -243,7 +259,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   override protected def connectionClosed(cause: DisconnectCause): Unit = {
     super.connectionClosed(cause)
-    manuallyDisconnected = true
+    clientState = ClientState.Terminated
     disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
     purgeBuffers(new NotConnectedException(s"${cause.logString}"))
   }
@@ -267,36 +283,44 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
 
   private def attemptReconnect() {
-    connectionAttempts += 1
-    if(!disconnecting && !manuallyDisconnected) {
-      if(canReconnect) {
-        log.warning(s"attempting to reconnect to ${address.toString} after $connectionAttempts unsuccessful attempts.")
-        worker ! Schedule(config.connectionAttempts.interval, Connect(address, id))
+    if(clientState != ClientState.ShuttingDown) {
+      val incident = retryIncident.getOrElse{
+        val i = connectRetry.start()
+        retryIncident = Some(i)
+        i
       }
-      else {
-        log.error(s"failed to connect to ${address.toString} after $connectionAttempts tries, giving up.")
-        worker.unbind(id)
+      incident.nextAttempt match {
+        case RetryAttempt.Stop => {
+          val report = incident.end()
+          retryIncident = None
+          clientState = ClientState.Terminated
+          log.error(s"failed to connect to ${address.toString} (${report.totalAttempts} attempts over ${report.totalTime}), giving up.")
+          worker.unbind(id)
+        }
+        case RetryAttempt.RetryNow => {
+          log.warning(s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
+          clientState = ClientState.Connecting
+          worker ! Connect(address, id)
+        }
+        case RetryAttempt.RetryIn(time) => {
+          log.warning(s"attempting to reconnect to ${address.toString} in ${time} after ${incident.attempts} unsuccessful attempts.")
+          clientState = ClientState.Connecting
+          worker ! Schedule(time, Connect(address, id))
+        }
       }
     } else {
       worker.unbind(id)
     }
   }
 
-  private def canReconnect = config.connectionAttempts.isExpended(connectionAttempts)
-
-
-  private def attemptWrite(s: SourcedRequest) {
-  }
-
   override def shutdown() {
     log.info(s"Terminating connection to $address")
-    disconnecting = true
-    manuallyDisconnected = true
+    clientState = ClientState.ShuttingDown
     checkGracefulDisconnect()
   }
 
   private def checkGracefulDisconnect() {
-    if (isConnected && disconnecting && sentBuffer.size == 0) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0) {
       super.shutdown()
     }
   }
@@ -314,7 +338,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   private def failRequest(handler: ResponseHandler, exception: Throwable): Unit = {
     // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
-    errors.hit(tags = hpTags + ("type" -> exception.getClass.getName.replaceAll("[^\\w]", "")))
+    errors.hit(tags = hpTags + ("type" -> exception.metricsName))
     handler(Failure(exception))
   }
 }

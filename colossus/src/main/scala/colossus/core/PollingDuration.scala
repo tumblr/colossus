@@ -2,6 +2,10 @@ package colossus.core
 
 import scala.concurrent.duration._
 
+
+//TODO : Fully replace this with RetryPolicy
+      
+
 /**
  * Simple class which contains parameters for configuring a polling operation
  * @param interval The interval of the poll
