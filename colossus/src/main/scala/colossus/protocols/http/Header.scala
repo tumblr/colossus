@@ -345,6 +345,13 @@ object Connection {
   }
 }
 
+object ContentType {
+
+  val TextPlain = "text/plain"
+  val ApplicationJson = "application/json"
+
+}
+
 
 
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
@@ -411,50 +418,3 @@ object DateHeader {
 }
 
 
-class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeader] = None)  {
-
-  def size = body.length
-
-  def encode(buffer: core.DataOutBuffer) {
-    if (size > 0) buffer.write(body)
-  }
-
-  def bytes: ByteString = ByteString(body)
-
-  override def equals(that: Any) = that match {
-    case that: HttpBody => that.bytes == this.bytes
-    case other => false
-  }
-
-  override def hashCode = body.hashCode
-
-  override def toString = bytes.utf8String
-
-}
-
-trait HttpBodyEncoder[T] {
-  def encode(data: T): HttpBody
-}
-
-trait HttpBodyEncoders {
-  implicit object ByteStringEncoder extends HttpBodyEncoder[ByteString] {
-    def encode(data: ByteString): HttpBody = new HttpBody(data.toArray)
-  }
-
-  implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val ctype = HttpHeader("Content-Type", "text/plain")
-    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"), Some(ctype))
-  }
-
-  implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
-    def encode(b: HttpBody) = b
-  }
-}
-
-object HttpBody extends HttpBodyEncoders {
-  
-  val NoBody = new HttpBody(Array(), None)
-  
-  def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
-
-}
