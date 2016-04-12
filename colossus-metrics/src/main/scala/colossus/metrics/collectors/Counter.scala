@@ -105,7 +105,7 @@ object Counter extends CollectorConfigLoader{
     ns.getOrAdd(address){ (fullAddress, config) =>
       val addressPath = fullAddress.pieceString.replace('/','.')
       val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
-      createCounter(address, params.getBoolean("enabled"), config.intervals)
+      createCounter(address, params.getBoolean("enabled"))
     }
   }
 
@@ -119,11 +119,11 @@ object Counter extends CollectorConfigLoader{
     */
   def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns : MetricNamespace): Counter = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      createCounter(fullAddress, enabled, config.intervals)
+      createCounter(fullAddress, enabled)
     }
   }
 
-  private def createCounter(address : MetricAddress, enabled : Boolean, intervals : Seq[FiniteDuration]) : Counter = {
+  private def createCounter(address : MetricAddress, enabled : Boolean) : Counter = {
     if(enabled){
       new DefaultCounter(address)
     }else{
