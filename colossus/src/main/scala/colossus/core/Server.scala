@@ -5,6 +5,7 @@ import akka.actor._
 import java.net.InetSocketAddress
 
 import akka.agent.Agent
+import com.typesafe.config.Config
 
 import scala.concurrent.duration._
 
@@ -64,6 +65,32 @@ case class ServerSettings(
   def highWatermark = highWatermarkPercentage * maxConnections
 }
 
+object ServerSettings {
+  def extract(config : Config) : ServerSettings = {
+    import colossus.metrics.ConfigHelpers._
+
+    //one offing these, since they are going away soon
+    val bindingAttemptInterval = config.getFiniteDuration("binding-attempt-interval")
+    val bindingAttemptMaxTries = config.getLongOption("binding-attempt-max-tries")
+    val binding = PollingDuration(bindingAttemptInterval, bindingAttemptMaxTries)
+    val delegatorCreationInterval = config.getFiniteDuration("delegator-creation-interval")
+    val delegatorCreationMaxTries = config.getLongOption("delegator-creation-max-tries")
+    val delegator = PollingDuration(delegatorCreationInterval, delegatorCreationMaxTries)
+
+    val crd = (ServerSettings.apply _).curried
+    crd(config.getInt("port"))
+      .apply(config.getInt("max-connections"))
+      .apply(config.getScalaDuration("max-idle-time"))
+      .apply(config.getDouble("low-watermark-percentage"))
+      .apply(config.getDouble("high-watermark-percentage"))
+      .apply(config.getFiniteDuration("highwater-max-idle-time"))
+      .apply(config.getIntOption("tcp-backlog-size"))
+      .apply(binding)
+      .apply(delegator)
+      .apply(config.getFiniteDuration("shutdown-timeout"))
+  }
+}
+
 /** Configuration used to specify a Server's application-level behavior
  *
  *  As opposed to ServerSettings which contains just lower-level config,
@@ -85,6 +112,7 @@ case class ServerConfig(
 /**
  * A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
  * an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+ *
  * @param config The ServerConfig used to create this Server
  * @param server The ActorRef of the Server
  * @param system The IOSystem to which this Server belongs
@@ -484,7 +512,8 @@ object Server extends ServerDSL {
     import io.actorSystem.dispatcher
     import ServerStatus._
     val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
-    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, config, serverStateAgent).withDispatcher("server-dispatcher") ,name = config.name.idString)
+    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, config,
+      serverStateAgent).withDispatcher("server-dispatcher") ,name = s"server-${config.name.idString}")
     ServerRef(config, actor, io, serverStateAgent)
   }
 

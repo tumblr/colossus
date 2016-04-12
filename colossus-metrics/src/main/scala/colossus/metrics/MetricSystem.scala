@@ -195,7 +195,7 @@ object MetricSystem {
     */
   def apply(configPath : String, config : Config)(implicit system : ActorSystem) : MetricSystem = {
 
-    import MetricSystemConfigHelpers._
+    import ConfigHelpers._
 
     val userPathObject = config.getObject(configPath)
     val metricsObject = userPathObject.withFallback(config.getObject(ConfigRoot))
@@ -218,13 +218,29 @@ object MetricSystem {
 }
 
 //has to be a better way
-object MetricSystemConfigHelpers {
+object ConfigHelpers {
 
-  implicit class FiniteDurationLoader(config : Config) {
+  implicit class ConfigExtractors(config : Config) {
 
     import scala.collection.JavaConversions._
 
+    def getIntOption(path : String) : Option[Int] = getOption(path, config.getInt)
+
+    def getLongOption(path : String) : Option[Long] = getOption(path, config.getLong)
+
+    private def getOption[T](path : String, f : String => T) : Option[T] = {
+      if(config.hasPath(path)){
+        Some(f(path))
+      }else{
+        None
+      }
+    }
+
     def getFiniteDurations(path : String) : Seq[FiniteDuration] = config.getStringList(path).map(finiteDurationOnly(_, path))
+
+    def getFiniteDuration(path : String) : FiniteDuration = finiteDurationOnly(config.getString(path), path)
+
+    def getScalaDuration(path : String) : Duration =  Duration(config.getString(path))
 
     private def finiteDurationOnly(str : String, key : String) = {
       Duration(str) match {
