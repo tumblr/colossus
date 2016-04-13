@@ -5,7 +5,7 @@ import akka.actor._
 import java.net.InetSocketAddress
 
 import akka.agent.Agent
-import com.typesafe.config.Config
+import com.typesafe.config.{ConfigFactory, Config}
 
 import scala.concurrent.duration._
 
@@ -69,7 +69,7 @@ object ServerSettings {
   def extract(config : Config) : ServerSettings = {
     import colossus.metrics.ConfigHelpers._
 
-    //one offing these, since they are going away soon
+    //one-offing these, since they are going away soon
     val bindingAttemptInterval = config.getFiniteDuration("binding-attempt-interval")
     val bindingAttemptMaxTries = config.getLongOption("binding-attempt-max-tries")
     val binding = PollingDuration(bindingAttemptInterval, bindingAttemptMaxTries)
@@ -195,10 +195,12 @@ object ConnectionVolumeState {
   case object HighWater extends ConnectionVolumeState
 }
 
-private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
+private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
+                               config : Config,
+                               stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
   import Server._
   import context.dispatcher
-  import config._
+  import serverConfig._
   import ServerStatus._
   import ConnectionVolumeState._
 
@@ -210,15 +212,25 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val address = new InetSocketAddress(settings.port)
   ssc.register( selector, SelectionKey.OP_ACCEPT )
 
-  val me = ServerRef(config, self, io, stateAgent)
+  val me = ServerRef(serverConfig, self, io, stateAgent)
+
+  //see if there is local configuration for metrics, if there is, overlay that on the iosystem's metrics config
+  //TODO: cache config
+  val metricsConfig = if(config.hasPath("metrics")){
+    val serverMetrics = config.getConfig("metrics")
+    serverMetrics.withFallback(io.metrics.config)
+  }else{
+    log.debug(s"Could not find the 'metrics' path in supplied config, defaulting to the IOSystem's MetricSystem config")
+    io.metrics.config
+  }
 
   //initialize metrics
   implicit val ns = me.namespace
-  val connections   = Counter("connections")
-  val refused       = Rate("refused_connections")
-  val connects      = Rate("connects")
-  val closed        = Rate("closed")
-  val highwaters    = Rate("highwaters")
+  val connections   = Counter("connections", "connections", metricsConfig)
+  val refused       = Rate("refused_connections", "refused-connections", metricsConfig)
+  val connects      = Rate("connects", "connects", metricsConfig)
+  val closed        = Rate("closed", "closed", metricsConfig)
+  val highwaters    = Rate("highwaters", "highwaters", metricsConfig)
 
   private var openConnections = 0
 
@@ -504,17 +516,20 @@ object Server extends ServerDSL {
 
   /**
    * Create a server with the ServerConfig
-   * @param config Contains the desired configuration of this Server
+   * @param serverConfig Contains the desired configuration of this Server
+   * @param config Config object expecting to hold a Server configuration.
+    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
+    *               Server metrics.
    * @param io The IOSystem to which this Server will belong
    * @return ServerRef which encapsulates the created Server
    */
-  def apply(config: ServerConfig)(implicit io: IOSystem): ServerRef = {
+  def apply(serverConfig: ServerConfig, config : Config = ConfigFactory.load().getConfig(ConfigRoot))(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
     import ServerStatus._
     val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
-    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, config,
-      serverStateAgent).withDispatcher("server-dispatcher") ,name = s"server-${config.name.idString}")
-    ServerRef(config, actor, io, serverStateAgent)
+    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, config,
+      serverStateAgent).withDispatcher("server-dispatcher") ,name = s"server-${serverConfig.name.idString}")
+    ServerRef(serverConfig, actor, io, serverStateAgent)
   }
 
 }

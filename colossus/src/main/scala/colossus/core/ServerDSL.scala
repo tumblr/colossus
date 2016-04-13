@@ -81,7 +81,7 @@ trait ServerDSL {
     val userPathObject = config.getObject(configPath)
     val serverConfig = userPathObject.withFallback(config.getObject(ConfigRoot)).toConfig
     val name = serverConfig.getString("name")
-    start(name, ServerSettings.extract(serverConfig))(initializer)
+    start(name, ServerSettings.extract(serverConfig), config)(initializer)
   }
 
   /**
@@ -113,16 +113,20 @@ trait ServerDSL {
     *
     * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace.
     * @param settings Settings for this Server.
+    * @param config Config object expecting to hold a Server configuration.
+    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
+    *               Server metrics.
     * @param initializer
     * @param io
     * @return
     */
-  def start(name: String, settings: ServerSettings)(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
+  def start(name: String, settings: ServerSettings,
+            config : Config = ConfigFactory.load().getConfig(ConfigRoot))(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
       settings = settings, delegatorFactory = (s,w) => new DSLDelegator(s,w, initializer(w))
     )
-    Server(serverConfig)
+    Server(serverConfig, config)
 
   }
 
@@ -166,7 +170,7 @@ trait ServerDSL {
     val userPathObject = config.getObject(configPath)
     val serverConfig = userPathObject.withFallback(config.getObject(ConfigRoot)).toConfig
     val name = serverConfig.getString("name")
-    basic(name, ServerSettings.extract(serverConfig))(handlerFactory)
+    basic(name, ServerSettings.extract(serverConfig), config)(handlerFactory)
   }
 
   /**
@@ -190,12 +194,16 @@ trait ServerDSL {
     *
     * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace
     * @param settings Settings for this Server.
+    * @param config Config object expecting to hold a Server configuration.
+    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
+    *               Server metrics.
     * @param handlerFactory
     * @param io
     * @return
     */
-  def basic(name: String, settings: ServerSettings)(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, settings)(worker => new Initializer(worker) {
+  def basic(name: String, settings: ServerSettings, config : Config = ConfigFactory.load().getConfig(ConfigRoot))
+           (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+    start(name, settings, config)(worker => new Initializer(worker) {
       def onConnect = handlerFactory
     })
   }

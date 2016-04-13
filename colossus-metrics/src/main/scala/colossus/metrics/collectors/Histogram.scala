@@ -3,6 +3,8 @@ package colossus.metrics
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ThreadLocalRandom
+import com.typesafe.config.Config
+
 import scala.concurrent.duration._
 
 /**
@@ -104,12 +106,30 @@ object Histogram extends CollectorConfigLoader{
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Histogram = {
+    addToNamespace(address, configPath, None)
+  }
 
+  /**
+    * Create a Histogram with the following address.  Source the config from the provided Config object,
+    * instead of the MetricNamespace's Config
+    *
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param configPath The path to this Histogram's configuration within the `externalConfig`.
+    * @param externalConfig  A Config object which is expected to contain all the necessary fields for creating a Histogram
+    * @param ns
+    * @return
+    */
+  def apply(address : MetricAddress, configPath : String, externalConfig : Config)(implicit ns : MetricNamespace) : Histogram = {
+    addToNamespace(address, configPath, Some(externalConfig))
+  }
+
+  private def addToNamespace(address : MetricAddress, configPath : String, externalConfig : Option[Config])(implicit ns : MetricNamespace) : Histogram = {
     ns.getOrAdd(address){(fullAddress, config) =>
       import scala.collection.JavaConversions._
 
       val addressPath = fullAddress.pieceString.replace('/','.')
-      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val c = externalConfig.getOrElse(config.config)
+      val params = resolveConfig(c, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")

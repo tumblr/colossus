@@ -76,5 +76,13 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         settings.tcpBacklogSize mustBe None
       }
     }
+    "not explode if there is no 'metrics' configuration" in {
+      withIOSystem{ implicit io =>
+        //this loads the entire config, but the this constructor wants a Config which is pointing at a Server configuration
+        val s = Server.basic("my-server", ServerSettings(8989), ConfigFactory.load())(context => new EchoHandler(context))
+        waitForServer(s)
+        //no explosions, means we are good
+      }
+    }
   }
 }
