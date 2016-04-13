@@ -127,9 +127,7 @@ object Histogram extends CollectorConfigLoader{
     ns.getOrAdd(address){(fullAddress, config) =>
       import scala.collection.JavaConversions._
 
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val c = externalConfig.getOrElse(config.config)
-      val params = resolveConfig(c, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(fullAddress, config.config, externalConfig, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")

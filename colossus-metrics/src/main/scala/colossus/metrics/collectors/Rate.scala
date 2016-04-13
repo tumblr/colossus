@@ -108,9 +108,7 @@ object Rate extends CollectorConfigLoader {
 
   private def addToNamespace(address : MetricAddress, configPath : String, externalConfig : Option[Config])(implicit ns : MetricNamespace) : Rate = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val c = externalConfig.getOrElse(config.config)
-      val params = resolveConfig(c, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(fullAddress, config.config, externalConfig, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createRate(fullAddress, params.getBoolean("prune-empty"), params.getBoolean("enabled"), config.intervals)
     }
   }
