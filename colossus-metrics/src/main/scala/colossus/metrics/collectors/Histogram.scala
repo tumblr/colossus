@@ -87,7 +87,7 @@ object Histogram extends CollectorConfigLoader{
     * Create a Histogram with the following address.  See the documentation for [[colossus.metrics.MetricSystem]]
     *
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Histogram = {
@@ -100,20 +100,21 @@ object Histogram extends CollectorConfigLoader{
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this histogram's configuration is located.  This is relative to the MetricSystem config
     *                   definition.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Histogram = {
 
-    ns.collection.getOrAdd(address){
+    ns.getOrAdd(address){(fullAddress, config) =>
       import scala.collection.JavaConversions._
 
-      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val addressPath = fullAddress.pieceString.replace('/','.')
+      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")
       val enabled = params.getBoolean("enabled")
-      createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled)
+      createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
     }
   }
 
@@ -123,7 +124,7 @@ object Histogram extends CollectorConfigLoader{
     * @param sampleRate How often to collect values.
     * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
     * @param enabled If this Histogram will actually be collected and reported.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(
@@ -133,19 +134,21 @@ object Histogram extends CollectorConfigLoader{
     pruneEmpty: Boolean = false,
     enabled : Boolean = true
   )(implicit ns : MetricNamespace): Histogram = {
-    ns.collection.getOrAdd(address)(createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled))
+    ns.getOrAdd(address){(fullAddress, config) =>
+      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+    }
   }
 
   private def createHistogram(address : MetricAddress,
                               percentiles : Seq[Double],
                               sampleRate : Double,
                               pruneEmpty : Boolean,
-                              enabled : Boolean)
-                             (implicit ns : MetricNamespace) : Histogram = {
+                              enabled : Boolean,
+                              intervals : Seq[FiniteDuration]) : Histogram = {
     if(enabled){
-      new DefaultHistogram(ns.namespace / address, percentiles, sampleRate, pruneEmpty)
+      new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty, intervals)
     }else{
-      new NopHistogram(ns.namespace / address, percentiles, sampleRate, pruneEmpty)
+      new NopHistogram(address)
     }
   }
 }
@@ -280,10 +283,11 @@ class DefaultHistogram private[metrics](
   val address: MetricAddress,
   val percentiles: Seq[Double] = Histogram.defaultPercentiles,
   val sampleRate: Double = 1.0,
-  val pruneEmpty: Boolean = false
-)(implicit ns : MetricNamespace) extends Histogram {
+  val pruneEmpty: Boolean = false,
+  intervals : Seq[FiniteDuration]
+)extends Histogram {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = ns.collection.config.intervals.map{i =>
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = intervals.map{i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap

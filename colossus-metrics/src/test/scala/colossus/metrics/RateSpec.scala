@@ -2,13 +2,9 @@ package colossus.metrics
 
 import scala.concurrent.duration._
 
-
-import akka.testkit.TestProbe
-
 class RateSpec extends MetricIntegrationSpec {
 
-  implicit val c = MetricContext("/", new Collection(CollectorConfig(List(1.second, 1.minute))))
-  def rate() = new DefaultRate("/foo", false)
+  def rate() = new DefaultRate("/foo", false, List(1.second, 1.minute))
 
   "Rate" must {
     "increment in all intervals" in {
@@ -54,7 +50,7 @@ class RateSpec extends MetricIntegrationSpec {
     }
 
     "prune empty values" in {
-      val r = new DefaultRate("/foo", true)
+      val r = new DefaultRate("/foo", true, List(1.second, 1.minute))
       r.hit(Map("a" -> "b"))
       r.hit(Map("b" -> "c"))
       r.hit(Map("b" -> "c"))

@@ -25,14 +25,14 @@ trait Rate extends Collector{
 }
 
 //working implementation of a Rate
-class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean)(implicit ns: MetricNamespace) extends Rate {
+class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean, intervals : Seq[FiniteDuration])extends Rate {
 
-  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = ns.collection.config.intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
+  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
 
   //note - the totals are shared amongst all intervals, and we use the smallest
   //interval to update them
   private val totals = new CollectionMap[TagMap]
-  private val minInterval = if (ns.collection.config.intervals.size > 0) ns.collection.config.intervals.min else Duration.Inf
+  private val minInterval = if (intervals.size > 0) intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
     maps.foreach{ case (_, map) => map.increment(tags) }
@@ -50,7 +50,7 @@ class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: B
 }
 
 //Dummy implementation of a Rate, used when "enabled=false" is specified at creation
-class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)(implicit ns : MetricNamespace) extends Rate {
+class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)extends Rate {
 
   private val empty : MetricMap = Map()
 
@@ -68,7 +68,7 @@ object Rate extends CollectorConfigLoader {
   /**
     * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Rate = {
@@ -79,13 +79,14 @@ object Rate extends CollectorConfigLoader {
     * @param address    The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this rate's configuration is located.  This is relative to the MetricSystem config
     *                   definition.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Rate = {
-    ns.collection.getOrAdd(address){
-      val params = resolveConfig(ns.collection.config.config, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
-      createRate(address, params.getBoolean("prune-empty"), params.getBoolean("enabled"))
+    ns.getOrAdd(address){(fullAddress, config) =>
+      val addressPath = fullAddress.pieceString.replace('/','.')
+      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      createRate(fullAddress, params.getBoolean("prune-empty"), params.getBoolean("enabled"), config.intervals)
     }
   }
 
@@ -94,18 +95,20 @@ object Rate extends CollectorConfigLoader {
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
     * @param enabled If this Rate will actually be collected and reported.
-    * @param collection The collection which will contain this Collector.
+    * @param ns The namespace to which this Metric is relative.
     * @return
     */
   def apply(address: MetricAddress, pruneEmpty: Boolean = false, enabled : Boolean = true)(implicit ns: MetricNamespace): Rate = {
-    ns.collection.getOrAdd(address)(createRate(address, pruneEmpty, enabled))
+    ns.getOrAdd(address){ (fullAddress, config) =>
+      createRate(fullAddress, pruneEmpty, enabled, config.intervals)
+    }
   }
 
-  private def createRate(address: MetricAddress, pruneEmpty: Boolean, enabled : Boolean)(implicit  ns: MetricNamespace) : Rate = {
+  private def createRate(address: MetricAddress, pruneEmpty: Boolean, enabled : Boolean, intervals : Seq[FiniteDuration]) : Rate = {
     if(enabled){
-      new DefaultRate(ns.namespace / address, pruneEmpty)
+      new DefaultRate(address, pruneEmpty, intervals)
     }else{
-      new NopRate(ns.namespace / address, pruneEmpty)
+      new NopRate(address, pruneEmpty)
     }
   }
 }
