@@ -217,8 +217,14 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
   //see if there is local configuration for metrics, if there is, overlay that on the iosystem's metrics config
   //TODO: cache config
   val metricsConfig = if(config.hasPath("metrics")){
-    val serverMetrics = config.getConfig("metrics")
-    serverMetrics.withFallback(io.metrics.config)
+    //TODO : rethink this
+    /*
+    This is a bit tricky.  MetricSystem, when it is created has a modified version of the entire Config object.  The modification
+    being that it overwrites the 'colossus.metrics' path with generated config(userOverrides + MS reference defaults).
+    We want to now overlay the Server'smetrics definitions on top of that, and use that as the Config source
+     */
+    val serverMetrics = config.getObject("metrics").withFallback(io.metrics.config.getConfig(MetricSystem.ConfigRoot))
+    io.metrics.config.withValue(MetricSystem.ConfigRoot, serverMetrics)
   }else{
     log.debug(s"Could not find the 'metrics' path in supplied config, defaulting to the IOSystem's MetricSystem config")
     io.metrics.config

@@ -170,7 +170,7 @@ trait ServerDSL {
     val userPathObject = config.getObject(configPath)
     val serverConfig = userPathObject.withFallback(config.getObject(ConfigRoot)).toConfig
     val name = serverConfig.getString("name")
-    basic(name, ServerSettings.extract(serverConfig), config)(handlerFactory)
+    basic(name, ServerSettings.extract(serverConfig), serverConfig)(handlerFactory)
   }
 
   /**

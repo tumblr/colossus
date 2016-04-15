@@ -1,7 +1,7 @@
 package colossus.core
 
 import colossus.EchoHandler
-import colossus.metrics.MetricAddress
+import colossus.metrics.{DefaultRate, NopCounter, MetricAddress}
 import colossus.testkit.ColossusSpec
 import com.typesafe.config.ConfigFactory
 
@@ -82,6 +82,45 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         val s = Server.basic("my-server", ServerSettings(8989), ConfigFactory.load())(context => new EchoHandler(context))
         waitForServer(s)
         //no explosions, means we are good
+      }
+    }
+    "metrics should be configured correctly" in {
+      val userOverrides =
+        """
+          | my-server{
+          |   name : "mine"
+          |    port : 9888
+          |    metrics{
+          |     connections {
+          |        enabled : false
+          |      }
+          |      refused-connections {
+          |        prune-empty : true
+          |      }
+          |      connects {
+          |        prune-empty : true
+          |      }
+          |      closed {
+          |        prune-empty : true
+          |      }
+          |    }
+          | }
+          |
+        """.stripMargin
+      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      withIOSystem{ implicit io =>
+        val s = Server.basic("my-server", c)(context => new EchoHandler(context))
+        waitForServer(s)
+        val collectors = io.metrics.collection.collectors
+        val sRoot = s.namespace.namespace
+        collectors.get(sRoot / "connections") mustBe a[NopCounter]
+        val rates = Seq("refused_connections", "connects", "closed")
+        rates.foreach{ x =>
+          val r = collectors.get(sRoot / x).asInstanceOf[DefaultRate]
+          r.pruneEmpty mustBe true
+        }
+        //didn't override
+        collectors.get(sRoot / "highwaters").asInstanceOf[DefaultRate].pruneEmpty mustBe false
       }
     }
   }
