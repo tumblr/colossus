@@ -125,6 +125,18 @@ object BackoffMultiplier {
  * This class is flexible enough to handle most common retry schemes, such as
  * constantly retrying for a given amount of time or exponentially backing-off.
  *
+ * ### Examples
+ *
+ * Retry every 30 seconds for up to 5 minutes
+ * ```
+ * BackoffPolicy(30.seconds, BackoffMultiplier.Constant, maxTime = Some(5.minutes), immediateFirstAttempt = false)
+ * ```
+ *
+ * Immediately retry once, then backoff exponentially starting at 100 milliseconds, doubling with every attempt until the interval in between attempts is 5 seconds
+ * ```
+ * BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(5.seconds))
+ * ```
+ *
  * @param baseBackoff The base value to use for backing off.  This may be used by the [[multiplier]]
  * @param multiplier The multiplier that will be applied to the [[baseBackoff]]
  * @param maxTime The maximim amount of time to allow for retrying
@@ -181,4 +193,28 @@ case object NoRetry extends RetryPolicy with RetryIncident {
 
   def nextAttempt() = RetryAttempt.Stop
 
+}
+
+
+
+/**
+ * A WaitPolicy describes configuration for any process that needs to wait
+ * for some operation to complete, and if/how to retry the operation if it fails
+ * to complete within the waiting time.
+ *
+ * For example, a WaitPolicy is used by [[colossus.core.Server]] to determine
+ * how long to wait for it's delegators to start up and how to respond if they
+ * fail
+ *
+ * @param waitTime How long to wait before the operation should be considered timed out
+ * @param retryPolicy The policy that dictates how to retry the operation if it either fails or times out
+ */
+case class WaitPolicy(waitTime : FiniteDuration, retryPolicy : RetryPolicy) {
+
+}
+
+
+object WaitPolicy {
+
+  def noRetry(waitTime: FiniteDuration): WaitPolicy = WaitPolicy(waitTime, NoRetry)
 }

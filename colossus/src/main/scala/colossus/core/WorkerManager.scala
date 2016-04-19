@@ -56,9 +56,7 @@ extends Actor with ActorLogging with Stash {
   val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
 
 
-  //we store the RegisterServer object and not just the ServerRef because we
-  //need to be able to send the delegatorFactory to any new/restarted workers
-  var registeredServers = collection.mutable.ArrayBuffer[RegisterServer]()
+  var registeredServers = collection.mutable.ArrayBuffer[ServerRef]()
 
   //this is used when the manager receives a Connect request to round-robin across workers
   var nextConnectIndex = 0
@@ -142,69 +140,77 @@ extends Actor with ActorLogging with Stash {
   }
 
   def serverRegistration: Receive = {
-    case r : RegisterServer => {
-      implicit val timeout = Timeout(r.server.config.settings.delegatorCreationDuration.interval)
-      registerServer(r)
+    case RegisterServer(server) => {
+      registerServer(server, None)
     }
-    case u: UnregisterServer => {
-      val registeredServer = registeredServers.find(_.server == u.server)
-      registeredServer.fold(log.warning(s"Attempted to Unregister unknown server ${u.server.name}"))(unregisterServer(u, _))
+    case AttemptRegisterServer(server, incident) => {
+      registerServer(server, Some(incident))
+    }
+
+    case RegistrationSucceeded(server) => {
+      registeredServers.append(server)
+      context.watch(server.server)
+      server.server ! WorkersReady(workerRouter)
+    }
+    case UnregisterServer(server) => registeredServers.find(_ == server) match {
+      case Some(found) => unregisterServer(found)
+      case None => log.warning(s"Attempted to Unregister unknown server ${server.name}")
     }
 
     //should be only triggered when a Server actor terminates
-    case Terminated(ref) => {
-        val registeredServer = registeredServers.find(_.server.server == ref)
-        registeredServer.fold { log.warning(s"$ref was terminated, and is not a registered server.")}{ r =>
-            unregisterServer(UnregisterServer(r.server), r)
-        }
+    case Terminated(ref) => registeredServers.find(_ == ref) match {
+      case Some(found)  => unregisterServer(found)
+      case None         => log.warning(s"received terminated signal for unregistered server $ref")
     }
 
     case ListRegisteredServers => {
-      sender ! RegisteredServers(registeredServers.map(_.server))
+      sender ! RegisteredServers(registeredServers)
     }
 
     case s:  ServerShutdownRequest => workers.foreach{_ ! s}
   }
 
-  private def registerServer(r : RegisterServer)(implicit to : Timeout) {
-    log.debug(s"attempting to register ${r.server.name}")
-    val s = Future.traverse(workers){ _ ? r }
+  private def registerServer(server: ServerRef, retry: Option[RetryIncident]){
+    log.debug(s"attempting to register ${server.name}")
+    implicit val timeout = Timeout(server.config.settings.delegatorCreationPolicy.waitTime)
+    val s = Future.traverse(workers){ _ ? RegisterServer(server) }
     s.onComplete {
       case Success(x) if !x.contains(RegistrationFailed) => {
-        //closing over state..kind of a no no, if an "unregister" request comes through while a registration is processing.
-        //That's an oddball state however.
-        //this is only additive, so i'm kind of ok with this, until we actually need to change it.
-        registeredServers.append(r)
-        context.watch(r.server.server)
-        r.server.server ! WorkersReady(workerRouter)
+        self ! RegistrationSucceeded(server)
       }
       case Failure(err)  => {
-        log.error(err, s"Worker failed to register server ${r.server.name} after ${r.timesTried} tries with error: ${err.getMessage}")
-        tryReregister(r)
+        retryRegister(err.getMessage)
       }
       case _ => {
-        log.error(s"One or more Workers failed to register server ${r.server.name} after ${r.timesTried} tries")
-        tryReregister(r)
+        //the error itself is logged by the delegator(s) that failed
+        retryRegister(s"One or more Workers failed during registration")
+      }
+    }
+    def retryRegister(message: String) = {
+      val incident = retry.getOrElse(server.config.settings.delegatorCreationPolicy.retryPolicy.start())
+      val fullMessage = s"Failed to register server ${server.name} after ${incident.attempts} attempts:" 
+      incident.nextAttempt() match {
+        case RetryAttempt.Stop => {
+          log.error(s"$fullMessage, aborting")
+          server.server ! RegistrationFailed
+        }
+        case RetryAttempt.RetryNow => {
+          log.error(s"$fullMessage, retrying now")
+          self ! AttemptRegisterServer(server, incident)
+        }
+        case RetryAttempt.RetryIn(time) => {
+          log.error(s"$fullMessage, retrying in $time")
+          context.system.scheduler.scheduleOnce(time, self, AttemptRegisterServer(server, incident))
+        }
       }
     }
   }
 
-  private def tryReregister(r : RegisterServer) {
-    val tryAgain = r.server.config.settings.delegatorCreationDuration.isExpended(r.timesTried)
-    if(tryAgain) {
-      self ! r.copy(timesTried = r.timesTried + 1)
-    }else {
-      log.error(s"Exhausted all attempts to register ${r.server.name}, aborting.")
-      r.server.server ! RegistrationFailed
-    }
-  }
-
-
-  private def unregisterServer(u : UnregisterServer, r : RegisterServer) {
-    log.info(s"unregistering server: ${r.server.name}")
-    registeredServers -= r
+  private def unregisterServer(server: ServerRef) {
+    log.info(s"unregistering server: ${server.name}")
+    registeredServers -= server
     workers.foreach{worker =>
-      worker ! u
+      worker ! UnregisterServer(server)
     }
   }
 
@@ -222,8 +228,19 @@ private[colossus] object WorkerManager {
   private[colossus] case object ServerRegistered
   private[colossus] case object RegistrationFailed
 
+  /**
+   * The manager sends this to itself to retry registering a server
+   */
+  private[colossus] case class AttemptRegisterServer(server: ServerRef, retry: RetryIncident)
+
+  /**
+   * The manager sends this to itself when the registration for the given server
+   * (which happens asynchronously via futures) is complete
+   */
+  private[colossus] case class RegistrationSucceeded(server: ServerRef)
+
   //ping manager
-  case class RegisterServer(server: ServerRef, factory: Delegator.Factory, timesTried : Int = 1)
+  case class RegisterServer(server: ServerRef)
   case class UnregisterServer(server: ServerRef)
 
   //sent by the server and broadcast to all workers when the server is
