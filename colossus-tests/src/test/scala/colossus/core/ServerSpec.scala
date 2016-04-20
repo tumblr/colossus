@@ -31,7 +31,7 @@ class ServerSpec extends ColossusSpec {
       probe.expectTerminated(io.workerManager)
     }
 
-    "list all registered servers" taggedAs(org.scalatest.Tag("test")) in {
+    "list all registered servers" in {
       withIOSystem { implicit io =>
         implicit val ec = io.actorSystem.dispatcher
         val server1 = Server.basic("echo1", TEST_PORT)(context => new EchoHandler(context))

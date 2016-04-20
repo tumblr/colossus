@@ -125,17 +125,17 @@ object BackoffMultiplier {
  * This class is flexible enough to handle most common retry schemes, such as
  * constantly retrying for a given amount of time or exponentially backing-off.
  *
- * ### Examples
+ * ===Examples===
  *
  * Retry every 30 seconds for up to 5 minutes
- * ```
+ * {{{
  * BackoffPolicy(30.seconds, BackoffMultiplier.Constant, maxTime = Some(5.minutes), immediateFirstAttempt = false)
- * ```
+ * }}}
  *
  * Immediately retry once, then backoff exponentially starting at 100 milliseconds, doubling with every attempt until the interval in between attempts is 5 seconds
- * ```
+ * {{{
  * BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(5.seconds))
- * ```
+ * }}}
  *
  * @param baseBackoff The base value to use for backing off.  This may be used by the [[multiplier]]
  * @param multiplier The multiplier that will be applied to the [[baseBackoff]]
