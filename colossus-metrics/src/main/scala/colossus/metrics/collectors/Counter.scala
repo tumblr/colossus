@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import com.typesafe.config.Config
+
 import scala.concurrent.duration._
 
 /**
@@ -102,9 +104,26 @@ object Counter extends CollectorConfigLoader{
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
+    addToNamespace(address, configPath, None)
+  }
+
+  /**
+    * Create a Counter with the following address.  Source the config from the provided Config object,
+    * instead of the MetricNamespace's Config
+    *
+    * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param configPath The path to this Counter's configuration within the `externalConfig`.
+    * @param externalConfig  A Config object which is expected to contain all the necessary fields for creating a Counter
+    * @param ns
+    * @return
+    */
+  def apply(address : MetricAddress, configPath : String, externalConfig : Config)(implicit ns : MetricNamespace) : Counter = {
+    addToNamespace(address, configPath, Some(externalConfig))
+  }
+
+  private def addToNamespace(address : MetricAddress, configPath : String, externalConfig : Option[Config])(implicit ns : MetricNamespace) : Counter = {
     ns.getOrAdd(address){ (fullAddress, config) =>
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(fullAddress, config.config, externalConfig, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
       createCounter(address, params.getBoolean("enabled"))
     }
   }

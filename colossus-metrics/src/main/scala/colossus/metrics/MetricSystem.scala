@@ -63,6 +63,27 @@ trait MetricNamespace {
    * Get a new namespace by appending `subpath` to the namespace
    */
   def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
+
+
+  /**
+    * Create a new namespace using the supplied config overlaid on top of the existing MetricSystem configuration.
+    * This function is used for components that want to add Metrics into this namespace, but want to provide additional or overriding config.
+    * Note, if there are name clashes with existing elements in the current Config, the existing elements will be overwritten for this new MetricNamespace instance.
+    * @param config  Config object which has a `metrics` field on it.  This field is expected to be in the shape of a `colossus.metrics` config definition.
+    *                If no `metrics` field is detected, then this Config object is not used.
+    * @return  A new MetricNamespace, with the same underlying Collection, but with an overriden Config object.  If the supplied config object
+    *          has no `metrics` field, then this instance is returned.
+    */
+  def withConfigOverrides(config : Config) : MetricNamespace = {
+
+    if(config.hasPath("metrics")){
+      val serverMetrics = config.getObject("metrics").withFallback(collection.config.config.getConfig(MetricSystem.ConfigRoot))
+      val newConfig = collection.config.config.withValue(MetricSystem.ConfigRoot, serverMetrics)
+      MetricContext(namespace, new Collection(collection.config.copy(config = newConfig), collection.collectors))
+    }else{
+      this
+    }
+  }
 }
 
 case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace
@@ -195,7 +216,7 @@ object MetricSystem {
     */
   def apply(configPath : String, config : Config)(implicit system : ActorSystem) : MetricSystem = {
 
-    import MetricSystemConfigHelpers._
+    import ConfigHelpers._
 
     val userPathObject = config.getObject(configPath)
     val metricsObject = userPathObject.withFallback(config.getObject(ConfigRoot))
@@ -218,13 +239,29 @@ object MetricSystem {
 }
 
 //has to be a better way
-object MetricSystemConfigHelpers {
+object ConfigHelpers {
 
-  implicit class FiniteDurationLoader(config : Config) {
+  implicit class ConfigExtractors(config : Config) {
 
     import scala.collection.JavaConversions._
 
+    def getIntOption(path : String) : Option[Int] = getOption(path, config.getInt)
+
+    def getLongOption(path : String) : Option[Long] = getOption(path, config.getLong)
+
+    private def getOption[T](path : String, f : String => T) : Option[T] = {
+      if(config.hasPath(path)){
+        Some(f(path))
+      }else{
+        None
+      }
+    }
+
     def getFiniteDurations(path : String) : Seq[FiniteDuration] = config.getStringList(path).map(finiteDurationOnly(_, path))
+
+    def getFiniteDuration(path : String) : FiniteDuration = finiteDurationOnly(config.getString(path), path)
+
+    def getScalaDuration(path : String) : Duration =  Duration(config.getString(path))
 
     private def finiteDurationOnly(str : String, key : String) = {
       Duration(str) match {
