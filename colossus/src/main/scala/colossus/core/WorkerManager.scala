@@ -158,7 +158,7 @@ extends Actor with ActorLogging with Stash {
     }
 
     //should be only triggered when a Server actor terminates
-    case Terminated(ref) => registeredServers.find(_ == ref) match {
+    case Terminated(ref) => registeredServers.find(_.server == ref) match {
       case Some(found)  => unregisterServer(found)
       case None         => log.warning(s"received terminated signal for unregistered server $ref")
     }
