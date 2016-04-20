@@ -214,29 +214,14 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
   val me = ServerRef(serverConfig, self, io, stateAgent)
 
-  //see if there is local configuration for metrics, if there is, overlay that on the iosystem's metrics config
   //TODO: cache config
-  val metricsConfig = if(config.hasPath("metrics")){
-    //TODO : rethink this
-    /*
-    This is a bit tricky.  MetricSystem, when it is created has a modified version of the entire Config object.  The modification
-    being that it overwrites the 'colossus.metrics' path with generated config(userOverrides + MS reference defaults).
-    We want to now overlay the Server'smetrics definitions on top of that, and use that as the Config source
-     */
-    val serverMetrics = config.getObject("metrics").withFallback(io.metrics.config.getConfig(MetricSystem.ConfigRoot))
-    io.metrics.config.withValue(MetricSystem.ConfigRoot, serverMetrics)
-  }else{
-    log.debug(s"Could not find the 'metrics' path in supplied config, defaulting to the IOSystem's MetricSystem config")
-    io.metrics.config
-  }
-
   //initialize metrics
-  implicit val ns = me.namespace
-  val connections   = Counter("connections", "connections", metricsConfig)
-  val refused       = Rate("refused_connections", "refused-connections", metricsConfig)
-  val connects      = Rate("connects", "connects", metricsConfig)
-  val closed        = Rate("closed", "closed", metricsConfig)
-  val highwaters    = Rate("highwaters", "highwaters", metricsConfig)
+  implicit val ns = me.namespace.withConfigOverrides(config)
+  val connections   = Counter("connections", "connections")
+  val refused       = Rate("refused_connections", "refused-connections")
+  val connects      = Rate("connects", "connects")
+  val closed        = Rate("closed", "closed")
+  val highwaters    = Rate("highwaters", "highwaters")
 
   private var openConnections = 0
 

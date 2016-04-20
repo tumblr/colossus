@@ -63,6 +63,27 @@ trait MetricNamespace {
    * Get a new namespace by appending `subpath` to the namespace
    */
   def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
+
+
+  /**
+    * Create a new namespace using the supplied config overlaid on top of the existing MetricSystem configuration.
+    * This function is used for components that want to add Metrics into this namespace, but want to provide additional or overriding config.
+    * Note, if there are name clashes with existing elements in the current Config, the existing elements will be overwritten for this new MetricNamespace instance.
+    * @param config  Config object which has a `metrics` field on it.  This field is expected to be in the shape of a `colossus.metrics` config definition.
+    *                If no `metrics` field is detected, then this Config object is not used.
+    * @return  A new MetricNamespace, with the same underlying Collection, but with an overriden Config object.  If the supplied config object
+    *          has no `metrics` field, then this instance is returned.
+    */
+  def withConfigOverrides(config : Config) : MetricNamespace = {
+
+    if(config.hasPath("metrics")){
+      val serverMetrics = config.getObject("metrics").withFallback(collection.config.config.getConfig(MetricSystem.ConfigRoot))
+      val newConfig = collection.config.config.withValue(MetricSystem.ConfigRoot, serverMetrics)
+      MetricContext(namespace, new Collection(collection.config.copy(config = newConfig), collection.collectors))
+    }else{
+      this
+    }
+  }
 }
 
 case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace

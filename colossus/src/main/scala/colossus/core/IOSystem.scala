@@ -62,15 +62,19 @@ object IOSystem {
   /**
     * Create a new IOSystem
     *
-    * @param name Name of this IOSystem.  This will also be used as its MetricAddres.
+    * @param name Name of this IOSystem.  This will also be used as its MetricAddress.
     * @param workerCount Number of workers to create
     * @param metrics The MetricSystem used to report metrics
+    * @param ioConfig Config pointing at a `colossus.io-system` definition.  This is used to configure internal metrics.
     * @param system
     * @return
     */
-  def apply(name : String, workerCount : Option[Int], metrics : MetricSystem)(implicit system : ActorSystem) : IOSystem = {
+  def apply(name : String, workerCount : Option[Int],
+            metrics : MetricSystem,
+            ioConfig : Config = loadIOConfig())
+           (implicit system : ActorSystem) : IOSystem = {
     val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
-    new IOSystem(name, numWorkers, metrics, system, workerManagerFactory)
+    new IOSystem(name, numWorkers, metrics, system, ioConfig, workerManagerFactory)
   }
 
   private def actorFriendlyName(name : String) = {
@@ -80,13 +84,16 @@ object IOSystem {
     }
   }
 
+  private def loadIOConfig() = ConfigFactory.load().getConfig(ConfigRoot)
+
   type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
 
-  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
+  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem, ioConfig : Config) => {
     sys.actorSystem.actorOf(Props(
       classOf[WorkerManager],
       agent,
-      sys
+      sys,
+      ioConfig
     ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 
@@ -106,7 +113,8 @@ class IOSystem private[colossus](
   val numWorkers : Int,
   val  metrics: MetricSystem,
   val actorSystem: ActorSystem,
-  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
+  ioConfig : Config,
+  managerFactory: (IOSystem.WorkerAgent, IOSystem, Config) => ActorRef
 ) {
   import IOCommand._
 
@@ -144,7 +152,7 @@ class IOSystem private[colossus](
   val namespace = metrics / name
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
-  private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
+  private[colossus] val workerManager : ActorRef = managerFactory(workers, this, ioConfig)
 
   // >[*]< SUPER HACK ALERT >[*]<
   while (numWorkers > 0 && workers().size == 0) {
