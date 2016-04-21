@@ -97,8 +97,9 @@ private[metrics] class CollectionMap[T] {
 
 class DuplicateMetricException(message: String) extends Exception(message)
 
-class Collection(val config: CollectorConfig,
-                 val collectors : ConcurrentHashMap[MetricAddress, Collector] = new ConcurrentHashMap[MetricAddress, Collector]()) {
+class Collection(val config: CollectorConfig) {
+
+  val collectors : ConcurrentHashMap[MetricAddress, Collector] = new ConcurrentHashMap[MetricAddress, Collector]()
 
   /**
    * Retrieve a collector of a specific type by address, creating a new one if
@@ -143,7 +144,6 @@ class Collection(val config: CollectorConfig,
 
 object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
-    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)),
-      new ConcurrentHashMap[MetricAddress, Collector]())
+    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
   }
 }
