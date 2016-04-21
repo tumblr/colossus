@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
  * @param config The Configuration of the underlying [[MetricSystem]]
  */
-case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
+case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config)
 
 /**
   * Base trait required by all metric types.
@@ -139,4 +139,11 @@ class Collection(val config: CollectorConfig,
     build
   }
 
+}
+
+object Collection{
+  def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
+    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)),
+      new ConcurrentHashMap[MetricAddress, Collector]())
+  }
 }

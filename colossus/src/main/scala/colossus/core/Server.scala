@@ -5,7 +5,7 @@ import akka.actor._
 import java.net.InetSocketAddress
 
 import akka.agent.Agent
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.Config
 
 import scala.concurrent.duration._
 
@@ -123,7 +123,7 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
 
   def serverState = serverStateAgent.get()
 
-  val namespace : MetricNamespace = system.namespace / name
+  val namespace : MetricNamespace = MetricContext(name, system.namespace.collection)
 
   def maxIdleTime = {
     if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
@@ -196,7 +196,6 @@ object ConnectionVolumeState {
 }
 
 private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
-                               config : Config,
                                stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
   import Server._
   import context.dispatcher
@@ -214,14 +213,13 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
   val me = ServerRef(serverConfig, self, io, stateAgent)
 
-  //TODO: cache config
   //initialize metrics
-  implicit val ns = me.namespace.withConfigOverrides(config)
-  val connections   = Counter("connections", "connections")
-  val refused       = Rate("refused_connections", "refused-connections")
-  val connects      = Rate("connects", "connects")
-  val closed        = Rate("closed", "closed")
-  val highwaters    = Rate("highwaters", "highwaters")
+  implicit val ns = me.namespace
+  val connections   = Counter("connections", "server-connections")
+  val refused       = Rate("refused_connections", "server-refused-connections")
+  val connects      = Rate("connects", "server-connects")
+  val closed        = Rate("closed", "server-closed")
+  val highwaters    = Rate("highwaters", "server-highwaters")
 
   private var openConnections = 0
 
@@ -508,18 +506,17 @@ object Server extends ServerDSL {
   /**
    * Create a server with the ServerConfig
    * @param serverConfig Contains the desired configuration of this Server
-   * @param config Config object expecting to hold a Server configuration.
     *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
     *               Server metrics.
    * @param io The IOSystem to which this Server will belong
    * @return ServerRef which encapsulates the created Server
    */
-  def apply(serverConfig: ServerConfig, config : Config = ConfigFactory.load().getConfig(ConfigRoot))(implicit io: IOSystem): ServerRef = {
+  def apply(serverConfig: ServerConfig)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
     import ServerStatus._
     val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
-    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, config,
-      serverStateAgent).withDispatcher("server-dispatcher") ,name = s"server-${serverConfig.name.idString}")
+    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, serverStateAgent)
+                              .withDispatcher("server-dispatcher"), name = s"server-${serverConfig.name.idString}")
     ServerRef(serverConfig, actor, io, serverStateAgent)
   }
 

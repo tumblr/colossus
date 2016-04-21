@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import com.typesafe.config.Config
-
 import scala.concurrent.duration._
 
 /**
@@ -79,9 +77,7 @@ class NopCounter private[metrics](val address : MetricAddress) extends Counter {
 
 object Counter extends CollectorConfigLoader{
 
-  import MetricSystem.ConfigRoot
-
-  private val DefaultConfigPath = "collectors-defaults.counter"
+  private val DefaultConfigPath = "system.collectors-defaults.counter"
 
   /**
     * Create a Counter with the following address.   See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
@@ -96,6 +92,7 @@ object Counter extends CollectorConfigLoader{
 
   /**
     * Create a Counter with following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]]
     *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this counter's configuration is located.  This is relative to the MetricSystem config
@@ -104,26 +101,8 @@ object Counter extends CollectorConfigLoader{
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
-    addToNamespace(address, configPath, None)
-  }
-
-  /**
-    * Create a Counter with the following address.  Source the config from the provided Config object,
-    * instead of the MetricNamespace's Config
-    *
-    * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path to this Counter's configuration within the `externalConfig`.
-    * @param externalConfig  A Config object which is expected to contain all the necessary fields for creating a Counter
-    * @param ns
-    * @return
-    */
-  def apply(address : MetricAddress, configPath : String, externalConfig : Config)(implicit ns : MetricNamespace) : Counter = {
-    addToNamespace(address, configPath, Some(externalConfig))
-  }
-
-  private def addToNamespace(address : MetricAddress, configPath : String, externalConfig : Option[Config])(implicit ns : MetricNamespace) : Counter = {
     ns.getOrAdd(address){ (fullAddress, config) =>
-      val params = resolveConfig(fullAddress, config.config, externalConfig, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
       createCounter(address, params.getBoolean("enabled"))
     }
   }

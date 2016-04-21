@@ -56,15 +56,13 @@ class PushPromise {
   def expectSuccess() { assert(isSuccess == true) }
   def expectFailure() {  assert(isFailure == true)}
   def expectCancelled() {  assert(isCancelled == true)}
-
-
 }
 
 trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
 
   implicit val namespace = {
     import metrics._
-    MetricContext("/", new Collection(CollectorConfig(List())))
+    MetricContext("/", Collection.withReferenceConf(Seq()))
   }
 
   var _received : Seq[I] = Seq()
@@ -90,10 +88,7 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
     p.pushed = push(message)(p.func)
     p
   }
-
 }
-
-
 
 object TestController {
   import RawProtocol.RawCodec

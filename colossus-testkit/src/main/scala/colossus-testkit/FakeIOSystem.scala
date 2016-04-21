@@ -1,7 +1,6 @@
 package colossus
 package testkit
 
-import com.typesafe.config.ConfigFactory
 import core._
 import metrics._
 import service._
@@ -17,7 +16,7 @@ case class FakeWorker(probe: TestProbe, worker: WorkerRef)
 
 object FakeIOSystem {
   def apply()(implicit system: ActorSystem): IOSystem = {
-    new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, ConfigFactory.empty(), (x,y,c) => system.deadLetters)
+    new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x,y) => system.deadLetters)
   }
 
   /**
@@ -62,7 +61,7 @@ object FakeIOSystem {
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {
     val probe = TestProbe()
-    val sys = new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, ConfigFactory.empty(), (x,y,c) => probe.ref)
+    val sys = new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x,y) => probe.ref)
     (sys, probe)
   }
 
@@ -97,7 +96,6 @@ class GenericExecutor extends Actor with CallbackExecution {
     }
   }
 }
-
 
 object CallbackAwait {
 

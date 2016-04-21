@@ -23,9 +23,8 @@ import scala.util.{Failure, Success}
  *
  * @param workerAgent WorkerRefs that this WorkerManager manages
  * @param ioSystem Containing IOSystem
- * @param ioConfig IOSystem config
  */
-private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem, ioConfig : Config)
+private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem)
 extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -48,8 +47,7 @@ extends Actor with ActorLogging with Stash {
   val workers = (1 to numWorkers).map{i =>
     val workerConfig = WorkerConfig(
       workerId = i,
-      io = ioSystem,
-      ioConfig = ioConfig
+      io = ioSystem
     )
     val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$i")
     context.watch(worker)

@@ -1,7 +1,7 @@
 package colossus.core
 
 import colossus.EchoHandler
-import colossus.metrics.{DefaultRate, NopCounter, MetricAddress}
+import colossus.metrics.MetricAddress
 import colossus.testkit.ColossusSpec
 import com.typesafe.config.ConfigFactory
 
@@ -12,9 +12,9 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
   "Server configuration loading" should {
     "load defaults" in {
       withIOSystem{ implicit io =>
-        val s = Server.basic()(context => new EchoHandler(context))
+        val s = Server.basic("my-server")(context => new EchoHandler(context))
         waitForServer(s)
-        s.name mustBe MetricAddress.Root
+        s.name mustBe MetricAddress("my-server")
         val settings = s.config.settings
         settings.bindingAttemptDuration mustBe PollingDuration(200.milliseconds, None)
         settings.delegatorCreationDuration mustBe PollingDuration(500.milliseconds, None)
@@ -30,22 +30,19 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
 
     "load user overrides" in {
       val userOverrides =
-        """{
-          | my-server{
-          |   name = "mine"
+        """colossus.server.my-server{
           |    port : 9888
           |    max-connections : 1000
           |    max-idle-time : "1 second"
           |    tcp-backlog-size : 100
           |    shutdown-timeout : "2 seconds"
-          | }
           |}
         """.stripMargin
       val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
       withIOSystem{ implicit io =>
         val s = Server.basic("my-server", c)(context => new EchoHandler(context))
         waitForServer(s)
-        s.name mustBe MetricAddress("mine")
+        s.name mustBe MetricAddress("my-server")
         val settings = s.config.settings
         settings.bindingAttemptDuration mustBe PollingDuration(200.milliseconds, None)
         settings.delegatorCreationDuration mustBe PollingDuration(500.milliseconds, None)
@@ -74,53 +71,6 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         settings.port mustBe 8989
         settings.shutdownTimeout mustBe 100.milliseconds
         settings.tcpBacklogSize mustBe None
-      }
-    }
-    "not explode if there is no 'metrics' configuration" in {
-      withIOSystem{ implicit io =>
-        //this loads the entire config, but the this constructor wants a Config which is pointing at a Server configuration
-        val s = Server.basic("my-server", ServerSettings(8989), ConfigFactory.load())(context => new EchoHandler(context))
-        waitForServer(s)
-        //no explosions, means we are good
-      }
-    }
-    "metrics should be configured correctly" in {
-      val userOverrides =
-        """
-          | my-server{
-          |   name : "mine"
-          |    port : 9888
-          |    metrics{
-          |     connections {
-          |        enabled : false
-          |      }
-          |      refused-connections {
-          |        prune-empty : true
-          |      }
-          |      connects {
-          |        prune-empty : true
-          |      }
-          |      closed {
-          |        prune-empty : true
-          |      }
-          |    }
-          | }
-          |
-        """.stripMargin
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      withIOSystem{ implicit io =>
-        val s = Server.basic("my-server", c)(context => new EchoHandler(context))
-        waitForServer(s)
-        val collectors = io.metrics.collection.collectors
-        val sRoot = s.namespace.namespace
-        collectors.get(sRoot / "connections") mustBe a[NopCounter]
-        val rates = Seq("refused_connections", "connects", "closed")
-        rates.foreach{ x =>
-          val r = collectors.get(sRoot / x).asInstanceOf[DefaultRate]
-          r.pruneEmpty mustBe true
-        }
-        //didn't override
-        collectors.get(sRoot / "highwaters").asInstanceOf[DefaultRate].pruneEmpty mustBe false
       }
     }
   }

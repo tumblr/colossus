@@ -17,64 +17,55 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
-  val ConfigRoot = "colossus.io-system"
+  val ConfigRoot = "colossus.defaults.io-system"
 
   /**
-    * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.io-system" config path.
+    * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.defaults.io-system" config path.
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
     * @param sys
     * @return
     */
   def apply()(implicit sys : ActorSystem) : IOSystem = {
-    apply(ConfigRoot)
+    apply("io-system")
   }
 
   /**
-    * Create a new IOSystem using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.io-system"
-    * config path.
+    * Create a new IOSystem.
+    *
+    * Configuration will look first in `colossus.io-system.$name`, and fallback on `colossus.defaults.io-system`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
-    * @param configPath  The path to the configuration.
+    * @param name  Name of the IOSystem to create.
+    * @param config The Config source to query, defaults to {{{ConfigFactory.load()}}}
     * @param sys
     * @return
     */
-  def apply(configPath : String)(implicit sys : ActorSystem) : IOSystem = {
-    apply(configPath, ConfigFactory.load())
-  }
+  def apply(name : String, config : Config = ConfigFactory.load())(implicit sys : ActorSystem) : IOSystem = {
 
-  /**
-    * Create a new IOSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.io-system" config path.
-    *
-    * @param configPath The path to the configuration
-    * @param config The Config source to query
-    * @param sys
-    * @return
-    */
-  def apply(configPath : String, config : Config)(implicit sys : ActorSystem) : IOSystem = {
-    val ioConfig = config.getConfig(configPath).withFallback(config.getConfig(ConfigRoot))
-    val name = ioConfig.getString("name")
-    val workerCount : Option[Int] = if(config.hasPath("num-workers")){Some(config.getInt("num-workers"))} else{ None }
-    val ms = MetricSystem(s"$configPath.metrics", config)
+    import colossus.metrics.ConfigHelpers._
+
+    val ioConfig = config.withFallbacks(s"colossus.io-system.$name", ConfigRoot)
+    val workerCount : Option[Int] = ioConfig.getIntOption("num-workers")
+    val msConfig = config.withFallbacks("colossus.defaults.metrics", MetricSystem.ConfigRoot)
+    val ms = MetricSystem(msConfig)
     apply(name, workerCount, ms)
   }
 
   /**
     * Create a new IOSystem
     *
-    * @param name Name of this IOSystem.  This will also be used as its MetricAddress.
+    * @param name Name of this IOSystem.
     * @param workerCount Number of workers to create
     * @param metrics The MetricSystem used to report metrics
-    * @param ioConfig Config pointing at a `colossus.io-system` definition.  This is used to configure internal metrics.
     * @param system
     * @return
     */
   def apply(name : String, workerCount : Option[Int],
-            metrics : MetricSystem,
-            ioConfig : Config = loadIOConfig())
+            metrics : MetricSystem)
            (implicit system : ActorSystem) : IOSystem = {
     val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
-    new IOSystem(name, numWorkers, metrics, system, ioConfig, workerManagerFactory)
+    new IOSystem(name, numWorkers, metrics, system, workerManagerFactory)
   }
 
   private def actorFriendlyName(name : String) = {
@@ -84,16 +75,13 @@ object IOSystem {
     }
   }
 
-  private def loadIOConfig() = ConfigFactory.load().getConfig(ConfigRoot)
-
   type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
 
-  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem, ioConfig : Config) => {
+  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
     sys.actorSystem.actorOf(Props(
       classOf[WorkerManager],
       agent,
-      sys,
-      ioConfig
+      sys
     ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 
@@ -113,8 +101,7 @@ class IOSystem private[colossus](
   val numWorkers : Int,
   val  metrics: MetricSystem,
   val actorSystem: ActorSystem,
-  ioConfig : Config,
-  managerFactory: (IOSystem.WorkerAgent, IOSystem, Config) => ActorRef
+  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
 ) {
   import IOCommand._
 
@@ -149,13 +136,13 @@ class IOSystem private[colossus](
   /**
    * The namespace of this IOSystem, used by metrics
    */
-  val namespace = metrics / name
+  val namespace = MetricContext(MetricAddress(name), metrics.collection)
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
-  private[colossus] val workerManager : ActorRef = managerFactory(workers, this, ioConfig)
+  private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
 
   // >[*]< SUPER HACK ALERT >[*]<
-  while (numWorkers > 0 && workers().size == 0) {
+  while (numWorkers > 0 && workers().isEmpty) {
     Thread.sleep(25)
   }
 

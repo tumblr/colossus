@@ -1,7 +1,5 @@
 package colossus.metrics
 
-import com.typesafe.config.Config
-
 import scala.concurrent.duration._
 
 /**
@@ -65,9 +63,7 @@ class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boo
 
 object Rate extends CollectorConfigLoader {
 
-  import MetricSystem.ConfigRoot
-
-  private val DefaultConfigPath = "collectors-defaults.rate"
+  private val DefaultConfigPath = "system.collectors-defaults.rate"
 
   /**
     * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
@@ -81,34 +77,17 @@ object Rate extends CollectorConfigLoader {
   }
   /**
     * Create a Rate with the following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
     *
     * @param address    The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the config that this rate's configuration is located.  This is relative to the MetricSystem config
+    * @param configName The path in the config that this rate's configuration is located.  This is relative to the MetricSystem config
     *                   definition.
     * @param ns The namespace to which this Metric is relative.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Rate = {
-    addToNamespace(address, configPath, None)
-  }
-
-  /**
-    * Create a Rate with the following address.  Source the config from the provided Config object,
-    * instead of the MetricNamespace's Config
-    *
-    * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path to this Rate's configuration within the `externalConfig`.
-    * @param externalConfig  A Config object which is expected to contain all the necessary fields for creating a Rate
-    * @param ns
-    * @return
-    */
-  def apply(address : MetricAddress, configPath : String, externalConfig : Config)(implicit ns : MetricNamespace) : Rate = {
-    addToNamespace(address, configPath, Some(externalConfig))
-  }
-
-  private def addToNamespace(address : MetricAddress, configPath : String, externalConfig : Option[Config])(implicit ns : MetricNamespace) : Rate = {
+  def apply(address : MetricAddress, configName : String)(implicit ns : MetricNamespace) : Rate = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      val params = resolveConfig(fullAddress, config.config, externalConfig, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(config.config, fullAddress, configName, DefaultConfigPath)
       createRate(fullAddress, params.getBoolean("prune-empty"), params.getBoolean("enabled"), config.intervals)
     }
   }

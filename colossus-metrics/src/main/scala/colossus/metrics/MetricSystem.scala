@@ -64,26 +64,6 @@ trait MetricNamespace {
    */
   def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
 
-
-  /**
-    * Create a new namespace using the supplied config overlaid on top of the existing MetricSystem configuration.
-    * This function is used for components that want to add Metrics into this namespace, but want to provide additional or overriding config.
-    * Note, if there are name clashes with existing elements in the current Config, the existing elements will be overwritten for this new MetricNamespace instance.
-    * @param config  Config object which has a `metrics` field on it.  This field is expected to be in the shape of a `colossus.metrics` config definition.
-    *                If no `metrics` field is detected, then this Config object is not used.
-    * @return  A new MetricNamespace, with the same underlying Collection, but with an overriden Config object.  If the supplied config object
-    *          has no `metrics` field, then this instance is returned.
-    */
-  def withConfigOverrides(config : Config) : MetricNamespace = {
-
-    if(config.hasPath("metrics")){
-      val serverMetrics = config.getObject("metrics").withFallback(collection.config.config.getConfig(MetricSystem.ConfigRoot))
-      val newConfig = collection.config.config.withValue(MetricSystem.ConfigRoot, serverMetrics)
-      MetricContext(namespace, new Collection(collection.config.copy(config = newConfig), collection.collectors))
-    }else{
-      this
-    }
-  }
 }
 
 case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace
@@ -107,8 +87,9 @@ case class MetricContext(namespace: MetricAddress, collection: Collection) exten
   * All Metrics have 3 constructors.  Using [[colossus.metrics.Rate]] as an example:
   *
   *  - Rate(MetricAddress) => This will create a Rate with the MetricAddress, and use MetricSystem definition's default Rate configuration
+  *                           Config precedence is as follow: `colossus.metrics.$MetricAddress`, `colossus.metrics.system.default-collectors.rate`
   *  - Rate(MetricAddress, configPath) => This will create a Rate with the MetricAddress.  configPath is relative to the MetricSystem's definition root.
-  *                                       Note, this configPath will fallback on the default Rate configuration if it is missing, or missing values.
+  *                                       Config precedence is as follow: `colossus.metrics.$MetricAddress`, `colossus.metrics.$configPath`, `colossus.metrics.system.default-collectors.rate`
   *  - Rate(parameters) => Bypasses config, and creates the Rate directly with the passed in parameters
   *
   * Metric Disabling
@@ -145,14 +126,12 @@ object MetricSystem {
    * @param namespace Base url for all metrics within this MetricSystem
    * @param collectionIntervals How often to report metrics
    * @param collectSystemMetrics whether to collect metrics from the system as well
-   * @param config Typesafe Config source which should contain configuration for a MetricSystem.  This Configuration object is used during
-   *               Collector(Rate, Histogram specifically) creation.  If this Config does not have the corresponding colossus.metrics.collectors.defaults for those
-   *               then Collector creation will fail if it tries to reference them.
+   * @param config Config object expected to be in the shape of the reference.conf's `colossus.metrics` definition.
    * @param system the actor system the metric system should use
    * @return
    */
-  def apply(namespace: MetricAddress, collectionIntervals: Seq[FiniteDuration] = Seq(1.second, 1.minute),
-            collectSystemMetrics: Boolean = true, config : Config = ConfigFactory.load())
+  def apply(namespace: MetricAddress, collectionIntervals: Seq[FiniteDuration],
+            collectSystemMetrics: Boolean, config : Config)
   (implicit system: ActorSystem): MetricSystem = {
     import system.dispatcher
 
@@ -179,63 +158,31 @@ object MetricSystem {
     * @return
     */
   def deadSystem(implicit system: ActorSystem) = {
-    MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval](), false, ConfigFactory.defaultReference())
+    MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval](), false, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot))
   }
 
   /**
-    * Create a new MetricSystem, using only the defaults provided by the corresponding "colossus.metrics" config path.
-    * A Config object will be created via {{{ConfigFactory.load()}}}
+    * Create a new MetricSystem, using the specified configuration
     *
+    * @param config Config object expected to be in the shape of the reference.conf's `colossus.metrics` definition.
     * @param system
     * @return
     */
-  def apply()(implicit system : ActorSystem) : MetricSystem = {
-    apply(ConfigRoot)
-  }
-
-  /**
-    * Create a new MetricSystem using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.metrics"
-    * config path.
-    * A Config object will be created via {{{ConfigFactory.load()}}}
-    *
-    * @param configPath  The path to the configuration.
-    * @param system
-    * @return
-    */
-  def apply(configPath : String)(implicit system : ActorSystem) : MetricSystem = {
-    apply(configPath, ConfigFactory.load())
-  }
-
-  /**
-    * Create a new MetricSystem by loading its config from the specified configPath.  This configPath will be overlaid on top of the default "colossus.metrics" config path.
-    *
-    * @param configPath The path to the configuration
-    * @param config The Config source to query
-    * @param system
-    * @return
-    */
-  def apply(configPath : String, config : Config)(implicit system : ActorSystem) : MetricSystem = {
+  def apply(config : Config = loadDefaultConfig())(implicit system : ActorSystem) : MetricSystem = {
 
     import ConfigHelpers._
 
-    val userPathObject = config.getObject(configPath)
-    val metricsObject = userPathObject.withFallback(config.getObject(ConfigRoot))
-    val metricsConfig = metricsObject.toConfig
-
-    //after creating the merged config object, overwrite colossus.metrics with this value and use that internally,
-    //This simplifies Collector creation.
-    val mergedConfig = config.withValue(ConfigRoot, metricsObject)
-
-    val enabled = metricsConfig.getBoolean("enabled")
+    val enabled = config.getBoolean("system.enabled")
     if(enabled){
-      val collectSystemMetrics = metricsConfig.getBoolean("collect-system-metrics")
-      val metricIntervals = metricsConfig.getFiniteDurations("collection-intervals")
-      val metricAddress = metricsConfig.getString("namespace")
-      MetricSystem(MetricAddress(metricAddress), metricIntervals, collectSystemMetrics, mergedConfig)
+      val collectSystemMetrics = config.getBoolean("system.collect-system-metrics")
+      val metricIntervals = config.getFiniteDurations("system.collection-intervals")
+      val metricAddress = config.getString("system.namespace")
+      MetricSystem(MetricAddress(metricAddress), metricIntervals, collectSystemMetrics, config)
     }else{
       deadSystem
     }
   }
+  private def loadDefaultConfig() = ConfigFactory.load().getConfig(ConfigRoot)
 }
 
 //has to be a better way
@@ -244,6 +191,8 @@ object ConfigHelpers {
   implicit class ConfigExtractors(config : Config) {
 
     import scala.collection.JavaConversions._
+
+    def getStringOption(path : String) : Option[String] = getOption(path, config.getString)
 
     def getIntOption(path : String) : Option[Int] = getOption(path, config.getInt)
 
@@ -267,6 +216,17 @@ object ConfigHelpers {
       Duration(str) match {
         case duration : FiniteDuration => duration
         case other => throw new FiniteDurationExpectedException(s"$str is not a valid FiniteDuration.  Expecting only finite for path $key.  Evaluted to $other")
+      }
+    }
+
+    def withFallbacks(paths : String*) : Config = {
+      //starting from empty, walk back from the lowest priority, stacking higher priorities on top of it.
+      paths.reverse.foldLeft(ConfigFactory.empty()) {
+        case (acc, path) =>if(config.hasPath(path)){
+          config.getConfig(path).withFallback(acc)
+        } else{
+          acc
+        }
       }
     }
   }

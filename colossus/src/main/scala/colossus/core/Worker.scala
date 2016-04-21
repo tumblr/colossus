@@ -3,7 +3,6 @@ package core
 
 import akka.actor._
 import akka.event.LoggingAdapter
-import com.typesafe.config.Config
 import metrics._
 import service.CallbackExecution
 
@@ -25,7 +24,6 @@ import scala.util.control.NonFatal
  */
 case class WorkerConfig(
   io: IOSystem,
-  ioConfig : Config,
   workerId: Int
 )
 
@@ -157,7 +155,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  implicit val ns = io.namespace.withConfigOverrides(ioConfig)
+  implicit val ns = io.namespace
   val eventLoops              = Rate("worker/event_loops", "worker-event-loops")
   val numConnections          = Counter("worker/connections", "worker-connections")
   val rejectedConnections     = Rate("worker/rejected_connections", "worker-rejected-connections")

@@ -7,7 +7,9 @@ class CollectionSpec extends WordSpec with MustMatchers{
 
   "Collection" must {
 
-    implicit val namespace = MetricContext("/", new Collection(CollectorConfig(Seq(1.minute, 1.second))))
+    val collection = Collection.withReferenceConf(Seq(1.minute, 1.second))
+
+    implicit val namespace = MetricContext("/", collection)
 
     "getOrAdd should add a new Collector" in {
       //note, this constructor implicitly adds its constructed object into this collection

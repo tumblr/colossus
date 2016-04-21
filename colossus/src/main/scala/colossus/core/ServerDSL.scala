@@ -39,152 +39,91 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initial
 //this is mixed in by Server
 trait ServerDSL {
 
-  val ConfigRoot = "colossus.server"
+  val ConfigRoot = "colossus.defaults.server"
 
   /**
-    * Create a new Server, using only the defaults provided by the corresponding "colossus.server" config path.
+    * Create a new Server
+    *
+    * Configuration will look first in `colossus.server.$name`, and fallback on `colossus.defaults.server`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
+    * @param name The name of this Server
     * @param initializer
     * @param io
     * @return
     */
-  def start()(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
-    start(ConfigRoot)(initializer)
-  }
+  def start(name: String, config: Config = ConfigFactory.load())(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+    import colossus.metrics.ConfigHelpers._
 
-  /**
-    * Create a new Server using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.server"
-    * config path.
-    * A Config object will be created via {{{ConfigFactory.load()}}}
-    *
-    * @param configPath The path to the configuration.
-    * @param initializer
-    * @param io
-    * @return
-    */
-  def start(configPath : String)(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
-    start(configPath, ConfigFactory.load())(initializer)
-  }
-
-  /**
-    * Create a new Server by loading its config from the specified configPath.
-    * This configPath will be overlaid on top of the default "colossus.server" config path.
-    *
-    * @param configPath The path to the configuration.
-    * @param config The Config source to query
-    * @param initializer
-    * @param io
-    * @return
-    */
-  def start(configPath : String, config : Config)(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
-    val userPathObject = config.getObject(configPath)
-    val serverConfig = userPathObject.withFallback(config.getObject(ConfigRoot)).toConfig
-    val name = serverConfig.getString("name")
-    start(name, ServerSettings.extract(serverConfig), config)(initializer)
+    val serverConfig = config.withFallbacks(s"colossus.server.$name", ConfigRoot)
+    start(name, ServerSettings.extract(serverConfig))(initializer)
   }
 
   /**
     * Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
-    * "colossus.server" configuration path.
+    * "colossus.defaults.server" configuration path.
     *
-    * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace
+    * @param name Name of this Server.
     * @param port Port to run on
     * @param initializer
     * @param io
     * @return
     */
   def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
-
-    val user =
-      s"""
-        |user-settings{
-        |  name : "$name"
-        |  port : $port
-        |}
-      """.stripMargin
-    val userConfig = ConfigFactory.parseString(user)
-
-    start("user-settings",userConfig.withFallback(ConfigFactory.load()))(initializer)
+    val serverConfig = ConfigFactory.load().getConfig(ConfigRoot)
+    val serverSettings = ServerSettings.extract(serverConfig)
+    start(name, serverSettings.copy(port = port))(initializer)
   }
 
   /**
     * Create a new Server.
     *
-    * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace.
+    * @param name  Name of this Server.
     * @param settings Settings for this Server.
-    * @param config Config object expecting to hold a Server configuration.
-    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
-    *               Server metrics.
     * @param initializer
     * @param io
     * @return
     */
-  def start(name: String, settings: ServerSettings,
-            config : Config = ConfigFactory.load().getConfig(ConfigRoot))(initializer: WorkerRef => Initializer)(implicit io: IOSystem) : ServerRef = {
+  def start(name: String, settings: ServerSettings)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
-      settings = settings, delegatorFactory = (s,w) => new DSLDelegator(s,w, initializer(w))
+      settings = settings, delegatorFactory = (s, w) => new DSLDelegator(s, w, initializer(w))
     )
-    Server(serverConfig, config)
+    Server(serverConfig)
 
   }
 
   /**
-    * Create a new Server, using only the defaults provided by the corresponding "colossus.server" config path.
+    * Create a new Server
+    *
+    * Configuration will look first in `colossus.server.$name`, and fallback on `colossus.defaults.server`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
+    * @param name Name of this Server
     * @param handlerFactory
     * @param io
     * @return
     */
-  def basic()(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem) : ServerRef = {
-    basic(ConfigRoot)(handlerFactory)
-  }
+  def basic(name: String, config: Config = ConfigFactory.load())
+           (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+    import colossus.metrics.ConfigHelpers._
 
-  /**
-    * Create a new Server using the supplied configPath.  This configPath will be overlaid on top of the default "colossus.server"
-    * config path.
-    * A Config object will be created via {{{ConfigFactory.load()}}}
-    *
-    * @param configPath The path to the configuration.
-    * @param handlerFactory
-    * @param io
-    * @return
-    */
-  def basic(configPath : String)(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem) : ServerRef = {
-    basic(configPath, ConfigFactory.load())(handlerFactory)
-  }
-
-  /**
-    * Create a new Server by loading its config from the specified configPath.
-    * This configPath will be overlaid on top of the default "colossus.server" config path.
-    *
-    * @param configPath The path to the configuration.
-    * @param config The Config source to query
-    * @param handlerFactory
-    * @param io
-    * @return
-    */
-  def basic(configPath : String, config : Config)(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem) : ServerRef = {
-    val userPathObject = config.getObject(configPath)
-    val serverConfig = userPathObject.withFallback(config.getObject(ConfigRoot)).toConfig
-    val name = serverConfig.getString("name")
-    basic(name, ServerSettings.extract(serverConfig), serverConfig)(handlerFactory)
+    val serverConfig = config.withFallbacks(s"colossus.server.$name", ConfigRoot)
+    basic(name, ServerSettings.extract(serverConfig))(handlerFactory)
   }
 
   /**
     * Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
-    * "colossus.server" configuration path.
+    * `colossus.defaults.server` configuration path.
     *
-    * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace
+    * @param name Name of this Server.
     * @param port Port to run on
     * @param handlerFactory
     * @param io
     * @return
     */
   def basic(name: String, port: Int)(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, port){worker => new Initializer(worker){
+    start(name, port) { worker => new Initializer(worker) {
       def onConnect = handlerFactory
     }}
   }
@@ -192,20 +131,16 @@ trait ServerDSL {
   /**
     * Create a new Server.
     *
-    * @param name Name of this Server. Name is also the MetricAddress relative to the containing IOSystem's MetricNamespace
+    * @param name Name of this Server.
     * @param settings Settings for this Server.
-    * @param config Config object expecting to hold a Server configuration.
-    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
-    *               Server metrics.
     * @param handlerFactory
     * @param io
     * @return
     */
-  def basic(name: String, settings: ServerSettings, config : Config = ConfigFactory.load().getConfig(ConfigRoot))
+  def basic(name: String, settings: ServerSettings)
            (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, settings, config)(worker => new Initializer(worker) {
+    start(name, settings)(worker => new Initializer(worker) {
       def onConnect = handlerFactory
     })
   }
 }
-
