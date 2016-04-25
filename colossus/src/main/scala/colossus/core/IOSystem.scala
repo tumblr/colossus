@@ -17,38 +17,35 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
-  val ConfigRoot = "colossus.defaults.io-system"
+  val ConfigRoot = "colossus.iosystem"
 
   /**
-    * Create a new IOSystem, using only the defaults provided by the corresponding "colossus.defaults.io-system" config path.
+    * Create a new IOSystem, using only the defaults provided by the corresponding `colossus.iosystem` config path.
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
     * @param sys
     * @return
     */
   def apply()(implicit sys : ActorSystem) : IOSystem = {
-    apply("io-system")
+    apply("iosystem")
   }
 
   /**
     * Create a new IOSystem.
     *
-    * Configuration will look first in `colossus.io-system.$name`, and fallback on `colossus.defaults.io-system`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
     * @param name  Name of the IOSystem to create.
-    * @param config The Config source to query, defaults to {{{ConfigFactory.load()}}}
+    * @param ioConfig The Config source in the shape of `colossus.iosystem`
     * @param sys
     * @return
     */
-  def apply(name : String, config : Config = ConfigFactory.load())(implicit sys : ActorSystem) : IOSystem = {
+  def apply(name : String, ioConfig : Config = ConfigFactory.load().getConfig(ConfigRoot))(implicit sys : ActorSystem) : IOSystem = {
 
     import colossus.metrics.ConfigHelpers._
 
-    val ioConfig = config.withFallbacks(s"colossus.io-system.$name", ConfigRoot)
     val workerCount : Option[Int] = ioConfig.getIntOption("num-workers")
-    val msConfig = config.withFallbacks("colossus.defaults.metrics", MetricSystem.ConfigRoot)
-    val ms = MetricSystem(msConfig)
+    val ms = MetricSystem()
     apply(name, workerCount, ms)
   }
 

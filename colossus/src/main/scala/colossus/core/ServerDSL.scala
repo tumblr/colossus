@@ -39,29 +39,27 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initial
 //this is mixed in by Server
 trait ServerDSL {
 
-  val ConfigRoot = "colossus.defaults.server"
+  val ConfigRoot = "colossus.server"
 
   /**
     * Create a new Server
     *
-    * Configuration will look first in `colossus.server.$name`, and fallback on `colossus.defaults.server`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
     * @param name The name of this Server
+    * @param serverConfig Config object in the shape of `colossus.server`
     * @param initializer
     * @param io
     * @return
     */
-  def start(name: String, config: Config = ConfigFactory.load())(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
-    import colossus.metrics.ConfigHelpers._
+  def start(name: String, serverConfig: Config = loadConfig)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
 
-    val serverConfig = config.withFallbacks(s"colossus.server.$name", ConfigRoot)
     start(name, ServerSettings.extract(serverConfig))(initializer)
   }
 
   /**
     * Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
-    * "colossus.defaults.server" configuration path.
+    * "colossus.server" configuration path.
     *
     * @param name Name of this Server.
     * @param port Port to run on
@@ -70,7 +68,7 @@ trait ServerDSL {
     * @return
     */
   def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
-    val serverConfig = ConfigFactory.load().getConfig(ConfigRoot)
+    val serverConfig = loadConfig
     val serverSettings = ServerSettings.extract(serverConfig)
     start(name, serverSettings.copy(port = port))(initializer)
   }
@@ -96,25 +94,23 @@ trait ServerDSL {
   /**
     * Create a new Server
     *
-    * Configuration will look first in `colossus.server.$name`, and fallback on `colossus.defaults.server`
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
     * @param name Name of this Server
+    * @param serverConfig Config object in the shape of `colossus.server`
     * @param handlerFactory
     * @param io
     * @return
     */
-  def basic(name: String, config: Config = ConfigFactory.load())
+  def basic(name: String, serverConfig: Config = loadConfig)
            (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    import colossus.metrics.ConfigHelpers._
 
-    val serverConfig = config.withFallbacks(s"colossus.server.$name", ConfigRoot)
     basic(name, ServerSettings.extract(serverConfig))(handlerFactory)
   }
 
   /**
     * Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
-    * `colossus.defaults.server` configuration path.
+    * `colossus.server` configuration path.
     *
     * @param name Name of this Server.
     * @param port Port to run on
@@ -143,4 +139,6 @@ trait ServerDSL {
       def onConnect = handlerFactory
     })
   }
+
+  private def loadConfig = ConfigFactory.load().getConfig(ConfigRoot)
 }
