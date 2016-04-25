@@ -142,6 +142,8 @@ class Collection(val config: CollectorConfig) {
 
 }
 
+//Used as a convenience function in tests.  Used in both both colossus-tests and in colossus-metrics tests, which means
+//this project is the lowest common denominator for both.
 object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
     new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
