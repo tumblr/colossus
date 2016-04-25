@@ -103,7 +103,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystem { implicit io =>
           val existingServer = Server.basic("echo3", TEST_PORT)(context => new EchoHandler(context))
           waitForServer(existingServer)
-          val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = PollingDuration(50 milliseconds, Some(1L)))
+          val settings = ServerSettings(port = TEST_PORT, bindingRetry = BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
           val p = TestProbe()
           val clashingServer: ServerRef = Server.basic("echo2", settings)( context => new EchoHandler(context))
           p.watch(clashingServer.server)
@@ -115,7 +115,14 @@ class ServerSpec extends ColossusSpec {
         val badDelegator : Delegator.Factory = (s, w) => throw new Exception("failed during delegator creation")
 
         withIOSystem{ implicit io =>
-          val cfg = ServerConfig("echo", badDelegator, ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(2L))))
+          val cfg = ServerConfig(
+            "echo",
+            badDelegator,
+            ServerSettings(
+              TEST_PORT,
+              delegatorCreationPolicy = WaitPolicy(200 milliseconds, BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
+            )
+          )
           val serverProbe = TestProbe()
           val failedServer = Server(cfg)
           serverProbe.watch(failedServer.server)
@@ -184,7 +191,7 @@ class ServerSpec extends ColossusSpec {
       "shutdown when a delegator surpasses the allotted duration" in {
         withIOSystem{ implicit io =>
           val serverProbe = TestProbe()
-          val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(1L))))(new Initializer(_) {
+          val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(new Initializer(_) {
             Thread.sleep(600)
             def onConnect = {
               new EchoHandler(_)
