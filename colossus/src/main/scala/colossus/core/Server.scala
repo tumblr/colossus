@@ -73,25 +73,21 @@ object ServerSettings {
   def extract(config : Config) : ServerSettings = {
     import colossus.metrics.ConfigHelpers._
 
-    //one-offing these, since they are going away soon
-    val bindingAttemptInterval = config.getFiniteDuration("binding-attempt-interval")
-    val bindingAttemptMaxTries = config.getLongOption("binding-attempt-max-tries")
-    val binding = PollingDuration(bindingAttemptInterval, bindingAttemptMaxTries)
-    val delegatorCreationInterval = config.getFiniteDuration("delegator-creation-interval")
-    val delegatorCreationMaxTries = config.getLongOption("delegator-creation-max-tries")
-    val delegator = PollingDuration(delegatorCreationInterval, delegatorCreationMaxTries)
+    val bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
+    val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
 
-    val crd = (ServerSettings.apply _).curried
-    crd(config.getInt("port"))
-      .apply(config.getInt("max-connections"))
-      .apply(config.getScalaDuration("max-idle-time"))
-      .apply(config.getDouble("low-watermark-percentage"))
-      .apply(config.getDouble("high-watermark-percentage"))
-      .apply(config.getFiniteDuration("highwater-max-idle-time"))
-      .apply(config.getIntOption("tcp-backlog-size"))
-      .apply(binding)
-      .apply(delegator)
-      .apply(config.getFiniteDuration("shutdown-timeout"))
+    ServerSettings (
+      port                    = config.getInt("port"),
+      maxConnections          = config.getInt("max-connections"),
+      maxIdleTime             = config.getScalaDuration("max-idle-time"),
+      lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
+      highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
+      highWaterMaxIdleTime    = config.getFiniteDuration("highwater-max-idle-time"),
+      tcpBacklogSize          = config.getIntOption("tcp-backlog-size"),
+      bindingRetry            = bindingRetry,
+      delegatorCreationPolicy = delegatorCreationPolicy,
+      shutdownTimeout         = config.getFiniteDuration("shutdown-timeout")
+    )
   }
 }
 

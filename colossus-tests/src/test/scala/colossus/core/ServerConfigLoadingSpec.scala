@@ -8,6 +8,9 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 
 class ServerConfigLoadingSpec  extends ColossusSpec {
+  
+  val refBindingRetry =  BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second), immediateFirstAttempt = false)
+  val refDelegatorCreationPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(100.milliseconds, BackoffMultiplier.Constant, immediateFirstAttempt = false))
 
   "Server configuration loading" should {
     "load defaults" in {
@@ -16,8 +19,8 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         waitForServer(s)
         s.name mustBe MetricAddress("my-server")
         val settings = s.config.settings
-        settings.bindingAttemptDuration mustBe PollingDuration(200.milliseconds, None)
-        settings.delegatorCreationDuration mustBe PollingDuration(500.milliseconds, None)
+        settings.bindingRetry mustBe refBindingRetry
+        settings.delegatorCreationPolicy mustBe refDelegatorCreationPolicy
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
@@ -44,8 +47,8 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         waitForServer(s)
         s.name mustBe MetricAddress("my-server")
         val settings = s.config.settings
-        settings.bindingAttemptDuration mustBe PollingDuration(200.milliseconds, None)
-        settings.delegatorCreationDuration mustBe PollingDuration(500.milliseconds, None)
+        settings.bindingRetry mustBe refBindingRetry
+        settings.delegatorCreationPolicy mustBe refDelegatorCreationPolicy
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
@@ -62,8 +65,8 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         waitForServer(s)
         s.name mustBe MetricAddress("quick-server")
         val settings = s.config.settings
-        settings.bindingAttemptDuration mustBe PollingDuration(200.milliseconds, None)
-        settings.delegatorCreationDuration mustBe PollingDuration(500.milliseconds, None)
+        settings.bindingRetry mustBe refBindingRetry
+        settings.delegatorCreationPolicy mustBe refDelegatorCreationPolicy
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
