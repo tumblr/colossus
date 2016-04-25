@@ -6,15 +6,15 @@ import scala.concurrent.duration._
 
 class ConfigLoadingSpec extends MetricIntegrationSpec {
 
-  val PrefixRoot = "colossus.metrics."
+  val PrefixRoot = "colossus.metrics.system"
 
   val expectedPaths = Seq("collect-system-metrics", "collection-intervals", "namespace", "collector-defaults.rate.prune-empty",
                           "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
                           "collector-defaults.histogram-percentiles")
 
-  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference()).getConfig(MetricSystem.ConfigRoot)
 
-  def metricSystem(userOverrides: String): MetricSystem = MetricSystem("my-metrics", config(userOverrides))
+  def metricSystem(userOverrides: String): MetricSystem = MetricSystem(config(userOverrides))
 
   "MetricSystem initialization" must {
     "load defaults from reference implementation" in {
@@ -29,37 +29,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       }
     }
 
-    "apply user overridden configuration" in {
-      val userOverrides =
-        """
-          |my-metrics{
-          |  collection-intervals : ["1 minute", "10 minutes"]
-          |  namespace : "/mypath"
-          |  collectors-defaults {
-          |   rate {
-          |    prune-empty : true
-          |   }
-          |  }
-          |}
-        """.stripMargin
-
-      //to imitate an already loaded configuration
-      implicit val ms = metricSystem(userOverrides)
-
-      ms.namespace mustBe MetricAddress("/mypath")
-      ms.collectionIntervals.keys mustBe Set(1.minute, 10.minutes)
-      ms.collectionSystemMetrics mustBe true
-
-
-      expectedPaths.foreach{ x =>
-        ms.config.hasPath(s"$PrefixRoot$x")
-      }
-    }
-
     "fail to load if metric intervals contains an infinite value" in {
       val userOverrides =
         """
-          |my-metrics{
+          |colossus.metrics.system{
           |  collection-intervals : ["Inf", "10 minutes"]
           |  namespace : "/mypath"
           |  collectors-defaults {
@@ -70,15 +43,13 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      a[FiniteDurationExpectedException] must be thrownBy MetricSystem("my-metrics", c)
-
+      a[FiniteDurationExpectedException] must be thrownBy MetricSystem(config(userOverrides))
     }
 
     "fail to load if metric intervals contains a non duration string" in {
       val userOverrides =
         """
-          |my-metrics{
+          |colossus.metrics.system{
           |  collection-intervals : ["foo", "10 minutes"]
           |  namespace : "/mypath"
           |  collectors-defaults {
@@ -89,19 +60,17 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      a[NumberFormatException] must be thrownBy MetricSystem("my-metrics", c)
-
+      a[NumberFormatException] must be thrownBy MetricSystem(config(userOverrides))
     }
+
     "load a dead system if the MetricSystem is disabled" in {
       val userOverrides = """
-        |my-metrics{
+        |colossus.metrics.system{
         |  enabled : false
         |}
       """.stripMargin
 
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      val ms = MetricSystem("my-metrics", c)
+      val ms = metricSystem(userOverrides)
       ms.namespace mustBe MetricAddress.Root / "DEAD"
     }
   }
@@ -110,29 +79,30 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
 
     val userOverrides =
       """
-        |my-metrics{
+        |colossus.metrics{
         |  pruned-rate {
         |    prune-empty : false
         |  }
         |  off-rate{
         |    enabled : false
         |  }
-        |  collection-intervals : ["1 minute", "10 minutes"]
-        |  namespace : "/mypath"
-        |  collectors-defaults {
-        |   rate {
-        |    prune-empty : true
-        |   }
+        |  system{
+        |    collection-intervals : ["1 minute", "10 minutes"]
+        |    collectors-defaults {
+        |     rate {
+        |      prune-empty : true
+        |     }
+        |    }
         |  }
-        |}
-        |mypath.config-rate{
-        |  prune-empty : false
+        |  mypath.config-rate{
+        |    prune-empty : false
+        |  }
         |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
     "load a rate using collector defaults" in {
-      val r = Rate(MetricAddress("/my-rate"))
+      val r = Rate(MetricAddress("my-rate"))
       r.pruneEmpty mustBe true
     }
     "load a rate using a defined configuration" in {
@@ -145,7 +115,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
     }
 
     "load a NopRate when its definition is disabled" in {
-      val r = Rate(MetricAddress("/my-disabled-rate"), "off-rate")
+      val r = Rate(MetricAddress("my-disabled-rate"), "off-rate")
       r mustBe a[NopRate]
     }
 
@@ -154,7 +124,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       r mustBe a[NopRate]
     }
     "use a MetricAddress as the primary config source" in {
-      val r = Rate(MetricAddress("config-rate"))
+      val r = Rate(MetricAddress("mypath/config-rate"))
       r.pruneEmpty mustBe false
     }
   }
@@ -162,7 +132,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
   "Histogram initialization" must {
     val userOverrides =
       """
-        |my-metrics{
+        |colossus.metrics{
         |  small-hist {
         |    prune-empty : false
         |    percentiles : [.50, .75]
@@ -170,24 +140,25 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  off-hist{
         |    enabled : false
         |  }
-        |  collection-intervals : ["1 minute", "10 minutes"]
-        |  namespace : "/mypath"
-        |  collectors-defaults {
-        |   histogram {
-        |    prune-empty : true
-        |    sample-rate : 1
-        |   }
+        |  system{
+        |    collection-intervals : ["1 minute", "10 minutes"]
+        |    collectors-defaults {
+        |      histogram {
+        |        prune-empty : true
+        |        sample-rate : 1
+        |      }
+        |    }
         |  }
-        |}
-        |mypath.config-hist{
-        |  sample-rate : .33
-        |  percentiles : [.25]
+        |  mypath.config-hist{
+        |    sample-rate : .33
+        |    percentiles : [.25]
+        |  }
         |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
     "load a Histogram using collector defaults" in {
-      val r = Histogram(MetricAddress("/my-hist"))
+      val r = Histogram(MetricAddress("my-hist"))
       r.pruneEmpty mustBe true
       r.sampleRate mustBe 1.0
       r.percentiles mustBe Seq(0.75, 0.9, 0.99, 0.999, 0.9999)
@@ -206,16 +177,16 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
     }
 
     "load a NopHistogram when its definition is disabled" in {
-      val r = Histogram(MetricAddress("/my-disabled-hist"), "off-hist")
+      val r = Histogram(MetricAddress("my-disabled-hist"), "off-hist")
       r mustBe a[NopHistogram]
     }
 
     "load a NopHistogram when the 'enabled' flag is set" in {
-      val r = Histogram(MetricAddress("/some-hist"), enabled = false)
+      val r = Histogram(MetricAddress("some-hist"), enabled = false)
       r mustBe a[NopHistogram]
     }
     "use a MetricAddress as the primary config source" in {
-      val r = Histogram(MetricAddress("config-hist"))
+      val r = Histogram(MetricAddress("mypath/config-hist"))
       r.sampleRate mustBe 0.33
       r.percentiles mustBe Seq(0.25)
     }
@@ -225,19 +196,19 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
 
     val userOverrides =
       """
-        |my-metrics{
+        |colossus.metrics{
         |  off-counter{
         |    enabled : false
         |  }
-        |}
-        |config-counter{
-        |  enabled : false
+        |  mypath.config-counter{
+        |    enabled : false
+        |  }
         |}
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
     "load a Counter using collector defaults" in {
-      val r = Counter(MetricAddress("/my-counter"))
+      val r = Counter(MetricAddress("my-counter"))
       r mustBe a[DefaultCounter]
     }
 
@@ -247,16 +218,16 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
     }
 
     "load a NopCounter when its definition is disabled" in {
-      val r = Counter(MetricAddress("/my-disabled-counter"), "off-counter")
+      val r = Counter(MetricAddress("my-disabled-counter"), "off-counter")
       r mustBe a[NopCounter]
     }
 
     "load a NopCounter when the 'enabled' flag is set" in {
-      val r = Counter(MetricAddress("/some-counter"), enabled = false)
+      val r = Counter(MetricAddress("some-counter"), enabled = false)
       r mustBe a[NopCounter]
     }
     "use a MetricAddress as the primary config source" in {
-      val r = Counter(MetricAddress("config-counter"))
+      val r = Counter(MetricAddress("mypath/config-counter"))
       r mustBe a[NopCounter]
     }
   }

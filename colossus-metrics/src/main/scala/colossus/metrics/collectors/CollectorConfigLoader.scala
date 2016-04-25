@@ -1,23 +1,20 @@
 package colossus.metrics
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.Config
 
 private[metrics] trait CollectorConfigLoader {
 
   /**
     * Build a Config by stacking config objects specified by the paths elements
+    *
     * @param config
+    * @param address Address of the Metric, turned into a path and used as a config source.
     * @param paths Ordered list of config paths, ordered by highest precedence.
     * @return
     */
-  def resolveConfig(config : Config, paths : String*) : Config = {
-    //starting from empty, walk back from the lowest priority, stacking higher priorities on top of it.
-    paths.reverse.foldLeft(ConfigFactory.empty()) {
-      case (acc, path) =>if(config.hasPath(path)){
-        config.getConfig(path).withFallback(acc)
-      } else{
-        acc
-      }
-    }
+  def resolveConfig(config : Config, address : MetricAddress, paths : String*) : Config = {
+    import ConfigHelpers._
+    val p = address.pieceString.replace('/','.') +: paths
+    config.withFallbacks(p : _*)
   }
 }

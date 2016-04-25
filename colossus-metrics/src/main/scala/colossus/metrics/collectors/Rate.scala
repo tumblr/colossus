@@ -11,6 +11,7 @@ trait Rate extends Collector{
     * Increment value to this Rate for this specified TagMap
     * A single Rate instance divides values amongst TagMaps, and tracks each one independently
     * When they are collected and reported, all TagMaps will be reported under the same MetricAddress.
+    *
     * @param tags Tags to record with this value
     * @param amount The value to increment the rate
     */
@@ -18,6 +19,7 @@ trait Rate extends Collector{
 
   /**
     * Instruct the collector to not report any values for tag combinations which were previously empty.
+    *
     * @return
     */
   def pruneEmpty : Boolean
@@ -61,12 +63,11 @@ class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boo
 
 object Rate extends CollectorConfigLoader {
 
-  import MetricSystem.ConfigRoot
-
-  private val DefaultConfigPath = "collectors-defaults.rate"
+  private val DefaultConfigPath = "system.collectors-defaults.rate"
 
   /**
     * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
+    *
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param ns The namespace to which this Metric is relative.
     * @return
@@ -76,22 +77,24 @@ object Rate extends CollectorConfigLoader {
   }
   /**
     * Create a Rate with the following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
+    *
     * @param address    The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
-    * @param configPath The path in the config that this rate's configuration is located.  This is relative to the MetricSystem config
+    * @param configName The path in the config that this rate's configuration is located.  This is relative to the MetricSystem config
     *                   definition.
     * @param ns The namespace to which this Metric is relative.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Rate = {
+  def apply(address : MetricAddress, configName : String)(implicit ns : MetricNamespace) : Rate = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(config.config, fullAddress, configName, DefaultConfigPath)
       createRate(fullAddress, params.getBoolean("prune-empty"), params.getBoolean("enabled"), config.intervals)
     }
   }
 
   /**
     * Create a new Rate which will be contained by the specified Collection
+    *
     * @param address The MetricAddress of this Rate.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
     * @param enabled If this Rate will actually be collected and reported.

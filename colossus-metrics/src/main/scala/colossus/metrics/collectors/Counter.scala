@@ -77,9 +77,7 @@ class NopCounter private[metrics](val address : MetricAddress) extends Counter {
 
 object Counter extends CollectorConfigLoader{
 
-  import MetricSystem.ConfigRoot
-
-  private val DefaultConfigPath = "collectors-defaults.counter"
+  private val DefaultConfigPath = "system.collectors-defaults.counter"
 
   /**
     * Create a Counter with the following address.   See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
@@ -94,6 +92,7 @@ object Counter extends CollectorConfigLoader{
 
   /**
     * Create a Counter with following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]]
     *
     * @param address The MetricAddress of this Counter.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this counter's configuration is located.  This is relative to the MetricSystem config
@@ -103,8 +102,7 @@ object Counter extends CollectorConfigLoader{
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
     ns.getOrAdd(address){ (fullAddress, config) =>
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
       createCounter(address, params.getBoolean("enabled"))
     }
   }

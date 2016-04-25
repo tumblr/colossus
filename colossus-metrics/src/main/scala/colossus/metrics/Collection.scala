@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
  * @param config The Configuration of the underlying [[MetricSystem]]
  */
-case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config = ConfigFactory.defaultReference())
+case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config)
 
 /**
   * Base trait required by all metric types.
@@ -99,12 +99,7 @@ class DuplicateMetricException(message: String) extends Exception(message)
 
 class Collection(val config: CollectorConfig) {
 
-  val collectors = new ConcurrentHashMap[MetricAddress, Collector]
-
-  //not used
-  def add(collector: Collector) {
-    collectors.put(collector.address, collector)
-  }
+  val collectors : ConcurrentHashMap[MetricAddress, Collector] = new ConcurrentHashMap[MetricAddress, Collector]()
 
   /**
    * Retrieve a collector of a specific type by address, creating a new one if
@@ -145,4 +140,12 @@ class Collection(val config: CollectorConfig) {
     build
   }
 
+}
+
+//Used as a convenience function in tests.  Used in both both colossus-tests and in colossus-metrics tests, which means
+//this project is the lowest common denominator for both.
+object Collection{
+  def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
+    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
+  }
 }

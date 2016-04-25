@@ -10,7 +10,7 @@ class MetricNamespaceSpec extends WordSpec with MustMatchers{
 
       import scala.collection.JavaConversions._
       //not using implicits here, just to illustrate the point.
-      val namespace = MetricContext("/", new Collection(CollectorConfig(Seq(1.minute, 1.second))))
+      val namespace = MetricContext("/", Collection.withReferenceConf(Seq(1.minute, 1.second)))
       val subName = namespace / "bar"
 
       //create 2 rates in the parent namespace

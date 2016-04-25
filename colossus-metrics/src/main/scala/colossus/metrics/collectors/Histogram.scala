@@ -3,6 +3,7 @@ package colossus.metrics
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ThreadLocalRandom
+
 import scala.concurrent.duration._
 
 /**
@@ -50,9 +51,7 @@ private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
  */
 object Histogram extends CollectorConfigLoader{
 
-  import MetricSystem.ConfigRoot
-
-  private val DefaultConfigPath = "collectors-defaults.histogram"
+  private val DefaultConfigPath = "system.collectors-defaults.histogram"
 
   val NUM_BUCKETS = 100
   //note, the value at index i is the lower bound of that bucket
@@ -96,6 +95,7 @@ object Histogram extends CollectorConfigLoader{
 
   /**
     * Create a Histogram with the following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]]
     *
     * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
     * @param configPath The path in the config that this histogram's configuration is located.  This is relative to the MetricSystem config
@@ -104,12 +104,10 @@ object Histogram extends CollectorConfigLoader{
     * @return
     */
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Histogram = {
-
     ns.getOrAdd(address){(fullAddress, config) =>
       import scala.collection.JavaConversions._
 
-      val addressPath = fullAddress.pieceString.replace('/','.')
-      val params = resolveConfig(config.config, addressPath, s"$ConfigRoot.$configPath", s"$ConfigRoot.$DefaultConfigPath")
+      val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
       val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")

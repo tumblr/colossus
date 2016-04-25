@@ -30,8 +30,8 @@ case class WorkerConfig(
 /**
  * This is a Worker's public interface.  This is what can be used to communicate with a Worker, as it
  * wraps the Worker's ActorRef, as well as providing some additional information which can be made public.
+ *
  * @param id The Worker's id.
- * @param metrics The Metrics associated with this Worker
  * @param worker The ActorRef of the Worker
  * @param system The IOSystem to which this Worker belongs
  */
@@ -140,7 +140,6 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
 }
 
 
-
 private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLogging with CallbackExecution {
   import Server._
   import Worker._
@@ -157,9 +156,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
   implicit val ns = io.namespace
-  val eventLoops              = Rate("worker/event_loops")
-  val numConnections          = Counter("worker/connections")
-  val rejectedConnections     = Rate("worker/rejected_connections")
+  val eventLoops              = Rate("worker/event_loops", "worker-event-loops")
+  val numConnections          = Counter("worker/connections", "worker-connections")
+  val rejectedConnections     = Rate("worker/rejected_connections", "worker-rejected-connections")
 
   val selector: Selector = Selector.open()
   val buffer = ByteBuffer.allocateDirect(1024 * 128)
@@ -573,7 +572,8 @@ object Worker {
   case class ConnectionSummary(infos: Seq[ConnectionSnapshot])
 
   /** Sent from Servers
-   * @param sc the underlying socketchannel of the connection
+    *
+    * @param sc the underlying socketchannel of the connection
    * @param attempt used when a worker refuses a connection, which can happen if a worker has just restarted and hasn't yet re-registered servers
    */
   private[core] case class NewConnection(sc: SocketChannel, attempt: Int = 1)

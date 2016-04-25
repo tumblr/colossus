@@ -57,13 +57,7 @@ package object http extends HttpBodyEncoders {
       implicit val httpClientDefaults = new ClientDefaults
 
     }
-  
-
   }
-
-
-
-
 
   class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
     override def tagsFor(request: C#Input, response: C#Output): TagMap = {

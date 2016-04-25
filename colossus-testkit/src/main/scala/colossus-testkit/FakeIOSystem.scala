@@ -97,7 +97,6 @@ class GenericExecutor extends Actor with CallbackExecution {
   }
 }
 
-
 object CallbackAwait {
 
   /**

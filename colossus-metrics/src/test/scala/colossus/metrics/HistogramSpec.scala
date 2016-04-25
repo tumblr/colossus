@@ -65,7 +65,7 @@ class HistogramSpec extends MetricIntegrationSpec {
 
   "Histogram" must {
     "get tags right" in {
-      implicit val col = MetricContext("/", new Collection(CollectorConfig(List(1.second))))
+      implicit val col = MetricContext("/", Collection.withReferenceConf(Seq(1.second)))
       val addr = MetricAddress.Root / "hist"
       val h = Histogram(addr)
       h.add(10, Map("foo" -> "bar"))
@@ -80,7 +80,7 @@ class HistogramSpec extends MetricIntegrationSpec {
     }
 
     "prune empty values" in {
-      implicit val col = MetricContext("/", new Collection(CollectorConfig(List(1.second))))
+      implicit val col = MetricContext("/", Collection.withReferenceConf(Seq(1.second)))
       val addr = MetricAddress.Root / "hist"
       val h = Histogram(addr, pruneEmpty = true)
       h.add(10, Map("foo" -> "bar"))
