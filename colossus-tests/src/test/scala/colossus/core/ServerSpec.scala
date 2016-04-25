@@ -103,7 +103,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystem { implicit io =>
           val existingServer = Server.basic("echo3", TEST_PORT)(context => new EchoHandler(context))
           waitForServer(existingServer)
-          val settings = ServerSettings(port = TEST_PORT, bindingAttemptDuration = PollingDuration(50 milliseconds, Some(1L)))
+          val settings = ServerSettings(port = TEST_PORT, bindingRetry = BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
           val p = TestProbe()
           val clashingServer: ServerRef = Server.basic("echo2", settings)( context => new EchoHandler(context))
           p.watch(clashingServer.server)
@@ -115,7 +115,14 @@ class ServerSpec extends ColossusSpec {
         val badDelegator : Delegator.Factory = (s, w) => throw new Exception("failed during delegator creation")
 
         withIOSystem{ implicit io =>
-          val cfg = ServerConfig("echo", badDelegator, ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(2L))))
+          val cfg = ServerConfig(
+            "echo",
+            badDelegator,
+            ServerSettings(
+              TEST_PORT,
+              delegatorCreationPolicy = WaitPolicy(200 milliseconds, BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
+            )
+          )
           val serverProbe = TestProbe()
           val failedServer = Server(cfg)
           serverProbe.watch(failedServer.server)
@@ -128,7 +135,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystem{implicit io =>
           val server = Server.basic("echo", TEST_PORT)(context => new EchoHandler(context))
           withServer(server) {
-            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val client = TestClient(io, TEST_PORT, connectRetry = NoRetry)
             server.server ! PoisonPill
             TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
           }
@@ -140,7 +147,7 @@ class ServerSpec extends ColossusSpec {
           val server = Server.basic("echo", TEST_PORT)(context => new EchoHandler(context))
           //spin up a client just to make sure the server is running
           withServer(server) {
-            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val client = TestClient(io, TEST_PORT, connectRetry = NoRetry)
             val probe = TestProbe()
             probe.watch(server.server)
             server.server ! Server.Shutdown
@@ -160,7 +167,7 @@ class ServerSpec extends ColossusSpec {
           }
         }
         withServer(new MyHandler(_)){server =>
-          val client = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+          val client = TestClient(server.system, TEST_PORT, connectRetry = NoRetry)
           server.server ! Server.Shutdown
           probe.expectMsg(2.seconds, "SHUTDOWN")
           probe.expectMsg(2.seconds, "TERMINATED")
@@ -173,7 +180,7 @@ class ServerSpec extends ColossusSpec {
           val server = Server.basic("test", ServerSettings(port = TEST_PORT, shutdownTimeout = 1.hour))(new EchoHandler(_))
           probe.watch(server.server)
           withServer(server) {
-            val client = TestClient(io, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val client = TestClient(io, TEST_PORT, connectRetry = NoRetry)
             server.server ! Server.Shutdown
             TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
             probe.expectTerminated(server.server, 2.seconds)
@@ -184,7 +191,7 @@ class ServerSpec extends ColossusSpec {
       "shutdown when a delegator surpasses the allotted duration" in {
         withIOSystem{ implicit io =>
           val serverProbe = TestProbe()
-          val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationDuration = PollingDuration(200 milliseconds, Some(1L))))(new Initializer(_) {
+          val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(new Initializer(_) {
             Thread.sleep(600)
             def onConnect = {
               new EchoHandler(_)
@@ -203,7 +210,7 @@ class ServerSpec extends ColossusSpec {
         probe watch server.server
         withServer(server) {
           val cio = IOSystem("client_io", Some(2), MetricSystem.deadSystem)
-          val c = TestClient(cio, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+          val c = TestClient(cio, TEST_PORT, connectRetry = NoRetry)
           Await.result(c.send(ByteString("HELLO")), 200.milliseconds) must equal(ByteString("HELLO"))
           io.shutdown()
           probe.expectTerminated(server.server)
@@ -248,7 +255,7 @@ class ServerSpec extends ColossusSpec {
           withServer(server) {
             val c1 = TestClient(server.system, TEST_PORT)
             expectConnections(server, 1)
-            val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, connectionAttempts = PollingDuration.NoRetry)
+            val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, connectRetry = NoRetry)
             //notice, we can't just check if the connection is connected because the
             //server will accept the connection before closing it
             intercept[service.ServiceClientException] {
@@ -257,7 +264,7 @@ class ServerSpec extends ColossusSpec {
             TestClient.waitForStatus(c2, ConnectionStatus.NotConnected)
             c1.disconnect()
             TestUtil.expectServerConnections(server, 0)
-            val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, connectionAttempts = PollingDuration.NoRetry)
+            val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, connectRetry = NoRetry)
             TestUtil.expectServerConnections(server, 1)
           }
         }
@@ -267,7 +274,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystem { implicit io =>
           val server = Server.basic("test", ServerSettings(port = TEST_PORT, maxIdleTime = 100.milliseconds))(new EchoHandler(_))
           withServer(server) {
-            val c = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val c = TestClient(server.system, TEST_PORT, connectRetry = NoRetry)
             expectConnections(server, 1)
             Thread.sleep(500)
             TestUtil.expectServerConnections(server, 0)
@@ -310,9 +317,9 @@ class ServerSpec extends ColossusSpec {
           )
           val server = Server.basic("test", settings)(new EchoHandler(_))
           withServer(server) {
-            val idleConnection1 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+            val idleConnection1 = TestClient(server.system, TEST_PORT, connectRetry = NoRetry)
             TestUtil.expectServerConnections(server, 1)
-            val idleConnection2 = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry, waitForConnected = false)
+            val idleConnection2 = TestClient(server.system, TEST_PORT, connectRetry = NoRetry, waitForConnected = false)
             Thread.sleep(500) //have to wait a second since that's how often the check it done
             expectConnections(server, 0)
           }
@@ -346,7 +353,7 @@ class ServerSpec extends ColossusSpec {
         mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
         server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
         withIOSystem { implicit io =>
-          val c = TestClient(io, TEST_PORT,connectionAttempts = PollingDuration.NoRetry)
+          val c = TestClient(io, TEST_PORT,connectRetry = NoRetry)
           (1 to Server.MaxConnectionRegisterAttempts).foreach{i =>
             val msg = workerRouterProbe.receiveOne(100.milliseconds).asInstanceOf[Worker.NewConnection]
             msg.attempt must equal(i)

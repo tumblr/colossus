@@ -108,6 +108,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
         _connectionState = ShuttingDown(endpoint)
         shutdown()
       }
+      case NotConnected => shutdown()
       case _ => {}
     }
   }

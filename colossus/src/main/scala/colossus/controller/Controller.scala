@@ -114,7 +114,11 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
       case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
         super.shutdown()
       }
-      case _ => {}
+      case (NotConnected, _, _) => {
+        //can happen when disconnect is called before being connected
+        super.shutdown()
+      }
+      case _ => {} 
     }
   }
 

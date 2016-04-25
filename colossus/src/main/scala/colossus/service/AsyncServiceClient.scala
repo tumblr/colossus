@@ -71,7 +71,7 @@ class ClientProxy(config: ClientConfig, system: IOSystem, handlerFactory: ActorR
   def dying: Receive = {
     case Unbound => context.become(dead)
     case AsyncServiceClient.GetConnectionStatus(promise) => {
-      promise.success(ConnectionStatus.Connected)  //we have to fulfill this since it will never reach the handler
+      promise.success(ConnectionStatus.NotConnected)  //we have to fulfill this since it will never reach the handler
     }
   }
 
@@ -113,11 +113,13 @@ object AsyncServiceClient {
   case object Disconnect extends ClientCommand
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] with FutureClient[C] = {
+  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): AsyncServiceClient[C#Input, C#Output] with FutureClient[C] = {
     val gen = new AsyncHandlerGenerator(config, provider.clientCodec())
     val actor = io.actorSystem.actorOf(Props(classOf[ClientProxy], config, io, gen.handlerFactory))
     gen.client(actor, config)
   }
+
+  def apply[C <: Protocol] = ClientFactory.futureClientFactory[C]
 }
 
 /**

@@ -9,7 +9,7 @@ import akka.testkit.TestProbe
 import akka.util.ByteString
 
 import scala.concurrent.duration._
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 
 import Callback.Implicits._
 
@@ -121,6 +121,17 @@ class ServiceDSLSpec extends ColossusSpec {
         //this test passes if it compiles
         val s = Http.futureClient("localhost", TEST_PORT)
         val t = Memcache.futureClient("localhost", TEST_PORT)
+      }
+    }
+
+    "be able to lift a sender to a type-specific client" in {
+      withIOSystem{ implicit sys => 
+        import protocols.http._
+        import Http.defaults._
+
+        val s = AsyncServiceClient[Http]("localhost", TEST_PORT)
+        val t = Http.futureClient(s)
+        val q : HttpClient[Future] = t
       }
     }
 

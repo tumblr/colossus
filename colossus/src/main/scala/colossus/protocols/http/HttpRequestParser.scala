@@ -23,7 +23,7 @@ object HttpRequestParser {
 
   protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
     HeadResult(
-      HttpRequestHead(fl, headersBuilder.buildHeaders),
+      ParsedHead(fl, headersBuilder.buildHeaders), 
       headersBuilder.contentLength,
       headersBuilder.transferEncoding
     )

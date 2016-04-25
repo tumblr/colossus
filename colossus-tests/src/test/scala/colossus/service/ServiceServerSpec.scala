@@ -161,7 +161,7 @@ class ServiceServerSpec extends ColossusSpec {
             name = "/test-client",
             address = new InetSocketAddress("localhost", TEST_PORT),
             requestTimeout = 800.milliseconds,
-            connectionAttempts = PollingDuration.NoRetry
+            connectRetry = NoRetry
           )
           val client = Redis.futureClient(clientConfig)
           val t = Try {

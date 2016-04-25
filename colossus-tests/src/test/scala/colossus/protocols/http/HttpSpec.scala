@@ -6,6 +6,7 @@ import core._
 import org.scalatest._
 
 import akka.util.ByteString
+import scala.util.Success
 
 
 class HttpSpec extends WordSpec with MustMatchers{
@@ -21,6 +22,29 @@ class HttpSpec extends WordSpec with MustMatchers{
       fl1 == fl2 must equal(true)
       fl1 == fl3 must equal(false)
       fl1 == "bleh" must equal(false)
+    }
+  }
+
+  "http body" must {
+
+    "create with encoder and custom content-type" in {
+      val str = "hello, world!™ᴂ無奈朝來寒雨"
+      val b = HttpBody(str, "foo/bar")
+      b.contentType.get.value must equal("foo/bar")
+      b.bytes must equal(ByteString(str))
+    }
+
+    "copy with new content-type" in {
+      val b = HttpBody("hello")
+      b.withContentType("foo/bar").contentType.get.value must equal("foo/bar")
+    }
+
+    "decode using built-in decoders" in {
+      val str = "hello, world!™ᴂ無奈朝來寒雨"
+      val b = HttpBody(str)
+      b.as[String] must equal(Success(str))
+      b.as[ByteString] must equal(Success(ByteString(str)))
+      b.as[Array[Byte]].map{_.toSeq} must equal(Success(str.getBytes("UTF-8").toSeq))
     }
   }
 

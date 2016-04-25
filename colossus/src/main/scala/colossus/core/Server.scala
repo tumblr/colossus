@@ -36,14 +36,18 @@ import scala.collection.JavaConversions._
  * @param maxIdleTime Maximum idle time for connections when in non high water conditions
  * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.
  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
- * @param bindingAttemptDuration The polling configuration for binding to a port.  The The [[IOSystem]] will check
- *                               [[PollingDuration.interval]] [[PollingDuration.maximumTries]] times. If the server
- *                               cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
- *                               will wait indefinitely.
- *@param delegatorCreationDuration The polling configuration for creating [[[colossus.core.Delegator]]s.  The [[IOSystem]] will wait
- *                                  [[PollingDuration.interval]] for all [[colossus.core.Delegator]]s to be created.  It will fail to startup
- *                                  after [[PollingDuration.maximumTries]] and shutdown if it cannot successfully create
- *                                  the [[colossus.core.Delegator]]s
+ *
+ * @param bindingRetry A [[colossus.core.RetryPolicy]] describing how to retry
+ * binding to the port if the first attempt fails.  By default it will keep
+ * retrying forever.
+ *
+ * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
+ * to handle delegator startup.  Since a Server waits for a signal from the
+ * [[colossus.core.IOSystem]] that every worker has properly initialized a
+ * [[colossus.core.delegator]], this determines how long to wait before the
+ * initialization is considered a failure and whether to retry the
+ * initialization.
+ *
  * @param shutdownTimeout Once a Server begins to shutdown, it will signal a
  * request to every open connection.  This determines how long it will wait for
  * every connection to self-terminate before it forcibly closes them and
@@ -57,8 +61,8 @@ case class ServerSettings(
   highWatermarkPercentage: Double = 0.85,
   highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
   tcpBacklogSize: Option[Int] = None,
-  bindingAttemptDuration : PollingDuration = PollingDuration(200 milliseconds, None),
-  delegatorCreationDuration : PollingDuration = PollingDuration(500.milliseconds, None),
+  bindingRetry : RetryPolicy = BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second)),
+  delegatorCreationPolicy : WaitPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant)),
   shutdownTimeout: FiniteDuration = 100.milliseconds
 ) {
   def lowWatermark = lowWatermarkPercentage * maxConnections
@@ -259,7 +263,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     case WorkerManager.WorkersReady(workers) => {
       log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
       changeState(binding(workers), ServerStatus.Binding)
-      self ! RetryBind(settings.bindingAttemptDuration)
+      self ! RetryBind(None)
       unstashAll()
     }
     case WorkerManager.RegistrationFailed => {
@@ -272,43 +276,29 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     }
   }
 
-  private case class RetryBind(interval: FiniteDuration, timeElapsed: FiniteDuration = 0.milliseconds, maximumTries : Option[Long], timesTried : Long = 0)
-
-  private object RetryBind {
-
-    def apply(pd : PollingDuration) : RetryBind = RetryBind(interval = pd.interval, maximumTries = pd.maximumTries)
-
-    //kinda ugly
-    def increment(retryBind : RetryBind) : Option[RetryBind] = {
-      val newTime = retryBind.timeElapsed + retryBind.interval
-      //if there is no max, create a new retry, else honor the max
-      retryBind.maximumTries.fold(incrementAsOption(retryBind, newTime)){maxTries =>
-        if(retryBind.timesTried >= maxTries){
-          None
-        }else{
-          incrementAsOption(retryBind, newTime)
-        }
-      }
-    }
-
-    private def incrementAsOption(bind : RetryBind, newTime : FiniteDuration): Option[RetryBind] = Some(bind.copy(timeElapsed = newTime, timesTried = bind.timesTried  + 1))
-
-  }
 
   def binding(router: ActorRef): Receive = alwaysHandle orElse {
     case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
-    case rb : RetryBind => {
+    case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
         self ! Select
       } else {
-        log.error(s"Could not bind to ${settings.port} after trying ${rb.timesTried} times")
-        RetryBind.increment(rb) match {
-          case None => {
-            log.error(s"Could not bind to ${settings.port}.  Taking PoisonPill")
+        val incident = incidentOpt.getOrElse(settings.bindingRetry.start())
+        val message = s"Failed to bind to port ${settings.port} after ${incident.attempts} attempts."
+        incident.nextAttempt() match {
+          case RetryAttempt.Stop => {
+            log.error( s"$message Shutting Down!")
             self ! PoisonPill
           }
-          case Some(a) =>  context.system.scheduler.scheduleOnce(a.interval, self, a)
+          case RetryAttempt.RetryNow => {
+            log.error(s"$message Retrying")
+            self ! RetryBind(Some(incident))
+          }
+          case RetryAttempt.RetryIn(time) => {
+            log.error(s"$message Retrying in $time.")
+            context.system.scheduler.scheduleOnce(time, self, RetryBind(Some(incident)))
+          }
         }
       }
     }
@@ -408,7 +398,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
   override def preStart() {
     super.preStart()
     context.watch(io.workerManager)
-    io.workerManager ! WorkerManager.RegisterServer(me, delegatorFactory)
+    io.workerManager ! WorkerManager.RegisterServer(me)
     log.info("spinning up server")
   }
 
@@ -486,6 +476,7 @@ object Server extends ServerDSL {
 
   private[core] case object Select
   private[core] case object ShutdownCheck
+  private[core] case class RetryBind(retry: Option[RetryIncident])
 
   case class ConnectionClosed(id: Long, cause : RootDisconnectCause)
 
