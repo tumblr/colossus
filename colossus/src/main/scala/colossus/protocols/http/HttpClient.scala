@@ -3,9 +3,18 @@ package protocols.http
 import scala.language.higherKinds
 
 import service._
-trait HttpClient[M[_]] extends LiftedClient[Http, M] {
+import scala.concurrent.{ExecutionContext, Future}
+
+trait HttpClient[M[_]] extends LiftedClient[Http, M] with HttpRequestBuilder[M[HttpResponse]]{
+
+  protected def build(req: HttpRequest) = client.send(req)
+
+  val base = HttpRequest.base
+
 
 }
+
+
 
 object HttpClient {
 

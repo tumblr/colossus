@@ -47,7 +47,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         def receivedData(data: DataBuffer){}
       }
       withServer(context => new MyHandler(context)){ server =>
-        val c = TestClient(server.system, TEST_PORT, connectionAttempts = PollingDuration.NoRetry)
+        val c = TestClient(server.system, TEST_PORT, connectRetry = NoRetry)
         c.disconnect()
         TestClient.waitForStatus(c, ConnectionStatus.NotConnected)
         probe.expectMsg(500.milliseconds, "UNBOUND")

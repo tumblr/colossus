@@ -5,6 +5,7 @@ import colossus.parsing.{ParseException, DataSize}
 import colossus.parsing.DataSize._
 import core._
 import controller._
+import util.ExceptionFormatter._
 import akka.event.Logging
 import metrics._
 import scala.concurrent.duration._
@@ -91,7 +92,7 @@ with ServerConnectionHandler {
   private var dequeuePaused = false
 
   private def addError(error: ProcessingFailure[I], extraTags: TagMap = TagMap.Empty) {
-    val tags = extraTags + ("type" -> error.reason.getClass.getName.replaceAll("[^\\w]", ""))
+    val tags = extraTags + ("type" -> error.reason.metricsName)
     errors.hit(tags = tags)
     if (logErrors) {
       val formattedRequest = error match {

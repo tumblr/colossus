@@ -74,17 +74,21 @@ object RawProtocol {
 object TestClient {
   import RawProtocol._
 
-  def apply(io: IOSystem, port: Int, waitForConnected: Boolean = true,
-            connectionAttempts : PollingDuration = PollingDuration(250.milliseconds, None)): AsyncServiceClient[ByteString, ByteString] = {
+  def apply(
+    io: IOSystem,
+    port: Int,
+    waitForConnected: Boolean = true,
+    connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))
+  ) : AsyncServiceClient[ByteString, ByteString] = {
     val config = ClientConfig(
       name = "/test",
       requestTimeout = 100.milliseconds,
       address = new InetSocketAddress("localhost", port),
       pendingBufferSize = 10,
       failFast = true,
-      connectionAttempts = connectionAttempts
+      connectRetry = connectRetry
     )
-    val client = AsyncServiceClient[Raw](config)(io, RawClientCodecProvider)
+    val client = AsyncServiceClient[Raw](config)(RawClientCodecProvider, io)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

@@ -6,7 +6,7 @@ import core.ServerContext
 import service._
 
 
-package object http extends HttpBodyEncoders {
+package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
 
   class InvalidRequestException(message: String) extends Exception(message)
