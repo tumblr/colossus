@@ -202,18 +202,18 @@
     </span>
       
     </li><li name="colossus.service.AsyncServiceClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]"></a>
-      <a id="apply[C&lt;:Protocol](ClientConfig)(IOSystem,ClientCodecProvider[C]):AsyncServiceClient[AsyncServiceClient.apply.C.Input,AsyncServiceClient.apply.C.Output]withFutureClient[C]"></a>
+      <a id="apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,scala.concurrent.Future,colossus.service.FutureClient[C],colossus.IOSystem]"></a>
+      <a id="apply[C&lt;:Protocol]:ClientFactory[C,Future,FutureClient[C],IOSystem]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>]</span>)</span><span class="result">: <a href="AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<span class="extype" name="colossus.service.Protocol.Input">AsyncServiceClient.apply.C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">AsyncServiceClient.apply.C.Output</span>] with <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result">: <a href="ClientFactory.html" class="extype" name="colossus.service.ClientFactory">ClientFactory</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>, <span class="extype" name="scala.concurrent.Future">Future</span>, <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>], <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncServiceClient$@apply[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncServiceClient$@apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,scala.concurrent.Future,colossus.service.FutureClient[C],colossus.IOSystem]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -258,6 +258,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.AsyncServiceClient#create" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]"></a>
+      <a id="create[C&lt;:Protocol](ClientConfig)(IOSystem,ClientCodecProvider[C]):AsyncServiceClient[AsyncServiceClient.create.C.Input,AsyncServiceClient.create.C.Output]withFutureClient[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">create</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.AsyncServiceClient.create.C">C</span>]</span>)</span><span class="result">: <a href="AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<span class="extype" name="colossus.service.Protocol.Input">AsyncServiceClient.create.C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">AsyncServiceClient.create.C.Output</span>] with <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.AsyncServiceClient.create.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.AsyncServiceClient$@create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

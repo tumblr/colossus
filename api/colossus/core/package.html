@@ -83,6 +83,47 @@
       </a>
     </span>
       
+    </li><li name="colossus.core.BackoffMultiplier" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="BackoffMultiplierextendsAnyRef"></a>
+      <a id="BackoffMultiplier:BackoffMultiplier"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BackoffMultiplier.html"><span class="name">BackoffMultiplier</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@BackoffMultiplierextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A BackoffMultiplier is used by a <a href="BackoffPolicy.html" class="extype" name="colossus.core.BackoffPolicy">BackoffPolicy</a> determines how the amount
+of time changes in between retry attempts.</p><div class="fullcomment"><div class="comment cmt"><p>A BackoffMultiplier is used by a <a href="BackoffPolicy.html" class="extype" name="colossus.core.BackoffPolicy">BackoffPolicy</a> determines how the amount
+of time changes in between retry attempts.  For example, with a <a href="BackoffMultiplier$$Linear.html" class="extype" name="colossus.core.BackoffMultiplier.Linear">BackoffMultiplier.Linear</a>
+multiplier (with a base backoff of 50 milliseconds), the amount of time in
+between retries will increase by 50 milliseconds each time.
+</p></div></div>
+    </li><li name="colossus.core.BackoffPolicy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BackoffPolicyextendsRetryPolicywithProductwithSerializable"></a>
+      <a id="BackoffPolicy:BackoffPolicy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BackoffPolicy.html"><span class="name">BackoffPolicy</span></a><span class="params">(<span name="baseBackoff">baseBackoff: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>, <span name="multiplier">multiplier: <a href="BackoffMultiplier.html" class="extype" name="colossus.core.BackoffMultiplier">BackoffMultiplier</a></span>, <span name="maxTime">maxTime: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>] = <span class="symbol">None</span></span>, <span name="maxTries">maxTries: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="immediateFirstAttempt">immediateFirstAttempt: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@BackoffPolicyextendsRetryPolicywithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> used to gradually back-off from retries of an operation.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> used to gradually back-off from retries of an operation.
+This class is flexible enough to handle most common retry schemes, such as
+constantly retrying for a given amount of time or exponentially backing-off.</p><h5>Examples</h5><p>Retry every 30 seconds for up to 5 minutes</p><pre>BackoffPolicy(<span class="num">30.</span>seconds, BackoffMultiplier.Constant, maxTime = <span class="std">Some</span>(<span class="num">5.</span>minutes), immediateFirstAttempt = <span class="kw">false</span>)</pre><p>Immediately retry once, then backoff exponentially starting at 100 milliseconds, doubling with every attempt until the interval in between attempts is 5 seconds</p><pre>BackoffPolicy(<span class="num">100.</span>milliseconds, BackoffMultiplier.Exponential(<span class="num">5.</span>seconds))</pre></div><dl class="paramcmts block"><dt class="param">baseBackoff</dt><dd class="cmt"><p>The base value to use for backing off.  This may be used by the <a href="BackoffPolicy.html#multiplier:colossus.core.BackoffMultiplier" class="extmbr" name="colossus.core.BackoffPolicy#multiplier">multiplier</a></p></dd><dt class="param">multiplier</dt><dd class="cmt"><p>The multiplier that will be applied to the <a href="BackoffPolicy.html#baseBackoff:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.BackoffPolicy#baseBackoff">baseBackoff</a></p></dd><dt class="param">maxTime</dt><dd class="cmt"><p>The maximim amount of time to allow for retrying</p></dd><dt class="param">maxTries</dt><dd class="cmt"><p>The maximum number of attempts to make</p></dd><dt class="param">immediateFirstAttempt</dt><dd class="cmt"><p>Whether the first retry attempt should be immediate or use the given backoff and multiplier</p></dd></dl></div>
     </li><li name="colossus.core.BasicCoreHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BasicCoreHandlerextendsCoreHandlerwithServerConnectionHandler"></a>
       <a id="BasicCoreHandler:BasicCoreHandler"></a>
@@ -566,6 +607,23 @@ buffer to avoid copying
       </a>
     </span>
       
+    </li><li name="colossus.core.IncidentReport" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IncidentReportextendsProductwithSerializable"></a>
+      <a id="IncidentReport:IncidentReport"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="IncidentReport.html"><span class="name">IncidentReport</span></a><span class="params">(<span name="totalTime">totalTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>, <span name="totalAttempts">totalAttempts: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@IncidentReportextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.Initializer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="InitializerextendsAnyRef"></a>
       <a id="Initializer:Initializer"></a>
@@ -657,23 +715,6 @@ process and bind to another connection
       </a>
     </span>
       
-    </li><li name="colossus.core.PollingDuration" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="PollingDurationextendsProductwithSerializable"></a>
-      <a id="PollingDuration:PollingDuration"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="PollingDuration.html"><span class="name">PollingDuration</span></a><span class="params">(<span name="interval">interval: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>, <span name="maximumTries">maximumTries: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@PollingDurationextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Simple class which contains parameters for configuring a polling operation</p><div class="fullcomment"><div class="comment cmt"><p>Simple class which contains parameters for configuring a polling operation</p></div><dl class="paramcmts block"><dt class="param">interval</dt><dd class="cmt"><p>The interval of the poll</p></dd><dt class="param">maximumTries</dt><dd class="cmt"><p>The number of times to execute the poll</p></dd></dl></div>
     </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ProxyActorextendsAnyRef"></a>
       <a id="ProxyActor:ProxyActor"></a>
@@ -691,6 +732,74 @@ process and bind to another connection
       </a>
     </span>
       
+    </li><li name="colossus.core.RetryAttempt" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RetryAttemptextendsAnyRef"></a>
+      <a id="RetryAttempt:RetryAttempt"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RetryAttempt.html"><span class="name">RetryAttempt</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@RetryAttemptextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <code>RetryAttempt</code> represents the next action that should be taken when retring an operation.</p>
+    </li><li name="colossus.core.RetryIncident" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="RetryIncidentextendsAnyRef"></a>
+      <a id="RetryIncident:RetryIncident"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RetryIncident.html"><span class="name">RetryIncident</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@RetryIncidentextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A RetryIncident is a state machine for managing the retry logic of a single
+incident of a failed operation.</p><div class="fullcomment"><div class="comment cmt"><p>A RetryIncident is a state machine for managing the retry logic of a single
+incident of a failed operation.  It is generally unaware of what that
+operation is and takes no action itself, but instead is used by the performer
+of the operation as a control flow mechanism.  For example, when a
+<a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">colossus.service.ServiceClient</a> fails to connect to its target host, it
+will create a new <code>RetryIncident</code> from it's given <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a>.</p><p>On each successive failure of the operation, a call to <span class="extype" name="nextAttempt()">nextAttempt()</span>
+should be made that will return a <code>RetryAttempt</code> indicating what action
+should be taken.  A single <code>RetryIncident</code> cannot be reused should be
+discarded when either the operation completes or gives up</p></div></div>
+    </li><li name="colossus.core.RetryPolicy" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="RetryPolicyextendsAnyRef"></a>
+      <a id="RetryPolicy:RetryPolicy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RetryPolicy.html"><span class="name">RetryPolicy</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@RetryPolicyextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A RetryPolicy provides a scheme for managing controlled retries of some
+operation.</p><div class="fullcomment"><div class="comment cmt"><p>A RetryPolicy provides a scheme for managing controlled retries of some
+operation.  For example, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">colossus.service.ServiceClient</a> uses a <code>RetryPolicy</code> to determine
+how it should try to reconnect if it's first attempt to connect fails.</p><p>RetryPolicy acts as a factory for <a href="RetryIncident.html" class="extype" name="colossus.core.RetryIncident">RetryIncident</a>, which is a per-incident
+manager of retries.  So everytime a user encounters a sitiation where an
+operation needs to be retried, it should use the <code>RetryPolicy</code> create a new
+incident, and use the incident until either the operation succeeds or the
+incident indicates to stop retrying.
+</p></div></div>
     </li><li name="colossus.core.ServerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServerConfigextendsProductwithSerializable"></a>
       <a id="ServerConfig:ServerConfig"></a>
@@ -810,7 +919,7 @@ an application design and from Akka idioms and best practices, passing around an
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServerSettings.html"><span class="name">ServerSettings</span></a><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServerSettings.html"><span class="name">ServerSettings</span></a><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingRetry">bindingRetry: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second))</a></span>'>...</span></span>, <span name="delegatorCreationPolicy">delegatorCreationPolicy: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant))</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ServerSettingsextendsProductwithSerializable" title="Permalink" target="_top">
@@ -825,13 +934,14 @@ connections, it will change the idle timeout from <code>maxIdleTime</code> to
 connections.  This will continue until the percentage drops below
 <code>lowWatermarkPercentage</code>.  This can be totally disabled by just setting both
 watermarks to 1.
-</p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingAttemptDuration</dt><dd class="cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
-                              <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
-                              cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
-                                 <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
-                                 after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
+</p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingRetry</dt><dd class="cmt"><p>A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">colossus.core.RetryPolicy</a> describing how to retry
+binding to the port if the first attempt fails.  By default it will keep
+retrying forever.</p></dd><dt class="param">delegatorCreationPolicy</dt><dd class="cmt"><p>A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
+to handle delegator startup.  Since a Server waits for a signal from the
+<span class="extype" name="colossus.core.IOSystem">colossus.core.IOSystem</span> that every worker has properly initialized a
+<span class="extype" name="colossus.core.delegator">colossus.core.delegator</span>, this determines how long to wait before the
+initialization is considered a failure and whether to retry the
+initialization.</p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
 request to every open connection.  This determines how long it will wait for
 every connection to self-terminate before it forcibly closes them and
 completes the shutdown.</p></dd></dl></div>
@@ -893,6 +1003,30 @@ completes the shutdown.</p></dd></dl></div>
       </a>
     </span>
       
+    </li><li name="colossus.core.WaitPolicy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WaitPolicyextendsProductwithSerializable"></a>
+      <a id="WaitPolicy:WaitPolicy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="WaitPolicy.html"><span class="name">WaitPolicy</span></a><span class="params">(<span name="waitTime">waitTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>, <span name="retryPolicy">retryPolicy: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WaitPolicyextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A WaitPolicy describes configuration for any process that needs to wait
+for some operation to complete, and if/how to retry the operation if it fails
+to complete within the waiting time.</p><div class="fullcomment"><div class="comment cmt"><p>A WaitPolicy describes configuration for any process that needs to wait
+for some operation to complete, and if/how to retry the operation if it fails
+to complete within the waiting time.</p><p>For example, a WaitPolicy is used by <span class="extype" name="colossus.core.Server">colossus.core.Server</span> to determine
+how long to wait for it's delegators to start up and how to respond if they
+fail
+</p></div><dl class="paramcmts block"><dt class="param">waitTime</dt><dd class="cmt"><p>How long to wait before the operation should be considered timed out</p></dd><dt class="param">retryPolicy</dt><dd class="cmt"><p>The policy that dictates how to retry the operation if it either fails or times out</p></dd></dl></div>
     </li><li name="colossus.core.WatchedHandler" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WatchedHandlerextendsWorkerItemwithConnectionHandler"></a>
       <a id="WatchedHandler:WatchedHandler"></a>
@@ -1094,7 +1228,24 @@ connection.  Services wrap this
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="colossus.core.ConnectionState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.core.BackoffMultiplier" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BackoffMultiplier"></a>
+      <a id="BackoffMultiplier:BackoffMultiplier"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BackoffMultiplier$.html"><span class="name">BackoffMultiplier</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@BackoffMultiplier" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ConnectionState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ConnectionState"></a>
       <a id="ConnectionState:ConnectionState"></a>
       <h4 class="signature">
@@ -1213,23 +1364,24 @@ connection.  Services wrap this
       </a>
     </span>
       
-    </li><li name="colossus.core.PollingDuration" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PollingDuration"></a>
-      <a id="PollingDuration:PollingDuration"></a>
+    </li><li name="colossus.core.NoRetry" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NoRetry"></a>
+      <a id="NoRetry:NoRetry"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="PollingDuration$.html"><span class="name">PollingDuration</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="NoRetry$.html"><span class="name">NoRetry</span></a><span class="result"> extends <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> with <a href="RetryIncident.html" class="extype" name="colossus.core.RetryIncident">RetryIncident</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@PollingDuration" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.package@NoRetry" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> that will never retry
+</p>
     </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ProxyActor"></a>
       <a id="ProxyActor:ProxyActor"></a>
@@ -1243,6 +1395,23 @@ connection.  Services wrap this
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ProxyActor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.RetryAttempt" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RetryAttempt"></a>
+      <a id="RetryAttempt:RetryAttempt"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="RetryAttempt$.html"><span class="name">RetryAttempt</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@RetryAttempt" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1319,6 +1488,23 @@ the Server is notified.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ShutdownAction" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.WaitPolicy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WaitPolicy"></a>
+      <a id="WaitPolicy:WaitPolicy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WaitPolicy$.html"><span class="name">WaitPolicy</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@WaitPolicy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

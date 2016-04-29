@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingRetry">bindingRetry: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second))</a></span>'>...</span></span>, <span name="delegatorCreationPolicy">delegatorCreationPolicy: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant))</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -57,13 +57,14 @@ connections, it will change the idle timeout from <code>maxIdleTime</code> to
 connections.  This will continue until the percentage drops below
 <code>lowWatermarkPercentage</code>.  This can be totally disabled by just setting both
 watermarks to 1.
-</p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingAttemptDuration</dt><dd class="cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
-                              <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
-                              cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
-                                 <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
-                                 after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
+</p></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingRetry</dt><dd class="cmt"><p>A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">colossus.core.RetryPolicy</a> describing how to retry
+binding to the port if the first attempt fails.  By default it will keep
+retrying forever.</p></dd><dt class="param">delegatorCreationPolicy</dt><dd class="cmt"><p>A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
+to handle delegator startup.  Since a Server waits for a signal from the
+<span class="extype" name="colossus.core.IOSystem">colossus.core.IOSystem</span> that every worker has properly initialized a
+<span class="extype" name="colossus.core.delegator">colossus.core.delegator</span>, this determines how long to wait before the
+initialization is considered a failure and whether to retry the
+initialization.</p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
 request to every open connection.  This determines how long it will wait for
 every connection to self-terminate before it forcibly closes them and
 completes the shutdown.</p></dd></dl><div class="toggleContainer block">
@@ -106,7 +107,7 @@ completes the shutdown.</p></dd></dl><div class="toggleContainer block">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ServerSettings#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings"></a>
+      <a id="&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingRetry:colossus.core.RetryPolicy,delegatorCreationPolicy:colossus.core.WaitPolicy,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings"></a>
       <a id="&lt;init&gt;:ServerSettings"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -114,20 +115,21 @@ completes the shutdown.</p></dd></dl><div class="toggleContainer block">
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingAttemptDuration">bindingAttemptDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(200 milliseconds, None)</a></span>'>...</span></span>, <span name="delegatorCreationDuration">delegatorCreationDuration: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="PollingDuration$.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span>
+        <span class="name">ServerSettings</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingRetry">bindingRetry: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second))</a></span>'>...</span></span>, <span name="delegatorCreationPolicy">delegatorCreationPolicy: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant))</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerSettings@&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingAttemptDuration:colossus.core.PollingDuration,delegatorCreationDuration:colossus.core.PollingDuration,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerSettings@&lt;init&gt;(port:Int,maxConnections:Int,maxIdleTime:scala.concurrent.duration.Duration,lowWatermarkPercentage:Double,highWatermarkPercentage:Double,highWaterMaxIdleTime:scala.concurrent.duration.FiniteDuration,tcpBacklogSize:Option[Int],bindingRetry:colossus.core.RetryPolicy,delegatorCreationPolicy:colossus.core.WaitPolicy,shutdownTimeout:scala.concurrent.duration.FiniteDuration):colossus.core.ServerSettings" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingAttemptDuration</dt><dd class="cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
-                              <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
-                              cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-                              will wait indefinitely.</p></dd><dt class="param">delegatorCreationDuration</dt><dd class="cmt"><p>The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
-                                 <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
-                                 after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">port</dt><dd class="cmt"><p>Port on which this Server will accept connections</p></dd><dt class="param">maxConnections</dt><dd class="cmt"><p>Max number of simultaneous live connections</p></dd><dt class="param">maxIdleTime</dt><dd class="cmt"><p>Maximum idle time for connections when in non high water conditions</p></dd><dt class="param">lowWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a normal state</p></dd><dt class="param">highWatermarkPercentage</dt><dd class="cmt"><p>Percentage of live/max connections which represent a high water state.</p></dd><dt class="param">highWaterMaxIdleTime</dt><dd class="cmt"><p>Max idle time for connections when in high water conditions.</p></dd><dt class="param">tcpBacklogSize</dt><dd class="cmt"><p>Set the max number of simultaneous connections awaiting accepting, or None for NIO default</p></dd><dt class="param">bindingRetry</dt><dd class="cmt"><p>A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">colossus.core.RetryPolicy</a> describing how to retry
+binding to the port if the first attempt fails.  By default it will keep
+retrying forever.</p></dd><dt class="param">delegatorCreationPolicy</dt><dd class="cmt"><p>A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
+to handle delegator startup.  Since a Server waits for a signal from the
+<span class="extype" name="colossus.core.IOSystem">colossus.core.IOSystem</span> that every worker has properly initialized a
+<span class="extype" name="colossus.core.delegator">colossus.core.delegator</span>, this determines how long to wait before the
+initialization is considered a failure and whether to retry the
+initialization.</p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
 request to every open connection.  This determines how long it will wait for
 every connection to self-terminate before it forcibly closes them and
 completes the shutdown.</p></dd></dl></div>
@@ -208,26 +210,26 @@ completes the shutdown.</p></dd></dl></div>
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.ServerSettings#bindingAttemptDuration" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="bindingAttemptDuration:colossus.core.PollingDuration"></a>
-      <a id="bindingAttemptDuration:PollingDuration"></a>
+    </li><li name="colossus.core.ServerSettings#bindingRetry" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bindingRetry:colossus.core.RetryPolicy"></a>
+      <a id="bindingRetry:RetryPolicy"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">bindingAttemptDuration</span><span class="result">: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a></span>
+        <span class="name">bindingRetry</span><span class="result">: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerSettings@bindingAttemptDuration:colossus.core.PollingDuration" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerSettings@bindingRetry:colossus.core.RetryPolicy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The polling configuration for binding to a port.</p><div class="fullcomment"><div class="comment cmt"><p>The polling configuration for binding to a port.  The The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will check
-                              <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> times. If the server
-                              cannot bind to the port, during this duration, it will shutdown.  If this is not specified, the IOSystem
-                              will wait indefinitely.</p></div></div>
+      <p class="shortcomment cmt">A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">colossus.core.RetryPolicy</a> describing how to retry
+binding to the port if the first attempt fails.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">colossus.core.RetryPolicy</a> describing how to retry
+binding to the port if the first attempt fails.  By default it will keep
+retrying forever.</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -251,26 +253,29 @@ completes the shutdown.</p></dd></dl></div>
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.core.ServerSettings#delegatorCreationDuration" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="delegatorCreationDuration:colossus.core.PollingDuration"></a>
-      <a id="delegatorCreationDuration:PollingDuration"></a>
+    </li><li name="colossus.core.ServerSettings#delegatorCreationPolicy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="delegatorCreationPolicy:colossus.core.WaitPolicy"></a>
+      <a id="delegatorCreationPolicy:WaitPolicy"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">delegatorCreationDuration</span><span class="result">: <a href="PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a></span>
+        <span class="name">delegatorCreationPolicy</span><span class="result">: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerSettings@delegatorCreationDuration:colossus.core.PollingDuration" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ServerSettings@delegatorCreationPolicy:colossus.core.WaitPolicy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The polling configuration for creating <span class="extype" name="colossus.core.Delegator]]s.">The <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a> will wait
-                                 <a href="PollingDuration.html#interval:scala.concurrent.duration.FiniteDuration" class="extmbr" name="colossus.core.PollingDuration#interval">PollingDuration.interval</a> for all <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s to be created.  It will fail to startup
-                                 after <a href="PollingDuration.html#maximumTries:Option[Long]" class="extmbr" name="colossus.core.PollingDuration#maximumTries">PollingDuration.maximumTries</a> and shutdown if it cannot successfully create
-                                 the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>s</span></p>
+      <p class="shortcomment cmt">A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
+to handle delegator startup.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
+to handle delegator startup.  Since a Server waits for a signal from the
+<span class="extype" name="colossus.core.IOSystem">colossus.core.IOSystem</span> that every worker has properly initialized a
+<span class="extype" name="colossus.core.delegator">colossus.core.delegator</span>, this determines how long to wait before the
+initialization is considered a failure and whether to retry the
+initialization.</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

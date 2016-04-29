@@ -49,7 +49,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)</p><p>For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait</p><p>For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>

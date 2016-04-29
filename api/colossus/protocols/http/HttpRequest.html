@@ -47,13 +47,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpRequest</span><span class="params">(<span name="head">head: <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a></span>, <span name="body">body: <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a></span>)</span><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">HttpRequest</span><span class="params">(<span name="head">head: <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a></span>, <span name="body">body: <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a></span>)</span><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a> with <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a>[<a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a>, <a href="../../core/DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a>[<a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>], <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a>, <a href="../../core/DataReader.html" class="extype" name="colossus.core.DataReader">DataReader</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -71,7 +71,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.http.HttpRequest"><span>HttpRequest</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.core.Encoder"><span>Encoder</span></li><li class="in" name="colossus.core.DataReader"><span>DataReader</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.http.HttpRequest"><span>HttpRequest</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="colossus.protocols.http.HttpRequestBuilding"><span>HttpRequestBuilding</span></li><li class="in" name="colossus.core.Encoder"><span>Encoder</span></li><li class="in" name="colossus.core.DataReader"><span>DataReader</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -258,6 +258,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequest#current" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="current:colossus.protocols.http.HttpRequest"></a>
+      <a id="current:HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">current</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@current:colossus.protocols.http.HttpRequest" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a> → <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
     </li><li name="colossus.protocols.http.HttpRequest#encode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="encode(buffer:colossus.core.DataOutBuffer):Unit"></a>
       <a id="encode(DataOutBuffer):Unit"></a>
@@ -417,6 +434,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequest#next" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="next(req:colossus.protocols.http.HttpRequest):colossus.protocols.http.HttpRequest"></a>
+      <a id="next(HttpRequest):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">next</span><span class="params">(<span name="req">req: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@next(req:colossus.protocols.http.HttpRequest):colossus.protocols.http.HttpRequest" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a> → <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
     </li><li name="colossus.protocols.http.HttpRequest#notFound" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="notFound[T](data:T,headers:colossus.protocols.http.HttpHeaders)(implicitevidence$3:colossus.protocols.http.HttpBodyEncoder[T]):colossus.protocols.http.HttpResponse"></a>
       <a id="notFound[T](T,HttpHeaders)(HttpBodyEncoder[T]):HttpResponse"></a>
@@ -519,6 +553,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#transformHead" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="transformHead(f:colossus.protocols.http.HttpRequestHead=&gt;colossus.protocols.http.HttpRequestHead):T"></a>
+      <a id="transformHead((HttpRequestHead)⇒HttpRequestHead):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transformHead</span><span class="params">(<span name="f">f: (<a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>) ⇒ <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@transformHead(f:colossus.protocols.http.HttpRequestHead=&gt;colossus.protocols.http.HttpRequestHead):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
     </li><li name="colossus.protocols.http.HttpRequest#unauthorized" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="unauthorized[T](message:T,headers:colossus.protocols.http.HttpHeaders)(implicitevidence$6:colossus.protocols.http.HttpBodyEncoder[T]):colossus.protocols.http.HttpResponse"></a>
       <a id="unauthorized[T](T,HttpHeaders)(HttpBodyEncoder[T]):HttpResponse"></a>
@@ -605,8 +656,25 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.protocols.http.HttpRequest#withHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withHeader(key:String,value:String):colossus.protocols.http.HttpRequest"></a>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBody(body:colossus.protocols.http.HttpBody):T"></a>
+      <a id="withBody(HttpBody):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withBody(body:colossus.protocols.http.HttpBody):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withHeader(key:String,value:String):T"></a>
       <a id="withHeader(String,String):HttpRequest"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -617,11 +685,79 @@
         <span class="name">withHeader</span><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withHeader(key:String,value:String):colossus.protocols.http.HttpRequest" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withHeader(key:String,value:String):T" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withHeader(header:colossus.protocols.http.HttpHeader):T"></a>
+      <a id="withHeader(HttpHeader):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withHeader</span><span class="params">(<span name="header">header: <a href="HttpHeader.html" class="extype" name="colossus.protocols.http.HttpHeader">HttpHeader</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withHeader(header:colossus.protocols.http.HttpHeader):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withMethod" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withMethod(method:colossus.protocols.http.HttpMethod):T"></a>
+      <a id="withMethod(HttpMethod):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withMethod</span><span class="params">(<span name="method">method: <a href="HttpMethod.html" class="extype" name="colossus.protocols.http.HttpMethod">HttpMethod</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withMethod(method:colossus.protocols.http.HttpMethod):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withPath" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withPath(path:String):T"></a>
+      <a id="withPath(String):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withPath</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withPath(path:String):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpRequestBuilding#withVersion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withVersion(version:colossus.protocols.http.HttpVersion):T"></a>
+      <a id="withVersion(HttpVersion):HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withVersion</span><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>)</span><span class="result">: <a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpRequest@withVersion(version:colossus.protocols.http.HttpVersion):T" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -639,6 +775,8 @@
               <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="colossus.protocols.http.HttpRequestBuilding">
+              <h3>Inherited from <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a>[<a href="" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>]</h3>
             </div><div class="parent" name="colossus.core.Encoder">
               <h3>Inherited from <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a></h3>
             </div><div class="parent" name="colossus.core.DataReader">

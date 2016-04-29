@@ -45,12 +45,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ClientConfig</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ClientConfig</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectRetry">connectRetry: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="../core/package.html">BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectionAttempts</dt><dd class="cmt"><p>Polling configuration to govern retry behavior for both initial connect attempts
-                          and for connection lost events.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
        receiving data) before it is closed.  This should be significantly higher
        than requestTimeout.</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
@@ -92,7 +91,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.ClientConfig#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration,name:colossus.metrics.MetricAddress,pendingBufferSize:Int,sentBufferSize:Int,failFast:Boolean,connectionAttempts:colossus.core.PollingDuration,idleTimeout:scala.concurrent.duration.Duration):colossus.service.ClientConfig"></a>
+      <a id="&lt;init&gt;(address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration,name:colossus.metrics.MetricAddress,pendingBufferSize:Int,sentBufferSize:Int,failFast:Boolean,connectRetry:colossus.core.RetryPolicy,idleTimeout:scala.concurrent.duration.Duration):colossus.service.ClientConfig"></a>
       <a id="&lt;init&gt;:ClientConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -100,15 +99,14 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ClientConfig</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span>
+        <span class="name">ClientConfig</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectRetry">connectRetry: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="../core/package.html">BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ClientConfig@&lt;init&gt;(address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration,name:colossus.metrics.MetricAddress,pendingBufferSize:Int,sentBufferSize:Int,failFast:Boolean,connectionAttempts:colossus.core.PollingDuration,idleTimeout:scala.concurrent.duration.Duration):colossus.service.ClientConfig" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ClientConfig@&lt;init&gt;(address:java.net.InetSocketAddress,requestTimeout:scala.concurrent.duration.Duration,name:colossus.metrics.MetricAddress,pendingBufferSize:Int,sentBufferSize:Int,failFast:Boolean,connectRetry:colossus.core.RetryPolicy,idleTimeout:scala.concurrent.duration.Duration):colossus.service.ClientConfig" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectionAttempts</dt><dd class="cmt"><p>Polling configuration to govern retry behavior for both initial connect attempts
-                          and for connection lost events.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
        receiving data) before it is closed.  This should be significantly higher
        than requestTimeout.</p></dd></dl></div>
     </li></ol>
@@ -228,24 +226,23 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.service.ClientConfig#connectionAttempts" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="connectionAttempts:colossus.core.PollingDuration"></a>
-      <a id="connectionAttempts:PollingDuration"></a>
+    </li><li name="colossus.service.ClientConfig#connectRetry" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="connectRetry:colossus.core.RetryPolicy"></a>
+      <a id="connectRetry:RetryPolicy"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">connectionAttempts</span><span class="result">: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a></span>
+        <span class="name">connectRetry</span><span class="result">: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ClientConfig@connectionAttempts:colossus.core.PollingDuration" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ClientConfig@connectRetry:colossus.core.RetryPolicy" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Polling configuration to govern retry behavior for both initial connect attempts
-                          and for connection lost events.</p>
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

@@ -307,15 +307,14 @@ Callback.fromFuture on it's corresponding Future.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectionAttempts">connectionAttempts: <a href="../core/PollingDuration.html" class="extype" name="colossus.core.PollingDuration">PollingDuration</a> = <span class="defval" name='<span class="name"><a href="../package.html">PollingDuration(500.milliseconds, None)</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectRetry">connectRetry: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="../core/package.html">BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Configuration used to specify a Client's parameters</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectionAttempts</dt><dd class="cmt"><p>Polling configuration to govern retry behavior for both initial connect attempts
-                          and for connection lost events.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
+      <p class="shortcomment cmt">Configuration used to specify a Client's parameters</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
        receiving data) before it is closed.  This should be significantly higher
        than requestTimeout.</p></dd></dl></div>
     </li><li name="colossus.service.ClientConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
@@ -385,7 +384,7 @@ Callback.fromFuture on it's corresponding Future.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)</p><div class="fullcomment"><div class="comment cmt"><p>This has to be implemented per codec per sender type (ServiceClient, AsyncServiceClient, etc)</p><p>For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
+      <p class="shortcomment cmt">This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait</p><div class="fullcomment"><div class="comment cmt"><p>This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait</p><p>For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
 </p></div></div>
     </li><li name="colossus.service.ClientOverloadedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ClientOverloadedExceptionextendsServiceClientException"></a>
@@ -422,6 +421,23 @@ Callback.fromFuture on it's corresponding Future.
     </span>
       <p class="shortcomment cmt">This correctly routes messages to the right worker and handler
 </p>
+    </li><li name="colossus.service.ClientState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ClientStateextendsAnyRef"></a>
+      <a id="ClientState:ClientState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientState.html"><span class="name">ClientState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.Codec" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Codec[Output,Input]extendsAnyRef"></a>
       <a id="Codec[Output,Input]:Codec[Output,Input]"></a>
@@ -1267,6 +1283,23 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientFactory" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ClientState"></a>
+      <a id="ClientState:ClientState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientState$.html"><span class="name">ClientState</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientState" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
