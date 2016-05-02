@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Testing Servers</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/testkit/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Testing Servers</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Colossus has a test kit that includes some classes for simplifying tests for servers.  Testkit is built on <a href="http://scalatest.org">ScalaTest</a>.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>Make sure you add <code>colossus-testkit</code> to your dependcies, using the same version as colossus itself.  For example:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus"</span> <span class="o">%</span> <span class="s">"0.7.2"</span>
+
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus-testkit"</span> <span class="o">%</span> <span class="s">"0.7.2"</span> <span class="o">%</span> <span class="s">"test"</span></code></pre></div>
+
+<h2 id="unit-testing">Unit Testing</h2>
+
+<h3 id="testing-callbacks">Testing Callbacks</h3>
+
+<p><code>colossus.testkit.CallbackAwait</code> works similarly to Scala’s <code>Await</code> for futures.  </p>
+
+<h2 id="integration-testing">Integration Testing</h2>
+
+<p><code>ColossusSpec</code> is a scalatest-based integration testing suite that contains a
+bunch of useful functions that help with spinning up instances of a service for
+testing</p>
+
+<p><code>withIOSystem(f: IOSystem =&gt; Unit)</code> will spin up a new <code>IOSystem</code> for the duration of a test and shut it down at the end.</p>
+
+<p><code>withServer(server: ServerRef)(f: =&gt; Unit)</code> will shutdown the given server after the test completes</p>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#setup">Setup</a></li><li><a href="#unit-testing">Unit Testing</a></li><li><a href="#integration-testing">Integration Testing</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
