@@ -92,8 +92,8 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
     throw new ReceiveException("No sender")
   }
   
-  private val handler: PartialHandler[C] = handle orElse unhandled
-  private val errorHandler: ErrorHandler[C] = onError orElse unhandledError
+  private lazy val handler: PartialHandler[C] = handle orElse unhandled
+  private lazy val errorHandler: ErrorHandler[C] = onError orElse unhandledError
 
   def receivedMessage(message: Any, sender: ActorRef) {
     currentSender = Some(sender)
