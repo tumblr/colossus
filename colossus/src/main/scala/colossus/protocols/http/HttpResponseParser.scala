@@ -31,27 +31,27 @@ object HttpResponseParser  {
   //TODO: Dechunk on static
 
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case None | Some("identity") => parsedHead.contentLength match {
-        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
-        case None if (parsedHead.head.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
-        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
       }
-      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
+      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
     }
   }
 
   protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case None | Some("identity") => parsedHead.contentLength match {
-        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead.head, None))
-        case Some(n) => streamingResponse(parsedHead.head, Some(n), false)
-        case None if (parsedHead.head.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead.head, None))
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
+        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        case Some(n) => streamingResponse(parsedHead, Some(n), false)
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         //TODO: adding support for this requires upcoming changes to stream termination error handling
         case None => throw new ParseException("Infinite non-chunked responses not supported") 
       }
-      case _  => streamingResponse(parsedHead.head, None, dechunk)
+      case _  => streamingResponse(parsedHead, None, dechunk)
     }
   }
 
@@ -64,8 +64,8 @@ object HttpResponseParser  {
   }
     
 
-  protected def head: Parser[HeadResult[HttpResponseHead]] = firstLine ~ headers >> {case fl ~ hbuilder => 
-    HeadResult(HttpResponseHead(fl, hbuilder.buildHeaders), hbuilder.contentLength, hbuilder.transferEncoding)
+  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder => 
+    HttpResponseHead(fl, hbuilder.buildHeaders)
   }
 
   protected def firstLine = line(true) >> ParsedResponseFL.apply

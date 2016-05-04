@@ -177,8 +177,32 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
 
   override def hashCode = toString.hashCode
 }
+
+/**
+ * This is the set of headers that are parsed into more structured forms and
+ * used internally by colossus
+ */
+class ParsedHttpHeaders(
+  headers: JList[HttpHeader],
+  val transferEncodingOpt: Option[TransferEncoding],
+  override val contentLength: Option[Int],
+  override val connection: Option[Connection]
+) extends HttpHeaders(headers) {
+
+  override def transferEncoding = transferEncodingOpt.getOrElse(TransferEncoding.Identity)
+
+}
+
     
+
+/**
+ * A Wrapper class for a set of Http headers, for a request or response.
+ */
 class HttpHeaders(private val headers: JList[HttpHeader]) {
+
+  // NOTE - the headers value should contain ALL headers, even ones like
+  // content-length that we track separately
+
   def firstValue(name: String): Option[String] = {
     val l = name.toLowerCase
     toSeq.collectFirst{ case x if (x.key == l) => x.value }
@@ -196,9 +220,9 @@ class HttpHeaders(private val headers: JList[HttpHeader]) {
    */
   def contentLength: Option[Int] = firstValue(HttpHeaders.ContentLength).map{_.toInt}
 
-  def transferEncoding : TransferEncoding = firstValue(HttpHeaders.TransferEncoding).flatMap(TransferEncoding.unapply).getOrElse(TransferEncoding.Identity)
+  def transferEncoding : TransferEncoding = firstValue(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
 
-  def connection: Option[Connection] = firstValue(HttpHeaders.Connection).flatMap(Connection.unapply)
+  def connection: Option[Connection] = firstValue(HttpHeaders.Connection).map(Connection(_))
 
   def + (kv: (String, String)): HttpHeaders = {
     val n = HttpHeader(kv._1, kv._2)
@@ -231,14 +255,6 @@ class HttpHeaders(private val headers: JList[HttpHeader]) {
 }
 
 object HttpHeaders {
-
-  /**
-   * by default we're going to disallow multivalues on everything except those
-   * defined below
-   */
-  val allowedMultiValues = List(
-    "set-cookie"
-  )
 
   //make these all lower-case
   val Accept            = "accept"
@@ -296,8 +312,9 @@ object TransferEncoding {
   }
 
   private val all = Seq(Identity, Chunked)
-  def unapply(str : String) : Option[TransferEncoding] = {
-    all.find(_.value == str.toLowerCase)
+  def apply(str : String) : TransferEncoding = {
+    val toFind = str.toLowerCase
+    all.find(_.value == toFind).getOrElse(throw new ParseException(s"Invalid transfer-encoding header value '$str'"))
   }
 }
 
@@ -323,8 +340,9 @@ object ContentEncoding {
   }
 
   private val all = Seq(Gzip, Deflate, Compressed, Identity)
-  def unapply(str : String) : Option[ContentEncoding] = {
-    all.find(_.value == str.toLowerCase)
+  def apply(str : String) : ContentEncoding = {
+    val toFind = str.toLowerCase
+    all.find(_.value == toFind).getOrElse(throw new ParseException("Invalid content-encoding header value '$str'"))
   }
 }
 
@@ -340,8 +358,9 @@ object Connection {
   }
 
   private val all = Seq(Close, KeepAlive)
-  def unapply(str : String) : Option[Connection] = {
-    all.find(_.value == str)
+  def apply(str : String) : Connection = {
+    val toFind = str.toLowerCase
+    all.find(_.value == toFind).getOrElse(throw new ParseException(s"Invalid connection header value '$str'"))
   }
 }
 
