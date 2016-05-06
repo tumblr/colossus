@@ -316,7 +316,7 @@ object MemcacheReplyParser {
     case "END" => const(if (build.size == 1) build.head else Values(build))
   }}
 
-  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), b, flags))}
+  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), ByteString(b), flags))}
 }
 
 trait Compressor {
