@@ -271,6 +271,10 @@ object Combinators {
   def bytes(num: Parser[Int]): Parser[Array[Byte]] = num |> bytes
 
   def bytes(num: Int): Parser[Array[Byte]] = new Parser[Array[Byte]] {
+    if (num < 0) {
+      throw new ParseException(s"Invalid number $num for bytes parser")
+    }
+
     val builder = new FastArrayBuilder(num, false)
 
     def parse(data: DataBuffer): Option[Array[Byte]] = {
@@ -750,7 +754,7 @@ object Combinators {
     }
 
     def write(buffer: DataBuffer, bytes: Int) {
-      while (writePos + bytes >= build.length) {
+      while (writePos + bytes > build.length) {
         grow()
       }
       buffer.takeInto(build, writePos, bytes)
@@ -758,7 +762,7 @@ object Combinators {
     }
 
     def write(bytes: Array[Byte]) {
-      while (writePos + bytes.length >= build.length) {
+      while (writePos + bytes.length > build.length) {
         grow()
       }
       System.arraycopy(bytes, 0, build, writePos, bytes.length)
