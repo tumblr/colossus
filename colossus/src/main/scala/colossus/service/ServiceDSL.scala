@@ -75,7 +75,7 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
 
   def this(config: ServiceConfig, context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(provider.provideCodec, config, context)
 
-  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig(), context)(provider)
+  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.Default, context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
@@ -164,7 +164,7 @@ object Service {
   def basic[T <: Protocol]
   (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = {
-    class BasicService(context: ServerContext) extends Service(ServiceConfig(requestTimeout = requestTimeout), context) {
+    class BasicService(context: ServerContext) extends Service(ServiceConfig.Default.copy(requestTimeout = requestTimeout), context) {
       def handle = userHandler
     }
     Server.basic(name, port)(context => new BasicService(context))

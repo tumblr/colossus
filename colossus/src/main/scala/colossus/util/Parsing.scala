@@ -6,6 +6,8 @@ import core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 
+import scala.util.Try
+
 sealed trait ParseStatus
 case object Incomplete extends ParseStatus
 case object Complete extends ParseStatus
@@ -13,14 +15,44 @@ case object Complete extends ParseStatus
 class ParseException(message: String) extends Exception(message)
 
 case class DataSize(value: Long) extends AnyVal {
-  def MB: DataSize = value * 1024 * 1024
-  def KB: DataSize = value * 1024
+  def MB: DataSize = DataSize(value * 1024 * 1024)
+  def KB: DataSize = DataSize(value * 1024)
   def bytes = value
 }
 
 object DataSize {
-  implicit def longToDataSize(l: Long): DataSize = DataSize(l)
+  //implicit def longToDataSize(l: Long): DataSize = DataSize(l)
+
+  implicit class IntToSize(val amount : Int) extends DataSizeConversions[Int]
+  implicit class LongToSize(val amount : Long) extends DataSizeConversions[Long]
+
+  trait DataSizeConversions[T] {
+    def amount : T
+
+    def bytes = B
+    def B = DataSize(s"$amount B")
+    def MB = DataSize(s"$amount MB")
+    def megabytes = MB
+    def KB = DataSize(s"$amount KB")
+    def kilobytes = KB
+  }
+
+  val StrFormat = "(\\d+) (B|KB|MB)".r
+
+  def apply(str : String) : DataSize = {
+    str.toUpperCase match {
+      case StrFormat(bytes, "B") => DataSize(bytes.toInt)
+      case StrFormat(bytes, "KB") => DataSize(bytes.toInt * 1024)
+      case StrFormat(bytes, "MB") => DataSize(bytes.toInt * 1024 * 1024)
+      case _ => throw new InvalidDataSizeException(str)
+    }
+  }
+
+  def unapply(str : String) : Option[DataSize] =  Try(this.apply(str)).toOption
+
 }
+
+class InvalidDataSizeException(format : String) extends Exception(s"The format $format is an invalid Data size.")
 
 /** A ParserSizeTracker can wrap a stream parser to ensure that the object being parsed doesn't exceed a certain size.
  *
@@ -518,7 +550,6 @@ object Combinators {
    * situations where the pattern doesn't immediately follow the number, you'll
    * have to do it yourself, something like {{{
    intUntil(':') ~ otherParser |> {case num ~ other => repeat(num, patternParser)}}}}
-   *
    *
    * @param times parser for the number of times to repeat the pattern
    * @param parser the parser that will parse a single instance of the pattern

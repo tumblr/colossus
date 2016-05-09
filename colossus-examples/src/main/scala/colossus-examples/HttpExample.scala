@@ -17,9 +17,9 @@ import colossus.controller.IteratorGenerator
 
 object HttpExample {
 
-  class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig(), context){
+  class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig.Default, context){
     
-    def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
+    def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"
 
     def handle = {
       case req @ Get on Root => req.ok("Hello World!")

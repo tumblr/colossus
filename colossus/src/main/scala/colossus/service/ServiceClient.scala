@@ -25,8 +25,7 @@ import scala.util.{Failure, Success, Try}
  * @param pendingBufferSize Size of the pending buffer
  * @param sentBufferSize Size of the sent buffer
  * @param failFast  When a failure is detected, immediately fail all pending requests.
- * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
- *                           and for connection lost events.
+ * @param connectRetry Retry policy for connections.
  * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
@@ -41,7 +40,7 @@ case class ClientConfig(
   failFast: Boolean = false,
   connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
   idleTimeout: Duration = Duration.Inf,
-  maxResponseSize: DataSize = 1L.MB
+  maxResponseSize: DataSize = 1.MB
 )
 
 class ServiceClientException(message: String) extends Exception(message)
