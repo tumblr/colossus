@@ -14,16 +14,18 @@ case object Complete extends ParseStatus
 
 class ParseException(message: String) extends Exception(message)
 
-case class DataSize(bytes: Long) extends AnyVal {
+case class DataSize(value: Long) extends AnyVal {
   def megabytes = MB
-  def MB: DataSize = DataSize(bytes * 1024 * 1024)
+  def MB: DataSize = DataSize(value * 1024 * 1024)
   def kilobytes = KB
-  def KB: DataSize = DataSize(bytes * 1024)
+  def KB: DataSize = DataSize(value * 1024)
+  def bytes = this
 }
 
 object DataSize {
 
   implicit def longToDataSize(l: Long): DataSize = DataSize(l)
+  implicit def intToDataSize(l: Int): DataSize = DataSize(l)
 
   val StrFormat = "(\\d+) (B|KB|MB)".r
 
@@ -58,7 +60,7 @@ class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogra
   //data buffer into smaller chunks, but that would probably have a performance
   //cost.
 
-  val max = maxSize.map{_.bytes}.getOrElse(Long.MaxValue)
+  val max = maxSize.map{_.value}.getOrElse(Long.MaxValue)
 
   private var used = 0L
 
