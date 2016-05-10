@@ -14,28 +14,16 @@ case object Complete extends ParseStatus
 
 class ParseException(message: String) extends Exception(message)
 
-case class DataSize(value: Long) extends AnyVal {
-  def MB: DataSize = DataSize(value * 1024 * 1024)
-  def KB: DataSize = DataSize(value * 1024)
-  def bytes = value
+case class DataSize(bytes: Long) extends AnyVal {
+  def megabytes = MB
+  def MB: DataSize = DataSize(bytes * 1024 * 1024)
+  def kilobytes = KB
+  def KB: DataSize = DataSize(bytes * 1024)
 }
 
 object DataSize {
-  //implicit def longToDataSize(l: Long): DataSize = DataSize(l)
 
-  implicit class IntToSize(val amount : Int) extends DataSizeConversions[Int]
-  implicit class LongToSize(val amount : Long) extends DataSizeConversions[Long]
-
-  trait DataSizeConversions[T] {
-    def amount : T
-
-    def bytes = B
-    def B = DataSize(s"$amount B")
-    def MB = DataSize(s"$amount MB")
-    def megabytes = MB
-    def KB = DataSize(s"$amount KB")
-    def kilobytes = KB
-  }
+  implicit def longToDataSize(l: Long): DataSize = DataSize(l)
 
   val StrFormat = "(\\d+) (B|KB|MB)".r
 

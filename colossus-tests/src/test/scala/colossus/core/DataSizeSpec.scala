@@ -31,9 +31,8 @@ class DataSizeSpec extends WordSpec with MustMatchers{
 
     "implicits should work" in {
       import colossus.parsing.DataSize._
-      1.MB mustBe DataSize("1 MB")
-      1.KB mustBe DataSize("1 KB")
-      1.B mustBe DataSize("1 B")
+      1L.MB mustBe DataSize("1 MB")
+      1L.KB mustBe DataSize("1 KB")
     }
   }
 }
