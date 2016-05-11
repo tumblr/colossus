@@ -1,11 +1,12 @@
 package colossus
 package service
 
+import com.typesafe.config.{Config, ConfigFactory}
 import core._
 
 import akka.actor.ActorRef
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.language.higherKinds
 
 import java.net.InetSocketAddress
@@ -13,8 +14,6 @@ import metrics.MetricAddress
 
 import Codec._
 
-
-//TODO : Rename to Protocol
 trait Protocol {self =>
   type Input
   type Output
@@ -36,11 +35,13 @@ import Protocol._
 
 /**
  * Provide a Codec as well as some convenience functions for usage within in a Service.
- * @tparam C the type of codec this provider will supply
+  *
+  * @tparam C the type of codec this provider will supply
  */
 trait CodecProvider[C <: Protocol] {
   /**
     * The Codec which will be used.
+    *
     * @return
     */
   def provideCodec: ServerCodec[C#Input, C#Output]
@@ -49,7 +50,8 @@ trait CodecProvider[C <: Protocol] {
 trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
   /**
    * Basic error response
-   * @param error Request that caused the error
+    *
+    * @param error Request that caused the error
    * @return A response which represents the failure encoded with the Codec
    */
   def errorResponse(error: ProcessingFailure[C#Input]): C#Output
@@ -60,8 +62,6 @@ trait ClientCodecProvider[C <: Protocol] {
   def name: String
   def clientCodec(): ClientCodec[C#Input, C#Output]
 }
-
-
 
 
 class UnhandledRequestException(message: String) extends Exception(message)
@@ -119,40 +119,6 @@ extends ServiceServer[C#Input, C#Output](provider.provideCodec, config, srv) {
 
 
 object Service {
-  /*
-  /** Start a service with worker and connection initialization
-   *
-   * The basic structure of a service using this method is:{{{
-   Service.serve[Http]{ workerContext =>
-     //worker initialization
-     workerContext.handle { connectionContext =>
-       //connection initialization
-       connection.become {
-         case ...
-       }
-     }
-   }
-   }}}
-   *
-   * @param serverSettings Settings to provide the underlying server
-   * @param serviceConfig Config for the service
-   * @param handler The worker initializer to use for the service
-   * @tparam T The codec to use, eg Http, Redis
-   * @return A [[ServerRef]] for the server.
-   */
-
-  def serve[T <: Protocol]
-  (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
-  (handler: Initializer[T])
-  (implicit system: IOSystem, provider: CodecProvider[T]): ServerRef = {
-    val serverConfig = ServerConfig(
-      name = serviceConfig.name,
-      settings = serverSettings,
-      delegatorFactory = (s,w) => provider.provideDelegator(handler, s, w, provider, serviceConfig)
-    )
-    Server(serverConfig)
-  }
-  */
 
   /** Quick-start a service, using default settings
    *
@@ -185,9 +151,30 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
 
 
+  /**
+    * Load a ServiceClient definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
+    * `colossus.client-defaults`
+    * @param clientName The name of the client definition to load
+    * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
+    * @return
+    */
+  def apply(clientName : String, config : Config = ConfigFactory.load())(implicit provider: ClientCodecProvider[C], env: E) : T = {
+    apply(ClientConfig.load(clientName, config))
+  }
+
+  /**
+    * Create a Client from a config source.
+    *
+    * @param config A Config object in the shape of `colossus.client-defaults`.  It is also expected to have the `address` and `name` fields.
+    * @return
+    */
+  def apply(config : Config)(implicit provider: ClientCodecProvider[C], env: E) : T = {
+    apply(ClientConfig.load(config))
+  }
+
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
 
-  def apply(host: String, port: Int, requestTimeout: Duration = 1.second)(implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply(host: String, port: Int, requestTimeout: Duration)(implicit provider: ClientCodecProvider[C], env: E): T = {
     apply(new InetSocketAddress(host, port), requestTimeout)
   }
 
@@ -199,20 +186,15 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     )
     apply(config)
   }
-
-
 }
 
-
 object ClientFactory {
-
 
   implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
 
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
       new ServiceClient(provider.clientCodec(), config, worker.generateContext())
     }
-
   }
 
   implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
@@ -220,9 +202,7 @@ object ClientFactory {
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
       AsyncServiceClient.create(config)(io, provider)
     }
-
   }
-
 }
 
 class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]

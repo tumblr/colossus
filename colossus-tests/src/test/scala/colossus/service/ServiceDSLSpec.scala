@@ -23,10 +23,7 @@ class ErrorTestDSL(probe: ActorRef) extends ServiceCodecProvider[Raw] {
       probe ! error.reason
       ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
     }
-  
 }
-
-
 
 class ServiceDSLSpec extends ColossusSpec {
 
@@ -53,10 +50,10 @@ class ServiceDSLSpec extends ColossusSpec {
     */
 
     "throw UnhandledRequestException on unhandled request" in {
-      val probe = TestProbe() 
+      val probe = TestProbe()
       implicit val provider = new ErrorTestDSL(probe.ref)
-      withIOSystem{ implicit system => 
-        val server = Service.basic[Raw]("test", TEST_PORT) { 
+      withIOSystem{ implicit system =>
+        val server = Service.basic[Raw]("test", TEST_PORT) {
           case any if (false) => ByteString("WAT")
         }
         withServer(server) {
@@ -119,24 +116,21 @@ class ServiceDSLSpec extends ColossusSpec {
         import Http.defaults._
         import Memcache.defaults._
         //this test passes if it compiles
-        val s = Http.futureClient("localhost", TEST_PORT)
-        val t = Memcache.futureClient("localhost", TEST_PORT)
+        val s = Http.futureClient("localhost", TEST_PORT, 1.second)
+        val t = Memcache.futureClient("localhost", TEST_PORT, 1.second)
       }
     }
 
     "be able to lift a sender to a type-specific client" in {
-      withIOSystem{ implicit sys => 
+      withIOSystem{ implicit sys =>
         import protocols.http._
         import Http.defaults._
 
-        val s = AsyncServiceClient[Http]("localhost", TEST_PORT)
+        val s = AsyncServiceClient[Http]("localhost", TEST_PORT, 1.second)
         val t = Http.futureClient(s)
         val q : HttpClient[Future] = t
       }
     }
-
-      
-
   }
 }
 
