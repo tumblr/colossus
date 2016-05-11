@@ -15,7 +15,7 @@ object HttpRequestParser {
     head.headers.transferEncoding match {
       case TransferEncoding.Identity => head.headers.contentLength match {
         case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
-        case Some(n) => bytes(n) >> {body => HttpRequest(head, HttpBody(body))}
+        case Some(n) => bytes(n) >> {body => HttpRequest(head, new HttpBody(body))}
       }
       case other  => chunkedBody >> {body => HttpRequest(head, HttpBody(body))}
     }

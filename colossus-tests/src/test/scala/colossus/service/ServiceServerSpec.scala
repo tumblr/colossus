@@ -1,32 +1,28 @@
 package colossus
 package service
 
-import testkit._
-import core._
-
-import scala.concurrent.duration._
-import akka.actor.ActorRef
-import akka.testkit.TestProbe
-import akka.util.ByteString
 import java.net.InetSocketAddress
 
-import protocols.redis._
-import Redis.defaults._
+import akka.actor.ActorRef
+import akka.util.ByteString
+import colossus.RawProtocol._
+import colossus.core._
+import colossus.parsing.DataSize._
+import colossus.protocols.redis.Redis.defaults._
+import colossus.protocols.redis._
+import colossus.testkit._
+
 import scala.concurrent.Await
-
-import RawProtocol._
-
+import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 class ServiceServerSpec extends ColossusSpec {
 
-  import system.dispatcher
-  
   class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[ByteString, ByteString](
-      config = ServiceConfig (
+      config = ServiceConfig.Default.copy(
         requestBufferSize = 2,
         requestTimeout = 50.milliseconds,
-        maxRequestSize = 300L
+        maxRequestSize = 300.bytes
       ),
       codec = RawCodec,
       serverContext = srv
@@ -34,8 +30,6 @@ class ServiceServerSpec extends ColossusSpec {
 
     def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
 
- //   override def processBadRequest(reason: Throwable) = Some(processFailure(IrrecoverableError(reason)))
-    
     def processRequest(input: ByteString) = handler(input)
 
     def receivedMessage(x: Any, s: ActorRef){}
@@ -147,9 +141,6 @@ class ServiceServerSpec extends ColossusSpec {
         maxIdleTime = Duration.Inf
       )
 
-      val serviceConfig = ServiceConfig (
-        requestTimeout = 50.milliseconds
-      )
       withIOSystem{implicit io =>
         val server = Server.basic("test", serverSettings) { new Service[Redis](_){
           def handle = {
@@ -182,7 +173,5 @@ class ServiceServerSpec extends ColossusSpec {
       t.iterate()
       t.expectOneWrite(ByteString("ERROR"))
     }
-
   }
-
 }

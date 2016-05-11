@@ -6,6 +6,9 @@ import core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 
+import java.nio.ByteBuffer
+import scala.util.Try
+
 sealed trait ParseStatus
 case object Incomplete extends ParseStatus
 case object Complete extends ParseStatus
@@ -13,14 +16,34 @@ case object Complete extends ParseStatus
 class ParseException(message: String) extends Exception(message)
 
 case class DataSize(value: Long) extends AnyVal {
-  def MB: DataSize = value * 1024 * 1024
-  def KB: DataSize = value * 1024
-  def bytes = value
+  def megabytes = MB
+  def MB: DataSize = DataSize(value * 1024 * 1024)
+  def kilobytes = KB
+  def KB: DataSize = DataSize(value * 1024)
+  def bytes = this
 }
 
 object DataSize {
+
   implicit def longToDataSize(l: Long): DataSize = DataSize(l)
+  implicit def intToDataSize(l: Int): DataSize = DataSize(l)
+
+  val StrFormat = "(\\d+) (B|KB|MB)".r
+
+  def apply(str : String) : DataSize = {
+    str.toUpperCase match {
+      case StrFormat(bytes, "B") => DataSize(bytes.toInt)
+      case StrFormat(bytes, "KB") => DataSize(bytes.toInt * 1024)
+      case StrFormat(bytes, "MB") => DataSize(bytes.toInt * 1024 * 1024)
+      case _ => throw new InvalidDataSizeException(str)
+    }
+  }
+
+  def unapply(str : String) : Option[DataSize] =  Try(this.apply(str)).toOption
+
 }
+
+class InvalidDataSizeException(format : String) extends Exception(s"The format $format is an invalid Data size.")
 
 /** A ParserSizeTracker can wrap a stream parser to ensure that the object being parsed doesn't exceed a certain size.
  *
@@ -38,7 +61,7 @@ class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogra
   //data buffer into smaller chunks, but that would probably have a performance
   //cost.
 
-  val max = maxSize.map{_.bytes}.getOrElse(Long.MaxValue)
+  val max = maxSize.map{_.value}.getOrElse(Long.MaxValue)
 
   private var used = 0L
 
@@ -66,76 +89,6 @@ class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogra
 
 trait Zero[T] {
   def isZero(t: T): Boolean
-}
-
-class UnsizedParseBuffer(terminus: ByteString, includeTerminusInData: Boolean = false, skip: Int = 0) {
-  private val data = new ByteStringBuilder()
-
-  private var checkIndex: Int = 0
-  private var checkByte: Byte = terminus(0)
-
-  private var skipped = 0
-
-  def addDatum(datum: Byte): ParseStatus = if (skipped < skip) {skipped += 1;Incomplete} else {
-    if (datum == checkByte) {
-      if (includeTerminusInData) {
-        data.putByte(datum)
-      }
-      if (checkIndex == terminus.size - 1) {
-        Complete
-      } else {
-        checkIndex += 1
-        checkByte = terminus(checkIndex)
-        Incomplete
-      }
-    } else {
-      if (checkIndex != 0) {
-        //we got fooled with a partial terminus, now we have to add what we didn't add before
-        if (!includeTerminusInData) {
-          (0 until checkIndex).foreach{i => data.putByte(terminus(i))}
-        }
-        checkIndex = 0
-        checkByte = terminus(0)
-      }
-      data.putByte(datum)
-      Incomplete
-    }
-  }
-
-  def addData(data: DataBuffer): ParseStatus = {
-    var last: ParseStatus = Incomplete
-    while (data.hasUnreadData && last == Incomplete) {
-      last = addDatum(data.next())
-    }
-    last
-  }
-
-  def result: ByteString = data.result()
-}
-
-class SizedParseBuffer(val size: Int) {
-  private val buffer = new Array[Byte](size)
-  private var _received = 0
-  def received = _received
-  def remaining = size - _received
-
-  def isFinished = size == _received
-
-  def result = ByteString(buffer)
-
-  //len is how many bytes are unread in the buffer
-  //returns how many bytes were actually read
-  def addData(data: DataBuffer): ParseStatus = {
-    val n = math.min(remaining, data.remaining)
-    data.takeInto(buffer, _received, n)
-    _received += n
-    if (remaining == 0) Complete else Incomplete
-  }
-
-}
-
-trait IntegerParser{self: UnsizedParseBuffer =>
-  def value = java.lang.Integer.parseInt(result.utf8String)
 }
 
 
@@ -182,6 +135,62 @@ object Combinators {
     override def endOfStream() = orig.endOfStream().map(f)
   }
 
+  class FlatMapParser[A,B](orig: Parser[A], f: A => Parser[B]) extends Parser[B] {
+    var mapped: Option[Parser[B]] = None
+    def parse(data: DataBuffer) = {
+      if (mapped.isDefined) {
+        mapped.get.parse(data).map{x => mapped = None;x}
+      } else {
+        orig.parse(data).map{r => mapped = Some(f(r))}
+        if (mapped.isDefined) {
+          mapped.get.parse(data).map{x => mapped = None;x}
+        } else {
+          None
+        }
+      }
+    }
+
+    override def endOfStream() = mapped.flatMap{_.endOfStream}
+
+  }
+
+  class ChainedParser[A,B](first: Parser[A], second: Parser[B]) extends Parser[~[A,B]] {
+    var donea: Option[A] = None
+    var doneb: Option[B] = None
+    def parse(data: DataBuffer): Option[~[A,B]] = {
+      if (donea.isEmpty) {
+        donea = first.parse(data)
+        if (donea.isDefined) {
+          parse(data) //need to give b a chance
+        } else {
+          None
+        }                
+      } else {
+        doneb = second.parse(data)
+        if (doneb.isDefined) {
+          val res = Some(new ~(donea.get, doneb.get))
+          donea = None
+          doneb = None
+          res
+        } else {
+          None
+        }
+      }
+    }
+    override def endOfStream(): Option[~[A,B]] = {
+      if (!donea.isDefined) {
+        donea = first.endOfStream()
+      }
+      if (!doneb.isDefined) {
+        doneb = second.endOfStream()
+      }
+      (donea, doneb) match {
+        case (Some(ra), Some(rb)) => Some(new ~(ra, rb))
+        case _ => None
+      }
+    }
+  }
+
 
   trait Parser[+T] {
     def parse(data: DataBuffer): Option[T]
@@ -198,45 +207,8 @@ object Combinators {
       None
     }
 
-    def ~[B](b: Parser[B]): Parser[~[T,B]] = {
-      val a = this
-      new Parser[~[T,B]] {
-        var donea: Option[T] = None
-        var doneb: Option[B] = None
-        def parse(data: DataBuffer): Option[~[T,B]] = {
-          if (donea.isEmpty) {
-            donea = a.parse(data)
-            if (donea.isDefined) {
-              parse(data) //need to give b a chance
-            } else {
-              None
-            }                
-          } else {
-            doneb = b.parse(data)
-            if (doneb.isDefined) {
-              val res = Some(new ~(donea.get, doneb.get))
-              donea = None
-              doneb = None
-              res
-            } else {
-              None
-            }
-          }
-        }
-        override def endOfStream(): Option[~[T,B]] = {
-          if (!donea.isDefined) {
-            donea = a.endOfStream()
-          }
-          if (!doneb.isDefined) {
-            doneb = b.endOfStream()
-          }
-          (donea, doneb) match {
-            case (Some(ra), Some(rb)) => Some(new ~(ra, rb))
-            case _ => None
-          }
-        }
-      }
-    }
+    def ~[B](b: Parser[B]): Parser[~[T,B]] = new ChainedParser(this, b)
+
     def andThen[B](b: Parser[B]): Parser[~[T,B]] = this.~(b)
 
     //combines two parsers but discards the result from the second.  Useful for
@@ -251,29 +223,16 @@ object Combinators {
 
     def map[B](f: T => B): Parser[B] = >>(f)
 
-    def |>[B](f: T => Parser[B]): Parser[B] = {
-      val orig = this
-      new Parser[B] {
-        var mapped: Option[Parser[B]] = None
-        def parse(data: DataBuffer) = {
-          if (mapped.isDefined) {
-            mapped.get.parse(data).map{x => mapped = None;x}
-          } else {
-            orig.parse(data).map{r => mapped = Some(f(r))}
-            if (mapped.isDefined) {
-              mapped.get.parse(data).map{x => mapped = None;x}
-            } else {
-              None
-            }
-          }
-        }
+    def |>[B](f: T => Parser[B]): Parser[B] = new FlatMapParser(this, f)
 
-        override def endOfStream() = mapped.flatMap{_.endOfStream}
-      }
-    }
     def flatMap[B](f: T => Parser[B]): Parser[B] = |>(f)
         
 
+  }
+
+  implicit class ByteArrayOps(val parser: Parser[Array[Byte]]) extends AnyVal {
+
+    def asByteString: Parser[ByteString] = parser >> {d => ByteString(d)}
   }
 
   /**
@@ -330,53 +289,72 @@ object Combinators {
   /**
    * read a fixed number bytes, prefixed by a length
    */
-  def bytes(num: Parser[Long]): Parser[ByteString] = new Parser[ByteString] {
-    var buf = new SizedParseBuffer(0) //first one never used 
-    var size: Option[Long] = None
-    def parse(data: DataBuffer): Option[ByteString] = {
-      if (size.isEmpty) {
-        size = num.parse(data)
-        if (size.isDefined) {
-          buf = new SizedParseBuffer(size.get.toInt)//fix toint
-          parse(data)
-        } else {
-          None
-        }
-      } else if (buf.addData(data) == Complete) {
-        val res = Some(buf.result)
-        size = None
-        res
+  def bytes(num: Parser[Int]): Parser[Array[Byte]] = num |> bytes
+
+  def bytes(num: Int): Parser[Array[Byte]] = new Parser[Array[Byte]] {
+    if (num < 0) {
+      throw new ParseException(s"Invalid number $num for bytes parser")
+    }
+
+    val builder = new FastArrayBuilder(num, false)
+
+    def parse(data: DataBuffer): Option[Array[Byte]] = {
+      val remaining = num - builder.written
+      if (data.remaining >= remaining) {
+        builder.write(data, remaining)
+        Some(builder.complete())
       } else {
+        builder.write(data, data.remaining)
         None
       }
+
     }
   }
-
-  def bytes(num: Int): Parser[ByteString] = bytes(const(num.toLong))
 
   /**
    * Keep reading bytes until the terminus is encounted.  This accounts for
    * possible partial terminus in the data.  The terminus is NOT included in
    * the returned value
    */
-  def bytesUntil(terminus: ByteString): Parser[ByteString] = new Parser[ByteString] {
-    var buf = new UnsizedParseBuffer(terminus)
-    def parse(data: DataBuffer): Option[ByteString] = {
-      if (buf.addData(data) == Complete) {
-        val res = Some(buf.result)
-        buf = new UnsizedParseBuffer(terminus)
-        res
-      } else {
-        None
+  def bytesUntil(terminus: Array[Byte], includeTerminusInData: Boolean = false, sizeHint: Int = 32): Parser[Array[Byte]] = new Parser[Array[Byte]] {
+    private val builder = new FastArrayBuilder(32, true)
+
+    private var terminusPos = 0
+    def parse(data: DataBuffer): Option[Array[Byte]] = {
+      var res: Option[Array[Byte]] = None
+      while (res.isEmpty && data.hasUnreadData) {
+        val b = data.next
+        if (b == terminus(terminusPos)) {
+          terminusPos += 1
+          if (terminusPos == terminus.length) {
+            res = Some(builder.complete())
+            terminusPos = 0
+          }
+          if (includeTerminusInData) {
+            builder.write(b)
+          }
+        } else {
+          if (!includeTerminusInData) {
+            var pos = 0
+            //need to write the bytes we skipped over so far
+            while (pos < terminusPos) {
+              builder.write(terminus(pos))
+              pos += 1
+            }
+          }
+          terminusPos = 0
+          builder.write(b)
+        }
       }
+      res
     }
   }
 
-  def short: Parser[Short] = bytes(2) >> {b => b.asByteBuffer.getShort}
+  def short: Parser[Short] = bytes(2) >> {b => ByteBuffer.wrap(b).getShort}
 
-  def int: Parser[Int] = bytes(4) >> {b => b.asByteBuffer.getInt}
+  def int: Parser[Int] = bytes(4) >> {b => ByteBuffer.wrap(b).getInt}
 
-  def long: Parser[Long] = bytes(8) >> {b => b.asByteBuffer.getLong}
+  def long: Parser[Long] = bytes(8) >> {b => ByteBuffer.wrap(b).getLong}
 
   /** Parse a series of ascii strings separated by a single-byte delimiter and terminated by a byte
    *
@@ -518,7 +496,6 @@ object Combinators {
    * situations where the pattern doesn't immediately follow the number, you'll
    * have to do it yourself, something like {{{
    intUntil(':') ~ otherParser |> {case num ~ other => repeat(num, patternParser)}}}}
-   *
    *
    * @param times parser for the number of times to repeat the pattern
    * @param parser the parser that will parse a single instance of the pattern
@@ -701,6 +678,11 @@ object Combinators {
 
 
 
+  /**
+   * Repeat a parser, accumulating the results until the value returned by the
+   * parser matches the type's Zero value.  This can be used, for example, to
+   * keep parsing lines of data until an empty line is encountered
+   */
   class RepeatZeroParser[T : scala.reflect.ClassTag](parser: Parser[T])(implicit zero: Zero[T]) extends Parser[Array[T]] {
     val build = new java.util.LinkedList[T]()
 
@@ -762,20 +744,52 @@ object Combinators {
 
   def foldZero[T, U](parser: Parser[T], init: => U)(folder: (T, U) => U)(implicit zero: Zero[T]) = new FoldZeroParser(parser, init)(folder)
 
+  /**
+   * A very fast dynamically growable array builder.  Do not be tempted to
+   * replace this with any out-of-the-box Java/Scala class.  This is faster.
+   */
   class FastArrayBuilder(initSize: Int, shrinkOnComplete: Boolean = false) {
+    
+    //TODO : This class is somewhat similar to the DynamicOutBuffer, maybe
+    //there's a way to avoid duplicated logic
+
     private var build: Array[Byte] = new Array[Byte](initSize)
 
     private var writePos = 0
 
+    def written = writePos
+
+    private def grow() {
+      val nb = new Array[Byte](build.length * 2)
+      System.arraycopy(build, 0, nb, 0, build.length)
+      build = nb
+    }
+
     def write(b: Byte) {
       if (writePos == build.length) {
-        val nb = new Array[Byte](build.length * 2)
-        System.arraycopy(build, 0, nb, 0, build.length)
-        build = nb
+        grow()
       }
       build(writePos) = b
       writePos += 1
     }
+
+    def write(buffer: DataBuffer, bytes: Int) {
+      while (writePos + bytes > build.length) {
+        grow()
+      }
+      buffer.takeInto(build, writePos, bytes)
+      writePos += bytes
+    }
+
+    def write(bytes: Array[Byte]) {
+      while (writePos + bytes.length > build.length) {
+        grow()
+      }
+      System.arraycopy(bytes, 0, build, writePos, bytes.length)
+      writePos += bytes.length
+    }
+      
+      
 
     def complete(): Array[Byte] = {
       val res = new Array[Byte](writePos)
@@ -788,6 +802,20 @@ object Combinators {
     }
   }
 
+
+
+  /**
+   * Parse a single line of data.  A "line" is terminated by `\r\n`.
+   *
+   * This is quite possibly the fastest line parser in existence.  While this is
+   * basically a specialized version of the bytesUntil parser, it is
+   * significantly faster.  Part of the speedup is simply from basically
+   * including the functionality of the MapParser, which avoids a bunch of
+   * function calls.  I believe the rest of the speedup is due to the fact that
+   * comparing the next byte to a constant vs an array member is significantly
+   * faster.  I have made several attempts to get the bytesUntil parser as fast
+   * as this one to no avail.
+   */
   class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] {
     private val CR    = '\r'.toByte
     private val LF    = '\n'.toByte
