@@ -73,10 +73,12 @@ object Broadcaster {
   case class ClientClosed(user: String) extends BroadcasterMessage
 }
 
-class ChatHandler(broadcaster: ActorRef, context: ServerContext) 
-extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds), context.context) 
+class ChatHandler(broadcaster: ActorRef, context: ServerContext)
+extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.seconds), context.context)
 with ProxyActor with ServerConnectionHandler {
 
+  implicit val namespace = context.server.namespace
+  
   sealed trait State
   object State {
     case object LoggingIn extends State

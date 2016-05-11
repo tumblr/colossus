@@ -6,8 +6,7 @@ import akka.agent.Agent
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
-
-import metrics.MetricSystem
+import com.typesafe.config.Config
 
 import java.net.InetSocketAddress
 
@@ -22,16 +21,17 @@ import scala.util.{Failure, Success}
  * A WorkerManager is just that, an Actor who is responsible for managing all of the Worker Actors in an IOSystem.
  * It is responsible for creating, killing, restarting, relaying messages, etc.
  *
- * @param config configuration parameters
+ * @param workerAgent WorkerRefs that this WorkerManager manages
+ * @param ioSystem Containing IOSystem
  */
-private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem) 
+private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem)
 extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
 
-  import ioSystem.config.numWorkers
+  import ioSystem.numWorkers
 
 
   /*

@@ -18,10 +18,10 @@ package object telnet {
     type Output = TelnetReply
   }
 
-  implicit object TelnetProvider extends CodecProvider[Telnet] {
+  implicit object TelnetProvider extends ServiceCodecProvider[Telnet] {
     def provideCodec() = TelnetServerCodec
 
-    def errorResponse(request: TelnetCommand, reason: Throwable) = TelnetReply(s"Error: $reason")
+    def errorResponse(error: ProcessingFailure[TelnetCommand]) = TelnetReply(s"Error: ${error.reason}")
   }
 
   case class TelnetCommand(args: List[String])

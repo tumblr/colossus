@@ -27,7 +27,6 @@ object UpgradeRequest {
   }
   
 
-  //todo proper handling of key
   def unapply(request : HttpRequest): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
@@ -155,18 +154,19 @@ object FrameParser {
     val payloadLen = head(1) & 0x7F //toss the first bit, len is 7 bits
     val mask = (head(1) & 0x80) == 0x80
     val maskKeyBytes = if (mask) 4 else 0
-    val p: Parser[ByteString] = if (payloadLen == 0x7E) {
-      bytes(short >> {_.toLong + maskKeyBytes})
+    val p: Parser[Array[Byte]] = if (payloadLen == 0x7E) {
+      bytes(short >> {_ + maskKeyBytes})
     } else if (payloadLen == 0x7F) {
-      bytes(long >> {_ + maskKeyBytes})
+      bytes(long >> {_.toInt + maskKeyBytes})
     } else {
       bytes(payloadLen + maskKeyBytes)
     }
-    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,data)))}
+    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,ByteString(data))))}
   }
 }
 
-abstract class WebsocketHandler(context: Context) extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
+abstract class WebsocketHandler[P <: Protocol](context: Context)
+  extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
 
   def send(bytes: ByteString) {
     push(Frame(Header(OpCodes.Text, false), bytes)){_ => {}}
@@ -195,3 +195,12 @@ abstract class WebsocketHandler(context: Context) extends Controller(new Websock
   }
 
 }
+
+abstract class WebsocketServerHandler(serverContext: ServerContext) extends WebsocketHandler(serverContext.context) with ServerConnectionHandler {
+
+  implicit val namespace = serverContext.server.namespace
+
+}
+
+
+

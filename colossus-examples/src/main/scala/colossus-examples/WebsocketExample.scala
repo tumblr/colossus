@@ -52,10 +52,10 @@ object WebsocketExample {
     
     val generator = io.actorSystem.actorOf(Props[PrimeGenerator])
 
-    Server.basic("websocket", port){ new Service[Http](_) {
+    Server.basic("websocket", port){ ctx => new Service[Http](ctx) {
       def handle = {
         case UpgradeRequest(resp) => {
-          become(new WebsocketHandler(_) with ProxyActor {
+          become(() => new WebsocketServerHandler(ctx) with ProxyActor {
 
             private var sending = false
 

@@ -1,25 +1,25 @@
 package colossus.examples
 
-import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.{ServerContext, DataBuffer, Initializer, Server, ServerRef, WorkerRef}
-import colossus.protocols.http._
-import colossus.protocols.redis._
-import colossus.service.{Callback, Service, ServiceClient, ServiceConfig}
 import java.net.InetSocketAddress
 
-import UrlParsing._
-import HttpMethod._
-import Callback.Implicits._
-import Redis.defaults._
+import akka.util.ByteString
+import colossus.IOSystem
+import colossus.core.{Initializer, Server, ServerContext, ServerRef}
+import colossus.protocols.http.HttpMethod._
+import colossus.protocols.http.UrlParsing._
+import colossus.protocols.http._
+import colossus.protocols.redis.Redis.defaults._
+import colossus.protocols.redis._
+import colossus.service.Callback.Implicits._
+import colossus.service.{Callback, ServiceConfig}
 
-import colossus.controller.IteratorGenerator
+import scala.concurrent.duration._
 
 object HttpExample {
 
-  class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig(), context){
+  class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig.Default, context){
     
-    def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"    
+    def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"
 
     def handle = {
       case req @ Get on Root => req.ok("Hello World!")
@@ -52,7 +52,7 @@ object HttpExample {
   def start(port: Int, redisAddress: InetSocketAddress)(implicit system: IOSystem): ServerRef = {
     Server.start("http-example", port){implicit worker => new Initializer(worker) {
 
-      val redis = Redis.client(redisAddress.getHostName, redisAddress.getPort)
+      val redis: RedisClient[Callback] = Redis.client(redisAddress.getHostName, redisAddress.getPort, 1.second)
 
       def onConnect = context => new HttpExampleService(redis, context)
     }}

@@ -4,7 +4,7 @@ import scala.concurrent.duration._
 
 class CounterSpec extends MetricIntegrationSpec {
 
-  def counter = new Counter("/foo")(new Collection(CollectorConfig(List(1.second))))
+  def counter = new DefaultCounter("/foo")
 
   "Counter" must {
     "increment" in {
@@ -25,13 +25,13 @@ class CounterSpec extends MetricIntegrationSpec {
 
     "set" in {
       val c = counter
-      c.set(num = 3456)
+      c.set(value = 3456)
       c.get() must equal(3456)
     }
 
     "correctly handle tags" in {
       val c = counter
-      c.set(123, tags = Map("a" -> "a"))
+      c.set(tags = Map("a" -> "a"), 123)
       c.increment(tags = Map("a" -> "b"))
       c.increment(tags = Map("a" -> "b"))
       c.get(Map("a" -> "a")) must equal(123)

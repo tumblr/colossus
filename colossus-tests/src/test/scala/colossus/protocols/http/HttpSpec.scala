@@ -96,7 +96,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         version = HttpVersion.`1.0`,
         url = "/hello",
         method = HttpMethod.Post,
-        headers = List("connection" -> "bar")
+        headers = List("connection" -> "close")
       )
       val request = HttpRequest(head, HttpBody.NoBody)
 
@@ -132,7 +132,7 @@ class HttpSpec extends WordSpec with MustMatchers{
         version = HttpVersion.`1.1`,
         url = "/hello",
         method = HttpMethod.Post,
-        headers = List("connection" -> "bar")
+        headers = List("connection" -> "keep-alive")
       )
       val request = HttpRequest(head, HttpBody.NoBody)
 

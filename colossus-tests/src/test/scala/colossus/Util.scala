@@ -58,10 +58,10 @@ object RawProtocol {
 
   
 
-  implicit object RawCodecProvider extends CodecProvider[Raw] {
+  implicit object RawCodecProvider extends ServiceCodecProvider[Raw] {
     def provideCodec() = RawCodec
 
-    def errorResponse(request: ByteString, reason: Throwable) = ByteString(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+    def errorResponse(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
   }
 
   implicit object RawClientCodecProvider extends ClientCodecProvider[Raw] {

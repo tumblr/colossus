@@ -2,10 +2,12 @@ package colossus
 package controller
 
 import akka.util.ByteString
+import colossus.core._
+import colossus.parsing.DataSize._
 import colossus.testkit._
-import core._
 
-import scala.util.{Try, Failure, Success}
+import scala.concurrent.duration._
+import scala.util.Success
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers{
   
@@ -59,6 +61,15 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       con.typedHandler.receivedData(DataBuffer(ByteString("d")))
       //now it should be done
       executed must equal(true)
+    }
+    
+    "reject data above the size limit" in {
+      val input = ByteString("hello")
+      val config = ControllerConfig(4, 50.milliseconds, 2.bytes)
+      val con = static(config)
+      con.typedHandler.receivedData(DataBuffer(input))
+      con.typedHandler.received.isEmpty must equal(true)
+      con.readsEnabled must equal(false)
     }
     /*
 

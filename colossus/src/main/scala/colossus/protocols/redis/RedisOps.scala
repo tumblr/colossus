@@ -1,12 +1,9 @@
 package colossus
 package protocols.redis
 
-import akka.util.{ByteString, ByteStringBuilder}
-import colossus.core.{Context, WorkerRef}
-import colossus.parsing.DataSize
+import akka.util.ByteString
 import colossus.service._
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.language.higherKinds
 

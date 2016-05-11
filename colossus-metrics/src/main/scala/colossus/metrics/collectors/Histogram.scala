@@ -3,17 +3,55 @@ package colossus.metrics
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ThreadLocalRandom
+
 import scala.concurrent.duration._
 
+/**
+  * Metrics Collector which measures the distribution of values.
+  * A single Histogram instance divides valuess up by TagMaps and track each one independently
+  * When they are collected and reported, all TagMaps will be reported under the same MetricAddress.
+  */
+trait Histogram extends Collector{
+  /**
+    * The percentiles that this Histogram should distribute its values.
+    *
+    * @return
+    */
+  def percentiles: Seq[Double]
 
-case class BucketList(buckets: Vector[Int]) extends AnyVal
-  
+  /**
+    * How often to collect values.
+    *
+    * @return
+    */
+  def sampleRate: Double
+
+  /**
+    * Instruct the collector to not report any values for tag combinations which were previously empty.
+    *
+    * @return
+    */
+  def pruneEmpty: Boolean
+
+  /**
+    * Add a new value to this histogram,
+    *
+    * @param value The value to add
+    * @param tags The TagMap used to record this value
+    */
+  def add(value: Int, tags: TagMap = TagMap.Empty)
+}
+
+private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
+
 /**
  * A Basic log-scale histogram, mainly designed to measure latency
  *
  * Each bucket handles an increasingly large range of values from 0 to MAX_INT.
  */
-object Histogram {
+object Histogram extends CollectorConfigLoader{
+
+  private val DefaultConfigPath = "system.collectors-defaults.histogram"
 
   val NUM_BUCKETS = 100
   //note, the value at index i is the lower bound of that bucket
@@ -43,20 +81,78 @@ object Histogram {
     }.toVector
     BucketList(buckets)
   }
-  
+
+  /**
+    * Create a Histogram with the following address.  See the documentation for [[colossus.metrics.MetricSystem]]
+    *
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param ns The namespace to which this Metric is relative.
+    * @return
+    */
+  def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Histogram = {
+    apply(address, DefaultConfigPath)
+  }
+
+  /**
+    * Create a Histogram with the following address, whose definitions is contained the specified configPath.
+    * See the documentation for [[colossus.metrics.MetricSystem]]
+    *
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param configPath The path in the config that this histogram's configuration is located.  This is relative to the MetricSystem config
+    *                   definition.
+    * @param ns The namespace to which this Metric is relative.
+    * @return
+    */
+  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Histogram = {
+    ns.getOrAdd(address){(fullAddress, config) =>
+      import scala.collection.JavaConversions._
+
+      val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
+      val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
+      val sampleRate = params.getDouble("sample-rate")
+      val pruneEmpty = params.getBoolean("prune-empty")
+      val enabled = params.getBoolean("enabled")
+      createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+    }
+  }
+
+  /**
+    * @param address The MetricAddress of this Histogram.  Note, this will be relative to the containing MetricSystem's metricAddress.
+    * @param percentiles The percentiles that this Histogram should distribute its values.
+    * @param sampleRate How often to collect values.
+    * @param pruneEmpty Instruct the collector to not report any values for tag combinations which were previously empty.
+    * @param enabled If this Histogram will actually be collected and reported.
+    * @param ns The namespace to which this Metric is relative.
+    * @return
+    */
   def apply(
     address: MetricAddress,
     percentiles: Seq[Double] = Histogram.defaultPercentiles,
     sampleRate: Double = 1.0,
-    pruneEmpty: Boolean = false
-  )(implicit collection: Collection): Histogram = {
-    collection.getOrAdd(new Histogram(address, percentiles, sampleRate, pruneEmpty))
+    pruneEmpty: Boolean = false,
+    enabled : Boolean = true
+  )(implicit ns : MetricNamespace): Histogram = {
+    ns.getOrAdd(address){(fullAddress, config) =>
+      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+    }
   }
 
+  private def createHistogram(address : MetricAddress,
+                              percentiles : Seq[Double],
+                              sampleRate : Double,
+                              pruneEmpty : Boolean,
+                              enabled : Boolean,
+                              intervals : Seq[FiniteDuration]) : Histogram = {
+    if(enabled){
+      new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty, intervals)
+    }else{
+      new NopHistogram(address)
+    }
+  }
 }
 
-case class BucketValue(value: Int, count: Int)
-case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vector[BucketValue]) {
+private[metrics] case class BucketValue(value: Int, count: Int)
+private[metrics] case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vector[BucketValue]) {
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
@@ -65,8 +161,8 @@ case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vec
         if (perc <= 0.0 || count == 0 || bucketValues.size == 0) {
           p(num, index, build :+ 0, remain.tail)
         } else if (perc >= 1.0) {
-          p(num, index, build :+ max, remain.tail)          
-        } else {
+          p(num, index, build :+ max, remain.tail)
+      } else {
           val bound = count * perc
           if (index < bucketValues.size - 1 && num < count * perc) {
             p(num + bucketValues(index).count, index + 1, build, remain)
@@ -99,7 +195,7 @@ case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vec
 /**
  * This is the actual histogram data structure.  It knows nothing of tags or metrics
  */
-class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) {
+private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) {
   require (ranges.size > 1, "histogram must have at least 2 buckets")
 
   private lazy val ranges = bucketList.buckets
@@ -174,20 +270,22 @@ class BaseHistogram(val bucketList: BucketList = Histogram.defaultBucketRanges) 
         values = values :+ BucketValue(value = weightedValue, count = v.toInt)
       }
       index += 1
-    }    
+    }
     Snapshot(smin.toInt, smax.toInt, mean.toInt, scount.toInt, values)
   }
 
 }
 
-class Histogram private[metrics](
+//Working implementation of a Histogram
+class DefaultHistogram private[metrics](
   val address: MetricAddress,
-  percentiles: Seq[Double] = Histogram.defaultPercentiles,
-  sampleRate: Double = 1.0, 
-  pruneEmpty: Boolean = false
-)(implicit collection: Collection) extends Collector {
+  val percentiles: Seq[Double] = Histogram.defaultPercentiles,
+  val sampleRate: Double = 1.0,
+  val pruneEmpty: Boolean = false,
+  intervals : Seq[FiniteDuration]
+)extends Histogram {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = collection.config.intervals.map{i => 
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = intervals.map{i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap
@@ -232,5 +330,15 @@ class Histogram private[metrics](
     }
     build.toMap
   }
+}
 
+//Dummy implementation of a Histogram, used when "enabled=false" is specified at creation
+class NopHistogram private[metrics](val address: MetricAddress,
+                                    val percentiles: Seq[Double] = Histogram.defaultPercentiles,
+                                    val sampleRate: Double = 1.0,
+                                    val pruneEmpty: Boolean = false) extends Histogram {
+  val empty : MetricMap = Map()
+  override def tick(interval: FiniteDuration): MetricMap = empty
+
+  override def add(value: Int, tags: TagMap): Unit = {}
 }

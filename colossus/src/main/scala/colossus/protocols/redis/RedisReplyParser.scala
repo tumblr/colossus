@@ -3,16 +3,13 @@ package protocols.redis
 
 
 import akka.util.ByteString
-import colossus.parsing.DataSize._
 import colossus.parsing._
 
 
 object RedisReplyParser {
   import Combinators._
 
-  val DefaultMaxSize: DataSize = 1.MB
-
-  def apply(size: DataSize = DefaultMaxSize): Parser[Reply] = maxSize(size, reply)
+  def apply(): Parser[Reply] = reply
   
 
   def reply: Parser[Reply] = byte |> {
@@ -25,7 +22,7 @@ object RedisReplyParser {
 
   protected def bulkReply = intUntil('\r') <~ byte |> {
     case -1 => const(NilReply)
-    case n  => bytes(n.toInt) <~ bytes(2) >> {b => BulkReply(b)}
+    case n  => bytes(n.toInt) <~ bytes(2) >> {b => BulkReply(ByteString(b))}
   }
 
   protected def statusReply = stringReply >> {s => StatusReply(s)}

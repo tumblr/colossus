@@ -3,6 +3,7 @@ package colossus
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
+import colossus.metrics.MetricSystem
 import colossus.protocols.memcache._
 import colossus.protocols.memcache.MemcacheReply._
 import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
@@ -30,7 +31,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   implicit val defaultPatience = PatienceConfig(timeout = Span(2, Seconds), interval = Span(50, Millis))
 
-  implicit val sys = IOSystem("test-system", 2)
+  implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
   val client = Memcache.futureClient(ClientConfig(new InetSocketAddress("localhost", 11211), 2.seconds, "memcache"))
 

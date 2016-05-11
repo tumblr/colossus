@@ -7,9 +7,6 @@ import service._
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.zip.{Deflater, Inflater}
 
-import parsing._
-import DataSize._
-
 /*
  * Memcache protocol for Colossus, implements a majority of the commands with the exception of some of the
  * administrative commands like stats. It could be easily added though.
@@ -184,7 +181,6 @@ sealed trait MemcacheCommand {
 sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
   import UnifiedProtocol._
-  import MemcacheCommand._
 
   def key: ByteString
   def value: ByteString
@@ -278,9 +274,9 @@ object MemcacheReply {
 
 }
 
-class MemcacheReplyParser(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) {
+class MemcacheReplyParser() {
 
-  private var parser = MemcacheReplyParser(maxSize)
+  private var parser = MemcacheReplyParser()
 
   def parse(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
 
@@ -294,10 +290,7 @@ object MemcacheReplyParser {
   import Combinators._
   import MemcacheReply._
 
-
-  val DefaultMaxSize: DataSize = 1.MB
-
-  def apply(size: DataSize = DefaultMaxSize) = maxSize(size, reply)
+  def apply() = reply
 
   def reply = delimitedString(' ', '\r') <~ byte |>{pieces => pieces.head match {
     case "VALUE"          => value(Vector.empty, pieces(1), pieces(2).toInt, pieces(3).toInt)
@@ -323,7 +316,7 @@ object MemcacheReplyParser {
     case "END" => const(if (build.size == 1) build.head else Values(build))
   }}
 
-  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), b, flags))}
+  def value(build: Vector[Value], key: String, flags : Int, len: Int) = bytes(len) <~ bytes(2) |> {b => values(build :+ Value(ByteString(key), ByteString(b), flags))}
 }
 
 trait Compressor {
@@ -368,12 +361,12 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
 
 }
 
-class MemcacheClientCodec(maxSize: DataSize = MemcacheReplyParser.DefaultMaxSize) extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
-  private var parser = new MemcacheReplyParser(maxSize)//(NoCompressor) //config
+class MemcacheClientCodec() extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
+  private var parser = new MemcacheReplyParser()//(NoCompressor) //config
 
   def encode(cmd: MemcacheCommand): DataReader = DataBuffer(cmd.bytes(NoCompressor))
   def decode(data: DataBuffer): Option[DecodedResult[MemcacheReply]] = DecodedResult.static(parser.parse(data))
   def reset(){
-    parser = new MemcacheReplyParser(maxSize)//(NoCompressor)
+    parser = new MemcacheReplyParser()//(NoCompressor)
   }
 }

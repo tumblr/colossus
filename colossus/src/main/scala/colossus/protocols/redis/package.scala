@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
-import service._
+import colossus.service._
 
 
 package object redis {
@@ -15,9 +15,9 @@ package object redis {
   object Redis extends ClientFactories[Redis, RedisClient]{
     object defaults {
 
-      implicit val redisServerDefaults = new CodecProvider[Redis] {
+      implicit val redisServerDefaults = new ServiceCodecProvider[Redis] {
         def provideCodec() = new RedisServerCodec
-        def errorResponse(request: Command, reason: Throwable) = ErrorReply(s"Error (${reason.getClass.getName}): ${reason.getMessage}")
+        def errorResponse(error: ProcessingFailure[Command]) = ErrorReply(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
       }
 
       implicit val redisClientDefaults = new ClientCodecProvider[Redis] {

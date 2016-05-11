@@ -5,6 +5,7 @@ import akka.actor._
 import java.net.InetSocketAddress
 
 import akka.agent.Agent
+import com.typesafe.config.Config
 
 import scala.concurrent.duration._
 
@@ -42,8 +43,8 @@ import scala.collection.JavaConversions._
  *
  * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
  * to handle delegator startup.  Since a Server waits for a signal from the
- * [[colossus.core.IOSystem]] that every worker has properly initialized a
- * [[colossus.core.delegator]], this determines how long to wait before the
+ * [[colossus.IOSystem]] that every worker has properly initialized a
+ * [[colossus.core.Delegator]], this determines how long to wait before the
  * initialization is considered a failure and whether to retry the
  * initialization.
  *
@@ -68,6 +69,28 @@ case class ServerSettings(
   def highWatermark = highWatermarkPercentage * maxConnections
 }
 
+object ServerSettings {
+  def extract(config : Config) : ServerSettings = {
+    import colossus.metrics.ConfigHelpers._
+
+    val bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
+    val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
+
+    ServerSettings (
+      port                    = config.getInt("port"),
+      maxConnections          = config.getInt("max-connections"),
+      maxIdleTime             = config.getScalaDuration("max-idle-time"),
+      lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
+      highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
+      highWaterMaxIdleTime    = config.getFiniteDuration("highwater-max-idle-time"),
+      tcpBacklogSize          = config.getIntOption("tcp-backlog-size"),
+      bindingRetry            = bindingRetry,
+      delegatorCreationPolicy = delegatorCreationPolicy,
+      shutdownTimeout         = config.getFiniteDuration("shutdown-timeout")
+    )
+  }
+}
+
 /** Configuration used to specify a Server's application-level behavior
  *
  *  As opposed to ServerSettings which contains just lower-level config,
@@ -89,6 +112,7 @@ case class ServerConfig(
 /**
  * A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
  * an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+ *
  * @param config The ServerConfig used to create this Server
  * @param server The ActorRef of the Server
  * @param system The IOSystem to which this Server belongs
@@ -98,6 +122,8 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
   def name = config.name
 
   def serverState = serverStateAgent.get()
+
+  val namespace : MetricNamespace = MetricContext(name, system.namespace.collection)
 
   def maxIdleTime = {
     if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
@@ -169,10 +195,11 @@ object ConnectionVolumeState {
   case object HighWater extends ConnectionVolumeState
 }
 
-private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
+private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
+                               stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
   import Server._
   import context.dispatcher
-  import config._
+  import serverConfig._
   import ServerStatus._
   import ConnectionVolumeState._
 
@@ -184,15 +211,15 @@ private[colossus] class Server(io: IOSystem, config: ServerConfig, stateAgent : 
   val address = new InetSocketAddress(settings.port)
   ssc.register( selector, SelectionKey.OP_ACCEPT )
 
-  val me = ServerRef(config, self, io, stateAgent)
+  val me = ServerRef(serverConfig, self, io, stateAgent)
 
   //initialize metrics
-  import io.metrics.base
-  val connections   = Counter(name / "connections")
-  val refused       = Rate(name / "refused_connections")
-  val connects      = Rate(name / "connects")
-  val closed        = Rate(name / "closed")
-  val highwaters    = Rate(name / "highwaters")
+  implicit val ns = me.namespace
+  val connections   = Counter("connections", "server-connections")
+  val refused       = Rate("refused_connections", "server-refused-connections")
+  val connects      = Rate("connects", "server-connects")
+  val closed        = Rate("closed", "server-closed")
+  val highwaters    = Rate("highwaters", "server-highwaters")
 
   private var openConnections = 0
 
@@ -465,16 +492,19 @@ object Server extends ServerDSL {
 
   /**
    * Create a server with the ServerConfig
-   * @param config Contains the desired configuration of this Server
+   * @param serverConfig Contains the desired configuration of this Server
+    *               It is expected to be in the shape of the "colossus.server" reference configuration, and is primarily used to configure
+    *               Server metrics.
    * @param io The IOSystem to which this Server will belong
    * @return ServerRef which encapsulates the created Server
    */
-  def apply(config: ServerConfig)(implicit io: IOSystem): ServerRef = {
+  def apply(serverConfig: ServerConfig)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
     import ServerStatus._
     val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
-    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, config, serverStateAgent).withDispatcher("server-dispatcher") ,name = config.name.idString)
-    ServerRef(config, actor, io, serverStateAgent)
+    val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, serverStateAgent)
+                              .withDispatcher("server-dispatcher"), name = s"server-${serverConfig.name.idString}")
+    ServerRef(serverConfig, actor, io, serverStateAgent)
   }
 
 }

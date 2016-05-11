@@ -6,63 +6,100 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.event.Logging
+import com.typesafe.config.{ConfigFactory, Config}
+import colossus.parsing.DataSize
+import parsing.DataSize._
 import controller._
 import core._
 import metrics._
 import util.ExceptionFormatter._
-
 import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
-import com.github.nscala_time.time.Imports.DateTime
-
-
 /**
  * Configuration used to specify a Client's parameters
- * @param address The address with which to connect
+  *
+  * @param address The address with which to connect
  * @param requestTimeout The request timeout value
  * @param name The MetricAddress associated with this client
  * @param pendingBufferSize Size of the pending buffer
  * @param sentBufferSize Size of the sent buffer
  * @param failFast  When a failure is detected, immediately fail all pending requests.
- * @param connectionAttempts Polling configuration to govern retry behavior for both initial connect attempts
- *                           and for connection lost events.
+ * @param connectRetry Retry policy for connections.
  * @param idleTimeout How long the connection can remain idle (both sending and
  *        receiving data) before it is closed.  This should be significantly higher
  *        than requestTimeout.
- *
+ * @param maxResponseSize max allowed response size -- larger responses are dropped
  */
 case class ClientConfig(
-  address: InetSocketAddress, 
-  requestTimeout: Duration, 
+  address: InetSocketAddress,
+  requestTimeout: Duration,
   name: MetricAddress,
   pendingBufferSize: Int = 100,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
-  idleTimeout: Duration = Duration.Inf
+  idleTimeout: Duration = Duration.Inf,
+  maxResponseSize: DataSize = 1.MB
 )
+
+object ClientConfig {
+
+  /**
+    * Load a ClientConfig definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
+    * `colossus.client-defaults`
+    * @param clientName The name of the client definition to load
+    * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
+    * @return
+    */
+  def load(clientName : String, config : Config = ConfigFactory.load()) : ClientConfig = {
+    val defaults = config.getConfig("colossus.client.defaults")
+    load(config.getConfig(s"colossus.client.$clientName").withFallback(defaults))
+  }
+
+  /**
+    * Create a ClientConfig from a config source.
+    *
+    * @param config A Config object in the shape of `colossus.client-defaults`.  It is also expected to have the `address` and `name` fields.
+    * @return
+    */
+  def load(config : Config) : ClientConfig = {
+    import colossus.metrics.ConfigHelpers._
+    val address = config.getInetSocketAddress("address")
+    val name = config.getString("name")
+    val requestTimeout = config.getScalaDuration("request-timeout")
+    val pendingBufferSize = config.getInt("pending-buffer-size")
+    val sentBufferSize = config.getInt("sent-buffer-size")
+    val failFast = config.getBoolean("fail-fast")
+    val connectRetryPolicy = RetryPolicy.fromConfig(config.getConfig("connect-retry-policy"))
+    val idleTimeout = config.getScalaDuration("idle-timeout")
+    val maxResponseSize = DataSize(config.getString("max-response-size"))
+    ClientConfig(address, requestTimeout, name, pendingBufferSize, sentBufferSize, failFast, connectRetryPolicy, idleTimeout, maxResponseSize)
+  }
+}
 
 class ServiceClientException(message: String) extends Exception(message)
 
 /**
  * Thrown when a request is lost in transit
- * @param message Cause
+  *
+  * @param message Cause
  */
 class ConnectionLostException(message: String) extends ServiceClientException(message)
 
 /**
  * Throw when a request is attempted while not connected
- * @param message Cause
+  *
+  * @param message Cause
  */
 class NotConnectedException(message: String) extends ServiceClientException(message)
 
 /**
  * Thrown when the pending buffer is full
- * @param message Cause
+  *
+  * @param message Cause
  */
 class ClientOverloadedException(message: String) extends ServiceClientException(message)
 
@@ -73,7 +110,8 @@ class RequestTimeoutException extends ServiceClientException("Request Timed out"
 
 /**
  * Thrown when there's some kind of data error
- * @param message Cause
+  *
+  * @param message Cause
  */
 class DataException(message: String) extends ServiceClientException(message)
 
@@ -81,7 +119,8 @@ class DataException(message: String) extends ServiceClientException(message)
  * This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
  * To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
  * a new Client to reestablish a connection.
- * @param msg error message
+  *
+  * @param msg error message
  */
 class StaleClientException(msg : String) extends Exception(msg)
 
@@ -90,8 +129,8 @@ sealed trait ClientState
 object ClientState {
   
 
-  case object Initializing  extends ClientState 
-  case object Connecting    extends ClientState 
+  case object Initializing  extends ClientState
+  case object Connecting    extends ClientState
   case object Connected     extends ClientState
   case object ShuttingDown  extends ClientState
   case object Terminated    extends ClientState
@@ -109,11 +148,11 @@ object ClientState {
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  codec: Codec[P#Input,P#Output], 
+  codec: Codec[P#Input,P#Output],
   val config: ClientConfig,
   context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout), context) 
+extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize), context)
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   type I = P#Input
@@ -127,20 +166,20 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   import colossus.core.WorkerCommand._
   import config._
-  import context.worker.metrics
+  implicit val namespace = context.worker.system.namespace / config.name
 
   type ResponseHandler = Try[O] => Unit
 
   override val maxIdleTime = config.idleTimeout
 
-  private val requests            = Rate(name / "requests")
-  private val errors              = Rate(name / "errors")
-  private val droppedRequests     = Rate(name / "dropped_requests")
-  private val connectionFailures  = Rate(name / "connection_failures")
-  private val disconnects         = Rate(name / "disconnects")
-  private val latency             = Histogram(name / "latency",       sampleRate = 0.10, percentiles = List(0.75,0.99))
-  private val transitTime         = Histogram(name / "transit_time",  sampleRate = 0.02, percentiles = List(0.5))
-  private val queueTime           = Histogram(name / "queue_time",    sampleRate = 0.02, percentiles = List(0.5))
+  private val requests            = Rate("requests", "client-requests")
+  private val errors              = Rate("errors", "client-errors")
+  private val droppedRequests     = Rate("dropped_requests", "client-dropped-requests")
+  private val connectionFailures  = Rate("connection_failures", "client-connection-failures")
+  private val disconnects         = Rate("disconnects", "client-disconnects")
+  private val latency             = Histogram("latency", "client-latency")
+  private val transitTime         = Histogram("transit_time", "client-transit-time")
+  private val queueTime           = Histogram("queue_time", "client-queue-time")
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
@@ -198,7 +237,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
       val queueTime = System.currentTimeMillis
       val pushed = push(request, queueTime){
         case OutputResult.Success         => {
-          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis) 
+          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
           sentBuffer.enqueue(s)
           this.queueTime.add((s.sendTime - s.queueTime).toInt, hpTags)
           if (sentBuffer.size >= config.sentBufferSize) {
@@ -250,7 +289,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach { s => failRequest(s.handler, reason) } 
+    sentBuffer.foreach { s => failRequest(s.handler, reason) }
     sentBuffer.clear()
     if (failFast) {
       purgePending(reason)

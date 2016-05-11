@@ -3,6 +3,7 @@ package colossus
 import akka.util.Timeout
 import akka.agent.Agent
 import colossus.core.Worker.ConnectionSummary
+import com.typesafe.config.{ConfigFactory, Config}
 
 import core._
 
@@ -16,49 +17,73 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object IOSystem {
 
-  def apply(config: IOSystemConfig, metrics: MetricSystem)(implicit system: ActorSystem): IOSystem = {
-    new IOSystem(config, metrics, system, workerManagerFactory)
+  val ConfigRoot = "colossus.iosystem"
+
+  /**
+    * Create a new IOSystem, using only the defaults provided by the corresponding `colossus.iosystem` config path.
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
+    * @param sys
+    * @return
+    */
+  def apply()(implicit sys : ActorSystem) : IOSystem = {
+    apply("iosystem")
   }
 
-  def apply(name: String, numWorkers: Int, metrics: MetricSystem)
-    (implicit system: ActorSystem): IOSystem = apply(IOSystemConfig(name, numWorkers), metrics)
+  /**
+    * Create a new IOSystem.
+    *
+    * A Config object will be created via {{{ConfigFactory.load()}}}
+    *
+    * @param name  Name of the IOSystem to create.
+    * @param ioConfig The Config source in the shape of `colossus.iosystem`
+    * @param sys
+    * @return
+    */
+  def apply(name : String, ioConfig : Config = ConfigFactory.load().getConfig(ConfigRoot))(implicit sys : ActorSystem) : IOSystem = {
 
+    import colossus.metrics.ConfigHelpers._
 
-  def apply(name: String, numWorkers: Int)(implicit system: ActorSystem): IOSystem = apply(name, numWorkers, MetricSystem.deadSystem)
-
-  def apply(name: String, metrics: MetricSystem)(implicit  system: ActorSystem): IOSystem = {
-    val numWorkers = Runtime.getRuntime.availableProcessors()
-    apply(name, numWorkers, metrics)
+    val workerCount : Option[Int] = ioConfig.getIntOption("num-workers")
+    val ms = MetricSystem()
+    apply(name, workerCount, ms)
   }
 
-  def apply(name: String = "iosystem", numWorkers: Option[Int] = None)(implicit sys: ActorSystem = ActorSystem(name)): IOSystem = {
-    val workers = numWorkers.getOrElse (Runtime.getRuntime.availableProcessors())
-    val metrics = MetricSystem(MetricAddress.Root / name)
-    apply(name, workers, metrics)
+  /**
+    * Create a new IOSystem
+    *
+    * @param name Name of this IOSystem.
+    * @param workerCount Number of workers to create
+    * @param metrics The MetricSystem used to report metrics
+    * @param system
+    * @return
+    */
+  def apply(name : String, workerCount : Option[Int],
+            metrics : MetricSystem)
+           (implicit system : ActorSystem) : IOSystem = {
+    val numWorkers = workerCount.getOrElse(Runtime.getRuntime.availableProcessors())
+    new IOSystem(name, numWorkers, metrics, system, workerManagerFactory)
+  }
+
+  private def actorFriendlyName(name : String) = {
+    name match {
+      case "" | "/" => "iosystem"
+      case s => s.replace("/", "-")
+    }
   }
 
   type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
 
   private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
     sys.actorSystem.actorOf(Props(
-      classOf[WorkerManager], 
+      classOf[WorkerManager],
       agent,
-      sys  
-    ), name = s"${sys.config.name}-manager")
+      sys
+    ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 
 }
 
-/**
- * Configuration used to specify an IOSystem's parameters.
- * @param name The name of the IOSystem
- * @param numWorkers The amount of Worker actors to spawn.  Must be greater than 0.
- */
-case class IOSystemConfig(name: String, numWorkers: Int){
-  require (numWorkers >= 0) //FIX - we currently need to allow 0 workers for tests
-}
-
-/*NOTE: We should look into converting this case class into a trait with a private impl */
 /**
  * An IO System is basically a collection of worker actors.  You can attach
  * either servers or clients to an IOSystem.
@@ -69,7 +94,8 @@ case class IOSystemConfig(name: String, numWorkers: Int){
  * loops.
  */
 class IOSystem private[colossus](
-  val config: IOSystemConfig,
+  val name: String,
+  val numWorkers : Int,
   val  metrics: MetricSystem,
   val actorSystem: ActorSystem,
   managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
@@ -105,27 +131,22 @@ class IOSystem private[colossus](
 
 
   /**
-   * Name of the IOSystem as specified in the IOSystemConfig
-   * @return
+   * The namespace of this IOSystem, used by metrics
    */
-  def name = config.name
-
-  /**
-   * MetricAddress of this IOSystem as seen from the MetricSystem
-   */
-  val namespace = MetricAddress.Root / config.name
+  val namespace = MetricContext(MetricAddress(name), metrics.collection)
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
   private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
 
   // >[*]< SUPER HACK ALERT >[*]<
-  while (config.numWorkers > 0 && workers().size == 0) {
+  while (numWorkers > 0 && workers().isEmpty) {
     Thread.sleep(25)
   }
 
   /**
    * Sends a message to the underlying WorkerManager.
-   * @param msg Msg to send
+    *
+    * @param msg Msg to send
    * @param sender The sender of the message, defaults to ActorRef.noSender
    * @return
    */
@@ -164,7 +185,8 @@ class IOSystem private[colossus](
 
   /**
    * Connect to the specified address and use the specified function to create a Handler to attach to it.
-   * @param address The address with which to connect.
+    *
+    * @param address The address with which to connect.
    * @param handler Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
    *                to the handler.
    */

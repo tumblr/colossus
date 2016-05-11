@@ -29,8 +29,6 @@ package object websocket {
 
     def provideCodec() = new WebsocketCodec
 
-    //TODO : looks like we need to break this out from codec provider
-    def errorResponse(request: Frame, reason: Throwable): Frame = ???
   }
     
 

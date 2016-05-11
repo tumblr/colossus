@@ -1,5 +1,7 @@
 package colossus.core
 
+import colossus.metrics.ConfigHelpers._
+import com.typesafe.config.Config
 import scala.concurrent.duration._
 
 /**
@@ -16,6 +18,26 @@ import scala.concurrent.duration._
 trait RetryPolicy {
 
   def start(): RetryIncident
+}
+
+object RetryPolicy {
+
+  def fromConfig(obj: Config): RetryPolicy = {
+    val policyType = obj.getString("type").toUpperCase
+    policyType match {
+      case "NONE" => NoRetry
+      case "BACKOFF" => {
+        val base      = obj.getFiniteDuration("base")
+        val mult      = BackoffMultiplier.fromConfig(obj.getConfig("multiplier"))
+        val maxTries  = obj.getIntOption("max-tries")
+        val maxTime   = obj.getFiniteDurationOption("max-time")
+        val immediate = obj.getBoolean("immediate-first-attempt")
+        BackoffPolicy(base, mult, maxTime, maxTries, immediate)
+      }
+      case _ => throw new Exception(s"Unknown RetryPolicy $policyType")
+    }
+  }
+
 }
 
 /**
@@ -85,6 +107,16 @@ trait BackoffMultiplier {
 }
 
 object BackoffMultiplier {
+
+  def fromConfig(config: Config) = {
+    val mtype = config.getString("type").toUpperCase
+    mtype match { 
+      case "CONSTANT"     => Constant
+      case "LINEAR"       => Linear(config.getFiniteDuration("max"))
+      case "EXPONENTIAL"  => Exponential(config.getFiniteDuration("max"))
+      case _ => throw new Exception(s"Invalid Backoff multiplier $mtype")
+    }
+  }
 
   /**
    * A multiplier that will keep the backoff time constant
@@ -217,4 +249,8 @@ case class WaitPolicy(waitTime : FiniteDuration, retryPolicy : RetryPolicy) {
 object WaitPolicy {
 
   def noRetry(waitTime: FiniteDuration): WaitPolicy = WaitPolicy(waitTime, NoRetry)
+
+  def fromConfig(config: Config): WaitPolicy = {
+    WaitPolicy(config.getFiniteDuration("wait-time"), RetryPolicy.fromConfig(config.getConfig("retry-policy")))
+  }
 }

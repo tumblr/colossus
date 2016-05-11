@@ -1,5 +1,6 @@
 package colossus.metrics
 
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 
 import akka.actor._
@@ -24,12 +25,9 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
   "MetricSystem" must {
     "allow multiple systems to start without any conflicts" in {
-      val m1 = MetricSystem("/sys1")
-      val m2 = MetricSystem("/sys2")
+      val m1 = MetricSystem(MetricAddress("/sys1"), Seq(), false, ConfigFactory.empty())
+      val m2 = MetricSystem(MetricAddress("/sys2"), Seq(), false, ConfigFactory.empty())
       //no exceptions means the test passed
     }
-
-
   }
-
 }

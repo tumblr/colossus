@@ -8,7 +8,7 @@ sealed abstract class ShutdownAction(val rank: Int) {
 
 object ShutdownAction {
   case object DefaultDisconnect extends ShutdownAction(0)
-  case class Become(newHandler: Context => ConnectionHandler) extends ShutdownAction(1)
+  case class Become(newHandler: () => ConnectionHandler) extends ShutdownAction(1)
   case object Disconnect extends ShutdownAction(2)
 }
 
@@ -45,7 +45,9 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
   private def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
     shutdownAction = action
     true
-  } else false
+  } else {
+    false
+  }
 
   def connected(endpt: WriteEndpoint) {
     connectionState match {
@@ -82,10 +84,12 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
    * Replace this connection handler with the given handler.  The actual swap
    * only occurs when the shutdown process complete
    */
-  final def become(nh: Context => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(nh))) {
+  final def become(nh: () => ConnectionHandler): Boolean = if (setShutdownAction(ShutdownAction.Become(nh))) {
     shutdownRequest()
     true
-  } else false
+  } else {
+    false
+  }
 
   /**
    * Immediately terminate the connection.  this is a kill action and completely
@@ -113,7 +117,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
-        worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory(this.context))
+        worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory())
       }
     }
   }

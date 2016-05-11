@@ -2,12 +2,9 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import colossus.parsing.DataSize
-import core.{Context, ServerContext, WorkerRef}
+import core.ServerContext
 import service._
 
-import akka.util.ByteString
-import scala.concurrent.ExecutionContext
 
 package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
@@ -33,12 +30,18 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   object Http extends ClientFactories[Http, HttpClient] {
 
-    class ServerDefaults extends CodecProvider[Http] {
+    class ServerDefaults extends ServiceCodecProvider[Http] {
       def provideCodec = new HttpServerCodec
-      def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
-        case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
-        case other => request.error(reason.toString)
+      def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
+        case RecoverableError(request, reason) => reason match {
+          case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+          case other => request.error(reason.toString)
+        }
+        case IrrecoverableError(reason) =>
+          HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
       }
+        
+        
 
     }
 
@@ -54,13 +57,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
       implicit val httpClientDefaults = new ClientDefaults
 
     }
-  
-
   }
-
-
-
-
 
   class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
     override def tagsFor(request: C#Input, response: C#Output): TagMap = {
@@ -69,7 +66,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   }
 
   abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: CodecProvider[D], context: ServerContext)
+  (config: ServiceConfig, provider: ServiceCodecProvider[D], context: ServerContext)
   extends Service[D](config, context)(provider) {
 
     override def tagDecorator = new ReturnCodeTagDecorator
@@ -81,17 +78,26 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext) 
+  abstract class HttpService(config: ServiceConfig, context: ServerContext)
     extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context)
 
-  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext) extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
+  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
+    extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
 
-  implicit object StreamingHttpProvider extends CodecProvider[StreamingHttp] {
+  implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
-    def errorResponse(request: HttpRequest, reason: Throwable) = reason match {
-      case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
-      case other => toStreamed(request.error(reason.toString))
+    def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
+      case RecoverableError(request, reason) => reason match {
+        case c: UnhandledRequestException => toStreamed(request.notFound(s"No route for ${request.head.url}"))
+        case other => toStreamed(request.error(reason.toString))
+      }
+      case IrrecoverableError(reason) =>
+        toStreamed(
+          HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
+        )
+      
     }
+      
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
       StreamingHttpResponse.fromStatic(response)

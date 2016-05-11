@@ -8,8 +8,8 @@ import akka.util.{ByteString, ByteStringBuilder}
 import colossus.parsing._
 import HttpParse._
 import Combinators._
-import DataSize._
 import controller._
+import java.nio.ByteBuffer
 import service.DecodedResult
 import scala.language.higherKinds
 
@@ -20,9 +20,8 @@ object ResponseResult {
 }
 
 object HttpResponseParser  {
-  val DefaultMaxSize: DataSize = 10.MB
 
-  def static(maxResponseSize: DataSize = DefaultMaxSize): Parser[DecodedResult.Static[HttpResponse]] = maxSize(maxResponseSize, staticBody(true))
+  def static(): Parser[DecodedResult.Static[HttpResponse]] = staticBody(true)
 
   def stream(dechunkBody: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = streamBody(dechunkBody)
 
@@ -33,27 +32,27 @@ object HttpResponseParser  {
   //TODO: Dechunk on static
 
   protected def staticBody(dechunk: Boolean): Parser[DecodedResult.Static[HttpResponse]] = head |> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case None | Some("identity") => parsedHead.contentLength match {
-        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
-        case None if (parsedHead.head.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
-        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
+        case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead, new HttpBody(body)))}
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead, HttpBody.NoBody)))
+        case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
       }
-      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
+      case _  => chunkedBody >> {body => DecodedResult.Static(HttpResponse(parsedHead, body))}
     }
   }
 
   protected def streamBody(dechunk: Boolean): Parser[DecodedResult[StreamingHttpResponse]] = head >> {parsedHead =>
-    parsedHead.transferEncoding match {
-      case None | Some("identity") => parsedHead.contentLength match {
-        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead.head, None))
-        case Some(n) => streamingResponse(parsedHead.head, Some(n), false)
-        case None if (parsedHead.head.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead.head, None))
+    parsedHead.headers.transferEncoding match {
+      case TransferEncoding.Identity => parsedHead.headers.contentLength match {
+        case Some(0)=> DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
+        case Some(n) => streamingResponse(parsedHead, Some(n), false)
+        case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         //TODO: adding support for this requires upcoming changes to stream termination error handling
         case None => throw new ParseException("Infinite non-chunked responses not supported") 
       }
-      case _  => streamingResponse(parsedHead.head, None, dechunk)
+      case _  => streamingResponse(parsedHead, None, dechunk)
     }
   }
 
@@ -66,8 +65,8 @@ object HttpResponseParser  {
   }
     
 
-  protected def head: Parser[HeadResult[HttpResponseHead]] = firstLine ~ headers >> {case fl ~ hbuilder => 
-    HeadResult(HttpResponseHead(fl, hbuilder.buildHeaders), hbuilder.contentLength, hbuilder.transferEncoding)
+  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder => 
+    HttpResponseHead(fl, hbuilder.buildHeaders)
   }
 
   protected def firstLine = line(true) >> ParsedResponseFL.apply
@@ -179,8 +178,8 @@ class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
 class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
 
   
-  private val chunkParser = intUntil('\r', 16) <~ byte |> {
-    case 0 => const(ByteString())
+  private val chunkParser: Parser[Array[Byte]] = intUntil('\r', 16) <~ byte |> {
+    case 0 => const(Array())
     case n => bytes(n.toInt) <~ bytes(2)
   }
 
@@ -198,8 +197,8 @@ class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
       }
     } else {
       chunkParser.parse(data) match {
-        case Some(fullChunk)  => if (fullChunk.size > 0) {
-          super.push(DataBuffer(fullChunk))
+        case Some(fullChunk)  => if (fullChunk.length > 0) {
+          super.push(DataBuffer(ByteBuffer.wrap(fullChunk)))
           push(data)
         } else {
           //terminal chunk

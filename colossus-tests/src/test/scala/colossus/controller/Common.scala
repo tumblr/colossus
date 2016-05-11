@@ -6,7 +6,6 @@ import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
 import scala.concurrent.duration._
-import org.scalatest._
 
 trait TestInput {
   def source: Source[DataBuffer]
@@ -20,7 +19,7 @@ case class TestInputImpl(data: FiniteBytePipe) extends TestInput{
 case class TestOutput(data: Source[DataBuffer])
 
 
-class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{    
+class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
   import parsing.Combinators._
   val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num))}
 
@@ -57,11 +56,14 @@ class PushPromise {
   def expectSuccess() { assert(isSuccess == true) }
   def expectFailure() {  assert(isFailure == true)}
   def expectCancelled() {  assert(isCancelled == true)}
-
-
 }
 
 trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
+
+  implicit val namespace = {
+    import metrics._
+    MetricContext("/", Collection.withReferenceConf(Seq()))
+  }
 
   var _received : Seq[I] = Seq()
   def received = _received
@@ -86,28 +88,25 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
     p.pushed = push(message)(p.func)
     p
   }
-
 }
-
-
 
 object TestController {
   import RawProtocol.RawCodec
 
-  val config = ControllerConfig(4, 50.milliseconds)
+  val defaultConfig = ControllerConfig(4, 50.milliseconds)
 
   type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
 
-  def controller[I,O](codec: Codec[O,I])(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
+  def controller[I,O](codec: Codec[O,I], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
     val con =MockConnection.server(
-      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler, 
+      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler,
       500
     )
     con.handler.connected(con)
     con
   }
 
-  def static()(implicit sys: ActorSystem) = controller(RawCodec)
-  def stream()(implicit sys: ActorSystem) = controller(new TestCodec)
+  def static(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(RawCodec, config)
+  def stream(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(new TestCodec, config)
 
 }

@@ -1,6 +1,8 @@
 package colossus
 package controller
 
+import colossus.parsing.DataSize
+import colossus.parsing.DataSize._
 import core._
 import service.Codec
 
@@ -11,10 +13,13 @@ import scala.concurrent.duration.Duration
  *
  * @param outputBufferSize the maximum number of outbound messages that can be queued for sending at once
  * @param sendTimeout if a queued outbound message becomes older than this it will be cancelled
+ * @param inputMaxSize maximum allowed input size (in bytes)
+ * @param flushBufferOnClose
  */
 case class ControllerConfig(
   outputBufferSize: Int,
   sendTimeout: Duration,
+  inputMaxSize: DataSize = 1.MB,
   flushBufferOnClose: Boolean = true
 )
 
@@ -34,6 +39,8 @@ trait MasterController[Input, Output] extends ConnectionHandler {
   protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig
+
+  implicit def namespace : metrics.MetricNamespace
 
   //needs to be called after various actions complete to check if it's ok to disconnect
   private[controller] def checkControllerGracefulDisconnect()
@@ -56,7 +63,7 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * "response" message, the controller make no such pairing.  Thus a controller
  * can be thought of as a duplex stream of messages.
  */
-abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context) 
+abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context)
 extends CoreHandler(context) with InputController[Input, Output] with OutputController[Input, Output] {
   import ConnectionState._
 
@@ -86,6 +93,15 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
     inputGracefulDisconnect()
     outputGracefulDisconnect()
     checkControllerGracefulDisconnect()
+  }
+  
+  def fatalInputError(reason: Throwable) = {
+    
+    processBadRequest(reason).foreach { output =>
+      push(output) { _ => {} }
+    }
+    disconnect()
+    //throw reason
   }
   
   /**
