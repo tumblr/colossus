@@ -12,9 +12,6 @@ import java.util.Random
 import scala.util.{Try, Success, Failure}
 import sun.misc.{BASE64Encoder, BASE64Decoder}
 
-import core.DataBlock._
-
-
 object UpgradeRequest {
   import protocols.http._
 
@@ -102,13 +99,13 @@ case class Frame(header: Header, payload: DataBlock) {
       b putLong(payload.size)
     }
     if (header.mask) {
-      val mask = DataBlock(4)
+      val mask = new Array[Byte](4)
       random.nextBytes(mask)
-      val masked = Frame.mask(mask, payload)
+      val masked = Frame.mask(DataBlock(mask), payload)
       b putBytes mask
-      b putBytes masked
+      b putBytes masked.data
     } else {
-      b putBytes payload
+      b putBytes payload.data
     }
     DataBuffer(b.result)
   }
@@ -123,13 +120,13 @@ object Frame {
    * mask must be 4 bytes long
    */
   def mask(mask: DataBlock, payload: DataBlock): DataBlock = {
-    val build = DataBlock(payload.length)
+    val build = new Array[Byte](payload.length)
     var index = 0
     while (index < payload.length) {
       build(index) = (payload(index) ^ (mask(index % 4).toByte)).toByte
       index += 1
     }
-    build
+    DataBlock(build)
   }
 
 }
@@ -164,7 +161,7 @@ object FrameParser {
     } else {
       bytes(payloadLen + maskKeyBytes)
     }
-    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,data)))}
+    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data))))}
   }
 }
 
@@ -256,7 +253,7 @@ object WebsocketServer {
     
       val websockinit = init(worker)
 
-      def onConnect = ctx => new HttpService(ServiceConfig(),ctx) {
+      def onConnect = ctx => new HttpService(ServiceConfig.Default,ctx) {
         def handle = {
           case req @ UpgradeRequest(resp) if (req.head.path == upgradePath) => {
             become(() => websockinit.onConnect(ctx))

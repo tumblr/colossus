@@ -11,7 +11,6 @@ import org.scalatest._
 import akka.util.ByteString
 
 import scala.util.Success
-import DataBlock._
 
 class WebsocketSpec extends WordSpec with MustMatchers{
 
@@ -59,7 +58,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
   "frame parsing" must {
 
     "unmask data" in {
-      val masked = DataBlock("abcd") +:+ ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69).toArray
+      val masked = DataBlock("abcd") ++ DataBlock(ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69).toArray)
       FrameParser.unmask(true, masked).byteString must equal(ByteString("Hello World!"))
     }
     

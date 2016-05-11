@@ -3,9 +3,9 @@ package protocols.websocket
 
 import service._
 
-import scala.util.{Try, Success, Failure}
+import scala.util.Try
 
-import core.DataBlock._
+import core.DataBlock
 
 
 trait FrameCodec[P <: Protocol] {
@@ -24,7 +24,7 @@ object subprotocols {
     }
 
     class RawStringCodec extends FrameCodec[RawString] {
-      def encode(str: String): DataBlock = str.getBytes("UTF-8")
+      def encode(str: String): DataBlock = DataBlock(str)
       def decode(block: DataBlock): Try[String] = Try{ block.utf8String }
     }
 
