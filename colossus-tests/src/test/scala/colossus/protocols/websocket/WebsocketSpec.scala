@@ -1,7 +1,7 @@
 package colossus
 package protocols.websocket
 
-import core.DataBuffer
+import core.{DataBlock, DataBuffer}
 import service.DecodedResult
 import protocols.http._
 import java.util.Random
@@ -11,6 +11,7 @@ import org.scalatest._
 import akka.util.ByteString
 
 import scala.util.Success
+import DataBlock._
 
 class WebsocketSpec extends WordSpec with MustMatchers{
 
@@ -58,18 +59,18 @@ class WebsocketSpec extends WordSpec with MustMatchers{
   "frame parsing" must {
 
     "unmask data" in {
-      val masked = ByteString("abcd") ++ ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69)
-      FrameParser.unmask(true, masked) must equal(ByteString("Hello World!"))
+      val masked = DataBlock("abcd") +:+ ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69).toArray
+      FrameParser.unmask(true, masked).byteString must equal(ByteString("Hello World!"))
     }
     
     "parse a frame" in {
-      val data = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87)
-      val expected = Frame(Header(OpCodes.Ping, true), ByteString("Hello World!"))
-      FrameParser.frame.parse(DataBuffer(data)) must equal(Some(DecodedResult.Static(expected)))
+      val data = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87).toArray
+      val expected = Frame(Header(OpCodes.Ping, true), DataBlock("Hello World!"))
+      val parsed = FrameParser.frame.parse(DataBuffer(data)) must equal(Some(DecodedResult.Static(expected)))
     }
 
     "parse its own encoding" in {
-      val expected = Frame(Header(OpCodes.Text, true), ByteString("Hello World!!!!!!"))
+      val expected = Frame(Header(OpCodes.Text, true), DataBlock("Hello World!!!!!!"))
       FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(DecodedResult.Static(expected)))
     }
   }

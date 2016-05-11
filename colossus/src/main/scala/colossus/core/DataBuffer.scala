@@ -5,6 +5,45 @@ import akka.util.ByteString
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
+
+/**
+ * A zero-overhead abstraction over a byte array.  This offers much of the same
+ * functionally offered by Akka's ByteString, but without any additional
+ * overhead.  While this makes DataBlock a bit less powerful and flexible, it
+ * also makes it considerably faster.
+ *
+ * Note - unfortunately implementing `take` and `drop` here conflicted with the
+ * methods in arrayOps that is imported by default.  It's possible to "unimport"
+ * things defined in predef, but that seems like too much of a hassle for anyone
+ * who wants to use this.
+ */
+object DataBlock {
+  type DataBlock = Array[Byte]
+
+  implicit class DataBlockOps(val data: DataBlock) extends AnyVal {
+    
+    //def size = data.length
+    def byteString: ByteString = ByteString(data)
+    def utf8String = byteString.utf8String
+
+    /**
+     * Create a new DataBlock containing the data from `block` appended to the
+     * data in this block
+     */
+    def +:+(block: DataBlock): DataBlock = {
+      val concat = DataBlock(data.length + block.length)
+      System.arraycopy(data, 0, concat, 0, data.length)
+      System.arraycopy(block, 0, concat, data.length, block.length)
+      concat
+    }
+
+  }
+
+  def apply(size: Int): DataBlock = new Array[Byte](size)
+  def apply(str: String): DataBlock = ByteString(str).toArray
+}
+
+
 /**
  * A DataReader is the result of codec's encode operation.  It can either
  * return a DataBuffer, which contains the entire encoded object at once, or it
@@ -140,7 +179,7 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     peeking = false
     (res, pos2 - pos1)
   }
-    
+
 }
 
 object DataBuffer {
