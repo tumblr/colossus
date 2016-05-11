@@ -226,8 +226,8 @@ abstract class WebsocketHandler[P <: Protocol](context: Context)(implicit provid
 }
 
  
-abstract class WebsocketServerHandler[P <: Protocol : FrameCodecProvider](serverContext: ServerContext)
-extends WebsocketHandler(serverContext.context) with ServerConnectionHandler {
+abstract class WebsocketServerHandler[P <: Protocol](serverContext: ServerContext)(implicit provider: FrameCodecProvider[P])
+extends WebsocketHandler[P](serverContext.context)(provider) with ServerConnectionHandler {
 
   implicit val namespace = serverContext.server.namespace
 
