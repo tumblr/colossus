@@ -11,22 +11,18 @@ object HttpRequestParser {
   def apply() = httpRequest
 
   //TODO : don't parse body as a bytestring
-  protected def httpRequest: Parser[HttpRequest] = httpHead |> {case HeadResult(head, contentLength, transferEncoding) =>
-    transferEncoding match {
-      case None | Some("identity") => contentLength match {
+  protected def httpRequest: Parser[HttpRequest] = httpHead |> {head =>
+    head.headers.transferEncoding match {
+      case TransferEncoding.Identity => head.headers.contentLength match {
         case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
         case Some(n) => bytes(n) >> {body => HttpRequest(head, new HttpBody(body))}
       }
-      case Some(other)  => chunkedBody >> {body => HttpRequest(head, body)}
+      case other  => chunkedBody >> {body => HttpRequest(head, HttpBody(body))}
     }
   }
 
   protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
-    HeadResult(
-      ParsedHead(fl, headersBuilder.buildHeaders), 
-      headersBuilder.contentLength,
-      headersBuilder.transferEncoding
-    )
+    ParsedHead(fl, headersBuilder.buildHeaders) 
   }
 
   def firstLine = line(ParsedFL.apply, true)

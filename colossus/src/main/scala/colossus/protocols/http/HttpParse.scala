@@ -25,35 +25,36 @@ object HttpParse {
   }
 
 
-  case class HeadResult[T](head: T, contentLength: Option[Int], transferEncoding: Option[String] )
-
-
-
   class HeadersBuilder {
 
-    private var cl: Option[Int] = None
-    private var te: Option[String] = None
+    private var cl: Option[Int]     = None
+    private var te: Option[TransferEncoding]  = None
+    private var co: Option[Connection]  = None
 
     def contentLength = cl
     def transferEncoding = te
+    def connection = co
 
     private val build = new java.util.LinkedList[EncodedHttpHeader]()
 
     def add(header: EncodedHttpHeader): HeadersBuilder = {
       build.add(header)
-      if (cl.isEmpty && header.matches("content-length")) {
+      if (cl.isEmpty && header.matches(HttpHeaders.ContentLength)) {
         cl = Some(header.value.toInt)
       }
-      if (te.isEmpty && header.matches("transfer-encoding")) {
-        te = Some(header.value)
+      if (te.isEmpty && header.matches(HttpHeaders.TransferEncoding)) {
+        te = Some(TransferEncoding(header.value))
+      }
+      if (co.isEmpty && header.matches(HttpHeaders.Connection)) {
+        co = Some(Connection(header.value))
       }
       
       this
     }
 
 
-    def buildHeaders: HttpHeaders = {
-      new HttpHeaders(build.asInstanceOf[java.util.List[HttpHeader]]) //silly invariant java collections :/
+    def buildHeaders: ParsedHttpHeaders = {
+      new ParsedHttpHeaders(build.asInstanceOf[java.util.List[HttpHeader]], te, cl, co) //silly invariant java collections :/
     }
     
   }
