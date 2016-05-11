@@ -1,8 +1,10 @@
 package colossus
 package service
 
+import java.util.concurrent.ConcurrentHashMap
+
 import colossus.parsing.{ParseException, DataSize}
-import colossus.parsing.DataSize._
+import com.typesafe.config.{ConfigFactory, Config}
 import core._
 import controller._
 import util.ExceptionFormatter._
@@ -14,7 +16,8 @@ import Codec._
 
 /**
  * Configuration class for a Service Server Connection Handler
- * @param requestTimeout how long to wait until we timeout the request
+  *
+  * @param requestTimeout how long to wait until we timeout the request
  * @param requestBufferSize how many concurrent requests a single connection can be processing
  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
  * @param requestMetrics toggle request metrics
@@ -24,15 +27,38 @@ import Codec._
  * access to the ServerRef
  */
 case class ServiceConfig(
-  requestTimeout: Duration = Duration.Inf,
-  requestBufferSize: Int = 100,
-  logErrors: Boolean = true,
-  requestMetrics: Boolean = true,
-  maxRequestSize: DataSize = 1L.MB
-)
+  requestTimeout: Duration,
+  requestBufferSize: Int,
+  logErrors: Boolean,
+  requestMetrics: Boolean,
+  maxRequestSize: DataSize)
 
 object ServiceConfig {
-  val Default = ServiceConfig()
+
+  val ConfigRoot = "colossus.server.connection-handler"
+
+  lazy val Default = this.load()
+
+  import colossus.metrics.ConfigHelpers._
+
+  /**
+    * Load a ServiceConfig object from a Config source.  The Config object is expected to be in the form of
+    * `colossus.server.connection-handler`.  Please refer to the reference.conf file.
+    *
+    * Note: you will want to avoid calling this every time a ConnectionHandler is created.  If possible, create the appropriate
+    * instancee before your Server starts up, and then use that instance to configure your ConnectionHandlers.  This is to avoid
+    * loading the Config object on every new connection.
+    * @param config
+    * @return
+    */
+  def load(config : Config = ConfigFactory.load().getConfig(ConfigRoot)) : ServiceConfig = {
+    val timeout = config.getScalaDuration("request-timeout")
+    val bufferSize = config.getInt("request-buffer-size")
+    val logErrors = config.getBoolean("log-errors")
+    val requestMetrics = config.getBoolean("request-metrics")
+    val maxRequestSize = DataSize(config.getString("max-request-size"))
+    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+  }
 }
 
 trait RequestFormatter[I] {
@@ -78,11 +104,11 @@ with ServerConnectionHandler {
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
   
-  private val requests  = Rate("requests")
-  private val latency   = Histogram("latency", sampleRate = 0.25)
-  private val errors    = Rate("errors")
-  private val requestsPerConnection = Histogram("requests_per_connection", sampleRate = 0.5, percentiles = List(0.5, 0.75, 0.99))
-  private val concurrentRequests = Counter("concurrent_requests")
+  private val requests  = Rate("requests", "connection-handler-requests")
+  private val latency   = Histogram("latency", "connection-handler-latency")
+  private val errors    = Rate("errors", "connection-handler-errors")
+  private val requestsPerConnection = Histogram("requests_per_connection", "connection-handler-requests-per-connection")
+  private val concurrentRequests = Counter("concurrent_requests", "connection-handler-concurrent-requests")
 
   //set to true when graceful disconnect has been triggered
   private var disconnecting = false

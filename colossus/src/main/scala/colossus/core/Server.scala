@@ -43,8 +43,8 @@ import scala.collection.JavaConversions._
  *
  * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
  * to handle delegator startup.  Since a Server waits for a signal from the
- * [[colossus.core.IOSystem]] that every worker has properly initialized a
- * [[colossus.core.delegator]], this determines how long to wait before the
+ * [[colossus.IOSystem]] that every worker has properly initialized a
+ * [[colossus.core.Delegator]], this determines how long to wait before the
  * initialization is considered a failure and whether to retry the
  * initialization.
  *
