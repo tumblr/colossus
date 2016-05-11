@@ -1,8 +1,6 @@
 package colossus
 package service
 
-import java.util.concurrent.ConcurrentHashMap
-
 import colossus.parsing.{ParseException, DataSize}
 import com.typesafe.config.{ConfigFactory, Config}
 import core._

@@ -1,7 +1,10 @@
 package colossus.metrics
 
+import java.net.InetSocketAddress
+
 import com.typesafe.config.{Config, ConfigFactory}
 import scala.concurrent.duration._
+import scala.util.Try
 
 //has to be a better way
 object ConfigHelpers {
@@ -49,7 +52,21 @@ object ConfigHelpers {
         }
       }
     }
+
+    def getInetSocketAddress(path : String) : InetSocketAddress = {
+      val raw = config.getString(path)
+      raw.split(":") match {
+        case Array(host, Port(x))=>  new InetSocketAddress(host, x)
+        case _ => throw new InvalidHostAddressException(raw)
+      }
+    }
+
+    private object Port {
+      def unapply(s: String) : Option[Int] = Try(s.toInt).toOption
+    }
   }
 }
 
-private[metrics] class FiniteDurationExpectedException(str : String) extends Exception(str)
+class InvalidHostAddressException(str : String) extends IllegalArgumentException(s"$str was not a valid address, expecting [host]:[port]")
+
+class FiniteDurationExpectedException(str : String) extends Exception(str)
