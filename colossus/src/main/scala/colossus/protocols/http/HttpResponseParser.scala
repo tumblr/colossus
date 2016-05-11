@@ -9,6 +9,7 @@ import colossus.parsing._
 import HttpParse._
 import Combinators._
 import controller._
+import java.nio.ByteBuffer
 import service.DecodedResult
 import scala.language.higherKinds
 
@@ -34,7 +35,7 @@ object HttpResponseParser  {
     parsedHead.transferEncoding match {
       case None | Some("identity") => parsedHead.contentLength match {
         case Some(0)  => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
-        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
+        case Some(n)  => bytes(n) >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, new HttpBody(body)))}
         case None if (parsedHead.head.code.isInstanceOf[NoBodyCode]) => const(DecodedResult.Static(HttpResponse(parsedHead.head, HttpBody.NoBody)))
         case None     => bytesUntilEOS >> {body => DecodedResult.Static(HttpResponse(parsedHead.head, body))}
       }
@@ -177,8 +178,8 @@ class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
 class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
 
   
-  private val chunkParser = intUntil('\r', 16) <~ byte |> {
-    case 0 => const(ByteString())
+  private val chunkParser: Parser[Array[Byte]] = intUntil('\r', 16) <~ byte |> {
+    case 0 => const(Array())
     case n => bytes(n.toInt) <~ bytes(2)
   }
 
@@ -196,8 +197,8 @@ class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
       }
     } else {
       chunkParser.parse(data) match {
-        case Some(fullChunk)  => if (fullChunk.size > 0) {
-          super.push(DataBuffer(fullChunk))
+        case Some(fullChunk)  => if (fullChunk.length > 0) {
+          super.push(DataBuffer(ByteBuffer.wrap(fullChunk)))
           push(data)
         } else {
           //terminal chunk

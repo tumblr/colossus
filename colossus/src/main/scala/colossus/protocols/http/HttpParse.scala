@@ -12,16 +12,16 @@ object HttpParse {
   val NEWLINE_ARRAY = NEWLINE.toArray
   val N2 = (NEWLINE ++ NEWLINE).toArray
 
-  def chunkedBody: Parser[ByteString] = chunkedBodyBuilder(new ByteStringBuilder)
+  def chunkedBody: Parser[HttpBody] = chunkedBodyBuilder(new FastArrayBuilder(100, false))
 
   implicit val z: Zero[EncodedHttpHeader] = HttpHeader.FPHZero
   def header: Parser[EncodedHttpHeader] = line(HttpHeader.apply, true)
   def folder(header: EncodedHttpHeader, builder: HeadersBuilder): HeadersBuilder = builder.add(header)
   def headers: Parser[HeadersBuilder] = foldZero(header, new HeadersBuilder)(folder)
 
-  private def chunkedBodyBuilder(builder: ByteStringBuilder): Parser[ByteString] = intUntil('\r', 16) <~ byte |> {
-    case 0 => bytes(2) >> {_ => builder.result}
-    case n => bytes(n.toInt) <~ bytes(2) |> {bytes => chunkedBodyBuilder(builder.append(bytes))}
+  private def chunkedBodyBuilder(builder: FastArrayBuilder): Parser[HttpBody] = intUntil('\r', 16) <~ byte |> {
+    case 0 => bytes(2) >> {_ => new HttpBody(builder.complete())}
+    case n => bytes(n.toInt) <~ bytes(2) |> {bytes => builder.write(bytes);chunkedBodyBuilder(builder)}
   }
 
 
