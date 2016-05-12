@@ -243,8 +243,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      //TODO : fix this test
-      "open up spot when connection closes" ignore {
+      "open up spot when connection closes" in {
         val settings = ServerSettings(
           port = TEST_PORT,
           maxConnections = 1
@@ -255,16 +254,9 @@ class ServerSpec extends ColossusSpec {
           withServer(server) {
             val c1 = TestClient(server.system, TEST_PORT)
             expectConnections(server, 1)
-            val c2 = TestClient(server.system, TEST_PORT, waitForConnected = false, connectRetry = NoRetry)
-            //notice, we can't just check if the connection is connected because the
-            //server will accept the connection before closing it
-            intercept[service.ServiceClientException] {
-              Await.result(c2.send(ByteString("hello")), 5000.milliseconds)
-            }
-            TestClient.waitForStatus(c2, ConnectionStatus.NotConnected)
             c1.disconnect()
             TestUtil.expectServerConnections(server, 0)
-            val c3 = TestClient(server.system, TEST_PORT, waitForConnected = true, connectRetry = NoRetry)
+            val c2 = TestClient(server.system, TEST_PORT, waitForConnected = true, connectRetry = NoRetry)
             TestUtil.expectServerConnections(server, 1)
           }
         }
