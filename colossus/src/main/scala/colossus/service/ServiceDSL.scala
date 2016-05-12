@@ -68,12 +68,10 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class Service[C <: Protocol]
-(codec: ServerCodec[C#Input, C#Output], config: ServiceConfig, srv: ServerContext)(implicit provider: ServiceCodecProvider[C])
-extends ServiceServer[C#Input, C#Output](codec, config, srv) {
+(config: ServiceConfig, srv: ServerContext)(implicit provider: ServiceCodecProvider[C])
+extends ServiceServer[C#Input, C#Output](provider.provideCodec, config, srv) {
 
   implicit val executor   = context.worker.callbackExecutor
-
-  def this(config: ServiceConfig, context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(provider.provideCodec, config, context)
 
   def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.Default, context)(provider)
 
@@ -95,7 +93,7 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
   def sender(): ActorRef = currentSender.getOrElse {
     throw new ReceiveException("No sender")
   }
-  
+
   private lazy val handler: PartialHandler[C] = handle orElse unhandled
   private lazy val errorHandler: ErrorHandler[C] = onError orElse unhandledError
 
@@ -104,9 +102,9 @@ extends ServiceServer[C#Input, C#Output](codec, config, srv) {
     receive(message)
     currentSender = None
   }
-    
+
   protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
-  
+
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
 
@@ -142,7 +140,7 @@ object Service {
    * @tparam T The codec to use, eg Http, Redis
    * @return A [[ServerRef]] for the server.
    */
-   
+
   def serve[T <: Protocol]
   (serverSettings: ServerSettings, serviceConfig: ServiceConfig[T#Input, T#Output])
   (handler: Initializer[T])
@@ -185,7 +183,7 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 }
 
 trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
-  
+
 
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
 
@@ -210,7 +208,7 @@ object ClientFactory {
 
 
   implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
-    
+
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
       new ServiceClient(provider.clientCodec(), config, worker.generateContext())
     }
@@ -218,7 +216,7 @@ object ClientFactory {
   }
 
   implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
-    
+
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
       AsyncServiceClient.create(config)(io, provider)
     }
@@ -243,7 +241,7 @@ extends ClientFactory[C,M,T[M],E] {
  * Mixed into protocols to provide simple methods for creating clients.
  */
 class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
-  
+
   val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
 
   val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
