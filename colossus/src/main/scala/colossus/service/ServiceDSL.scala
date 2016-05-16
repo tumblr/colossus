@@ -126,9 +126,9 @@ object Service {
    * @param port The port to bind the server to
    */
   def basic[T <: Protocol]
-  (name: String, port: Int, requestTimeout: Duration = 100.milliseconds)(userHandler: PartialHandler[T])
+  (name: String, port: Int, config : ServiceConfig = ServiceConfig.Default)(userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = {
-    class BasicService(context: ServerContext) extends Service(ServiceConfig.Default.copy(requestTimeout = requestTimeout), context) {
+    class BasicService(context: ServerContext) extends Service(config, context) {
       def handle = userHandler
     }
     Server.basic(name, port)(context => new BasicService(context))
@@ -151,6 +151,8 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
 
 
+  protected lazy val configDefaults = ConfigFactory.load()
+
   /**
     * Load a ServiceClient definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
     * `colossus.client-defaults`
@@ -158,7 +160,7 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
     * @return
     */
-  def apply(clientName : String, config : Config = ConfigFactory.load())(implicit provider: ClientCodecProvider[C], env: E) : T = {
+  def apply(clientName : String, config : Config = configDefaults)(implicit provider: ClientCodecProvider[C], env: E) : T = {
     apply(ClientConfig.load(clientName, config))
   }
 
