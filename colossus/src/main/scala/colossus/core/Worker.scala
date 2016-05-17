@@ -207,6 +207,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       if (timedOut.size > 0) {
         log.debug(s"Terminated ${timedOut.size} idle connections")
       }
+      sender() ! IdleCheckExecuted
     }
     case WorkerManager.RegisterServer(server) => if (!delegators.contains(server.server)){
       try{

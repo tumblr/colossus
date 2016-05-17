@@ -12,7 +12,7 @@ class WorkerItemSpec extends ColossusSpec {
 
   "A WorkerItem" must {
     "bind to a worker" in {
-      withIOSystem{io => 
+      withIOSystem{io =>
         val probe = TestProbe()
         class MyItem(c: Context) extends WorkerItem(c) {
           override def onBind() {
@@ -38,7 +38,7 @@ class WorkerItemSpec extends ColossusSpec {
         io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "BOUND")
         probe.expectNoMsg(100.milliseconds)
-      }       
+      }
 
     }
 
@@ -57,7 +57,7 @@ class WorkerItemSpec extends ColossusSpec {
         }
         io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "PONG")
-      }       
+      }
     }
 
     "not receive messages after unbinding" in {
