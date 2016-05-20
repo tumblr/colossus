@@ -78,7 +78,8 @@ object IOSystem {
     sys.actorSystem.actorOf(Props(
       classOf[WorkerManager],
       agent,
-      sys
+      sys,
+      DefaultWorkerFactory
     ), name = s"${actorFriendlyName(sys.name)}-manager")
   }
 

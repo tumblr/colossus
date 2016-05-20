@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
  * @param workerAgent WorkerRefs that this WorkerManager manages
  * @param ioSystem Containing IOSystem
  */
-private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem)
+private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem, workerFactory : WorkerFactory )
 extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -44,18 +44,9 @@ extends Actor with ActorLogging with Stash {
     }
   }
 
-  val workers = (1 to numWorkers).map{i =>
-    val workerConfig = WorkerConfig(
-      workerId = i,
-      io = ioSystem
-    )
-    val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$i")
-    context.watch(worker)
-    worker
-  }
+  val workers = (1 to numWorkers).map{i => workerFactory.createWorker(i, ioSystem, context)}
+
   val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
-
-
   var registeredServers = collection.mutable.ArrayBuffer[ServerRef]()
 
   //this is used when the manager receives a Connect request to round-robin across workers
@@ -63,6 +54,8 @@ extends Actor with ActorLogging with Stash {
 
   var latestSummary: Seq[ConnectionSnapshot] = Nil
   var latestSummaryTime = 0L
+
+  var outstandingWorkerIdleAcks = 0
 
   def receive = waitForWorkers(Vector())
 
@@ -75,7 +68,7 @@ extends Actor with ActorLogging with Stash {
       if (nowReady.size == numWorkers) {
         log.info("All Workers reports ready, lets do this")
         workerAgent alter{_ => nowReady}
-        context.system.scheduler.schedule(IdleCheckFrequency, IdleCheckFrequency, self, IdleCheck)
+        context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
         unstashAll()
         context.become(running)
       } else {
@@ -99,7 +92,14 @@ extends Actor with ActorLogging with Stash {
         sender ! WorkersReady(workerRouter)
       }
       case IdleCheck => {
+        outstandingWorkerIdleAcks = workers.size
         workers.foreach{_ ! Worker.CheckIdleConnections}
+      }
+      case IdleCheckExecuted => {
+        outstandingWorkerIdleAcks -= 1
+        if(outstandingWorkerIdleAcks == 0){
+          context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
+        }
       }
       case WorkerCommand.Schedule(in, cmd) => context.system.scheduler.scheduleOnce(in, sender(), cmd)
       case GatherConnectionInfo(rOpt) => {
@@ -219,6 +219,22 @@ extends Actor with ActorLogging with Stash {
   }
 }
 
+private[colossus] trait WorkerFactory {
+  def createWorker(id: Int, ioSystem: IOSystem, context: ActorContext): ActorRef
+}
+
+private[colossus] object DefaultWorkerFactory extends WorkerFactory{
+  override def createWorker(id: Int, ioSystem: IOSystem, context: ActorContext): ActorRef = {
+    val workerConfig = WorkerConfig(
+      workerId = id,
+      io = ioSystem
+    )
+    val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$id")
+    context.watch(worker)
+    worker
+  }
+}
+
 private[colossus] object WorkerManager {
   case class WorkersReady(workerRouter: ActorRef)
   case object WorkersNotReady
@@ -265,6 +281,7 @@ private[colossus] object WorkerManager {
 
   case object GetConnectionSummary
 
+  private[colossus] case object IdleCheckExecuted
 
   val IdleCheckFrequency = 100.milliseconds
 }
