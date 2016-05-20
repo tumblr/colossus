@@ -176,6 +176,10 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
 
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
 
+  def apply(host: String, port : Int)(implicit provider: ClientCodecProvider[C], env: E): T = {
+    apply(host, port, 1.second)
+  }
+
   def apply(host: String, port: Int, requestTimeout: Duration)(implicit provider: ClientCodecProvider[C], env: E): T = {
     apply(new InetSocketAddress(host, port), requestTimeout)
   }
