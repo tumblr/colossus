@@ -160,9 +160,8 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   def this(codec: Codec[P#Input,P#Output], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
+    worker.worker ! WorkerCommand.Bind(this)
   }
-
-  context.worker.worker ! WorkerCommand.Bind(this)
 
   import colossus.core.WorkerCommand._
   import config._

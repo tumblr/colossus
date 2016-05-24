@@ -199,7 +199,7 @@ object ClientFactory {
   implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
 
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
-      new ServiceClient(provider.clientCodec(), config, worker.generateContext())
+      new ServiceClient(provider.clientCodec(), config, worker)
     }
   }
 
