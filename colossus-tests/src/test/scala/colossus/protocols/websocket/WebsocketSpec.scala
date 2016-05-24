@@ -1,18 +1,20 @@
 package colossus
 package protocols.websocket
 
-import core.{DataBlock, DataBuffer}
-import service.DecodedResult
+import core.{DataBlock, DataBuffer, ServerContext}
+
+import service.{DecodedResult, Protocol}
 import protocols.http._
 import java.util.Random
 
 import org.scalatest._
+import colossus.testkit._
 
 import akka.util.ByteString
 
-import scala.util.Success
+import scala.util.{Try, Success, Failure}
 
-class WebsocketSpec extends WordSpec with MustMatchers{
+class WebsocketSpec extends ColossusSpec {
 
   import HttpHeader.Conversions._
 
@@ -72,6 +74,76 @@ class WebsocketSpec extends WordSpec with MustMatchers{
       val expected = Frame(Header(OpCodes.Text, true), DataBlock("Hello World!!!!!!"))
       FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(DecodedResult.Static(expected)))
     }
+  }
+
+  "WebsocketHandler" must {
+    //a simple codec to test decoding errors 
+    trait CString extends Protocol {
+      type Input = String
+      type Output = String
+    }
+
+    class CStringCodec extends FrameCodec[CString] {
+      def encode(str: String): DataBlock = DataBlock(":" + str)
+      def decode(block: DataBlock): Try[String] = { 
+        val x = block.utf8String 
+        if (x.startsWith(":")) {
+          Success(x.drop(1))
+        } else {
+          Failure(new Exception("Bad formatting!"))
+        }      
+      }
+    }
+
+    implicit object CStringCodecProvider extends FrameCodecProvider[CString] {
+      def provideCodec() = new CStringCodec
+    }
+
+    class MyHandler(context: ServerContext) extends WebsocketServerHandler[CString](context) {
+      def handle = {
+        case "A" => {
+          sendMessage("B")
+        }
+      }
+
+      // Members declared in colossus.protocols.websocket.WebsocketHandler
+      def handleError(reason: Throwable): Unit = {
+        sendMessage("E")
+      }
+
+      // Members declared in colossus.core.WorkerItem
+      def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+    }
+    val random = new java.util.Random
+
+    def sendReceive(send: Frame, expected: Frame) {
+      val con = MockConnection.server(new MyHandler(_))
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(send.encode(random))
+      con.iterate()
+      con.expectOneWrite(ByteString(expected.encode(random).takeAll))
+    }
+
+    "properly handle a frame" in {
+      val frame = Frame(Header(OpCodes.Text, true), DataBlock(":A"))
+      val expectedFrame = Frame(Header(OpCodes.Text, false), DataBlock(":B"))
+      sendReceive(frame, expectedFrame)
+    }
+
+    "react to malformed data" in {
+      val frame = Frame(Header(OpCodes.Text, true), DataBlock("A"))
+      val expectedFrame = Frame(Header(OpCodes.Text, false), DataBlock(":E"))
+      sendReceive(frame, expectedFrame)
+    }
+
+    "ping/pong" in {
+      val frame = Frame(Header(OpCodes.Ping, true), DataBlock(""))
+      val expectedFrame = Frame(Header(OpCodes.Pong, false), DataBlock(""))
+      sendReceive(frame, expectedFrame)
+    }
+
+      
+    
   }
 
 }
