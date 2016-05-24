@@ -27,7 +27,11 @@ object UpgradeRequest {
   }
   
 
-  def unapply(request : HttpRequest): Option[HttpResponse] = {
+  /**
+   * Validate a HttpRequest as a websocket upgrade request, returning the
+   * properly formed response that should be sent back to confirm the upgrade
+   */
+  def validate(request : HttpRequest): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
       cheader   <- headers.firstValue("connection") 
@@ -36,8 +40,8 @@ object UpgradeRequest {
       origin    <- headers.firstValue("origin")
       seckey    <- headers.firstValue("sec-websocket-key")
       secver    <- headers.firstValue("sec-websocket-version") 
-      if (request.head.version == HttpVersion.`1.1`)
-      if (request.head.method == HttpMethod.Get)
+      if (request.head.version  == HttpVersion.`1.1`)
+      if (request.head.method   == HttpMethod.Get)
       if (secver == "13")
       if (uheader.toLowerCase == "websocket")
       if (cheader.toLowerCase.split(",").map{_.trim} contains "upgrade")
@@ -251,13 +255,15 @@ object WebsocketServer {
   def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
     Server.start(name, port){worker => new Initializer(worker) {
     
-      val websockinit = init(worker)
+      val websockinit : WebsocketInitializer = init(worker)
 
       def onConnect = ctx => new HttpService(ServiceConfig.Default,ctx) {
         def handle = {
-          case req @ UpgradeRequest(resp) if (req.head.path == upgradePath) => {
-            become(() => websockinit.onConnect(ctx))
-            Callback.successful(resp)
+          case request if (request.head.path == upgradePath) => {
+            val response = UpgradeRequest
+              .validate(request)
+              .getOrElse(request.badRequest("Invalid upgrade request"))
+            Callback.successful(response)
           }
         }
       }

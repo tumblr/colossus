@@ -34,7 +34,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
     }
 
     "accept a properly crafted upgrade request" in {
-      UpgradeRequest.unapply(valid).isEmpty must equal(false)
+      UpgradeRequest.validate(valid).isEmpty must equal(false)
     }
 
     "produce a correctly formatted response" in {
@@ -50,7 +50,7 @@ class WebsocketSpec extends WordSpec with MustMatchers{
         ),
         HttpBody.NoBody
       )
-      UpgradeRequest.unapply(valid).get must equal(expected)
+      UpgradeRequest.validate(valid).get must equal(expected)
 
     }
   }
