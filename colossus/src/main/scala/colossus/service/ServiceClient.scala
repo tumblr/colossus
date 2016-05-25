@@ -195,7 +195,6 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
-  private val hTags: TagMap = Map("client_host" -> address.getHostName)
 
   def connectionStatus: ConnectionStatus = clientState match {
     case ClientState.Connected => ConnectionStatus.Connected
@@ -219,7 +218,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   override def onBind(){
     super.onBind()
     if(clientState == ClientState.Initializing){
-      log.info(s"client ${id} connecting to $address")
+      log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
       
@@ -238,7 +237,6 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
         case OutputResult.Success         => {
           val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
           sentBuffer.enqueue(s)
-          this.queueTime.add((s.sendTime - s.queueTime).toInt, hpTags)
           if (sentBuffer.size >= config.sentBufferSize) {
             pauseWrites() //writes resumed in processMessage
           }
@@ -264,11 +262,13 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   def processMessage(response: O) {
     val now = System.currentTimeMillis
     try {
-      val source = sentBuffer.dequeue()
-      latency.add(tags = hpTags, value = (now - source.queueTime).toInt)
-      transitTime.add(tags = hpTags, value = (now - source.sendTime).toInt)
+      val source: SourcedRequest = sentBuffer.dequeue()
+      val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
+      latency.add(tags = tags, value = (now - source.queueTime).toInt)
+      transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
+      queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
       source.handler(Success(response))
-      requests.hit(tags = hpTags)
+      requests.hit(tags = tags)
     } catch {
       case e: java.util.NoSuchElementException => {
         throw new DataException(s"No Request for response ${response.toString}!")
@@ -282,7 +282,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   override def connected(endpoint: WriteEndpoint) {
     super.connected(endpoint)
-    log.info(s"${id} Connected to $address")
+    log.info(s"$id Connected to $address")
     clientState = ClientState.Connected
     retryIncident = None
   }
@@ -306,12 +306,12 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     super.connectionLost(cause)
     cause match {
       case DisconnectCause.ConnectFailed(error) => {
-        log.warning(s"${id} failed to connect to ${address.toString}: ${error.getMessage}")
+        log.warning(s"$id failed to connect to ${address.toString}: ${error.getMessage}")
         connectionFailures.hit(tags = hpTags)
         purgeBuffers(new NotConnectedException(s"${cause.logString}"))
       }
       case _ => {
-        log.warning(s"${id} connection lost to ${address.toString}: ${cause.logString}")
+        log.warning(s"$id connection lost to ${address.toString}: ${cause.logString}")
         disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
         purgeBuffers(new ConnectionLostException(s"${cause.logString}"))
       }
