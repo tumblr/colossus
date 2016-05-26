@@ -142,6 +142,14 @@ class WebsocketSpec extends ColossusSpec {
       sendReceive(frame, expectedFrame)
     }
 
+    "close" in {
+      val con = MockConnection.server(new MyHandler(_))
+      val send = Frame(Header(OpCodes.Close, true), DataBlock(""))
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(send.encode(random))
+      con.expectDisconnectAttempt()
+    }
+
       
     
   }
