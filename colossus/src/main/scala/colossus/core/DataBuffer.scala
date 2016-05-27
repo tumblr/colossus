@@ -5,6 +5,9 @@ import akka.util.ByteString
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
+
+
+
 /**
  * A DataReader is the result of codec's encode operation.  It can either
  * return a DataBuffer, which contains the entire encoded object at once, or it
@@ -140,7 +143,7 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     peeking = false
     (res, pos2 - pos1)
   }
-    
+
 }
 
 object DataBuffer {

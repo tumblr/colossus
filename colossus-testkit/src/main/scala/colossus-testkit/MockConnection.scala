@@ -5,6 +5,7 @@ import core._
 
 import akka.actor._
 import akka.testkit.TestProbe
+import scala.concurrent.duration._
 
 trait MockConnection extends Connection with MockChannelActions {
   
@@ -54,6 +55,14 @@ trait MockConnection extends Connection with MockChannelActions {
 
   def workerProbe: TestProbe
   def serverProbe: Option[TestProbe]
+
+  /**
+   * checks to see if the connection handler has attempted to close the
+   * connection.  
+   */
+  def expectDisconnectAttempt() {
+    workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(id))
+  }
 
 
 }
