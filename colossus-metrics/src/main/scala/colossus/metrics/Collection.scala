@@ -112,10 +112,11 @@ class Collection(val config: CollectorConfig) {
   def getOrAdd[T <: Collector : ClassTag](address : MetricAddress, tags: TagMap)(f : (MetricAddress, CollectorConfig) => T): T = {
     def cast(retrieved: Collector): T = retrieved match {
       case t : T => t
-      case other =>
+      case other => {
         throw new DuplicateMetricException(
           s"An event collector with address $address of type ${other.getClass.getSimpleName} already exists"
         )
+      }
     }
     if (collectors.containsKey(address)) {
       cast(collectors.get(address).collector)
