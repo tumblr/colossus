@@ -36,11 +36,19 @@ class MetricNamespaceSpec extends WordSpec with MustMatchers{
       namespace.collection.collectors.keySet().toSet mustBe expected
 
       //paranoid much?
-      namespace.collection.collectors.get(bar) mustBe a[Rate]
-      namespace.collection.collectors.get(baz) mustBe a[Rate]
-      namespace.collection.collectors.get(barBar) mustBe a[Counter]
-      namespace.collection.collectors.get(barBaz) mustBe a[Rate]
+      namespace.collection.collectors.get(bar).collector mustBe a[Rate]
+      namespace.collection.collectors.get(baz).collector mustBe a[Rate]
+      namespace.collection.collectors.get(barBar).collector mustBe a[Counter]
+      namespace.collection.collectors.get(barBaz).collector mustBe a[Rate]
       //yes
+    }
+
+    "add tags" in {
+      val namespace = MetricContext("/", Collection.withReferenceConf(Seq(1.minute, 1.second)))
+      val subnameSpace: MetricContext = namespace / "foo" * ("a" -> "b") / "bar"
+
+      subnameSpace.tags mustBe Map("a" -> "b")
+
     }
   }
 }

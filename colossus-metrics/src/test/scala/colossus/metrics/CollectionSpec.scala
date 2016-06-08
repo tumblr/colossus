@@ -1,5 +1,6 @@
 package colossus.metrics
 
+import colossus.metrics.MetricAddress
 import org.scalatest.{MustMatchers, WordSpec}
 import scala.concurrent.duration._
 
@@ -17,9 +18,9 @@ class CollectionSpec extends WordSpec with MustMatchers{
       val rate = Rate(foo, false, true)
 
       val x = namespace.collection.collectors.get(foo)
-      x mustBe a[Rate]
+      x.collector mustBe a[Rate]
       //this is a reference check, since we are not overriding .equals yet
-      x.asInstanceOf[Rate] mustBe rate
+      x.collector.asInstanceOf[Rate] mustBe rate
     }
 
     "getOrAdd should return an existing Collector" in {
@@ -29,9 +30,9 @@ class CollectionSpec extends WordSpec with MustMatchers{
       val rate = Rate(bar, false, true)
       val rate2 = Rate(bar, false, true)
       val x = namespace.collection.collectors.get(bar)
-      x mustBe a[Rate]
+      x.collector mustBe a[Rate]
       //reference check again, this should be pointing at the first, since the second should have never got added
-      x.asInstanceOf[Rate] mustBe rate
+      x.collector.asInstanceOf[Rate] mustBe rate
     }
 
     "getOrAdd should throw if a metric with the same address, but different type is used" in {
@@ -40,6 +41,17 @@ class CollectionSpec extends WordSpec with MustMatchers{
       intercept[DuplicateMetricException]{
         Counter(bar, false)
       }
+    }
+
+    "aggregate tags" in {
+      val subNamespace = namespace / "foo" * ("a" -> "b")
+      val bar = MetricAddress("baz")
+      val rate = Rate(bar, false, true)(subNamespace)
+      rate.hit()
+      collection.tick(1.minute) mustBe Map(
+        MetricAddress("/foo/baz") -> Map(Map("a" -> "b") -> 1),
+        MetricAddress("/foo/baz/count") -> Map()
+      )
     }
   }
 

@@ -99,7 +99,8 @@ class DuplicateMetricException(message: String) extends Exception(message)
 
 class Collection(val config: CollectorConfig) {
 
-  val collectors : ConcurrentHashMap[MetricAddress, Collector] = new ConcurrentHashMap[MetricAddress, Collector]()
+  import Collection.TaggedCollector
+  val collectors : ConcurrentHashMap[MetricAddress, TaggedCollector] = new ConcurrentHashMap[MetricAddress, TaggedCollector]()
 
   /**
    * Retrieve a collector of a specific type by address, creating a new one if
@@ -108,7 +109,7 @@ class Collection(val config: CollectorConfig) {
    * @param address Address meant to be relative to this MetricNamespace's namespace
    * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
     */
-  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T): T = {
+  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress, tags: TagMap)(f : (MetricAddress, CollectorConfig) => T): T = {
     def cast(retrieved: Collector): T = retrieved match {
       case t : T => t
       case other => {
@@ -118,12 +119,12 @@ class Collection(val config: CollectorConfig) {
       }
     }
     if (collectors.containsKey(address)) {
-      cast(collectors.get(address))
+      cast(collectors.get(address).collector)
     } else {
       val c = f(address, config)
-      collectors.putIfAbsent(address, c) match {
+      collectors.putIfAbsent(address, TaggedCollector(c, tags)) match {
         case null => c
-        case other => cast(other)
+        case other => cast(other.collector)
       }
     }
   }
@@ -134,7 +135,9 @@ class Collection(val config: CollectorConfig) {
     while (keys.hasMoreElements) {
       val key = keys.nextElement
       Option(collectors.get(key)) foreach { c =>
-        build = build ++ c.tick(interval)
+        build = build ++ c.collector.tick(interval).mapValues { valueMap =>
+          valueMap.map { case (t, tValue) => (t ++ c.tagMap, tValue) }
+        }
       }
     }
     build
@@ -148,4 +151,6 @@ object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
     new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
   }
+
+  case class TaggedCollector(collector: Collector, tagMap: TagMap)
 }

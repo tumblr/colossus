@@ -30,9 +30,14 @@ class MetricInterval private[metrics](val namespace : MetricAddress,
 
 
 /**
- * A MetricNamespace is essentially just an address prefix and is needed when
- * getting or creating collectors.  The `namespace` address is prefixed onto the
- * given address for the collector to create the full address.
+ * A MetricNamespace is essentially just an address prefix and set of tags. It is needed when
+ * getting or creating collectors. The `namespace` address is prefixed onto the
+ * given address for the collector to create the full address. Tags are added to each collector under under this
+ * context.
+ *
+ * {{{
+ * val subnameSpace: MetricContext = namespace / "foo" * ("a" -> "b")
+ * }}}
  */
 trait MetricNamespace {
 
@@ -42,8 +47,22 @@ trait MetricNamespace {
     */
   def namespace: MetricAddress
 
+  /**
+    * Tags applied to all collectors in this namespace
+    * @return
+    */
+  def tags: TagMap
 
   protected def collection : Collection
+
+  /**
+    * Add tags to context
+    * @param tags TagMap
+    * @return Returns a new context with supplied tags added
+    */
+  def *(tags: (String, String)*): MetricContext = MetricContext(namespace, collection, this.tags ++ tags)
+
+  def withTags(tags: (String, String)*): MetricContext = *(tags:_*)
 
   /**
     * Retrieve a [[Collector]] of a specific type by address, creating a new one if
@@ -56,17 +75,17 @@ trait MetricNamespace {
     */
   def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T) : T = {
     val fullAddress =  namespace / address
-    collection.getOrAdd(fullAddress)(f)
+    collection.getOrAdd(fullAddress, tags)(f)
   }
 
   /**
    * Get a new namespace by appending `subpath` to the namespace
    */
-  def /(subpath: MetricAddress): MetricNamespace = MetricContext(namespace / subpath, collection)
+  def /(subpath: MetricAddress): MetricContext = MetricContext(namespace / subpath, collection, tags)
 
 }
 
-case class MetricContext(namespace: MetricAddress, collection: Collection) extends MetricNamespace
+case class MetricContext(namespace: MetricAddress, collection: Collection, tags: TagMap = TagMap.Empty) extends MetricNamespace
 
 /**
   * The MetricSystem is a set of actors which handle the background operations of dealing with metrics. In most cases,
@@ -103,6 +122,9 @@ case class MetricContext(namespace: MetricAddress, collection: Collection) exten
  */
 case class MetricSystem private[metrics] (namespace: MetricAddress, collectionIntervals : Map[FiniteDuration, MetricInterval],
                                           collectionSystemMetrics : Boolean, config : Config) extends MetricNamespace {
+
+  private val localHostname = java.net.InetAddress.getLocalHost.getHostName
+  val tags: TagMap = Map("host" -> localHostname)
 
   val collection = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
   registerCollection(collection)
@@ -165,7 +187,6 @@ object MetricSystem {
     * Create a new MetricSystem, using the specified configuration
     *
     * @param config Config object expected to be in the shape of the reference.conf's `colossus.metrics` definition.
-    * @param system
     * @return
     */
   def apply(config : Config = loadDefaultConfig())(implicit system : ActorSystem) : MetricSystem = {
