@@ -16,6 +16,20 @@ class ServiceConfigLoadingSpec extends WordSpec with MustMatchers{
       config.requestMetrics mustBe true
       config.requestTimeout mustBe Duration.Inf
     }
+
+    "load a config based on path with fallback to defaults" in {
+      val config = ServiceConfig.load("config-loading-spec")
+      config.requestBufferSize mustBe 9876
+      config.requestMetrics mustBe true
+    }
+
+    "throw a ServiceConfigException when something is wrong" in {
+      intercept[ServiceConfigException] {
+        ServiceConfig.load("bad-config")
+      }
+    }
+
+
   }
 
 }
