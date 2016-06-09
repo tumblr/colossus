@@ -2,15 +2,18 @@ package colossus
 package service
 
 import colossus.parsing.{ParseException, DataSize}
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{ConfigFactory, Config, ConfigException}
 import core._
 import controller._
-import util.ExceptionFormatter._
 import akka.event.Logging
 import metrics._
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
+import util.ConfigCache
+import util.ExceptionFormatter._
 import Codec._
+
+class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
 /**
  * Configuration class for a Service Server Connection Handler
@@ -33,29 +36,44 @@ case class ServiceConfig(
 
 object ServiceConfig {
 
-  val ConfigRoot = "colossus.server.connection-handler"
+  val CONFIG_ROOT   = "colossus.service"
+  val DEFAULT_NAME  = "default"
 
-  lazy val Default = this.load()
+  lazy val Default = this.load(DEFAULT_NAME)
 
-  import colossus.metrics.ConfigHelpers._
+  private val cache = new ConfigCache[ServiceConfig] {
 
-  /**
-    * Load a ServiceConfig object from a Config source.  The Config object is expected to be in the form of
-    * `colossus.server.connection-handler`.  Please refer to the reference.conf file.
-    *
-    * Note: you will want to avoid calling this every time a ConnectionHandler is created.  If possible, create the appropriate
-    * instancee before your Server starts up, and then use that instance to configure your ConnectionHandlers.  This is to avoid
-    * loading the Config object on every new connection.
-    * @param config
-    * @return
-    */
-  def load(config : Config = ConfigFactory.load().getConfig(ConfigRoot)) : ServiceConfig = {
-    val timeout = config.getScalaDuration("request-timeout")
-    val bufferSize = config.getInt("request-buffer-size")
-    val logErrors = config.getBoolean("log-errors")
-    val requestMetrics = config.getBoolean("request-metrics")
-    val maxRequestSize = DataSize(config.getString("max-request-size"))
-    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+    import colossus.metrics.ConfigHelpers._
+    val baseConfig : Config = ConfigFactory.load()
+
+    /**
+      * Load a ServiceConfig object from a Config source.  The Config object is expected to be in the form of
+      * `colossus.server.connection-handler`.  Please refer to the reference.conf file.
+      *
+      * Note: you will want to avoid calling this every time a ConnectionHandler is created.  If possible, create the appropriate
+      * instancee before your Server starts up, and then use that instance to configure your ConnectionHandlers.  This is to avoid
+      * loading the Config object on every new connection.
+      * @param config
+      * @return
+      */
+    def load(name: String) : Try[ServiceConfig] = Try {
+      val config = try {
+        baseConfig.getConfig(CONFIG_ROOT + "." + name).withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
+      } catch {
+        case ex: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
+      }
+      val timeout         = config.getScalaDuration("request-timeout")
+      val bufferSize      = config.getInt("request-buffer-size")
+      val logErrors       = config.getBoolean("log-errors")
+      val requestMetrics  = config.getBoolean("request-metrics")
+      val maxRequestSize  = DataSize(config.getString("max-request-size"))
+      ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+    }
+  }
+
+  def load(name: String): ServiceConfig = cache.get(name) match {
+    case Success(c) => c
+    case Failure(err) => throw new ServiceConfigException(err)
   }
 }
 

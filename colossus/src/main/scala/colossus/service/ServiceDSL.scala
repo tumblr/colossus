@@ -73,7 +73,7 @@ extends ServiceServer[C#Input, C#Output](provider.provideCodec, config, srv) {
 
   implicit val executor   = context.worker.callbackExecutor
 
-  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.Default, context)(provider)
+  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.load(context.server.config.name.idString), context)(provider)
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
