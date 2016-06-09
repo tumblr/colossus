@@ -23,6 +23,12 @@ class ServiceConfigLoadingSpec extends WordSpec with MustMatchers{
       config.requestMetrics mustBe true
     }
 
+    "throw a ServiceConfigException when something is wrong" in {
+      intercept[ServiceConfigException] {
+        ServiceConfig.load("bad-config")
+      }
+    }
+
 
   }
 
