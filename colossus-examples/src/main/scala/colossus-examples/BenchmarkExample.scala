@@ -31,14 +31,12 @@ object BenchmarkService {
       tcpBacklogSize = Some(1024)
     )
 
-    val serviceConfig = ServiceConfig.Default.copy(requestMetrics = false)
-
     Server.start("benchmark", serverConfig) { new Initializer(_) {
 
       val dateHeader = new DateHeader
       val headers = HttpHeaders(serverHeader, dateHeader)
 
-      def onConnect = ctx => new Service[Http](serviceConfig, ctx){
+      def onConnect = new Service[Http](_){
         def handle = {
           //case req => req.ok(plaintext, headers)
           case req if (req.head.url == "/plaintext")  => req.ok(plaintext, headers)

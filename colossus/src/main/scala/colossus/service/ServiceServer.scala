@@ -43,37 +43,43 @@ object ServiceConfig {
 
   private val cache = new ConfigCache[ServiceConfig] {
 
-    import colossus.metrics.ConfigHelpers._
     val baseConfig : Config = ConfigFactory.load()
 
-    /**
-      * Load a ServiceConfig object from a Config source.  The Config object is expected to be in the form of
-      * `colossus.server.connection-handler`.  Please refer to the reference.conf file.
-      *
-      * Note: you will want to avoid calling this every time a ConnectionHandler is created.  If possible, create the appropriate
-      * instancee before your Server starts up, and then use that instance to configure your ConnectionHandlers.  This is to avoid
-      * loading the Config object on every new connection.
-      * @param config
-      * @return
-      */
     def load(name: String) : Try[ServiceConfig] = Try {
       val config = try {
         baseConfig.getConfig(CONFIG_ROOT + "." + name).withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
       } catch {
         case ex: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
       }
-      val timeout         = config.getScalaDuration("request-timeout")
-      val bufferSize      = config.getInt("request-buffer-size")
-      val logErrors       = config.getBoolean("log-errors")
-      val requestMetrics  = config.getBoolean("request-metrics")
-      val maxRequestSize  = DataSize(config.getString("max-request-size"))
-      ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+      ServiceConfig.load(config)
     }
   }
 
+  /**
+   * Load a ServiceConfig from the loaded config at the path
+   * `colossus.service.<name>`.  Any settings not specified at that location
+   * will fall back to the defaults located at `colossus.service.default` in the
+   * reference.conf file.
+   */
   def load(name: String): ServiceConfig = cache.get(name) match {
     case Success(c) => c
     case Failure(err) => throw new ServiceConfigException(err)
+  }
+
+  /**
+    * Load a ServiceConfig object from a Config source.  The Config object is
+    * expected to be in the form of `colossus.service.default`.  Please refer to
+    * the reference.conf file.
+    *
+    */
+  def load(config: Config): ServiceConfig = {
+    import colossus.metrics.ConfigHelpers._
+    val timeout         = config.getScalaDuration("request-timeout")
+    val bufferSize      = config.getInt("request-buffer-size")
+    val logErrors       = config.getBoolean("log-errors")
+    val requestMetrics  = config.getBoolean("request-metrics")
+    val maxRequestSize  = DataSize(config.getString("max-request-size"))
+    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
   }
 }
 
