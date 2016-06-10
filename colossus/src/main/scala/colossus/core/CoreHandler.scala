@@ -24,6 +24,18 @@ object ConnectionState {
 }
 class InvalidConnectionStateException(state: ConnectionState) extends Exception(s"Invalid connection State: $state")
 
+
+/**
+ * These are methods made available to all layers extending the core layer
+ */
+trait ConnectionManager {
+  def connectionState: ConnectionState
+  def disconnect()
+  def forceDisconnect()
+  def become(nh: () => ConnectionHandler): Boolean
+
+  def isConnected = connectionState != NotConnected
+
 /**
  * This is the connection handler on which the controller and service layers are
  * built.  It contains some common functionality that is ultimately exposed to
@@ -32,7 +44,7 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler {
+abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler with ConnectionManager {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
@@ -40,7 +52,6 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
 
   def connectionState = _connectionState
 
-  def isConnected = connectionState != NotConnected
 
   private def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
     shutdownAction = action

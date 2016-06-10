@@ -110,14 +110,29 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext)
-extends Controller[I,O](codec,
-  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize),
-  serverContext.context)
-with ServerConnectionHandler {
+trait ServiceServer[I,O] extends ServerConnectionHandler with ConnectionManager {self : Controller[I,O] =>
   import ServiceServer._
   import config._
+
+  // ABSTRACT MEMBERS
+
+  //"constructor" parameters
+  //codec is already defined in controller
+  def config: ServiceConfig
+  def serverContext: ServerContext
+
+  protected def processRequest(request: I): Callback[O]
+
+  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
+ 
+  protected def processFailure(error: ProcessingFailure[I]): O
+
+  //passthrough to lower layers
+  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize)
+  def context = serverContext.context
+
+
+
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
 
@@ -292,13 +307,6 @@ with ServerConnectionHandler {
     checkGracefulDisconnect()
   }
 
-  // ABSTRACT MEMBERS
-
-  protected def processRequest(request: I): Callback[O]
-
-  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
- 
-  protected def processFailure(error: ProcessingFailure[I]): O
   
 }
 

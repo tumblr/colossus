@@ -63,10 +63,8 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * "response" message, the controller make no such pairing.  Thus a controller
  * can be thought of as a duplex stream of messages.
  */
-abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context)
-extends CoreHandler(context) with InputController[Input, Output] with OutputController[Input, Output] {
+trait Controller[Input, Output] extends InputController[Input, Output] with OutputController[Input, Output] with ConnectionManager{ this: CoreHandler =>
   import ConnectionState._
-
 
   override def connected(endpt: WriteEndpoint) {
     super.connected(endpt)
