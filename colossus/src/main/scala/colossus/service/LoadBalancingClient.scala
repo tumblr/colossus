@@ -82,7 +82,9 @@ class LoadBalancingClient[P <: Protocol] (
   generator: InetSocketAddress => Sender[P, Callback], 
   maxTries: Int = Int.MaxValue,   
   initialClients: Seq[InetSocketAddress] = Nil
-) extends WorkerItem(worker.generateContext) with Sender[P, Callback]  {
+) extends WorkerItem with Sender[P, Callback]  {
+
+  val context = worker.generateContext
 
   worker.bind(_ => this)
 

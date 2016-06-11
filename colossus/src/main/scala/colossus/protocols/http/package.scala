@@ -2,7 +2,8 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import core.ServerContext
+import core.{Server, ServerContext, ServerRef, WorkerRef}
+import controller._
 import service._
 
 
@@ -65,24 +66,45 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: ServiceCodecProvider[D], context: ServerContext)
-  extends Service[D](config, context)(provider) {
+  class HttpServiceHandler(rh: RequestHandler[Http]) 
+  extends BasicServiceHandler[Http](rh) {
 
-    override def tagDecorator = new ReturnCodeTagDecorator
+    //TODO: take as paramter
+    val defaults = new Http.ServerDefaults
 
-    override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
+    val codec = new HttpServerCodec
+
+    override def tagDecorator = new ReturnCodeTagDecorator[Http]
+
+    override def processRequest(input: Http#Input): Callback[Http#Output] = {
+      val response = super.processRequest(input)
       if(!input.head.persistConnection) disconnect()
       response
     }
+    def unhandledError = {
+      case (error) => defaults.errorResponse(error)
+    }
+
+    def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
   }
 
-  abstract class HttpService(config: ServiceConfig, context: ServerContext)
-    extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context)
+  abstract class Initializer(worker: WorkerRef) {
 
-  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
-    extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context)
+    def onConnect: ServerContext => RequestHandler[Http]
+
+  }
+
+  object HttpServer {
+    
+    def start(name: String, port: Int)(init: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+      Server.start(name, port){worker => new core.Initializer(worker) {
+        val httpInitializer = init(worker)
+        def onConnect = ctx => new HttpServiceHandler(httpInitializer.onConnect(ctx))
+      }}
+    }
+  }
+  /*
 
   implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
@@ -112,7 +134,6 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   }
 
 
-  /*
   class StreamingHttpClient(config : ClientConfig,
                             worker : WorkerRef,
                             maxSize : DataSize = HttpResponseParser.DefaultMaxSize,

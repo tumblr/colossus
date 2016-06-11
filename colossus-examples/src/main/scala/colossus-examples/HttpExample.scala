@@ -14,6 +14,7 @@ import colossus.service.Callback.Implicits._
 import colossus.service.{Callback, ServiceConfig}
 
 import scala.concurrent.duration._
+/*
 
 object HttpExample {
 
@@ -59,3 +60,4 @@ object HttpExample {
   }
 
 }
+*/

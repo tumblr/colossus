@@ -45,6 +45,7 @@ trait CodecProvider[C <: Protocol] {
     * @return
     */
   def provideCodec: ServerCodec[C#Input, C#Output]
+
 }
 
 trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
@@ -67,75 +68,69 @@ trait ClientCodecProvider[C <: Protocol] {
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-abstract class Service[C <: Protocol]
-(config: ServiceConfig, srv: ServerContext)(implicit provider: ServiceCodecProvider[C])
-extends ServiceServer[C#Input, C#Output](provider.provideCodec, config, srv) {
+trait DSLService[C <: Protocol] extends ServiceServer[C#Input, C#Output] with ConnectionManager{ 
 
-  implicit val executor   = context.worker.callbackExecutor
-
-  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.load(context.server.config.name.idString), context)(provider)
+  def requestHandler: RequestHandler[C]
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
       Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
 
-  protected def unhandledReceive: Receive = {
-    case _ => {}
-  }
+  protected def unhandledError: ErrorHandler[C] 
 
-  protected def unhandledError: ErrorHandler[C] = {
-    case (error) => provider.errorResponse(error)
-  }
-
-  private var currentSender: Option[ActorRef] = None
-
-  def sender(): ActorRef = currentSender.getOrElse {
-    throw new ReceiveException("No sender")
-  }
-
-  private lazy val handler: PartialHandler[C] = handle orElse unhandled
-  private lazy val errorHandler: ErrorHandler[C] = onError orElse unhandledError
-
-  def receivedMessage(message: Any, sender: ActorRef) {
-    currentSender = Some(sender)
-    receive(message)
-    currentSender = None
-  }
+  private lazy val handler: PartialHandler[C] = requestHandler.handle orElse unhandled
+  private lazy val errorHandler: ErrorHandler[C] = requestHandler.onError orElse unhandledError
 
   protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
 
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
-
-  def handle: PartialHandler[C]
-
-  def onError: ErrorHandler[C] = Map()
-
-  def receive: Receive = Map()
-
 }
 
+/**
+ * This needs to be mixed with Controller, ServiceServer, and DSLService
+ * sub-traits to work (right now there's only one implementation of each but
+ * that may change
+ */
+abstract class BasicServiceHandler[P <: Protocol](val requestHandler : RequestHandler[P]) 
+extends {
+  val serverContext = requestHandler.context
+  val config        = requestHandler.config
+
+} with DSLService[P] {
 
 
-object Service {
 
-  /** Quick-start a service, using default settings
-   *
-   * @param name The name of the service
-   * @param port The port to bind the server to
-   */
-  def basic[T <: Protocol]
-  (name: String, port: Int, config : ServiceConfig = ServiceConfig.Default)(userHandler: PartialHandler[T])
-  (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = {
-    class BasicService(context: ServerContext) extends Service(config, context) {
-      def handle = userHandler
-    }
-    Server.basic(name, port)(context => new BasicService(context))
+  override def onBind() {
+    requestHandler.onBind(this)
   }
 
 }
 
+class RequestHandlerException(message: String) extends Exception(message)
+
+abstract class RequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
+
+  def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
+
+  private var _connectionManager: Option[ConnectionManager] = None
+
+  def connection = _connectionManager.getOrElse {
+    throw new RequestHandlerException("Cannot access connection before request handler is bound")
+  }
+
+  def onBind(connection: ConnectionManager) {
+    _connectionManager = Some(connection)
+  }
+
+  implicit val executor   = context.context.worker.callbackExecutor
+
+  def handle: PartialHandler[P]
+
+  def onError: ErrorHandler[P] = Map()
+
+}
 
 /**
  * This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait

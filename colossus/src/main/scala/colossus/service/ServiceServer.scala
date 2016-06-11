@@ -11,7 +11,6 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import util.ConfigCache
 import util.ExceptionFormatter._
-import Codec._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -110,9 +109,8 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[I,O] extends ServerConnectionHandler with ConnectionManager {self : Controller[I,O] =>
+trait ServiceServer[I,O] extends Controller[I,O] with ServerConnectionHandler {
   import ServiceServer._
-  import config._
 
   // ABSTRACT MEMBERS
 
@@ -132,6 +130,8 @@ trait ServiceServer[I,O] extends ServerConnectionHandler with ConnectionManager 
   def context = serverContext.context
 
 
+  private val myconfig = config
+  import myconfig._
 
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name

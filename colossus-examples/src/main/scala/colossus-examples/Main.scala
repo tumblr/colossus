@@ -20,6 +20,7 @@ object Main extends App {
   implicit val actorSystem = ActorSystem("COLOSSUS")
 
   implicit val ioSystem = IOSystem()
+  /*
 
   //the simplest example, an echo server over telnet
   val telnetServer = TelnetExample.start(9000)
@@ -35,6 +36,7 @@ object Main extends App {
 
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
+  */
 
   val benchmarkServer = BenchmarkService.start(9007)
 

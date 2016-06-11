@@ -11,7 +11,9 @@ import com.typesafe.config.ConfigFactory
 /**
  * An instance of this is handed to every new server connection handler
  */
-case class ServerContext(server: ServerRef, context: Context)
+case class ServerContext(server: ServerRef, context: Context) {
+  def name: String = server.name.idString
+}
 
 abstract class Initializer(_worker: WorkerRef) {
 

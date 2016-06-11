@@ -35,7 +35,7 @@ class DisconnectingException(message: String) extends Exception(message)
  * ultimately implemented by Controller.  This merely contains methods needed
  * by both input and output controller
  */
-trait MasterController[Input, Output] extends ConnectionHandler {
+trait MasterController[Input, Output] {this:  ConnectionHandler =>
   protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig
@@ -63,7 +63,8 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * "response" message, the controller make no such pairing.  Thus a controller
  * can be thought of as a duplex stream of messages.
  */
-trait Controller[Input, Output] extends InputController[Input, Output] with OutputController[Input, Output] with ConnectionManager{ this: CoreHandler =>
+trait Controller[Input, Output] extends CoreHandler with MasterController[Input, Output]
+with InputController[Input, Output] with OutputController[Input, Output] with ConnectionManager{ 
   import ConnectionState._
 
   override def connected(endpt: WriteEndpoint) {

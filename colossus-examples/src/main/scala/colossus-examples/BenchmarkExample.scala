@@ -2,7 +2,7 @@ package colossus.examples
 
 
 import colossus._
-import colossus.core.{Initializer, Server, ServerRef, ServerSettings}
+import colossus.core.{Server, ServerRef, ServerSettings}
 import service._
 import Callback.Implicits._
 import protocols.http._
@@ -31,17 +31,17 @@ object BenchmarkService {
       tcpBacklogSize = Some(1024)
     )
 
-    Server.start("benchmark", serverConfig) { new Initializer(_) {
+    HttpServer.start("benchmark", port) { new Initializer(_) {
 
       val dateHeader = new DateHeader
       val headers = HttpHeaders(serverHeader, dateHeader)
 
-      def onConnect = new Service[Http](_){
+      def onConnect = new RequestHandler[Http](_){
         def handle = {
           //case req => req.ok(plaintext, headers)
           case req if (req.head.url == "/plaintext")  => req.ok(plaintext, headers)
-          //case req if (req.head.url == "/json")       => req.ok(json, headers)
-          case req if (req.head.url == "/echo")       => req.ok(req.toString, headers)
+          case req if (req.head.url == "/json")       => req.ok(json, headers)
+          //case req if (req.head.url == "/echo")       => req.ok(req.toString, headers)
         }
       }
 

@@ -34,7 +34,8 @@ trait ConnectionManager {
   def forceDisconnect()
   def become(nh: () => ConnectionHandler): Boolean
 
-  def isConnected = connectionState != NotConnected
+  def isConnected: Boolean
+}
 
 /**
  * This is the connection handler on which the controller and service layers are
@@ -44,13 +45,14 @@ trait ConnectionManager {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler with ConnectionManager {
+trait CoreHandler extends ConnectionHandler with ConnectionManager {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
 
   def connectionState = _connectionState
+  def isConnected: Boolean = connectionState != ConnectionState.NotConnected
 
 
   private def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
@@ -136,6 +138,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
 
 }
 
+/*
 class BasicCoreHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler {
 
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
@@ -146,3 +149,4 @@ class BasicCoreHandler(context: Context) extends CoreHandler(context) with Serve
   def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
+*/

@@ -124,37 +124,3 @@ trait ManualUnbindHandler extends ClientConnectionHandler
 trait WatchedHandler extends ConnectionHandler {
   def watchedActor: ActorRef
 }
-
-/**
- * Convenience implementation of ConnectionHandler which provides implementations for all of
- * the necessary functions.  This allows for a devloper to extend this trait and only provide definitions
- * for the functions they require.
- */
-abstract class BasicSyncHandler(context: Context) extends WorkerItem(context) with ConnectionHandler {
-
-  def this(serverContext: ServerContext) = this(serverContext.context)
-
-  private var _endpoint: Option[WriteEndpoint] = None
-  def endpoint = _endpoint.getOrElse{
-    throw new Exception("Handler is not connected")
-  }
-  def connected(e: WriteEndpoint) {
-    _endpoint = Some(e)
-  }
-  def connectionClosed(cause : DisconnectCause){
-    _endpoint = None
-  }
-  def connectionLost(cause : DisconnectError){
-    _endpoint = None
-  }
-  def receivedMessage(message: Any, sender: ActorRef){}
-  def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
-  def idleCheck(period: Duration){}
-  def shutdownRequest (){
-    endpoint.disconnect()
-  }
-
-  //this is the only method you have to implement
-  //def receivedData(data: DataBuffer)
-}
-

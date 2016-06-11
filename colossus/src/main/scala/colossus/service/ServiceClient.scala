@@ -148,12 +148,14 @@ object ClientState {
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  codec: Codec[P#Input,P#Output],
+  val codec: Codec[P#Input,P#Output],
   val config: ClientConfig,
-  context: Context
+  val context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize), context)
+extends Controller[P#Output,P#Input]
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
+
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
 
   type I = P#Input
   type O = P#Output

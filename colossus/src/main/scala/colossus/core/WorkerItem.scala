@@ -52,9 +52,9 @@ class Context(val id: Long, val worker: WorkerRef) {
  * in some cases we want one WorkerItem to replace another, in which case the
  * context must be transferred
  */
-abstract class WorkerItem(val context: Context) {
+trait WorkerItem {
 
-  def this(worker: WorkerRef) = this(worker.generateContext())
+  def context: Context
 
   def id = context.id
   def worker = context.worker
