@@ -36,7 +36,7 @@ object BenchmarkService {
       val dateHeader = new DateHeader
       val headers = HttpHeaders(serverHeader, dateHeader)
 
-      def onConnect = new RequestHandler[Http](_){
+      def onConnect(ctx: ServerContext) = new RequestHandler(ctx){
         def handle = {
           //case req => req.ok(plaintext, headers)
           case req if (req.head.url == "/plaintext")  => req.ok(plaintext, headers)

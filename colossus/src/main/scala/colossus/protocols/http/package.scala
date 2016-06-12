@@ -91,8 +91,12 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   abstract class Initializer(worker: WorkerRef) {
 
-    def onConnect: ServerContext => RequestHandler[Http]
+    def onConnect(ctx: ServerContext): RequestHandler[Http]
 
+  }
+
+  abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenericRequestHandler[Http](config, ctx) {
+    def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
   }
 
   object HttpServer {

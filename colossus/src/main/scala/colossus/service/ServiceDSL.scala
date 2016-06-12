@@ -110,7 +110,7 @@ extends {
 
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class RequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
+abstract class GenericRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 
