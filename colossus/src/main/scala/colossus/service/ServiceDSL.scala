@@ -70,7 +70,7 @@ class ReceiveException(message: String) extends Exception(message)
 
 trait DSLService[C <: Protocol] extends ServiceServer[C#Input, C#Output] with ConnectionManager{ 
 
-  def requestHandler: RequestHandler[C]
+  def requestHandler: GenRequestHandler[C]
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
@@ -93,7 +93,7 @@ trait DSLService[C <: Protocol] extends ServiceServer[C#Input, C#Output] with Co
  * sub-traits to work (right now there's only one implementation of each but
  * that may change
  */
-abstract class BasicServiceHandler[P <: Protocol](val requestHandler : RequestHandler[P]) 
+abstract class BasicServiceHandler[P <: Protocol](val requestHandler : GenRequestHandler[P]) 
 extends {
   val serverContext = requestHandler.context
   val config        = requestHandler.config
@@ -110,7 +110,7 @@ extends {
 
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class GenericRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
+abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 

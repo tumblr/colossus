@@ -66,7 +66,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  class HttpServiceHandler(rh: RequestHandler[Http]) 
+  class HttpServiceHandler(rh: RequestHandler) 
   extends BasicServiceHandler[Http](rh) {
 
     //TODO: take as paramter
@@ -89,13 +89,22 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   }
 
-  abstract class Initializer(worker: WorkerRef) {
+  //TODO: not used yet, requires Server.start to use this I think
+  case class InitContext(server: ServerRef, worker: WorkerRef)
 
-    def onConnect(ctx: ServerContext): RequestHandler[Http]
+  abstract class Initializer(worker: WorkerRef) {
+    
+    //val dateHeader = new DateHeader
+    //val serverHeader = HttpHeader("Server", ctx.server.name.idString)
+
+    //TODO : not used yet
+    //val defaultHeaders = HttpHeaders(dateHeader, serverHeader)
+
+    def onConnect : ServerContext => RequestHandler
 
   }
 
-  abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenericRequestHandler[Http](config, ctx) {
+  abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
     def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
   }
 

@@ -259,7 +259,7 @@ object WebsocketServer {
     
       val websockinit : WebsocketInitializer = init(worker)
 
-      def onConnect(ctx: ServerContext) = new RequestHandler(ctx) {
+      def onConnect = new RequestHandler(_) {
         def handle = {
           case request if (request.head.path == upgradePath) => {
             val response = UpgradeRequest
