@@ -134,7 +134,7 @@ class IOSystem private[colossus](
   /**
    * The namespace of this IOSystem, used by metrics
    */
-  val namespace = MetricContext(MetricAddress(name), metrics.collection)
+  val namespace = metrics / name
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
   private[colossus] val workerManager : ActorRef = managerFactory(workers, this)

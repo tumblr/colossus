@@ -8,9 +8,12 @@ import com.typesafe.config.{ConfigFactory, Config}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
-class MetricInterval private[metrics](val namespace : MetricAddress,
-                                      val interval : FiniteDuration,
-                                      val intervalAggregator : ActorRef, snapshot : Agent[MetricMap]){
+class CollectionInterval private[metrics](
+  namespace : MetricAddress,
+  interval : FiniteDuration,
+  private[colossus] val intervalAggregator : ActorRef,
+  snapshot : Agent[MetricMap]
+){
 
   /**
    * The latest metrics snapshot
@@ -120,18 +123,14 @@ case class MetricContext(namespace: MetricAddress, collection: Collection, tags:
   * @param collectionIntervals Intervals for which this MetricSystem reports its data.
   * @param config Config object from which Metric configurations will be sourced.
  */
-case class MetricSystem private[metrics] (namespace: MetricAddress, collectionIntervals : Map[FiniteDuration, MetricInterval],
+case class MetricSystem private[metrics] (namespace: MetricAddress, collectionIntervals : Map[FiniteDuration, CollectionInterval],
                                           collectionSystemMetrics : Boolean, config : Config) extends MetricNamespace {
 
   private val localHostname = java.net.InetAddress.getLocalHost.getHostName
   val tags: TagMap = Map("host" -> localHostname)
 
-  val collection = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
-  registerCollection(collection)
-
-  protected def registerCollection(collection: Collection): Unit = {
-    collectionIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
-  }
+  protected val collection = new Collection(CollectorConfig(collectionIntervals.keys.toSeq, config))
+  collectionIntervals.values.foreach(_.intervalAggregator ! IntervalAggregator.RegisterCollection(collection))
 
 }
 
@@ -158,10 +157,10 @@ object MetricSystem {
     import system.dispatcher
 
 
-    val m : Map[FiniteDuration, MetricInterval] = collectionIntervals.map{ interval =>
+    val m : Map[FiniteDuration, CollectionInterval] = collectionIntervals.map{ interval =>
       val snap = Agent[MetricMap](Map())
       val aggregator : ActorRef = createIntervalAggregator(system, namespace, interval, snap, collectSystemMetrics)
-      val i = new MetricInterval(namespace, interval, aggregator, snap)
+      val i = new CollectionInterval(namespace, interval, aggregator, snap)
       interval -> i
     }.toMap
 
@@ -180,7 +179,7 @@ object MetricSystem {
     * @return
     */
   def deadSystem(implicit system: ActorSystem) = {
-    MetricSystem(Root / "DEAD", Map[FiniteDuration, MetricInterval](), false, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot))
+    MetricSystem(Root / "DEAD", Map[FiniteDuration, CollectionInterval](), false, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot))
   }
 
   /**
