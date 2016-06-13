@@ -4,7 +4,7 @@ package controller
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
-import service.Codec
+import service.{Codec, Protocol}
 
 import scala.concurrent.duration.Duration
 
@@ -50,6 +50,24 @@ trait MasterController[Input, Output] {this:  ConnectionHandler =>
   //can kill one half of the controller without automatically killing the whole
   //thing
   def disconnect()
+}
+
+//these are the methods that the controller layer requires to be implemented
+trait ControllerIface[P <: Protocol] {
+  def processMessage(input: P#Input)
+  def controllerConfig: ControllerConfig
+}
+
+//these are the method that a controller layer itself must implement
+trait ControllerImpl[P <: Protocol] {
+  def push(item: P#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+  def canPush: Boolean
+  def purgePending()
+  def writesEnabled: Boolean
+  def pauseWrites()
+  def resumeWrites()
+  def pauseReads()
+  def resumeReads()
 }
 
 
