@@ -64,6 +64,13 @@ class HistogramSpec extends MetricIntegrationSpec {
   }
 
   "Histogram" must {
+
+    "correctly generate address based on namespace" in {
+      implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
+      val h = Histogram("baz")
+      h.address must equal(MetricAddress("/foo/bar/baz"))
+    }
+
     "get tags right" in {
       implicit val col = MetricContext("/", Collection.withReferenceConf(Seq(1.second)))
       val addr = MetricAddress.Root / "hist"

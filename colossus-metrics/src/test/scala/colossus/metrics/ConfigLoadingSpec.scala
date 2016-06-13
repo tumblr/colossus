@@ -12,20 +12,22 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
                           "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
                           "collector-defaults.histogram-percentiles")
 
-  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference()).getConfig(MetricSystem.ConfigRoot)
+  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference()).getConfig(MetricSystemConfig.ConfigRoot)
 
-  def metricSystem(userOverrides: String): MetricSystem = MetricSystem(config(userOverrides))
+  def msconfig(userOverrides: String): MetricSystemConfig = MetricSystemConfig.load(config(userOverrides))
+
+  def metricSystem(userOverrides: String): MetricSystem = MetricSystem(msconfig(userOverrides))
 
   "MetricSystem initialization" must {
     "load defaults from reference implementation" in {
 
-      val ms = MetricSystem()
-      ms.namespace mustBe MetricAddress.Root
-      ms.collectionIntervals.keys mustBe Set(1.second, 1.minute)
-      ms.collectionSystemMetrics mustBe true
+      val ms = MetricSystemConfig.load()
+      ms.name mustBe "metrics"
+      ms.collectionIntervals.toSet mustBe Set(1.second, 1.minute)
+      ms.systemMetricsConfig mustBe SystemMetricsConfig(true, "/")
 
       expectedPaths.foreach{ x =>
-        ms.config.hasPath(s"$PrefixRoot$x")
+        ms.collectorConfigs.hasPath(s"$PrefixRoot$x")
       }
     }
 
@@ -43,7 +45,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      a[FiniteDurationExpectedException] must be thrownBy MetricSystem(config(userOverrides))
+      a[FiniteDurationExpectedException] must be thrownBy msconfig(userOverrides)
     }
 
     "fail to load if metric intervals contains a non duration string" in {
@@ -60,7 +62,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
           |}
         """.stripMargin
 
-      a[NumberFormatException] must be thrownBy MetricSystem(config(userOverrides))
+      a[NumberFormatException] must be thrownBy msconfig(userOverrides)
     }
 
     "load a dead system if the MetricSystem is disabled" in {
@@ -71,7 +73,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       """.stripMargin
 
       val ms = metricSystem(userOverrides)
-      ms.namespace mustBe MetricAddress.Root / "DEAD"
+      ms.config.name mustBe "DEAD"
     }
   }
 

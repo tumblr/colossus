@@ -20,7 +20,8 @@ case class ControllerConfig(
   outputBufferSize: Int,
   sendTimeout: Duration,
   inputMaxSize: DataSize = 1.MB,
-  flushBufferOnClose: Boolean = true
+  flushBufferOnClose: Boolean = true,
+  metricsEnabled: Boolean = true
 )
 
 //used to terminate input streams when a connection is closing

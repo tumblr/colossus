@@ -59,8 +59,12 @@ trait InputController[Input, Output] extends MasterController[Input, Output] {
   
   
   //this has to be lazy to avoid initialization-order NPE
-  lazy val inputSizeHistogram = Histogram("input_size", sampleRate = 0.10, percentiles = List(0.75,0.99))
-  lazy val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), Some(inputSizeHistogram))
+  lazy val inputSizeHistogram = if (controllerConfig.metricsEnabled) {
+    Some(Histogram("input_size", sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  } else {
+    None
+  }
+  lazy val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), inputSizeHistogram)
 
   private[controller] def inputOnClosed() {
     inputState match {

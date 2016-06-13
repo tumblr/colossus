@@ -13,7 +13,6 @@ class IOSystemConfigSpec extends ColossusSpec{
       io.numWorkers mustBe Runtime.getRuntime.availableProcessors()
       io.name mustBe "iosystem"
       io.metrics.namespace mustBe MetricAddress.Root
-      io.namespace.namespace mustBe MetricAddress("iosystem")
       shutdownIOSystem(io)
     }
 
@@ -29,7 +28,6 @@ class IOSystemConfigSpec extends ColossusSpec{
       val io = IOSystem("my-io-system", c.getConfig(IOSystem.ConfigRoot))
       io.numWorkers mustBe 2
       io.name mustBe "my-io-system"
-      io.namespace.namespace mustBe MetricAddress("/my-io-system")
       shutdownIOSystem(io)
     }
   }

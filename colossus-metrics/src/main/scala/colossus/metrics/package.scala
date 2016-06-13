@@ -42,6 +42,10 @@ package object metrics {
     }.toSeq
     def fragments: Seq[MetricFragment] = fragments(TagMap.Empty)
 
+    def withTags(newtags: TagMap): MetricMap = underlying.map{ case (address, values) =>
+      address -> values.map{case (tags, value) => (tags ++ newtags, value)}
+    }
+
   }
 
 

@@ -25,8 +25,10 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
   "MetricSystem" must {
     "allow multiple systems to start without any conflicts" in {
-      val m1 = MetricSystem(MetricAddress("/sys1"), Seq(), false, ConfigFactory.empty())
-      val m2 = MetricSystem(MetricAddress("/sys2"), Seq(), false, ConfigFactory.empty())
+      val config = MetricSystemConfig.load()
+      
+      val m1 = MetricSystem(config)
+      val m2 = MetricSystem(config.copy(name = "different-name"))
       //no exceptions means the test passed
     }
   }
