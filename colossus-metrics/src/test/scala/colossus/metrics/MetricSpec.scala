@@ -32,4 +32,21 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
       //no exceptions means the test passed
     }
   }
+
+  "SystemMetricsCollector" must {
+    "generate system metrics" in {
+      implicit val ns = TestNamespace() / "foo" * ("a" -> "b")
+      val s = new SystemMetricsCollector(ns)
+      val m = s.metrics
+
+      m contains "/foo/system/gc/msec" mustBe true
+      m contains "/foo/system/gc/cycles" mustBe true
+      m contains "/foo/system/fd_count" mustBe true
+      m contains "/foo/system/memory" mustBe true
+
+      //verify the namespace's tags are being added
+      m("/foo/system/fd_count") contains (Map("a" -> "b")) mustBe true
+    }
+
+  }
 }
