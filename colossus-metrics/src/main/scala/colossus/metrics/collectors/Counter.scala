@@ -103,7 +103,7 @@ object Counter extends CollectorConfigLoader{
   def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
     ns.getOrAdd(address){ (fullAddress, config) =>
       val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
-      createCounter(address, params.getBoolean("enabled"))
+      createCounter(fullAddress, params.getBoolean("enabled"))
     }
   }
 

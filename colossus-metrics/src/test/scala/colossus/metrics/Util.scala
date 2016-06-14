@@ -53,3 +53,9 @@ trait EventuallyEquals {
 object EventuallyEquals extends EventuallyEquals
 
 
+object TestNamespace {
+
+  def apply(): MetricNamespace = MetricContext("/", Collection.withReferenceConf(Seq(1.second)), Map())
+
+}
+

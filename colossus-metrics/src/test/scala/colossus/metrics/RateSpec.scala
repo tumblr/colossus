@@ -64,6 +64,13 @@ class RateSpec extends MetricIntegrationSpec {
       //s2("foo/count").size must equal(1)
       s2("foo")(Map("a" -> "b")) must equal(1)
     }
+
+    "have the right address" in {
+      implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
+      val r = Rate("/baz")
+      r.address must equal(MetricAddress("/foo/bar/baz"))
+      
+    }
   }
 }
 

@@ -113,7 +113,7 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
 abstract class ServiceServer[I,O]
   (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext)
 extends Controller[I,O](codec,
-  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize),
+  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize,true, config.requestMetrics),
   serverContext.context)
 with ServerConnectionHandler {
   import ServiceServer._

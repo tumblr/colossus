@@ -6,16 +6,16 @@ import akka.agent.Agent
 import scala.concurrent.duration._
 
 
-class IntervalAggregator(namespace: MetricAddress, interval: FiniteDuration, snapshot: Agent[MetricMap], collectSystemMetrics: Boolean) extends Actor with ActorLogging {
+class IntervalAggregator(interval: FiniteDuration, snapshot: Agent[MetricMap], sysMetricsNamespace: Option[MetricNamespace]) extends Actor with ActorLogging {
 
   import context.dispatcher
   import IntervalAggregator._
   import java.util.{HashSet=>JHashSet}
   import scala.collection.JavaConversions._
 
-  val systemMetrics = new SystemMetricsCollector(namespace)
+  val systemMetrics = sysMetricsNamespace.map{ns => new SystemMetricsCollector(ns)}
 
-  def blankMap(): MetricMap = if (collectSystemMetrics) systemMetrics.metrics else Map()
+  def blankMap(): MetricMap = systemMetrics.map{_.metrics}.getOrElse( Map())
 
   var collections = Set[Collection]()
   var reporters = Set[ActorRef]()
@@ -74,7 +74,7 @@ object IntervalAggregator {
 }
 
 
-class SystemMetricsCollector(namespace: MetricAddress) {
+class SystemMetricsCollector(namespace: MetricNamespace) {
 
   import management._
 
@@ -84,7 +84,7 @@ class SystemMetricsCollector(namespace: MetricAddress) {
     val allocatedMemory = runtime.totalMemory
     val freeMemory = runtime.freeMemory
     val memoryInfo: MetricMap = Map(
-      (namespace / "system" / "memory") -> Map(
+      (namespace.namespace / "system" / "memory") -> Map(
         (Map("type" -> "max")       -> maxMemory),
         (Map("type" -> "allocated") -> allocatedMemory),
         (Map("type" -> "free")      -> freeMemory)
@@ -97,18 +97,18 @@ class SystemMetricsCollector(namespace: MetricAddress) {
         (cycles + (tags -> tastyBean.getCollectionCount), msec + (tags -> tastyBean.getCollectionTime))
       }
       Map (
-        (namespace / "system" / "gc" / "cycles") -> cycles,
-        (namespace / "system" / "gc" / "msec") -> msec
+        (namespace.namespace / "system" / "gc" / "cycles") -> cycles,
+        (namespace.namespace / "system" / "gc" / "msec") -> msec
       )
     }
     
     val fdInfo: MetricMap = ManagementFactory.getOperatingSystemMXBean match {    
       case u: com.sun.management.UnixOperatingSystemMXBean => Map(
-        (namespace / "system" / "fd_count") -> Map(Map() -> u.getOpenFileDescriptorCount)
+        (namespace.namespace / "system" / "fd_count") -> Map(Map() -> u.getOpenFileDescriptorCount)
       )
       case _ => MetricMap.Empty //for those poor souls using non-*nix
     }
 
-    (memoryInfo ++ gcInfo ++ fdInfo)
+    (memoryInfo ++ gcInfo ++ fdInfo).withTags(namespace.tags)
   }
 }
