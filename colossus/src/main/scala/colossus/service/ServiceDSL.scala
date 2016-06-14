@@ -68,7 +68,7 @@ trait ClientCodecProvider[C <: Protocol] {
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-trait DSLService[C <: Protocol] extends ServiceServer[C#Input, C#Output] with ConnectionManager{ 
+trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{ 
 
   def requestHandler: GenRequestHandler[C]
 

@@ -52,23 +52,6 @@ trait MasterController[Input, Output] {this:  ConnectionHandler =>
   def disconnect()
 }
 
-//these are the methods that the controller layer requires to be implemented
-trait ControllerIface[P <: Protocol] {
-  def processMessage(input: P#Input)
-  def controllerConfig: ControllerConfig
-}
-
-//these are the method that a controller layer itself must implement
-trait ControllerImpl[P <: Protocol] {
-  def push(item: P#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
-  def canPush: Boolean
-  def purgePending()
-  def writesEnabled: Boolean
-  def pauseWrites()
-  def resumeWrites()
-  def pauseReads()
-  def resumeReads()
-}
 
 
 

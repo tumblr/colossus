@@ -109,10 +109,12 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[I,O] extends Controller[I,O] with ServerConnectionHandler {
+trait ServiceServer[P <: Protocol] extends StaticController[P] with ControllerIface[P] with ServerConnectionHandler {
   import ServiceServer._
 
   // ABSTRACT MEMBERS
+  type I = P#Input
+  type O = P#Output
 
   //"constructor" parameters
   //codec is already defined in controller
@@ -217,7 +219,7 @@ trait ServiceServer[I,O] extends Controller[I,O] with ServerConnectionHandler {
     checkGracefulDisconnect()
   }
 
-  override def connectionClosed(cause : DisconnectCause) {
+  abstract override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
     if (requestMetrics) {
       requestsPerConnection.add(numRequests)
@@ -286,7 +288,7 @@ trait ServiceServer[I,O] extends Controller[I,O] with ServerConnectionHandler {
     }
   }
   
-  override def processBadRequest(reason: Throwable) = {
+  def processBadRequest(reason: Throwable) = {
     Some(handleFailure(IrrecoverableError(reason)))
   }
 
