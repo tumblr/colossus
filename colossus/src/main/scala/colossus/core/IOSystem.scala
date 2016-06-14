@@ -30,6 +30,8 @@ object IOSystem {
     apply("iosystem")
   }
 
+
+
   /**
     * Create a new IOSystem.
     *
@@ -40,12 +42,17 @@ object IOSystem {
     * @param sys
     * @return
     */
-  def apply(name : String, ioConfig : Config = ConfigFactory.load().getConfig(ConfigRoot))(implicit sys : ActorSystem) : IOSystem = {
+  def apply(
+    name : String,
+    ioConfig : Config = ConfigFactory.load().getConfig(ConfigRoot),
+    metrics: Option[MetricSystem] = None
+  )(implicit sys : ActorSystem) : IOSystem = {
 
     import colossus.metrics.ConfigHelpers._
 
+    val ms: MetricSystem = metrics.getOrElse(MetricSystem())
+
     val workerCount : Option[Int] = ioConfig.getIntOption("num-workers")
-    val ms = MetricSystem()
     apply(name, workerCount, ms)
   }
 
@@ -134,7 +141,7 @@ class IOSystem private[colossus](
   /**
    * The namespace of this IOSystem, used by metrics
    */
-  val namespace = MetricContext(MetricAddress(name), metrics.collection)
+  val namespace: MetricNamespace = metrics
 
   //ENSURE THIS IS THE LAST THING INITIALIZED!!!
   private[colossus] val workerManager : ActorRef = managerFactory(workers, this)

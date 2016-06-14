@@ -1,6 +1,5 @@
 package colossus.metrics
 
-import colossus.metrics.MetricAddress
 import org.scalatest.{MustMatchers, WordSpec}
 import scala.concurrent.duration._
 

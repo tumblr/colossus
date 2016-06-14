@@ -42,6 +42,13 @@ class CounterSpec extends MetricIntegrationSpec {
       counter.tick(1.second) must equal(Map())
     }
 
+    "have correct address" in {
+      implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
+      val c = Counter("/baz")
+      c.address must equal(MetricAddress("/foo/bar/baz"))
+
+    }
+
     
   }
 

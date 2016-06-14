@@ -149,7 +149,7 @@ class Collection(val config: CollectorConfig) {
 //this project is the lowest common denominator for both.
 object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
-    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
+    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot)))
   }
 
   case class TaggedCollector(collector: Collector, tagMap: TagMap)

@@ -112,7 +112,7 @@ object Histogram extends CollectorConfigLoader{
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")
       val enabled = params.getBoolean("enabled")
-      createHistogram(address, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
     }
   }
 
