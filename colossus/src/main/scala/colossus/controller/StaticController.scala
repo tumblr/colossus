@@ -6,10 +6,17 @@ import scala.concurrent.duration._
 import core._
 import service._
 
+trait StaticCodec[P <: Protocol] {
+  def decode(data: DataBuffer): Option[P#Input]
+  def encode(message: P#Output, buffer: DataOutBuffer)
+
+  def reset()
+}
+
 //these are the methods that the controller layer requires to be implemented
 trait ControllerIface[P <: Protocol] {
   protected def connectionState: ConnectionState
-  def codec: Codec[P#Output, P#Input]
+  def codec: StaticCodec[P]
   protected def processMessage(input: P#Input)
   def controllerConfig: ControllerConfig
 }
@@ -56,9 +63,8 @@ trait StaticInputController[P <: Protocol] extends CoreHandler with ControllerIm
   def receivedData(data: DataBuffer) {
     while (data.hasUnreadData) {
       codec.decode(data) match {
-        case Some(DecodedResult.Static(msg)) => processMessage(msg)
+        case Some(msg) => processMessage(msg)
         case None => {}
-        case _ => throw new Exception("Not supported") //only temporary until we split up codecs
       }
     }
   }
@@ -75,6 +81,8 @@ trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerI
 
   private var disconnecting = false
   private var _writesEnabled = true
+  private var outputBuffer = new MessageQueue[P#Output](controllerConfig.outputBufferSize)
+
   def writesEnabled = _writesEnabled
 
   def pauseWrites() {
@@ -98,7 +106,6 @@ trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerI
   }
 
 
-  private var outputBuffer = new MessageQueue[P#Output](controllerConfig.outputBufferSize)
 
   private def onClosed() {
     if (disconnecting) {
@@ -143,13 +150,8 @@ trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerI
     } else {
       while (writesEnabled && outputBuffer.size > 0 && ! buffer.isOverflowed) {
         val next = outputBuffer.dequeue
-        codec.encode(next.item) match {
-          case e: Encoder => {
-            e.encode(buffer)
-            next.postWrite(OutputResult.Success)
-          }
-          case _ => throw new Exception("Not supported")
-        }
+        codec.encode(next.item, buffer)
+        next.postWrite(OutputResult.Success)
       }
       if (disconnecting || (writesEnabled && outputBuffer.size > 0)) {
         //return incomplete only if we overflowed the buffer and have more in

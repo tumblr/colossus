@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import core.{Server, ServerContext, ServerRef, WorkerRef}
+import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
 import controller._
 import service._
 
@@ -66,13 +66,13 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  class HttpServiceHandler(rh: RequestHandler) 
+  class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
   extends BasicServiceHandler[Http](rh) {
 
     //TODO: take as paramter
     val defaults = new Http.ServerDefaults
 
-    val codec = new HttpServerCodec
+    val codec = new StaticHttpServerCodec(defaultHeaders)
 
     override def tagDecorator = new ReturnCodeTagDecorator[Http]
 
@@ -89,16 +89,14 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   }
 
-  //TODO: not used yet, requires Server.start to use this I think
-  case class InitContext(server: ServerRef, worker: WorkerRef)
 
-  abstract class Initializer(worker: WorkerRef) {
+  abstract class Initializer(context: InitContext) {
     
-    //val dateHeader = new DateHeader
-    //val serverHeader = HttpHeader("Server", ctx.server.name.idString)
+    val DateHeader = new DateHeader
+    val ServerHeader = HttpHeader("Server", context.server.name.idString)
 
     //TODO : not used yet
-    //val defaultHeaders = HttpHeaders(dateHeader, serverHeader)
+    val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
 
     def onConnect : ServerContext => RequestHandler
 
@@ -110,12 +108,16 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   object HttpServer {
     
-    def start(name: String, port: Int)(init: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
-      Server.start(name, port){worker => new core.Initializer(worker) {
-        val httpInitializer = init(worker)
-        def onConnect = ctx => new HttpServiceHandler(httpInitializer.onConnect(ctx))
+    def start(name: String, port: Int)(init: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
+      Server.start(name, port){i => new core.Initializer(i) {
+        val httpInitializer = init(i)
+        def onConnect = ctx => new HttpServiceHandler(httpInitializer.onConnect(ctx), httpInitializer.defaultHeaders)
       }}
     }
+
+    def basic(name: String, port: Int)(handler: PartialFunction[HttpRequest, Callback[HttpResponse]])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
+      def onConnect = new RequestHandler(_) { def handle = handler }
+    }}
   }
   /*
 

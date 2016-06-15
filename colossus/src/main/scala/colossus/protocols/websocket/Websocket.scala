@@ -255,9 +255,9 @@ object WebsocketServer {
    * `upgradePath`, all other paths will 404.
    */
   def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
-    HttpServer.start(name, port){worker => new Initializer(worker) {
+    HttpServer.start(name, port){context => new Initializer(context) {
     
-      val websockinit : WebsocketInitializer = init(worker)
+      val websockinit : WebsocketInitializer = init(context.worker)
 
       def onConnect = new RequestHandler(_) {
         def handle = {
