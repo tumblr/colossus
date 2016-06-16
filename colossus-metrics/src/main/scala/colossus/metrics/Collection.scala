@@ -30,8 +30,7 @@ case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig : Config, 
   def resolveConfig(address : MetricAddress, defaultsPath: String, alternatePaths: String*) : Config = {
     import ConfigHelpers._
     baseConfig
-      .getConfig(address.configString)
-      .withFallbacks(alternatePaths:_*)
+      .withFallbacks((address.configString +: alternatePaths):_*)
       .withFallback(collectorDefaults.getConfig(defaultsPath))
   }
 
@@ -165,7 +164,7 @@ class Collection(val config: CollectorConfig) {
 object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
     val config = ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot)
-    new Collection(CollectorConfig(intervals,config, config.getConfig("default.collectorDefaults") ))
+    new Collection(CollectorConfig(intervals,config, config.getConfig("system.collector-defaults") ))
   }
 
   case class TaggedCollector(collector: Collector, tagMap: TagMap)

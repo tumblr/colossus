@@ -90,6 +90,8 @@ trait MetricNamespace {
 
 case class MetricContext(namespace: MetricAddress, collection: Collection, tags: TagMap = TagMap.Empty) extends MetricNamespace
 
+case class SystemMetricsConfig(enabled: Boolean, namespace: MetricAddress)
+
 
 /** 
  * Configuration object for a [[MetricSystem]]
@@ -104,8 +106,7 @@ case class MetricContext(namespace: MetricAddress, collection: Collection, tags:
 case class MetricSystemConfig(
   enabled: Boolean,
   name: String,
-  collectSystemMetrics: Boolean,
-  systemMetricsNamespace: MetricAddress,
+  systemMetrics: SystemMetricsConfig,
   collectorConfig: CollectorConfig
 )
 
@@ -128,7 +129,7 @@ object MetricSystemConfig {
    ```
    */
   def load(name: String, config: Config = ConfigFactory.load().getConfig(ConfigRoot)): MetricSystemConfig = {
-    val systemConfig = config.getConfig(name).withFallback(config.getConfig("default"))
+    val systemConfig = if (config.hasPath(name)) config.getConfig(name).withFallback(config) else config
     import ConfigHelpers._
     val enabled               = systemConfig.getBoolean("system.enabled")
     val collectSystemMetrics  = systemConfig.getBoolean("system.system-metrics.enabled")
@@ -138,8 +139,8 @@ object MetricSystemConfig {
         if (n == "__NAME__") name else n
       }.getOrElse("/")
     }
-    val collectorConfig = CollectorConfig(metricIntervals, config, systemConfig.getConfig("collector-defaults"))
-    MetricSystemConfig(enabled, name, collectSystemMetrics, systemMetricsNamespace, collectorConfig)
+    val collectorConfig = CollectorConfig(metricIntervals, config, systemConfig.getConfig("system.collector-defaults"))
+    MetricSystemConfig(enabled, name, SystemMetricsConfig(collectSystemMetrics, systemMetricsNamespace) , collectorConfig)
   }
 
 }
@@ -157,8 +158,8 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
   protected val collection = new Collection(config.collectorConfig)
 
 
-  private val intervalNamespace = if (config.collectSystemMetrics) {
-    Some(this / config.systemMetricsNamespace)
+  private val intervalNamespace = if (config.systemMetrics.enabled) {
+    Some(this / config.systemMetrics.namespace)
   } else {
     None
   }
@@ -210,9 +211,8 @@ object MetricSystem {
     val deadconfig = MetricSystemConfig(
       enabled = false,
       name = "DEAD",
-      collectSystemMetrics = false,
-      systemMetricsNamespace = "/",
-      collectorConfig = CollectorConfig(Nil, ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot), ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + "default.collector-defaults"))
+      systemMetrics = SystemMetricsConfig(false, "/"),
+      collectorConfig = CollectorConfig(Nil, ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot), ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + ".system.collector-defaults"))
     )
     new MetricSystem(deadconfig)
   }
