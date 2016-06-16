@@ -6,29 +6,20 @@ import scala.concurrent.duration._
 
 class ConfigLoadingSpec extends MetricIntegrationSpec {
 
-  val PrefixRoot = "colossus.metrics.system"
-
-  val expectedPaths = Seq("collect-system-metrics", "collection-intervals", "namespace", "collector-defaults.rate.prune-empty",
-                          "collector-defaults.histogram.prune-empty", "collector-defaults.histogram.sample-rate",
-                          "collector-defaults.histogram-percentiles")
-
   def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference()).getConfig(MetricSystemConfig.ConfigRoot)
 
-  def msconfig(userOverrides: String): MetricSystemConfig = MetricSystemConfig.load(config(userOverrides))
+  def msconfig(userOverrides: String): MetricSystemConfig = MetricSystemConfig.load("test", config(userOverrides))
 
   def metricSystem(userOverrides: String): MetricSystem = MetricSystem(msconfig(userOverrides))
 
   "MetricSystem initialization" must {
     "load defaults from reference implementation" in {
 
-      val ms = MetricSystemConfig.load()
-      ms.name mustBe "metrics"
-      ms.collectionIntervals.toSet mustBe Set(1.second, 1.minute)
-      ms.systemMetricsConfig mustBe SystemMetricsConfig(true, "/")
+      val ms = MetricSystemConfig.load("test")
+      ms.name mustBe "test"
+      ms.collectorConfig.intervals.toSet mustBe Set(1.second, 1.minute)
+      ms.systemMetrics mustBe SystemMetricsConfig(true, "/test")
 
-      expectedPaths.foreach{ x =>
-        ms.collectorConfigs.hasPath(s"$PrefixRoot$x")
-      }
     }
 
     "fail to load if metric intervals contains an infinite value" in {
@@ -90,7 +81,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  }
         |  system{
         |    collection-intervals : ["1 minute", "10 minutes"]
-        |    collectors-defaults {
+        |    collector-defaults {
         |     rate {
         |      prune-empty : true
         |     }
@@ -103,7 +94,8 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
-    "load a rate using collector defaults" in {
+    "load a rate using collector defaults" taggedAs(org.scalatest.Tag("test")) in {
+      println(ms.config.collectorConfig.collectorDefaults.toString)
       val r = Rate(MetricAddress("my-rate"))
       r.pruneEmpty mustBe true
     }
@@ -144,7 +136,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  }
         |  system{
         |    collection-intervals : ["1 minute", "10 minutes"]
-        |    collectors-defaults {
+        |    collector-defaults {
         |      histogram {
         |        prune-empty : true
         |        sample-rate : 1
