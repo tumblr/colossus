@@ -8,17 +8,22 @@ import akka.testkit.TestProbe
 
 import scala.concurrent.duration._
 
+class NoopWorkerItem(c: Context) extends WorkerItem {
+  val context = c
+  def receivedMessage(message: Any, sender: ActorRef){}
+}
+
+
 class WorkerItemSpec extends ColossusSpec {
 
   "A WorkerItem" must {
     "bind to a worker" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem(c: Context) extends WorkerItem(c) {
+        class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             probe.ref ! "BOUND"
           }
-          def receivedMessage(message: Any, sender: ActorRef){}
         }
         io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "BOUND")
@@ -28,12 +33,11 @@ class WorkerItemSpec extends ColossusSpec {
     "not bind more than once" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem(c: Context) extends WorkerItem(c) {
+        class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             probe.ref ! "BOUND"
             io ! IOCommand.BindWorkerItem(_ => this)
           }
-          def receivedMessage(message: Any, sender: ActorRef){}
         }
         io ! IOCommand.BindWorkerItem(new MyItem(_))
         probe.expectMsg(100.milliseconds, "BOUND")
@@ -45,11 +49,11 @@ class WorkerItemSpec extends ColossusSpec {
     "receive messages after binding" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem(c: Context) extends WorkerItem(c) {
+        class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             worker.worker ! WorkerCommand.Message(id, "PING")
           }
-          def receivedMessage(message: Any, sender: ActorRef){
+          override def receivedMessage(message: Any, sender: ActorRef){
             message match {
               case "PING" => probe.ref ! "PONG"
             }
@@ -63,12 +67,12 @@ class WorkerItemSpec extends ColossusSpec {
     "not receive messages after unbinding" in {
       withIOSystem{io =>
         val probe = TestProbe()
-        class MyItem(c: Context) extends WorkerItem(c) {
+        class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             worker.worker ! WorkerCommand.UnbindWorkerItem(id)
             worker.worker ! WorkerCommand.Message(id, "PING")
           }
-          def receivedMessage(message: Any, sender: ActorRef){
+          override def receivedMessage(message: Any, sender: ActorRef){
             message match {
               case "PING" => probe.ref ! "PONG"
             }

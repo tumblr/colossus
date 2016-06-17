@@ -152,10 +152,12 @@ class ServiceClient[P <: Protocol](
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input]
+extends {
+  //needed to deal with initialization order
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
+} with Controller[P#Output,P#Input]
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
-  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
 
   type I = P#Input
   type O = P#Output

@@ -124,4 +124,8 @@ with InputController[Input, Output] with OutputController[Input, Output] with Co
 
 }
 
-
+abstract class BasicController[I,O](
+  val codec: Codec[O, I],
+  val controllerConfig: ControllerConfig,
+  val context: Context
+) extends Controller[I,O]

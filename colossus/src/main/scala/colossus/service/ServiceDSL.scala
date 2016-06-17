@@ -46,6 +46,7 @@ trait CodecProvider[C <: Protocol] {
     */
   def provideCodec: ServerCodec[C#Input, C#Output]
 
+
 }
 
 trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
@@ -86,6 +87,50 @@ trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{
 
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
+}
+
+/**Deprecated*/
+abstract class Service[P <: Protocol](
+  val serverContext: ServerContext,
+  val config: ServiceConfig = ServiceConfig.Default
+)(implicit provider: ServiceCodecProvider[P]) extends DSLService[P] with ProxyActor {
+
+  implicit val executor = serverContext.context.worker.callbackExecutor
+
+  def handle: PartialHandler[P]
+  private val userHandler = handle
+  def onError: ErrorHandler[P] = Map()
+  private val userError = onError
+
+  val _codec = controller.StaticCodec.wrap[P](provider.provideCodec)
+  def codec = _codec
+
+  val requestHandler = new GenRequestHandler[P](config, serverContext) {
+    def handle = userHandler
+    override def onError = userError
+  }
+  
+  def receive = {case _ => {}}
+
+  protected def unhandledError: colossus.service.Protocol.ErrorHandler[P] = {
+    case err => provider.errorResponse(err)
+  }
+}
+
+object Service {
+  /** Quick-start a service, using default settings 
+   *
+   * @param name The name of the service
+   * @param port The port to bind the server to
+   */
+  def basic[T <: Protocol]
+  (name: String, port: Int)(userHandler: PartialHandler[T])
+  (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = { 
+    class BasicService(context: ServerContext) extends Service( context) {
+      def handle = userHandler
+    }
+    Server.basic(name, port)(context => new BasicService(context))
+  }
 }
 
 /**

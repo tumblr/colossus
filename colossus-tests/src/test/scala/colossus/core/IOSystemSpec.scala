@@ -20,9 +20,8 @@ class IOSystemSpec extends ColossusSpec {
     "connect client handler using connect method" in {
       withIOSystem{implicit sys =>
         val probe = TestProbe()
-        class MyHandler(c: Context) extends BasicSyncHandler(c) with  ClientConnectionHandler {
+        class MyHandler(c: Context) extends NoopHandler(c) {
           def connectionFailed(){}
-          def receivedData(data: DataBuffer){}
           override def connected(w: WriteEndpoint) {
             probe.ref ! "CONNECTED"
           }

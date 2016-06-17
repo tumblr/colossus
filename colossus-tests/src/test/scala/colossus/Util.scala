@@ -11,19 +11,39 @@ import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
-class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with ServerConnectionHandler {
+class NoopHandler(val context: Context) extends CoreHandler with ServerConnectionHandler with ClientConnectionHandler {
+  def this(s: ServerContext) = this(s.context)
+
+  def receivedData(data: DataBuffer){}
+  def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
+
+   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
+   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
+   def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
+
+   // Members declared in colossus.core.WorkerItem
+   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
+
+}
+
+class EchoHandler(c: ServerContext) extends NoopHandler(c){
 
   val buffer = new collection.mutable.Queue[ByteString]
-  def receivedData(data: DataBuffer){
+  override def receivedData(data: DataBuffer){
     //endpoint.write(data)
     buffer.enqueue(ByteString(data.takeAll))
-    endpoint.requestWrite
+    connectionState match {
+      case a: AliveState => a.endpoint.requestWrite()
+      case _ => {}
+    }
   }
 
   override def readyForData(out: DataOutBuffer) = {
     out.write(buffer.dequeue)
     if (buffer.isEmpty) MoreDataResult.Complete else MoreDataResult.Incomplete
   }
+  
+  def connectionFailed(){}
       
 
 }

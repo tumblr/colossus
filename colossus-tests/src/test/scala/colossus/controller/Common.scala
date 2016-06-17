@@ -99,7 +99,10 @@ object TestController {
 
   def controller[I,O](codec: Codec[O,I], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
     val con =MockConnection.server(
-      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler,
+      c => {
+        val t: T[I,O] = new BasicController[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler
+        t
+      },
       500
     )
     con.handler.connected(con)

@@ -12,6 +12,23 @@ trait StaticCodec[P <: Protocol] {
 
   def reset()
 }
+object StaticCodec {
+  def wrap[P <: Protocol](s: Codec.ServerCodec[P#Input,P#Output]): StaticCodec[P] = new StaticCodec[P] {
+    def decode(input: DataBuffer): Option[P#Input] = s.decode(input).map{
+      case DecodedResult.Static(i) => i
+      case _ => throw new Exception("not supported")
+    }
+    def encode(output: P#Output, buffer: DataOutBuffer) {
+      s.encode(output) match {
+        case e: Encoder => {
+          e.encode(buffer)
+        }
+        case _ => throw new Exception("Not supported")
+      }
+    }
+    def reset() { s.reset() }
+  }
+}
 
 //these are the methods that the controller layer requires to be implemented
 trait ControllerIface[P <: Protocol] {
