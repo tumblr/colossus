@@ -5,8 +5,7 @@ object ServerDSL {
   type Receive = PartialFunction[Any, Unit]
 }
 import ServerDSL._
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 
 /**
  * An instance of this is handed to every new server connection handler
@@ -39,7 +38,6 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initial
 //this is mixed in by Server
 trait ServerDSL {
 
-  val ConfigRoot = "colossus.server"
 
   /**
     * Create a new Server
@@ -52,9 +50,9 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, serverConfig: Config = loadConfig)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
 
-    start(name, ServerSettings.extract(serverConfig))(initializer)
+    start(name, ServerSettings.load(name, serverConfig))(initializer)
   }
 
   /**
@@ -68,9 +66,8 @@ trait ServerDSL {
     * @return
     */
   def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
-    val serverConfig = loadConfig
-    val serverSettings = ServerSettings.extract(serverConfig)
-    start(name, serverSettings.copy(port = port))(initializer)
+    val serverSettings = ServerSettings.load(name).copy(port = port)
+    start(name, serverSettings)(initializer)
   }
 
   /**
@@ -102,10 +99,10 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def basic(name: String, serverConfig: Config = loadConfig)
+  def basic(name: String, serverConfig: Config = ConfigFactory.load())
            (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
 
-    basic(name, ServerSettings.extract(serverConfig))(handlerFactory)
+    basic(name, ServerSettings.load(name, serverConfig))(handlerFactory)
   }
 
   /**
@@ -140,5 +137,4 @@ trait ServerDSL {
     })
   }
 
-  private def loadConfig = ConfigFactory.load().getConfig(ConfigRoot)
 }
