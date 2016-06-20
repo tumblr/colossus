@@ -33,12 +33,15 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
 
     "load user overrides" in {
       val userOverrides =
-        """colossus.server{
+        """colossus.server.my-server{
           |    port : 9888
           |    max-connections : 1000
           |    max-idle-time : "1 second"
-          |    tcp-backlog-size : 100
           |    shutdown-timeout : "2 seconds"
+          |}
+          |colossus.server {
+          |   shutdown-timeout : "3 seconds"
+          |    tcp-backlog-size : 100
           |}
         """.stripMargin
       val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
