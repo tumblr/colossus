@@ -1,12 +1,10 @@
 package colossus.examples
 
 
-import colossus._
-import colossus.core.{Server, ServerRef, ServerSettings}
-import service._
-import Callback.Implicits._
-import protocols.http._
-import Http.defaults._
+import colossus.IOSystem
+import colossus.service.Callback.Implicits._
+import colossus.protocols.http._
+
 
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -16,7 +14,7 @@ object BenchmarkService {
 
   implicit object JsonBody extends HttpBodyEncoder[JValue] {
     def encode(json: JValue)  = {
-      new HttpBody(compact(render(json)).getBytes("UTF-8")).withContentType("application/json")
+      HttpBody(compact(render(json))).withContentType("application/json")
     }
   }
 

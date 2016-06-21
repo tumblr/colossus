@@ -169,10 +169,13 @@ object FrameParser {
   }
 }
 
-abstract class BaseWebsocketHandler(val context: Context) extends Controller[Frame, Frame] {
+abstract class BaseWebsocketHandler(val context: Context) extends {
 
   val codec = new WebsocketCodec
   val controllerConfig = ControllerConfig(50, scala.concurrent.duration.Duration.Inf)
+
+} with Controller[Frame, Frame] {
+
 
   def send(bytes: DataBlock) {
     //note - as per the spec, server frames are never masked

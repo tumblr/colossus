@@ -109,10 +109,9 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[P <: Protocol] extends StaticController[P] with ControllerIface[P] with ServerConnectionHandler {
+trait ServiceServer[P <: Protocol] extends StaticController[P#Input, P#Output] with ControllerIface[P#Input, P#Output] with ServerConnectionHandler {
   import ServiceServer._
 
-  // ABSTRACT MEMBERS
   type I = P#Input
   type O = P#Output
 
@@ -291,6 +290,8 @@ trait ServiceServer[P <: Protocol] extends StaticController[P] with ControllerIf
   def processBadRequest(reason: Throwable) = {
     Some(handleFailure(IrrecoverableError(reason)))
   }
+
+  override def onFatalError(reason: Throwable) = processBadRequest(reason)
 
   private def handleFailure(error: ProcessingFailure[I]): O = {
     addError(error)

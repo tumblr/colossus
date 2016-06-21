@@ -102,8 +102,7 @@ abstract class Service[P <: Protocol](
   def onError: ErrorHandler[P] = Map()
   private val userError = onError
 
-  val _codec = controller.StaticCodec.wrap[P](provider.provideCodec)
-  def codec = _codec
+  val codec = controller.StaticCodec.wrap[P#Input, P#Output](provider.provideCodec)
 
   val requestHandler = new GenRequestHandler[P](config, serverContext) {
     def handle = userHandler

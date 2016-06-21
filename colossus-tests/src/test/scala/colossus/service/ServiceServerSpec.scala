@@ -18,14 +18,16 @@ import scala.util.{Failure, Success, Try}
 
 class ServiceServerSpec extends ColossusSpec {
 
-  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[Raw]{
+  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends {
       val config = ServiceConfig.Default.copy(
         requestBufferSize = 2,
         requestTimeout = 50.milliseconds,
         maxRequestSize = 300.bytes
       )
-      val codec = controller.StaticCodec.wrap[Raw](RawCodec)
+      val codec = controller.StaticCodec.wrap[ByteString, ByteString](RawCodec)
       val serverContext = srv
+  
+  } with ServiceServer[Raw]{
 
     def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
 

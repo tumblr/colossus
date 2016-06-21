@@ -1,24 +1,31 @@
 package colossus
 package controller
 
+import colossus.metrics.{Histogram, MetricNamespace}
 import scala.concurrent.duration._
+import parsing.ParserSizeTracker
 
 import core._
 import service._
 
-trait StaticCodec[P <: Protocol] {
-  def decode(data: DataBuffer): Option[P#Input]
-  def encode(message: P#Output, buffer: DataOutBuffer)
+
+trait StaticCodec[I,O] {
+  def decode(data: DataBuffer): Option[I]
+  def encode(message: O, buffer: DataOutBuffer)
 
   def reset()
 }
 object StaticCodec {
-  def wrap[P <: Protocol](s: Codec.ServerCodec[P#Input,P#Output]): StaticCodec[P] = new StaticCodec[P] {
-    def decode(input: DataBuffer): Option[P#Input] = s.decode(input).map{
+
+  type Server[P <: Protocol] = StaticCodec[P#Input, P#Output]
+  type Client[P <: Protocol] = StaticCodec[P#Output, P#Input]
+
+  def wrap[I,O](s: Codec[O,I]): StaticCodec[I,O] = new StaticCodec[I,O] {
+    def decode(input: DataBuffer): Option[I] = s.decode(input).map{
       case DecodedResult.Static(i) => i
       case _ => throw new Exception("not supported")
     }
-    def encode(output: P#Output, buffer: DataOutBuffer) {
+    def encode(output: O, buffer: DataOutBuffer) {
       s.encode(output) match {
         case e: Encoder => {
           e.encode(buffer)
@@ -31,31 +38,53 @@ object StaticCodec {
 }
 
 //these are the methods that the controller layer requires to be implemented
-trait ControllerIface[P <: Protocol] {
+trait ControllerIface[I,O] {
   protected def connectionState: ConnectionState
-  def codec: StaticCodec[P]
-  protected def processMessage(input: P#Input)
-  def controllerConfig: ControllerConfig
+  protected def codec: StaticCodec[I,O]
+  protected def processMessage(input: I)
+  protected def controllerConfig: ControllerConfig
+  implicit val namespace: MetricNamespace
+
+  protected def onFatalError(reason: Throwable): Option[O] = None
 }
 
 //these are the method that a controller layer itself must implement
-trait ControllerImpl[P <: Protocol] {
-  def push(item: P#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
-  def canPush: Boolean
-  protected def purgePending()
-  def writesEnabled: Boolean
-  def pauseWrites()
-  def resumeWrites()
-  def pauseReads()
-  def resumeReads()
+trait ControllerImpl[I,O] {
+  protected def push(item: O, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+  protected def canPush: Boolean
+  protected def purgePending(reason: Throwable)
+  protected def writesEnabled: Boolean
+  protected def pauseWrites()
+  protected def resumeWrites()
+  protected def pauseReads()
+  protected def resumeReads()
 }
 
-trait StaticController[P <: Protocol] extends StaticInputController[P] with StaticOutputController[P]{this: ControllerIface[P] => }
+/**
+ * methods that both input and output need but shouldn't be exposed in the above traits
+ */
+trait BaseStaticController[I,O] extends CoreHandler with ControllerImpl[I,O]{this: ControllerIface[I,O] =>
+  def fatalError(reason: Throwable) {
+    onFatalError(reason).foreach{o => push(o){_ => ()}}
+    disconnect()
+  }
+}
+
+trait StaticController[I,O] extends StaticInputController[I,O] with StaticOutputController[I,O]{this: ControllerIface[I,O] => }
 
 
-trait StaticInputController[P <: Protocol] extends CoreHandler with ControllerImpl[P]{this: ControllerIface[P] =>
+
+trait StaticInputController[I,O] extends BaseStaticController[I,O] {this: ControllerIface[I,O] =>
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
+
+  //this has to be lazy to avoid initialization-order NPE
+  lazy val inputSizeHistogram = if (controllerConfig.metricsEnabled) {
+    Some(Histogram("input_size", sampleRate = 0.10, percentiles = List(0.75,0.99)))
+  } else {
+    None
+  }
+  lazy val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), inputSizeHistogram)
 
   def pauseReads() {
     connectionState match {
@@ -78,10 +107,16 @@ trait StaticInputController[P <: Protocol] extends CoreHandler with ControllerIm
   }
 
   def receivedData(data: DataBuffer) {
-    while (data.hasUnreadData) {
-      codec.decode(data) match {
-        case Some(msg) => processMessage(msg)
-        case None => {}
+    try {
+      while (data.hasUnreadData) {
+        inputSizeTracker.track(data)(codec.decode(data)) match {
+          case Some(msg) => processMessage(msg)
+          case None => {}
+        }
+      }
+    } catch {
+      case reason: Throwable => {
+        fatalError(reason)
       }
     }
   }
@@ -93,12 +128,23 @@ trait StaticInputController[P <: Protocol] extends CoreHandler with ControllerIm
 
 }
 
-trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerImpl[P]{this: ControllerIface[P] =>
+abstract class StaticOutState(val canPush: Boolean) {
+  def disconnecting = !canPush
+}
+object StaticOutState {
+  case object Suspended extends StaticOutState(true)
+  case object Alive extends StaticOutState(true)
+  case object Disconnecting extends StaticOutState(false)
+  case object Terminated extends StaticOutState(false)
+}
+
+trait StaticOutputController[I,O] extends BaseStaticController[I,O]{this: ControllerIface[I,O] =>
 
 
-  private var disconnecting = false
+  private var state: StaticOutState = StaticOutState.Suspended
+  private def disconnecting = state.disconnecting
   private var _writesEnabled = true
-  private var outputBuffer = new MessageQueue[P#Output](controllerConfig.outputBufferSize)
+  private var outputBuffer = new MessageQueue[O](controllerConfig.outputBufferSize)
 
   def writesEnabled = _writesEnabled
 
@@ -114,31 +160,43 @@ trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerI
     if (!outputBuffer.isEmpty) signalWrite()
   }
 
-  protected def purgePending() {
-    val reason = new NotConnectedException("Connection Closed")
+  protected def purgePending(reason: Throwable) {
     while (!outputBuffer.isEmpty) {
       outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
     }
 
   }
 
+  override def connected(endpt: WriteEndpoint) {
+    super.connected(endpt)
+    state = StaticOutState.Alive
+  }
 
 
   private def onClosed() {
     if (disconnecting) {
-      purgePending
+      val reason = new NotConnectedException("Connection Closed")
+      purgePending(reason)
+    } 
+  }
+
+  protected def connectionClosed(cause : DisconnectCause) {
+    state = StaticOutState.Terminated
+    onClosed()
+  }
+
+  protected def connectionLost(cause : DisconnectError) {
+    state = StaticOutState.Suspended
+    onClosed()
+  }
+
+  def idleCheck(period: Duration) {
+    val time = System.currentTimeMillis
+    while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
+      val expired = outputBuffer.dequeue
+      expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
     }
   }
-
-  def connectionClosed(cause : DisconnectCause) {
-    onClosed()
-  }
-
-  def connectionLost(cause : DisconnectError) {
-    onClosed()
-  }
-
-  def idleCheck(period: Duration) {}
 
   private def signalWrite() {
     connectionState match {
@@ -149,11 +207,21 @@ trait StaticOutputController[P <: Protocol] extends CoreHandler with ControllerI
     }
   }
 
+  override def shutdown() {
+    state = StaticOutState.Disconnecting
+    checkShutdown()
+  }
 
-  //TODO: connectionstate
-  def canPush = !outputBuffer.isFull
+  private def checkShutdown() {
+    if (disconnecting && outputBuffer.isEmpty) {
+      super.shutdown()
+    }
+  }
 
-  def push(item: P#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
+
+  def canPush = state.canPush && !outputBuffer.isFull
+
+  def push(item: O, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
     if (canPush) {
       if (outputBuffer.isEmpty) signalWrite()
       outputBuffer.enqueue(item, postWrite, createdMillis)

@@ -19,7 +19,7 @@ class BaseHttpServerCodec[T <: BaseHttpResponse]() extends Codec.ServerCodec[Htt
   }
 }
 
-class StaticHttpServerCodec(headers: HttpHeaders) extends StaticCodec[Http] {
+class StaticHttpServerCodec(headers: HttpHeaders) extends StaticCodec[HttpRequest, HttpResponse] {
   private var parser = HttpRequestParser()
 
   def encode(response: HttpResponse, buffer: DataOutBuffer){ response.encode(buffer, headers) }
