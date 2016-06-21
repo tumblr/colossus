@@ -105,9 +105,6 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
       val item = workerItems(id)
       workerItems -= id
       item.setUnbind()
-      if (item.context.proxyExists) {
-        item.context.proxy ! PoisonPill
-      }
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
     }

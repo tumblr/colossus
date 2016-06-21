@@ -54,7 +54,7 @@ class AsyncServiceClientSpec extends ColossusSpec {
     }
 
     "shutdown when connection is unbound" in {
-      var client: Option[AsyncServiceClient[ByteString, ByteString]] = None
+      var client: Option[FutureClient[Raw]] = None
       withIOSystem{ implicit io =>
         withServer(makeServer()) {
           client = Some(TestClient(io, TEST_PORT, connectRetry = NoRetry))
