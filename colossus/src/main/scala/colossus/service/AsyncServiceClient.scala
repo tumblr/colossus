@@ -18,7 +18,10 @@ class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
   }
 
   def receive = {
-    case Terminated(ref) => signal.set(true)
+    case Terminated(ref) => {
+      signal.set(true)
+      self ! PoisonPill
+    }
   }
 }
 
@@ -78,18 +81,34 @@ class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, codec: Codec[C#
   implicit val timeout = Timeout(100.milliseconds)
 
   protected val proxy = sys.bindWithProxy(new ClientWrapper(_))
+
+  //the canary is used to determine when it's no longer ok to try sending
+  //requests to the proxy.  This is set to true if the user calls disconnect or
+  //if the proxy actor is killed (which is detected by the watchdog).  This
+  //provides a reasonable attempt to prevent requests from being dropped and
+  //never completing their promise, though it's not a gaurantee since it's
+  //possible for a client to kill itself before it receives a request that had
+  //already been sent.
   protected val canary = new AtomicBoolean(false)
+
   protected val watchdog = sys.actorSystem.actorOf(Props(classOf[ProxyWatchdog], proxy, canary))
 
   val client = new FutureClient[C]{
     def send(request: I): Future[O] = {
-      val promise = Promise[O]()
-      proxy ! PackagedRequest(request, promise)
-      promise.future
+      if (canary.get()) {
+        Future.failed(new NotConnectedException("Connection Closed"))
+      } else {
+        val promise = Promise[O]()
+        proxy ! PackagedRequest(request, promise)
+        promise.future
+      }
     }
 
     def disconnect() {
-      proxy ! PoisonPill
+      if (!canary.get()) {
+        canary.set(true)
+        proxy ! PoisonPill
+      }
     }
 
     def connectionStatus: Future[ConnectionStatus] = {
