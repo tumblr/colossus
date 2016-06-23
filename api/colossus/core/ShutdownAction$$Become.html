@@ -45,7 +45,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Become</span><span class="params">(<span name="newHandler">newHandler: (<a href="Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="result"> extends <a href="ShutdownAction.html" class="extype" name="colossus.core.ShutdownAction">ShutdownAction</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Become</span><span class="params">(<span name="newHandler">newHandler: () ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="result"> extends <a href="ShutdownAction.html" class="extype" name="colossus.core.ShutdownAction">ShutdownAction</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
@@ -89,7 +89,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.core.ShutdownAction.Become#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(newHandler:colossus.core.Context=&gt;colossus.core.ConnectionHandler):colossus.core.ShutdownAction.Become"></a>
+      <a id="&lt;init&gt;(newHandler:()=&gt;colossus.core.ConnectionHandler):colossus.core.ShutdownAction.Become"></a>
       <a id="&lt;init&gt;:Become"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +97,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Become</span><span class="params">(<span name="newHandler">newHandler: (<a href="Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span>
+        <span class="name">Become</span><span class="params">(<span name="newHandler">newHandler: () ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ShutdownAction$$Become@&lt;init&gt;(newHandler:colossus.core.Context=&gt;colossus.core.ConnectionHandler):colossus.core.ShutdownAction.Become" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ShutdownAction$$Become@&lt;init&gt;(newHandler:()=&gt;colossus.core.ConnectionHandler):colossus.core.ShutdownAction.Become" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -314,18 +314,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.core.ShutdownAction.Become#newHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="newHandler:colossus.core.Context=&gt;colossus.core.ConnectionHandler"></a>
-      <a id="newHandler:(Context)⇒ConnectionHandler"></a>
+      <a id="newHandler:()=&gt;colossus.core.ConnectionHandler"></a>
+      <a id="newHandler:()⇒ConnectionHandler"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">newHandler</span><span class="result">: (<a href="Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+        <span class="name">newHandler</span><span class="result">: () ⇒ <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ShutdownAction$$Become@newHandler:colossus.core.Context=&gt;colossus.core.ConnectionHandler" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.ShutdownAction$$Become@newHandler:()=&gt;colossus.core.ConnectionHandler" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

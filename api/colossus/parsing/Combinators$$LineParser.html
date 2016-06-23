@@ -49,7 +49,15 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Parse a single line of data.  A &quot;line&quot; is terminated by <code>\r\n</code>.</p><p>This is quite possibly the fastest line parser in existence.  While this is
+basically a specialized version of the bytesUntil parser, it is
+significantly faster.  Part of the speedup is simply from basically
+including the functionality of the MapParser, which avoids a bunch of
+function calls.  I believe the rest of the speedup is due to the fact that
+comparing the next byte to a constant vs an array member is significantly
+faster.  I have made several attempts to get the bytesUntil parser as fast
+as this one to no avail.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>

@@ -138,7 +138,7 @@
       </a>
     </span>
       
-    </li><li name="colossus.protocols.websocket" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.protocols.websocket" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="websocket"></a>
       <a id="websocket:websocket"></a>
       <h4 class="signature">
@@ -154,7 +154,18 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">**This package is experimental and subject to breaking changes between
+versions**.</p><div class="fullcomment"><div class="comment cmt"><p>**This package is experimental and subject to breaking changes between
+versions**.  We currently don't support the complete Websocket spec but there
+is enough support for basic servers</p><p>The Websocket protocol defines an asynchronous application protocol.  Since
+unlike HTTP or other similar protocols there are no requests or responses,
+writing a Websocket server is slightly different from other service-protocol
+servers.  In particular, you should use the <a href="websocket/WebsocketServer$.html" class="extype" name="colossus.protocols.websocket.WebsocketServer">WebsocketServer</a> to start a
+server and the <a href="websocket/WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a> to define a connection handler.</p><p>The <a href="websocket/subprotocols$.html" class="extype" name="colossus.protocols.websocket.subprotocols">subprotocols</a> package contains some basic sub-protocols, but these
+tend to be application specific so support is limited.</p><p>Websocket connection handlers are designed to behave like actors, and mixing
+in the <code>ProxyActor</code> trait can make Websocket connections behave like and
+interact with Akka actors.
+</p></div></div>
     </li></ol>
             </div>
 

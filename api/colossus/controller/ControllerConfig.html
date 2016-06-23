@@ -45,12 +45,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ControllerConfig</span><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ControllerConfig</span><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration for the controller
-</p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd></dl><div class="toggleContainer block">
+</p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd><dt class="param">inputMaxSize</dt><dd class="cmt"><p>maximum allowed input size (in bytes)</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -90,7 +90,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.controller.ControllerConfig#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(outputBufferSize:Int,sendTimeout:scala.concurrent.duration.Duration,flushBufferOnClose:Boolean):colossus.controller.ControllerConfig"></a>
+      <a id="&lt;init&gt;(outputBufferSize:Int,sendTimeout:scala.concurrent.duration.Duration,inputMaxSize:colossus.parsing.DataSize,flushBufferOnClose:Boolean):colossus.controller.ControllerConfig"></a>
       <a id="&lt;init&gt;:ControllerConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -98,14 +98,14 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ControllerConfig</span><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
+        <span class="name">ControllerConfig</span><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.ControllerConfig@&lt;init&gt;(outputBufferSize:Int,sendTimeout:scala.concurrent.duration.Duration,flushBufferOnClose:Boolean):colossus.controller.ControllerConfig" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.ControllerConfig@&lt;init&gt;(outputBufferSize:Int,sendTimeout:scala.concurrent.duration.Duration,inputMaxSize:colossus.parsing.DataSize,flushBufferOnClose:Boolean):colossus.controller.ControllerConfig" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd><dt class="param">inputMaxSize</dt><dd class="cmt"><p>maximum allowed input size (in bytes)</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -280,6 +280,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.controller.ControllerConfig#inputMaxSize" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="inputMaxSize:colossus.parsing.DataSize"></a>
+      <a id="inputMaxSize:DataSize"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inputMaxSize</span><span class="result">: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.ControllerConfig@inputMaxSize:colossus.parsing.DataSize" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">maximum allowed input size (in bytes)</p>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>

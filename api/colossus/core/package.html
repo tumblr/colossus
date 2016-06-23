@@ -435,6 +435,29 @@ implementing the ConnectionHandler trait
       </a>
     </span>
       
+    </li><li name="colossus.core.DataBlock" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DataBlockextendsProductwithSerializable"></a>
+      <a id="DataBlock:DataBlock"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DataBlock.html"><span class="name">DataBlock</span></a><span class="params">(<span name="data">data: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataBlockextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A low-overhead abstraction over a byte array.</p><div class="fullcomment"><div class="comment cmt"><p>A low-overhead abstraction over a byte array.  This offers much of the same
+functionally offered by Akka's ByteString, but without any additional
+overhead.  While this makes DataBlock a bit less powerful and flexible, it
+also makes it considerably faster.</p><p>TODO: This is possibly a contender for using in all places where Array[Byte]
+is used, but thorough benchmarking is needed.  It is also possible that the
+performance of ByteString has improved in later versions of Akka, so that
+should also be tested before expanding on this any more.</p></div></div>
     </li><li name="colossus.core.DataBuffer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="DataBufferextendsEncoderwithProductwithSerializable"></a>
       <a id="DataBuffer:DataBuffer"></a>
@@ -909,7 +932,8 @@ incident indicates to stop retrying.
       </a>
     </span>
       <p class="shortcomment cmt">A ServerRef is the public interface of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
-an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.</p></div></div>
+an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+</p></div></div>
     </li><li name="colossus.core.ServerSettings" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServerSettingsextendsProductwithSerializable"></a>
       <a id="ServerSettings:ServerSettings"></a>
@@ -938,8 +962,8 @@ watermarks to 1.
 binding to the port if the first attempt fails.  By default it will keep
 retrying forever.</p></dd><dt class="param">delegatorCreationPolicy</dt><dd class="cmt"><p>A <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">colossus.core.WaitPolicy</a> describing how
 to handle delegator startup.  Since a Server waits for a signal from the
-<span class="extype" name="colossus.core.IOSystem">colossus.core.IOSystem</span> that every worker has properly initialized a
-<span class="extype" name="colossus.core.delegator">colossus.core.delegator</span>, this determines how long to wait before the
+<a href="../IOSystem.html" class="extype" name="colossus.IOSystem">colossus.IOSystem</a> that every worker has properly initialized a
+<a href="Delegator.html" class="extype" name="colossus.core.Delegator">colossus.core.Delegator</a>, this determines how long to wait before the
 initialization is considered a failure and whether to retry the
 initialization.</p></dd><dt class="param">shutdownTimeout</dt><dd class="cmt"><p>Once a Server begins to shutdown, it will signal a
 request to every open connection.  This determines how long it will wait for
@@ -1183,7 +1207,8 @@ context must be transferred
       </a>
     </span>
       <p class="shortcomment cmt">This is a Worker's public interface.</p><div class="fullcomment"><div class="comment cmt"><p>This is a Worker's public interface.  This is what can be used to communicate with a Worker, as it
-wraps the Worker's ActorRef, as well as providing some additional information which can be made public.</p></div></div>
+wraps the Worker's ActorRef, as well as providing some additional information which can be made public.
+</p></div></div>
     </li><li name="colossus.core.WriteEndpoint" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WriteEndpointextendsConnectionHandle"></a>
       <a id="WriteEndpoint:WriteEndpoint"></a>
@@ -1292,6 +1317,23 @@ connection.  Services wrap this
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ConnectionVolumeState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.DataBlock" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DataBlock"></a>
+      <a id="DataBlock:DataBlock"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DataBlock$.html"><span class="name">DataBlock</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@DataBlock" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1416,6 +1458,23 @@ connection.  Services wrap this
       </a>
     </span>
       
+    </li><li name="colossus.core.RetryPolicy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RetryPolicy"></a>
+      <a id="RetryPolicy:RetryPolicy"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="RetryPolicy$.html"><span class="name">RetryPolicy</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@RetryPolicy" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.Server" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Server"></a>
       <a id="Server:Server"></a>
@@ -1454,6 +1513,23 @@ the Server is notified.</p></div></div>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ServerDSL" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ServerSettings" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerSettings"></a>
+      <a id="ServerSettings:ServerSettings"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSettings$.html"><span class="name">ServerSettings</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ServerSettings" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -47,11 +47,15 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceConfig</span><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">ServiceConfig</span><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxRequestSize">maxRequestSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler
+</p></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestMetrics</dt><dd class="cmt"><p>toggle request metrics</p></dd><dt class="param">maxRequestSize</dt><dd class="cmt"><p>max size allowed for requests
+TODO: remove name from config, this should be the same as a server's name and
+pulled from the ServerRef, though this requires giving the ServiceServer
+access to the ServerRef</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -91,7 +95,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.service.ServiceConfig#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(requestTimeout:scala.concurrent.duration.Duration,requestBufferSize:Int,logErrors:Boolean,requestMetrics:Boolean):colossus.service.ServiceConfig"></a>
+      <a id="&lt;init&gt;(requestTimeout:scala.concurrent.duration.Duration,requestBufferSize:Int,logErrors:Boolean,requestMetrics:Boolean,maxRequestSize:colossus.parsing.DataSize):colossus.service.ServiceConfig"></a>
       <a id="&lt;init&gt;:ServiceConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -99,14 +103,17 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceConfig</span><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span>
+        <span class="name">ServiceConfig</span><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxRequestSize">maxRequestSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ServiceConfig@&lt;init&gt;(requestTimeout:scala.concurrent.duration.Duration,requestBufferSize:Int,logErrors:Boolean,requestMetrics:Boolean):colossus.service.ServiceConfig" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.ServiceConfig@&lt;init&gt;(requestTimeout:scala.concurrent.duration.Duration,requestBufferSize:Int,logErrors:Boolean,requestMetrics:Boolean,maxRequestSize:colossus.parsing.DataSize):colossus.service.ServiceConfig" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestMetrics</dt><dd class="cmt"><p>toggle request metrics</p></dd><dt class="param">maxRequestSize</dt><dd class="cmt"><p>max size allowed for requests
+TODO: remove name from config, this should be the same as a server's name and
+pulled from the ServerRef, though this requires giving the ServiceServer
+access to the ServerRef</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -298,6 +305,26 @@
       </a>
     </span>
       <p class="shortcomment cmt">if true, any uncaught exceptions or service-level errors will be logged</p>
+    </li><li name="colossus.service.ServiceConfig#maxRequestSize" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="maxRequestSize:colossus.parsing.DataSize"></a>
+      <a id="maxRequestSize:DataSize"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">maxRequestSize</span><span class="result">: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceConfig@maxRequestSize:colossus.parsing.DataSize" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">max size allowed for requests
+TODO: remove name from config, this should be the same as a server's name and
+pulled from the ServerRef, though this requires giving the ServiceServer
+access to the ServerRef</p>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -382,7 +409,7 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">toggle request metrics</p>
     </li><li name="colossus.service.ServiceConfig#requestTimeout" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="requestTimeout:scala.concurrent.duration.Duration"></a>
       <a id="requestTimeout:Duration"></a>

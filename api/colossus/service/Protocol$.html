@@ -93,7 +93,7 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="colossus.service.Protocol.ErrorHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[(C#Input,Throwable),C#Output]"></a>
+      <a id="ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]"></a>
       <a id="ErrorHandler[C&lt;:Protocol]:ErrorHandler[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -101,10 +101,27 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">ErrorHandler</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> = <span class="extype" name="scala.PartialFunction">PartialFunction</span>[(<span class="extype" name="colossus.service.Protocol.Input">Protocol.ErrorHandler.C.Input</span>, <span class="extype" name="scala.Throwable">Throwable</span>), <span class="extype" name="colossus.service.Protocol.Output">Protocol.ErrorHandler.C.Output</span>]</span>
+        <span class="name">ErrorHandler</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> = <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<a href="ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<span class="extype" name="colossus.service.Protocol.Input">Protocol.ErrorHandler.C.Input</span>], <span class="extype" name="colossus.service.Protocol.Output">Protocol.ErrorHandler.C.Output</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Protocol$@ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[(C#Input,Throwable),C#Output]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.Protocol$@ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.Protocol.ParseErrorHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParseErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[Throwable,C#Output]"></a>
+      <a id="ParseErrorHandler[C&lt;:Protocol]:ParseErrorHandler[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ParseErrorHandler</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> = <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="colossus.service.Protocol.Output">Protocol.ParseErrorHandler.C.Output</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.Protocol$@ParseErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[Throwable,C#Output]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -150,6 +150,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.ServerDSL#ConfigRoot" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConfigRoot:String"></a>
+      <a id="ConfigRoot:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ConfigRoot</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerDSL@ConfigRoot:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -167,7 +184,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="colossus.core.ServerDSL#basic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.ServerDSL#basic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="basic(name:String,settings:colossus.core.ServerSettings)(handlerFactory:colossus.core.ServerContext=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
       <a id="basic(String,ServerSettings)((ServerContext)⇒ServerConnectionHandler)(IOSystem):ServerRef"></a>
       <h4 class="signature">
@@ -183,8 +200,9 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.core.ServerDSL#basic" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Create a new Server.</p><div class="fullcomment"><div class="comment cmt"><p>Create a new Server.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this Server.</p></dd><dt class="param">settings</dt><dd class="cmt"><p>Settings for this Server.</p></dd></dl></div>
+    </li><li name="colossus.core.ServerDSL#basic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="basic(name:String,port:Int)(handlerFactory:colossus.core.ServerContext=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
       <a id="basic(String,Int)((ServerContext)⇒ServerConnectionHandler)(IOSystem):ServerRef"></a>
       <h4 class="signature">
@@ -200,7 +218,26 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Convenience function for starting a server using the specified name and port.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
+<code>colossus.server</code> configuration path.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this Server.</p></dd><dt class="param">port</dt><dd class="cmt"><p>Port to run on</p></dd></dl></div>
+    </li><li name="colossus.core.ServerDSL#basic" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="basic(name:String,serverConfig:com.typesafe.config.Config)(handlerFactory:colossus.core.ServerContext=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
+      <a id="basic(String,Config)((ServerContext)⇒ServerConnectionHandler)(IOSystem):ServerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">basic</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="serverConfig">serverConfig: <span class="extype" name="com.typesafe.config.Config">Config</span> = <span class="symbol">loadConfig</span></span>)</span><span class="params">(<span name="handlerFactory">handlerFactory: (<a href="ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a>) ⇒ <a href="ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerDSL@basic(name:String,serverConfig:com.typesafe.config.Config)(handlerFactory:colossus.core.ServerContext=&gt;colossus.core.ServerConnectionHandler)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a new Server</p><div class="fullcomment"><div class="comment cmt"><p>Create a new Server</p><p>A Config object will be created via </p><pre>ConfigFactory.load()</pre></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this Server</p></dd><dt class="param">serverConfig</dt><dd class="cmt"><p>Config object in the shape of <code>colossus.server</code></p></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -383,24 +420,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="start(name:String,port:Int)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
-      <a id="start(String,Int)((WorkerRef)⇒Initializer)(IOSystem):ServerRef"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">start</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span name="initializer">initializer: (<a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="Initializer.html" class="extype" name="colossus.core.Initializer">Initializer</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.ServerDSL@start(name:String,port:Int)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="start(name:String,settings:colossus.core.ServerSettings)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
       <a id="start(String,ServerSettings)((WorkerRef)⇒Initializer)(IOSystem):ServerRef"></a>
       <h4 class="signature">
@@ -416,7 +436,44 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Create a new Server.</p><div class="fullcomment"><div class="comment cmt"><p>Create a new Server.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this Server.</p></dd><dt class="param">settings</dt><dd class="cmt"><p>Settings for this Server.</p></dd></dl></div>
+    </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="start(name:String,port:Int)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
+      <a id="start(String,Int)((WorkerRef)⇒Initializer)(IOSystem):ServerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">start</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span name="initializer">initializer: (<a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="Initializer.html" class="extype" name="colossus.core.Initializer">Initializer</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerDSL@start(name:String,port:Int)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Convenience function for starting a server using the specified name and port.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience function for starting a server using the specified name and port.  This will be overlaid on top of the default
+&quot;colossus.server&quot; configuration path.
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this Server.</p></dd><dt class="param">port</dt><dd class="cmt"><p>Port to run on</p></dd></dl></div>
+    </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="start(name:String,serverConfig:com.typesafe.config.Config)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
+      <a id="start(String,Config)((WorkerRef)⇒Initializer)(IOSystem):ServerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">start</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="serverConfig">serverConfig: <span class="extype" name="com.typesafe.config.Config">Config</span> = <span class="symbol">loadConfig</span></span>)</span><span class="params">(<span name="initializer">initializer: (<a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a>) ⇒ <a href="Initializer.html" class="extype" name="colossus.core.Initializer">Initializer</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>)</span><span class="result">: <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerDSL@start(name:String,serverConfig:com.typesafe.config.Config)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a new Server</p><div class="fullcomment"><div class="comment cmt"><p>Create a new Server</p><p>A Config object will be created via </p><pre>ConfigFactory.load()</pre></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>The name of this Server</p></dd><dt class="param">serverConfig</dt><dd class="cmt"><p>Config object in the shape of <code>colossus.server</code></p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

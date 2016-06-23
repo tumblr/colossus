@@ -117,7 +117,8 @@ loops.
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Sends a message to the underlying WorkerManager.</p><div class="fullcomment"><div class="comment cmt"><p>Sends a message to the underlying WorkerManager.</p></div><dl class="paramcmts block"><dt class="param">msg</dt><dd class="cmt"><p>Msg to send</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender of the message, defaults to ActorRef.noSender</p></dd></dl></div>
+      <p class="shortcomment cmt">Sends a message to the underlying WorkerManager.</p><div class="fullcomment"><div class="comment cmt"><p>Sends a message to the underlying WorkerManager.
+</p></div><dl class="paramcmts block"><dt class="param">msg</dt><dd class="cmt"><p>Msg to send</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender of the message, defaults to ActorRef.noSender</p></dd></dl></div>
     </li><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -262,23 +263,6 @@ loops.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.IOSystem#config" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="config:colossus.IOSystemConfig"></a>
-      <a id="config:IOSystemConfig"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">config</span><span class="result">: <a href="IOSystemConfig.html" class="extype" name="colossus.IOSystemConfig">IOSystemConfig</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem@config:colossus.IOSystemConfig" title="Permalink" target="_top">
-        <img src="../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.IOSystem#connect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="connect(address:java.net.InetSocketAddress,handler:colossus.core.Context=&gt;colossus.core.ClientConnectionHandler):Unit"></a>
       <a id="connect(InetSocketAddress,(Context)⇒ClientConnectionHandler):Unit"></a>
@@ -295,7 +279,8 @@ loops.
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Connect to the specified address and use the specified function to create a Handler to attach to it.</p><div class="fullcomment"><div class="comment cmt"><p>Connect to the specified address and use the specified function to create a Handler to attach to it.</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect.</p></dd><dt class="param">handler</dt><dd class="cmt"><p>Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
+      <p class="shortcomment cmt">Connect to the specified address and use the specified function to create a Handler to attach to it.</p><div class="fullcomment"><div class="comment cmt"><p>Connect to the specified address and use the specified function to create a Handler to attach to it.
+</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect.</p></dd><dt class="param">handler</dt><dd class="cmt"><p>Function which takes in the bound WorkerRef and creates a ClientConnectionHandler which is connected
                to the handler.</p></dd></dl></div>
     </li><li name="colossus.IOSystem#connectionSummary" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="connectionSummary(implicitto:akka.util.Timeout,implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[colossus.core.Worker.ConnectionSummary]"></a>
@@ -445,7 +430,7 @@ loops.
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
         <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
@@ -455,24 +440,24 @@ loops.
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Name of the IOSystem as specified in the IOSystemConfig</p>
+      
     </li><li name="colossus.IOSystem#namespace" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="namespace:colossus.metrics.MetricAddress"></a>
-      <a id="namespace:MetricAddress"></a>
+      <a id="namespace:colossus.metrics.MetricNamespace"></a>
+      <a id="namespace:MetricNamespace"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">namespace</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
+        <span class="name">namespace</span><span class="result">: <span class="extype" name="colossus.metrics.MetricNamespace">MetricNamespace</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem@namespace:colossus.metrics.MetricAddress" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOSystem@namespace:colossus.metrics.MetricNamespace" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">MetricAddress of this IOSystem as seen from the MetricSystem
+      <p class="shortcomment cmt">The namespace of this IOSystem, used by metrics
 </p>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
@@ -525,6 +510,23 @@ loops.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.IOSystem#numWorkers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="numWorkers:Int"></a>
+      <a id="numWorkers:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">numWorkers</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.IOSystem@numWorkers:Int" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.IOSystem#registeredServers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="registeredServers(implicitto:akka.util.Timeout,implicitec:scala.concurrent.ExecutionContext):scala.concurrent.Future[Seq[colossus.core.ServerRef]]"></a>
       <a id="registeredServers(Timeout,ExecutionContext):Future[Seq[ServerRef]]"></a>

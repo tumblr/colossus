@@ -167,91 +167,77 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String,numWorkers:Option[Int])(implicitsys:akka.actor.ActorSystem):colossus.IOSystem"></a>
-      <a id="apply(String,Option[Int])(ActorSystem):IOSystem"></a>
+    </li><li name="colossus.IOSystem#ConfigRoot" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConfigRoot:String"></a>
+      <a id="ConfigRoot:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ConfigRoot</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#colossus.IOSystem$@ConfigRoot:String" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(name:String,workerCount:Option[Int],metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem"></a>
+      <a id="apply(String,Option[Int],MetricSystem)(ActorSystem):IOSystem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;iosystem&quot;</span></span>, <span name="numWorkers">numWorkers: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="sys">sys: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span> = <span class="symbol"><span class="name"><a href="../akka/package.html">ActorSystem(name)</a></span></span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
+        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="workerCount">workerCount: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]</span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.MetricSystem">MetricSystem</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem$@apply(name:String,numWorkers:Option[Int])(implicitsys:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOSystem$@apply(name:String,workerCount:Option[Int],metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem"></a>
-      <a id="apply(String,MetricSystem)(ActorSystem):IOSystem"></a>
+      <p class="shortcomment cmt">Create a new IOSystem
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a new IOSystem
+</p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of this IOSystem.</p></dd><dt class="param">workerCount</dt><dd class="cmt"><p>Number of workers to create</p></dd><dt class="param">metrics</dt><dd class="cmt"><p>The MetricSystem used to report metrics</p></dd></dl></div>
+    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(name:String,ioConfig:com.typesafe.config.Config,metrics:Option[colossus.metrics.MetricSystem])(implicitsys:akka.actor.ActorSystem):colossus.IOSystem"></a>
+      <a id="apply(String,Config,Option[MetricSystem])(ActorSystem):IOSystem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.MetricSystem">MetricSystem</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
+        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="ioConfig">ioConfig: <span class="extype" name="com.typesafe.config.Config">Config</span> = <span class="defval" name='<span class="name"><a href="#ConfigRoot:String">ConfigFactory.load().getConfig(ConfigRoot)</a></span>'>...</span></span>, <span name="metrics">metrics: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="colossus.metrics.MetricSystem">MetricSystem</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="sys">sys: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem$@apply(name:String,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOSystem$@apply(name:String,ioConfig:com.typesafe.config.Config,metrics:Option[colossus.metrics.MetricSystem])(implicitsys:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String,numWorkers:Int)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem"></a>
-      <a id="apply(String,Int)(ActorSystem):IOSystem"></a>
+      <p class="shortcomment cmt">Create a new IOSystem.</p><div class="fullcomment"><div class="comment cmt"><p>Create a new IOSystem.</p><p>A Config object will be created via </p><pre>ConfigFactory.load()</pre></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>Name of the IOSystem to create.</p></dd><dt class="param">ioConfig</dt><dd class="cmt"><p>The Config source in the shape of <code>colossus.iosystem</code></p></dd></dl></div>
+    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply()(implicitsys:akka.actor.ActorSystem):colossus.IOSystem"></a>
+      <a id="apply()(ActorSystem):IOSystem"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="numWorkers">numWorkers: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
+        <span class="name">apply</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="sys">sys: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem$@apply(name:String,numWorkers:Int)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
+      <a href="../index.html#colossus.IOSystem$@apply()(implicitsys:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String,numWorkers:Int,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem"></a>
-      <a id="apply(String,Int,MetricSystem)(ActorSystem):IOSystem"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="numWorkers">numWorkers: <span class="extype" name="scala.Int">Int</span></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.MetricSystem">MetricSystem</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem$@apply(name:String,numWorkers:Int,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
-        <img src="../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.IOSystem#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(config:colossus.IOSystemConfig,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem"></a>
-      <a id="apply(IOSystemConfig,MetricSystem)(ActorSystem):IOSystem"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="config">config: <a href="IOSystemConfig.html" class="extype" name="colossus.IOSystemConfig">IOSystemConfig</a></span>, <span name="metrics">metrics: <span class="extype" name="colossus.metrics.MetricSystem">MetricSystem</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="system">system: <span class="extype" name="akka.actor.ActorSystem">ActorSystem</span></span>)</span><span class="result">: <a href="IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../index.html#colossus.IOSystem$@apply(config:colossus.IOSystemConfig,metrics:colossus.metrics.MetricSystem)(implicitsystem:akka.actor.ActorSystem):colossus.IOSystem" title="Permalink" target="_top">
-        <img src="../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
+      <p class="shortcomment cmt">Create a new IOSystem, using only the defaults provided by the corresponding <code>colossus.iosystem</code> config path.</p><div class="fullcomment"><div class="comment cmt"><p>Create a new IOSystem, using only the defaults provided by the corresponding <code>colossus.iosystem</code> config path.
+A Config object will be created via </p><pre>ConfigFactory.load()</pre></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>

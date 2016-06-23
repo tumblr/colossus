@@ -307,16 +307,18 @@ Callback.fromFuture on it's corresponding Future.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectRetry">connectRetry: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="../core/package.html">BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ClientConfig.html"><span class="name">ClientConfig</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="name">name: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>, <span name="pendingBufferSize">pendingBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="sentBufferSize">sentBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="failFast">failFast: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="connectRetry">connectRetry: <a href="../core/RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="../core/package.html">BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))</a></span>'>...</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="maxResponseSize">maxResponseSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../parsing/package.html">1.MB</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Configuration used to specify a Client's parameters</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
+      <p class="shortcomment cmt">Configuration used to specify a Client's parameters
+</p><div class="fullcomment"><div class="comment cmt"><p>Configuration used to specify a Client's parameters
+</p></div><dl class="paramcmts block"><dt class="param">address</dt><dd class="cmt"><p>The address with which to connect</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>The request timeout value</p></dd><dt class="param">name</dt><dd class="cmt"><p>The MetricAddress associated with this client</p></dd><dt class="param">pendingBufferSize</dt><dd class="cmt"><p>Size of the pending buffer</p></dd><dt class="param">sentBufferSize</dt><dd class="cmt"><p>Size of the sent buffer</p></dd><dt class="param">failFast</dt><dd class="cmt"><p>When a failure is detected, immediately fail all pending requests.</p></dd><dt class="param">connectRetry</dt><dd class="cmt"><p>Retry policy for connections.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>How long the connection can remain idle (both sending and
        receiving data) before it is closed.  This should be significantly higher
-       than requestTimeout.</p></dd></dl></div>
+       than requestTimeout.</p></dd><dt class="param">maxResponseSize</dt><dd class="cmt"><p>max allowed response size -- larger responses are dropped</p></dd></dl></div>
     </li><li name="colossus.service.ClientConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ClientConnectionEventextendsConnectionEvent"></a>
       <a id="ClientConnectionEvent:ClientConnectionEvent"></a>
@@ -402,7 +404,8 @@ Callback.fromFuture on it's corresponding Future.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Thrown when the pending buffer is full</p>
+      <p class="shortcomment cmt">Thrown when the pending buffer is full
+</p>
     </li><li name="colossus.service.ClientProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ClientProxyextendsActorwithActorLoggingwithStash"></a>
       <a id="ClientProxy:ClientProxy"></a>
@@ -492,7 +495,8 @@ codec is stateful and returns a Seq[O]
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Provide a Codec as well as some convenience functions for usage within in a Service.</p><div class="fullcomment"><div class="comment cmt"><p>Provide a Codec as well as some convenience functions for usage within in a Service.</p></div><dl class="paramcmts block"><dt class="tparam">C</dt><dd class="cmt"><p>the type of codec this provider will supply</p></dd></dl></div>
+      <p class="shortcomment cmt">Provide a Codec as well as some convenience functions for usage within in a Service.</p><div class="fullcomment"><div class="comment cmt"><p>Provide a Codec as well as some convenience functions for usage within in a Service.
+</p></div><dl class="paramcmts block"><dt class="tparam">C</dt><dd class="cmt"><p>the type of codec this provider will supply</p></dd></dl></div>
     </li><li name="colossus.service.ConnectionEvent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ConnectionEventextendsAnyRef"></a>
       <a id="ConnectionEvent:ConnectionEvent"></a>
@@ -526,7 +530,8 @@ codec is stateful and returns a Seq[O]
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Thrown when a request is lost in transit</p>
+      <p class="shortcomment cmt">Thrown when a request is lost in transit
+</p>
     </li><li name="colossus.service.ConstantCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ConstantCallback[O]extendsCallback[O]withProductwithSerializable"></a>
       <a id="ConstantCallback[O]:ConstantCallback[O]"></a>
@@ -560,7 +565,8 @@ codec is stateful and returns a Seq[O]
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Thrown when there's some kind of data error</p>
+      <p class="shortcomment cmt">Thrown when there's some kind of data error
+</p>
     </li><li name="colossus.service.DecodedResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="DecodedResult[+T]extendsAnyRef"></a>
       <a id="DecodedResult[+T]:DecodedResult[T]"></a>
@@ -683,6 +689,23 @@ which then does the proper scheduling
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@FutureClient[C&lt;:colossus.service.Protocol]extendsAsyncServiceClient[C#Input,C#Output]withSender[C,scala.concurrent.Future]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.IrrecoverableError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IrrecoverableError[C]extendsProcessingFailure[C]withProductwithSerializable"></a>
+      <a id="IrrecoverableError[C]:IrrecoverableError[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="IrrecoverableError.html"><span class="name">IrrecoverableError</span></a><span class="tparams">[<span name="C">C</span>]</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result"> extends <a href="ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<span class="extype" name="colossus.service.IrrecoverableError.C">C</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@IrrecoverableError[C]extendsProcessingFailure[C]withProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -812,7 +835,8 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Throw when a request is attempted while not connected</p>
+      <p class="shortcomment cmt">Throw when a request is attempted while not connected
+</p>
     </li><li name="colossus.service.PermutationGenerator" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PermutationGenerator[T]extendsIterator[List[T]]"></a>
       <a id="PermutationGenerator[T]:PermutationGenerator[T]"></a>
@@ -834,6 +858,23 @@ are guaranteed to cycle though all items as the first element.</p><div class="fu
 are guaranteed to cycle though all items as the first element.</p><p>This currently doesn't iterate through every possible permutation, but it
 does evenly distribute 1st and 2nd tries...needs some more work
 </p></div></div>
+    </li><li name="colossus.service.ProcessingFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ProcessingFailure[C]extendsAnyRef"></a>
+      <a id="ProcessingFailure[C]:ProcessingFailure[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ProcessingFailure.html"><span class="name">ProcessingFailure</span></a><span class="tparams">[<span name="C">C</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ProcessingFailure[C]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.PromiseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="PromiseExceptionextendsException"></a>
       <a id="PromiseException:PromiseException"></a>
@@ -881,6 +922,23 @@ does evenly distribute 1st and 2nd tries...needs some more work
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ReceiveExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.RecoverableError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RecoverableError[C]extendsProcessingFailure[C]withProductwithSerializable"></a>
+      <a id="RecoverableError[C]:RecoverableError[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="RecoverableError.html"><span class="name">RecoverableError</span></a><span class="tparams">[<span name="C">C</span>]</span><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.RecoverableError.C">C</span></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result"> extends <a href="ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<span class="extype" name="colossus.service.RecoverableError.C">C</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@RecoverableError[C]extendsProcessingFailure[C]withProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1049,6 +1107,23 @@ that accepts a worker</p><p>TODO: make underlying output controller data size co
       <p class="shortcomment cmt">A ClientPool is a simple container of open connections.</p><div class="fullcomment"><div class="comment cmt"><p>A ClientPool is a simple container of open connections.  It can receive
 updates and will open/close connections accordingly.</p><p>note that config will be copied for each client, replacing only the address
 </p></div></div>
+    </li><li name="colossus.service.ServiceCodecProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ServiceCodecProvider[C&lt;:colossus.service.Protocol]extendsCodecProvider[C]"></a>
+      <a id="ServiceCodecProvider[C&lt;:Protocol]:ServiceCodecProvider[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceCodecProvider.html"><span class="name">ServiceCodecProvider</span></a><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <a href="CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<span class="extype" name="colossus.service.ServiceCodecProvider.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceCodecProvider[C&lt;:colossus.service.Protocol]extendsCodecProvider[C]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ServiceConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServiceConfigextendsProductwithSerializable"></a>
       <a id="ServiceConfig:ServiceConfig"></a>
@@ -1058,14 +1133,36 @@ updates and will open/close connections accordingly.</p><p>note that config will
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServiceConfig.html"><span class="name">ServiceConfig</span></a><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">100</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServiceConfig.html"><span class="name">ServiceConfig</span></a><span class="params">(<span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="requestBufferSize">requestBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="logErrors">logErrors: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="requestMetrics">requestMetrics: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxRequestSize">maxRequestSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@ServiceConfigextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler</p></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd></dl></div>
+      <p class="shortcomment cmt">Configuration class for a Service Server Connection Handler
+</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for a Service Server Connection Handler
+</p></div><dl class="paramcmts block"><dt class="param">requestTimeout</dt><dd class="cmt"><p>how long to wait until we timeout the request</p></dd><dt class="param">requestBufferSize</dt><dd class="cmt"><p>how many concurrent requests a single connection can be processing</p></dd><dt class="param">logErrors</dt><dd class="cmt"><p>if true, any uncaught exceptions or service-level errors will be logged</p></dd><dt class="param">requestMetrics</dt><dd class="cmt"><p>toggle request metrics</p></dd><dt class="param">maxRequestSize</dt><dd class="cmt"><p>max size allowed for requests
+TODO: remove name from config, this should be the same as a server's name and
+pulled from the ServerRef, though this requires giving the ServiceServer
+access to the ServerRef</p></dd></dl></div>
+    </li><li name="colossus.service.ServiceConfigException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceConfigExceptionextendsException"></a>
+      <a id="ServiceConfigException:ServiceConfigException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceConfigException.html"><span class="name">ServiceConfigException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ServiceConfigExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ServiceServer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ServiceServer[I,O]extendsController[I,O]withServerConnectionHandler"></a>
       <a id="ServiceServer[I,O]:ServiceServer[I,O]"></a>
@@ -1124,7 +1221,8 @@ in the order that they are received.</p></div></div>
     </span>
       <p class="shortcomment cmt">This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.</p><div class="fullcomment"><div class="comment cmt"><p>This is thrown when a Client is manually disconnected, and subsequent attempt is made to reconnect.
 To simplify the internal workings of Clients, instead of trying to reset its internal state, it throws.  Create
-a new Client to reestablish a connection.</p></div></div>
+a new Client to reestablish a connection.
+</p></div></div>
     </li><li name="colossus.service.TagDecorator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="TagDecorator[I,O]extendsAnyRef"></a>
       <a id="TagDecorator[I,O]:TagDecorator[I,O]"></a>
@@ -1266,6 +1364,23 @@ create a MappedCallback with an identity function
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.package@CallbackExecutor" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ClientConfig"></a>
+      <a id="ClientConfig:ClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ClientConfig$.html"><span class="name">ClientConfig</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.package@ClientConfig" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

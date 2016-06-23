@@ -147,13 +147,47 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceConfig#CONFIG_ROOT" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CONFIG_ROOT:String"></a>
+      <a id="CONFIG_ROOT:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CONFIG_ROOT</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceConfig$@CONFIG_ROOT:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ServiceConfig#DEFAULT_NAME" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DEFAULT_NAME:String"></a>
+      <a id="DEFAULT_NAME:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DEFAULT_NAME</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceConfig$@DEFAULT_NAME:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.service.ServiceConfig#Default" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Default:colossus.service.ServiceConfig"></a>
       <a id="Default:ServiceConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">Default</span><span class="result">: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>
@@ -312,6 +346,47 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.service.ServiceConfig#load" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="load(config:com.typesafe.config.Config):colossus.service.ServiceConfig"></a>
+      <a id="load(Config):ServiceConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">load</span><span class="params">(<span name="config">config: <span class="extype" name="com.typesafe.config.Config">Config</span></span>)</span><span class="result">: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceConfig$@load(config:com.typesafe.config.Config):colossus.service.ServiceConfig" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Load a ServiceConfig object from a Config source.</p><div class="fullcomment"><div class="comment cmt"><p>Load a ServiceConfig object from a Config source.  The Config object is
+expected to be in the form of <code>colossus.service.default</code>.  Please refer to
+the reference.conf file.</p></div></div>
+    </li><li name="colossus.service.ServiceConfig#load" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="load(name:String):colossus.service.ServiceConfig"></a>
+      <a id="load(String):ServiceConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">load</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ServiceConfig$@load(name:String):colossus.service.ServiceConfig" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Load a ServiceConfig from the loaded config at the path
+<code>colossus.service.&lt;name&gt;</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Load a ServiceConfig from the loaded config at the path
+<code>colossus.service.&lt;name&gt;</code>.  Any settings not specified at that location
+will fall back to the defaults located at <code>colossus.service.default</code> in the
+reference.conf file.
+</p></div></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>

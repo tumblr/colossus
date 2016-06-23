@@ -196,7 +196,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">1.second</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ClientFactory.C">C</span>]</span>, <span name="env">env: <span class="extype" name="colossus.service.ClientFactory.E">E</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ClientFactory.T">T</span></span>
+        <span class="name">apply</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="requestTimeout">requestTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ClientFactory.C">C</span>]</span>, <span name="env">env: <span class="extype" name="colossus.service.ClientFactory.E">E</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ClientFactory.T">T</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.ClientFactory@apply(host:String,port:Int,requestTimeout:scala.concurrent.duration.Duration)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T" title="Permalink" target="_top">
@@ -204,6 +204,59 @@
       </a>
     </span>
       
+    </li><li name="colossus.service.ClientFactory#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(host:String,port:Int)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T"></a>
+      <a id="apply(String,Int)(ClientCodecProvider[C],E):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ClientFactory.C">C</span>]</span>, <span name="env">env: <span class="extype" name="colossus.service.ClientFactory.E">E</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ClientFactory.T">T</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientFactory@apply(host:String,port:Int)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.ClientFactory#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(config:com.typesafe.config.Config)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T"></a>
+      <a id="apply(Config)(ClientCodecProvider[C],E):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="config">config: <span class="extype" name="com.typesafe.config.Config">Config</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ClientFactory.C">C</span>]</span>, <span name="env">env: <span class="extype" name="colossus.service.ClientFactory.E">E</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ClientFactory.T">T</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientFactory@apply(config:com.typesafe.config.Config)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a Client from a config source.</p><div class="fullcomment"><div class="comment cmt"><p>Create a Client from a config source.
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>A Config object in the shape of <code>colossus.client-defaults</code>.  It is also expected to have the <code>address</code> and <code>name</code> fields.</p></dd></dl></div>
+    </li><li name="colossus.service.ClientFactory#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(clientName:String,config:com.typesafe.config.Config)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T"></a>
+      <a id="apply(String,Config)(ClientCodecProvider[C],E):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="clientName">clientName: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="config">config: <span class="extype" name="com.typesafe.config.Config">Config</span> = <span class="symbol"><span class="name"><a href="#configDefaults:com.typesafe.config.Config">configDefaults</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.ClientFactory.C">C</span>]</span>, <span name="env">env: <span class="extype" name="colossus.service.ClientFactory.E">E</span></span>)</span><span class="result">: <span class="extype" name="colossus.service.ClientFactory.T">T</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientFactory@apply(clientName:String,config:com.typesafe.config.Config)(implicitprovider:colossus.service.ClientCodecProvider[C],implicitenv:E):T" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Load a ServiceClient definition from a Config.</p><div class="fullcomment"><div class="comment cmt"><p>Load a ServiceClient definition from a Config.  Looks into <code>colossus.clients.$clientName</code> and falls back onto
+<code>colossus.client-defaults</code></p></div><dl class="paramcmts block"><dt class="param">clientName</dt><dd class="cmt"><p>The name of the client definition to load</p></dd><dt class="param">config</dt><dd class="cmt"><p>A config object which contains at the least a <code>colossus.clients.$clientName</code> and a <code>colossus.client-defaults</code></p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -244,6 +297,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.service.ClientFactory#configDefaults" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="configDefaults:com.typesafe.config.Config"></a>
+      <a id="configDefaults:Config"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">configDefaults</span><span class="result">: <span class="extype" name="com.typesafe.config.Config">Config</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.service.ClientFactory@configDefaults:com.typesafe.config.Config" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>

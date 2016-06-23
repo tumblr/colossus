@@ -47,11 +47,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Frame</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="colossus.protocols.websocket.Header">Header</a></span>, <span name="payload">payload: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Frame</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="colossus.protocols.websocket.Header">Header</a></span>, <span name="payload">payload: <a href="../../core/DataBlock.html" class="extype" name="colossus.core.DataBlock">DataBlock</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A Frame represents a single chunk of data sent by either the client or server.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -91,7 +92,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="colossus.protocols.websocket.Frame#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(header:colossus.protocols.websocket.Header,payload:akka.util.ByteString):colossus.protocols.websocket.Frame"></a>
+      <a id="&lt;init&gt;(header:colossus.protocols.websocket.Header,payload:colossus.core.DataBlock):colossus.protocols.websocket.Frame"></a>
       <a id="&lt;init&gt;:Frame"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -99,10 +100,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Frame</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="colossus.protocols.websocket.Header">Header</a></span>, <span name="payload">payload: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span>
+        <span class="name">Frame</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="colossus.protocols.websocket.Header">Header</a></span>, <span name="payload">payload: <a href="../../core/DataBlock.html" class="extype" name="colossus.core.DataBlock">DataBlock</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.websocket.Frame@&lt;init&gt;(header:colossus.protocols.websocket.Header,payload:akka.util.ByteString):colossus.protocols.websocket.Frame" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.Frame@&lt;init&gt;(header:colossus.protocols.websocket.Header,payload:colossus.core.DataBlock):colossus.protocols.websocket.Frame" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -367,18 +368,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.protocols.websocket.Frame#payload" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="payload:akka.util.ByteString"></a>
-      <a id="payload:ByteString"></a>
+      <a id="payload:colossus.core.DataBlock"></a>
+      <a id="payload:DataBlock"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">payload</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
+        <span class="name">payload</span><span class="result">: <a href="../../core/DataBlock.html" class="extype" name="colossus.core.DataBlock">DataBlock</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.websocket.Frame@payload:akka.util.ByteString" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.Frame@payload:colossus.core.DataBlock" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

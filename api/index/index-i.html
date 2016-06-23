@@ -38,9 +38,6 @@
       <div class="name">IOSystem</div>
       <div class="occurrences"><a href="../colossus/package.html" class="extype" name="colossus">colossus</a> </div>
     </div><div class="entry">
-      <div class="name">IOSystemConfig</div>
-      <div class="occurrences"><a href="../colossus/package.html" class="extype" name="colossus">colossus</a> </div>
-    </div><div class="entry">
       <div class="name">Identity</div>
       <div class="occurrences"><a href="../colossus/protocols/http/ContentEncoding$.html" class="extype" name="colossus.protocols.http.ContentEncoding">ContentEncoding</a> <a href="../colossus/protocols/http/TransferEncoding$.html" class="extype" name="colossus.protocols.http.TransferEncoding">TransferEncoding</a> </div>
     </div><div class="entry">
@@ -72,7 +69,7 @@
       <div class="occurrences"><a href="../colossus/core/ServerStatus$.html" class="extype" name="colossus.core.ServerStatus">ServerStatus</a> <a href="../colossus/service/ClientState$.html" class="extype" name="colossus.service.ClientState">ClientState</a> </div>
     </div><div class="entry">
       <div class="name">Input</div>
-      <div class="occurrences"><a href="../colossus/protocols/http/package$$BaseHttp.html" class="extype" name="colossus.protocols.http.BaseHttp">BaseHttp</a> <a href="../colossus/protocols/http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a> <a href="../colossus/protocols/http/package$$StreamingHttp.html" class="extype" name="colossus.protocols.http.StreamingHttp">StreamingHttp</a> <a href="../colossus/protocols/memcache/package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a> <a href="../colossus/protocols/redis/package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a> <a href="../colossus/protocols/telnet/package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a> <a href="../colossus/protocols/websocket/package$$Websocket.html" class="extype" name="colossus.protocols.websocket.Websocket">Websocket</a> <a href="../colossus/service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a> </div>
+      <div class="occurrences"><a href="../colossus/protocols/http/package$$BaseHttp.html" class="extype" name="colossus.protocols.http.BaseHttp">BaseHttp</a> <a href="../colossus/protocols/http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a> <a href="../colossus/protocols/http/package$$StreamingHttp.html" class="extype" name="colossus.protocols.http.StreamingHttp">StreamingHttp</a> <a href="../colossus/protocols/memcache/package$$Memcache.html" class="extype" name="colossus.protocols.memcache.Memcache">Memcache</a> <a href="../colossus/protocols/redis/package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a> <a href="../colossus/protocols/telnet/package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a> <a href="../colossus/protocols/websocket/package$$Websocket.html" class="extype" name="colossus.protocols.websocket.Websocket">Websocket</a> <a href="../colossus/protocols/websocket/subprotocols$$rawstring$$RawString.html" class="extype" name="colossus.protocols.websocket.subprotocols.rawstring.RawString">RawString</a> <a href="../colossus/service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a> </div>
     </div><div class="entry">
       <div class="name">InputController</div>
       <div class="occurrences"><a href="../colossus/controller/package.html" class="extype" name="colossus.controller">controller</a> </div>
@@ -83,14 +80,14 @@
       <div class="name">Integer</div>
       <div class="occurrences"><a href="../colossus/protocols/http/UrlParsing$.html" class="extype" name="colossus.protocols.http.UrlParsing">UrlParsing</a> </div>
     </div><div class="entry">
-      <div class="name">IntegerParser</div>
-      <div class="occurrences"><a href="../colossus/parsing/package.html" class="extype" name="colossus.parsing">parsing</a> </div>
-    </div><div class="entry">
       <div class="name">IntegerReply</div>
       <div class="occurrences"><a href="../colossus/protocols/redis/package.html" class="extype" name="colossus.protocols.redis">redis</a> </div>
     </div><div class="entry">
       <div class="name">InvalidConnectionStateException</div>
       <div class="occurrences"><a href="../colossus/core/package.html" class="extype" name="colossus.core">core</a> </div>
+    </div><div class="entry">
+      <div class="name">InvalidDataSizeException</div>
+      <div class="occurrences"><a href="../colossus/parsing/package.html" class="extype" name="colossus.parsing">parsing</a> </div>
     </div><div class="entry">
       <div class="name">InvalidInputStateException</div>
       <div class="occurrences"><a href="../colossus/controller/package.html" class="extype" name="colossus.controller">controller</a> </div>
@@ -103,6 +100,9 @@
     </div><div class="entry">
       <div class="name">InvalidRequestException</div>
       <div class="occurrences"><a href="../colossus/protocols/http/package.html" class="extype" name="colossus.protocols.http">http</a> </div>
+    </div><div class="entry">
+      <div class="name">IrrecoverableError</div>
+      <div class="occurrences"><a href="../colossus/service/package.html" class="extype" name="colossus.service">service</a> </div>
     </div><div class="entry">
       <div class="name">IteratorGenerator</div>
       <div class="occurrences"><a href="../colossus/controller/package.html" class="extype" name="colossus.controller">controller</a> </div>
@@ -146,8 +146,20 @@
       <div class="name">infos</div>
       <div class="occurrences"><a href="../colossus/core/Worker$$ConnectionSummary.html" class="extype" name="colossus.core.Worker.ConnectionSummary">ConnectionSummary</a> </div>
     </div><div class="entry">
+      <div class="name">inputMaxSize</div>
+      <div class="occurrences"><a href="../colossus/controller/ControllerConfig.html" class="extype" name="colossus.controller.ControllerConfig">ControllerConfig</a> </div>
+    </div><div class="entry">
+      <div class="name">inputSizeHistogram</div>
+      <div class="occurrences"><a href="../colossus/controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a> </div>
+    </div><div class="entry">
+      <div class="name">inputSizeTracker</div>
+      <div class="occurrences"><a href="../colossus/controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a> </div>
+    </div><div class="entry">
       <div class="name">int</div>
       <div class="occurrences"><a href="../colossus/parsing/Combinators$.html" class="extype" name="colossus.parsing.Combinators">Combinators</a> </div>
+    </div><div class="entry">
+      <div class="name">intToDataSize</div>
+      <div class="occurrences"><a href="../colossus/parsing/DataSize$.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> </div>
     </div><div class="entry">
       <div class="name">intUntil</div>
       <div class="occurrences"><a href="../colossus/parsing/Combinators$.html" class="extype" name="colossus.parsing.Combinators">Combinators</a> </div>
@@ -181,9 +193,6 @@
     </div><div class="entry">
       <div class="name">isEmpty</div>
       <div class="occurrences"><a href="../colossus/controller/DataQueue.html" class="extype" name="colossus.controller.DataQueue">DataQueue</a> <a href="../colossus/controller/MessageQueue.html" class="extype" name="colossus.controller.MessageQueue">MessageQueue</a> </div>
-    </div><div class="entry">
-      <div class="name">isFinished</div>
-      <div class="occurrences"><a href="../colossus/parsing/SizedParseBuffer.html" class="extype" name="colossus.parsing.SizedParseBuffer">SizedParseBuffer</a> </div>
     </div><div class="entry">
       <div class="name">isFull</div>
       <div class="occurrences"><a href="../colossus/controller/DataQueue.html" class="extype" name="colossus.controller.DataQueue">DataQueue</a> <a href="../colossus/controller/InfinitePipe.html" class="extype" name="colossus.controller.InfinitePipe">InfinitePipe</a> <a href="../colossus/controller/MessageQueue.html" class="extype" name="colossus.controller.MessageQueue">MessageQueue</a> <a href="../colossus/controller/Sink.html" class="extype" name="colossus.controller.Sink">Sink</a> </div>

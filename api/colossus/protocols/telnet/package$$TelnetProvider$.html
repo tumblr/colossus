@@ -45,13 +45,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">TelnetProvider</span><span class="result"> extends <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>]</span>
+        <span class="name">TelnetProvider</span><span class="result"> extends <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>]</span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>], <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -69,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.telnet.TelnetProvider"><span>TelnetProvider</span></li><li class="in" name="colossus.service.CodecProvider"><span>CodecProvider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.telnet.TelnetProvider"><span>TelnetProvider</span></li><li class="in" name="colossus.service.ServiceCodecProvider"><span>ServiceCodecProvider</span></li><li class="in" name="colossus.service.CodecProvider"><span>CodecProvider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -220,22 +220,24 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.protocols.telnet.TelnetProvider#errorResponse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="errorResponse(request:colossus.protocols.telnet.package.TelnetCommand,reason:Throwable):colossus.protocols.telnet.package.TelnetReply"></a>
-      <a id="errorResponse(TelnetCommand,Throwable):TelnetReply"></a>
+      <a id="errorResponse(error:colossus.service.ProcessingFailure[colossus.protocols.telnet.package.TelnetCommand]):colossus.protocols.telnet.package.TelnetReply"></a>
+      <a id="errorResponse(ProcessingFailure[TelnetCommand]):TelnetReply"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="package$$TelnetReply.html" class="extype" name="colossus.protocols.telnet.TelnetReply">TelnetReply</a></span>
+        <span class="name">errorResponse</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="package$$TelnetCommand.html" class="extype" name="colossus.protocols.telnet.TelnetCommand">TelnetCommand</a>]</span>)</span><span class="result">: <a href="package$$TelnetReply.html" class="extype" name="colossus.protocols.telnet.TelnetReply">TelnetReply</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetProvider$@errorResponse(request:colossus.protocols.telnet.package.TelnetCommand,reason:Throwable):colossus.protocols.telnet.package.TelnetReply" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.telnet.package$$TelnetProvider$@errorResponse(error:colossus.service.ProcessingFailure[colossus.protocols.telnet.package.TelnetCommand]):colossus.protocols.telnet.package.TelnetReply" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Basic error response</p><div class="fullcomment"><div class="comment cmt"><p>Basic error response</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p>Request that caused the error</p></dd><dt class="param">reason</dt><dd class="cmt"><p>The resulting failure</p></dd><dt>returns</dt><dd class="cmt"><p>A response which represents the failure encoded with the Codec</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
+      <p class="shortcomment cmt">Basic error response
+</p><div class="fullcomment"><div class="comment cmt"><p>Basic error response
+</p></div><dl class="paramcmts block"><dt class="param">error</dt><dd class="cmt"><p>Request that caused the error</p></dd><dt>returns</dt><dd class="cmt"><p>A response which represents the failure encoded with the Codec</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a> → <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -377,7 +379,8 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The Codec which will be used.</p><div class="fullcomment"><div class="comment cmt"><p>The Codec which will be used.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
+      <p class="shortcomment cmt">The Codec which will be used.</p><div class="fullcomment"><div class="comment cmt"><p>The Codec which will be used.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.telnet.TelnetProvider">TelnetProvider</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -490,7 +493,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.service.CodecProvider">
+        <div class="parent" name="colossus.service.ServiceCodecProvider">
+              <h3>Inherited from <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>]</h3>
+            </div><div class="parent" name="colossus.service.CodecProvider">
               <h3>Inherited from <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Telnet.html" class="extype" name="colossus.protocols.telnet.Telnet">Telnet</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>

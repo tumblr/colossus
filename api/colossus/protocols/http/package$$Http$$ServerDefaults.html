@@ -45,13 +45,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerDefaults</span><span class="result"> extends <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">ServerDefaults</span><span class="result"> extends <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -69,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.http.Http.ServerDefaults"><span>ServerDefaults</span></li><li class="in" name="colossus.service.CodecProvider"><span>CodecProvider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.http.Http.ServerDefaults"><span>ServerDefaults</span></li><li class="in" name="colossus.service.ServiceCodecProvider"><span>ServiceCodecProvider</span></li><li class="in" name="colossus.service.CodecProvider"><span>CodecProvider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -240,22 +240,24 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.protocols.http.Http.ServerDefaults#errorResponse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="errorResponse(request:colossus.protocols.http.HttpRequest,reason:Throwable):colossus.protocols.http.package.Http#Output"></a>
-      <a id="errorResponse(HttpRequest,Throwable):Output"></a>
+      <a id="errorResponse(error:colossus.service.ProcessingFailure[colossus.protocols.http.HttpRequest]):colossus.protocols.http.package.Http#Output"></a>
+      <a id="errorResponse(ProcessingFailure[HttpRequest]):Output"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">errorResponse</span><span class="params">(<span name="request">request: <a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>, <span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>
+        <span class="name">errorResponse</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>]</span>)</span><span class="result">: <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$Http$$ServerDefaults@errorResponse(request:colossus.protocols.http.HttpRequest,reason:Throwable):colossus.protocols.http.package.Http#Output" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.package$$Http$$ServerDefaults@errorResponse(error:colossus.service.ProcessingFailure[colossus.protocols.http.HttpRequest]):colossus.protocols.http.package.Http#Output" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Basic error response</p><div class="fullcomment"><div class="comment cmt"><p>Basic error response</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p>Request that caused the error</p></dd><dt class="param">reason</dt><dd class="cmt"><p>The resulting failure</p></dd><dt>returns</dt><dd class="cmt"><p>A response which represents the failure encoded with the Codec</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.Http.ServerDefaults">ServerDefaults</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
+      <p class="shortcomment cmt">Basic error response
+</p><div class="fullcomment"><div class="comment cmt"><p>Basic error response
+</p></div><dl class="paramcmts block"><dt class="param">error</dt><dd class="cmt"><p>Request that caused the error</p></dd><dt>returns</dt><dd class="cmt"><p>A response which represents the failure encoded with the Codec</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.Http.ServerDefaults">ServerDefaults</a> → <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -382,22 +384,23 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="colossus.protocols.http.Http.ServerDefaults#provideCodec" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="provideCodec():colossus.protocols.http.HttpServerCodec"></a>
-      <a id="provideCodec():HttpServerCodec"></a>
+      <a id="provideCodec:colossus.protocols.http.HttpServerCodec"></a>
+      <a id="provideCodec:HttpServerCodec"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">provideCodec</span><span class="params">()</span><span class="result">: <a href="HttpServerCodec.html" class="extype" name="colossus.protocols.http.HttpServerCodec">HttpServerCodec</a></span>
+        <span class="name">provideCodec</span><span class="result">: <a href="HttpServerCodec.html" class="extype" name="colossus.protocols.http.HttpServerCodec">HttpServerCodec</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$Http$$ServerDefaults@provideCodec():colossus.protocols.http.HttpServerCodec" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.package$$Http$$ServerDefaults@provideCodec:colossus.protocols.http.HttpServerCodec" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">The Codec which will be used.</p><div class="fullcomment"><div class="comment cmt"><p>The Codec which will be used.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.Http.ServerDefaults">ServerDefaults</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
+      <p class="shortcomment cmt">The Codec which will be used.</p><div class="fullcomment"><div class="comment cmt"><p>The Codec which will be used.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.Http.ServerDefaults">ServerDefaults</a> → <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -510,7 +513,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.service.CodecProvider">
+        <div class="parent" name="colossus.service.ServiceCodecProvider">
+              <h3>Inherited from <a href="../../service/ServiceCodecProvider.html" class="extype" name="colossus.service.ServiceCodecProvider">ServiceCodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
+            </div><div class="parent" name="colossus.service.CodecProvider">
               <h3>Inherited from <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>

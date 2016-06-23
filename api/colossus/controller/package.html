@@ -116,7 +116,7 @@ can be thought of as a duplex stream of messages.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@ControllerConfigextendsProductwithSerializable" title="Permalink" target="_top">
@@ -125,7 +125,7 @@ can be thought of as a duplex stream of messages.
     </span>
       <p class="shortcomment cmt">Configuration for the controller
 </p><div class="fullcomment"><div class="comment cmt"><p>Configuration for the controller
-</p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">sendTimeout</dt><dd class="cmt"><p>if a queued outbound message becomes older than this it will be cancelled</p></dd><dt class="param">inputMaxSize</dt><dd class="cmt"><p>maximum allowed input size (in bytes)</p></dd></dl></div>
     </li><li name="colossus.controller.DataQueue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="DataQueueextendsAnyRef"></a>
       <a id="DataQueue:DataQueue"></a>

@@ -1,22 +1,22 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>UnsizedParseBuffer - colossus.parsing.UnsizedParseBuffer</title>
-          <meta name="description" content="UnsizedParseBuffer - colossus.parsing.UnsizedParseBuffer" />
-          <meta name="keywords" content="UnsizedParseBuffer colossus.parsing.UnsizedParseBuffer" />
+          <title>FrameCodecProvider - colossus.protocols.websocket.FrameCodecProvider</title>
+          <meta name="description" content="FrameCodecProvider - colossus.protocols.websocket.FrameCodecProvider" />
+          <meta name="keywords" content="FrameCodecProvider colossus.protocols.websocket.FrameCodecProvider" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
-      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
-      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
-      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
-      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
-      <script type="text/javascript" src="../../lib/template.js"></script>
-      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
       
       <script type="text/javascript">
          if(top === self) {
-            var url = '../../index.html';
-            var hash = 'colossus.parsing.UnsizedParseBuffer';
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.websocket.FrameCodecProvider';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,13 +28,13 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Class" src="../../lib/class_big.png" />
-        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.parsing">parsing</a></p>
-        <h1>UnsizedParseBuffer</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="colossus.parsing">package parsing</a>
+        <img alt="Trait" src="../../../lib/trait_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.websocket">websocket</a></p>
+        <h1>FrameCodecProvider</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.protocols.websocket">package websocket</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -42,17 +42,20 @@
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">UnsizedParseBuffer</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">FrameCodecProvider</span><span class="tparams">[<span name="P">P &lt;: <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="subprotocols$$rawstring$$StringCodecProvider$.html" class="extype" name="colossus.protocols.websocket.subprotocols.rawstring.StringCodecProvider">StringCodecProvider</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -69,7 +72,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.parsing.UnsizedParseBuffer"><span>UnsizedParseBuffer</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.websocket.FrameCodecProvider"><span>FrameCodecProvider</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -86,34 +89,34 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="colossus.parsing.UnsizedParseBuffer#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(terminus:akka.util.ByteString,includeTerminusInData:Boolean,skip:Int):colossus.parsing.UnsizedParseBuffer"></a>
-      <a id="&lt;init&gt;:UnsizedParseBuffer"></a>
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="colossus.protocols.websocket.FrameCodecProvider#provideCodec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="provideCodec():colossus.protocols.websocket.FrameCodec[P]"></a>
+      <a id="provideCodec():FrameCodec[P]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">UnsizedParseBuffer</span><span class="params">(<span name="terminus">terminus: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="includeTerminusInData">includeTerminusInData: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="skip">skip: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">0</span></span>)</span>
+        <span class="name">provideCodec</span><span class="params">()</span><span class="result">: <a href="FrameCodec.html" class="extype" name="colossus.protocols.websocket.FrameCodec">FrameCodec</a>[<span class="extype" name="colossus.protocols.websocket.FrameCodecProvider.P">P</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@&lt;init&gt;(terminus:akka.util.ByteString,includeTerminusInData:Boolean,skip:Int):colossus.parsing.UnsizedParseBuffer" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@provideCodec():colossus.protocols.websocket.FrameCodec[P]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li></ol>
             </div>
 
-        
-
-        
-
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -126,8 +129,8 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@!=(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -143,8 +146,8 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@##():Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@##():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -160,45 +163,11 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@==(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.parsing.UnsizedParseBuffer#addData" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addData(data:colossus.core.DataBuffer):colossus.parsing.ParseStatus"></a>
-      <a id="addData(DataBuffer):ParseStatus"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addData</span><span class="params">(<span name="data">data: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <a href="ParseStatus.html" class="extype" name="colossus.parsing.ParseStatus">ParseStatus</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@addData(data:colossus.core.DataBuffer):colossus.parsing.ParseStatus" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.parsing.UnsizedParseBuffer#addDatum" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addDatum(datum:Byte):colossus.parsing.ParseStatus"></a>
-      <a id="addDatum(Byte):ParseStatus"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addDatum</span><span class="params">(<span name="datum">datum: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <a href="ParseStatus.html" class="extype" name="colossus.parsing.ParseStatus">ParseStatus</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@addDatum(datum:Byte):colossus.parsing.ParseStatus" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -211,8 +180,8 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@asInstanceOf[T0]:T0" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -228,11 +197,11 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@clone():Object" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@clone():Object" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -251,8 +220,8 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -268,8 +237,8 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@equals(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -285,11 +254,11 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@finalize():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -308,8 +277,8 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -325,8 +294,8 @@
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@hashCode():Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -342,8 +311,8 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -359,8 +328,8 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -376,8 +345,8 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@notify():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -393,28 +362,11 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@notifyAll():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.parsing.UnsizedParseBuffer#result" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="result:akka.util.ByteString"></a>
-      <a id="result:ByteString"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">result</span><span class="result">: <span class="extype" name="akka.util.ByteString">ByteString</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@result:akka.util.ByteString" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -427,8 +379,8 @@
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -444,8 +396,8 @@
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@toString():String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@toString():String" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -461,8 +413,8 @@
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@wait():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -484,8 +436,8 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -507,8 +459,8 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.UnsizedParseBuffer@wait(x$1:Long):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
+      <a href="../../../index.html#colossus.protocols.websocket.FrameCodecProvider@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>

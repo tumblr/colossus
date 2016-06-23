@@ -59,7 +59,7 @@ can be thought of as a duplex stream of messages.
           <div class="superTypes hiddenContent"><a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>], <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>], <a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<span class="extype" name="colossus.controller.Controller.Input">Input</span>, <span class="extype" name="colossus.controller.Controller.Output">Output</span>], <a href="../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/websocket/BaseWebsocketHandler.html" class="extype" name="colossus.protocols.websocket.BaseWebsocketHandler">BaseWebsocketHandler</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a>, <a href="../protocols/websocket/WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a></div>
           </div></div>
         
 
@@ -120,7 +120,24 @@ can be thought of as a duplex stream of messages.
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.controller.InputController#processMessage" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="colossus.controller.MasterController#namespace" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="namespace:colossus.metrics.MetricNamespace"></a>
+      <a id="namespace:MetricNamespace"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">namespace</span><span class="result">: <span class="extype" name="colossus.metrics.MetricNamespace">MetricNamespace</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.Controller@namespace:colossus.metrics.MetricNamespace" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#processMessage" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="processMessage(message:Input):Unit"></a>
       <a id="processMessage(Input):Unit"></a>
       <h4 class="signature">
@@ -230,18 +247,18 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="colossus.core.CoreHandler#become" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="become(nh:colossus.core.Context=&gt;colossus.core.ConnectionHandler):Boolean"></a>
-      <a id="become((Context)⇒ConnectionHandler):Boolean"></a>
+      <a id="become(nh:()=&gt;colossus.core.ConnectionHandler):Boolean"></a>
+      <a id="become(()⇒ConnectionHandler):Boolean"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">become</span><span class="params">(<span name="nh">nh: (<a href="../core/Context.html" class="extype" name="colossus.core.Context">Context</a>) ⇒ <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">become</span><span class="params">(<span name="nh">nh: () ⇒ <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.Controller@become(nh:colossus.core.Context=&gt;colossus.core.ConnectionHandler):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.Controller@become(nh:()=&gt;colossus.core.ConnectionHandler):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -499,6 +516,23 @@ service this will allow any requests being processed to complete.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.controller.Controller#fatalInputError" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fatalInputError(reason:Throwable):Unit"></a>
+      <a id="fatalInputError(Throwable):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fatalInputError</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.Controller@fatalInputError(reason:Throwable):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.controller.Controller">Controller</a> → <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -613,6 +647,40 @@ for checking if an ongoing operation has timed out.</p><div class="fullcomment">
 for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
 which is only based on the last time there was any I/O.
 </p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a> → <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#inputSizeHistogram" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inputSizeHistogram:colossus.metrics.Histogram"></a>
+      <a id="inputSizeHistogram:Histogram"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inputSizeHistogram</span><span class="result">: <span class="extype" name="colossus.metrics.Histogram">Histogram</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.Controller@inputSizeHistogram:colossus.metrics.Histogram" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#inputSizeTracker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inputSizeTracker:colossus.parsing.ParserSizeTracker"></a>
+      <a id="inputSizeTracker:ParserSizeTracker"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inputSizeTracker</span><span class="result">: <a href="../parsing/ParserSizeTracker.html" class="extype" name="colossus.parsing.ParserSizeTracker">ParserSizeTracker</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.Controller@inputSizeTracker:colossus.parsing.ParserSizeTracker" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
     </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isBound:Boolean"></a>
       <a id="isBound:Boolean"></a>
@@ -789,6 +857,23 @@ which is only based on the last time there was any I/O.
 message in the process of writing, it will be unaffected.  New messages
 can still be pushed to the queue as long as it is not full
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a></dd></dl></div>
+    </li><li name="colossus.controller.InputController#processBadRequest" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="processBadRequest(reason:Throwable):Option[Output]"></a>
+      <a id="processBadRequest(Throwable):Option[Output]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">processBadRequest</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="colossus.controller.Controller.Output">Output</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.Controller@processBadRequest(reason:Throwable):Option[Output]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a></dd></dl></div>
     </li><li name="colossus.controller.OutputController#purgePending" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="purgePending(reason:Throwable):Unit"></a>
       <a id="purgePending(Throwable):Unit"></a>
