@@ -23,6 +23,27 @@ libraryDependencies += "com.tumblr" %% "colossus-testkit" % "{{ site.latest_vers
 
 `colossus.testkit.CallbackAwait` works similarly to Scala's `Await` for futures.  
 
+### Testing Request Handlers
+
+You can use `MockConnection` to create a fake `ServerContext` and create an instance of a request handler:
+
+{% highlight scala %}
+
+class MyHandler(context: ServerContext) extends Service[Http](context) {
+  def handle = {
+    case req => req.ok("hello")
+  }
+}
+
+"request handler" must {
+  "generate a response" in {
+    val connection = MockConnection.server(new MyHandler(_))
+    val response = connection.typedHandler.handle(HttpRequest.get("/foo"))
+    CallbackAwait(response).body.bytes.utf8String mustBe "hello"
+  }
+}
+{% endhighlight %}
+
 ## Integration Testing
 
 `ColossusSpec` is a scalatest-based integration testing suite that contains a

@@ -6,6 +6,10 @@ categories: docs
 
 [Quickstart](quickstart)
 
+[Working with Clients](clients)
+
+[Configuration](configuration)
+
 [Testing Servers](testkit)
 
 [Metrics](metrics)

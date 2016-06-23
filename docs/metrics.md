@@ -70,15 +70,27 @@ import metrics._
 implicit val actorSystem = ActorSystem()
 
 //create the metric system
-val metricSystem = MetricSystem("/my-service")
+implicit val metricSystem = MetricSystem()
 
-//while you can create multiple collections, in most cases you'll want to just
-use the base collection
-import metricSystem.base
-
-val rate = Rate("/my-rate")
+val rate = Rate("my-rate")
 
 rate.hit()
+
+{% endhighlight %}
+
+### Namespaces
+
+When creating a new collector, you always need an implicit `MetricNamespace` in
+scope.  The `MetricSystem` itself acts as the root namespace, but you can use it
+to create sub-namespaces:
+
+{% highlight scala %}
+val metricSystem = MetricSystem()
+
+implicit val namespace = metricSystem / "foo" / "bar"
+
+//this rate will have the address "/foo/bar/baz"
+val rate = Rate("baz")
 
 {% endhighlight %}
 
