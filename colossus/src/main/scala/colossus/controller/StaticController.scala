@@ -231,6 +231,7 @@ trait StaticOutputController[I,O] extends BaseStaticController[I,O]{this: Contro
 
   def readyForData(buffer: DataOutBuffer) =  {
     if (disconnecting && outputBuffer.isEmpty) {
+      checkShutdown()
       MoreDataResult.Complete
     } else {
       while (writesEnabled && outputBuffer.size > 0 && ! buffer.isOverflowed) {
