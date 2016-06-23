@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Configuring Servers and Clients</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/configuration/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Configuring Servers and Clients</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>since version 0.8.0, most configurable components of Colossus can be configured
+using <a href="https://github.com/typesafehub/config">Typesafe Config</a>.</p>
+
+<p>In general, all configuration is path-based, meaning that the supplied name of
+the server/client/etc. is used in resolving the path for configuration.  When
+path-based configuration is not present, each component falls back to a set of
+defaults defined in Colossus’
+<a href="https://github.com/tumblr/colossus/blob/master/colossus/src/main/resources/reference.conf">reference.conf</a>.</p>
+
+<p>All configurable components have a constructor that takes a typesafe <code>Config</code> an
+optional parameter.  If omitted, a config object will be loaded using
+<code>ConfigFactory.load()</code>.</p>
+
+<h3 id="configuring-iosystems">Configuring IOSystems</h3>
+
+<p>Colossus will look for configuration in <code>colossus.iosystem</code>.</p>
+
+<p>If an <code>IOSystem</code> is constructed without a <code>MetricSystem</code>, it will create a new one with the same name.</p>
+
+<h3 id="configuring-servers">Configuring Servers</h3>
+
+<p>Servers will look for path-based configuration at the path
+<code>colossus.server.&lt;name&gt;</code>, falling back to just <code>colossus.server</code> for defaults.
+See the API documentation for <a href="">Server</a> and <a href="">ServerSettings</a> for more details</p>
+
+<h3 id="configuring-service-request-handlers">Configuring Service Request Handlers</h3>
+
+<p>Request handlers will look for path-based config in the path
+<code>colossus.service.&lt;name&gt;</code>, where “name” is the name of the server of the request
+handler.  See the API docs for <a href="">Service</a> and <a href="">ServiceConfig</a> for more details.</p>
+
+<h3 id="configuring-service-clients">Configuring Service Clients</h3>
+
+<p>Clients will look for path-based config in the path <code>colossus.client.&lt;name&gt;</code>
+where name is the name of the client.  See the API docs for
+<a href="">ServiceClientFactory</a> and <a href="">ClientConfig</a> for more details.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
