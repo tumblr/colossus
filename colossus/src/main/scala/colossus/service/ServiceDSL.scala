@@ -98,9 +98,9 @@ abstract class Service[P <: Protocol](
   implicit val executor = serverContext.context.worker.callbackExecutor
 
   def handle: PartialHandler[P]
-  private val userHandler = handle
+  private def userHandler = handle
   def onError: ErrorHandler[P] = Map()
-  private val userError = onError
+  private def userError = onError
 
   val codec = controller.StaticCodec.wrap[P#Input, P#Output](provider.provideCodec)
 
@@ -123,10 +123,10 @@ object Service {
    * @param port The port to bind the server to
    */
   def basic[T <: Protocol]
-  (name: String, port: Int)(userHandler: PartialHandler[T])
+  (name: String, port: Int)(_userHandler: PartialHandler[T])
   (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = { 
     class BasicService(context: ServerContext) extends Service( context) {
-      def handle = userHandler
+      def handle = _userHandler
     }
     Server.basic(name, port)(context => new BasicService(context))
   }
