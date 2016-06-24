@@ -2,7 +2,6 @@ package colossus
 package core
 
 import testkit._
-import service.AsyncServiceClient
 
 import akka.actor._
 import akka.agent._

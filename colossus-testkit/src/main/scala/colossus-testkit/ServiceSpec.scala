@@ -33,9 +33,9 @@ abstract class ServiceSpec[C <: Protocol](implicit provider: CodecProvider[C], c
     requestTimeout = timeout
   )
 
-  def client(timeout: FiniteDuration = requestTimeout) = AsyncServiceClient[C](clientConfig(timeout))//, clientProvider.clientCodec)
+  def client(timeout: FiniteDuration = requestTimeout) = FutureClient[C](clientConfig(timeout))
 
-  def withClient(f: AsyncServiceClient[Request, Response] => Unit) {
+  def withClient(f: FutureClient[C] => Unit) {
     val c = client()
     f(c)
     c.disconnect()

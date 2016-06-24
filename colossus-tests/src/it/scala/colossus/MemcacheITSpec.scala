@@ -6,7 +6,7 @@ import akka.util.ByteString
 import colossus.protocols.memcache._
 import colossus.protocols.memcache.MemcacheReply._
 import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
-import colossus.service.{AsyncServiceClient, ClientConfig}
+import colossus.service.{FutureClient, ClientConfig}
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -26,7 +26,7 @@ a Memcached client, which communicates with memcached
  */
 class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
-  type AsyncMemacheClient = AsyncServiceClient[MemcacheCommand, MemcacheReply]
+  type AsyncMemacheClient = FutureClient[Memcache]
 
   implicit val defaultPatience = PatienceConfig(timeout = Span(2, Seconds), interval = Span(50, Millis))
 

@@ -98,7 +98,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
     }
   }
 
-  final def shutdownRequest() {
+  final override def shutdownRequest() {
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)
