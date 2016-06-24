@@ -66,59 +66,6 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
-  extends BasicServiceHandler[Http](rh) {
-
-    //TODO: take as paramter
-    val defaults = new Http.ServerDefaults
-
-    val codec = new StaticHttpServerCodec(defaultHeaders)
-
-    override def tagDecorator = new ReturnCodeTagDecorator[Http]
-
-    override def processRequest(input: Http#Input): Callback[Http#Output] = {
-      val response = super.processRequest(input)
-      if(!input.head.persistConnection) disconnect()
-      response
-    }
-    def unhandledError = {
-      case (error) => defaults.errorResponse(error)
-    }
-
-    def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
-
-  }
-
-
-  abstract class Initializer(context: InitContext) {
-    
-    val DateHeader = new DateHeader
-    val ServerHeader = HttpHeader("Server", context.server.name.idString)
-
-    //TODO : not used yet
-    val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
-
-    def onConnect : ServerContext => RequestHandler
-
-  }
-
-  abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
-    def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
-  }
-
-  object HttpServer {
-    
-    def start(name: String, port: Int)(init: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
-      Server.start(name, port){i => new core.Initializer(i) {
-        val httpInitializer = init(i)
-        def onConnect = ctx => new HttpServiceHandler(httpInitializer.onConnect(ctx), httpInitializer.defaultHeaders)
-      }}
-    }
-
-    def basic(name: String, port: Int)(handler: PartialFunction[HttpRequest, Callback[HttpResponse]])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
-      def onConnect = new RequestHandler(_) { def handle = handler }
-    }}
-  }
   /*
 
   implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {

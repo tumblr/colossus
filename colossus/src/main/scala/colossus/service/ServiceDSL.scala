@@ -14,9 +14,25 @@ import metrics.MetricAddress
 
 import Codec._
 
-trait Protocol {self =>
+trait Encoding {
   type Input
   type Output
+}
+object Encoding {
+  def Apply[I,O] = Encoding { type Input = I; type Output = O }
+}
+
+trait Protocol {self =>
+  type Request
+  type Response
+
+  //deprecated
+  type Input = Request
+  //deprecated
+  type Output = Response
+
+  type ServerEncoding = Encoding.Apply[Request,Response]
+  type ClientEncoding = Encoding.Apply[Response, Request]
 
 }
 
@@ -33,36 +49,8 @@ object Protocol {
 
 import Protocol._
 
-/**
- * Provide a Codec as well as some convenience functions for usage within in a Service.
-  *
-  * @tparam C the type of codec this provider will supply
- */
-trait CodecProvider[C <: Protocol] {
-  /**
-    * The Codec which will be used.
-    *
-    * @return
-    */
-  def provideCodec: ServerCodec[C#Input, C#Output]
-
-
-}
-
-trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
-  /**
-   * Basic error response
-    *
-    * @param error Request that caused the error
-   * @return A response which represents the failure encoded with the Codec
-   */
-  def errorResponse(error: ProcessingFailure[C#Input]): C#Output
-
-}
-
-trait ClientCodecProvider[C <: Protocol] {
-  def name: String
-  def clientCodec(): ClientCodec[C#Input, C#Output]
+trait ClientProvider[P <: Protocol] {
+  def provideHandler(context: Context, config: ClientConfig): ServiceClient[P]
 }
 
 
