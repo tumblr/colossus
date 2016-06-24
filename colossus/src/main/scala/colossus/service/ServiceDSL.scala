@@ -245,7 +245,7 @@ object ClientFactory {
   implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
 
     def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
-      AsyncServiceClient.create(config)(io, provider)
+      FutureClient.create(config)(io, provider)
     }
   }
 }

@@ -127,7 +127,7 @@ trait ServiceServer[P <: Protocol] extends StaticController[P#Input, P#Output] w
   protected def processFailure(error: ProcessingFailure[I]): O
 
   //passthrough to lower layers
-  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, config.requestMetrics)
+  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
   def context = serverContext.context
 
 
