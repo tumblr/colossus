@@ -9,19 +9,32 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.reflect.ClassTag
 
 /**
-  * This is passed to new event collectors in addition to their own config.
- *
- * TODO: we might want to include global tags in here as well, and remove them
- * from CollectionContext.  This would mean event collectors would be
- * constructed with global tagsinstead of them being passed in during
- * collection, but right now that basically already happens since the tags are
- * passed in during the collection's construction and then it passes it to each
- * collector
+  * A config object passed to new event collectors in addition to their own config.
  *
  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
- * @param config The Configuration of the underlying [[MetricSystem]]
+ * @param config A typesafe config object that contains all the config for collectors configured using typesafe config
+ * @param collectorDefaults a typesafe config object for collector defaults
  */
-case class CollectorConfig(intervals: Seq[FiniteDuration], config : Config)
+case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig : Config, collectorDefaults: Config) {
+
+  /**
+    * Build a Config for a collector by stacking config objects specified by the paths elements
+    *
+    * The order of resolution is: metric-address-based path, alternate path, collector defaults
+    *
+    * @param address Address of the Metric, turned into a path and used as a config source.
+    * @param defaultsPath the path to the defaults in the collectorDefaults config
+    * @param alternatePaths Ordered list of config paths, ordered by highest precedence.
+    * @return
+    */
+  def resolveConfig(address : MetricAddress, defaultsPath: String, alternatePaths: String*) : Config = {
+    import ConfigHelpers._
+    baseConfig
+      .withFallbacks((address.configString +: alternatePaths):_*)
+      .withFallback(collectorDefaults.getConfig(defaultsPath))
+  }
+
+}
 
 /**
   * Base trait required by all metric types.
@@ -143,13 +156,15 @@ class Collection(val config: CollectorConfig) {
     build
   }
 
+
 }
 
 //Used as a convenience function in tests.  Used in both both colossus-tests and in colossus-metrics tests, which means
 //this project is the lowest common denominator for both.
 object Collection{
   def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
-    new Collection(CollectorConfig(intervals, ConfigFactory.defaultReference().getConfig(MetricSystem.ConfigRoot)))
+    val config = ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot)
+    new Collection(CollectorConfig(intervals,config, config.getConfig("system.collector-defaults") ))
   }
 
   case class TaggedCollector(collector: Collector, tagMap: TagMap)

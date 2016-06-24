@@ -115,7 +115,7 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
     }
   }
 
-  final def shutdownRequest() {
+  final override def shutdownRequest() {
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)

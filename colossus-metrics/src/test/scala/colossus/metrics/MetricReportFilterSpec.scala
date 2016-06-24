@@ -68,7 +68,7 @@ class MetricReportFilterSpec(_system : ActorSystem) extends MetricIntegrationSpe
 
     val config = MetricReporterConfig(Seq(EchoSender(probe.ref)), None, filter, false)
 
-    val reporter = sys.actorOf(Props(classOf[MetricReporter], mockAggregator.ref, config, Root / "sys1"))
+    val reporter = MetricReporter(config, mockAggregator.ref, "sys1")
 
     mockAggregator.send(reporter, ReportMetrics(metricMap))
 

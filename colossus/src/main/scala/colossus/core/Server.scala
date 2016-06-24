@@ -5,7 +5,7 @@ import akka.actor._
 import java.net.InetSocketAddress
 
 import akka.agent.Agent
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
 
@@ -70,6 +70,8 @@ case class ServerSettings(
 }
 
 object ServerSettings {
+  val ConfigRoot = "colossus.server"
+
   def extract(config : Config) : ServerSettings = {
     import colossus.metrics.ConfigHelpers._
 
@@ -88,6 +90,17 @@ object ServerSettings {
       delegatorCreationPolicy = delegatorCreationPolicy,
       shutdownTimeout         = config.getFiniteDuration("shutdown-timeout")
     )
+  }
+
+  def load(name: String, config: Config = ConfigFactory.load()): ServerSettings = {
+    val nameRoot = ConfigRoot + "." + name
+    val resolved = if (config.hasPath(nameRoot)) {
+      config.getConfig(nameRoot).withFallback(config.getConfig(ConfigRoot))
+    } else {
+      config.getConfig(ConfigRoot)
+    }
+    extract(resolved)
+
   }
 }
 
@@ -123,7 +136,7 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
 
   def serverState = serverStateAgent.get()
 
-  val namespace : MetricNamespace = MetricContext(name, system.namespace.collection)
+  val namespace : MetricNamespace = system.namespace / name
 
   def maxIdleTime = {
     if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {

@@ -126,7 +126,7 @@ class ServiceDSLSpec extends ColossusSpec {
         import protocols.http._
         import Http.defaults._
 
-        val s = AsyncServiceClient[Http]("localhost", TEST_PORT, 1.second)
+        val s = FutureClient[Http]("localhost", TEST_PORT, 1.second)
         val t = Http.futureClient(s)
         val q : HttpClient[Future] = t
       }

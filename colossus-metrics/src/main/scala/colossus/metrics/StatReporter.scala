@@ -24,7 +24,7 @@ case class MetricReporterConfig(
   includeHostInGlobalTags: Boolean = true
 )
 
-class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig, namespace: MetricAddress) extends Actor with ActorLogging{
+class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig, metricSystemName: String) extends Actor with ActorLogging{
   import MetricReporter._
   import config._
 
@@ -35,9 +35,7 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
     case _: Exception                => Restart
   }
 
-  private val strippedAddress = namespace.toString.replace("/", "")
-
-  private def createSender(sender : MetricSender) = context.actorOf(sender.props, name = s"$strippedAddress-${sender.name}-sender")
+  private def createSender(sender : MetricSender) = context.actorOf(sender.props, name = s"$metricSystemName-${sender.name}-sender")
 
   private var reporters = Seq[ActorRef]()
 
@@ -81,8 +79,8 @@ class MetricReporter(intervalAggregator : ActorRef, config: MetricReporterConfig
 object MetricReporter {
   case object ResetSender
 
-  def apply(config: MetricReporterConfig, intervalAggregator : ActorRef, namespace: MetricAddress)(implicit fact: ActorRefFactory): ActorRef = {
-    fact.actorOf(Props(classOf[MetricReporter], intervalAggregator, config, namespace))
+  def apply(config: MetricReporterConfig, intervalAggregator : ActorRef, name: String)(implicit fact: ActorRefFactory): ActorRef = {
+    fact.actorOf(Props(classOf[MetricReporter], intervalAggregator, config, name))
   }
 
 }

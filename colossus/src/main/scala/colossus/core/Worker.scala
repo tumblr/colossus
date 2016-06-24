@@ -105,9 +105,6 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
       val item = workerItems(id)
       workerItems -= id
       item.setUnbind()
-      if (item.context.proxyExists) {
-        item.context.proxy ! PoisonPill
-      }
     } else {
       log.error(s"Attempted to unbind worker $id that is not bound to this worker")
     }
@@ -155,7 +152,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
 
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  implicit val ns = io.namespace
+  implicit val ns = io.namespace / io.name
   val eventLoops              = Rate("worker/event_loops", "worker-event-loops")
   val numConnections          = Counter("worker/connections", "worker-connections")
   val rejectedConnections     = Rate("worker/rejected_connections", "worker-rejected-connections")

@@ -3,7 +3,6 @@ package protocols
 
 import colossus.metrics.TagMap
 import core.{Server, ServerContext, ServerRef, WorkerRef}
-import controller._
 import service._
 
 
@@ -105,6 +104,17 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
   /*
+  abstract class HttpService(config: ServiceConfig, context: ServerContext)
+  extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context) {
+      
+    def this(context: ServerContext) = this(ServiceConfig.load(context.server.name.idString), context)
+  }
+
+  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
+  extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context) {
+
+    def this(context: ServerContext) = this(ServiceConfig.load(context.server.name.idString), context)
+  }
 
   implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec

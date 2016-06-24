@@ -126,7 +126,7 @@ trait ServiceServer[I,O] extends Controller[I,O] with ServerConnectionHandler {
   protected def processFailure(error: ProcessingFailure[I]): O
 
   //passthrough to lower layers
-  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize)
+  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
   def context = serverContext.context
 
 
