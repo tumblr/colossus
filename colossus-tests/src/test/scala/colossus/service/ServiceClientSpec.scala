@@ -351,7 +351,7 @@ class ServiceClientSpec extends ColossusSpec {
             name = "/test",
             requestTimeout = 1.second
           )
-          val client = AsyncServiceClient[Redis](config)//Redis.futureClient(config)
+          val client = FutureClient[Redis](config)
           TestClient.waitForConnected(client)
           TestUtil.expectServerConnections(server, 1)
           Await.result(client.send(Command("bye")), 500.milliseconds) must equal(reply)
@@ -397,7 +397,7 @@ class ServiceClientSpec extends ColossusSpec {
             connectRetry = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds), maxTries = Some(2))
           )
 
-          val client = AsyncServiceClient[Raw](config)
+          val client = FutureClient[Raw](config)
           TestUtil.expectServerConnections(server, 0)
           TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
         }

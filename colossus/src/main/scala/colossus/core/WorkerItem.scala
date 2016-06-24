@@ -26,7 +26,7 @@ class Context(val id: Long, val worker: WorkerRef) {
     worker.worker ! WorkerCommand.UnbindWorkerItem(id)
   }
 
-  lazy val proxy : ActorRef = {
+  private[colossus] lazy val proxy : ActorRef = {
     _proxyExists = true
     worker.system.actorSystem.actorOf(Props(classOf[WorkerItemProxy], id, worker))
   }
@@ -112,26 +112,69 @@ abstract class WorkerItem(val context: Context) {
   protected def onUnbind(){}
 
 
+  /**
+   * A Request has been made to shutdown this WorkerItem.  By default this will
+   * simply unbind the item from its Worker, but this can be overriden to add in
+   * custom shutdown behaviors.  Be aware that in some cases this method may not
+   * be called and the item will be unbound, such as when an IOSystem is
+   * shutting down.
+   */
+  def shutdownRequest() {
+    unbind()
+  }
+
+
 }
 
-trait ProxyActor { self: WorkerItem => 
+/**
+ * This is a mixin for [[WorkerItem]] that gives it actor-like capabilities.  A
+ * "proxy" Akka actor is spun up, such that any message sent to the proxy will
+ * be relayed to the WorkerItem.  
+ *
+ * The proxy actors lifecycle will be linked to the lifecycle of this
+ * workeritem, so if the actor is kill, the `shutdownRequest` method will be
+ * invoked, and likewise if this item is unbound the proxy actor will be killed.
+ */
+trait ProxyActor extends WorkerItem { 
   
   import ProxyActor._
   
-  implicit lazy val self : ActorRef = context.proxy
+  implicit val self : ActorRef = context.proxy
 
   private var currentReceiver : Receive = receive
     
   def becomeReceive(receive: Receive) {
     currentReceiver = receive
   }
-  
+
+  override def onBind() {
+    super.onBind()
+    self ! WorkerItemProxy.Bound
+  }
+
+  override def onUnbind() {
+    super.onUnbind()
+    //notice we send this message instead of a PoisonPill so the proxy knows we
+    //sent it and doesn't send a shutdown message
+    if (!killedByProxy) {
+      //if we were killed by the proxy it means the actor is already dead
+      self ! WorkerItemProxy.Unbound
+    }
+  }
+    
   private var lastSender = ActorRef.noSender
+  private var killedByProxy = false
   def sender() : ActorRef = lastSender
 
   def receivedMessage(message: Any, sender: ActorRef) {
     lastSender = sender
-    currentReceiver.applyOrElse(message, (_: Any) => ())
+    message match {
+      case WorkerItemProxy.Shutdown => {
+        killedByProxy = true
+        shutdownRequest()
+      }
+      case other => currentReceiver.applyOrElse(message, (_: Any) => ())
+    }
   }
 
   def receive : Receive
@@ -144,16 +187,49 @@ object ProxyActor {
 
 }
 
-class WorkerItemProxy(id: Long, worker: WorkerRef) extends Actor {
-  
-  def receive = {
+class WorkerItemProxy(id: Long, worker: WorkerRef) extends Actor with Stash {
+  import WorkerItemProxy._
+
+  var killedByItem = false
+
+  def startup: Receive = {
+    case Bound => {
+      unstashAll()
+      context.become(active)
+    }
+    case other => stash()
+  }
+
+  def sendToItem(message: Any) {
+    worker.worker ! WorkerCommand.Message(id, message)
+  }
+
+  def active: Receive = {
     case Worker.MessageDeliveryFailed(_,_) => {} //do anything here?
-    case x => worker.worker ! WorkerCommand.Message(id, x)
+    case Unbound => {
+      killedByItem = true
+      self ! PoisonPill
+    }
+    case x => sendToItem(x)
+
+  }
+
+  def receive = startup
+
+  override def postStop() {
+    if (!killedByItem) {
+      sendToItem(WorkerItemProxy.Shutdown)
+    }
   }
 
 }
 
 object WorkerItemProxy {
   sealed trait ProxyCommand
+  case object Bound extends ProxyCommand
+  case object Unbound extends ProxyCommand
+
+  sealed trait ProxyToWorkerItem
+  case object Shutdown extends ProxyToWorkerItem
 }
 

@@ -73,7 +73,7 @@ class TaskTest extends ColossusSpec {
       }
     }
 
-    "unbind by killing self actor" ignore {
+    "unbind by killing self actor" in {
       withIOSystem{ implicit io =>
         val probe = TestProbe()
         val task = Task.start(new Task(_) {

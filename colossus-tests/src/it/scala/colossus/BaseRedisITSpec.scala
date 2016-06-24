@@ -5,7 +5,7 @@ import java.net.InetSocketAddress
 import akka.util.ByteString
 import colossus.metrics.MetricSystem
 import colossus.protocols.redis._
-import colossus.service.{AsyncServiceClient, ClientConfig}
+import colossus.service.ClientConfig
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.{ScaledTimeSpans, ScalaFutures}
 import org.scalatest.time.Span

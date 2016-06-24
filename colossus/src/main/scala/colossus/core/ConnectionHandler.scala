@@ -80,13 +80,6 @@ trait ConnectionHandler extends WorkerItem {
    */
   def idleCheck(period: Duration)
 
-  /**
-   * the connection handler should begin its graceful shutdown procedure.  For
-   * both servers and clients this can be triggered either by a call to
-   * gracefulDisconnect or to become.  For ServerConnectionHandlers this can
-   * also occur when the Server begins shutting down.
-   */
-  def shutdownRequest()
 }
 
 /**
@@ -150,7 +143,7 @@ abstract class BasicSyncHandler(context: Context) extends WorkerItem(context) wi
   def receivedMessage(message: Any, sender: ActorRef){}
   def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
   def idleCheck(period: Duration){}
-  def shutdownRequest (){
+  override def shutdownRequest (){
     endpoint.disconnect()
   }
 

@@ -15,6 +15,7 @@ import akka.actor._
 abstract class Task(context: Context) extends WorkerItem(context) with ProxyActor {
 
   override def onBind() {  
+    super.onBind()
     run()
   }
 
