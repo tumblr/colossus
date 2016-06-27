@@ -109,11 +109,11 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[P <: Protocol] extends StaticController[P#Input, P#Output] with ControllerIface[P#Input, P#Output] with ServerConnectionHandler {
+trait ServiceServer[P <: Protocol] extends StaticController[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
   import ServiceServer._
 
-  type I = P#Input
-  type O = P#Output
+  type I = P#ServerEncoding#Input
+  type O = P#ServerEncoding#Output
 
   //"constructor" parameters
   //codec is already defined in controller
@@ -127,7 +127,7 @@ trait ServiceServer[P <: Protocol] extends StaticController[P#Input, P#Output] w
   protected def processFailure(error: ProcessingFailure[I]): O
 
   //passthrough to lower layers
-  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, config.requestMetrics)
+  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
   def context = serverContext.context
 
 

@@ -9,48 +9,34 @@ import core._
 import service._
 
 
-trait StaticCodec[I,O] {
-  def decode(data: DataBuffer): Option[I]
-  def encode(message: O, buffer: DataOutBuffer)
+trait StaticCodec[E <: Encoding] {
+  def decode(data: DataBuffer): Option[E#Input]
+  def encode(message: E#Output, buffer: DataOutBuffer)
 
   def reset()
 }
+
 object StaticCodec {
 
-  type Server[P <: Protocol] = StaticCodec[P#Input, P#Output]
-  type Client[P <: Protocol] = StaticCodec[P#Output, P#Input]
+  type Server[P <: Protocol] = StaticCodec[P#ServerEncoding]
+  type Client[P <: Protocol] = StaticCodec[P#ClientEncoding]
 
-  def wrap[I,O](s: Codec[O,I]): StaticCodec[I,O] = new StaticCodec[I,O] {
-    def decode(input: DataBuffer): Option[I] = s.decode(input).map{
-      case DecodedResult.Static(i) => i
-      case _ => throw new Exception("not supported")
-    }
-    def encode(output: O, buffer: DataOutBuffer) {
-      s.encode(output) match {
-        case e: Encoder => {
-          e.encode(buffer)
-        }
-        case _ => throw new Exception("Not supported")
-      }
-    }
-    def reset() { s.reset() }
-  }
 }
 
 //these are the methods that the controller layer requires to be implemented
-trait ControllerIface[I,O] {
+trait ControllerIface[E <: Encoding] {
   protected def connectionState: ConnectionState
-  protected def codec: StaticCodec[I,O]
-  protected def processMessage(input: I)
+  protected def codec: StaticCodec[E]
+  protected def processMessage(input: E#Input)
   protected def controllerConfig: ControllerConfig
   implicit val namespace: MetricNamespace
 
-  protected def onFatalError(reason: Throwable): Option[O] = None
+  protected def onFatalError(reason: Throwable): Option[E#Output] = None
 }
 
 //these are the method that a controller layer itself must implement
-trait ControllerImpl[I,O] {
-  protected def push(item: O, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+trait ControllerImpl[E <: Encoding] {
+  protected def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
   protected def canPush: Boolean
   protected def purgePending(reason: Throwable)
   protected def writesEnabled: Boolean
@@ -63,18 +49,18 @@ trait ControllerImpl[I,O] {
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseStaticController[I,O] extends CoreHandler with ControllerImpl[I,O]{this: ControllerIface[I,O] =>
+trait BaseStaticController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
   def fatalError(reason: Throwable) {
     onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
   }
 }
 
-trait StaticController[I,O] extends StaticInputController[I,O] with StaticOutputController[I,O]{this: ControllerIface[I,O] => }
+trait StaticController[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
 
 
 
-trait StaticInputController[I,O] extends BaseStaticController[I,O] {this: ControllerIface[I,O] =>
+trait StaticInputController[E <: Encoding] extends BaseStaticController[E] {this: ControllerIface[E] =>
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
 
@@ -138,13 +124,13 @@ object StaticOutState {
   case object Terminated extends StaticOutState(false)
 }
 
-trait StaticOutputController[I,O] extends BaseStaticController[I,O]{this: ControllerIface[I,O] =>
+trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this: ControllerIface[E] =>
 
 
   private var state: StaticOutState = StaticOutState.Suspended
   private def disconnecting = state.disconnecting
   private var _writesEnabled = true
-  private var outputBuffer = new MessageQueue[O](controllerConfig.outputBufferSize)
+  private var outputBuffer = new MessageQueue[E#Output](controllerConfig.outputBufferSize)
 
   def writesEnabled = _writesEnabled
 
@@ -221,7 +207,7 @@ trait StaticOutputController[I,O] extends BaseStaticController[I,O]{this: Contro
 
   def canPush = state.canPush && !outputBuffer.isFull
 
-  def push(item: O, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
+  def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
     if (canPush) {
       if (outputBuffer.isEmpty) signalWrite()
       outputBuffer.enqueue(item, postWrite, createdMillis)

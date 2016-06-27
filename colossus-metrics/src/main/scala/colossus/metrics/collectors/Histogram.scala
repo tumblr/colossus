@@ -49,9 +49,9 @@ private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
  *
  * Each bucket handles an increasingly large range of values from 0 to MAX_INT.
  */
-object Histogram extends CollectorConfigLoader{
+object Histogram {
 
-  private val DefaultConfigPath = "system.collectors-defaults.histogram"
+  private val DefaultConfigPath = "histogram"
 
   val NUM_BUCKETS = 100
   //note, the value at index i is the lower bound of that bucket
@@ -107,7 +107,7 @@ object Histogram extends CollectorConfigLoader{
     ns.getOrAdd(address){(fullAddress, config) =>
       import scala.collection.JavaConversions._
 
-      val params = resolveConfig(config.config, fullAddress, configPath, DefaultConfigPath)
+      val params = config.resolveConfig(fullAddress, DefaultConfigPath, configPath)
       val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")

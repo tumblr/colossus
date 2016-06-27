@@ -9,10 +9,9 @@ import service._
 class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
 extends BasicServiceHandler[Http](rh) {
 
-  //TODO: take as paramter
-  val defaults = new Http.ServerDefaults
-
   val codec = new StaticHttpServerCodec(defaultHeaders)
+
+  val defaults = new Http.ServerDefaults
 
   override def tagDecorator = new ReturnCodeTagDecorator[Http]
 
@@ -22,7 +21,7 @@ extends BasicServiceHandler[Http](rh) {
     response
   }
   def unhandledError = {
-    case (error) => defaults.errorResponse(error)
+    case error => defaults.errorResponse(error)
   }
 
   def receivedMessage(message: Any, sender: akka.actor.ActorRef){}

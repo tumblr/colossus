@@ -61,9 +61,9 @@ class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boo
   override def hit(tags: TagMap, value: MetricValue): Unit = {}
 }
 
-object Rate extends CollectorConfigLoader {
+object Rate {
 
-  private val DefaultConfigPath = "system.collectors-defaults.rate"
+  private val DefaultConfigPath = "rate"
 
   /**
     * Create a Rate with the following address.  See the documentation for [[colossus.metrics.MetricSystem]] for details on configuration
@@ -87,7 +87,7 @@ object Rate extends CollectorConfigLoader {
     */
   def apply(address : MetricAddress, configName : String)(implicit ns : MetricNamespace) : Rate = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      val params = resolveConfig(config.config, fullAddress, configName, DefaultConfigPath)
+      val params = config.resolveConfig(fullAddress, DefaultConfigPath, configName)
       createRate(fullAddress, params.getBoolean("prune-empty"), params.getBoolean("enabled"), config.intervals)
     }
   }

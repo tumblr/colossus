@@ -148,21 +148,18 @@ object ClientState {
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  val codec: Codec[P#Input,P#Output],
+  val codec: StaticCodec.Client[P],
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
 extends {
   //needed to deal with initialization order
   val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-} with Controller[P#Output,P#Input]
+} with StaticController[P#ClientEncoding] with ControllerIface[P#ClientEncoding]
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
 
-  type I = P#Input
-  type O = P#Output
-
-  def this(codec: Codec[P#Input,P#Output], config: ClientConfig, worker: WorkerRef) {
+  def this(codec: StaticCodec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
     worker.worker ! WorkerCommand.Bind(this)
   }
@@ -171,7 +168,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   import config._
   implicit val namespace = context.worker.system.namespace / config.name
 
-  type ResponseHandler = Try[O] => Unit
+  type ResponseHandler = Try[P#Response] => Unit
 
   override val maxIdleTime = config.idleTimeout
 
@@ -188,7 +185,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
 
-  case class SourcedRequest(message: I, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
+  case class SourcedRequest(message: P#Request, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
     def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
   }
 
@@ -234,7 +231,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   /**
    * Sent a request to the service, along with a handler for processing the response.
    */
-  private def sendNow(request: I)(handler: ResponseHandler){
+  private def sendNow(request: P#Request)(handler: ResponseHandler){
     if (canSend) {
       val queueTime = System.currentTimeMillis
       val pushed = push(request, queueTime){
@@ -261,9 +258,9 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
    * Create a callback for sending a request.  this allows you to do something like
    * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
-  def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
+  def send(request: P#Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
-  def processMessage(response: O) {
+  def processMessage(response: P#Response) {
     val now = System.currentTimeMillis
     try {
       val source: SourcedRequest = sentBuffer.dequeue()
@@ -384,10 +381,3 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     handler(Failure(exception))
   }
 }
-
-object ServiceClient {
-
-  def apply[C <: Protocol] = ClientFactory.serviceClientFactory[C]
-
-}
-

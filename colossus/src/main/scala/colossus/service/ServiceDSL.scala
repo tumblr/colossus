@@ -11,6 +11,7 @@ import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
+import controller.StaticCodec
 
 import Codec._
 
@@ -19,7 +20,7 @@ trait Encoding {
   type Output
 }
 object Encoding {
-  def Apply[I,O] = Encoding { type Input = I; type Output = O }
+  type Apply[I,O] = Encoding { type Input = I; type Output = O }
 }
 
 trait Protocol {self =>
@@ -31,8 +32,16 @@ trait Protocol {self =>
   //deprecated
   type Output = Response
 
-  type ServerEncoding = Encoding.Apply[Request,Response]
-  type ClientEncoding = Encoding.Apply[Response, Request]
+  trait ServerEncoding extends Encoding {
+    type Input = Request
+    type Output = Response
+  }
+
+  trait ClientEncoding extends Encoding {
+    type Input = Response
+    type Output = Request
+  }
+
 
 }
 
@@ -75,49 +84,6 @@ trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{
 
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
 
-}
-
-/**Deprecated*/
-abstract class Service[P <: Protocol](
-  val serverContext: ServerContext,
-  val config: ServiceConfig = ServiceConfig.Default
-)(implicit provider: ServiceCodecProvider[P]) extends DSLService[P] with ProxyActor {
-
-  implicit val executor = serverContext.context.worker.callbackExecutor
-
-  def handle: PartialHandler[P]
-  private def userHandler = handle
-  def onError: ErrorHandler[P] = Map()
-  private def userError = onError
-
-  val codec = controller.StaticCodec.wrap[P#Input, P#Output](provider.provideCodec)
-
-  val requestHandler = new GenRequestHandler[P](config, serverContext) {
-    def handle = userHandler
-    override def onError = userError
-  }
-  
-  def receive = {case _ => {}}
-
-  protected def unhandledError: colossus.service.Protocol.ErrorHandler[P] = {
-    case err => provider.errorResponse(err)
-  }
-}
-
-object Service {
-  /** Quick-start a service, using default settings 
-   *
-   * @param name The name of the service
-   * @param port The port to bind the server to
-   */
-  def basic[T <: Protocol]
-  (name: String, port: Int)(_userHandler: PartialHandler[T])
-  (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = { 
-    class BasicService(context: ServerContext) extends Service( context) {
-      def handle = _userHandler
-    }
-    Server.basic(name, port)(context => new BasicService(context))
-  }
 }
 
 /**
@@ -177,6 +143,8 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
 trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
 
+  def defaultName: String
+
 
   protected lazy val configDefaults = ConfigFactory.load()
 
@@ -187,7 +155,7 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
     * @return
     */
-  def apply(clientName : String, config : Config = configDefaults)(implicit provider: ClientCodecProvider[C], env: E) : T = {
+  def apply(clientName : String, config : Config = configDefaults)(implicit env: E) : T = {
     apply(ClientConfig.load(clientName, config))
   }
 
@@ -197,52 +165,53 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     * @param config A Config object in the shape of `colossus.client-defaults`.  It is also expected to have the `address` and `name` fields.
     * @return
     */
-  def apply(config : Config)(implicit provider: ClientCodecProvider[C], env: E) : T = {
+  def apply(config : Config)(implicit  env: E) : T = {
     apply(ClientConfig.load(config))
   }
 
-  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
+  def apply(config: ClientConfig)(implicit env: E): T
 
-  def apply(host: String, port : Int)(implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply(host: String, port : Int)(implicit env: E): T = {
     apply(host, port, 1.second)
   }
 
-  def apply(host: String, port: Int, requestTimeout: Duration)(implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply(host: String, port: Int, requestTimeout: Duration)(implicit env: E): T = {
     apply(new InetSocketAddress(host, port), requestTimeout)
   }
 
-  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit env: E): T = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
+      name = MetricAddress.Root / defaultName
     )
     apply(config)
   }
 }
 
-object ClientFactory {
+trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef]
 
-  implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
-
-    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
-      new ServiceClient(provider.clientCodec(), config, worker)
+object ServiceClientFactory {
+  
+  def staticClient[P <: Protocol](codecProvider: () => StaticCodec.Client[P]) = new ServiceClientFactory[P] {
+    def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+      new ServiceClient(codecProvider(), config, worker)
     }
   }
 
-  implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
+}
 
-    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
-      AsyncServiceClient.create(config)(io, provider)
-    }
-  }
+class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+  
+  def apply(config: ClientConfig)(implicit io: IOSystem) = FutureClient.create(config)(io, base)
+
 }
 
 class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
 (implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
 extends ClientFactory[C,M,T[M],E] {
 
-  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
+  def apply(config: ClientConfig)(implicit env: E): T[M] = {
     apply(baseFactory(config))
   }
 
@@ -253,7 +222,13 @@ extends ClientFactory[C,M,T[M],E] {
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
+class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]] {
+
+  implicit def lifter: ClientLifter[C,T]
+
+  implicit def clientFactory: ServiceClientFactory[C]
+
+  implicit val futureFactory = new FutureClientFactory(clientFactory)
 
   val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
 

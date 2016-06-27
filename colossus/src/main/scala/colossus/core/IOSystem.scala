@@ -50,7 +50,7 @@ object IOSystem {
 
     import colossus.metrics.ConfigHelpers._
 
-    val ms: MetricSystem = metrics.getOrElse(MetricSystem())
+    val ms: MetricSystem = metrics.getOrElse(MetricSystem(name))
 
     val workerCount : Option[Int] = ioConfig.getIntOption("num-workers")
     apply(name, workerCount, ms)
