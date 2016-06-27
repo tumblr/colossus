@@ -19,8 +19,8 @@ object subprotocols {
   object rawstring {
     
     trait RawString extends Protocol {
-      type Input = String
-      type Output = String
+      type Request = String
+      type Response = String
     }
 
     class RawStringCodec extends FrameCodec[RawString] {

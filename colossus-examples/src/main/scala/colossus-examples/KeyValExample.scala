@@ -9,7 +9,6 @@ import colossus.protocols.redis._
 import scala.concurrent.{Promise, Future}
 
 import Redis.defaults._
-/*
 
 class KeyValDB extends Actor {
 
@@ -39,7 +38,7 @@ object KeyValExample {
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 
-    Server.basic("key-value-example", port){context => new Service[Redis](context) {
+    Server.basic("key-value-example", port){context => new BasicRequestHandler[Redis](context) {
       def handle = {
         case Command("GET", args) => {
           val dbCmd = KeyValDB.Get(args(0))
@@ -61,4 +60,3 @@ object KeyValExample {
   }
 }
   
-  */

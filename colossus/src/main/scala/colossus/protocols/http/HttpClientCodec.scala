@@ -43,7 +43,11 @@ class StaticHttpClientCodec extends StaticCodec[Http#ClientEncoding] {
     parser = HttpResponseParser.static()
   }
 
-  override def endOfStream() = parser.endOfStream()
+  override def endOfStream() = parser.endOfStream() match {
+    case Some(DecodedResult.Static(s)) => Some(s)
+    case None => None
+    case _ => throw new Exception("NO")
+  }
 
 }
 

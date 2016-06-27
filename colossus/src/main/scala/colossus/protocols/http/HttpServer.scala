@@ -31,6 +31,8 @@ extends BasicServiceHandler[Http](rh) {
 
 abstract class Initializer(context: InitContext) {
   
+  implicit val worker = context.worker
+
   val DateHeader = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)
 

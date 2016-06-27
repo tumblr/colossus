@@ -17,5 +17,7 @@ class StaticHttpServerCodec(headers: HttpHeaders) extends StaticCodec[Http#Serve
     parser = HttpRequestParser()
   }
 
+  def endOfStream() = parser.endOfStream()
+
 }
 

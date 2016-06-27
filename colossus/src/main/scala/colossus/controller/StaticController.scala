@@ -13,6 +13,9 @@ trait StaticCodec[E <: Encoding] {
   def decode(data: DataBuffer): Option[E#Input]
   def encode(message: E#Output, buffer: DataOutBuffer)
 
+  //TODO use this in the controller
+  def endOfStream(): Option[E#Input]
+
   def reset()
 }
 

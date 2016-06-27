@@ -58,11 +58,6 @@ object Protocol {
 
 import Protocol._
 
-trait ClientProvider[P <: Protocol] {
-  def provideHandler(context: Context, config: ClientConfig): ServiceClient[P]
-}
-
-
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
@@ -98,8 +93,6 @@ extends {
 
 } with DSLService[P] {
 
-
-
   override def onBind() {
     requestHandler.onBind(this)
   }
@@ -111,6 +104,9 @@ class RequestHandlerException(message: String) extends Exception(message)
 abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
+
+  val server = context.server
+  implicit val worker = context.context.worker
 
   private var _connectionManager: Option[ConnectionManager] = None
 
@@ -127,6 +123,10 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
   def handle: PartialHandler[P]
 
   def onError: ErrorHandler[P] = Map()
+
+  def disconnect() {
+    connection.disconnect()
+  }
 
 }
 
@@ -193,7 +193,10 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Ser
 
 object ServiceClientFactory {
   
-  def staticClient[P <: Protocol](codecProvider: () => StaticCodec.Client[P]) = new ServiceClientFactory[P] {
+  def staticClient[P <: Protocol](name: String, codecProvider: () => StaticCodec.Client[P]) = new ServiceClientFactory[P] {
+
+    def defaultName = name
+
     def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
       new ServiceClient(codecProvider(), config, worker)
     }
@@ -202,6 +205,8 @@ object ServiceClientFactory {
 }
 
 class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+
+  def defaultName = base.defaultName
   
   def apply(config: ClientConfig)(implicit io: IOSystem) = FutureClient.create(config)(io, base)
 
@@ -210,6 +215,8 @@ class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends 
 class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
 (implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
 extends ClientFactory[C,M,T[M],E] {
+
+  def defaultName = baseFactory.defaultName
 
   def apply(config: ClientConfig)(implicit env: E): T[M] = {
     apply(baseFactory(config))
@@ -222,9 +229,9 @@ extends ClientFactory[C,M,T[M],E] {
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]] {
+abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
 
-  implicit def lifter: ClientLifter[C,T]
+  //implicit def lifter: ClientLifter[C,T]
 
   implicit def clientFactory: ServiceClientFactory[C]
 
