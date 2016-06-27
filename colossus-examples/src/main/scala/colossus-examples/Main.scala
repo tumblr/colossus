@@ -20,10 +20,9 @@ object Main extends App {
   implicit val actorSystem = ActorSystem("COLOSSUS")
 
   implicit val ioSystem = IOSystem()
-  /*
 
   //the simplest example, an echo server over telnet
-  val telnetServer = TelnetExample.start(9000)
+  //val telnetServer = TelnetExample.start(9000)
 
   //http service which communicates with a key/value store over the redis protocol
   val httpServer = HttpExample.start(9001, new InetSocketAddress("localhost", 9002))
@@ -31,6 +30,7 @@ object Main extends App {
   //and here's the key/value store itself
   val keyvalServer = KeyValExample.start(9002)
 
+  /*
   //an echo server built only on the core layer
   val echoServer = EchoExample.start(9003)
 

@@ -85,6 +85,7 @@ trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{
  * This needs to be mixed with Controller, ServiceServer, and DSLService
  * sub-traits to work (right now there's only one implementation of each but
  * that may change
+ *
  */
 abstract class BasicServiceHandler[P <: Protocol](val requestHandler : GenRequestHandler[P]) 
 extends {
@@ -129,6 +130,8 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
   }
 
 }
+
+  
 
 /**
  * This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait
