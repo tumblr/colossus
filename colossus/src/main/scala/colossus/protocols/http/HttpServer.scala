@@ -24,7 +24,7 @@ extends BasicServiceHandler[Http](rh) {
     case error => defaults.errorResponse(error)
   }
 
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
+  //def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
 

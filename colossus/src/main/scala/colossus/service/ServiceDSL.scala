@@ -98,6 +98,9 @@ extends {
     requestHandler.onBind(this)
   }
 
+  //TODO: possibly build out an API for request handlers to deal with this
+  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
+
 }
 
 class RequestHandlerException(message: String) extends Exception(message)
@@ -130,6 +133,51 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
   }
 
 }
+
+
+abstract class HandlerGenerator[P <: Protocol, T <: GenRequestHandler[P]](ctx: InitContext) {
+  implicit val worker = ctx.worker
+  val server = ctx.server
+
+
+  def fullHandler: T => ServerConnectionHandler
+}
+
+trait ServiceInitializer[P <: Protocol, T <: GenRequestHandler[P]] extends HandlerGenerator[P,T] {
+
+  def onConnect: ServerContext => T
+}
+
+
+
+trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializer[P,R]] {
+
+  def basicInitializer: InitContext => HandlerGenerator[P, R]
+
+  def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name, port){i => new core.Initializer(i) {
+      val rinit = init(i)
+      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
+    }}
+  }
+
+  def basic(name: String, port: Int, handler: ServerContext => R)(implicit io: IOSystem) = {
+    Server.start(name, port){i => new core.Initializer(i) {
+      val rinit = basicInitializer(i)
+      def onConnect = ctx => rinit.fullHandler(handler(ctx))
+    }}
+  }
+
+  /*
+  def basic(name: String, port: Int)(handler: PartialHandler[P])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
+    def onConnect = new RequestHandler(_) { def handle = handler }
+  }}
+  */
+
+
+
+}
+
 
   
 

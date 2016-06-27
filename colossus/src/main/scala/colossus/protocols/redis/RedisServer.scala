@@ -17,34 +17,23 @@ extends BasicServiceHandler[Redis](rh) {
     case error => ErrorReply(error.toString)
   }
 
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
+}
 
+class RedisGenerator(context: InitContext) extends HandlerGenerator[Redis, RequestHandler](context) {
+
+  def fullHandler = new RedisServiceHandler(_)
 
 }
 
-abstract class Initializer(context: InitContext) {
-  
-  implicit val worker = context.worker
+abstract class Initializer(context: InitContext) extends RedisGenerator(context) with ServiceInitializer[Redis, RequestHandler]
 
-  def onConnect : ServerContext => RequestHandler
-
+abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[Redis](config, ctx){
+  def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 }
 
-abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Redis](config, ctx) {
-  def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
-}
+object RedisServer extends ServiceDSL[Redis, RequestHandler, Initializer] {
 
-object RedisServer {
-  
-  def start(name: String, port: Int)(init: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){i => new core.Initializer(i) {
-      val rinit = init(i)
-      def onConnect = ctx => new RedisServiceHandler(rinit.onConnect(ctx))
-    }}
-  }
+  def basicInitializer = new RedisGenerator(_)
 
-  def basic(name: String, port: Int)(handler: PartialHandler[Redis])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
-    def onConnect = new RequestHandler(_) { def handle = handler }
-  }}
 }
 

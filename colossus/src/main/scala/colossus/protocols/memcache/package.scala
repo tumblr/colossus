@@ -17,6 +17,10 @@ package object memcache {
 
     implicit val clientFactory = ServiceClientFactory.staticClient("memcache", () => new MemcacheClientCodec)
 
+    object defaults {
+      //???
+    }
+
   }
 
 }
