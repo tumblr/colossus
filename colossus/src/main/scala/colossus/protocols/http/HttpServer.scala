@@ -29,32 +29,28 @@ extends BasicServiceHandler[Http](rh) {
 }
 
 
-abstract class Initializer(context: InitContext) {
+class Generator(context: InitContext) extends HandlerGenerator[Http, RequestHandler](context) {
   
-  implicit val worker = context.worker
-
   val DateHeader = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)
 
   val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
 
-  def onConnect : ServerContext => RequestHandler
+  def fullHandler = new HttpServiceHandler(_, defaultHeaders)
 
 }
+
+abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[Http, RequestHandler]
+
 
 abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
   def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
 }
 
-object HttpServer {
-  
-  def start(name: String, port: Int)(init: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){i => new core.Initializer(i) {
-      val httpInitializer = init(i)
-      def onConnect = ctx => new HttpServiceHandler(httpInitializer.onConnect(ctx), httpInitializer.defaultHeaders)
-    }}
-  }
+object HttpServer extends ServiceDSL[Http, RequestHandler, Initializer]{
 
+  def basicInitializer = new Generator(_)
+  
   def basic(name: String, port: Int)(handler: PartialFunction[HttpRequest, Callback[HttpResponse]])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
     def onConnect = new RequestHandler(_) { def handle = handler }
   }}

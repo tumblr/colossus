@@ -2,7 +2,7 @@ package colossus
 
 import testkit._
 import core._
-import service.{Service, Callback}
+import service.Callback
 import Callback.Implicits._
 
 import akka.actor._
@@ -90,7 +90,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         }
       }
       withIOSystem{ implicit io =>
-        withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
+        withServer(RawServer.basic("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
           probe.expectMsg(250.milliseconds, "UNBOUND")
         }
@@ -100,7 +100,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
     "automatically unbind on disrupted connection" taggedAs(org.scalatest.Tag("test")) in {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
-        val server = Service.basic[Raw]("test", TEST_PORT){case x => x}
+        val server = RawServer.basic("test", TEST_PORT){case x => x}
         withServer(server) {
           io ! IOCommand.BindAndConnectWorkerItem(
             new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c, probe.ref, true, true)
@@ -133,7 +133,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
         }
       }
       withIOSystem{ implicit io =>
-        withServer(Service.basic[Raw]("test", TEST_PORT){case x => x}) {
+        withServer(RawServer.basic("test", TEST_PORT){case x => x}) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
           probe.expectNoMsg(200.milliseconds)
         }

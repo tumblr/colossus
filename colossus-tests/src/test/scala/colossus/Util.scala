@@ -50,16 +50,29 @@ class EchoHandler(c: ServerContext) extends NoopHandler(c){
 
 object RawProtocol {
   import colossus.service._
+  import controller.StaticCodec
 
+  trait BaseRawCodec  {
+    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
+    def encode(raw: ByteString, buffer: DataOutBuffer) { buffer write raw }
+    def reset(){}
+    def endOfStream() = None
+  }
+
+  object RawServerCodec extends BaseRawCodec with StaticCodec.Server[Raw]
+  object RawClientCodec extends BaseRawCodec with StaticCodec.Client[Raw]
+
+  //legacy, deprecated
   object RawCodec extends Codec[ByteString, ByteString] {
     def decode(data: DataBuffer) = if (data.hasUnreadData) Some(DecodedResult.Static(ByteString(data.takeAll))) else None
     def encode(raw: ByteString) = DataBuffer(raw)
     def reset(){}
   }
+    
 
   trait Raw extends Protocol {
-    type Input = ByteString
-    type Output = ByteString
+    type Request = ByteString
+    type Response = ByteString
   }
 
   implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
@@ -68,6 +81,7 @@ object RawProtocol {
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
+    implicit def clientFactory = ServiceClientFactory.staticClient("redis", () => RawClientCodec)
     
   }
 
@@ -76,17 +90,15 @@ object RawProtocol {
   object RawClient {
   }
 
-  
+  val RawServer = server.Server
 
-  implicit object RawCodecProvider extends ServiceCodecProvider[Raw] {
-    def provideCodec() = RawCodec
+  object server extends BasicServiceDSL[Raw] {
 
-    def errorResponse(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-  }
+    def provideCodec() = RawServerCodec
 
-  implicit object RawClientCodecProvider extends ClientCodecProvider[Raw] {
-    def clientCodec() = RawCodec
-    val name = "raw"
+    def errorMessage(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
+
+
   }
 
 }
@@ -108,7 +120,7 @@ object TestClient {
       failFast = true,
       connectRetry = connectRetry
     )
-    val client = FutureClient[Raw](config)(RawClientCodecProvider, io)
+    val client = FutureClient[Raw](config)(io, Raw.clientFactory)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

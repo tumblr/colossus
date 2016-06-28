@@ -13,6 +13,7 @@ import protocols.telnet._
 import service._
 import Callback.Implicits._
 
+import RawProtocol._
 
 class IOSystemSpec extends ColossusSpec {
 
@@ -27,7 +28,7 @@ class IOSystemSpec extends ColossusSpec {
           }
         }
 
-        val server = Service.basic[Telnet]("test", 15151){case _ => TelnetReply("ASDF")}
+        val server = RawServer.basic("test", 15151){case x => x}
         waitForServer(server)
 
         sys.connect(new InetSocketAddress("localhost", 15151), new MyHandler(_))

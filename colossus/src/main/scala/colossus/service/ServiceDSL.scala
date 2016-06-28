@@ -154,6 +154,14 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
 
   def basicInitializer: InitContext => HandlerGenerator[P, R]
 
+  def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name, settings){i => new core.Initializer(i) {
+      val rinit = init(i)
+      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
+    }}
+
+  }
+
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port){i => new core.Initializer(i) {
       val rinit = init(i)
@@ -174,7 +182,50 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
   }}
   */
 
+}
 
+/**
+ * A one stop shop for a fully working Server DSL without any custom
+ * functionality.  Just provide a codec and you're good to go
+ */
+trait BasicServiceDSL[P <: Protocol] {
+
+  protected def provideCodec(): StaticCodec.Server[P]
+
+  protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
+
+  protected class ServiceHandler(rh: RequestHandler) 
+  extends BasicServiceHandler[P](rh) {
+
+    val codec = provideCodec()
+
+    def unhandledError = {
+      case error => errorMessage(error)
+    }
+
+  }
+
+  protected class Generator(context: InitContext) extends HandlerGenerator[P, RequestHandler](context) {
+
+    def fullHandler = new ServiceHandler(_)
+
+  }
+
+  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[P, RequestHandler]
+
+  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
+    def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
+  }
+
+  object Server extends ServiceDSL[P, RequestHandler, Initializer] {
+
+    def basicInitializer = new Generator(_)
+
+    def basic(name: String, port: Int)(handler: PartialFunction[P#Request, Callback[P#Response]])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
+      def onConnect = new RequestHandler(_) { def handle = handler }
+    }}
+
+  }
 
 }
 
@@ -281,8 +332,6 @@ extends ClientFactory[C,M,T[M],E] {
  * Mixed into protocols to provide simple methods for creating clients.
  */
 abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
-
-  //implicit def lifter: ClientLifter[C,T]
 
   implicit def clientFactory: ServiceClientFactory[C]
 

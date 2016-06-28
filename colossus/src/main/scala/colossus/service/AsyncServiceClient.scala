@@ -42,6 +42,8 @@ object FutureClient {
 
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
+  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: ServiceClientFactory[C]): FutureClient[C] = create(config)(io, base)
+
   def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: ServiceClientFactory[C]): FutureClient[C] = {
     val gen = new AsyncHandlerGenerator(config, base)
     gen.client

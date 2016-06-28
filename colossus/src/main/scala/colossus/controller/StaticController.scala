@@ -17,6 +17,20 @@ trait StaticCodec[E <: Encoding] {
   def endOfStream(): Option[E#Input]
 
   def reset()
+
+  def decodeAll(data: DataBuffer)(onDecode : E#Input => Unit) { if (data.hasUnreadData){
+    var done: Option[E#Input] = None
+    do {
+      done = decode(data)
+      done.foreach{onDecode}
+    } while (done.isDefined && data.hasUnreadData)
+  }}
+}
+
+case class StreamInput[I](sink: Sink[DataBuffer], message: I)
+trait StreamCodec[E <: Encoding] {
+  def decode(data: DataBuffer): Option[StreamInput[E#Input]]
+  def encode(message: E#Output): Source[DataBuffer]
 }
 
 object StaticCodec {

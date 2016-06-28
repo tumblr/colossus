@@ -19,8 +19,8 @@ import RawProtocol._
 import testkit.MockConnection
 
 trait PR extends Protocol {
-  type Input = String
-  type Output = Int
+  type Request = String
+  type Response = Int
 }
 
 class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
@@ -107,7 +107,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       implicit val w = fw.worker
       val clients = collection.mutable.ArrayBuffer[ServiceClient[Raw]]()
       val generator = (i: InetSocketAddress) => {
-        val h = ServiceClient[Raw]("0.0.0.0", i.getPort, 1.second)
+        val h = Raw.clientFactory("0.0.0.0", i.getPort, 1.second)
         clients += h
         val x = MockConnection.client(h, fw, 1024)
         h.connected(x)
@@ -133,7 +133,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       fw.worker,
       (config, worker) => {
         implicit val w = worker
-        val x = MockConnection.client(ServiceClient[Raw](config), fw, 1024)
+        val x = MockConnection.client(Raw.clientFactory(config), fw, 1024)
         x.typedHandler.connected(x)
         x.typedHandler
       }

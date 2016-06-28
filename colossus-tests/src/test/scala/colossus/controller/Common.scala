@@ -91,7 +91,7 @@ trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =
 }
 
 object TestController {
-  import RawProtocol.RawCodec
+  import RawProtocol._
 
   val defaultConfig = ControllerConfig(4, 50.milliseconds)
 
