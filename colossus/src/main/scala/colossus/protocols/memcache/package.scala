@@ -15,7 +15,7 @@ package object memcache {
 
   object Memcache extends ClientFactories[Memcache, MemcacheClient] {
 
-    implicit val clientFactory = ServiceClientFactory.staticClient("memcache", () => new MemcacheClientCodec)
+    implicit lazy val clientFactory = ServiceClientFactory.staticClient("memcache", () => new MemcacheClientCodec)
 
     object defaults {
       //???

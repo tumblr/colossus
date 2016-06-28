@@ -35,7 +35,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
     //implicit val lifter = HttpClient.HttpClientLifter
     
-    implicit val clientFactory = ServiceClientFactory.staticClient("http", () => new StaticHttpClientCodec)
+    implicit lazy val clientFactory = ServiceClientFactory.staticClient("http", () => new StaticHttpClientCodec)
 
     class ServerDefaults  {
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
