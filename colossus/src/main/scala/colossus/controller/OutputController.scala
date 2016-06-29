@@ -123,7 +123,7 @@ object OutputResult {
  * controller.  It maintains a queue of messages pending write and properly
  * handles writing both regular messages as well as streams.
  */
-trait OutputController[Input, Output] extends MasterController[Input, Output] {
+trait OutputController[Input, Output] { this : MasterController[Input, Output] =>
   import OutputState._
 
   private[controller] var outputState: OutputState = Suspended
@@ -146,6 +146,8 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
 
   }
+
+  protected def pendingBufferSize = msgq.size
 
   private[controller] def outputOnClosed() {
     val reason = new NotConnectedException("Connection Closed")

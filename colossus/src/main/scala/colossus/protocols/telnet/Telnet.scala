@@ -1,6 +1,7 @@
 package colossus
 package protocols
 
+import controller.StaticCodec
 import core._
 import service._
 
@@ -14,15 +15,17 @@ package object telnet {
   //type Telnet[M[_, _]] = M[TelnetCommand, TelnetReply]
 
   trait Telnet extends Protocol {
-    type Input = TelnetCommand
-    type Output = TelnetReply
+    type Request = TelnetCommand
+    type Response = TelnetReply
   }
 
+  /*
   implicit object TelnetProvider extends ServiceCodecProvider[Telnet] {
     def provideCodec() = TelnetServerCodec
 
     def errorResponse(error: ProcessingFailure[TelnetCommand]) = TelnetReply(s"Error: ${error.reason}")
   }
+  */
 
   case class TelnetCommand(args: List[String])
 
@@ -113,14 +116,16 @@ package object telnet {
   }
 
   //there's a compiler bug that prevents us from doing "extends Telnet[ServerCodec]" :(
-  implicit object TelnetServerCodec extends ServerCodec[TelnetCommand, TelnetReply] with ServerCodecFactory[TelnetCommand, TelnetReply]{
+  implicit object TelnetServerCodec extends StaticCodec.Server[Telnet] {
     val parser = new TelnetCommandParser
 
-    def decode(data: DataBuffer): Option[DecodedResult[TelnetCommand]] = DecodedResult.static(parser.parse(data))
-    def encode(reply: TelnetReply): DataReader = DataBuffer(reply.bytes)
+    def decode(data: DataBuffer): Option[TelnetCommand] = parser.parse(data)
+    def encode(reply: TelnetReply, buffer: DataOutBuffer){ buffer.write(reply.bytes) }
     def reset(){}
 
     def apply() = this
+
+    def endOfStream() = None
   }
 
 }

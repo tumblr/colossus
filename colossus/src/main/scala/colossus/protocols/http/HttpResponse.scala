@@ -104,13 +104,14 @@ sealed trait BaseHttpResponse {
 
 case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends BaseHttpResponse with Encoder {
 
+  def encode(buffer: DataOutBuffer) = encode(buffer, HttpHeaders.Empty)
 
-
-  def encode(buffer: DataOutBuffer) {
+  def encode(buffer: DataOutBuffer, extraHeaders: HttpHeaders) {
     head.encode(buffer)
     body.contentType.foreach{ctype =>
       ctype.encode(buffer)
     }
+    extraHeaders.encode(buffer)
     //unlike requests, we always encode content-length, even if it's 0
     HttpHeader.encodeContentLength(buffer, body.size)
     buffer.write(N2)

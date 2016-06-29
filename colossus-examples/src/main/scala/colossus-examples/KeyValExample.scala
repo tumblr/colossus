@@ -6,9 +6,8 @@ import colossus.IOSystem
 import colossus.core.{Server, ServerRef}
 import colossus.service._
 import colossus.protocols.redis._
+import colossus.protocols.redis.server._
 import scala.concurrent.{Promise, Future}
-
-import Redis.defaults._
 
 class KeyValDB extends Actor {
 
@@ -38,25 +37,27 @@ object KeyValExample {
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 
-    Server.basic("key-value-example", port){context => new Service[Redis](context) {
-      def handle = {
-        case Command("GET", args) => {
-          val dbCmd = KeyValDB.Get(args(0))
-          db ! dbCmd
-          Callback.fromFuture(dbCmd.promise.future).map{
-            case Some(value) => BulkReply(value)
-            case None => NilReply
+    RedisServer.start("key-value-example", port){new Initializer(_) {
+      def onConnect = new RequestHandler(_) {
+        def handle = {
+          case Command("GET", args) => {
+            val dbCmd = KeyValDB.Get(args(0))
+            db ! dbCmd
+            Callback.fromFuture(dbCmd.promise.future).map{
+              case Some(value) => BulkReply(value)
+              case None => NilReply
+            }
           }
-        }
-        case Command("SET", args) => {
-          val dbCmd = KeyValDB.Set(args(0), args(1))
-          db ! dbCmd
-          Callback.fromFuture(dbCmd.promise.future).map{_ =>
-            StatusReply("OK")
+          case Command("SET", args) => {
+            val dbCmd = KeyValDB.Set(args(0), args(1))
+            db ! dbCmd
+            Callback.fromFuture(dbCmd.promise.future).map{_ =>
+              StatusReply("OK")
+            }
           }
         }
       }
     }}
   }
 }
-        
+  

@@ -39,16 +39,10 @@ package object websocket {
   }
 
   trait Websocket extends Protocol {
-    type Input = Frame
-    type Output = Frame
+    type Request = Frame
+    type Response = Frame
   }
 
-  implicit object WebsocketCodecProvider extends CodecProvider[Websocket] {
-
-    def provideCodec() = new WebsocketCodec
-
-  }
-    
 
 }
 

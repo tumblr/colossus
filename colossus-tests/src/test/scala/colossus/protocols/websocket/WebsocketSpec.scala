@@ -79,8 +79,8 @@ class WebsocketSpec extends ColossusSpec {
   "WebsocketHandler" must {
     //a simple codec to test decoding errors 
     trait CString extends Protocol {
-      type Input = String
-      type Output = String
+      type Request = String
+      type Response = String
     }
 
     class CStringCodec extends FrameCodec[CString] {

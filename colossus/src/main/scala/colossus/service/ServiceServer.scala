@@ -11,7 +11,6 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import util.ConfigCache
 import util.ExceptionFormatter._
-import Codec._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -110,14 +109,31 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext)
-extends Controller[I,O](codec,
-  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize,true, config.requestMetrics),
-  serverContext.context)
-with ServerConnectionHandler {
+trait ServiceServer[P <: Protocol] extends StaticController[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
   import ServiceServer._
-  import config._
+
+  type I = P#ServerEncoding#Input
+  type O = P#ServerEncoding#Output
+
+  //"constructor" parameters
+  //codec is already defined in controller
+  def config: ServiceConfig
+  def serverContext: ServerContext
+
+  protected def processRequest(request: I): Callback[O]
+
+  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
+ 
+  protected def processFailure(error: ProcessingFailure[I]): O
+
+  //passthrough to lower layers
+  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
+  def context = serverContext.context
+
+
+  private val myconfig = config
+  import myconfig._
+
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
 
@@ -202,7 +218,7 @@ with ServerConnectionHandler {
     checkGracefulDisconnect()
   }
 
-  override def connectionClosed(cause : DisconnectCause) {
+  abstract override def connectionClosed(cause : DisconnectCause) {
     super.connectionClosed(cause)
     if (requestMetrics) {
       requestsPerConnection.add(numRequests)
@@ -271,9 +287,11 @@ with ServerConnectionHandler {
     }
   }
   
-  override def processBadRequest(reason: Throwable) = {
+  def processBadRequest(reason: Throwable) = {
     Some(handleFailure(IrrecoverableError(reason)))
   }
+
+  override def onFatalError(reason: Throwable) = processBadRequest(reason)
 
   private def handleFailure(error: ProcessingFailure[I]): O = {
     addError(error)
@@ -292,13 +310,6 @@ with ServerConnectionHandler {
     checkGracefulDisconnect()
   }
 
-  // ABSTRACT MEMBERS
-
-  protected def processRequest(request: I): Callback[O]
-
-  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
- 
-  protected def processFailure(error: ProcessingFailure[I]): O
   
 }
 

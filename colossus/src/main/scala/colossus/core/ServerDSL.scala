@@ -10,11 +10,18 @@ import com.typesafe.config.{Config, ConfigFactory}
 /**
  * An instance of this is handed to every new server connection handler
  */
-case class ServerContext(server: ServerRef, context: Context)
+case class ServerContext(server: ServerRef, context: Context) {
+  def name: String = server.name.idString
+}
 
-abstract class Initializer(_worker: WorkerRef) {
+/**
+ * An instance of this is handed to every new initializer for a server
+ */
+case class InitContext(server: ServerRef, worker: WorkerRef)
 
-  implicit val worker = _worker
+abstract class Initializer(context: InitContext) {
+
+  implicit val worker = context.worker
 
   def onConnect: ServerContext => ServerConnectionHandler
 
@@ -50,7 +57,7 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
 
     start(name, ServerSettings.load(name, serverConfig))(initializer)
   }
@@ -65,7 +72,7 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, port: Int)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverSettings = ServerSettings.load(name).copy(port = port)
     start(name, serverSettings)(initializer)
   }
@@ -79,10 +86,10 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, settings: ServerSettings)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
-      settings = settings, delegatorFactory = (s, w) => new DSLDelegator(s, w, initializer(w))
+      settings = settings, delegatorFactory = (s, w) => new DSLDelegator(s, w, initializer(InitContext(s,w)))
     )
     Server(serverConfig)
 

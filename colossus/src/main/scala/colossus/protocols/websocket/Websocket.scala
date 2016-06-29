@@ -169,8 +169,13 @@ object FrameParser {
   }
 }
 
-abstract class BaseWebsocketHandler(context: Context)
-  extends Controller(new WebsocketCodec, ControllerConfig(50, scala.concurrent.duration.Duration.Inf), context) {
+abstract class BaseWebsocketHandler(val context: Context) extends {
+
+  val codec = new WebsocketCodec
+  val controllerConfig = ControllerConfig(50, scala.concurrent.duration.Duration.Inf)
+
+} with Controller[Frame, Frame] {
+
 
   def send(bytes: DataBlock) {
     //note - as per the spec, server frames are never masked
@@ -245,6 +250,7 @@ abstract class WebsocketInitializer(val worker: WorkerRef) {
 
 object WebsocketServer {
   import protocols.http._
+  import server._
 
   /**
    * Start a Websocket server on the specified port.  Since Websocket
@@ -253,11 +259,11 @@ object WebsocketServer {
    * `upgradePath`, all other paths will 404.
    */
   def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
-    Server.start(name, port){worker => new Initializer(worker) {
+    HttpServer.start(name, port){context => new Initializer(context) {
     
-      val websockinit : WebsocketInitializer = init(worker)
+      val websockinit : WebsocketInitializer = init(context.worker)
 
-      def onConnect = ctx => new HttpService(ServiceConfig.Default,ctx) {
+      def onConnect = new RequestHandler(_) {
         def handle = {
           case request if (request.head.path == upgradePath) => {
             val response = UpgradeRequest
