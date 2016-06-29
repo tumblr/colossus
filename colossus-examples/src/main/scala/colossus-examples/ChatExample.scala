@@ -21,6 +21,7 @@ import scala.concurrent.duration._
  * we improve the interface.
  */
 
+/*
 trait ChatMessage {
   def formatted: String
 }
@@ -140,4 +141,4 @@ object ChatExample {
   }
 
 }
-
+*/

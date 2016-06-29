@@ -47,7 +47,7 @@ class InvalidInputStateException(state: InputState) extends Exception(s"Invalid 
  * - Closing a stream inside of a pull callback will complete the stream and the controller will resset
  * 
  */
-trait InputController[Input, Output] extends MasterController[Input, Output] {
+trait InputController[Input, Output] { this:  MasterController[Input, Output] =>
   import InputState._
 
   private[controller] var inputState: InputState = Decoding

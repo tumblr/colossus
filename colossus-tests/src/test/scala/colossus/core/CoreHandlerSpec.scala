@@ -5,9 +5,10 @@ import colossus.testkit._
 import scala.concurrent.duration._
 
 import ConnectionState._
+import colossus.NoopHandler
 
 //callSuperShutdown is only used in the last test
-class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends BasicCoreHandler(ctx.context) {
+class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends NoopHandler(ctx.context) {
 
   var shutdownCalled = false
 
@@ -29,7 +30,7 @@ class CoreHandlerSpec extends ColossusSpec {
   "Core Handler" must {
     
     "set connectionStatus to Connected" in {
-      val con = MockConnection.server(srv => new BasicCoreHandler(srv.context))
+      val con = MockConnection.server(srv => new NoopHandler(srv.context))
       con.typedHandler.connectionState must equal(NotConnected)
       con.typedHandler.connected(con)
       con.typedHandler.connectionState must equal(Connected(con))
@@ -57,7 +58,7 @@ class CoreHandlerSpec extends ColossusSpec {
 
     "become" in {
       val con = setup()
-      val f = new BasicCoreHandler(con.typedHandler.context)
+      val f = new NoopHandler(con.typedHandler.context)
       con.typedHandler.become(() => f)
       con.typedHandler.shutdownCalled must equal(true)
       val m = con.workerProbe.receiveOne(100.milliseconds).asInstanceOf[WorkerCommand.SwapHandler]

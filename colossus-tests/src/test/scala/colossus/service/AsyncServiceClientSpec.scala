@@ -18,7 +18,7 @@ import RawProtocol._
 class FutureClientSpec extends ColossusSpec {
 
   def makeServer()(implicit sys: IOSystem): ServerRef = {
-    Service.basic[Raw]("future-client-test", TEST_PORT){case x => x}
+    RawServer.basic("future-client-test", TEST_PORT){case x => x}
   }
 
   "FutureClient" must {

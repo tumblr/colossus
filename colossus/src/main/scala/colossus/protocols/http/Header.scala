@@ -245,6 +245,14 @@ class HttpHeaders(private val headers: JList[HttpHeader]) {
 
   }
 
+  /**
+   * Mutably add a new header to this set of headers.  Be aware that this method
+   * is not thread safe, though considerably faster than using `+`.
+   */
+  def unsafeAppend(header: HttpHeader) {
+    headers.add(header)
+  }
+
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
     case other => false

@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import core.ServerContext
+import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
 import service._
 
 
@@ -12,41 +12,44 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   class InvalidRequestException(message: String) extends Exception(message)
 
   trait BaseHttp extends Protocol {
-    type Input <: HttpRequest
-    type Output <: BaseHttpResponse
+    type Request <: HttpRequest
+    type Response <: BaseHttpResponse
   }
 
 
   trait Http extends BaseHttp {
-    type Input = HttpRequest
-    type Output = HttpResponse
+    type Request = HttpRequest
+    type Response = HttpResponse
   }
+
+  /*
 
   trait StreamingHttp extends BaseHttp {
     type Input = HttpRequest
     type Output = StreamingHttpResponse
   }
+  */
 
 
   object Http extends ClientFactories[Http, HttpClient] {
 
-    class ServerDefaults extends ServiceCodecProvider[Http] {
-      def provideCodec = new HttpServerCodec
+    //implicit val lifter = HttpClient.HttpClientLifter
+    
+    implicit lazy val clientFactory = ServiceClientFactory.staticClient("http", () => new StaticHttpClientCodec)
+
+    class ServerDefaults  {
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
         case RecoverableError(request, reason) => reason match {
           case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
           case other => request.error(reason.toString)
         }
-        case IrrecoverableError(reason) =>
+        case IrrecoverableError(reason) => {
           HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
+        }
       }
-        
-        
-
     }
 
-    class ClientDefaults extends ClientCodecProvider[Http] {
-      def clientCodec = new HttpClientCodec
+    class ClientDefaults  {
       def name = "http"
     }
 
@@ -60,35 +63,25 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   }
 
   class ReturnCodeTagDecorator[C <: BaseHttp] extends TagDecorator[C#Input, C#Output] {
-    override def tagsFor(request: C#Input, response: C#Output): TagMap = {
+    override def tagsFor(request: C#Request, response: C#Response): TagMap = {
       Map("status_code" -> response.head.code.code.toString)
     }
   }
 
-  abstract class BaseHttpServiceHandler[D <: BaseHttp]
-  (config: ServiceConfig, provider: ServiceCodecProvider[D], context: ServerContext)
-  extends Service[D](config, context)(provider) {
-
-    override def tagDecorator = new ReturnCodeTagDecorator
-
-    override def processRequest(input: D#Input): Callback[D#Output] = super.processRequest(input).map{response =>
-      if(!input.head.persistConnection) disconnect()
-      response
-    }
-
-  }
-
+  /*
   abstract class HttpService(config: ServiceConfig, context: ServerContext)
   extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context) {
       
     def this(context: ServerContext) = this(ServiceConfig.load(context.server.name.idString), context)
   }
+>>>>>>> handler-traits
 
-  abstract class StreamingHttpService(config: ServiceConfig, context: ServerContext)
-  extends BaseHttpServiceHandler[StreamingHttp](config, StreamingHttpProvider, context) {
-
-    def this(context: ServerContext) = this(ServiceConfig.load(context.server.name.idString), context)
   }
+<<<<<<< HEAD
+*/
+  /*
+=======
+>>>>>>> handler-traits
 
   implicit object StreamingHttpProvider extends ServiceCodecProvider[StreamingHttp] {
     def provideCodec = new StreamingHttpServerCodec
@@ -118,7 +111,6 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   }
 
 
-  /*
   class StreamingHttpClient(config : ClientConfig,
                             worker : WorkerRef,
                             maxSize : DataSize = HttpResponseParser.DefaultMaxSize,

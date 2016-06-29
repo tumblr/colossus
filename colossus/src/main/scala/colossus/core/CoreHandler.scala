@@ -24,6 +24,19 @@ object ConnectionState {
 }
 class InvalidConnectionStateException(state: ConnectionState) extends Exception(s"Invalid connection State: $state")
 
+
+/**
+ * These are methods made available to all layers extending the core layer
+ */
+trait ConnectionManager {
+  def connectionState: ConnectionState
+  def disconnect()
+  def forceDisconnect()
+  def become(nh: () => ConnectionHandler): Boolean
+
+  def isConnected: Boolean
+}
+
 /**
  * This is the connection handler on which the controller and service layers are
  * built.  It contains some common functionality that is ultimately exposed to
@@ -32,15 +45,15 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler {
+trait CoreHandler extends ConnectionHandler with ConnectionManager {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
 
   def connectionState = _connectionState
+  def isConnected: Boolean = connectionState != ConnectionState.NotConnected
 
-  def isConnected = connectionState != NotConnected
 
   private def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
     shutdownAction = action
@@ -125,6 +138,7 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
 
 }
 
+/*
 class BasicCoreHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler {
 
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
@@ -135,3 +149,4 @@ class BasicCoreHandler(context: Context) extends CoreHandler(context) with Serve
   def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
+*/

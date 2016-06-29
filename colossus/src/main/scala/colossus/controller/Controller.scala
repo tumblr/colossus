@@ -4,7 +4,7 @@ package controller
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
-import service.Codec
+import service.{Codec, Protocol}
 
 import scala.concurrent.duration.Duration
 
@@ -36,7 +36,7 @@ class DisconnectingException(message: String) extends Exception(message)
  * ultimately implemented by Controller.  This merely contains methods needed
  * by both input and output controller
  */
-trait MasterController[Input, Output] extends ConnectionHandler {
+trait MasterController[Input, Output] {this:  ConnectionHandler =>
   protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig
@@ -55,6 +55,7 @@ trait MasterController[Input, Output] extends ConnectionHandler {
 
 
 
+
 /**
  * A Controller is a Connection handler that is designed to work with
  * connections involving decoding raw bytes into input messages and encoding
@@ -64,10 +65,9 @@ trait MasterController[Input, Output] extends ConnectionHandler {
  * "response" message, the controller make no such pairing.  Thus a controller
  * can be thought of as a duplex stream of messages.
  */
-abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context)
-extends CoreHandler(context) with InputController[Input, Output] with OutputController[Input, Output] {
+trait Controller[Input, Output] extends CoreHandler with MasterController[Input, Output]
+with InputController[Input, Output] with OutputController[Input, Output] with ConnectionManager{ 
   import ConnectionState._
-
 
   override def connected(endpt: WriteEndpoint) {
     super.connected(endpt)
@@ -123,5 +123,15 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
   }
 
 }
+
+/**
+ * This can be used to build connection handlers directly on top of the
+ * controller layer
+ */
+abstract class BasicController[I,O](
+  val codec: Codec[O, I],
+  val controllerConfig: ControllerConfig,
+  val context: Context
+) extends Controller[I,O]
 
 
