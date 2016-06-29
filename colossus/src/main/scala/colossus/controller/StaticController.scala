@@ -46,6 +46,7 @@ trait ControllerIface[E <: Encoding] {
   protected def codec: StaticCodec[E]
   protected def processMessage(input: E#Input)
   protected def controllerConfig: ControllerConfig
+  protected def pendingBufferSize: Int
   implicit val namespace: MetricNamespace
 
   protected def onFatalError(reason: Throwable): Option[E#Output] = None
@@ -149,6 +150,8 @@ trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this
   private var _writesEnabled = true
   private var outputBuffer = new MessageQueue[E#Output](controllerConfig.outputBufferSize)
 
+  protected def pendingBufferSize = outputBuffer.size
+
   def writesEnabled = _writesEnabled
 
   def pauseWrites() {
@@ -173,6 +176,7 @@ trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this
   override def connected(endpt: WriteEndpoint) {
     super.connected(endpt)
     state = StaticOutState.Alive
+    if (!outputBuffer.isEmpty) signalWrite()
   }
 
 
