@@ -250,6 +250,7 @@ abstract class WebsocketInitializer(val worker: WorkerRef) {
 
 object WebsocketServer {
   import protocols.http._
+  import server._
 
   /**
    * Start a Websocket server on the specified port.  Since Websocket
