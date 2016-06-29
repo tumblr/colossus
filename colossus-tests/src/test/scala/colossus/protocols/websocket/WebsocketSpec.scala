@@ -158,20 +158,21 @@ class WebsocketSpec extends ColossusSpec {
 
   "WebsocketHttp" must {
     import subprotocols.rawstring._
-    "switch connection handler on successful upgrade request" in {
-      val myinit = new WebsocketInitializer(FakeIOSystem.fakeWorker.worker) {
-        def onConnect = new WebsocketServerHandler[RawString](_) {
-          def handle = {
-            case "A" => {
-              sendMessage("B")
-            }
+    val myinit = new WebsocketInitializer(FakeIOSystem.fakeWorker.worker) {
+      def onConnect = new WebsocketServerHandler[RawString](_) {
+        def handle = {
+          case "A" => {
+            sendMessage("B")
           }
-          def handleError(reason: Throwable): Unit = {
-            sendMessage("E")
-          }
-          def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
         }
+        def handleError(reason: Throwable): Unit = {
+          sendMessage("E")
+        }
+        def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
       }
+    }
+
+    "switch connection handler on successful upgrade request" in {
       val con = MockConnection.server(new WebsocketHttpHandler(_, myinit, "/foo"))
       con.typedHandler.connected(con)
       con.typedHandler.receivedData(DataBuffer(valid.bytes))
@@ -179,6 +180,17 @@ class WebsocketSpec extends ColossusSpec {
       con.expectOneWrite(validResponse.bytes)
       con.iterate()
       con.workerProbe.expectMsgType[core.WorkerCommand.SwapHandler](100.milliseconds)
+    }
+    "return 400 and not switch on invalid request" in {
+      val bad = HttpRequest.get("/foo")
+      val con = MockConnection.server(new WebsocketHttpHandler(_, myinit, "/foo"))
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(DataBuffer(bad.bytes))
+      con.iterate()
+      con.withExpectedWrite(_.utf8String.contains("400") mustBe true)
+      con.iterate()
+      con.workerProbe.expectNoMsg(100.milliseconds)
+
     }
   }
 
