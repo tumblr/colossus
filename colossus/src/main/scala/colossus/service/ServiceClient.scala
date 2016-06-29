@@ -359,7 +359,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && pendingBufferSize == 0) {
       super.shutdown()
     }
   }

@@ -264,10 +264,10 @@ class ServiceClientSpec extends ColossusSpec {
         case Failure(nope) => throw nope
         case _ => throw new Exception("Bad Response")
       }
+      client.disconnect()
       endpoint.iterate()
       endpoint.expectOneWrite(cmd1.raw)
       endpoint.clearBuffer()
-      client.disconnect()
       endpoint.disconnectCalled must equal(false)
       probe.expectNoMsg(100.milliseconds)
       client.receivedData(rep1.raw)

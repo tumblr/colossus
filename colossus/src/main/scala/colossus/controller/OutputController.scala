@@ -147,6 +147,8 @@ trait OutputController[Input, Output] { this : MasterController[Input, Output] =
 
   }
 
+  protected def pendingBufferSize = msgq.size
+
   private[controller] def outputOnClosed() {
     val reason = new NotConnectedException("Connection Closed")
     outputState match {
