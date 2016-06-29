@@ -243,6 +243,24 @@ abstract class WebsocketInitializer(val worker: WorkerRef) {
 
 }
 
+class WebsocketHttpHandler(ctx: ServerContext, websocketInit: WebsocketInitializer, upgradePath: String)
+extends protocols.http.HttpService(ServiceConfig.Default, ctx) {
+  def handle = {
+    case request if (request.head.path == upgradePath) => {
+      val response = UpgradeRequest.validate(request) match {
+        case Some(upgrade) => {
+          become(() => websocketInit.onConnect(ctx))
+          upgrade
+        }
+        case None => {
+          request.badRequest("Invalid upgrade request")
+        }
+      }
+      Callback.successful(response)
+    }
+  }
+}
+
 object WebsocketServer {
   import protocols.http._
 
@@ -257,16 +275,8 @@ object WebsocketServer {
     
       val websockinit : WebsocketInitializer = init(worker)
 
-      def onConnect = ctx => new HttpService(ServiceConfig.Default,ctx) {
-        def handle = {
-          case request if (request.head.path == upgradePath) => {
-            val response = UpgradeRequest
-              .validate(request)
-              .getOrElse(request.badRequest("Invalid upgrade request"))
-            Callback.successful(response)
-          }
-        }
-      }
+      def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath)
+      
     }}
   }
 
