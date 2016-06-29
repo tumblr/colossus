@@ -46,7 +46,6 @@ trait ControllerIface[E <: Encoding] {
   protected def codec: StaticCodec[E]
   protected def processMessage(input: E#Input)
   protected def controllerConfig: ControllerConfig
-  protected def pendingBufferSize: Int
   implicit val namespace: MetricNamespace
 
   protected def onFatalError(reason: Throwable): Option[E#Output] = None
@@ -62,6 +61,7 @@ trait ControllerImpl[E <: Encoding] {
   protected def resumeWrites()
   protected def pauseReads()
   protected def resumeReads()
+  protected def pendingBufferSize: Int
 }
 
 /**

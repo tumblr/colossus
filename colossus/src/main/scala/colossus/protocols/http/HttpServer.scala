@@ -1,5 +1,6 @@
 package colossus
 package protocols.http
+package server
 
 import colossus.metrics.TagMap
 import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
@@ -24,12 +25,10 @@ extends BasicServiceHandler[Http](rh) {
     case error => defaults.errorResponse(error)
   }
 
-  //def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
-
 }
 
 
-class Generator(context: InitContext) extends HandlerGenerator[Http, RequestHandler](context) {
+protected[server] class Generator(context: InitContext) extends HandlerGenerator[Http, RequestHandler](context) {
   
   val DateHeader = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)
