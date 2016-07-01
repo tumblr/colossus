@@ -4,7 +4,6 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.util.ByteString
 import colossus.IOSystem
 import colossus.core._
-import colossus.service.{Codec, DecodedResult}
 import colossus.controller._
 import java.net.InetSocketAddress
 import scala.concurrent.duration._

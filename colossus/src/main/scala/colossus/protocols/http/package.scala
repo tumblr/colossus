@@ -11,9 +11,10 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
+  //deprecated
   trait BaseHttp extends Protocol {
     type Request <: HttpRequest
-    type Response <: BaseHttpResponse
+    type Response <: HttpResponse
   }
 
 

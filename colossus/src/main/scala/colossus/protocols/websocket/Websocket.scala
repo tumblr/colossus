@@ -165,7 +165,7 @@ object FrameParser {
     } else {
       bytes(payloadLen + maskKeyBytes)
     }
-    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data))))}
+    p >> {data => Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data)))}
   }
 }
 
@@ -174,7 +174,7 @@ abstract class BaseWebsocketHandler(val context: Context) extends {
   val codec = new WebsocketCodec
   val controllerConfig = ControllerConfig(50, scala.concurrent.duration.Duration.Inf)
 
-} with Controller[Frame, Frame] {
+} with StaticController[Websocket#ServerEncoding] with ControllerIface[Websocket#ServerEncoding] {
 
 
   def send(bytes: DataBlock) {
