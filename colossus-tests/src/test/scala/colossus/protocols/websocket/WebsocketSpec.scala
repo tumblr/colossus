@@ -76,7 +76,32 @@ class WebsocketSpec extends ColossusSpec {
       val expected = Frame(Header(OpCodes.Text, true), DataBlock("Hello World!!!!!!"))
       FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(DecodedResult.Static(expected)))
     }
+
+
   }
+
+  "frame encoding" must {
+    def sized(len: Int) = Frame(Header(OpCodes.Text, false), DataBlock(List.fill(len)("x").mkString)).encode(new Random).bytes
+
+    "handle small payload sizes" in {
+      val bytes = sized(125)
+      bytes(1) mustBe 0x7D //mask bit unset + 125 length
+    }
+
+    "handle medium payload sizes" in {
+      val bytes = sized(126)
+      bytes.drop(1).take(3) mustBe ByteString(0x7E, 0x00, 0x7E)
+
+      val bytes2 = sized(12543)
+      bytes2.drop(1).take(3) mustBe ByteString(0x7E, 0x30, 0xFF)
+    }
+
+    "handle large payload sizes" in {
+      val bytes = sized(126872)
+      bytes.drop(1).take(9) mustBe (ByteString(0x7F, 0, 0, 0, 0, 0, 0x01, 0xEF, 0x98))
+    }
+  }
+
 
   "WebsocketHandler" must {
     //a simple codec to test decoding errors 
