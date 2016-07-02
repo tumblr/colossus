@@ -90,6 +90,7 @@ trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this
 
   protected def purgePending(reason: Throwable) {
     while (!outputBuffer.isEmpty) {
+      println("cancel")
       outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
     }
 
@@ -115,7 +116,7 @@ trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this
   }
 
   protected def connectionLost(cause : DisconnectError) {
-    state = StaticOutState.Suspended
+    state = if (disconnecting) StaticOutState.Terminated else StaticOutState.Suspended
     onClosed()
   }
 

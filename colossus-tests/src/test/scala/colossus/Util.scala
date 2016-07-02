@@ -62,14 +62,6 @@ object RawProtocol {
   object RawServerCodec extends BaseRawCodec with StaticCodec.Server[Raw]
   object RawClientCodec extends BaseRawCodec with StaticCodec.Client[Raw]
 
-  //legacy, deprecated
-  object RawCodec extends Codec[ByteString, ByteString] {
-    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(DecodedResult.Static(ByteString(data.takeAll))) else None
-    def encode(raw: ByteString) = DataBuffer(raw)
-    def reset(){}
-  }
-    
-
   trait Raw extends Protocol {
     type Request = ByteString
     type Response = ByteString
