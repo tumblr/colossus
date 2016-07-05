@@ -1,11 +1,11 @@
 package colossus
 package protocols.redis
 
-import controller.StaticCodec
+import controller.Codec
 import core._
 import service._
 
-class RedisServerCodec extends StaticCodec.Server[Redis] {
+class RedisServerCodec extends Codec.Server[Redis] {
   private var commandParser = RedisCommandParser.command
   def reset() {
     commandParser = RedisCommandParser.command

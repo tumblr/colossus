@@ -11,7 +11,7 @@ import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
-import controller.{Encoding, StaticCodec}
+import controller.{Encoding, Codec}
 
 trait Protocol {self =>
   type Request
@@ -180,7 +180,7 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
  */
 trait BasicServiceDSL[P <: Protocol] {
 
-  protected def provideCodec(): StaticCodec.Server[P]
+  protected def provideCodec(): Codec.Server[P]
 
   protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
 
@@ -285,7 +285,7 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Ser
 
 object ServiceClientFactory {
   
-  def staticClient[P <: Protocol](name: String, codecProvider: () => StaticCodec.Client[P]) = new ServiceClientFactory[P] {
+  def staticClient[P <: Protocol](name: String, codecProvider: () => Codec.Client[P]) = new ServiceClientFactory[P] {
 
     def defaultName = name
 

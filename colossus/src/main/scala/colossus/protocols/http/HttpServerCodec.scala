@@ -4,9 +4,9 @@ package protocols.http
 
 import core._
 import service._
-import controller.StaticCodec
+import controller.Codec
 
-class StaticHttpServerCodec(headers: HttpHeaders) extends StaticCodec[Http#ServerEncoding] {
+class StaticHttpServerCodec(headers: HttpHeaders) extends Codec[Http#ServerEncoding] {
   private var parser = HttpRequestParser()
 
   def encode(response: HttpResponse, buffer: DataOutBuffer){ response.encode(buffer, headers) }

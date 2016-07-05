@@ -67,7 +67,7 @@ object TestController {
 
   type T[E <: Encoding] = StaticController[E] with TestController[E] with ServerConnectionHandler
 
-  def controller[E <: Encoding](codec: StaticCodec[E], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[E]] = {
+  def controller[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[E]] = {
     val con =MockConnection.server(
       c => {
         val t: T[E] = new BasicController[E](codec, config, c.context) with StaticController[E] with TestController[E] with ServerConnectionHandler

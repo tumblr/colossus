@@ -148,7 +148,7 @@ object ClientState {
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  val codec: StaticCodec.Client[P],
+  val codec: Codec.Client[P],
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
@@ -159,7 +159,7 @@ extends {
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
 
-  def this(codec: StaticCodec.Client[P], config: ClientConfig, worker: WorkerRef) {
+  def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
     worker.worker ! WorkerCommand.Bind(this)
   }
