@@ -6,7 +6,7 @@ import colossus.parsing.ParserSizeTracker
 import core._
 import colossus.service.NotConnectedException
 
-trait StaticInputController[E <: Encoding] extends BaseStaticController[E] {this: ControllerIface[E] =>
+trait StaticInputController[E <: Encoding] extends BaseController[E] {this: ControllerIface[E] =>
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
 

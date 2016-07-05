@@ -174,7 +174,7 @@ abstract class BaseWebsocketHandler(val context: Context) extends {
   val codec = new WebsocketCodec
   val controllerConfig = ControllerConfig(50, scala.concurrent.duration.Duration.Inf)
 
-} with StaticController[Websocket#ServerEncoding] with ControllerIface[Websocket#ServerEncoding] {
+} with Controller[Websocket#ServerEncoding] with ControllerIface[Websocket#ServerEncoding] {
 
 
   def send(bytes: DataBlock) {

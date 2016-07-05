@@ -155,7 +155,7 @@ class ServiceClient[P <: Protocol](
 extends {
   //needed to deal with initialization order
   val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-} with StaticController[P#ClientEncoding] with ControllerIface[P#ClientEncoding]
+} with Controller[P#ClientEncoding] with ControllerIface[P#ClientEncoding]
 with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
 

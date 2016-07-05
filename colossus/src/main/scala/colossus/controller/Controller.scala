@@ -51,14 +51,14 @@ trait ControllerImpl[E <: Encoding] {
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseStaticController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
+trait BaseController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
   def fatalError(reason: Throwable) {
     onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
   }
 }
 
-trait StaticController[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
+trait Controller[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
 
 /**
  * This can be used to build connection handlers directly on top of the
@@ -68,6 +68,6 @@ abstract class BasicController[E <: Encoding](
   val codec: Codec[E],
   val controllerConfig: ControllerConfig,
   val context: Context
-) extends StaticController[E] { self: ControllerIface[E] => }
+) extends Controller[E] { self: ControllerIface[E] => }
 
 
