@@ -151,7 +151,7 @@ class ServiceClient[P <: Protocol](
   val codec: Codec.Client[P],
   val config: ClientConfig,
   val context: Context
-)(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
+)(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
 extends {
   //needed to deal with initialization order
   val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
