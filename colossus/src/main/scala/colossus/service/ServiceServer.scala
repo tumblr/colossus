@@ -138,7 +138,7 @@ trait ServiceServer[P <: Protocol] extends StaticController[P#ServerEncoding] wi
   def name = serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
-  def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
+  def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
   
