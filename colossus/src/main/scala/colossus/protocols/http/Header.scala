@@ -8,6 +8,7 @@ import core.{DataOutBuffer, Encoder}
 import java.util.{LinkedList, List => JList}
 
 import scala.collection.immutable.HashMap
+import scala.util.{Failure, Success, Try}
 import parsing.ParseException
 
 
@@ -274,6 +275,7 @@ object HttpHeaders {
   val TransferEncoding  = "transfer-encoding"
 
   def apply(hdrs: HttpHeader*) : HttpHeaders = HttpHeaders.fromSeq(hdrs)
+  def fromString(hdrs: (String, String)*): HttpHeaders = HttpHeaders.fromSeq(hdrs.map{case (k,v)  => HttpHeader(k,v)})
 
   def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = {
     val l = new LinkedList[HttpHeader]
@@ -380,6 +382,27 @@ object ContentType {
 }
 
 
+trait ParameterParser[T] {
+  def parse(value: String): Try[T]
+}
+
+object ParameterParser {
+  implicit object StringNoopParser extends ParameterParser[String] {
+    def parse(value: String) = Success(value)
+  }
+  implicit object LongParser extends ParameterParser[Long] {
+    def parse(value: String) = Try {
+      java.lang.Long.parseLong(value)
+    }
+  }
+  implicit object IntParser extends ParameterParser[Int] {
+    def parse(value: String) = Try {
+      Integer.parseInt(value)
+    }
+  }
+}
+
+case class NoParameterException(name: String) extends Exception(s"No value for parameter $name")
 
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
@@ -391,6 +414,14 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
    * value of the first is returned
    **/
   def getFirst(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
+
+  /**
+   * Get the value of a query string parameter and attempt to cast it to the given type
+   */
+  def getFirstAs[T](key: String)(implicit parser: ParameterParser[T]): Try[T] = getFirst(key) match {
+    case Some(v) => parser.parse(v)
+    case None => Failure(NoParameterException(key))
+  }
 
   /**
    * Get the values of all instances of key

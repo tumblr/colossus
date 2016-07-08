@@ -50,7 +50,7 @@ case class ParsedResponseFL(data: Array[Byte]) extends ResponseFL with LazyParsi
 
 case class BasicResponseFL(version : HttpVersion, code: HttpCode) extends ResponseFL
 
-case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) {
+case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) extends HttpMessageHead {
 
   def version = fl.version
   def code = fl.code
@@ -109,7 +109,9 @@ trait ByteStringLike[T] {
 
 }
 
-object HttpResponse {
+object HttpResponse extends HttpResponseBuilding {
+
+  def initialVersion = HttpVersion.`1.1`
 
 
   def apply[T : HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
@@ -127,4 +129,21 @@ object HttpResponse {
 
 }
 
+trait HttpResponseBuilding {
+  import HttpCodes._
+
+  def initialVersion: HttpVersion
+
+  def respond[T : HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
+    HttpResponse(HttpResponseHead(initialVersion, code, headers), HttpBody(data))
+  }
+
+  def ok[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)              = respond(OK, data, headers)
+  def notFound[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(NOT_FOUND, data, headers)
+  def error[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(INTERNAL_SERVER_ERROR, message, headers)
+  def badRequest[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)   = respond(BAD_REQUEST, message, headers)
+  def unauthorized[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(UNAUTHORIZED, message, headers)
+  def forbidden[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)    = respond(FORBIDDEN, message, headers)
+
+}
 

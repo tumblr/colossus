@@ -44,6 +44,14 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
+  /**
+   * common methods of both request and response heads
+   */
+  trait HttpMessageHead {
+    def headers: HttpHeaders
+    def version: HttpVersion
+  }
+
   class ReturnCodeTagDecorator extends TagDecorator[Http] {
     override def tagsFor(request: HttpRequest, response: HttpResponse): TagMap = {
       Map("status_code" -> response.head.code.code.toString)

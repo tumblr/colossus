@@ -10,7 +10,6 @@ object HttpRequestParser {
   
   def apply() = httpRequest
 
-  //TODO : don't parse body as a bytestring
   protected def httpRequest: Parser[HttpRequest] = httpHead |> {head =>
     head.headers.transferEncoding match {
       case TransferEncoding.Identity => head.headers.contentLength match {
@@ -21,7 +20,7 @@ object HttpRequestParser {
     }
   }
 
-  protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
+  def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
     ParsedHead(fl, headersBuilder.buildHeaders) 
   }
 
