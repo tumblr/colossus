@@ -356,8 +356,11 @@ object Connection {
   case object Close extends Connection {
     val value = "close"
   }
+  case object Upgrade extends Connection {
+    val value = "upgrade"
+  }
 
-  private val all = Seq(Close, KeepAlive)
+  private val all = Seq(Close, KeepAlive, Upgrade)
   def apply(str : String) : Connection = {
     val toFind = str.toLowerCase
     all.find(_.value == toFind).getOrElse(throw new ParseException(s"Invalid connection header value '$str'"))

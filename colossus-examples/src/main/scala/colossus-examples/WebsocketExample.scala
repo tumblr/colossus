@@ -69,6 +69,16 @@ object WebsocketExample {
           case "STOP" => {
             sending = false
           }
+          case "LARGE" => {
+            sendMessage((0 to 1000).mkString)
+          }
+          case "MANY" => {
+            //send one message per event loop iteration
+            def next(i: Int) {
+              if (i > 0) sendMessage(i.toString){_ => next(i - 1)}
+            }
+            next(1000)
+          }
           case "EXIT" => {
             disconnect()
           }
