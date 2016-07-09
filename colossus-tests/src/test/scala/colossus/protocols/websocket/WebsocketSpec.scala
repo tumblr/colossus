@@ -12,6 +12,7 @@ import colossus.testkit._
 
 import akka.util.ByteString
 
+import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 
 class WebsocketSpec extends ColossusSpec {
@@ -30,6 +31,19 @@ class WebsocketSpec extends ColossusSpec {
     HttpBody.NoBody
   )
 
+  val validResponse = HttpResponse(
+    HttpResponseHead(
+      HttpVersion.`1.1`,
+      HttpCodes.SWITCHING_PROTOCOLS,
+      HttpHeaders(
+        HttpHeader("Upgrade", "websocket"),
+        HttpHeader("Connection", "Upgrade"),
+        HttpHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
+      )
+    ),
+    HttpBody.NoBody
+  )
+
   "Http Upgrade Request" must {
     "correctly translate key from RFC" in {
       UpgradeRequest.processKey("dGhlIHNhbXBsZSBub25jZQ==") must equal("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
@@ -40,19 +54,7 @@ class WebsocketSpec extends ColossusSpec {
     }
 
     "produce a correctly formatted response" in {
-      val expected = HttpResponse(
-        HttpResponseHead(
-          HttpVersion.`1.1`,
-          HttpCodes.SWITCHING_PROTOCOLS,
-          HttpHeaders(
-            HttpHeader("Upgrade", "websocket"),
-            HttpHeader("Connection", "Upgrade"),
-            HttpHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
-          )
-        ),
-        HttpBody.NoBody
-      )
-      UpgradeRequest.validate(valid).get must equal(expected)
+      UpgradeRequest.validate(valid).get must equal(validResponse)
 
     }
   }
@@ -74,7 +76,32 @@ class WebsocketSpec extends ColossusSpec {
       val expected = Frame(Header(OpCodes.Text, true), DataBlock("Hello World!!!!!!"))
       FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(expected))
     }
+
+
   }
+
+  "frame encoding" must {
+    def sized(len: Int) = Frame(Header(OpCodes.Text, false), DataBlock(List.fill(len)("x").mkString)).encode(new Random).bytes
+
+    "handle small payload sizes" in {
+      val bytes = sized(125)
+      bytes(1) mustBe 0x7D //mask bit unset + 125 length
+    }
+
+    "handle medium payload sizes" in {
+      val bytes = sized(126)
+      bytes.drop(1).take(3) mustBe ByteString(0x7E, 0x00, 0x7E)
+
+      val bytes2 = sized(12543)
+      bytes2.drop(1).take(3) mustBe ByteString(0x7E, 0x30, 0xFF)
+    }
+
+    "handle large payload sizes" in {
+      val bytes = sized(126872)
+      bytes.drop(1).take(9) mustBe (ByteString(0x7F, 0, 0, 0, 0, 0, 0x01, 0xEF, 0x98))
+    }
+  }
+
 
   "WebsocketHandler" must {
     //a simple codec to test decoding errors 
@@ -152,6 +179,47 @@ class WebsocketSpec extends ColossusSpec {
 
       
     
+  }
+
+  "WebsocketHttp" must {
+    import subprotocols.rawstring._
+    import protocols.http.server.HttpServiceHandler
+    val myinit = new WebsocketInitializer(FakeIOSystem.fakeWorker.worker) {
+      def onConnect = new WebsocketServerHandler[RawString](_) {
+        def handle = {
+          case "A" => {
+            sendMessage("B")
+          }
+        }
+        def handleError(reason: Throwable): Unit = {
+          sendMessage("E")
+        }
+        def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+      }
+    }
+
+    def createHandler = MockConnection.server(ctx => new HttpServiceHandler(new WebsocketHttpHandler(ctx, myinit, "/foo"), HttpHeaders.Empty))
+
+    "switch connection handler on successful upgrade request" in {
+      val con = createHandler
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(DataBuffer(valid.bytes))
+      con.iterate()
+      con.expectOneWrite(validResponse.bytes)
+      con.iterate()
+      con.workerProbe.expectMsgType[core.WorkerCommand.SwapHandler](100.milliseconds)
+    }
+    "return 400 and not switch on invalid request" in {
+      val bad = HttpRequest.get("/foo")
+      val con = createHandler
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(DataBuffer(bad.bytes))
+      con.iterate()
+      con.withExpectedWrite(_.utf8String.contains("400") mustBe true)
+      con.iterate()
+      con.workerProbe.expectNoMsg(100.milliseconds)
+
+    }
   }
 
 }
