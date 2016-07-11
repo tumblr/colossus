@@ -146,5 +146,7 @@ object DataBuffer {
 
   def apply(data: ByteString): DataBuffer = fromByteString(data)
 
+  def apply(data: String): DataBuffer = apply(data.getBytes("UTF-8"))
+
   def fromByteString(b: ByteString): DataBuffer = DataBuffer(b.asByteBuffer, b.size)
 }
