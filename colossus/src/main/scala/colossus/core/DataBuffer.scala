@@ -133,6 +133,8 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     (res, pos2 - pos1)
   }
 
+  def asByteString = ByteString(takeCopy.takeAll)
+
 }
 
 object DataBuffer {
