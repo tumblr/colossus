@@ -5,7 +5,7 @@ import core._
 import service._
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.Random
-import controller.StaticCodec
+import controller.Codec
 
 /**
  * **This package is experimental and subject to breaking changes between
@@ -27,7 +27,7 @@ import controller.StaticCodec
  */
 package object websocket {
 
-  class WebsocketCodec extends StaticCodec[Websocket#ServerEncoding]{
+  class WebsocketCodec extends Codec[Websocket#ServerEncoding]{
     
     private val random = new Random
     private val parser = FrameParser.frame

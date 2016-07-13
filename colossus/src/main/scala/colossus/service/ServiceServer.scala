@@ -109,7 +109,7 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[P <: Protocol] extends StaticController[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
+trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
   import ServiceServer._
 
   type I = P#ServerEncoding#Input

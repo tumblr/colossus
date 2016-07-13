@@ -28,7 +28,7 @@ class PushPromise {
   def expectCancelled() {  assert(isCancelled == true)}
 }
 
-trait TestController[E <: Encoding] extends ControllerIface[E] { self: StaticController[E] with ServerConnectionHandler =>
+trait TestController[E <: Encoding] extends ControllerIface[E] { self: Controller[E] with ServerConnectionHandler =>
 
   implicit val namespace = {
     import metrics._
@@ -65,12 +65,12 @@ object TestController {
 
   val defaultConfig = ControllerConfig(4, 50.milliseconds)
 
-  type T[E <: Encoding] = StaticController[E] with TestController[E] with ServerConnectionHandler
+  type T[E <: Encoding] = Controller[E] with TestController[E] with ServerConnectionHandler
 
-  def controller[E <: Encoding](codec: StaticCodec[E], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[E]] = {
+  def controller[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[E]] = {
     val con =MockConnection.server(
       c => {
-        val t: T[E] = new BasicController[E](codec, config, c.context) with StaticController[E] with TestController[E] with ServerConnectionHandler
+        val t: T[E] = new BasicController[E](codec, config, c.context) with Controller[E] with TestController[E] with ServerConnectionHandler
         t
       },
       500

@@ -27,7 +27,7 @@ case class ControllerConfig(
 //these are the methods that the controller layer requires to be implemented
 trait ControllerIface[E <: Encoding] {
   protected def connectionState: ConnectionState
-  protected def codec: StaticCodec[E]
+  protected def codec: Codec[E]
   protected def processMessage(input: E#Input)
   protected def controllerConfig: ControllerConfig
   implicit val namespace: MetricNamespace
@@ -51,23 +51,23 @@ trait ControllerImpl[E <: Encoding] {
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseStaticController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
+trait BaseController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
   def fatalError(reason: Throwable) {
     onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
   }
 }
 
-trait StaticController[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
+trait Controller[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
 
 /**
  * This can be used to build connection handlers directly on top of the
  * controller layer
  */
 abstract class BasicController[E <: Encoding](
-  val codec: StaticCodec[E],
+  val codec: Codec[E],
   val controllerConfig: ControllerConfig,
   val context: Context
-) extends StaticController[E] { self: ControllerIface[E] => }
+) extends Controller[E] { self: ControllerIface[E] => }
 
 

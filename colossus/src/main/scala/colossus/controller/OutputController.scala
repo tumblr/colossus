@@ -64,7 +64,7 @@ object StaticOutState {
   case object Terminated extends StaticOutState(false)
 }
 
-trait StaticOutputController[E <: Encoding] extends BaseStaticController[E]{this: ControllerIface[E] =>
+trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: ControllerIface[E] =>
 
 
   private var state: StaticOutState = StaticOutState.Suspended

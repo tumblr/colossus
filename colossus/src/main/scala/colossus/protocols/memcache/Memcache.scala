@@ -1,7 +1,7 @@
 package colossus
 package protocols.memcache
 
-import controller.StaticCodec
+import controller.Codec
 import core._
 import service._
 
@@ -362,7 +362,7 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
 
 }
 
-class MemcacheClientCodec() extends StaticCodec.Client[Memcache] {
+class MemcacheClientCodec() extends Codec.Client[Memcache] {
   private var parser = new MemcacheReplyParser()
 
   def encode(cmd: MemcacheCommand, buffer: DataOutBuffer) {

@@ -173,7 +173,7 @@ abstract class BaseWebsocketHandler(val context: Context, val controllerConfig: 
 
   val codec = new WebsocketCodec
 
-} with StaticController[Websocket#ServerEncoding] with ControllerIface[Websocket#ServerEncoding] {
+} with Controller[Websocket#ServerEncoding] with ControllerIface[Websocket#ServerEncoding] {
 
 
   def send(bytes: DataBlock)(postWrite: OutputResult => Unit): Boolean = {

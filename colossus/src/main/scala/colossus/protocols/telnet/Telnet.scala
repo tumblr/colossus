@@ -1,7 +1,7 @@
 package colossus
 package protocols
 
-import controller.StaticCodec
+import controller.Codec
 import core._
 import service._
 
@@ -106,7 +106,7 @@ package object telnet {
   }
 
   //there's a compiler bug that prevents us from doing "extends Telnet[ServerCodec]" :(
-  implicit object TelnetServerCodec extends StaticCodec.Server[Telnet] {
+  implicit object TelnetServerCodec extends Codec.Server[Telnet] {
     val parser = new TelnetCommandParser
 
     def decode(data: DataBuffer): Option[TelnetCommand] = parser.parse(data)

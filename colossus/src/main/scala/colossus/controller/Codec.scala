@@ -3,7 +3,7 @@ package controller
 
 import core.{DataBuffer, DataOutBuffer}
 
-trait StaticCodec[E <: Encoding] {
+trait Codec[E <: Encoding] {
   def decode(data: DataBuffer): Option[E#Input]
   def encode(message: E#Output, buffer: DataOutBuffer)
 
@@ -21,12 +21,12 @@ trait StaticCodec[E <: Encoding] {
 }
 
 
-object StaticCodec {
+object Codec {
 
   import service.Protocol
 
-  type Server[P <: Protocol] = StaticCodec[P#ServerEncoding]
-  type Client[P <: Protocol] = StaticCodec[P#ClientEncoding]
+  type Server[P <: Protocol] = Codec[P#ServerEncoding]
+  type Client[P <: Protocol] = Codec[P#ClientEncoding]
 
 }
 

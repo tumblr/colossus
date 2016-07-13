@@ -50,7 +50,7 @@ class EchoHandler(c: ServerContext) extends NoopHandler(c){
 
 object RawProtocol {
   import colossus.service._
-  import controller.StaticCodec
+  import controller.Codec
 
   trait BaseRawCodec  {
     def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
@@ -59,8 +59,8 @@ object RawProtocol {
     def endOfStream() = None
   }
 
-  object RawServerCodec extends BaseRawCodec with StaticCodec.Server[Raw]
-  object RawClientCodec extends BaseRawCodec with StaticCodec.Client[Raw]
+  object RawServerCodec extends BaseRawCodec with Codec.Server[Raw]
+  object RawClientCodec extends BaseRawCodec with Codec.Client[Raw]
 
   trait Raw extends Protocol {
     type Request = ByteString

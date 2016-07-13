@@ -2,7 +2,7 @@ package colossus
 package service
 
 import core.{DataBuffer, DataOutBuffer}
-import controller.{Encoding, StaticCodec}
+import controller.{Encoding, Codec}
 
 import org.scalatest.{WordSpec, MustMatchers}
 
@@ -17,7 +17,7 @@ class CodecSpec extends WordSpec with MustMatchers {
 
   "Codec" must {
     "decode all stops when databuffer is empty" in {
-      val c = new StaticCodec[MyE] {
+      val c = new Codec[MyE] {
         def decode(d: DataBuffer) = Some(ByteString(d.takeAll).utf8String)
         def encode(i: String, buffer: DataOutBuffer) { buffer write DataBuffer(ByteString(i.toString)) }
         def reset(){}
