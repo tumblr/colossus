@@ -14,7 +14,7 @@ extends BasicServiceHandler[Http](rh) {
 
   val defaults = new Http.ServerDefaults
 
-  override def tagDecorator = new ReturnCodeTagDecorator[Http]
+  override def tagDecorator = new ReturnCodeTagDecorator
 
   override def processRequest(input: Http#Input): Callback[Http#Output] = {
     val response = super.processRequest(input)

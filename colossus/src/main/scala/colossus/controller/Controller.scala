@@ -1,10 +1,10 @@
 package colossus
 package controller
 
+import colossus.metrics.MetricNamespace
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
-import service.{Codec, Protocol}
 
 import scala.concurrent.duration.Duration
 
@@ -24,114 +24,50 @@ case class ControllerConfig(
   metricsEnabled: Boolean = true
 )
 
-//used to terminate input streams when a connection is closing
-class DisconnectingException(message: String) extends Exception(message)
-
-
-
-
-
-/**
- * The base trait inherited by both InputController and OutputController and
- * ultimately implemented by Controller.  This merely contains methods needed
- * by both input and output controller
- */
-trait MasterController[Input, Output] {this:  ConnectionHandler =>
+//these are the methods that the controller layer requires to be implemented
+trait ControllerIface[E <: Encoding] {
   protected def connectionState: ConnectionState
-  protected def codec: Codec[Output, Input]
+  protected def codec: StaticCodec[E]
+  protected def processMessage(input: E#Input)
   protected def controllerConfig: ControllerConfig
+  implicit val namespace: MetricNamespace
 
-  implicit def namespace : metrics.MetricNamespace
-
-  //needs to be called after various actions complete to check if it's ok to disconnect
-  private[controller] def checkControllerGracefulDisconnect()
-
-  //Right now in some cases the Input or Outut Controller decide to kill the
-  //whole connection.  We should eventually make this configurable such that we
-  //can kill one half of the controller without automatically killing the whole
-  //thing
-  def disconnect()
+  protected def onFatalError(reason: Throwable): Option[E#Output] = None
 }
 
-
-
+//these are the method that a controller layer itself must implement
+trait ControllerImpl[E <: Encoding] {
+  protected def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+  protected def canPush: Boolean
+  protected def purgePending(reason: Throwable)
+  protected def writesEnabled: Boolean
+  protected def pauseWrites()
+  protected def resumeWrites()
+  protected def pauseReads()
+  protected def resumeReads()
+  protected def pendingBufferSize: Int
+}
 
 /**
- * A Controller is a Connection handler that is designed to work with
- * connections involving decoding raw bytes into input messages and encoding
- * output messages into bytes.
- *
- * Unlike a service, which pairs an input "request" message with an output
- * "response" message, the controller make no such pairing.  Thus a controller
- * can be thought of as a duplex stream of messages.
+ * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait Controller[Input, Output] extends CoreHandler with MasterController[Input, Output]
-with InputController[Input, Output] with OutputController[Input, Output] with ConnectionManager{ 
-  import ConnectionState._
-
-  override def connected(endpt: WriteEndpoint) {
-    super.connected(endpt)
-    codec.reset()
-    outputOnConnected()
-    inputOnConnected()
-  }
-
-
-  private def onClosed() {
-    inputOnClosed()
-    outputOnClosed()
-  }
-
-  protected def connectionClosed(cause : DisconnectCause) {
-    onClosed()
-  }
-
-  protected def connectionLost(cause : DisconnectError) {
-    onClosed()
-  }
-
-  override def shutdown() {
-    inputGracefulDisconnect()
-    outputGracefulDisconnect()
-    checkControllerGracefulDisconnect()
-  }
-  
-  def fatalInputError(reason: Throwable) = {
-    
-    processBadRequest(reason).foreach { output =>
-      push(output) { _ => {} }
-    }
+trait BaseStaticController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
+  def fatalError(reason: Throwable) {
+    onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
-    //throw reason
   }
-  
-  /**
-   * Checks the status of the shutdown procedure.  Only when both the input and
-   * output sides are terminated do we call shutdownRequest on the parent
-   */
-  private[controller] def checkControllerGracefulDisconnect() {
-    (connectionState, inputState, outputState) match {
-      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
-        super.shutdown()
-      }
-      case (NotConnected, _, _) => {
-        //can happen when disconnect is called before being connected
-        super.shutdown()
-      }
-      case _ => {} 
-    }
-  }
-
 }
+
+trait StaticController[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
 
 /**
  * This can be used to build connection handlers directly on top of the
  * controller layer
  */
-abstract class BasicController[I,O](
-  val codec: Codec[O, I],
+abstract class BasicController[E <: Encoding](
+  val codec: StaticCodec[E],
   val controllerConfig: ControllerConfig,
   val context: Context
-) extends Controller[I,O]
+) extends StaticController[E] { self: ControllerIface[E] => }
 
 

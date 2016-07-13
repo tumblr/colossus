@@ -36,21 +36,6 @@ class OutputControllerSpec extends ColossusSpec {
 
     }
 
-    "push a streaming message" in {
-      val endpoint = stream()
-      val pieces = List("a", "b", "c").map{s => ByteString(s)}
-      val gen = new IteratorGenerator(pieces.map{DataBuffer(_)}.toIterator)
-      val message = TestOutput(gen)
-      val p = endpoint.typedHandler.pPush(message)
-      p.expectNoSet
-      endpoint.iterate() //this first iteration simply encodes the message and starts the pull
-      p.expectNoSet
-      endpoint.iterate() //this one should do the writes
-      endpoint.expectOneWrite(ByteString("abc"))
-      p.expectSuccess
-    }
-
-
     "respect buffer soft overflow" in {
       val endpoint = static()
       val over = ByteString(List.fill(110)("a").mkString)
@@ -115,7 +100,7 @@ class OutputControllerSpec extends ColossusSpec {
     }
 
 
-    "fail pending messages on connectionClosed while gracefully disconnecting"  in {
+    "fail pending messages on connectionClosed while gracefully disconnecting" taggedAs(org.scalatest.Tag("test")) in {
       val endpoint = static()
       val p = endpoint.typedHandler.pPush(ByteString("hello"))
       endpoint.typedHandler.disconnect()

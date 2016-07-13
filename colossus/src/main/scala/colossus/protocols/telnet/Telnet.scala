@@ -7,25 +7,15 @@ import service._
 
 import akka.util.ByteString
 
-import Codec._
 import service._
 
 package object telnet {
   import scala.language.higherKinds
-  //type Telnet[M[_, _]] = M[TelnetCommand, TelnetReply]
 
   trait Telnet extends Protocol {
     type Request = TelnetCommand
     type Response = TelnetReply
   }
-
-  /*
-  implicit object TelnetProvider extends ServiceCodecProvider[Telnet] {
-    def provideCodec() = TelnetServerCodec
-
-    def errorResponse(error: ProcessingFailure[TelnetCommand]) = TelnetReply(s"Error: ${error.reason}")
-  }
-  */
 
   case class TelnetCommand(args: List[String])
 

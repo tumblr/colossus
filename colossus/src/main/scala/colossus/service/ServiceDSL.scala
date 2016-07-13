@@ -11,17 +11,7 @@ import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
-import controller.StaticCodec
-
-import Codec._
-
-trait Encoding {
-  type Input
-  type Output
-}
-object Encoding {
-  type Apply[I,O] = Encoding { type Input = I; type Output = O }
-}
+import controller.{Encoding, StaticCodec}
 
 trait Protocol {self =>
   type Request

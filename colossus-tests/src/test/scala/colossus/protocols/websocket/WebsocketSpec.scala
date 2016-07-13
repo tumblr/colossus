@@ -3,7 +3,7 @@ package protocols.websocket
 
 import core.{DataBlock, DataBuffer, ServerContext}
 
-import service.{DecodedResult, Protocol}
+import service.Protocol
 import protocols.http._
 import java.util.Random
 
@@ -69,12 +69,12 @@ class WebsocketSpec extends ColossusSpec {
     "parse a frame" in {
       val data = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87).toArray
       val expected = Frame(Header(OpCodes.Ping, true), DataBlock("Hello World!"))
-      val parsed = FrameParser.frame.parse(DataBuffer(data)) must equal(Some(DecodedResult.Static(expected)))
+      val parsed = FrameParser.frame.parse(DataBuffer(data)) must equal(Some(expected))
     }
 
     "parse its own encoding" in {
       val expected = Frame(Header(OpCodes.Text, true), DataBlock("Hello World!!!!!!"))
-      FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(DecodedResult.Static(expected)))
+      FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(expected))
     }
 
 
