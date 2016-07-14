@@ -112,6 +112,8 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       req.head.parameters.getFirstAs[String]("a") mustBe Success("b")
       req.head.parameters.getFirstAs[Long]("b") mustBe Success(3L)
       req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[Int]]
+      req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[Int]]
+
     }
   }
 
