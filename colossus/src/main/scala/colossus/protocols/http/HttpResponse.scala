@@ -66,6 +66,8 @@ case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) extends Http
 
   def withHeader(key: String, value: String) = copy(headers = headers + (key -> value))
 
+  def withHeader(header: HttpHeader) = copy(headers = headers + header)
+
 }
 
 object HttpResponseHead{

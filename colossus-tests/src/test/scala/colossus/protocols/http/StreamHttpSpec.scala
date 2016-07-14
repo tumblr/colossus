@@ -1,9 +1,11 @@
 package colossus
 package protocols.http
 
-import core.{DataBlock, DataBuffer, DynamicOutBuffer}
+import core._
 import testkit._
 import stream._
+
+import akka.util.ByteString
 
 class StreamHttpSpec extends ColossusSpec {
 
@@ -59,7 +61,28 @@ class StreamHttpSpec extends ColossusSpec {
       out.data.asByteString.utf8String mustBe expected
     }
 
+  }
 
+  "StreamHttpServerHandler" must {
+    class MyHandler(ctx: ServerContext) extends StreamServerHandler(ctx) {
+      
+      def processMessage(msg: StreamHttpRequest) = msg match {
+        case RequestHead(h) => {
+          pushResponse(HttpResponse.ok("hello"))(_ => ())
+        }
+        case _ => {}
+      }
+    }
+    
+    "push a full response" in {
+      val con = MockConnection.server(new MyHandler(_))
+      con.typedHandler.connected(con)
+      con.typedHandler.receivedData(DataBuffer(HttpRequest.get("/foo").bytes))
+      con.iterate()
+      con.iterate()
+      val expected = ByteString("HTTP/1.1 200 OK\r\ncontent-length: 5\r\nContent-Type: text/plain\r\n\r\nhello")
+      con.expectOneWrite(expected)
+    }
   }
 
 }

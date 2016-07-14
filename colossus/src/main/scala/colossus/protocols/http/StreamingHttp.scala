@@ -2,6 +2,7 @@ package colossus
 package protocols.http
 package stream
 
+import colossus.metrics.MetricNamespace
 import controller._
 import service.Protocol
 import core._
@@ -105,15 +106,6 @@ trait StreamDecoder extends Codec[StreamHttp#ServerEncoding]{
     headParser = HttpRequestParser.httpHead
   }
 
-  /**
-   * This is needed solely for http responses that use identity encoding and
-   * don't provide a content length.  In that case, closing the connection
-   * signals the end of the response.
-   */
-  def endOfStream(): Option[StreamHttpRequest] = state match {
-    case f: FiniteBodyState if (f.size.isEmpty) => Some(End)
-    case _ => None
-  }
 
 }
 
@@ -165,6 +157,8 @@ trait StreamEncoder extends Codec[StreamHttp#ServerEncoding]{
     state = Head
   }
 
+  def endOfStream() = None
+
 }
 
 class StreamHttpServerCodec extends StreamDecoder with StreamEncoder {
@@ -176,9 +170,15 @@ abstract class StreamServerHandler(context: ServerContext)
 extends BasicController[StreamHttp#ServerEncoding](new StreamHttpServerCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context.context) 
 with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding]{
 
+  val namespace: MetricNamespace = context.server.system.metrics
+
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
+
 
   protected def pushResponse(response: HttpResponse)(postWrite: QueuedItem.PostWrite) {
-    push(ResponseHead(response.head.withHeader("content-length", response.body.size.toString))){_ => ()}
+    val withCL = response.head.withHeader(HttpHeaders.ContentLength, response.body.size.toString)
+    val withCT = response.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
+    push(ResponseHead(withCT)){_ => ()}
     push(BodyData(response.body.asDataBlock)){_ => ()}
     push(End)(postWrite)
   }
