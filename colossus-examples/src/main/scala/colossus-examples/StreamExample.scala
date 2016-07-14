@@ -14,12 +14,6 @@ object StreamExample {
     Server.start("stream", port){worker => new Initializer(worker) {
       def onConnect = new StreamServerHandler(_) {
 
-        // Members declared in colossus.controller.ControllerIface
-       implicit val namespace: colossus.metrics.MetricNamespace = worker.system.metrics
-
-       // Members declared in colossus.core.WorkerItem
-       def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
-
         def processMessage(message: StreamHttpRequest) {
           message match {
             case RequestHead(head) => head.parameters.getFirstAs[Int]("num") match {
