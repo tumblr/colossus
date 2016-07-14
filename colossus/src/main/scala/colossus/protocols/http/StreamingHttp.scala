@@ -6,6 +6,7 @@ import colossus.metrics.MetricNamespace
 import controller._
 import service.Protocol
 import core._
+import parsing.Combinators.Parser
 
 
 trait HttpMessageType {
@@ -19,13 +20,11 @@ trait HttpResponseType extends HttpMessageType {
   type HeadType = HttpResponseHead
 }
 
-sealed trait StreamHttpRequest
-sealed trait StreamHttpResponse
+sealed trait StreamHttpMessage[+T <: HttpMessageHead]
 
-case class RequestHead(head: HttpRequestHead) extends StreamHttpRequest
-case class ResponseHead(head: HttpResponseHead) extends StreamHttpResponse
+case class Head[+T <: HttpMessageHead](head: T) extends StreamHttpMessage[T]
 
-sealed trait StreamBodyMessage extends StreamHttpRequest with StreamHttpResponse
+sealed trait StreamBodyMessage extends StreamHttpMessage[Nothing]
 /**
  * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
  * is raw data(false) or a properly encoded http chunk (true).  In most cases
@@ -38,15 +37,27 @@ case object End extends StreamBodyMessage
 trait StreamHttp extends Protocol {
 
 
-  type Request = StreamHttpRequest
-  type Response = StreamHttpResponse
+  type Request = StreamHttpMessage[HttpRequestHead]
+  type Response = StreamHttpMessage[HttpResponseHead]
+}
+
+trait HeadParserProvider[T <: HttpMessageHead] {
+  def parser: Parser[T]
+}
+object HeadParserProvider {
+  implicit object RequestHeadParserProvider extends HeadParserProvider[HttpRequestHead] {
+    def parser = HttpRequestParser.httpHead
+
+    
+  }
 }
 
 //TODO - generalize this for both servers and clients
-trait StreamDecoder extends Codec[StreamHttp#ServerEncoding]{ 
+trait StreamDecoder[T <: HttpMessageHead] { 
 
+  def parserProvider: HeadParserProvider[T]
 
-  private var headParser = HttpRequestParser.httpHead
+  private var headParser = parserProvider.parser
 
   sealed trait State
   case object HeadState extends State
@@ -79,7 +90,7 @@ trait StreamDecoder extends Codec[StreamHttp#ServerEncoding]{
   }
   private var state: State = HeadState
 
-  def decode(data: DataBuffer): Option[StreamHttpRequest] = state match {
+  def decode(data: DataBuffer): Option[StreamHttpMessage[T]] = state match {
     case HeadState => headParser.parse(data) match {
       case Some(h) => {
         if (h.headers.transferEncoding == TransferEncoding.Chunked) {
@@ -87,7 +98,7 @@ trait StreamDecoder extends Codec[StreamHttp#ServerEncoding]{
         } else {
           state = new FiniteBodyState(h.headers.contentLength)
         }
-        Some(RequestHead(h))
+        Some(Head(h))
       }
       case None => None
     }
@@ -101,21 +112,21 @@ trait StreamDecoder extends Codec[StreamHttp#ServerEncoding]{
   }
 
 
-  override def reset() {
+  def resetDecoder() {
     state = HeadState
-    headParser = HttpRequestParser.httpHead
+    headParser = parserProvider.parser
   }
 
 
 }
 
-trait StreamEncoder extends Codec[StreamHttp#ServerEncoding]{
+trait StreamEncoder[T <: HttpMessageHead] {
 
-  sealed trait State
-  case object Head extends State
-  case class Body(head: HttpResponseHead) extends State
+  private sealed trait State
+  private case object HeadState extends State
+  private case class BodyState(head: T) extends State
 
-  private var state: State = Head
+  private var state: State = HeadState
 
   private def encodeChunk(data: DataBlock, buffer: DataOutBuffer) {
     buffer.write(data.size.toHexString.getBytes)
@@ -124,20 +135,20 @@ trait StreamEncoder extends Codec[StreamHttp#ServerEncoding]{
     buffer.write(HttpParse.NEWLINE)
   }
 
-  def encode(output: StreamHttpResponse, buffer: DataOutBuffer) {
+  def encode(output: StreamHttpMessage[T], buffer: DataOutBuffer) {
     state match {
-      case Head => output match {
-        case ResponseHead(h) => {
-          state = Body(h)
+      case HeadState => output match {
+        case Head(h) => {
+          state = BodyState(h)
           h.encode(buffer)
           //need to write the final newline
           buffer write HttpParse.NEWLINE
         }
         case _ => throw new Exception("Cannot send body data before head")
       }
-      case Body(current) => {
+      case BodyState(current) => {
         output match {
-          case ResponseHead(h) => throw new Exception("cannot send new head while streaming a response")
+          case Head(h) => throw new Exception("cannot send new head while streaming a body")
           case BodyData(data, false) if (current.headers.transferEncoding == TransferEncoding.Chunked) => {
             encodeChunk(data, buffer)
           }
@@ -146,23 +157,29 @@ trait StreamEncoder extends Codec[StreamHttp#ServerEncoding]{
             if (current.headers.transferEncoding == TransferEncoding.Chunked) {
               encodeChunk(DataBlock.Empty, buffer)
             }
-            state = Head
+            state = HeadState
           }
         }
       }
     }
   }
 
-  override def reset() {
-    state = Head
+  def resetEncoder() {
+    state = HeadState
   }
 
   def endOfStream() = None
 
 }
 
-class StreamHttpServerCodec extends StreamDecoder with StreamEncoder {
+class StreamHttpServerCodec extends Codec[StreamHttp#ServerEncoding] with StreamDecoder[HttpRequestHead] with StreamEncoder[HttpResponseHead] {
 
+  def parserProvider = HeadParserProvider.RequestHeadParserProvider
+
+  def reset() {
+    resetEncoder()
+    resetDecoder()
+  }
 
 }
 
@@ -178,7 +195,7 @@ with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding]{
   protected def pushResponse(response: HttpResponse)(postWrite: QueuedItem.PostWrite) {
     val withCL = response.head.withHeader(HttpHeaders.ContentLength, response.body.size.toString)
     val withCT = response.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
-    push(ResponseHead(withCT)){_ => ()}
+    push(Head(withCT)){_ => ()}
     push(BodyData(response.body.asDataBlock)){_ => ()}
     push(End)(postWrite)
   }

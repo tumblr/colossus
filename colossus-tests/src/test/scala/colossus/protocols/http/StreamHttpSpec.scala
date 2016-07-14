@@ -16,7 +16,7 @@ class StreamHttpSpec extends ColossusSpec {
       
       val codec = new StreamHttpServerCodec
 
-      codec.decode(requestBytes) mustBe Some(RequestHead(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
+      codec.decode(requestBytes) mustBe Some(Head(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
         "content-length" -> "10", "something-else" -> "bleh"
       ))))
       codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("0123456789")))
@@ -28,7 +28,7 @@ class StreamHttpSpec extends ColossusSpec {
       val requestBytes = DataBuffer("GET /foo HTTP/1.1\r\ntransfer-encoding: chunked\r\nsomething-else: bleh\r\n\r\n5\r\nhello\r\n2\r\nok\r\n0\r\n\r\n")
       val codec = new StreamHttpServerCodec
 
-      codec.decode(requestBytes) mustBe Some(RequestHead(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
+      codec.decode(requestBytes) mustBe Some(Head(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
         "transfer-encoding" -> "chunked", "something-else" -> "bleh"
       ))))
 
@@ -43,7 +43,7 @@ class StreamHttpSpec extends ColossusSpec {
       val out = new DynamicOutBuffer(100)
       val resp = HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders.fromString("foo" -> "bar", "content-length" -> "10"))
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ncontent-length: 10\r\n\r\n0123456789"
-      codec.encode(ResponseHead(resp), out)
+      codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("0123456789")), out)
       codec.encode(End, out)
       out.data.asByteString.utf8String mustBe expected
@@ -54,7 +54,7 @@ class StreamHttpSpec extends ColossusSpec {
       val out = new DynamicOutBuffer(100)
       val resp = HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders.fromString("foo" -> "bar", "transfer-encoding" -> "chunked"))
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ntransfer-encoding: chunked\r\n\r\n5\r\nhello\r\n6\r\nworld!\r\n0\r\n\r\n"
-      codec.encode(ResponseHead(resp), out)
+      codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("hello")), out)
       codec.encode(BodyData(DataBlock("world!")), out)
       codec.encode(End, out)
@@ -66,8 +66,8 @@ class StreamHttpSpec extends ColossusSpec {
   "StreamHttpServerHandler" must {
     class MyHandler(ctx: ServerContext) extends StreamServerHandler(ctx) {
       
-      def processMessage(msg: StreamHttpRequest) = msg match {
-        case RequestHead(h) => {
+      def processMessage(msg: StreamHttpMessage[HttpRequestHead]) = msg match {
+        case Head(h) => {
           pushResponse(HttpResponse.ok("hello"))(_ => ())
         }
         case _ => {}

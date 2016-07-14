@@ -50,6 +50,8 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   trait HttpMessageHead {
     def headers: HttpHeaders
     def version: HttpVersion
+
+    def encode(out: core.DataOutBuffer)
   }
 
   class ReturnCodeTagDecorator extends TagDecorator[Http] {
