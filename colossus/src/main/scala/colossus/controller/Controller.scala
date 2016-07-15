@@ -32,7 +32,11 @@ trait ControllerIface[E <: Encoding] {
   protected def controllerConfig: ControllerConfig
   implicit val namespace: MetricNamespace
 
-  protected def onFatalError(reason: Throwable): Option[E#Output] = None
+  protected def onFatalError(reason: Throwable): Option[E#Output] = {
+    //TODO: Logging
+    println(s"Fatal Error: $reason, disconnecting")
+    None
+  }
 }
 
 //these are the method that a controller layer itself must implement

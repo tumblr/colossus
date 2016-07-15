@@ -40,10 +40,11 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {this: Cont
 
   def receivedData(data: DataBuffer) {
     try {
-      while (data.hasUnreadData) {
+      var done = false
+      while (!done) {
         inputSizeTracker.track(data)(codec.decode(data)) match {
           case Some(msg) => processMessage(msg)
-          case None => {}
+          case None => done = true
         }
       }
     } catch {

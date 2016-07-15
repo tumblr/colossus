@@ -14,11 +14,11 @@ object StreamExample {
     Server.start("stream", port){worker => new Initializer(worker) {
       def onConnect = new StreamServerHandler(_) {
 
-        def processMessage(message: StreamHttpRequest) {
+        def processMessage(message: StreamHttpMessage[HttpRequestHead]) {
           message match {
-            case RequestHead(head) => head.parameters.getFirstAs[Int]("num") match {
+            case Head(head) if (head.path == "/zop") => head.parameters.getFirstAs[Int]("num") match {
               case Success(num) => {
-                push (ResponseHead(HttpResponseHead(head.version, HttpCodes.OK, HttpHeaders.fromString("transfer-encoding" -> "chunked")))){_ => ()}
+                push (Head(HttpResponseHead(head.version, HttpCodes.OK, HttpHeaders.fromString("transfer-encoding" -> "chunked")))){_ => ()}
                 def sendNumbers(num: Int): Unit = num match {
                   case 0 => push(End){_ => ()}
                   case n => {
@@ -31,6 +31,7 @@ object StreamExample {
                 pushResponse(HttpResponse.badRequest(reason.getMessage)){_ => ()}
               }
             }
+            case Head(head) => pushResponse(HttpResponse.ok("Hello World!")){_ => ()}
             case _ => {}
           }
         }

@@ -43,10 +43,13 @@ trait StreamHttp extends Protocol {
 
 trait HeadParserProvider[T <: HttpMessageHead] {
   def parser: Parser[T]
+  def eosTerminatesMessage : Boolean
 }
 object HeadParserProvider {
   implicit object RequestHeadParserProvider extends HeadParserProvider[HttpRequestHead] {
     def parser = HttpRequestParser.httpHead
+
+    def eosTerminatesMessage = false
 
     
   }
@@ -96,7 +99,12 @@ trait StreamDecoder[T <: HttpMessageHead] {
         if (h.headers.transferEncoding == TransferEncoding.Chunked) {
           state = new ChunkedBodyState
         } else {
-          state = new FiniteBodyState(h.headers.contentLength)
+          val lengthOpt = if (parserProvider.eosTerminatesMessage || h.headers.contentLength.isDefined) {
+            h.headers.contentLength
+          } else {
+            Some(0)
+          }
+          state = new FiniteBodyState(lengthOpt)
         }
         Some(Head(h))
       }
@@ -190,7 +198,6 @@ with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding]{
   val namespace: MetricNamespace = context.server.system.metrics
 
   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
-
 
   protected def pushResponse(response: HttpResponse)(postWrite: QueuedItem.PostWrite) {
     val withCL = response.head.withHeader(HttpHeaders.ContentLength, response.body.size.toString)
