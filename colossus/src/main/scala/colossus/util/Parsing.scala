@@ -748,7 +748,10 @@ object Combinators {
    * A very fast dynamically growable array builder.  Do not be tempted to
    * replace this with any out-of-the-box Java/Scala class.  This is faster.
    */
-  class FastArrayBuilder(initSize: Int, shrinkOnComplete: Boolean = false) {
+  trait FastArrayBuilding {
+    
+    def initSize: Int
+    def shrinkOnComplete: Boolean
     
     //TODO : This class is somewhat similar to the DynamicOutBuffer, maybe
     //there's a way to avoid duplicated logic
@@ -801,6 +804,7 @@ object Combinators {
       res
     }
   }
+  class FastArrayBuilder(val initSize: Int, val shrinkOnComplete: Boolean = false) extends FastArrayBuilding
 
 
 
@@ -816,17 +820,19 @@ object Combinators {
    * faster.  I have made several attempts to get the bytesUntil parser as fast
    * as this one to no avail.
    */
-  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] {
+  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] with FastArrayBuilding {
     private val CR    = '\r'.toByte
     private val LF    = '\n'.toByte
-    private val empty = Array[Byte]()
-    private val build = new FastArrayBuilder(internalBufferBaseSize)
+    //private val empty = Array[Byte]()
+
+    def initSize = internalBufferBaseSize
+    def shrinkOnComplete = false
 
     var scanByte = CR
 
-    def complete() : T = {
+    def completeLine() : T = {
       scanByte = CR
-      constructor(build.complete)
+      constructor(complete())
     }
 
     def parse(buffer: DataBuffer): Option[T] = {
@@ -837,14 +843,14 @@ object Combinators {
           if (scanByte == CR) {
             //the -1 is so we don't copy-in the \r
             if (includeNewline) {
-              build.write(byte)
-              build.write(LF)
+              write(byte)
+              write(LF)
             } 
             if (buffer.hasUnreadData) {
               //usually we can skip scanning for the \n
               //do an extra get to read in the \n
               buffer.data.position(buffer.data.position + 1)
-              res = Some(complete())
+              res = Some(completeLine())
             } else {
               //this would only happen if the \n is in the next packet/buffer,
               //very rare but it can happen, but we can't complete until we've read it in
@@ -852,10 +858,10 @@ object Combinators {
             }
           } else {
             //this happens when the LF is the first byte of the data buffer
-            res = Some(complete())
+            res = Some(completeLine())
           }
         } else {
-          build.write(byte)
+          write(byte)
         }
       }
       res
