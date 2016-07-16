@@ -771,6 +771,9 @@ object Combinators {
     def write(b: Byte) {
       if (writePos == build.length) {
         grow()
+      val nb = new Array[Byte](build.length * 2)
+      System.arraycopy(build, 0, nb, 0, build.length)
+      build = nb
       }
       build(writePos) = b
       writePos += 1
