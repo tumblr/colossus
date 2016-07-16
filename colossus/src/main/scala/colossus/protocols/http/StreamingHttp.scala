@@ -9,29 +9,18 @@ import core._
 import parsing.Combinators.Parser
 
 
-trait HttpMessageType {
-  type HeadType <: HttpMessageHead
-}
+sealed trait StreamHttpMessage[T <: HttpMessageHead[T]]
 
-trait HttpRequestType extends HttpMessageType {
-  type HeadType = HttpRequestHead
-}
-trait HttpResponseType extends HttpMessageType {
-  type HeadType = HttpResponseHead
-}
+case class Head[T <: HttpMessageHead[T]](head: T) extends StreamHttpMessage[T]
 
-sealed trait StreamHttpMessage[+T <: HttpMessageHead]
-
-case class Head[+T <: HttpMessageHead](head: T) extends StreamHttpMessage[T]
-
-sealed trait StreamBodyMessage extends StreamHttpMessage[Nothing]
+sealed trait StreamBodyMessage[T <: HttpMessageHead[T]] extends StreamHttpMessage[T]
 /**
  * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
  * is raw data(false) or a properly encoded http chunk (true).  In most cases
  * this should be false unless the data is being proxied verbatim.
  */
-case class BodyData(data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage
-case object End extends StreamBodyMessage
+case class BodyData[T <: HttpMessageHead[T]](data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage[T]
+case class End[T <: HttpMessageHead[T]]() extends StreamBodyMessage[T]
 
 
 trait StreamHttp extends Protocol {
@@ -41,7 +30,7 @@ trait StreamHttp extends Protocol {
   type Response = StreamHttpMessage[HttpResponseHead]
 }
 
-trait HeadParserProvider[T <: HttpMessageHead] {
+trait HeadParserProvider[T <: HttpMessageHead[T]] {
   def parser: Parser[T]
   def eosTerminatesMessage : Boolean
 }
@@ -53,10 +42,14 @@ object HeadParserProvider {
 
     
   }
+  object ResponseHeadParserProvider extends HeadParserProvider[HttpResponseHead] {
+    def parser = HttpResponseParser.head
+
+    def eosTerminatesMessage = true
+  }
 }
 
-//TODO - generalize this for both servers and clients
-trait StreamDecoder[T <: HttpMessageHead] { 
+trait StreamDecoder[T <: HttpMessageHead[T]] { 
 
   def parserProvider: HeadParserProvider[T]
 
@@ -65,15 +58,15 @@ trait StreamDecoder[T <: HttpMessageHead] {
   sealed trait State
   case object HeadState extends State
   sealed trait BodyState extends State {
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage]
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]]
   }
   //used when the transfer-encoding is identity or a content-length is provided
   //(so non-chunked encoding)
   class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
     def done = size.map{_ == taken}.getOrElse(false)
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = if (done) {
-      Some(End)
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = if (done) {
+      Some(End())
     } else if (input.hasUnreadData) {
       val bytes = input.take(size.map{_ - taken}.getOrElse(input.remaining))
       taken += bytes.length
@@ -84,11 +77,11 @@ trait StreamDecoder[T <: HttpMessageHead] {
   }
   class ChunkedBodyState extends BodyState {
     import parsing.Combinators._
-    val parser: Parser[StreamBodyMessage] = intUntil('\r', 16) <~ byte |> {
-      case 0 => bytes(2) >> {_ => End}
+    val parser: Parser[StreamBodyMessage[T]] = intUntil('\r', 16) <~ byte |> {
+      case 0 => bytes(2) >> {_ => End()}
       case n => bytes(n.toInt) <~ bytes(2) >> {bytes => BodyData(DataBlock(bytes), false)}
     }
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = parser.parse(input)
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = parser.parse(input)
   
   }
   private var state: State = HeadState
@@ -111,9 +104,9 @@ trait StreamDecoder[T <: HttpMessageHead] {
       case None => None
     }
     case b: BodyState => b.nextPiece(data) match {
-      case Some(End) => {
+      case Some(End()) => {
         state = HeadState
-        Some(End)
+        Some(End())
       }
       case other => other
     }
@@ -125,10 +118,16 @@ trait StreamDecoder[T <: HttpMessageHead] {
     headParser = parserProvider.parser
   }
 
+  
+  def endOfStream(): Option[StreamHttpMessage[T]] = state match {
+    case f: FiniteBodyState if (f.size.isEmpty && parserProvider.eosTerminatesMessage) => Some(End())
+    case _ => None
+  }
+
 
 }
 
-trait StreamEncoder[T <: HttpMessageHead] {
+trait StreamEncoder[T <: HttpMessageHead[T]] {
 
   private sealed trait State
   private case object HeadState extends State
@@ -161,7 +160,7 @@ trait StreamEncoder[T <: HttpMessageHead] {
             encodeChunk(data, buffer)
           }
           case BodyData(data, _) => buffer.write(data)
-          case End => {
+          case End() => {
             if (current.headers.transferEncoding == TransferEncoding.Chunked) {
               encodeChunk(DataBlock.Empty, buffer)
             }
@@ -176,7 +175,6 @@ trait StreamEncoder[T <: HttpMessageHead] {
     state = HeadState
   }
 
-  def endOfStream() = None
 
 }
 
@@ -190,23 +188,91 @@ class StreamHttpServerCodec extends Codec[StreamHttp#ServerEncoding] with Stream
   }
 
 }
+class StreamHttpClientCodec extends Codec[StreamHttp#ClientEncoding] with StreamDecoder[HttpResponseHead] with StreamEncoder[HttpRequestHead] {
 
-abstract class StreamServerHandler(context: ServerContext) 
-extends BasicController[StreamHttp#ServerEncoding](new StreamHttpServerCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context.context) 
-with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding]{
+  def parserProvider = HeadParserProvider.ResponseHeadParserProvider
 
-  val namespace: MetricNamespace = context.server.system.metrics
-
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
-
-  protected def pushResponse(response: HttpResponse)(postWrite: QueuedItem.PostWrite) {
-    val withCL = response.head.withHeader(HttpHeaders.ContentLength, response.body.size.toString)
-    val withCT = response.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
-    push(Head(withCT)){_ => ()}
-    push(BodyData(response.body.asDataBlock)){_ => ()}
-    push(End)(postWrite)
+  def reset() {
+    resetEncoder()
+    resetDecoder()
   }
 
 }
 
 
+trait BaseHandler[H <: HttpMessageHead[H], T <: HttpMessage[H]] extends Writer[StreamHttpMessage[H]] {self: WorkerItem =>
+
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
+
+  val namespace: MetricNamespace = context.worker.system.metrics
+
+  protected def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite) {
+    val withCL : H = message.head.withHeader(HttpHeaders.ContentLength, message.body.size.toString)
+    val withCT : H = message.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
+    push(Head(withCT)){_ => ()}
+    push(BodyData(message.body.asDataBlock)){_ => ()}
+    push(End())(postWrite)
+  }
+
+}
+
+abstract class StreamServerHandler(context: ServerContext) 
+extends BasicController[StreamHttp#ServerEncoding](new StreamHttpServerCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context.context) 
+with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding] with BaseHandler[HttpResponseHead, HttpResponse]{
+
+
+}
+
+abstract class StreamClient(context: Context) 
+extends BasicController[StreamHttp#ClientEncoding](new StreamHttpClientCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context) 
+with ClientConnectionHandler with ControllerIface[StreamHttp#ClientEncoding] with BaseHandler[HttpRequestHead, HttpRequest]{
+
+}
+
+/*
+
+sealed trait StreamState
+object StreamState {
+  case object Active extends StreamState
+  case object Paused extends StreamState
+  case object Terminated extends StreamState
+}
+
+trait StreamReadManager {
+
+  def pause()
+  def resume()
+  def state: StreamState
+  def cancel()
+
+case class StreamContext[T <: HttpMessageHead](head: T, manager: StreamManager)
+
+abstract class StreamReader[T <: HttpMessageHead](context: StreamContext[T]) {
+
+  protected val head: T = context.head
+  protected val stream: StreamManager = context.manager
+
+  def receive(data: BodyData)
+
+  def endOfStream() {}
+  def streamError(reason: Throwable) {}
+
+
+}
+
+trait StreamWriteManager[T] {
+  
+  def push(message: T)(postWrite: OutputResult => Unit)
+  def endOfStream()
+  def cancel()
+
+}
+
+class StreamWriter[T <: HttpMessageHaed](val stream: StreamWriteManager) {
+
+  def streamError(reason: Throwable) {}
+
+}
+
+
+*/

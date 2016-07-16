@@ -36,7 +36,7 @@ case class BuiltHead(firstLine: BuildFL, headers: HttpHeaders) extends HttpReque
 
 case class ParsedHead(firstLine: ParsedFL, headers: HttpHeaders) extends HttpRequestHead
 
-trait HttpRequestHead extends Encoder with HttpMessageHead {
+trait HttpRequestHead extends Encoder with HttpMessageHead[HttpRequestHead] {
   def firstLine: FirstLine
   def headers: HttpHeaders
 
@@ -80,8 +80,8 @@ trait HttpRequestHead extends Encoder with HttpMessageHead {
     QueryParameters(build)
   } getOrElse QueryParameters(Vector())
 
-  def withHeader(header: String, value: String): HttpRequestHead = {
-    copy(headers = headers + (header -> value))
+  def withHeader(header: HttpHeader): HttpRequestHead = {
+    copy(headers = headers + header)
   }
 
   lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
@@ -110,7 +110,7 @@ object HttpRequestHead {
 
 }
 
-case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder with HttpRequestBuilding[HttpRequest] {
+case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder with HttpRequestBuilding[HttpRequest] with HttpMessage[HttpRequestHead] {
   import head._
   import HttpCodes._
 

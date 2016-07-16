@@ -39,10 +39,13 @@ trait ControllerIface[E <: Encoding] {
   }
 }
 
-//these are the method that a controller layer itself must implement
-trait ControllerImpl[E <: Encoding] {
-  protected def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+trait Writer[T] {
+  protected def push(item: T, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
   protected def canPush: Boolean
+}
+
+//these are the method that a controller layer itself must implement
+trait ControllerImpl[E <: Encoding] extends Writer[E#Output] {
   protected def purgePending(reason: Throwable)
   protected def writesEnabled: Boolean
   protected def pauseWrites()

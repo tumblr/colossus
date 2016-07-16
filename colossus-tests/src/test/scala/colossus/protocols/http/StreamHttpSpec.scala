@@ -20,7 +20,7 @@ class StreamHttpSpec extends ColossusSpec {
         "content-length" -> "10", "something-else" -> "bleh"
       ))))
       codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("0123456789")))
-      codec.decode(requestBytes) mustBe Some(End)
+      codec.decode(requestBytes) mustBe Some(End())
       codec.decode(requestBytes) mustBe None
     }
 
@@ -34,7 +34,7 @@ class StreamHttpSpec extends ColossusSpec {
 
       codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("hello")))
       codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("ok")))
-      codec.decode(requestBytes) mustBe Some(End)
+      codec.decode(requestBytes) mustBe Some(End())
       codec.decode(requestBytes) mustBe None
     }
 
@@ -45,7 +45,7 @@ class StreamHttpSpec extends ColossusSpec {
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ncontent-length: 10\r\n\r\n0123456789"
       codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("0123456789")), out)
-      codec.encode(End, out)
+      codec.encode(End(), out)
       out.data.asByteString.utf8String mustBe expected
     }
 
@@ -57,7 +57,7 @@ class StreamHttpSpec extends ColossusSpec {
       codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("hello")), out)
       codec.encode(BodyData(DataBlock("world!")), out)
-      codec.encode(End, out)
+      codec.encode(End(), out)
       out.data.asByteString.utf8String mustBe expected
     }
 
@@ -68,7 +68,7 @@ class StreamHttpSpec extends ColossusSpec {
       
       def processMessage(msg: StreamHttpMessage[HttpRequestHead]) = msg match {
         case Head(h) => {
-          pushResponse(HttpResponse.ok("hello"))(_ => ())
+          pushCompleteMessage(HttpResponse.ok("hello"))(_ => ())
         }
         case _ => {}
       }

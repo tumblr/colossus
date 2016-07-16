@@ -30,7 +30,7 @@ object HttpResponseParser  {
     }
   }
 
-  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder => 
+  def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder => 
     HttpResponseHead(fl, hbuilder.buildHeaders)
   }
 

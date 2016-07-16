@@ -44,12 +44,21 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
+  trait HttpMessage[H <: HttpMessageHead[H]] {
+    def head: H
+    def body: HttpBody
+  }
+
   /**
    * common methods of both request and response heads
    */
-  trait HttpMessageHead {
+  trait HttpMessageHead[H <: HttpMessageHead[H]] { self: H =>
     def headers: HttpHeaders
     def version: HttpVersion
+
+    def withHeader(header: HttpHeader): H
+
+    def withHeader(key: String, value: String): H = withHeader(HttpHeader(key,value))
 
     def encode(out: core.DataOutBuffer)
   }
