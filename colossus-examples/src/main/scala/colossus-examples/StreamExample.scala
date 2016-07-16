@@ -20,7 +20,7 @@ object StreamExample {
               case Success(num) => {
                 push (Head(HttpResponseHead(head.version, HttpCodes.OK, HttpHeaders.fromString("transfer-encoding" -> "chunked")))){_ => ()}
                 def sendNumbers(num: Int): Unit = num match {
-                  case 0 => push(End){_ => ()}
+                  case 0 => push(End()){_ => ()}
                   case n => {
                     push (BodyData(DataBlock(s"$n\r\n"))){_ => sendNumbers(n - 1)}
                   }
@@ -28,10 +28,10 @@ object StreamExample {
                 sendNumbers(num)
               }
               case Failure(reason) => {
-                pushResponse(HttpResponse.badRequest(reason.getMessage)){_ => ()}
+                pushCompleteMessage(HttpResponse.badRequest(reason.getMessage)){_ => ()}
               }
             }
-            case Head(head) => pushResponse(HttpResponse.ok("Hello World!")){_ => ()}
+            case Head(head) => pushCompleteMessage(HttpResponse.ok("Hello World!")){_ => ()}
             case _ => {}
           }
         }
