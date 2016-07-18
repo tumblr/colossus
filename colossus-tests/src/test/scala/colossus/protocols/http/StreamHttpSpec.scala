@@ -25,17 +25,19 @@ class StreamHttpSpec extends ColossusSpec {
     }
 
     "decode a chunked request into chunks" in {
-      val requestBytes = DataBuffer("GET /foo HTTP/1.1\r\ntransfer-encoding: chunked\r\nsomething-else: bleh\r\n\r\n5\r\nhello\r\n2\r\nok\r\n0\r\n\r\n")
+      val requestBytes1 = DataBuffer("GET /foo HTTP/1.1\r\ntransfer-encoding: chunked\r\nsomething-else: bleh\r\n\r\n5\r\nhel")
+      val requestBytes2 = DataBuffer("lo\r\n2\r\nok\r\n0\r\n\r\n")
       val codec = new StreamHttpServerCodec
 
-      codec.decode(requestBytes) mustBe Some(Head(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
+      codec.decode(requestBytes1) mustBe Some(Head(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
         "transfer-encoding" -> "chunked", "something-else" -> "bleh"
       ))))
 
-      codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("hello")))
-      codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("ok")))
-      codec.decode(requestBytes) mustBe Some(End())
-      codec.decode(requestBytes) mustBe None
+      codec.decode(requestBytes1) mustBe None
+      codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("hello")))
+      codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("ok")))
+      codec.decode(requestBytes2) mustBe Some(End())
+      codec.decode(requestBytes2) mustBe None
     }
 
     "encode standard response parts" in {
