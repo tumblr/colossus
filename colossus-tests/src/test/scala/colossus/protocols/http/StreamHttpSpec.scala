@@ -61,6 +61,29 @@ class StreamHttpSpec extends ColossusSpec {
       out.data.asByteString.utf8String mustBe expected
     }
 
+    "not allow sending a new head until current message fully sent" in {
+      val codec = new StreamHttpServerCodec
+      val out = new DynamicOutBuffer(100)
+      codec.encode(Head(HttpResponse.ok("foo").head), out)
+      intercept[StreamHttpException] {
+        codec.encode(Head(HttpResponse.ok("foo").head), out)
+      }
+      codec.encode(End(), out)
+      //now it should work
+      codec.encode(Head(HttpResponse.ok("foo").head), out)
+    }
+
+
+      
+
+    "properly reset" in {
+      val codec = new StreamHttpServerCodec
+      codec.decode(DataBuffer("GET /foo")) mustBe None
+      codec.reset()
+      codec.decode(DataBuffer("GET /foo HTTP/1.1\r\n\r\n")).isEmpty mustBe false
+      
+    }
+
   }
 
   "StreamHttpServerHandler" must {

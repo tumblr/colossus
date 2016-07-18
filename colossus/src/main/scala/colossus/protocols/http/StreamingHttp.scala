@@ -8,6 +8,7 @@ import service.Protocol
 import core._
 import parsing.Combinators.Parser
 
+class StreamHttpException(message: String) extends Exception(message)
 
 sealed trait StreamHttpMessage[T <: HttpMessageHead[T]]
 
@@ -151,11 +152,11 @@ trait StreamEncoder[T <: HttpMessageHead[T]] {
           //need to write the final newline
           buffer write HttpParse.NEWLINE
         }
-        case _ => throw new Exception("Cannot send body data before head")
+        case _ => throw new StreamHttpException("Cannot send body data before head")
       }
       case BodyState(current) => {
         output match {
-          case Head(h) => throw new Exception("cannot send new head while streaming a body")
+          case Head(h) => throw new StreamHttpException("cannot send new head while streaming a body")
           case BodyData(data, false) if (current.headers.transferEncoding == TransferEncoding.Chunked) => {
             encodeChunk(data, buffer)
           }
