@@ -55,14 +55,14 @@ trait StreamDecoder[T <: HttpMessageHead[T]] {
 
   private var headParser = parserProvider.parser
 
-  sealed trait State
-  case object HeadState extends State
-  sealed trait BodyState extends State {
+  private sealed trait State
+  private case object HeadState extends State
+  private sealed trait BodyState extends State {
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]]
   }
   //used when the transfer-encoding is identity or a content-length is provided
   //(so non-chunked encoding)
-  class FiniteBodyState(val size: Option[Int]) extends BodyState {
+  private class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
     def done = size.map{_ == taken}.getOrElse(false)
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = if (done) {
@@ -75,7 +75,7 @@ trait StreamDecoder[T <: HttpMessageHead[T]] {
       None
     }
   }
-  class ChunkedBodyState extends BodyState {
+  private class ChunkedBodyState extends BodyState {
     import parsing.Combinators._
     val parser: Parser[StreamBodyMessage[T]] = intUntil('\r', 16) <~ byte |> {
       case 0 => bytes(2) >> {_ => End()}
