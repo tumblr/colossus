@@ -770,7 +770,7 @@ object Combinators {
 
     def write(b: Byte) {
       if (writePos == build.length) {
-        grow()
+      //grow()
       val nb = new Array[Byte](build.length * 2)
       System.arraycopy(build, 0, nb, 0, build.length)
       build = nb
@@ -840,28 +840,26 @@ object Combinators {
 
     def parse(buffer: DataBuffer): Option[T] = {
       var res: Option[T] = None
+      if (scanByte == LF && buffer.hasUnreadData) {
+        res = Some(completeLine())
+      }
       while (buffer.hasUnreadData && res == None) {
         val byte = buffer.data.get
-        if (byte == scanByte) {
-          if (scanByte == CR) {
-            //the -1 is so we don't copy-in the \r
-            if (includeNewline) {
-              write(byte)
-              write(LF)
-            } 
-            if (buffer.hasUnreadData) {
-              //usually we can skip scanning for the \n
-              //do an extra get to read in the \n
-              buffer.data.position(buffer.data.position + 1)
-              res = Some(completeLine())
-            } else {
-              //this would only happen if the \n is in the next packet/buffer,
-              //very rare but it can happen, but we can't complete until we've read it in
-              scanByte = LF
-            }
-          } else {
-            //this happens when the LF is the first byte of the data buffer
+        if (byte == CR ) {
+          //the -1 is so we don't copy-in the \r
+          if (includeNewline) {
+            write(byte)
+            write(LF)
+          } 
+          if (buffer.hasUnreadData) {
+            //usually we can skip scanning for the \n
+            //do an extra get to read in the \n
+            buffer.data.position(buffer.data.position + 1)
             res = Some(completeLine())
+          } else {
+            //this would only happen if the \n is in the next packet/buffer,
+            //very rare but it can happen, but we can't complete until we've read it in
+            scanByte = LF
           }
         } else {
           write(byte)
