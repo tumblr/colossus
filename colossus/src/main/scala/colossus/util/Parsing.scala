@@ -762,18 +762,15 @@ object Combinators {
 
     def written = writePos
 
-    private def grow() {
+    @inline final private def grow() {
       val nb = new Array[Byte](build.length * 2)
       System.arraycopy(build, 0, nb, 0, build.length)
       build = nb
     }
 
-    def write(b: Byte) {
+    @inline final def write(b: Byte) {
       if (writePos == build.length) {
-      //grow()
-      val nb = new Array[Byte](build.length * 2)
-      System.arraycopy(build, 0, nb, 0, build.length)
-      build = nb
+      grow()
       }
       build(writePos) = b
       writePos += 1
@@ -854,7 +851,7 @@ object Combinators {
           if (buffer.hasUnreadData) {
             //usually we can skip scanning for the \n
             //do an extra get to read in the \n
-            buffer.data.position(buffer.data.position + 1)
+            buffer.data.get
             res = Some(completeLine())
           } else {
             //this would only happen if the \n is in the next packet/buffer,
