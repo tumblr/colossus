@@ -835,24 +835,29 @@ object Combinators {
       constructor(complete())
     }
 
+
     def parse(buffer: DataBuffer): Option[T] = {
       var res: Option[T] = None
+      def checkLineFeed() {
+        val b = buffer.data.get
+        if (b == LF) {
+          if (includeNewline) {
+            write(CR)
+            write(LF)
+          } 
+          res = Some(completeLine())
+        } else {
+          throw new ParseException("Malformed newline, expected \\r, got '$b'")
+        }
+      }
       if (scanByte == LF && buffer.hasUnreadData) {
-        res = Some(completeLine())
+        checkLineFeed()
       }
       while (buffer.hasUnreadData && res == None) {
         val byte = buffer.data.get
         if (byte == CR ) {
-          //the -1 is so we don't copy-in the \r
-          if (includeNewline) {
-            write(byte)
-            write(LF)
-          } 
           if (buffer.hasUnreadData) {
-            //usually we can skip scanning for the \n
-            //do an extra get to read in the \n
-            buffer.data.get
-            res = Some(completeLine())
+            checkLineFeed()
           } else {
             //this would only happen if the \n is in the next packet/buffer,
             //very rare but it can happen, but we can't complete until we've read it in
