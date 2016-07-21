@@ -8,6 +8,7 @@ import service.Protocol
 import core._
 import parsing.Combinators.Parser
 
+class StreamHttpException(message: String) extends Exception(message)
 
 sealed trait StreamHttpMessage[T <: HttpMessageHead[T]]
 
@@ -55,14 +56,14 @@ trait StreamDecoder[T <: HttpMessageHead[T]] {
 
   private var headParser = parserProvider.parser
 
-  sealed trait State
-  case object HeadState extends State
-  sealed trait BodyState extends State {
+  private sealed trait State
+  private case object HeadState extends State
+  private sealed trait BodyState extends State {
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]]
   }
   //used when the transfer-encoding is identity or a content-length is provided
   //(so non-chunked encoding)
-  class FiniteBodyState(val size: Option[Int]) extends BodyState {
+  private class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
     def done = size.map{_ == taken}.getOrElse(false)
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = if (done) {
@@ -75,7 +76,7 @@ trait StreamDecoder[T <: HttpMessageHead[T]] {
       None
     }
   }
-  class ChunkedBodyState extends BodyState {
+  private class ChunkedBodyState extends BodyState {
     import parsing.Combinators._
     val parser: Parser[StreamBodyMessage[T]] = intUntil('\r', 16) <~ byte |> {
       case 0 => bytes(2) >> {_ => End()}
@@ -151,11 +152,11 @@ trait StreamEncoder[T <: HttpMessageHead[T]] {
           //need to write the final newline
           buffer write HttpParse.NEWLINE
         }
-        case _ => throw new Exception("Cannot send body data before head")
+        case _ => throw new StreamHttpException("Cannot send body data before head")
       }
       case BodyState(current) => {
         output match {
-          case Head(h) => throw new Exception("cannot send new head while streaming a body")
+          case Head(h) => throw new StreamHttpException("cannot send new head while streaming a body")
           case BodyData(data, false) if (current.headers.transferEncoding == TransferEncoding.Chunked) => {
             encodeChunk(data, buffer)
           }
@@ -228,51 +229,3 @@ extends BasicController[StreamHttp#ClientEncoding](new StreamHttpClientCodec, Co
 with ClientConnectionHandler with ControllerIface[StreamHttp#ClientEncoding] with BaseHandler[HttpRequestHead, HttpRequest]{
 
 }
-
-/*
-
-sealed trait StreamState
-object StreamState {
-  case object Active extends StreamState
-  case object Paused extends StreamState
-  case object Terminated extends StreamState
-}
-
-trait StreamReadManager {
-
-  def pause()
-  def resume()
-  def state: StreamState
-  def cancel()
-
-case class StreamContext[T <: HttpMessageHead](head: T, manager: StreamManager)
-
-abstract class StreamReader[T <: HttpMessageHead](context: StreamContext[T]) {
-
-  protected val head: T = context.head
-  protected val stream: StreamManager = context.manager
-
-  def receive(data: BodyData)
-
-  def endOfStream() {}
-  def streamError(reason: Throwable) {}
-
-
-}
-
-trait StreamWriteManager[T] {
-  
-  def push(message: T)(postWrite: OutputResult => Unit)
-  def endOfStream()
-  def cancel()
-
-}
-
-class StreamWriter[T <: HttpMessageHaed](val stream: StreamWriteManager) {
-
-  def streamError(reason: Throwable) {}
-
-}
-
-
-*/
