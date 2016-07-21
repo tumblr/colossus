@@ -830,34 +830,30 @@ object Combinators {
 
     var scanByte = CR
 
-    def completeLine() : T = {
-      scanByte = CR
-      constructor(complete())
+    private final def checkLineFeed(buffer: DataBuffer) : T = {
+      val b = buffer.data.get
+      if (b == LF) {
+        if (includeNewline) {
+          write(CR)
+          write(LF)
+        } 
+        scanByte = CR
+        constructor(complete())
+      } else {
+        throw new ParseException("Malformed newline, expected \\r, got '$b'")
+      }
     }
-
 
     def parse(buffer: DataBuffer): Option[T] = {
       var res: Option[T] = None
-      def checkLineFeed() {
-        val b = buffer.data.get
-        if (b == LF) {
-          if (includeNewline) {
-            write(CR)
-            write(LF)
-          } 
-          res = Some(completeLine())
-        } else {
-          throw new ParseException("Malformed newline, expected \\r, got '$b'")
-        }
-      }
       if (scanByte == LF && buffer.hasUnreadData) {
-        checkLineFeed()
+        res = Some(checkLineFeed(buffer))
       }
       while (buffer.hasUnreadData && res == None) {
         val byte = buffer.data.get
         if (byte == CR ) {
           if (buffer.hasUnreadData) {
-            checkLineFeed()
+            res = Some(checkLineFeed(buffer))
           } else {
             //this would only happen if the \n is in the next packet/buffer,
             //very rare but it can happen, but we can't complete until we've read it in
