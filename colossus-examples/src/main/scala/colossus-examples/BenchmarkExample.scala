@@ -25,7 +25,6 @@ object BenchmarkService {
   def start(port: Int)(implicit io: IOSystem) {
 
     HttpServer.basic("benchmark", port) { 
-      //case req   => req.ok(plaintext)
       case req if (req.head.url == "/plaintext")  => req.ok(plaintext)
       case req if (req.head.url == "/json")       => req.ok(json)
     }

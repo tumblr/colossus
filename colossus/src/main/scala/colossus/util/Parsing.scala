@@ -770,7 +770,7 @@ object Combinators {
 
     @inline final def write(b: Byte) {
       if (writePos == build.length) {
-      grow()
+        grow()
       }
       build(writePos) = b
       writePos += 1
@@ -823,7 +823,6 @@ object Combinators {
   class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] with FastArrayBuilding {
     private val CR    = '\r'.toByte
     private val LF    = '\n'.toByte
-    //private val empty = Array[Byte]()
 
     def initSize = internalBufferBaseSize
     def shrinkOnComplete = false
