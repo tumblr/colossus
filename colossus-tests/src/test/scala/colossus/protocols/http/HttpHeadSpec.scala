@@ -4,6 +4,7 @@ package colossus.protocols.http
 import org.scalatest._
 import java.util.Date
 import java.text.SimpleDateFormat
+import scala.util.{Try, Success, Failure}
 
 
 class HttpRequestHeadSuite extends WordSpec with MustMatchers{
@@ -101,6 +102,18 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       d.bytes(time).utf8String must equal(date(time))
       d.bytes(time + 999).utf8String must equal(date(time))
       d.bytes(time + 1000).utf8String must equal(date(time + 1000))
+    }
+  }
+
+  "Query Parameter Parsing" must {
+    "parse some parameters" in {
+      val req = HttpRequest.get("/foo?a=b&b=3")
+      req.head.parameters.getFirstAs[Int]("b") mustBe Success(3)
+      req.head.parameters.getFirstAs[String]("a") mustBe Success("b")
+      req.head.parameters.getFirstAs[Long]("b") mustBe Success(3L)
+      req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[Int]]
+      req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[Int]]
+
     }
   }
 

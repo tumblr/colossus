@@ -90,7 +90,6 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
 
   protected def purgePending(reason: Throwable) {
     while (!outputBuffer.isEmpty) {
-      println("cancel")
       outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
     }
 

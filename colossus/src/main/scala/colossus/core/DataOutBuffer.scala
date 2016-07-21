@@ -45,6 +45,10 @@ trait DataOutBuffer {
     write(char.toByte)
   }
 
+  def write(block: DataBlock) {
+    write(block.data)
+  }
+
 }
 
 /**

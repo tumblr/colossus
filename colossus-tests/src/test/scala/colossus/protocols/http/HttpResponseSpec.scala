@@ -26,4 +26,28 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
     }
   }
 
+  "HttpResponseBuilding" must {
+  
+    def expectCode(response: HttpResponse, code: HttpCode) {
+      val expected = HttpResponse(HttpVersion.`1.1`, code, HttpHeaders.Empty, HttpBody("hello"))
+      response mustBe expected
+    }
+
+    "ok" in {
+      expectCode(HttpResponse.ok("hello"), HttpCodes.OK)
+    }
+    "not found" in {
+      expectCode(HttpResponse.notFound("hello"), HttpCodes.NOT_FOUND)
+    }
+    "bad request" in {
+      expectCode(HttpResponse.badRequest("hello"), HttpCodes.BAD_REQUEST)
+    }
+    "error" in {
+      expectCode(HttpResponse.error("hello"), HttpCodes.INTERNAL_SERVER_ERROR)
+    }
+    "forbidden" in {
+      expectCode(HttpResponse.forbidden("hello"), HttpCodes.FORBIDDEN)
+    }
+  }
+
 }

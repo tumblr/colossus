@@ -32,13 +32,20 @@ trait ControllerIface[E <: Encoding] {
   protected def controllerConfig: ControllerConfig
   implicit val namespace: MetricNamespace
 
-  protected def onFatalError(reason: Throwable): Option[E#Output] = None
+  protected def onFatalError(reason: Throwable): Option[E#Output] = {
+    //TODO: Logging
+    println(s"Fatal Error: $reason, disconnecting")
+    None
+  }
+}
+
+trait Writer[T] {
+  protected def push(item: T, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+  protected def canPush: Boolean
 }
 
 //these are the method that a controller layer itself must implement
-trait ControllerImpl[E <: Encoding] {
-  protected def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
-  protected def canPush: Boolean
+trait ControllerImpl[E <: Encoding] extends Writer[E#Output] {
   protected def purgePending(reason: Throwable)
   protected def writesEnabled: Boolean
   protected def pauseWrites()

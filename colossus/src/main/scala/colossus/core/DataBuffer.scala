@@ -133,6 +133,8 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     (res, pos2 - pos1)
   }
 
+  def asByteString = ByteString(takeCopy.takeAll)
+
 }
 
 object DataBuffer {
@@ -145,6 +147,8 @@ object DataBuffer {
   def apply(data: Array[Byte]): DataBuffer = DataBuffer(ByteBuffer.wrap(data))
 
   def apply(data: ByteString): DataBuffer = fromByteString(data)
+
+  def apply(data: String): DataBuffer = apply(data.getBytes("UTF-8"))
 
   def fromByteString(b: ByteString): DataBuffer = DataBuffer(b.asByteBuffer, b.size)
 }
