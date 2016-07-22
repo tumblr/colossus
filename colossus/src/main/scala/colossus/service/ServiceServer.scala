@@ -178,7 +178,7 @@ with ServerConnectionHandler {
   def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
-  override def idleCheck(period: Duration) {
+  override def idleCheck(period: FiniteDuration) {
     super.idleCheck(period)
 
     val time = System.currentTimeMillis
