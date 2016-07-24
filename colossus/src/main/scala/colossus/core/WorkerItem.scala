@@ -7,6 +7,7 @@ import akka.event.LoggingAdapter
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
+import scala.concurrent.duration.FiniteDuration
 
 class WorkerItemException(message: String) extends Exception(message)
 
@@ -123,6 +124,27 @@ abstract class WorkerItem(val context: Context) {
     unbind()
   }
 
+
+}
+
+/**
+ * A mixin trait for worker items that defines a method which is periodically
+ * called by the worker.  This can be used to do periodic checks
+ */
+trait IdleCheck extends WorkerItem {
+
+  /**
+   * Called periodically on every attached connection handler, this can be used
+   * for checking if an ongoing operation has timed out.
+   *
+   * Be aware that this is totally independant of a connection's idle timeout,
+   * which is only based on the last time there was any I/O.
+   *
+   * @param period the frequency at which this method is called.  Currently this
+   * is hardcoded to `WorkerManager.IdleCheckFrequency`, but may become
+   * application dependent in the future.
+   */
+  def idleCheck(period: FiniteDuration)
 
 }
 

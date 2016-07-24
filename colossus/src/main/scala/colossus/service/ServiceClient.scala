@@ -364,7 +364,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
 
-  override def idleCheck(period: Duration) {
+  override def idleCheck(period: FiniteDuration) {
     super.idleCheck(period)
 
     if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {

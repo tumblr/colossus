@@ -36,7 +36,7 @@ class DisconnectingException(message: String) extends Exception(message)
  * ultimately implemented by Controller.  This merely contains methods needed
  * by both input and output controller
  */
-trait MasterController[Input, Output] extends ConnectionHandler {
+trait MasterController[Input, Output] extends ConnectionHandler with IdleCheck {
   protected def connectionState: ConnectionState
   protected def codec: Codec[Output, Input]
   protected def controllerConfig: ControllerConfig

@@ -110,7 +110,7 @@ class OutputControllerSpec extends ColossusSpec {
       val endpoint = static()
       val p = endpoint.typedHandler.pPush(ByteString("wat"))
       Thread.sleep(300)
-      endpoint.handler.idleCheck(1.millisecond)
+      endpoint.typedHandler.idleCheck(1.millisecond)
       p.expectCancelled()
     }
 
