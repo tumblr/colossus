@@ -213,6 +213,14 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       buf.remaining must equal(6)
     }
 
+    "line rejects isolated \\r" in {
+      val parser = line(true)
+      val buf = data("hello\ruhoh\r\n")
+      intercept[ParseException] {
+        parser.parse(buf)
+      }
+    }
+
       
 
 
