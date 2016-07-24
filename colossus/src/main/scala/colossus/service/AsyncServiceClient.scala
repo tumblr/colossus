@@ -31,7 +31,7 @@ trait FutureClient[C <: Protocol] extends Sender[C, Future] {
   def clientConfig : ClientConfig
 }
 
-object FutureClient {
+trait FutureClientOps {
 
   sealed trait ClientCommand
 
@@ -44,6 +44,11 @@ object FutureClient {
 
   def apply[C <: Protocol] = ClientFactory.futureClientFactory[C]
 }
+object FutureClient extends FutureClientOps
+
+//TODO: remove in 0.9.x
+@deprecated("Use FutureClient Instead", "0.8.1")
+object AsyncServiceClient extends FutureClientOps
 
 /**
  * So we need to take a type-parameterized request object, package it into a
