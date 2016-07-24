@@ -4,7 +4,7 @@ package controller
 import core._
 import java.util.LinkedList
 import scala.annotation.tailrec
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.{Success, Failure}
 
 import service.{NotConnectedException, RequestTimeoutException}
@@ -119,7 +119,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
     onClosed()
   }
 
-  def idleCheck(period: Duration) {
+  def idleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
       val expired = outputBuffer.dequeue
@@ -179,7 +179,6 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
     }
   }
         
-      
 
   
 

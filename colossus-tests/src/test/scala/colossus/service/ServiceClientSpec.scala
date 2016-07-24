@@ -444,6 +444,28 @@ class ServiceClientSpec extends ColossusSpec {
       failed must equal(true)
     }
 
+    "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
+      withIOSystem{ implicit io => 
+        val config = ClientConfig(
+          name = "/test",
+          requestTimeout = 100.milliseconds,
+          address = new InetSocketAddress("localhost", TEST_PORT),
+          failFast = false,
+          connectRetry = BackoffPolicy(10.seconds, BackoffMultiplier.Constant)
+        )
+        val client = Raw.futureClient(config)
+        import io.actorSystem.dispatcher
+        val f = client.send(ByteString("blah"))
+        Thread.sleep(350)
+        //beware, a java TimeoutException is NOT what we want, that is simply
+        //the future timing out, which it shouldn't here
+        intercept[RequestTimeoutException] {
+          Await.result(f, 100.milliseconds)
+        }
+      }
+    }
+      
+
   }
 }
 

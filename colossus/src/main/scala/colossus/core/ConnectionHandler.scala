@@ -69,18 +69,10 @@ trait ConnectionHandler extends WorkerItem {
    */
   def connected(endpoint: WriteEndpoint)
 
-  /**
-   * Called periodically on every attached connection handler, this can be used
-   * for checking if an ongoing operation has timed out.
-   *
-   * Be aware that this is totally independant of a connection's idle timeout,
-   * which is only based on the last time there was any I/O.
-   *
-   * @param period the frequency at which this method is called.  Currently this is hardcoded to `WorkerManager.IdleCheckFrequency`, but may become application dependent in the future.
-   */
-  def idleCheck(period: Duration)
 
 }
+
+
 
 /**
  * Mixin containing events just for server connection handlers

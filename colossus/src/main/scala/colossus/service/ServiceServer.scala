@@ -159,12 +159,18 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
     val tags = extraTags + ("type" -> error.reason.metricsName)
     errors.hit(tags = tags)
     if (logErrors) {
-      val formattedRequest = error match {
-        case RecoverableError(request, reason) => requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
-        case IrrecoverableError(reason) => "Invalid Request"
+      logError(error).foreach{message =>
+        log.error(error.reason, message )
       }
-      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}")
     }
+  }
+
+  protected def logError(error: ProcessingFailure[I]): Option[String] = {
+    val formattedRequest = error match {
+      case RecoverableError(request, reason) => requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+      case IrrecoverableError(reason) => "Invalid Request"
+    }
+    Some(s"Error processing request: $formattedRequest: ${error.reason}")
   }
 
   private case class SyncPromise(request: I) {
@@ -188,7 +194,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
   def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
-  override def idleCheck(period: Duration) {
+  override def idleCheck(period: FiniteDuration) {
     super.idleCheck(period)
 
     val time = System.currentTimeMillis

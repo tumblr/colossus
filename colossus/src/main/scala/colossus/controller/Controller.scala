@@ -58,7 +58,7 @@ trait ControllerImpl[E <: Encoding] extends Writer[E#Output] {
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseController[E <: Encoding] extends CoreHandler with ControllerImpl[E]{this: ControllerIface[E] =>
+trait BaseController[E <: Encoding] extends CoreHandler with IdleCheck with ControllerImpl[E]{this: ControllerIface[E] =>
   def fatalError(reason: Throwable) {
     onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
