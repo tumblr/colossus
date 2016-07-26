@@ -472,10 +472,12 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
       val c = stub[HttpClient[Callback]]
 
-      (c.send _) when(HttpRequest.get("/foo")) returns(Callback.successful(HttpResponse.ok("hello")))
+      val resp = HttpRequest.get("/foo").ok("hello")
+
+      (c.send _) when(HttpRequest.get("/foo")) returns(Callback.successful(resp))
 
       implicit val executor = FakeIOSystem.testExecutor
-      CallbackAwait.result(c.send(HttpRequest.get("/foo")), 1.second) mustBe HttpResponse.ok("hello")
+      CallbackAwait.result(c.send(HttpRequest.get("/foo")), 1.second) mustBe resp
 
     }
       
