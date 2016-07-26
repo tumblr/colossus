@@ -24,10 +24,28 @@ trait Rate extends Collector{
     */
   def pruneEmpty : Boolean
 
+  /**
+   * Returns the current number of hits to the rate since the last aggregation
+   *
+   * @param collectionInterval The collection interval to retrieve the value for.  Collection intervals are configured per [[MetricSystem]]
+   * @param tags The tags for the value to get, defaults to an empty tagmap
+   * 
+   */
+  def value(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Long
+
+  /**
+   * Returns the total number of ticks across all collection intervals to the rate for a set of tags
+   *
+   * @param tags The tags for the count to get
+   */
+  def count(tags: TagMap = TagMap.Empty): Long
+
+
+
 }
 
 //working implementation of a Rate
-class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean, intervals : Seq[FiniteDuration])extends Rate {
+private[metrics] class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean, intervals : Seq[FiniteDuration])extends Rate {
 
   private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
 
@@ -37,7 +55,7 @@ class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: B
   private val minInterval = if (intervals.size > 0) intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
-    maps.foreach{ case (_, map) => map.increment(tags) }
+    maps.foreach{ case (_, map) => map.increment(tags, amount) }
   }
 
   def tick(interval: FiniteDuration): MetricMap  = {
@@ -49,16 +67,32 @@ class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: B
       Map(address -> snap, address / "count" -> totals.snapshot(pruneEmpty, false))
     }
   }
+
+  def value(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Long = {
+    maps(collectionInterval).get(tags).getOrElse(0)
+  }
+
+  def count(tags: TagMap = TagMap.Empty): Long = {
+    minInterval match {
+      case f: FiniteDuration => totals.get(tags).getOrElse(0L) + maps(f).get(tags).getOrElse(0L)
+      case _ => 0L
+    }
+  }
+
 }
 
 //Dummy implementation of a Rate, used when "enabled=false" is specified at creation
-class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)extends Rate {
+private[metrics] class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)extends Rate {
 
   private val empty : MetricMap = Map()
 
-  override def tick(interval: FiniteDuration): MetricMap = empty
+  def tick(interval: FiniteDuration): MetricMap = empty
 
-  override def hit(tags: TagMap, value: MetricValue): Unit = {}
+  def hit(tags: TagMap, value: MetricValue): Unit = {}
+
+  def value(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Long = 0L
+
+  def count(tags: TagMap = TagMap.Empty): Long = 0
 }
 
 object Rate {

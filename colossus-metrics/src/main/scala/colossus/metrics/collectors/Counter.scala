@@ -43,7 +43,7 @@ trait Counter extends Collector {
 }
 
 //Working implementation of a Counter
-class DefaultCounter private[metrics](val address: MetricAddress) extends Counter {
+private[metrics] class DefaultCounter private[metrics](val address: MetricAddress) extends Counter {
 
   private val counters = new CollectionMap[TagMap]
 
@@ -64,7 +64,7 @@ class DefaultCounter private[metrics](val address: MetricAddress) extends Counte
 }
 
 //Dummy implementation of a counter, used when "enabled=false" is specified at creation
-class NopCounter private[metrics](val address : MetricAddress) extends Counter {
+private[metrics] class NopCounter private[metrics](val address : MetricAddress) extends Counter {
   val empty : MetricMap = Map()
   override def tick(interval: FiniteDuration): MetricMap = empty
 

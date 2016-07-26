@@ -22,8 +22,7 @@ class HistogramSpec extends MetricIntegrationSpec {
       h.max must equal (10)
       h.count must equal (11)
       val percentiles = Seq(0.0, 0.25, 0.5, 0.75, 0.99, 1.0)
-      val snapshot = h.snapshot
-      snapshot.percentiles(percentiles) must equal (percentiles.zip(Seq(0, 3, 6, 9, 10, 10)).toMap)
+      h.percentiles(percentiles) must equal (percentiles.zip(Seq(0, 3, 6, 9, 10, 10)).toMap)
 
       val metrics = Map(
         address / "count" -> Map(tags -> 11),
@@ -39,7 +38,7 @@ class HistogramSpec extends MetricIntegrationSpec {
           tags + ("label" -> "1.0") -> 10
         )
       )
-      snapshot.metrics(address, tags, percentiles) must equal (metrics)
+      h.metrics(address, tags, percentiles) must equal (metrics)
     }
 
     "bucketFor" in {
@@ -49,17 +48,25 @@ class HistogramSpec extends MetricIntegrationSpec {
     }
 
     "return 0 for min when empty" in {
-      (new BaseHistogram).snapshot.min must equal(0)
+      (new BaseHistogram).min must equal(0)
     }
 
     "return 0 for mean when empty" in {
-      (new BaseHistogram).snapshot.mean must equal(0)
+      (new BaseHistogram).mean must equal(0)
     }
 
-    "handle possible race condition" in {
-      val s = Snapshot(0,0 ,0, 1, Vector())
-      s.percentiles(Seq(0.5, 1.0)) must equal(Map(0.5 -> 0, 1.0 -> 0))
+    "reset everything on tick" in {
+      val h = new BaseHistogram
+      (0 to 10).foreach{h.add}
+      h.tick()
+      h.min mustBe 0
+      h.max mustBe 0
+      h.count mustBe 0
+      h.mean mustBe 0
+      h.percentile(.99) mustBe 0
     }
+
+
 
   }
 
@@ -101,5 +108,21 @@ class HistogramSpec extends MetricIntegrationSpec {
       m(addr)(Map("foo" -> "bar", "label" -> "min")) must equal(10)
       m2(addr).get(Map("foo" -> "baz", "label" -> "min")).isEmpty must equal(true)
     }
+
+    "get values for specific interval" in {
+      implicit val col = MetricContext("/", Collection.withReferenceConf(Seq(1.second, 1.minute)))
+      val addr = MetricAddress.Root / "hist"
+      val h = Histogram(addr)
+      h.add(10)
+      h.add(50)
+      h.count(1.second) mustBe 2
+      h.percentile(1.second, 0.5) mustBe 12
+      h.count(1.minute) mustBe 2
+      h.tick(1.second)
+      h.count(1.second) mustBe 0
+      h.count(1.minute) mustBe 2
+      h.percentile(1.second, 0.5) mustBe 0
+    }
+
   }
 }
