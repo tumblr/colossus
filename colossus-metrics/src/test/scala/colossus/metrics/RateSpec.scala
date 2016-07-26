@@ -31,6 +31,24 @@ class RateSpec extends MetricIntegrationSpec {
       val r = rate()
       r.hit()
       r.hit()
+      r.count() mustBe 2
+      r.tick(1.second)
+      r.count() mustBe 2
+    }
+
+    "get the current value for an interval" in {
+      val r = rate()
+      r.hit()
+      r.hit()
+      r.value(1.second) mustBe 2
+      r.tick(1.second)
+      r.value(1.second) mustBe 0
+    }
+
+    "count in metrics" in {
+      val r = rate()
+      r.hit()
+      r.hit()
       r.tick(1.second)("/foo/count")(Map()) must equal(2)
 
       r.hit()
