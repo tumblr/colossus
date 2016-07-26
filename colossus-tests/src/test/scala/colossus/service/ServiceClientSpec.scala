@@ -20,8 +20,9 @@ import UnifiedProtocol._
 import scala.concurrent.Await
 
 import RawProtocol._
+import org.scalamock.scalatest.MockFactory
 
-class ServiceClientSpec extends ColossusSpec {
+class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   //TODO: we no longer need to return a triple, just the connection, as the others are members
   def newClient(
@@ -465,9 +466,22 @@ class ServiceClientSpec extends ColossusSpec {
         }
       }
     }
+
+    "work with mocking" in {
+      import protocols.http._
+
+      val c = stub[HttpClient[Callback]]
+
+      val resp = HttpRequest.get("/foo").ok("hello")
+
+      (c.send _) when(HttpRequest.get("/foo")) returns(Callback.successful(resp))
+
+      implicit val executor = FakeIOSystem.testExecutor
+      CallbackAwait.result(c.send(HttpRequest.get("/foo")), 1.second) mustBe resp
+
+    }
       
 
   }
 }
-
 

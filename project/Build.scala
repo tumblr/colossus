@@ -37,6 +37,7 @@ object ColossusBuild extends Build {
       "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION,
       "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test, it",
+      "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
       "org.mockito" % "mockito-all" % "1.9.5" % "test",
       "com.github.nscala-time" %% "nscala-time" % "1.2.0"
     ),
