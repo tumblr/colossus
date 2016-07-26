@@ -15,6 +15,14 @@ class RateSpec extends MetricIntegrationSpec {
       r.tick(1.minute)("/foo")(Map()) must equal(2)
     }
 
+    "increment by amount" in {
+      val r = rate()
+      r.hit(amount = 23)
+      r.value(1.second) mustBe 23
+      r.tick(1.second)("/foo")(Map()) must equal(23)
+    }
+
+
     "tick resets value for interval" in {
       val r = rate()
       r.hit()

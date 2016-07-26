@@ -55,7 +55,7 @@ private[metrics] class DefaultRate private[metrics](val address: MetricAddress, 
   private val minInterval = if (intervals.size > 0) intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
-    maps.foreach{ case (_, map) => map.increment(tags) }
+    maps.foreach{ case (_, map) => map.increment(tags, amount) }
   }
 
   def tick(interval: FiniteDuration): MetricMap  = {
