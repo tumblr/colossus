@@ -52,7 +52,7 @@ private[metrics] class DefaultRate private[metrics](val address: MetricAddress, 
   //note - the totals are shared amongst all intervals, and we use the smallest
   //interval to update them
   private val totals = new CollectionMap[TagMap]
-  private val minInterval: FiniteDuration = intervals.min
+  private val minInterval = if (intervals.size > 0) intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
     maps.foreach{ case (_, map) => map.increment(tags) }
@@ -73,10 +73,10 @@ private[metrics] class DefaultRate private[metrics](val address: MetricAddress, 
   }
 
   def count(tags: TagMap = TagMap.Empty): Long = {
-    //we add the value of the minInterval since totals are based off the last
-    //snapshot of the min interval, so we have to add the hits since the last
-    //snapshot
-    totals.get(tags).getOrElse(0L) + maps(minInterval).get(tags).getOrElse(0L)
+    minInterval match {
+      case f: FiniteDuration => totals.get(tags).getOrElse(0L) + maps(f).get(tags).getOrElse(0L)
+      case _ => 0L
+    }
   }
 
 }
