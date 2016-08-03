@@ -78,11 +78,10 @@ object ServerSettings {
 
     val bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
     val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
-    val maxConnections = config.getInt("max-connections")
 
     ServerSettings (
       port                    = config.getInt("port"),
-      maxConnections          = maxConnections,
+      maxConnections          = config.getInt("max-connections"),
       slowStart               = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
       maxIdleTime             = config.getScalaDuration("max-idle-time"),
       lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
