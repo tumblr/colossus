@@ -134,6 +134,13 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
   def unbind(workerItem: WorkerItem) {
     unbind(workerItem.id)
   }
+
+  def idleCheck(period: FiniteDuration) {
+    workerItems.foreach{
+      case (id, i: IdleCheck) => i.idleCheck(period)
+      case _ => {}
+    }
+  }
 }
 
 
@@ -193,13 +200,15 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     case c: IOCommand => handleIOCommand(c)
     case c: WorkerCommand => handleWorkerCommand(c)
     case CheckIdleConnections => {
+      workerItems.idleCheck(WorkerManager.IdleCheckFrequency)
       val time = System.currentTimeMillis
       val timedOut = connections.filter{case (_, con) =>
-        con.handler.idleCheck(WorkerManager.IdleCheckFrequency)
-        con.isTimedOut(time)
-      }.toList
-      timedOut.foreach{case (_, con) =>
-        unregisterConnection(con, DisconnectCause.TimedOut)
+        if (con.isTimedOut(time)) {
+          unregisterConnection(con, DisconnectCause.TimedOut)
+          true
+        } else {
+          false
+        }
       }
       if (timedOut.size > 0) {
         log.debug(s"Terminated ${timedOut.size} idle connections")
