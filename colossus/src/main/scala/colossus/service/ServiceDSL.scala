@@ -333,7 +333,10 @@ abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit 
 
 }
 
-class LiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends Sender[C,M] {
+trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
+
+  def client: Sender[C,M]
+  implicit val async: Async[M]
 
   def send(input: C#Input): M[C#Output] = client.send(input)
 
@@ -342,4 +345,9 @@ class LiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val a
   def disconnect() {
     client.disconnect()
   }
+
+}
+
+class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends LiftedClient[C,M] {
+
 }

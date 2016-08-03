@@ -40,6 +40,20 @@ trait Histogram extends Collector{
     * @param tags The TagMap used to record this value
     */
   def add(value: Int, tags: TagMap = TagMap.Empty)
+
+  /**
+   * get the current percentile for a collection interval.
+   *
+   * @param collectionInterval The collection interval to get the percentile for.
+   * @param percent The pecentile to get
+   * @param tags The tags to get the percentile for
+   */
+  def percentile(collectionInterval: FiniteDuration, percent: Double, tags: TagMap = TagMap.Empty): Int
+
+  /**
+   * Get the total number hits for a set of tags in a collection interval
+   */
+  def count(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Int
 }
 
 private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
@@ -151,47 +165,6 @@ object Histogram {
   }
 }
 
-private[metrics] case class BucketValue(value: Int, count: Int)
-private[metrics] case class Snapshot(min: Int, max: Int, mean: Int, count: Int, bucketValues: Vector[BucketValue]) {
-
-  def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
-    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
-      case None => build
-      case Some(perc) => {
-        if (perc <= 0.0 || count == 0 || bucketValues.size == 0) {
-          p(num, index, build :+ 0, remain.tail)
-        } else if (perc >= 1.0) {
-          p(num, index, build :+ max, remain.tail)
-      } else {
-          val bound = count * perc
-          if (index < bucketValues.size - 1 && num < count * perc) {
-            p(num + bucketValues(index).count, index + 1, build, remain)
-          } else {
-            p(num, index, build :+ bucketValues(index).value, remain.tail)
-          }
-        }
-      }
-    }
-    val sorted = percs.sortWith{_ < _}
-    sorted.zip(p(0, 0, Seq(), sorted)).toMap
-  }
-
-  def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)
-
-  def metrics(address: MetricAddress, tags: TagMap, percs: Seq[Double]): MetricMap = {
-    val others = Map(("min" -> min), ("max" -> max), ("mean" -> mean)).map {
-      case (label, value) =>
-        (tags + ("label" -> label) -> value.toLong)
-    }
-
-    Map (
-      (address / "count") -> Map(tags -> count),
-      address -> (percentiles(percs).map {case (p, v) => tags + ("label" -> p.toString) -> v.toLong } ++ others)
-    )
-  }
-
-}
-
 /**
  * This is the actual histogram data structure.  It knows nothing of tags or metrics
  */
@@ -212,6 +185,12 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   def max = mMax.get
   def count = mCount.get
   def buckets = mBuckets
+
+
+  def mean = {
+    val scount = count
+    if (scount > 0) mTotal.get / scount else 0L
+  }
 
   def bucketFor(value: Int) = {
     def s(index: Int, n: Int): Int = if (ranges(index) > value) {
@@ -246,32 +225,54 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
     mTotal.getAndAdd(value)
   }
 
+  def tick() {
+    mMax.set(0)
+    mCount.set(0)
+    mMin.set(0)
+    mMax.set(0)
+    mTotal.set(0)
+    mBuckets.foreach{_.set(0)}
+  }
 
-  def snapshot = {
-
-    val smax = mMax.getAndSet(0)
-    val scount = mCount.getAndSet(0)
-    val smin = if (scount > 0) mMin.getAndSet(infinity) else 0L
-    val mean = if (scount > 0) mTotal.getAndSet(0)/scount else 0L
-    var values = Vector[BucketValue]()
-    var index = 0
-    while (index < mBuckets.size) {
-      val v = mBuckets(index).getAndSet(0)
-      if (v > 0) {
-        //since our bucket ranges are lower bounds, we assume that the average
-        //value in each bucket is the mean between the range of this bucket and
-        //the range of the next bucket
-        // 
-        // for example, if we have a two buckets with range values of 10 and 20,
-        // and we add the values 14, 15, 16, they all get added to the 10
-        // bucket, so we take 15 as our average value (this assumes uniform
-        // distribution within a bucket, which might be wrong)
-        val weightedValue = if (index < mBuckets.size - 1) (ranges(index) + ranges(index + 1)) / 2 else infinity
-        values = values :+ BucketValue(value = weightedValue, count = v.toInt)
+  def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
+    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
+      case None => build
+      case Some(perc) => {
+        if (perc <= 0.0 || count == 0 || ranges.size == 0) {
+          p(num, index, build :+ 0, remain.tail)
+        } else if (perc >= 1.0) {
+          p(num, index, build :+ max.toInt, remain.tail)
+        } else {
+          val bound = count * perc
+          if (index < ranges.size - 1 && num < bound) {
+            p(num + mBuckets(index).get.toInt, index + 1, build, remain)
+          } else {
+            val weightedValue = if (index < ranges.size - 1) {
+              (ranges(index) + ranges(index + 1)) / 2
+            } else {
+              infinity
+            }
+            p(num, index, build :+ weightedValue, remain.tail)
+          }
+        }
       }
-      index += 1
     }
-    Snapshot(smin.toInt, smax.toInt, mean.toInt, scount.toInt, values)
+    val sorted = percs.sortWith{_ < _}
+    sorted.zip(p(0, 0, Seq(), sorted)).toMap
+  }
+
+  def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)
+
+  def metrics(address: MetricAddress, tags: TagMap, percs: Seq[Double]): MetricMap = {
+    val others = Map(("min" -> min), ("max" -> max), ("mean" -> mean)).map {
+      case (label, value) =>
+        (tags + ("label" -> label) -> value.toLong)
+    }
+
+    Map (
+      (address / "count") -> Map(tags -> count),
+      address -> (percentiles(percs).map {case (p, v) => tags + ("label" -> p.toString) -> v.toLong } ++ others)
+    )
   }
 
 }
@@ -305,20 +306,33 @@ class DefaultHistogram private[metrics](
     }
   }
 
+  private def withHist[T](collectionInterval: FiniteDuration, tags: TagMap)(op: BaseHistogram => T): Option[T] = {
+    Option(tagHists(collectionInterval).get(tags)).map(op)
+  }
+    
+
+  def percentile(collectionInterval: FiniteDuration, percent: Double, tags: TagMap = TagMap.Empty): Int = {
+    withHist(collectionInterval, tags)(_.percentile(percent)).getOrElse(0)
+  }
+
+  def count(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Int = {
+    withHist(collectionInterval, tags)(_.count.toInt).getOrElse(0)
+  }
+
   def tick(interval: FiniteDuration): MetricMap = {
     val taghist = tagHists(interval)
     val keys = taghist.keys
     val build = scala.collection.mutable.Map[MetricAddress, ValueMap]()
     while (keys.hasMoreElements) {
       val key = keys.nextElement
-      val snap = taghist.get(key).snapshot
-      if (snap.count == 0 && pruneEmpty) {
+      val hist = taghist.get(key)
+      if (hist.count == 0 && pruneEmpty) {
         //there is obviously a race condition here where another thead could be
         //simultaneously hitting this histogram, but basically all that happens
         //is one value is lost
         taghist.remove(key)
       } else {
-        val keymap = snap.metrics(address, key, percentiles)
+        val keymap = hist.metrics(address, key, percentiles)
         keymap.foreach{ case (addr, values) =>
           if (build contains addr) {
             build(addr) = build(addr) ++ values
@@ -327,6 +341,7 @@ class DefaultHistogram private[metrics](
           }
         }
       }
+      hist.tick()
     }
     build.toMap
   }
@@ -341,4 +356,12 @@ class NopHistogram private[metrics](val address: MetricAddress,
   override def tick(interval: FiniteDuration): MetricMap = empty
 
   override def add(value: Int, tags: TagMap): Unit = {}
+
+  def percentile(collectionInterval: FiniteDuration, percent: Double, tags: TagMap = TagMap.Empty): Int = {
+    0
+  }
+
+  def count(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Int = {
+    0
+  }
 }

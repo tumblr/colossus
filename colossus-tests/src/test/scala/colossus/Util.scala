@@ -69,7 +69,7 @@ object RawProtocol {
 
   implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
     
-    def lift[M[_]](client: Sender[Raw,M])(implicit async: Async[M]) = new LiftedClient(client) with RawClient[M]
+    def lift[M[_]](client: Sender[Raw,M])(implicit async: Async[M]) = new BasicLiftedClient(client) with RawClient[M]
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
