@@ -229,7 +229,7 @@ class ServerSpec extends ColossusSpec {
       "reject connection when maxed out" in {
         val settings = ServerSettings(
           port = TEST_PORT,
-          connectionLimiter = ConnectionLimiter.noLimiting(1)
+          maxConnections = 1
         )
         withIOSystem {implicit io =>
           val server = Server.basic("echo", settings)(new EchoHandler(_))
@@ -245,7 +245,7 @@ class ServerSpec extends ColossusSpec {
       "open up spot when connection closes" in {
         val settings = ServerSettings(
           port = TEST_PORT,
-          connectionLimiter = ConnectionLimiter.noLimiting(1)
+          maxConnections = 1
         )
 
         withIOSystem {implicit io =>
@@ -300,7 +300,7 @@ class ServerSpec extends ColossusSpec {
         withIOSystem { implicit io =>
           val settings = ServerSettings(
             port = TEST_PORT,
-            connectionLimiter = ConnectionLimiter.noLimiting(4),
+            maxConnections = 4,
             lowWatermarkPercentage = 0.00,
             highWatermarkPercentage = 0.50,
             highWaterMaxIdleTime = 50.milliseconds,

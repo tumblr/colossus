@@ -16,60 +16,6 @@ import java.net.ServerSocket
 
 import scala.collection.JavaConversions._
 
-/**
- * Used to control slow start of servers, this will exponentially increase its
- * limit over a period of time until max is reached.  Servers use this to gradually increase the
- * number of allowable open connections during the first few seconds of startup,
- * which can help alleviate thundering herd problems due to JVM warmup.
- *
- * Initializing a limiter with `initial` equal to `max` will essentially disable any slow ramp
- */
-class ConnectionLimiter(val initial: Int, val max: Int, val rampSpeed: FiniteDuration) {
-
-  private var currentLimit = initial
-  private var startTime = 0L
-  private var complete: Boolean = initial == max
-
-  private var lastCheck: Long = 0
-
-  private val numIncrements: Int = math.max(1, ((math.log(max - initial) / math.log(2)) + 0.5).toInt)
-  private val checkFreq = (rampSpeed / numIncrements).toMillis
-
-  def currentTime: Long = System.currentTimeMillis
-
-  def begin() {
-    startTime = currentTime
-  }
-
-  def limit = if (complete) {
-    max
-  } else {
-    currentLimit = math.min(max, math.pow(2, (currentTime - startTime) / checkFreq + 1).toInt)
-    if (currentLimit == max) {
-      complete = true
-    }
-    currentLimit
-  }
-}
-
-object ConnectionLimiter {
-  def fromConfig(config: Config): ConnectionLimiter = {
-    import colossus.metrics.ConfigHelpers._
-    val maxConnections = config.getInt("max-connections")
-    if (config.getBoolean("slow-start.enabled")) {
-      val initial = config.getInt("slow-start.initial")
-      val duration   = config.getFiniteDuration("slow-start.duration")
-      new ConnectionLimiter(initial, maxConnections, duration)
-    } else {
-      noLimiting(maxConnections)
-    }
-  }
-
-  def noLimiting(max: Int) = new ConnectionLimiter(max, max, 1.second)
-}
-    
-    
-
 /** Contains values for configuring how a Server operates
  *
  * These are all lower-level configuration settings that are for the most part
@@ -109,7 +55,8 @@ object ConnectionLimiter {
  */
 case class ServerSettings(
   port: Int,
-  connectionLimiter: ConnectionLimiter = ConnectionLimiter.noLimiting(1000),
+  slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
+  maxConnections: Int = 1000,
   maxIdleTime: Duration = Duration.Inf,
   lowWatermarkPercentage: Double = 0.75,
   highWatermarkPercentage: Double = 0.85,
@@ -119,8 +66,8 @@ case class ServerSettings(
   delegatorCreationPolicy : WaitPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant)),
   shutdownTimeout: FiniteDuration = 100.milliseconds
 ) {
-  def lowWatermark = lowWatermarkPercentage * connectionLimiter.max
-  def highWatermark = highWatermarkPercentage * connectionLimiter.max
+  def lowWatermark = lowWatermarkPercentage * maxConnections
+  def highWatermark = highWatermarkPercentage * maxConnections
 }
 
 object ServerSettings {
@@ -131,11 +78,12 @@ object ServerSettings {
 
     val bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
     val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
-    val connectionLimiter = ConnectionLimiter.fromConfig(config)
+    val maxConnections = config.getInt("max-connections")
 
     ServerSettings (
       port                    = config.getInt("port"),
-      connectionLimiter       = connectionLimiter,
+      maxConnections          = maxConnections,
+      slowStart               = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
       maxIdleTime             = config.getScalaDuration("max-idle-time"),
       lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
       highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
@@ -281,6 +229,8 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
   val me = ServerRef(serverConfig, self, io, stateAgent)
 
+  val connectionLimiter = ConnectionLimiter(settings.maxConnections, settings.slowStart)
+
   //initialize metrics
   implicit val ns = me.namespace
   val connections   = Counter("connections", "server-connections")
@@ -346,7 +296,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
-        settings.connectionLimiter.begin()
+        connectionLimiter.begin()
         self ! Select
       } else {
         val incident = incidentOpt.getOrElse(settings.bindingRetry.start())
@@ -439,7 +389,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
           val ssc : ServerSocketChannel = key.channel.asInstanceOf[ServerSocketChannel] //oh, java
           val sc: SocketChannel = ssc.accept()
           connects.hit()
-          if (openConnections < settings.connectionLimiter.limit) {
+          if (openConnections < connectionLimiter.limit) {
             openConnections += 1
             connections.increment()
             sc.configureBlocking(false)
