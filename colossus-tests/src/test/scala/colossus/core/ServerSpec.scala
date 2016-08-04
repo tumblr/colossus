@@ -53,8 +53,7 @@ class ServerSpec extends ColossusSpec {
 
     "expose ConnectionSummary data" in {
       val settings = ServerSettings(
-        port = TEST_PORT,
-        maxConnections = 5000
+        port = TEST_PORT
       )
 
       withServer(new EchoHandler(_)) {server => {
@@ -374,5 +373,6 @@ class ServerSpec extends ColossusSpec {
       }
     }
   }
+
 
 }
