@@ -2,19 +2,20 @@ package colossus
 package core
 
 import akka.actor._
-import java.net.InetSocketAddress
-
 import akka.agent.Agent
+import akka.pattern.ask
+import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
-
-import scala.concurrent.duration._
-
-import metrics._
-
+import java.net.{InetSocketAddress, ServerSocket}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
-import java.net.ServerSocket
-
+import metrics._
 import scala.collection.JavaConversions._
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
+
+
+
 
 /** Contains values for configuring how a Server operates
  *
@@ -145,6 +146,11 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
     } else {
       config.settings.maxIdleTime
     }
+  }
+
+  def info(): Future[Server.ServerInfo] = {
+    implicit val timeout = Timeout(1.second)
+    (server ? Server.GetInfo).mapTo[Server.ServerInfo]
   }
 
   /**
