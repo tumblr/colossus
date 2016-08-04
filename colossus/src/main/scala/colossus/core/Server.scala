@@ -55,6 +55,7 @@ import scala.collection.JavaConversions._
  */
 case class ServerSettings(
   port: Int,
+  slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
   maxConnections: Int = 1000,
   maxIdleTime: Duration = Duration.Inf,
   lowWatermarkPercentage: Double = 0.75,
@@ -81,6 +82,7 @@ object ServerSettings {
     ServerSettings (
       port                    = config.getInt("port"),
       maxConnections          = config.getInt("max-connections"),
+      slowStart               = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
       maxIdleTime             = config.getScalaDuration("max-idle-time"),
       lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
       highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
@@ -226,6 +228,8 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
   val me = ServerRef(serverConfig, self, io, stateAgent)
 
+  val connectionLimiter = ConnectionLimiter(settings.maxConnections, settings.slowStart)
+
   //initialize metrics
   implicit val ns = me.namespace
   val connections   = Counter("connections", "server-connections")
@@ -291,6 +295,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
+        connectionLimiter.begin()
         self ! Select
       } else {
         val incident = incidentOpt.getOrElse(settings.bindingRetry.start())
@@ -383,7 +388,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
           val ssc : ServerSocketChannel = key.channel.asInstanceOf[ServerSocketChannel] //oh, java
           val sc: SocketChannel = ssc.accept()
           connects.hit()
-          if (openConnections < settings.maxConnections) {
+          if (openConnections < connectionLimiter.limit) {
             openConnections += 1
             connections.increment()
             sc.configureBlocking(false)

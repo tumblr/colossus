@@ -24,6 +24,7 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
+        settings.slowStart.initial mustBe 20
         settings.maxIdleTime mustBe Duration.Inf
         settings.port mustBe 9876
         settings.shutdownTimeout mustBe 100.milliseconds
@@ -55,6 +56,7 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
+        settings.slowStart.initial mustBe 20
         settings.maxIdleTime mustBe 1.second
         settings.port mustBe 9888
         settings.shutdownTimeout mustBe 2.seconds
@@ -73,6 +75,7 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
         settings.highWatermarkPercentage mustBe 0.85
         settings.lowWatermarkPercentage mustBe 0.75
         settings.maxConnections mustBe 1000
+        settings.slowStart.initial mustBe 20
         settings.maxIdleTime mustBe Duration.Inf
         settings.port mustBe 8989
         settings.shutdownTimeout mustBe 100.milliseconds
