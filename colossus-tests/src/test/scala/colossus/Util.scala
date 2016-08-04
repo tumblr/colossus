@@ -119,7 +119,7 @@ object TestUtil {
   def expectServerConnections(server: ServerRef, connections: Int, maxTries: Int = 10) {
     var tries = maxTries
     implicit val timeout = Timeout(100.milliseconds)
-    while (Await.result((server.server ? Server.GetInfo), 100.milliseconds) != Server.ServerInfo(connections, ServerStatus.Bound)) {
+    while (Await.result(server.info(), 100.milliseconds) != Server.ServerInfo(connections, ServerStatus.Bound)) {
       Thread.sleep(100)
       tries -= 1
       if (tries == 0) {

@@ -2,19 +2,20 @@ package colossus
 package core
 
 import akka.actor._
-import java.net.InetSocketAddress
-
 import akka.agent.Agent
+import akka.pattern.ask
+import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
-
-import scala.concurrent.duration._
-
-import metrics._
-
+import java.net.{InetSocketAddress, ServerSocket}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
-import java.net.ServerSocket
-
+import metrics._
 import scala.collection.JavaConversions._
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
+
+
+
 
 /** Contains values for configuring how a Server operates
  *
@@ -125,8 +126,9 @@ case class ServerConfig(
 )
 
 /**
- * A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
- * an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+ * A `ServerRef` is a handle to a created server.  It can be used to get basic
+ * information about the state of the server as well as send operational
+ * commands to it.
  *
  * @param config The ServerConfig used to create this Server
  * @param server The ActorRef of the Server
@@ -148,8 +150,14 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
     }
   }
 
+  def info(): Future[Server.ServerInfo] = {
+    implicit val timeout = Timeout(1.second)
+    (server ? Server.GetInfo).mapTo[Server.ServerInfo]
+  }
+
   /**
-   * Post a message to a [[Server]]'s [[Delegator]]
+   * Broadcast a message to a all of the [[Delegator]]s of this server.
+   *
    * @param message
    * @param sender
    * @return
@@ -453,11 +461,13 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
 /**
  * Represents the startup status of the server.
- * - `Initializing` : The server was just started and is registering with the IOSystem
- * - `Binding` : The server is registered and in the process of binding to its port
- * - `Bound` : The server is actively listening on the port and accepting connections
- * - `ShuttingDown` : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
- * - `Dead` : The server is fully shutdown
+ *  
+ *  - `Initializing` : The server was just started and is registering with the IOSystem
+ *  - `Binding` : The server is registered and in the process of binding to its port
+ *  - `Bound` : The server is actively listening on the port and accepting connections
+ *  - `ShuttingDown` : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
+ *  - `Dead` : The server is fully shutdown
+ *
  */
 sealed trait ServerStatus
 object ServerStatus {
@@ -469,24 +479,15 @@ object ServerStatus {
 }
 
 /**
- * Servers can be thought of as applications, as they provide Delegators and
- * ConnectionHandlers which contain application logic.  Servers are the objects
- * that are directly interface with the Workers and provide them with the
- * Delegators and Handlers.  A Server will be "registered" with the Workers,
- * and after a successful registration, it will then bind to the specified
- * ports and be ready to accept incoming requests.
- *
- * Also this includes all of the messages that Server will respond to.  Some of
- * these can cause actions, others are for when some internal event happens and
- * the Server is notified.
+ * The entry point for starting a Server
  *
  */
 object Server extends ServerDSL {
 
-  val MaxConnectionRegisterAttempts = 3
+  private[core] val MaxConnectionRegisterAttempts = 3
   class MaxConnectionRegisterException extends Exception("Maximum number of connection register attempts reached")
 
-  def shutdownCheckFrequency = 50.milliseconds
+  private[core] def shutdownCheckFrequency = 50.milliseconds
 
   private[core] case object Select
   private[core] case object ShutdownCheck
@@ -498,12 +499,12 @@ object Server extends ServerDSL {
    * 
    * This generally happens when a worker has just been killed and restarted.  See Server.MaxConnectionRegisterAttempts
    */
-  case class ConnectionRefused(channel: SocketChannel, attempt: Int)
+  private[core] case class ConnectionRefused(channel: SocketChannel, attempt: Int)
 
-  sealed trait ServerCommand
-  case object Shutdown extends ServerCommand
-  case class DelegatorBroadcast(message: Any) extends ServerCommand
-  case object GetInfo extends ServerCommand
+  private[core] sealed trait ServerCommand
+  private[core] case object Shutdown extends ServerCommand
+  private[core] case class DelegatorBroadcast(message: Any) extends ServerCommand
+  private[core] case object GetInfo extends ServerCommand
 
   case class ServerInfo(openConnections: Int, status: ServerStatus)
 
