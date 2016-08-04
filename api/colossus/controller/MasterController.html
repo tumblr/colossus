@@ -45,7 +45,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">MasterController</span><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+        <span class="name">MasterController</span><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a> with <a href="../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a></span>
       </span>
       </h4>
       
@@ -54,10 +54,10 @@ ultimately implemented by Controller.  This merely contains methods needed
 by both input and output controller
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a>, <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$AsyncHandler.html" class="extype" name="colossus.service.AsyncHandlerGenerator.AsyncHandler">AsyncHandler</a>, <a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/websocket/BaseWebsocketHandler.html" class="extype" name="colossus.protocols.websocket.BaseWebsocketHandler">BaseWebsocketHandler</a>, <a href="Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a>, <a href="../protocols/websocket/WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a></div>
+            <div class="subClasses hiddenContent"><a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/websocket/BaseWebsocketHandler.html" class="extype" name="colossus.protocols.websocket.BaseWebsocketHandler">BaseWebsocketHandler</a>, <a href="Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a>, <a href="../protocols/websocket/WebsocketHttpHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHttpHandler">WebsocketHttpHandler</a>, <a href="../protocols/websocket/WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a></div>
           </div></div>
         
 
@@ -75,7 +75,7 @@ by both input and output controller
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.IdleCheck"><span>IdleCheck</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -219,19 +219,19 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
       </a>
     </span>
       
-    </li><li name="colossus.core.ConnectionHandler#idleCheck" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="idleCheck(period:scala.concurrent.duration.Duration):Unit"></a>
-      <a id="idleCheck(Duration):Unit"></a>
+    </li><li name="colossus.core.IdleCheck#idleCheck" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit"></a>
+      <a id="idleCheck(FiniteDuration):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.MasterController@idleCheck(period:scala.concurrent.duration.Duration):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.MasterController@idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -239,7 +239,9 @@ to a remote system).</p></div><dl class="paramcmts block"><dt class="param">endp
 for checking if an ongoing operation has timed out.</p><div class="fullcomment"><div class="comment cmt"><p>Called periodically on every attached connection handler, this can be used
 for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
 which is only based on the last time there was any I/O.
-</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this
+is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become
+application dependent in the future.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a></dd></dl></div>
     </li><li name="colossus.controller.MasterController#namespace" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="namespace:colossus.metrics.MetricNamespace"></a>
       <a id="namespace:MetricNamespace"></a>
@@ -310,27 +312,6 @@ which is only based on the last time there was any I/O.
       <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
 WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.core.ConnectionHandler#shutdownRequest" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="shutdownRequest():Unit"></a>
-      <a id="shutdownRequest():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.MasterController@shutdownRequest():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">the connection handler should begin its graceful shutdown procedure.</p><div class="fullcomment"><div class="comment cmt"><p>the connection handler should begin its graceful shutdown procedure.  For
-both servers and clients this can be triggered either by a call to
-gracefulDisconnect or to become.  For ServerConnectionHandlers this can
-also occur when the Server begins shutting down.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -691,6 +672,28 @@ also occur when the Server begins shutting down.
       <p class="shortcomment cmt">Called when the item has been unbound from a worker
 </p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
 </p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#shutdownRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.MasterController@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Request has been made to shutdown this WorkerItem.</p><div class="fullcomment"><div class="comment cmt"><p>A Request has been made to shutdown this WorkerItem.  By default this will
+simply unbind the item from its Worker, but this can be overriden to add in
+custom shutdown behaviors.  Be aware that in some cases this method may not
+be called and the item will be unbound, such as when an IOSystem is
+shutting down.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -820,7 +823,9 @@ also occur when the Server begins shutting down.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.core.ConnectionHandler">
+        <div class="parent" name="colossus.core.IdleCheck">
+              <h3>Inherited from <a href="../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a></h3>
+            </div><div class="parent" name="colossus.core.ConnectionHandler">
               <h3>Inherited from <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></h3>
             </div><div class="parent" name="colossus.core.WorkerItem">
               <h3>Inherited from <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>

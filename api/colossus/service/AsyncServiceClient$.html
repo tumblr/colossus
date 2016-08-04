@@ -28,12 +28,10 @@
         </head>
         <body class="value">
       <div id="definition">
-        <a href="AsyncServiceClient.html" title="See companion trait"><img alt="Object/Trait" src="../../lib/object_to_trait_big.png" /></a>
+        <img alt="Object" src="../../lib/object_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1><a href="AsyncServiceClient.html" title="See companion trait">AsyncServiceClient</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="AsyncServiceClient.html" title="See companion trait">trait AsyncServiceClient</a>
-            | <a href="package.html" class="extype" name="colossus.service">package service</a>
+        <h1>AsyncServiceClient</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.service">package service</a>
           </div></span></h3><span class="permalink">
       <a href="../../index.html#colossus.service.AsyncServiceClient$" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
@@ -47,13 +45,16 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">AsyncServiceClient</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.8.1) Use FutureClient Instead">AsyncServiceClient</span><span class="result"> extends <a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.8.1)</i> Use FutureClient Instead</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -71,7 +72,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.AsyncServiceClient"><span>AsyncServiceClient</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.service.AsyncServiceClient"><span>AsyncServiceClient</span></li><li class="in" name="colossus.service.FutureClientOps"><span>FutureClientOps</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -92,7 +93,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="colossus.service.AsyncServiceClient.ClientCommand" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="colossus.service.FutureClientOps.ClientCommand" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ClientCommandextendsAnyRef"></a>
       <a id="ClientCommand:ClientCommand"></a>
       <h4 class="signature">
@@ -101,16 +102,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="AsyncServiceClient$$ClientCommand.html"><span class="name">ClientCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="FutureClientOps$ClientCommand.html"><span class="name">ClientCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncServiceClient$@ClientCommandextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.FutureClientOps@ClientCommandextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="colossus.service.AsyncServiceClient.GetConnectionStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GetConnectionStatusextendsAsyncServiceClient.ClientCommandwithProductwithSerializable"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></dd></dl></div>
+    </li><li name="colossus.service.FutureClientOps.GetConnectionStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="GetConnectionStatusextendsFutureClientOps.this.ClientCommandwithProductwithSerializable"></a>
       <a id="GetConnectionStatus:GetConnectionStatus"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -118,14 +119,14 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="AsyncServiceClient$$GetConnectionStatus.html"><span class="name">GetConnectionStatus</span></a><span class="params">(<span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<a href="../core/ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a>] = <span class="symbol">Promise()</span></span>)</span><span class="result"> extends <a href="AsyncServiceClient$$ClientCommand.html" class="extype" name="colossus.service.AsyncServiceClient.ClientCommand">ClientCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="FutureClientOps$GetConnectionStatus.html"><span class="name">GetConnectionStatus</span></a><span class="params">(<span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<a href="../core/ConnectionStatus.html" class="extype" name="colossus.core.ConnectionStatus">ConnectionStatus</a>] = <span class="symbol">Promise()</span></span>)</span><span class="result"> extends <a href="FutureClientOps$ClientCommand.html" class="extype" name="colossus.service.FutureClientOps.ClientCommand">ClientCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncServiceClient$@GetConnectionStatusextendsAsyncServiceClient.ClientCommandwithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.FutureClientOps@GetConnectionStatusextendsFutureClientOps.this.ClientCommandwithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -184,24 +185,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.service.AsyncServiceClient.Disconnect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Disconnect"></a>
-      <a id="Disconnect:Disconnect"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="AsyncServiceClient$$Disconnect$.html"><span class="name">Disconnect</span></a><span class="result"> extends <a href="AsyncServiceClient$$ClientCommand.html" class="extype" name="colossus.service.AsyncServiceClient.ClientCommand">ClientCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncServiceClient$@Disconnect" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.AsyncServiceClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.FutureClientOps#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,scala.concurrent.Future,colossus.service.FutureClient[C],colossus.IOSystem]"></a>
       <a id="apply[C&lt;:Protocol]:ClientFactory[C,Future,FutureClient[C],IOSystem]"></a>
       <h4 class="signature">
@@ -210,14 +194,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result">: <a href="ClientFactory.html" class="extype" name="colossus.service.ClientFactory">ClientFactory</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>, <span class="extype" name="scala.concurrent.Future">Future</span>, <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.AsyncServiceClient.apply.C">C</span>], <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result">: <a href="ClientFactory.html" class="extype" name="colossus.service.ClientFactory">ClientFactory</a>[<span class="extype" name="colossus.service.FutureClientOps.apply.C">C</span>, <span class="extype" name="scala.concurrent.Future">Future</span>, <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.FutureClientOps.apply.C">C</span>], <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.service.AsyncServiceClient$@apply[C&lt;:colossus.service.Protocol]:colossus.service.ClientFactory[C,scala.concurrent.Future,colossus.service.FutureClient[C],colossus.IOSystem]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -258,23 +242,23 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.service.AsyncServiceClient#create" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]"></a>
-      <a id="create[C&lt;:Protocol](ClientConfig)(IOSystem,ClientCodecProvider[C]):AsyncServiceClient[AsyncServiceClient.create.C.Input,AsyncServiceClient.create.C.Output]withFutureClient[C]"></a>
+    </li><li name="colossus.service.FutureClientOps#create" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.FutureClient[C]"></a>
+      <a id="create[C&lt;:Protocol](ClientConfig)(IOSystem,ClientCodecProvider[C]):FutureClient[C]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">create</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.AsyncServiceClient.create.C">C</span>]</span>)</span><span class="result">: <a href="AsyncServiceClient.html" class="extype" name="colossus.service.AsyncServiceClient">AsyncServiceClient</a>[<span class="extype" name="colossus.service.Protocol.Input">AsyncServiceClient.create.C.Input</span>, <span class="extype" name="colossus.service.Protocol.Output">AsyncServiceClient.create.C.Output</span>] with <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.AsyncServiceClient.create.C">C</span>]</span>
+        <span class="name">create</span><span class="tparams">[<span name="C">C &lt;: <a href="Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="params">(<span name="config">config: <a href="ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="io">io: <a href="../IOSystem.html" class="extype" name="colossus.IOSystem">IOSystem</a></span>, <span name="provider">provider: <a href="ClientCodecProvider.html" class="extype" name="colossus.service.ClientCodecProvider">ClientCodecProvider</a>[<span class="extype" name="colossus.service.FutureClientOps.create.C">C</span>]</span>)</span><span class="result">: <a href="FutureClient.html" class="extype" name="colossus.service.FutureClient">FutureClient</a>[<span class="extype" name="colossus.service.FutureClientOps.create.C">C</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.AsyncServiceClient$@create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.AsyncServiceClient[C#Input,C#Output]withcolossus.service.FutureClient[C]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.AsyncServiceClient$@create[C&lt;:colossus.service.Protocol](config:colossus.service.ClientConfig)(implicitio:colossus.IOSystem,implicitprovider:colossus.service.ClientCodecProvider[C]):colossus.service.FutureClient[C]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -546,7 +530,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="colossus.service.FutureClientOps">
+              <h3>Inherited from <a href="FutureClientOps.html" class="extype" name="colossus.service.FutureClientOps">FutureClientOps</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

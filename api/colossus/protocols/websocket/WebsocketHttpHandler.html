@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>HttpService - colossus.protocols.http.HttpService</title>
-          <meta name="description" content="HttpService - colossus.protocols.http.HttpService" />
-          <meta name="keywords" content="HttpService colossus.protocols.http.HttpService" />
+          <title>WebsocketHttpHandler - colossus.protocols.websocket.WebsocketHttpHandler</title>
+          <meta name="description" content="WebsocketHttpHandler - colossus.protocols.websocket.WebsocketHttpHandler" />
+          <meta name="keywords" content="WebsocketHttpHandler colossus.protocols.websocket.WebsocketHttpHandler" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'colossus.protocols.http.package$$HttpService';
+            var hash = 'colossus.protocols.websocket.WebsocketHttpHandler';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,11 +29,11 @@
         <body class="type">
       <div id="definition">
         <img alt="Class" src="../../../lib/class_big.png" />
-        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.http">http</a></p>
-        <h1>HttpService</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="colossus.protocols.http">package http</a>
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.websocket">websocket</a></p>
+        <h1>WebsocketHttpHandler</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.protocols.websocket">package websocket</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -41,21 +41,18 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
+        <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="result"> extends <a href="package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">WebsocketHttpHandler</span><span class="result"> extends <a href="../http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a>, <a href="../../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../websocket/WebsocketHttpHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHttpHandler">WebsocketHttpHandler</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><a href="../http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>], <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a>, <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>], <a href="../../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a>, <a href="../../core/CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a>, <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a>, <a href="../../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -72,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.protocols.http.HttpService"><span>HttpService</span></li><li class="in" name="colossus.protocols.http.BaseHttpServiceHandler"><span>BaseHttpServiceHandler</span></li><li class="in" name="colossus.service.Service"><span>Service</span></li><li class="in" name="colossus.service.ServiceServer"><span>ServiceServer</span></li><li class="in" name="colossus.core.ServerConnectionHandler"><span>ServerConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.IdleCheck"><span>IdleCheck</span></li><li class="in" name="colossus.core.CoreHandler"><span>CoreHandler</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.protocols.websocket.WebsocketHttpHandler"><span>WebsocketHttpHandler</span></li><li class="in" name="colossus.protocols.http.HttpService"><span>HttpService</span></li><li class="in" name="colossus.protocols.http.BaseHttpServiceHandler"><span>BaseHttpServiceHandler</span></li><li class="in" name="colossus.service.Service"><span>Service</span></li><li class="in" name="colossus.service.ServiceServer"><span>ServiceServer</span></li><li class="in" name="colossus.core.ServerConnectionHandler"><span>ServerConnectionHandler</span></li><li class="in" name="colossus.controller.Controller"><span>Controller</span></li><li class="in" name="colossus.controller.OutputController"><span>OutputController</span></li><li class="in" name="colossus.controller.InputController"><span>InputController</span></li><li class="in" name="colossus.controller.MasterController"><span>MasterController</span></li><li class="in" name="colossus.core.IdleCheck"><span>IdleCheck</span></li><li class="in" name="colossus.core.CoreHandler"><span>CoreHandler</span></li><li class="in" name="colossus.core.ConnectionHandler"><span>ConnectionHandler</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -91,36 +88,19 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="colossus.protocols.http.HttpService#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(context:colossus.core.ServerContext):colossus.protocols.http.package.HttpService"></a>
-      <a id="&lt;init&gt;:HttpService"></a>
+              <ol><li name="colossus.protocols.websocket.WebsocketHttpHandler#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(ctx:colossus.core.ServerContext,websocketInit:colossus.protocols.websocket.WebsocketInitializer,upgradePath:String):colossus.protocols.websocket.WebsocketHttpHandler"></a>
+      <a id="&lt;init&gt;:WebsocketHttpHandler"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="params">(<span name="context">context: <a href="../../core/ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a></span>)</span>
+        <span class="name">WebsocketHttpHandler</span><span class="params">(<span name="ctx">ctx: <a href="../../core/ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a></span>, <span name="websocketInit">websocketInit: <a href="WebsocketInitializer.html" class="extype" name="colossus.protocols.websocket.WebsocketInitializer">WebsocketInitializer</a></span>, <span name="upgradePath">upgradePath: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@&lt;init&gt;(context:colossus.core.ServerContext):colossus.protocols.http.package.HttpService" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.protocols.http.HttpService#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(config:colossus.service.ServiceConfig,context:colossus.core.ServerContext):colossus.protocols.http.package.HttpService"></a>
-      <a id="&lt;init&gt;:HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">HttpService</span><span class="params">(<span name="config">config: <a href="../../service/ServiceConfig.html" class="extype" name="colossus.service.ServiceConfig">ServiceConfig</a></span>, <span name="context">context: <a href="../../core/ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a></span>)</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@&lt;init&gt;(config:colossus.service.ServiceConfig,context:colossus.core.ServerContext):colossus.protocols.http.package.HttpService" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@&lt;init&gt;(ctx:colossus.core.ServerContext,websocketInit:colossus.protocols.websocket.WebsocketInitializer,upgradePath:String):colossus.protocols.websocket.WebsocketHttpHandler" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -130,30 +110,10 @@
 
         
 
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="colossus.service.Service#handle" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="handle:colossus.service.Protocol.PartialHandler[C]"></a>
-      <a id="handle:PartialHandler[Http]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">handle</span><span class="result">: <a href="../../service/Protocol$.html#PartialHandler[C&lt;:colossus.service.Protocol]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.Protocol.PartialHandler">PartialHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@handle:colossus.service.Protocol.PartialHandler[C]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a></dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -166,7 +126,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -183,7 +143,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@##():Int" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@##():Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -200,7 +160,7 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -217,7 +177,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -234,7 +194,7 @@
         <span class="name">become</span><span class="params">(<span name="nh">nh: () ⇒ <a href="../../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@become(nh:()=&gt;colossus.core.ConnectionHandler):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@become(nh:()=&gt;colossus.core.ConnectionHandler):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -253,7 +213,7 @@ only occurs when the shutdown process complete
         <span class="name">canPush</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@canPush:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@canPush:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -270,7 +230,7 @@ only occurs when the shutdown process complete
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@clone():Object" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@clone():Object" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -290,10 +250,10 @@ only occurs when the shutdown process complete
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">codec</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>, <a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>
+        <span class="name">codec</span><span class="result">: <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>, <a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@codec:colossus.service.Codec[Output,Input]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@codec:colossus.service.Codec[Output,Input]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -310,7 +270,7 @@ only occurs when the shutdown process complete
         <span class="name">connected</span><span class="params">(<span name="endpt">endpt: <a href="../../core/WriteEndpoint.html" class="extype" name="colossus.core.WriteEndpoint">WriteEndpoint</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connected(endpt:colossus.core.WriteEndpoint):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connected(endpt:colossus.core.WriteEndpoint):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -329,7 +289,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">connectionClosed</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connectionClosed(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connectionClosed(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -346,7 +306,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">connectionHandle</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../core/ConnectionHandle.html" class="extype" name="colossus.core.ConnectionHandle">ConnectionHandle</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connectionHandle:Option[colossus.core.ConnectionHandle]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connectionHandle:Option[colossus.core.ConnectionHandle]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -364,7 +324,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">connectionLost</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectError.html" class="extype" name="colossus.core.DisconnectError">DisconnectError</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connectionLost(cause:colossus.core.DisconnectError):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connectionLost(cause:colossus.core.DisconnectError):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -381,7 +341,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">connectionState</span><span class="result">: <a href="../../core/ConnectionState.html" class="extype" name="colossus.core.ConnectionState">ConnectionState</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connectionState:colossus.core.ConnectionState" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connectionState:colossus.core.ConnectionState" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -398,7 +358,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">connectionTerminated</span><span class="params">(<span name="cause">cause: <a href="../../core/DisconnectCause.html" class="extype" name="colossus.core.DisconnectCause">DisconnectCause</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@connectionTerminated(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@connectionTerminated(cause:colossus.core.DisconnectCause):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -415,7 +375,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">context</span><span class="result">: <a href="../../core/Context.html" class="extype" name="colossus.core.Context">Context</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@context:colossus.core.Context" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@context:colossus.core.Context" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -432,7 +392,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">controllerConfig</span><span class="result">: <a href="../../controller/ControllerConfig.html" class="extype" name="colossus.controller.ControllerConfig">ControllerConfig</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@controllerConfig:colossus.controller.ControllerConfig" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@controllerConfig:colossus.controller.ControllerConfig" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -449,7 +409,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">currentRequestBufferSize</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@currentRequestBufferSize:Int" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@currentRequestBufferSize:Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -466,7 +426,7 @@ to a remote system).</p></div><dl class="attributes block"> <dt>Definition Class
         <span class="name">disconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@disconnect():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@disconnect():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -487,7 +447,7 @@ service this will allow any requests being processed to complete.
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -504,7 +464,7 @@ service this will allow any requests being processed to complete.
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -521,7 +481,7 @@ service this will allow any requests being processed to complete.
         <span class="name">executor</span><span class="result">: <a href="../../service/CallbackExecutor.html" class="extype" name="colossus.service.CallbackExecutor">CallbackExecutor</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@executor:colossus.service.CallbackExecutor" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@executor:colossus.service.CallbackExecutor" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -538,7 +498,7 @@ service this will allow any requests being processed to complete.
         <span class="name">fatalInputError</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@fatalInputError(reason:Throwable):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@fatalInputError(reason:Throwable):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -555,7 +515,7 @@ service this will allow any requests being processed to complete.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@finalize():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -578,7 +538,7 @@ service this will allow any requests being processed to complete.
         <span class="name">forceDisconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@forceDisconnect():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@forceDisconnect():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -597,11 +557,28 @@ bypasses the shutdown process.
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.protocols.websocket.WebsocketHttpHandler#handle" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="handle:PartialFunction[colossus.protocols.http.Http#Input,colossus.service.Callback[colossus.protocols.http.Http#Output]]"></a>
+      <a id="handle:PartialFunction[Input,Callback[Output]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">handle</span><span class="result">: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@handle:PartialFunction[colossus.protocols.http.Http#Input,colossus.service.Callback[colossus.protocols.http.Http#Output]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.websocket.WebsocketHttpHandler">WebsocketHttpHandler</a> → <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
@@ -614,7 +591,7 @@ bypasses the shutdown process.
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@hashCode():Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -631,7 +608,7 @@ bypasses the shutdown process.
         <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@id:Long" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@id:Long" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -648,7 +625,7 @@ bypasses the shutdown process.
         <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -671,7 +648,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">inputSizeHistogram</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="colossus.metrics.Histogram">Histogram</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@inputSizeHistogram:Option[colossus.metrics.Histogram]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@inputSizeHistogram:Option[colossus.metrics.Histogram]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -688,7 +665,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">inputSizeTracker</span><span class="result">: <a href="../../parsing/ParserSizeTracker.html" class="extype" name="colossus.parsing.ParserSizeTracker">ParserSizeTracker</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@inputSizeTracker:colossus.parsing.ParserSizeTracker" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@inputSizeTracker:colossus.parsing.ParserSizeTracker" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -705,7 +682,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@isBound:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@isBound:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -722,7 +699,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">isConnected</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@isConnected:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@isConnected:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -739,7 +716,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -756,7 +733,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">log</span><span class="result">: <span class="extype" name="akka.event.LoggingAdapter">LoggingAdapter</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@log:akka.event.LoggingAdapter" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -770,10 +747,10 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">logError</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">logError</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@logError(error:colossus.service.ProcessingFailure[I]):Option[String]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@logError(error:colossus.service.ProcessingFailure[I]):Option[String]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -790,7 +767,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">name</span><span class="result">: <span class="extype" name="colossus.metrics.MetricAddress">MetricAddress</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@name:colossus.metrics.MetricAddress" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@name:colossus.metrics.MetricAddress" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -807,7 +784,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">namespace</span><span class="result">: <span class="extype" name="colossus.metrics.MetricNamespace">MetricNamespace</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@namespace:colossus.metrics.MetricNamespace" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@namespace:colossus.metrics.MetricNamespace" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -824,7 +801,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -841,7 +818,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@notify():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@notify():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -858,7 +835,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -875,7 +852,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@onBind():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@onBind():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -890,10 +867,10 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">onError</span><span class="result">: <a href="../../service/Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">onError</span><span class="result">: <a href="../../service/Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@onError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@onError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -910,7 +887,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@onUnbind():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@onUnbind():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -929,7 +906,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">pauseReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@pauseReads():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@pauseReads():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -946,7 +923,7 @@ application dependent in the future.</p></dd></dl><dl class="attributes block"> 
         <span class="name">pauseWrites</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@pauseWrites():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@pauseWrites():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -966,7 +943,7 @@ can still be pushed to the queue as long as it is not full
         <span class="name">pendingBufferSize</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@pendingBufferSize:Int" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@pendingBufferSize:Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -980,10 +957,10 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processBadRequest</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Some">Some</span>[<a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
+        <span class="name">processBadRequest</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Some">Some</span>[<a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@processBadRequest(reason:Throwable):Some[O]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@processBadRequest(reason:Throwable):Some[O]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -997,10 +974,10 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processFailure</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>)</span><span class="result">: <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>
+        <span class="name">processFailure</span><span class="params">(<span name="error">error: <a href="../../service/ProcessingFailure.html" class="extype" name="colossus.service.ProcessingFailure">ProcessingFailure</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]</span>)</span><span class="result">: <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@processFailure(error:colossus.service.ProcessingFailure[C#Input]):C#Output" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@processFailure(error:colossus.service.ProcessingFailure[C#Input]):C#Output" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1014,10 +991,10 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processMessage</span><span class="params">(<span name="request">request: <a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">processMessage</span><span class="params">(<span name="request">request: <a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@processMessage(request:I):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@processMessage(request:I):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1031,14 +1008,14 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processRequest</span><span class="params">(<span name="input">input: <a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a></span>)</span><span class="result">: <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
+        <span class="name">processRequest</span><span class="params">(<span name="input">input: <a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a></span>)</span><span class="result">: <a href="../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>[<a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@processRequest(input:D#Input):colossus.service.Callback[D#Output]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@processRequest(input:D#Input):colossus.service.Callback[D#Output]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a> → <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a> → <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a> → <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a> → <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a></dd></dl></div>
     </li><li name="colossus.controller.OutputController#purgePending" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="purgePending(reason:Throwable):Unit"></a>
       <a id="purgePending(Throwable):Unit"></a>
@@ -1051,7 +1028,7 @@ can still be pushed to the queue as long as it is not full
         <span class="name">purgePending</span><span class="params">(<span name="reason">reason: <span class="extype" name="scala.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@purgePending(reason:Throwable):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@purgePending(reason:Throwable):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1066,10 +1043,10 @@ can still be pushed to the queue as long as it is not full
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">push</span><span class="params">(<span name="item">item: <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">push</span><span class="params">(<span name="item">item: <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a></span>, <span name="createdMillis">createdMillis: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">System.currentTimeMillis</span></span>)</span><span class="params">(<span name="postWrite">postWrite: <a href="../../controller/QueuedItem$.html#PostWrite=colossus.controller.OutputResult=&gt;Unit" class="extmbr" name="colossus.controller.QueuedItem.PostWrite">PostWrite</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@push(item:Output,createdMillis:Long)(postWrite:colossus.controller.QueuedItem.PostWrite):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@push(item:Output,createdMillis:Long)(postWrite:colossus.controller.QueuedItem.PostWrite):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1091,7 +1068,7 @@ whether a message should be pushed based on connection state.
         <span class="name">readsEnabled</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@readsEnabled:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@readsEnabled:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1108,7 +1085,7 @@ whether a message should be pushed based on connection state.
         <span class="name">readyForData</span><span class="params">(<span name="buffer">buffer: <a href="../../core/DataOutBuffer.html" class="extype" name="colossus.core.DataOutBuffer">DataOutBuffer</a></span>)</span><span class="result">: <a href="../../core/MoreDataResult.html" class="extype" name="colossus.core.MoreDataResult">MoreDataResult</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@readyForData(buffer:colossus.core.DataOutBuffer):colossus.core.MoreDataResult" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@readyForData(buffer:colossus.core.DataOutBuffer):colossus.core.MoreDataResult" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1125,7 +1102,7 @@ whether a message should be pushed based on connection state.
         <span class="name">receive</span><span class="result">: <a href="../../service/Protocol$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.Protocol.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@receive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@receive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1142,7 +1119,7 @@ whether a message should be pushed based on connection state.
         <span class="name">receivedData</span><span class="params">(<span name="data">data: <a href="../../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@receivedData(data:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@receivedData(data:colossus.core.DataBuffer):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1159,7 +1136,7 @@ whether a message should be pushed based on connection state.
         <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1175,10 +1152,10 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">requestLogFormat</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]]</span>
+        <span class="name">requestLogFormat</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/RequestFormatter.html" class="extype" name="colossus.service.RequestFormatter">RequestFormatter</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@requestLogFormat:Option[colossus.service.RequestFormatter[I]]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@requestLogFormat:Option[colossus.service.RequestFormatter[I]]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1195,7 +1172,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="name">resumeReads</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@resumeReads():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@resumeReads():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1212,7 +1189,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="name">resumeWrites</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@resumeWrites():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@resumeWrites():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1231,7 +1208,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="name">sender</span><span class="params">()</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@sender():akka.actor.ActorRef" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@sender():akka.actor.ActorRef" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1248,7 +1225,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="name">shutdown</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@shutdown():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@shutdown():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1265,7 +1242,7 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@shutdownRequest():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@shutdownRequest():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1287,7 +1264,7 @@ shutting down.
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1301,14 +1278,14 @@ shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">tagDecorator</span><span class="result">: <a href="package$$ReturnCodeTagDecorator.html" class="extype" name="colossus.protocols.http.ReturnCodeTagDecorator">ReturnCodeTagDecorator</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">tagDecorator</span><span class="result">: <a href="../http/package$$ReturnCodeTagDecorator.html" class="extype" name="colossus.protocols.http.ReturnCodeTagDecorator">ReturnCodeTagDecorator</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@tagDecorator:colossus.protocols.http.package.ReturnCodeTagDecorator[D]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@tagDecorator:colossus.protocols.http.package.ReturnCodeTagDecorator[D]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a> → <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a> → <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a></dd></dl></div>
     </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -1321,7 +1298,7 @@ shutting down.
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@toString():String" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@toString():String" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1335,10 +1312,10 @@ shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unhandled</span><span class="result">: <a href="../../service/Protocol$.html#PartialHandler[C&lt;:colossus.service.Protocol]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.Protocol.PartialHandler">PartialHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">unhandled</span><span class="result">: <a href="../../service/Protocol$.html#PartialHandler[C&lt;:colossus.service.Protocol]=PartialFunction[C#Input,colossus.service.Callback[C#Output]]" class="extmbr" name="colossus.service.Protocol.PartialHandler">PartialHandler</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@unhandled:colossus.service.Protocol.PartialHandler[C]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@unhandled:colossus.service.Protocol.PartialHandler[C]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1352,10 +1329,10 @@ shutting down.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unhandledError</span><span class="result">: <a href="../../service/Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+        <span class="name">unhandledError</span><span class="result">: <a href="../../service/Protocol$.html#ErrorHandler[C&lt;:colossus.service.Protocol]=PartialFunction[colossus.service.ProcessingFailure[C#Input],C#Output]" class="extmbr" name="colossus.service.Protocol.ErrorHandler">ErrorHandler</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@unhandledError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@unhandledError:colossus.service.Protocol.ErrorHandler[C]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1372,7 +1349,7 @@ shutting down.
         <span class="name">unhandledReceive</span><span class="result">: <a href="../../service/Protocol$.html#Receive=PartialFunction[Any,Unit]" class="extmbr" name="colossus.service.Protocol.Receive">Receive</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@unhandledReceive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@unhandledReceive:colossus.service.Protocol.Receive" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1389,7 +1366,7 @@ shutting down.
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@wait():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@wait():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1412,7 +1389,7 @@ shutting down.
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1435,7 +1412,7 @@ shutting down.
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1458,7 +1435,7 @@ shutting down.
         <span class="name">worker</span><span class="result">: <a href="../../core/WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1475,7 +1452,7 @@ shutting down.
         <span class="name">writesEnabled</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.package$$HttpService@writesEnabled:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.websocket.WebsocketHttpHandler@writesEnabled:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1489,22 +1466,24 @@ shutting down.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.protocols.http.BaseHttpServiceHandler">
-              <h3>Inherited from <a href="package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
+        <div class="parent" name="colossus.protocols.http.HttpService">
+              <h3>Inherited from <a href="../http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a></h3>
+            </div><div class="parent" name="colossus.protocols.http.BaseHttpServiceHandler">
+              <h3>Inherited from <a href="../http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
             </div><div class="parent" name="colossus.service.Service">
-              <h3>Inherited from <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
+              <h3>Inherited from <a href="../../service/Service.html" class="extype" name="colossus.service.Service">Service</a>[<a href="../http/package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</h3>
             </div><div class="parent" name="colossus.service.ServiceServer">
-              <h3>Inherited from <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
+              <h3>Inherited from <a href="../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
             </div><div class="parent" name="colossus.core.ServerConnectionHandler">
               <h3>Inherited from <a href="../../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></h3>
             </div><div class="parent" name="colossus.controller.Controller">
-              <h3>Inherited from <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
+              <h3>Inherited from <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
             </div><div class="parent" name="colossus.controller.OutputController">
-              <h3>Inherited from <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
+              <h3>Inherited from <a href="../../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
             </div><div class="parent" name="colossus.controller.InputController">
-              <h3>Inherited from <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
+              <h3>Inherited from <a href="../../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
             </div><div class="parent" name="colossus.controller.MasterController">
-              <h3>Inherited from <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
+              <h3>Inherited from <a href="../../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>[<a href="../http/package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a>, <a href="../http/package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</h3>
             </div><div class="parent" name="colossus.core.IdleCheck">
               <h3>Inherited from <a href="../../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a></h3>
             </div><div class="parent" name="colossus.core.CoreHandler">

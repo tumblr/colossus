@@ -490,8 +490,8 @@ actor.</p></div><div class="toggleContainer block">
       </a>
     </span>
       <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.task.Task">Task</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.core.WorkerItem#onUnbind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.task.Task">Task</a> → <a href="../core/ProxyActor.html" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.ProxyActor#onUnbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="onUnbind():Unit"></a>
       <a id="onUnbind():Unit"></a>
       <h4 class="signature">
@@ -509,7 +509,7 @@ actor.</p></div><div class="toggleContainer block">
     </span>
       <p class="shortcomment cmt">Called when the item has been unbound from a worker
 </p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
-</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ProxyActor.html" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.core.ProxyActor#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
       <a id="receivedMessage(Any,ActorRef):Unit"></a>
@@ -526,14 +526,16 @@ actor.</p></div><div class="toggleContainer block">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ProxyActor.html" class="extype" name="colossus.core.ProxyActor">ProxyActor</a></dd></dl></div>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ProxyActor.html" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.core.ProxyActor#self" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="self:akka.actor.ActorRef"></a>
       <a id="self:ActorRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">lazy val</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
         <span class="name">self</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
@@ -561,6 +563,28 @@ actor.</p></div><div class="toggleContainer block">
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/ProxyActor.html" class="extype" name="colossus.core.ProxyActor">ProxyActor</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#shutdownRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.task.Task@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Request has been made to shutdown this WorkerItem.</p><div class="fullcomment"><div class="comment cmt"><p>A Request has been made to shutdown this WorkerItem.  By default this will
+simply unbind the item from its Worker, but this can be overriden to add in
+custom shutdown behaviors.  Be aware that in some cases this method may not
+be called and the item will be unbound, such as when an IOSystem is
+shutting down.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

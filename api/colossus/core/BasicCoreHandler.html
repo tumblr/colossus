@@ -494,7 +494,7 @@ bypasses the shutdown process.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.core.BasicCoreHandler#idleCheck" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="colossus.core.BasicCoreHandler#idleCheck" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="idleCheck(period:scala.concurrent.duration.Duration):Unit"></a>
       <a id="idleCheck(Duration):Unit"></a>
       <h4 class="signature">
@@ -510,11 +510,7 @@ bypasses the shutdown process.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Called periodically on every attached connection handler, this can be used
-for checking if an ongoing operation has timed out.</p><div class="fullcomment"><div class="comment cmt"><p>Called periodically on every attached connection handler, this can be used
-for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
-which is only based on the last time there was any I/O.
-</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become application dependent in the future.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.BasicCoreHandler">BasicCoreHandler</a> → <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+      
     </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isBound:Boolean"></a>
       <a id="isBound:Boolean"></a>
@@ -740,11 +736,12 @@ WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">me
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">the connection handler should begin its graceful shutdown procedure.</p><div class="fullcomment"><div class="comment cmt"><p>the connection handler should begin its graceful shutdown procedure.  For
-both servers and clients this can be triggered either by a call to
-gracefulDisconnect or to become.  For ServerConnectionHandlers this can
-also occur when the Server begins shutting down.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a> → <a href="ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></dd></dl></div>
+      <p class="shortcomment cmt">A Request has been made to shutdown this WorkerItem.</p><div class="fullcomment"><div class="comment cmt"><p>A Request has been made to shutdown this WorkerItem.  By default this will
+simply unbind the item from its Worker, but this can be overriden to add in
+custom shutdown behaviors.  Be aware that in some cases this method may not
+be called and the item will be unbound, such as when an IOSystem is
+shutting down.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CoreHandler.html" class="extype" name="colossus.core.CoreHandler">CoreHandler</a> → <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

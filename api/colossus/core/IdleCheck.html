@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>ConnectionEvent - colossus.service.ConnectionEvent</title>
-          <meta name="description" content="ConnectionEvent - colossus.service.ConnectionEvent" />
-          <meta name="keywords" content="ConnectionEvent colossus.service.ConnectionEvent" />
+          <title>IdleCheck - colossus.core.IdleCheck</title>
+          <meta name="description" content="IdleCheck - colossus.core.IdleCheck" />
+          <meta name="keywords" content="IdleCheck colossus.core.IdleCheck" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'colossus.service.ConnectionEvent';
+            var hash = 'colossus.core.IdleCheck';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,14 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ConnectionEvent$.html" title="See companion object"><img alt="Trait/Object" src="../../lib/trait_to_object_big.png" /></a>
-        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.service">service</a></p>
-        <h1><a href="ConnectionEvent$.html" title="See companion object">ConnectionEvent</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="ConnectionEvent$.html" title="See companion object">object ConnectionEvent</a>
-            | <a href="package.html" class="extype" name="colossus.service">package service</a>
+        <img alt="Trait" src="../../lib/trait_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a>.<a href="package.html" class="extype" name="colossus.core">core</a></p>
+        <h1>IdleCheck</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="colossus.core">package core</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -43,20 +41,22 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed </span>
+        <span class="modifier"></span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ConnectionEvent</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">IdleCheck</span><span class="result"> extends <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A mixin trait for worker items that defines a method which is periodically
+called by the worker.  This can be used to do periodic checks
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="ConnectionEvent$$Bound.html" class="extype" name="colossus.service.ConnectionEvent.Bound">Bound</a>, <a href="ClientConnectionEvent.html" class="extype" name="colossus.service.ClientConnectionEvent">ClientConnectionEvent</a>, <a href="ConnectionEvent$$Connected$.html" class="extype" name="colossus.service.ConnectionEvent.Connected">Connected</a>, <a href="ConnectionEvent$$ConnectionFailed$.html" class="extype" name="colossus.service.ConnectionEvent.ConnectionFailed">ConnectionFailed</a>, <a href="ConnectionEvent$$ConnectionTerminated.html" class="extype" name="colossus.service.ConnectionEvent.ConnectionTerminated">ConnectionTerminated</a>, <a href="ConnectionEvent$$ReadyForData$.html" class="extype" name="colossus.service.ConnectionEvent.ReadyForData">ReadyForData</a>, <a href="ConnectionEvent$$ReceivedData.html" class="extype" name="colossus.service.ConnectionEvent.ReceivedData">ReceivedData</a>, <a href="ConnectionEvent$$Unbound$.html" class="extype" name="colossus.service.ConnectionEvent.Unbound">Unbound</a>, <a href="ConnectionEvent$$WriteAck.html" class="extype" name="colossus.service.ConnectionEvent.WriteAck">WriteAck</a></div>
+            <div class="subClasses hiddenContent"><a href="../protocols/http/package$$BaseHttpServiceHandler.html" class="extype" name="colossus.protocols.http.BaseHttpServiceHandler">BaseHttpServiceHandler</a>, <a href="../protocols/websocket/BaseWebsocketHandler.html" class="extype" name="colossus.protocols.websocket.BaseWebsocketHandler">BaseWebsocketHandler</a>, <a href="../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>, <a href="../protocols/http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a>, <a href="../controller/InputController.html" class="extype" name="colossus.controller.InputController">InputController</a>, <a href="../controller/MasterController.html" class="extype" name="colossus.controller.MasterController">MasterController</a>, <a href="../controller/OutputController.html" class="extype" name="colossus.controller.OutputController">OutputController</a>, <a href="../service/Service.html" class="extype" name="colossus.service.Service">Service</a>, <a href="../service/ServiceClient.html" class="extype" name="colossus.service.ServiceClient">ServiceClient</a>, <a href="../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>, <a href="../protocols/http/package$$StreamingHttpService.html" class="extype" name="colossus.protocols.http.StreamingHttpService">StreamingHttpService</a>, <a href="../protocols/websocket/WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a>, <a href="../protocols/websocket/WebsocketHttpHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHttpHandler">WebsocketHttpHandler</a>, <a href="../protocols/websocket/WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a></div>
           </div></div>
         
 
@@ -74,7 +74,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.service.ConnectionEvent"><span>ConnectionEvent</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.IdleCheck"><span>IdleCheck</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -95,10 +95,55 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="colossus.core.IdleCheck#idleCheck" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit"></a>
+      <a id="idleCheck(FiniteDuration):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">idleCheck</span><span class="params">(<span name="period">period: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@idleCheck(period:scala.concurrent.duration.FiniteDuration):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><div class="fullcomment"><div class="comment cmt"><p>Called periodically on every attached connection handler, this can be used
+for checking if an ongoing operation has timed out.</p><p>Be aware that this is totally independant of a connection's idle timeout,
+which is only based on the last time there was any I/O.
+</p></div><dl class="paramcmts block"><dt class="param">period</dt><dd class="cmt"><p>the frequency at which this method is called.  Currently this
+is hardcoded to <code>WorkerManager.IdleCheckFrequency</code>, but may become
+application dependent in the future.</p></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#receivedMessage" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
+      <a id="receivedMessage(Any,ActorRef):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receivedMessage</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>, <span name="sender">sender: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -111,7 +156,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -128,7 +173,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@##():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@##():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -145,7 +190,7 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -162,7 +207,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -179,7 +224,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@clone():Object" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@clone():Object" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -190,6 +235,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#context" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="context:colossus.core.Context"></a>
+      <a id="context:Context"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">context</span><span class="result">: <a href="Context.html" class="extype" name="colossus.core.Context">Context</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@context:colossus.core.Context" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -202,7 +264,7 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -219,7 +281,7 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -236,7 +298,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@finalize():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -259,7 +321,7 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -276,11 +338,45 @@
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@hashCode():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="id:Long"></a>
+      <a id="id:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@id:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBound:Boolean"></a>
+      <a id="isBound:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@isBound:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -293,7 +389,7 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -310,7 +406,7 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -327,7 +423,7 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@notify():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@notify():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -344,11 +440,70 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onBind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onBind():Unit"></a>
+      <a id="onBind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@onBind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#onUnbind" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onUnbind():Unit"></a>
+      <a id="onUnbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@onUnbind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item has been unbound from a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
+</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#shutdownRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Request has been made to shutdown this WorkerItem.</p><div class="fullcomment"><div class="comment cmt"><p>A Request has been made to shutdown this WorkerItem.  By default this will
+simply unbind the item from its Worker, but this can be overriden to add in
+custom shutdown behaviors.  Be aware that in some cases this method may not
+be called and the item will be unbound, such as when an IOSystem is
+shutting down.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -361,7 +516,7 @@
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -378,7 +533,7 @@
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@toString():String" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@toString():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -395,7 +550,7 @@
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@wait():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@wait():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -418,7 +573,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -441,7 +596,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.ConnectionEvent@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.IdleCheck@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -452,6 +607,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.IdleCheck@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -461,7 +633,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="colossus.core.WorkerItem">
+              <h3>Inherited from <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

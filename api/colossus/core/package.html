@@ -630,6 +630,26 @@ buffer to avoid copying
       </a>
     </span>
       
+    </li><li name="colossus.core.IdleCheck" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="IdleCheckextendsWorkerItem"></a>
+      <a id="IdleCheck:IdleCheck"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="IdleCheck.html"><span class="name">IdleCheck</span></a><span class="result"> extends <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@IdleCheckextendsWorkerItem" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A mixin trait for worker items that defines a method which is periodically
+called by the worker.</p><div class="fullcomment"><div class="comment cmt"><p>A mixin trait for worker items that defines a method which is periodically
+called by the worker.  This can be used to do periodic checks
+</p></div></div>
     </li><li name="colossus.core.IncidentReport" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IncidentReportextendsProductwithSerializable"></a>
       <a id="IncidentReport:IncidentReport"></a>
@@ -738,8 +758,8 @@ process and bind to another connection
       </a>
     </span>
       
-    </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ProxyActorextendsAnyRef"></a>
+    </li><li name="colossus.core.ProxyActor" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ProxyActorextendsWorkerItem"></a>
       <a id="ProxyActor:ProxyActor"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -747,14 +767,19 @@ process and bind to another connection
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="ProxyActor.html"><span class="name">ProxyActor</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="ProxyActor.html"><span class="name">ProxyActor</span></a><span class="result"> extends <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@ProxyActorextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.package@ProxyActorextendsWorkerItem" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">This is a mixin for <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> that gives it actor-like capabilities.</p><div class="fullcomment"><div class="comment cmt"><p>This is a mixin for <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> that gives it actor-like capabilities.  A
+&quot;proxy&quot; Akka actor is spun up, such that any message sent to the proxy will
+be relayed to the WorkerItem.</p><p>The proxy actors lifecycle will be linked to the lifecycle of this
+workeritem, so if the actor is kill, the <code>shutdownRequest</code> method will be
+invoked, and likewise if this item is unbound the proxy actor will be killed.
+</p></div></div>
     </li><li name="colossus.core.RetryAttempt" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="RetryAttemptextendsAnyRef"></a>
       <a id="RetryAttempt:RetryAttempt"></a>
@@ -1174,7 +1199,7 @@ context must be transferred
       <p class="shortcomment cmt">This keeps track of all the bound worker items, and properly handles added/removing them
 </p>
     </li><li name="colossus.core.WorkerItemProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="WorkerItemProxyextendsActor"></a>
+      <a id="WorkerItemProxyextendsActorwithStash"></a>
       <a id="WorkerItemProxy:WorkerItemProxy"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1182,10 +1207,10 @@ context must be transferred
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="WorkerItemProxy.html"><span class="name">WorkerItemProxy</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span></span>
+        <a href="WorkerItemProxy.html"><span class="name">WorkerItemProxy</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.Stash">Stash</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.package@WorkerItemProxyextendsActor" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.core.package@WorkerItemProxyextendsActorwithStash" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

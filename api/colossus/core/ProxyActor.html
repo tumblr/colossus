@@ -47,16 +47,21 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ProxyActor</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">ProxyActor</span><span class="result"> extends <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> with <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This is a mixin for <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> that gives it actor-like capabilities.  A
+&quot;proxy&quot; Akka actor is spun up, such that any message sent to the proxy will
+be relayed to the WorkerItem.</p><p>The proxy actors lifecycle will be linked to the lifecycle of this
+workeritem, so if the actor is kill, the <code>shutdownRequest</code> method will be
+invoked, and likewise if this item is unbound the proxy actor will be killed.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../task/Task.html" class="extype" name="colossus.task.Task">Task</a></div>
+            <div class="subClasses hiddenContent"><a href="../service/AsyncHandlerGenerator$ClientWrapper.html" class="extype" name="colossus.service.AsyncHandlerGenerator.ClientWrapper">ClientWrapper</a>, <a href="../task/Task.html" class="extype" name="colossus.task.Task">Task</a></div>
           </div></div>
         
 
@@ -74,7 +79,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.core.ProxyActor"><span>ProxyActor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.core.ProxyActor"><span>ProxyActor</span></li><li class="in" name="colossus.core.WorkerItem"><span>WorkerItem</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -227,6 +232,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#context" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="context:colossus.core.Context"></a>
+      <a id="context:Context"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">context</span><span class="result">: <a href="Context.html" class="extype" name="colossus.core.Context">Context</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@context:colossus.core.Context" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -318,6 +340,40 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#id" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="id:Long"></a>
+      <a id="id:Long"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">id</span><span class="result">: <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@id:Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#isBound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBound:Boolean"></a>
+      <a id="isBound:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBound</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@isBound:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -386,7 +442,44 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.ProxyActor#receivedMessage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.ProxyActor#onBind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onBind():Unit"></a>
+      <a id="onBind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onBind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@onBind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item is bound to a worker.</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item is bound to a worker.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.ProxyActor#onUnbind" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="onUnbind():Unit"></a>
+      <a id="onUnbind():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onUnbind</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@onUnbind():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Called when the item has been unbound from a worker
+</p><div class="fullcomment"><div class="comment cmt"><p>Called when the item has been unbound from a worker
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
+    </li><li name="colossus.core.ProxyActor#receivedMessage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="receivedMessage(message:Any,sender:akka.actor.ActorRef):Unit"></a>
       <a id="receivedMessage(Any,ActorRef):Unit"></a>
       <h4 class="signature">
@@ -402,14 +495,16 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a way to send this WorkerItem a message from an Actor by way of
+WorkerCommand.Message.</p></div><dl class="paramcmts block"><dt class="param">message</dt><dd class="cmt"><p>The message that was sent</p></dd><dt class="param">sender</dt><dd class="cmt"><p>The sender who sent the message</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.core.ProxyActor">ProxyActor</a> → <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="colossus.core.ProxyActor#self" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="self:akka.actor.ActorRef"></a>
       <a id="self:ActorRef"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">lazy val</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
         <span class="name">self</span><span class="result">: <span class="extype" name="akka.actor.ActorRef">ActorRef</span></span>
@@ -437,6 +532,28 @@
       </a>
     </span>
       
+    </li><li name="colossus.core.WorkerItem#shutdownRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownRequest():Unit"></a>
+      <a id="shutdownRequest():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownRequest</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@shutdownRequest():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Request has been made to shutdown this WorkerItem.</p><div class="fullcomment"><div class="comment cmt"><p>A Request has been made to shutdown this WorkerItem.  By default this will
+simply unbind the item from its Worker, but this can be overriden to add in
+custom shutdown behaviors.  Be aware that in some cases this method may not
+be called and the item will be unbound, such as when an IOSystem is
+shutting down.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -540,6 +657,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.core.WorkerItem#worker" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="worker:colossus.core.WorkerRef"></a>
+      <a id="worker:WorkerRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">worker</span><span class="result">: <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">WorkerRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ProxyActor@worker:colossus.core.WorkerRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -549,7 +683,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="colossus.core.WorkerItem">
+              <h3>Inherited from <a href="WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

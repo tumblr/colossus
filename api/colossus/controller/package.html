@@ -116,7 +116,7 @@ can be thought of as a duplex stream of messages.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="sendTimeout">sendTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="flushBufferOnClose">flushBufferOnClose: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="metricsEnabled">metricsEnabled: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.controller.package@ControllerConfigextendsProductwithSerializable" title="Permalink" target="_top">
@@ -332,7 +332,7 @@ is ever thrown, there is a bug!
     </span>
       
     </li><li name="colossus.controller.MasterController" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="MasterController[Input,Output]extendsWorkerItemwithConnectionHandler"></a>
+      <a id="MasterController[Input,Output]extendsWorkerItemwithConnectionHandlerwithIdleCheck"></a>
       <a id="MasterController[Input,Output]:MasterController[Input,Output]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -340,10 +340,10 @@ is ever thrown, there is a bug!
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="MasterController.html"><span class="name">MasterController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a></span>
+        <a href="MasterController.html"><span class="name">MasterController</span></a><span class="tparams">[<span name="Input">Input</span>, <span name="Output">Output</span>]</span><span class="result"> extends <a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a> with <a href="../core/ConnectionHandler.html" class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</a> with <a href="../core/IdleCheck.html" class="extype" name="colossus.core.IdleCheck">IdleCheck</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.controller.package@MasterController[Input,Output]extendsWorkerItemwithConnectionHandler" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.controller.package@MasterController[Input,Output]extendsWorkerItemwithConnectionHandlerwithIdleCheck" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
