@@ -12,14 +12,34 @@ import com.typesafe.config.{Config, ConfigFactory}
  */
 case class ServerContext(server: ServerRef, context: Context)
 
+/**
+ * An `Initializer` is used to perform any setup/coordination logic for a
+ * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
+ * connections from the server with connection handlers.  An initializer is
+ * created per worker, so all actions on a single Initializer are
+ * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
+ * used when starting servers.
+ */
 abstract class Initializer(_worker: WorkerRef) {
 
   implicit val worker = _worker
 
+  /**
+   * Given a [[ServerContext]] for a new connection, provide a new connection
+   * handler for the connection
+   */
   def onConnect: ServerContext => ServerConnectionHandler
 
-  //delegator message handling
+  /**
+   * Message receive hook.  This is used to handle any messages that are sent
+   * using [[ServerRef]] `delegatorBroadcast`.
+   */
   def receive: Receive = Map() //empty receive
+
+  /**
+   * Shutdown hook that is called when the server is shutting down
+   */
+  def onShutdown(){}
 
 }
 
@@ -32,6 +52,10 @@ class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initial
   }
 
   override def handleMessage: Receive = initializer.receive
+
+  override def onShutdown() {
+    initializer.onShutdown()
+  }
 
 }
 

@@ -102,6 +102,9 @@ sealed trait Callback[+O] {
   }
 }
 
+/**
+ * A Callback that has been mapped on.  See the docs for [[Callback]] for more information
+ */
 case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[I] => Try[O]) extends Callback[O] {
   def execute(onComplete: Try[O] => Unit = _ => ()) {
     try {
@@ -154,8 +157,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
 }
 
 /**
- * UnmappedCallback is essentially an optimization that avoids needing to
- * create a MappedCallback with an identity function
+ * A Callback that has not been mapped.  See the docs for [[Callback]] for more information
  */
 case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callback[I]{
   def map[O](f: I => O): Callback[O] = MappedCallback(trigger, (i: Try[I]) => i.map(f))
@@ -203,6 +205,11 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
 
 }
 
+/**
+ * A Callback containing a constant value, usually created as the result of
+ * calling `Callback.success` or `Callback.failure`.  See the docs for
+ * [[Callback]] for more information.
+ */
 case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   def map[U](f: O => U): Callback[U] = ConstantCallback(value.map(f))
   def flatMap[U](f: O => Callback[U]): Callback[U] = value match {
@@ -231,14 +238,12 @@ case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
 }
 
 /**
- * A `CallbackExecutor` is an actor that mixes in the [CallbackExecution] trait
- * to complete the execution of a [Callback] that has been converted from a
- * `Future`.  In almost every case, the executor should be an actor running in
- * a Pinned Dispatcher and shound be the same actor that created the original
- * Callback, for example, a Colossus worker.
+ * A `CallbackExecutor` represents a scheduler and execution environment for
+ * [[Callback]]s and is required when either converting a `Future` to a
+ * `Callback` or scheduling delayed execution of a `Callback`.  Every
+ * [[colossus.core.Worker Worker]] provides an `CallbackExecutor` that can be
+ * imported when doing such operations.
  *
- * This type is generally only needed when converting a Future to a Callback,
- * or scheduling a Callback for delayed execution.
  */
 case class CallbackExecutor(context: ExecutionContext, executor: ActorRef)
 object CallbackExecutor {
@@ -254,7 +259,7 @@ object Callback {
   /**
    * The class tag is only needed to construct the array
    */
-  class SequencedCallback[A : ClassTag](callback: Try[Seq[Try[A]]] => Unit, callbacks: Seq[Callback[A]]) {
+  private class SequencedCallback[A : ClassTag](callback: Try[Seq[Try[A]]] => Unit, callbacks: Seq[Callback[A]]) {
     private val results = new Array[Try[A]](callbacks.size)
     private var numComplete = 0
 
@@ -277,7 +282,7 @@ object Callback {
     }
   }
 
-  class TupledCallback[A,B](a: Callback[A], b: Callback[B], completion: Try[(A,B)] => Unit) {
+  private class TupledCallback[A,B](a: Callback[A], b: Callback[B], completion: Try[(A,B)] => Unit) {
     private var aresult: Option[Try[A]] = None
     private var bresult: Option[Try[B]] = None
 
@@ -298,12 +303,26 @@ object Callback {
     }
   }
 
+  /**
+   * Convert a function into a [[Callback]].  The function's parameter is a
+   * continuation that will be the fully built mappings on the result
+   * `Callback`.
+   */
   def apply[I](f: (Try[I] => Unit) => Unit): Callback[I] = UnmappedCallback(f)
 
+  /**
+   * Zip two [[Callback Callbacks]] together into a single `Callback` containing
+   * a tuple of the results.
+   */
   def zip[A,B](a: Callback[A], b: Callback[B]): Callback[(A,B)] = {
     UnmappedCallback((f: Try[(A,B)] => Unit) => new TupledCallback[A,B](a, b, f).execute())
   }
 
+  /**
+   * Convert a sequence of [[Callback Callbacks]] into a single `Callback`
+   * contains a sequence of all the results.  The result type is `Try[A]` so
+   * that the success/failure of each individual `Callback` can be determined.
+   */
   def sequence[A : ClassTag](callbacks: Seq[Callback[A]]): Callback[Seq[Try[A]]] = {
     UnmappedCallback((f: Function1[Try[Seq[Try[A]]], Unit]) => new SequencedCallback(f, callbacks).execute())
   }
@@ -421,7 +440,7 @@ class CallbackPromise[T] {
  * sent to that trait on the completion of the converted Future, containing the
  * code for any `map` or `flatMap` that occurs on the callback.
  */
-case class CallbackExec(cb: () => Unit, in: Option[FiniteDuration] = None) {
+private[colossus] case class CallbackExec(cb: () => Unit, in: Option[FiniteDuration] = None) {
   def execute() {
     cb()
   }
@@ -435,7 +454,7 @@ case class CallbackExec(cb: () => Unit, in: Option[FiniteDuration] = None) {
  * this by sending a message to this actor living in the default dispatcher
  * which then does the proper scheduling
  */
-class Delayer extends Actor with ActorLogging {
+private[colossus] class Delayer extends Actor with ActorLogging {
   import context.dispatcher
   def receive = {
     case c: CallbackExec => {
@@ -444,7 +463,7 @@ class Delayer extends Actor with ActorLogging {
   }
 }
 
-trait CallbackExecution extends Actor with ActorLogging{
+private[colossus] trait CallbackExecution extends Actor with ActorLogging{
 
   val delayer = context.actorOf(Props[Delayer])
 
