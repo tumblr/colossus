@@ -109,16 +109,12 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
+abstract class ServiceServer[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext)
+extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstream] {
   import ServiceServer._
 
   type I = P#ServerEncoding#Input
   type O = P#ServerEncoding#Output
-
-  //"constructor" parameters
-  //codec is already defined in controller
-  def config: ServiceConfig
-  def serverContext: ServerContext
 
   protected def processRequest(request: I): Callback[O]
 
@@ -126,13 +122,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
  
   protected def processFailure(error: ProcessingFailure[I]): O
 
-  //passthrough to lower layers
-  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
-  def context = serverContext.context
-
-
-  private val myconfig = config
-  import myconfig._
+  import config._
 
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
@@ -209,13 +199,13 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
+    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && upstream.canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
       if (requestMetrics) concurrentRequests.decrement()
       pushResponse(done.request, comp, done.creationTime)
     }
-    if (!canPush) {
+    if (!upstream.canPush) {
       //this means the output buffer cannot accept any more messages, so we have
       //to pause dequeuing responses and wait for the next message in the output
       //buffer to be written
@@ -246,7 +236,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
       requests.hit(tags = tags)
       latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
     }
-    val pushed = push(response, startTime) {
+    val pushed = upstream.push(response, startTime) {
       case OutputResult.Success => {
         if (dequeuePaused) {
           dequeuePaused = false
@@ -306,7 +296,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
 
   private def checkGracefulDisconnect() {
     if (disconnecting && requestBuffer.size == 0) {
-      super.shutdown()
+      upstream.shutdown()
     }
   }
 

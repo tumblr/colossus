@@ -35,6 +35,135 @@ trait ConnectionManager {
   def become(nh: () => ConnectionHandler): Boolean
 
   def isConnected: Boolean
+  def context: Context
+}
+
+/**
+ * Methods for controlling whether the connection should be actively
+ * reading/writing.  This trait is separate from Connection Manager and
+ * CoreUpstream so that flow control can be selectively exposed to downstream layers
+ */
+trait FlowControl {
+  def pauseReads()
+  def pauseWrites()
+  def resumeReads()
+  def resumeWrites()
+}
+
+
+
+/**
+ * These are the methods the Core layer directly exposes to its downstream
+ * neighbor which are generally not meant to be exposed further downstream
+ */
+trait CoreUpstream extends CoreManager with FlowControl {
+
+  def requestWrite()
+
+
+}
+
+//upstream is set by the upstream itself
+trait HasUpstream[T] {
+  private var _upstream: Option[T] = None
+  def setUpstream(up: T) {
+    _core = Some(up)
+  }
+  def upstream = _upstream.getOrElse(throw new Exception("Attempt to use uninitialized upstream reference"))
+}
+
+//downstreams are provided through constructor parameters, so not much to add here
+trait HasDownstream[T] {
+  def downstream: T
+}
+
+/**
+ * These are events that propagate to each layer starting from the head and moving downstream
+ */
+trait DownstreamEvents {
+  
+  def connected() { onConnected() }
+  def connectionTerminated(reason: DisconnectCause) { onConnectionTerminated(reason) }
+  def idleCheck(period: FiniteDuration) { onIdleCheck(period) }
+  def bind() { onBind() }
+  def unbind() { onUnbind() }
+  def receivedMessage(sender: ActorRef, message: Any) { onReceivedMessage(sender, message) }
+
+  protected def onBind() {}
+  protected def onUnbind() {}
+  protected def onConnected() {}
+  protected def onConnectionTerminated(reason: DisconnectCause) {}
+  protected def onIdleCheck(period: FiniteDuration){}
+  protected def onReceivedMessage(sender: ActorRef, message: Any) {}
+
+}
+
+/**
+ * This trait can be used for layers that are in the head or middle of a
+ * pipeline.  It will automatically propagate events to the downstream neighbor.
+ */
+trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents with HasDownstream[T] {
+  override def connected() {
+    super.connected()
+    downstream.connected()
+  }
+  override def connectionTerminated(reason: DisconnectCause) {
+    super.connectionTerminated(reason)
+    downstream.connectionTerminated()
+  }
+  override def idleCheck(period: FiniteDuration) {
+    super.idleCheck(period)
+    downstream.idlecheck(period)
+  }
+  override def bind() { 
+    super.bind() 
+    downstream.bind()
+  }
+  override def unbind() { 
+    super.unbind()
+    downstream.unbind()
+  }
+  override def receivedMessage(sender: ActorRef, message: Any) { 
+    super.receivedMessage(sender, message)
+    downstream.onReceivedMessage(sender, message)
+  }
+
+
+}
+
+/**
+ * These are events that propagate starting from the tail and move upstream
+ */
+trait UpstreamEvents {
+  def shutdown() {
+    onShutdown()
+  }
+
+  protected def onShutdown() {}
+
+}
+
+trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasUpstream[T]{
+  override def shutdown() {
+    super.shutdown()
+    upstream.shutdown()
+  }
+}
+    
+
+/**
+ * These are the methods that the downstream neighbor of the CoreHandler must
+ * implement
+ */
+trait CoreDownstream extends HasUpstream[CoreUpstream] with DownstreamEvents {
+
+  def receivedData(data: DataBuffer)
+  def readyForData(buffer: DataOutBuffer)
+}
+
+
+trait HandlerTail extends UpstreamEvents {
+
 }
 
 /**
@@ -45,11 +174,13 @@ trait ConnectionManager {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-trait CoreHandler extends ConnectionHandler with ConnectionManager {
+class CoreHandler(val downstream: CoreDownstream, val tail: Handlertail, val context: Context) extends ConnectionHandler with ConnectionManager {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
+
+  downstream.setUpstream(this)
 
   def connectionState = _connectionState
   def isConnected: Boolean = connectionState != ConnectionState.NotConnected
@@ -67,11 +198,13 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
       case NotConnected => _connectionState = Connected(endpt)
       case other => throw new InvalidConnectionStateException(other)
     }
+    downstream.connected()
   }
 
   override def connectionTerminated(cause: DisconnectCause) {
     _connectionState = NotConnected
     super.connectionTerminated(cause)
+    downstream.connectionTerminated(cause)
   }
 
   /**
@@ -119,7 +252,7 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)
-        shutdown()
+        tail.shutdown()
       }
       case NotConnected => shutdown()
       case _ => {}
@@ -133,6 +266,28 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
         worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory())
       }
     }
+  }
+
+  def receivedData(buffer: DataBuffer) {
+    downstream.receivedData(buffer)
+  }
+
+  def idleCheck(period: FiniteDuration) {
+    downstream.idleCheck(period)
+  }
+
+  override def onBind() {
+    super.onBind()
+    downstream.bind()
+  }
+
+  override def onUnbind() {
+    super.onUnbind()
+    downstream.unbind()
+  }
+
+  def receivedMessage(sender: ActorRef, message: Any) {
+    downstream.receivedMessage(sender, message)
   }
 
 

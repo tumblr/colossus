@@ -24,15 +24,12 @@ case class ControllerConfig(
   metricsEnabled: Boolean = true
 )
 
-//these are the methods that the controller layer requires to be implemented
-trait ControllerIface[E <: Encoding] {
-  protected def connectionState: ConnectionState
-  protected def codec: Codec[E]
-  protected def processMessage(input: E#Input)
-  protected def controllerConfig: ControllerConfig
-  implicit val namespace: MetricNamespace
+//these are the methods that the controller layer requires to be implemented by it's downstream neighbor
+trait ControllerDownstream[E <: Encoding] extends Upstream[ControllerUpstream]{
 
-  protected def onFatalError(reason: Throwable): Option[E#Output] = {
+  def processMessage(input: E#Input)
+
+  def onFatalError(reason: Throwable): Option[E#Output] = {
     //TODO: Logging
     println(s"Fatal Error: $reason, disconnecting")
     None
@@ -44,37 +41,38 @@ trait Writer[T] {
   protected def canPush: Boolean
 }
 
-//these are the method that a controller layer itself must implement
-trait ControllerImpl[E <: Encoding] extends Writer[E#Output] {
-  protected def purgePending(reason: Throwable)
+//these are the method that a controller layer itself must implement for its downstream neighbor
+trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] {
   protected def writesEnabled: Boolean
   protected def pauseWrites()
   protected def resumeWrites()
   protected def pauseReads()
   protected def resumeReads()
+  protected def purgePending(reason: Throwable)
   protected def pendingBufferSize: Int
 }
 
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseController[E <: Encoding] extends CoreHandler with IdleCheck with ControllerImpl[E]{this: ControllerIface[E] =>
+trait BaseController[E <: Encoding] {
   def fatalError(reason: Throwable) {
     onFatalError(reason).foreach{o => push(o){_ => ()}}
     disconnect()
   }
+
+  def upstream: CoreUpstream
+  def downstream: ControllerDownstream[E]
 }
 
-trait Controller[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
+class Controller[E <: Encoding](context: Context, val downstream: ControllerDownstream, codec: Codec[E], controllerConfig: ControllerConfig) 
+extends ControllerIface[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
+  
+  downstream.setUpstream(this)
+  
 
-/**
- * This can be used to build connection handlers directly on top of the
- * controller layer
- */
-abstract class BasicController[E <: Encoding](
-  val codec: Codec[E],
-  val controllerConfig: ControllerConfig,
-  val context: Context
-) extends Controller[E] { self: ControllerIface[E] => }
+}
+
+
 
 
