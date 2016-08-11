@@ -110,7 +110,7 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  *
  */
 abstract class ServiceServer[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext)
-extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstream] {
+extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstream[P#ServerEncoding]] {
   import ServiceServer._
 
   type I = P#ServerEncoding#Input
@@ -126,6 +126,7 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
 
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
+  def context = serverContext.context
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
@@ -184,14 +185,11 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
   def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
-  override def idleCheck(period: FiniteDuration) {
-    super.idleCheck(period)
-
+  override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.peek.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
       requestBuffer.peek.complete(handleFailure(RecoverableError(requestBuffer.peek.request, new TimeoutError)))
-
     }
   }
     
@@ -199,7 +197,7 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && upstream.canPush) {
+    while (upstream.connection.isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && upstream.canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
       if (requestMetrics) concurrentRequests.decrement()
@@ -214,8 +212,7 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
     checkGracefulDisconnect()
   }
 
-  abstract override def connectionClosed(cause : DisconnectCause) {
-    super.connectionClosed(cause)
+  override def onConnectionTerminated(cause : DisconnectCause) {
     if (requestMetrics) {
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(amount = requestBuffer.size)
@@ -224,10 +221,6 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
     while (requestBuffer.size > 0) {
       addError(RecoverableError(requestBuffer.remove().request, exc))
     }
-  }
-
-  override def connectionLost(cause : DisconnectError) {
-    connectionClosed(cause)
   }
 
   private def pushResponse(request: I, response: O, startTime: Long) {
@@ -301,7 +294,7 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
   }
 
   override def shutdown() {
-    pauseReads()
+    upstream.pauseReads()
     disconnecting = true
     checkGracefulDisconnect()
   }

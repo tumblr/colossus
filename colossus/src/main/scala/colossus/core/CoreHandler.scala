@@ -1,5 +1,8 @@
 package colossus.core
 
+import scala.concurrent.duration._
+import akka.actor.ActorRef
+
 sealed abstract class ShutdownAction(val rank: Int) {
   
   def >=(a: ShutdownAction): Boolean = rank >= a.rank
@@ -56,7 +59,7 @@ trait FlowControl {
  * These are the methods the Core layer directly exposes to its downstream
  * neighbor which are generally not meant to be exposed further downstream
  */
-trait CoreUpstream extends CoreManager with FlowControl {
+trait CoreUpstream extends ConnectionManager with FlowControl with UpstreamEvents {
 
   def requestWrite()
 
@@ -67,7 +70,7 @@ trait CoreUpstream extends CoreManager with FlowControl {
 trait HasUpstream[T] {
   private var _upstream: Option[T] = None
   def setUpstream(up: T) {
-    _core = Some(up)
+    _upstream = Some(up)
   }
   def upstream = _upstream.getOrElse(throw new Exception("Attempt to use uninitialized upstream reference"))
 }
@@ -109,11 +112,11 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
   }
   override def connectionTerminated(reason: DisconnectCause) {
     super.connectionTerminated(reason)
-    downstream.connectionTerminated()
+    downstream.connectionTerminated(reason)
   }
   override def idleCheck(period: FiniteDuration) {
     super.idleCheck(period)
-    downstream.idlecheck(period)
+    downstream.idleCheck(period)
   }
   override def bind() { 
     super.bind() 
@@ -125,7 +128,7 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
   }
   override def receivedMessage(sender: ActorRef, message: Any) { 
     super.receivedMessage(sender, message)
-    downstream.onReceivedMessage(sender, message)
+    downstream.receivedMessage(sender, message)
   }
 
 
@@ -174,7 +177,7 @@ trait HandlerTail extends UpstreamEvents {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-class CoreHandler(val downstream: CoreDownstream, val tail: Handlertail, val context: Context) extends ConnectionHandler with ConnectionManager {
+class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val context: Context) extends ConnectionHandler with CoreUpstream {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect

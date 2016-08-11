@@ -64,7 +64,7 @@ object StaticOutState {
   case object Terminated extends StaticOutState(false)
 }
 
-trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: ControllerIface[E] =>
+trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   private var state: StaticOutState = StaticOutState.Suspended
@@ -95,8 +95,8 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
 
   }
 
-  override def connected(endpt: WriteEndpoint) {
-    super.connected(endpt)
+  override def onConnected() {
+    super.onConnected()
     state = StaticOutState.Alive
     if (!outputBuffer.isEmpty) signalWrite()
   }
@@ -128,7 +128,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
   }
 
   private def signalWrite() {
-    connectionState match {
+    upstream.connectionState match {
       case a: AliveState => {
         if (writesEnabled) a.endpoint.requestWrite()
       }
@@ -143,7 +143,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
 
   private def checkShutdown() {
     if (disconnecting && outputBuffer.isEmpty) {
-      super.shutdown()
+      upstream.shutdown()
     }
   }
 

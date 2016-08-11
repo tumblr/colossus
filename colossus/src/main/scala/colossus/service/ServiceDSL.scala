@@ -51,9 +51,11 @@ import Protocol._
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{ 
+class DSLService[C <: Protocol](config: ServiceConfig, context: ServerContext, val requestHandler: GenRequestHandler[C]) extends ServiceServer[C](config, context){ 
 
-  def requestHandler: GenRequestHandler[C]
+  override def onBind() {
+    requestHandler.onBind(upstream.connection)
+  }
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
@@ -68,28 +70,6 @@ trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{
   protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
 
   protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
-
-}
-
-/**
- * This needs to be mixed with Controller, ServiceServer, and DSLService
- * sub-traits to work (right now there's only one implementation of each but
- * that may change
- *
- */
-abstract class BasicServiceHandler[P <: Protocol](val requestHandler : GenRequestHandler[P]) 
-extends {
-  val serverContext = requestHandler.context
-  val config        = requestHandler.config
-
-} with DSLService[P] {
-
-  override def onBind() {
-    requestHandler.onBind(this)
-  }
-
-  //TODO: possibly build out an API for request handlers to deal with this
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
 
@@ -185,7 +165,7 @@ trait BasicServiceDSL[P <: Protocol] {
   protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
 
   protected class ServiceHandler(rh: RequestHandler) 
-  extends BasicServiceHandler[P](rh) {
+  extends DSLService[P](rh) {
 
     val codec = provideCodec()
 
