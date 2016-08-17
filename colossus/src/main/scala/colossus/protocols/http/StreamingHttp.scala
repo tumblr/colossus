@@ -216,6 +216,7 @@ trait BaseHandler[H <: HttpMessageHead[H], T <: HttpMessage[H]] extends Writer[S
   }
 
 }
+/*
 
 abstract class StreamServerHandler(context: ServerContext) 
 extends BasicController[StreamHttp#ServerEncoding](new StreamHttpServerCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context.context) 
@@ -229,3 +230,5 @@ extends BasicController[StreamHttp#ClientEncoding](new StreamHttpClientCodec, Co
 with ClientConnectionHandler with ControllerIface[StreamHttp#ClientEncoding] with BaseHandler[HttpRequestHead, HttpRequest]{
 
 }
+
+*/

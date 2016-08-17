@@ -168,6 +168,7 @@ object FrameParser {
     p >> {data => Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data)))}
   }
 }
+/*
 
 abstract class BaseWebsocketHandler(val context: Context, val controllerConfig: ControllerConfig) extends {
 
@@ -199,11 +200,12 @@ abstract class BaseWebsocketHandler(val context: Context, val controllerConfig: 
 
 }
 
-
+*/
 
 /**
  * A websocket server connection handler that uses a specified sub-protocol.
  */
+/*
 abstract class WebsocketHandler[P <: Protocol](context: Context, config: ControllerConfig)
 (implicit provider: FrameCodecProvider[P]) extends BaseWebsocketHandler(context, config) {
 
@@ -233,6 +235,7 @@ abstract class WebsocketHandler[P <: Protocol](context: Context, config: Control
     }
   }
 }
+
 
 object WebsocketHandler {
   val DefaultConfig = ControllerConfig(1024, scala.concurrent.duration.Duration.Inf)
@@ -274,9 +277,12 @@ extends protocols.http.server.RequestHandler(ServiceConfig.Default, ctx) {
   }
 }
 
+
 object WebsocketServer {
   import protocols.http._
   import server._
+
+  */
 
   /**
    * Start a Websocket server on the specified port.  Since Websocket
@@ -284,6 +290,8 @@ object WebsocketServer {
    * HTTP server and react to Websocket upgrade requests on the path
    * `upgradePath`, all other paths will 404.
    */
+
+/*
   def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
     HttpServer.start(name, port){context => new Initializer(context) {
     
@@ -296,3 +304,4 @@ object WebsocketServer {
 
 }
 
+*/

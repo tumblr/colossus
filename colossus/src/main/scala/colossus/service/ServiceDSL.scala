@@ -51,7 +51,7 @@ import Protocol._
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-class DSLService[C <: Protocol](config: ServiceConfig, context: ServerContext, val requestHandler: GenRequestHandler[C]) extends ServiceServer[C](config, context){ 
+abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) extends ServiceServer[C](requestHandler.config, requestHandler.context){ 
 
   override def onBind() {
     requestHandler.onBind(upstream.connection)
@@ -75,7 +75,7 @@ class DSLService[C <: Protocol](config: ServiceConfig, context: ServerContext, v
 
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
+abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) extends HandlerTail {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 
@@ -167,7 +167,7 @@ trait BasicServiceDSL[P <: Protocol] {
   protected class ServiceHandler(rh: RequestHandler) 
   extends DSLService[P](rh) {
 
-    val codec = provideCodec()
+    //val codec = provideCodec()
 
     def unhandledError = {
       case error => errorMessage(error)
@@ -177,7 +177,8 @@ trait BasicServiceDSL[P <: Protocol] {
 
   protected class Generator(context: InitContext) extends HandlerGenerator[P, RequestHandler](context) {
 
-    def fullHandler = new ServiceHandler(_)
+    //TODO: FIX
+    def fullHandler = ???//new ServiceHandler(_)
 
   }
 

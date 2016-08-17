@@ -25,7 +25,7 @@ case class ControllerConfig(
 )
 
 //these are the methods that the controller layer requires to be implemented by it's downstream neighbor
-trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]]{
+trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
   def processMessage(input: E#Input)
 
@@ -56,17 +56,15 @@ trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] with UpstreamEv
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseController[E <: Encoding] { //self: Writer[E#Output] with HasUpstream[ConnectionManager] =>
+trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { //self: Writer[E#Output] with HasUpstream[ConnectionManager] =>
   def fatalError(reason: Throwable) {
     //TODO: FIX
     //onFatalError(reason).foreach{o => push(o){_ => ()}}
     //upstream.disconnect()
   }
 
-  def onConnected()
-
-  def upstream: CoreUpstream
-  def downstream: ControllerDownstream[E]
+  //def upstream: CoreUpstream
+  //def downstream: ControllerDownstream[E]
   def controllerConfig: ControllerConfig
   def codec: Codec[E]
   def context: Context
@@ -75,7 +73,7 @@ trait BaseController[E <: Encoding] { //self: Writer[E#Output] with HasUpstream[
 }
 
 class Controller[E <: Encoding](val context: Context, val downstream: ControllerDownstream[E], val codec: Codec[E], val controllerConfig: ControllerConfig) 
-extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream with UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]]{
+extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
   //TODO : FIX - probably put this in controller config
   implicit val namespace: MetricNamespace = context.worker.system.metrics

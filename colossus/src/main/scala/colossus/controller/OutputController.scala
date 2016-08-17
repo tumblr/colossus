@@ -72,7 +72,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   private var _writesEnabled = true
   private var outputBuffer = new MessageQueue[E#Output](controllerConfig.outputBufferSize)
 
-  protected def pendingBufferSize = outputBuffer.size
+  def pendingBufferSize = outputBuffer.size
 
   def writesEnabled = _writesEnabled
 
@@ -88,7 +88,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     if (!outputBuffer.isEmpty) signalWrite()
   }
 
-  protected def purgePending(reason: Throwable) {
+  def purgePending(reason: Throwable) {
     while (!outputBuffer.isEmpty) {
       outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
     }
@@ -119,7 +119,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     onClosed()
   }
 
-  def idleCheck(period: FiniteDuration) {
+  override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
       val expired = outputBuffer.dequeue
@@ -127,6 +127,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     }
   }
 
+  //TODO: controller should not get access to this!!!
   private def signalWrite() {
     upstream.connectionState match {
       case a: AliveState => {

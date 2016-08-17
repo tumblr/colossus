@@ -6,7 +6,7 @@ import protocols.http._
 import stream._
 
 import scala.util.{Failure, Success, Try}
-
+/*
 
 object StreamExample {
 
@@ -39,3 +39,5 @@ object StreamExample {
     }}
   }
 }
+
+*/

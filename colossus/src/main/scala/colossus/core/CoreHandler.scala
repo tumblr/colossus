@@ -59,9 +59,9 @@ trait FlowControl {
  * These are the methods the Core layer directly exposes to its downstream
  * neighbor which are generally not meant to be exposed further downstream
  */
-trait CoreUpstream extends ConnectionManager with FlowControl with UpstreamEvents {
+trait CoreUpstream extends ConnectionManager  with UpstreamEvents {
 
-  def requestWrite()
+  //def requestWrite()
 
 
 }
@@ -161,7 +161,7 @@ trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasU
 trait CoreDownstream extends HasUpstream[CoreUpstream] with DownstreamEvents {
 
   def receivedData(data: DataBuffer)
-  def readyForData(buffer: DataOutBuffer)
+  def readyForData(buffer: DataOutBuffer): MoreDataResult
 }
 
 
@@ -177,7 +177,7 @@ trait HandlerTail extends UpstreamEvents {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val context: Context) extends ConnectionHandler with CoreUpstream {
+class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val context: Context) extends ConnectionHandler with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler{
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
@@ -262,7 +262,7 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val con
     }
   }
 
-  protected def shutdown() {
+  final override def shutdown() {
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
@@ -271,9 +271,11 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val con
     }
   }
 
-  def receivedData(buffer: DataBuffer) {
+  def receivedData(buffer: DataBuffer){
     downstream.receivedData(buffer)
   }
+
+  def readyForData(out: DataOutBuffer): MoreDataResult = downstream.readyForData(out)
 
   def idleCheck(period: FiniteDuration) {
     downstream.idleCheck(period)
@@ -289,9 +291,11 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val con
     downstream.unbind()
   }
 
-  def receivedMessage(sender: ActorRef, message: Any) {
+  def receivedMessage(message: Any, sender: ActorRef) {
     downstream.receivedMessage(sender, message)
   }
+  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = ???
+  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = ???
 
 
 }

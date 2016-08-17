@@ -3,12 +3,14 @@ package protocols.http
 package server
 
 import colossus.metrics.TagMap
-import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
+import core._
 import controller._
 import service._
 
+import scala.concurrent.duration._
+
 class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
-extends BasicServiceHandler[Http](rh) {
+extends DSLService[Http](rh) {
 
   val codec = new StaticHttpServerCodec(defaultHeaders)
 
@@ -18,7 +20,7 @@ extends BasicServiceHandler[Http](rh) {
 
   override def processRequest(input: Http#Input): Callback[Http#Output] = {
     val response = super.processRequest(input)
-    if(!input.head.persistConnection) disconnect()
+    if(!input.head.persistConnection) connection.disconnect()
     response
   }
   def unhandledError = {
@@ -35,7 +37,16 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
 
   val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
 
-  def fullHandler = new HttpServiceHandler(_, defaultHeaders)
+  def fullHandler = requestHandler => new CoreHandler(
+    new Controller(
+      requestHandler.context.context,
+      new HttpServiceHandler(requestHandler, defaultHeaders),
+      new StaticHttpServerCodec(defaultHeaders),
+      ControllerConfig(50, Duration.Inf)      
+    ),
+    requestHandler,
+    requestHandler.context.context
+  )
 
 }
 

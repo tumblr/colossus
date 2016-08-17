@@ -110,7 +110,7 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  *
  */
 abstract class ServiceServer[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext)
-extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstream[P#ServerEncoding]] {
+extends ControllerDownstream[P#ServerEncoding] with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] {
   import ServiceServer._
 
   type I = P#ServerEncoding#Input
@@ -121,6 +121,8 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
  
   protected def processFailure(error: ProcessingFailure[I]): O
+
+  def connection = upstream.connection
 
   import config._
 
@@ -248,7 +250,7 @@ extends ControllerDownstream[P#ServerEncoding] with HasUpstream[ControllerUpstre
     }
   }
 
-  protected def processMessage(request: I) {
+  def processMessage(request: I) {
     numRequests += 1
     val promise = new SyncPromise(request)
     requestBuffer.add(promise)
