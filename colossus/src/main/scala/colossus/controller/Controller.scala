@@ -56,15 +56,13 @@ trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] with UpstreamEv
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { //self: Writer[E#Output] with HasUpstream[ConnectionManager] =>
+trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { 
   def fatalError(reason: Throwable) {
     //TODO: FIX
     //onFatalError(reason).foreach{o => push(o){_ => ()}}
-    //upstream.disconnect()
+    upstream.disconnect()
   }
 
-  //def upstream: CoreUpstream
-  //def downstream: ControllerDownstream[E]
   def controllerConfig: ControllerConfig
   def codec: Codec[E]
   def context: Context
@@ -72,7 +70,7 @@ trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] w
   implicit val namespace: MetricNamespace
 }
 
-class Controller[E <: Encoding](val context: Context, val downstream: ControllerDownstream[E], val codec: Codec[E], val controllerConfig: ControllerConfig) 
+class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E], val controllerConfig: ControllerConfig) 
 extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
   //TODO : FIX - probably put this in controller config

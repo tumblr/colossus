@@ -27,10 +27,12 @@ object ColossusBuild extends Build {
         "-language:implicitConversions", 
         "-language:postfixOps", 
         "-unchecked", 
-        "-deprecation"
+        "-deprecation",
+        "-target:jvm-1.8"
       )
       if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
     },
+    javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
     scalacOptions in (Compile, console) := Seq(),
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,

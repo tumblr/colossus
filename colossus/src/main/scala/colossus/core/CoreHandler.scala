@@ -99,11 +99,17 @@ trait DownstreamEvents {
   protected def onIdleCheck(period: FiniteDuration){}
   protected def onReceivedMessage(sender: ActorRef, message: Any) {}
 
+  //not really an event, but makes sense to go here for now, since currently the
+  //tail (RequestHandler) is given the context
+  def context: Context
+
 }
 
 /**
  * This trait can be used for layers that are in the head or middle of a
  * pipeline.  It will automatically propagate events to the downstream neighbor.
+ * Notice that for each event, the onEvent method is called before propagating
+ * the event downstream.
  */
 trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents with HasDownstream[T] {
   override def connected() {
@@ -131,6 +137,8 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
     downstream.receivedMessage(sender, message)
   }
 
+  def context = downstream.context
+
 
 }
 
@@ -144,6 +152,7 @@ trait UpstreamEvents {
 
   protected def onShutdown() {}
 
+
 }
 
 trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasUpstream[T]{
@@ -151,6 +160,8 @@ trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasU
     super.shutdown()
     upstream.shutdown()
   }
+
+
 }
     
 
@@ -177,11 +188,12 @@ trait HandlerTail extends UpstreamEvents {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail, val context: Context) extends ConnectionHandler with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler{
+class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends ConnectionHandler with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler{
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
+  def context = downstream.context
 
   downstream.setUpstream(this)
 

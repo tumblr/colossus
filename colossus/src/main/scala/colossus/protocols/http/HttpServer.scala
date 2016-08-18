@@ -9,10 +9,8 @@ import service._
 
 import scala.concurrent.duration._
 
-class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
+class HttpServiceHandler(rh: RequestHandler) 
 extends DSLService[Http](rh) {
-
-  val codec = new StaticHttpServerCodec(defaultHeaders)
 
   val defaults = new Http.ServerDefaults
 
@@ -39,13 +37,11 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
 
   def fullHandler = requestHandler => new CoreHandler(
     new Controller(
-      requestHandler.context.context,
-      new HttpServiceHandler(requestHandler, defaultHeaders),
+      new HttpServiceHandler(requestHandler),
       new StaticHttpServerCodec(defaultHeaders),
-      ControllerConfig(50, Duration.Inf)      
+      ControllerConfig(50, Duration.Inf, metricsEnabled = false)      
     ),
-    requestHandler,
-    requestHandler.context.context
+    requestHandler
   )
 
 }

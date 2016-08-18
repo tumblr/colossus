@@ -51,10 +51,11 @@ import Protocol._
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) extends ServiceServer[C](requestHandler.config, requestHandler.context){ 
+abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) 
+extends ServiceServer[C](requestHandler.config) with DownstreamEventHandler[GenRequestHandler[C]] { 
 
   override def onBind() {
-    requestHandler.onBind(upstream.connection)
+    requestHandler.setConnection(upstream.connection)
   }
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
@@ -62,7 +63,10 @@ abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C
       Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
 
+  def serverContext = requestHandler.serverContext
+
   protected def unhandledError: ErrorHandler[C] 
+  def downstream = requestHandler
 
   private lazy val handler: PartialHandler[C] = requestHandler.handle orElse unhandled
   private lazy val errorHandler: ErrorHandler[C] = requestHandler.onError orElse unhandledError
@@ -75,12 +79,13 @@ abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C
 
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) extends HandlerTail {
+abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) extends DownstreamEvents with HandlerTail {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 
-  val server = context.server
-  implicit val worker = context.context.worker
+  val server = serverContext.server
+  def context = serverContext.context
+  implicit val worker = context.worker
 
   private var _connectionManager: Option[ConnectionManager] = None
 
@@ -88,11 +93,11 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
     throw new RequestHandlerException("Cannot access connection before request handler is bound")
   }
 
-  def onBind(connection: ConnectionManager) {
+  def setConnection(connection: ConnectionManager) {
     _connectionManager = Some(connection)
   }
 
-  implicit val executor   = context.context.worker.callbackExecutor
+  implicit val executor   = context.worker.callbackExecutor
 
   def handle: PartialHandler[P]
 

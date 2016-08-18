@@ -158,7 +158,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
     val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-    val fullhandler = new CoreHandler(new Controller(context, this, codec, controllerConfig), this, context)
+    val fullhandler = new CoreHandler(new Controller(this, codec, controllerConfig), this)
     worker.worker ! WorkerCommand.Bind(fullhandler)
   }
 

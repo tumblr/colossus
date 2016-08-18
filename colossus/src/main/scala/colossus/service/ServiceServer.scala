@@ -109,12 +109,14 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext)
+abstract class ServiceServer[P <: Protocol](val config: ServiceConfig)
 extends ControllerDownstream[P#ServerEncoding] with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] {
   import ServiceServer._
 
   type I = P#ServerEncoding#Input
   type O = P#ServerEncoding#Output
+
+  protected def serverContext: ServerContext
 
   protected def processRequest(request: I): Callback[O]
 
@@ -128,7 +130,6 @@ extends ControllerDownstream[P#ServerEncoding] with UpstreamEventHandler[Control
 
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
-  def context = serverContext.context
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
