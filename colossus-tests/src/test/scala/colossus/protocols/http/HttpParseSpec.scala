@@ -60,7 +60,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           parser.parse(DataBuffer(ByteString(p1))).toList must equal(Nil)
           parser.parse(DataBuffer(ByteString(p2))).toList must equal(List(expected))
         } catch {
-          case t: Throwable => throw new Exception(s"Failed with splitIndex $splitIndex: '$p1' : '$p2'", t)
+          case t: Throwable => throw new Exception(s"Failed with splitIndex $splitIndex: '$p1' : '$p2' : $t", t)
         }
       }
 
