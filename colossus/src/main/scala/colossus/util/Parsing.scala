@@ -22,6 +22,7 @@ case class DataSize(value: Long) extends AnyVal {
   def KB: DataSize = DataSize(value * 1024)
   def bytes = this
 }
+import DataSize._
 
 object DataSize {
 
@@ -289,14 +290,15 @@ object Combinators {
   /**
    * read a fixed number bytes, prefixed by a length
    */
-  def bytes(num: Parser[Int]): Parser[Array[Byte]] = num |> bytes
+  def bytes(num: Parser[Int], maxSize: DataSize, maxInitBufferSize: DataSize): Parser[Array[Byte]] = num |> {s => bytes(s, maxSize, maxInitBufferSize)}
 
-  def bytes(num: Int): Parser[Array[Byte]] = new Parser[Array[Byte]] {
-    if (num < 0) {
+
+  def bytes(num: Int, maxSize: DataSize, maxInitBufferSize: DataSize): Parser[Array[Byte]] = new Parser[Array[Byte]] {
+    if (num < 0 || num > maxSize.bytes.value) {
       throw new ParseException(s"Invalid number $num for bytes parser")
-    }
+    } 
 
-    val builder = new FastArrayBuilder(num, false)
+    val builder = new FastArrayBuilder(math.min(num, maxInitBufferSize.bytes.value.toInt), false)
 
     def parse(data: DataBuffer): Option[Array[Byte]] = {
       val remaining = num - builder.written
@@ -310,6 +312,9 @@ object Combinators {
 
     }
   }
+
+  def bytes(num: Parser[Int]): Parser[Array[Byte]] = bytes(num, 10.MB, 1.MB)
+  def bytes(num: Int): Parser[Array[Byte]] = bytes(num, 10.MB, 1.MB)
 
   /**
    * Keep reading bytes until the terminus is encounted.  This accounts for

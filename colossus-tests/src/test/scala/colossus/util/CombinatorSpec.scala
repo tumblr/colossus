@@ -8,6 +8,7 @@ import Combinators._
 import org.scalatest._
 
 import akka.util.ByteString
+import DataSize._
 
 
 class CombinatorSuite extends WordSpec with MustMatchers{
@@ -33,6 +34,15 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       val d = data("12:abcdefghijklmn")
       parser.parse(d) must equal (Some(bstr("abcdefghijkl")))
     }
+    "bytes rejects sizes too large" in {
+      intercept[ParseException] {
+        val parser = bytes(5000, 1.KB, 1.KB)
+      }
+    }
+    "bytes respects init size" in {
+      val parser = bytes(Int.MaxValue, Int.MaxValue.bytes, 5.bytes)
+    }
+
     "const is const" in {
       val d = data("abcdefg")
       val parser = const(1)
