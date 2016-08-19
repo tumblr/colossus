@@ -748,7 +748,10 @@ object Combinators {
    * A very fast dynamically growable array builder.  Do not be tempted to
    * replace this with any out-of-the-box Java/Scala class.  This is faster.
    */
-  class FastArrayBuilder(initSize: Int, shrinkOnComplete: Boolean = false) {
+  trait FastArrayBuilding {
+    
+    def initSize: Int
+    def shrinkOnComplete: Boolean
     
     //TODO : This class is somewhat similar to the DynamicOutBuffer, maybe
     //there's a way to avoid duplicated logic
@@ -759,13 +762,13 @@ object Combinators {
 
     def written = writePos
 
-    private def grow() {
+    @inline final private def grow() {
       val nb = new Array[Byte](build.length * 2)
       System.arraycopy(build, 0, nb, 0, build.length)
       build = nb
     }
 
-    def write(b: Byte) {
+    @inline final def write(b: Byte) {
       if (writePos == build.length) {
         grow()
       }
@@ -801,6 +804,7 @@ object Combinators {
       res
     }
   }
+  class FastArrayBuilder(val initSize: Int, val shrinkOnComplete: Boolean = false) extends FastArrayBuilding
 
 
 
@@ -816,46 +820,46 @@ object Combinators {
    * faster.  I have made several attempts to get the bytesUntil parser as fast
    * as this one to no avail.
    */
-  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] {
+  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100) extends Parser[T] with FastArrayBuilding {
     private val CR    = '\r'.toByte
     private val LF    = '\n'.toByte
-    private val empty = Array[Byte]()
-    private val build = new FastArrayBuilder(internalBufferBaseSize)
+
+    def initSize = internalBufferBaseSize
+    def shrinkOnComplete = false
 
     var scanByte = CR
 
-    def complete() : T = {
-      scanByte = CR
-      constructor(build.complete)
+    private final def checkLineFeed(buffer: DataBuffer) : T = {
+      val b = buffer.data.get
+      if (b == LF) {
+        if (includeNewline) {
+          write(CR)
+          write(LF)
+        } 
+        scanByte = CR
+        constructor(complete())
+      } else {
+        throw new ParseException("Malformed newline, expected \\r, got '$b'")
+      }
     }
 
     def parse(buffer: DataBuffer): Option[T] = {
       var res: Option[T] = None
+      if (scanByte == LF && buffer.hasUnreadData) {
+        res = Some(checkLineFeed(buffer))
+      }
       while (buffer.hasUnreadData && res == None) {
         val byte = buffer.data.get
-        if (byte == scanByte) {
-          if (scanByte == CR) {
-            //the -1 is so we don't copy-in the \r
-            if (includeNewline) {
-              build.write(byte)
-              build.write(LF)
-            } 
-            if (buffer.hasUnreadData) {
-              //usually we can skip scanning for the \n
-              //do an extra get to read in the \n
-              buffer.data.position(buffer.data.position + 1)
-              res = Some(complete())
-            } else {
-              //this would only happen if the \n is in the next packet/buffer,
-              //very rare but it can happen, but we can't complete until we've read it in
-              scanByte = LF
-            }
+        if (byte == CR ) {
+          if (buffer.hasUnreadData) {
+            res = Some(checkLineFeed(buffer))
           } else {
-            //this happens when the LF is the first byte of the data buffer
-            res = Some(complete())
+            //this would only happen if the \n is in the next packet/buffer,
+            //very rare but it can happen, but we can't complete until we've read it in
+            scanByte = LF
           }
         } else {
-          build.write(byte)
+          write(byte)
         }
       }
       res
