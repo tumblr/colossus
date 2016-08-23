@@ -52,7 +52,10 @@ class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
 abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) 
-extends ServiceServer[C](requestHandler.config) with DownstreamEventHandler[GenRequestHandler[C]] { 
+extends ServiceServer[C](requestHandler.config) 
+with DownstreamEventHandler[GenRequestHandler[C]] { 
+
+  downstream.setUpstream(this)
 
   override def onBind() {
     requestHandler.setConnection(upstream.connection)
@@ -79,7 +82,8 @@ extends ServiceServer[C](requestHandler.config) with DownstreamEventHandler[GenR
 
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) extends DownstreamEvents with HandlerTail {
+abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) 
+extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstream[P]] {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 

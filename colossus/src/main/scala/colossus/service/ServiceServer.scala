@@ -95,6 +95,8 @@ class FatalServiceServerException(message: String) extends ServiceServerExceptio
 
 class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
+trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
+
 
 /**
  * The ServiceServer provides an interface and basic functionality to create a server that processes
@@ -110,7 +112,10 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  *
  */
 abstract class ServiceServer[P <: Protocol](val config: ServiceConfig)
-extends ControllerDownstream[P#ServerEncoding] with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] {
+extends ControllerDownstream[P#ServerEncoding] 
+with ServiceUpstream[P] 
+with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] 
+{
   import ServiceServer._
 
   type I = P#ServerEncoding#Input

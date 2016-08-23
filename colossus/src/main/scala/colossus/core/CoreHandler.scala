@@ -147,6 +147,7 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
  */
 trait UpstreamEvents {
   def shutdown() {
+    println(s"$this SHUTDOWN")
     onShutdown()
   }
 
@@ -157,6 +158,7 @@ trait UpstreamEvents {
 
 trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasUpstream[T]{
   override def shutdown() {
+    println(s"$this shutdown event")
     super.shutdown()
     upstream.shutdown()
   }
@@ -284,6 +286,7 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
   }
 
   def receivedData(buffer: DataBuffer){
+    println("DATA")
     downstream.receivedData(buffer)
   }
 
@@ -306,8 +309,8 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
   def receivedMessage(message: Any, sender: ActorRef) {
     downstream.receivedMessage(sender, message)
   }
-  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = ???
-  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = ???
+  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = downstream.connectionTerminated(cause)
+  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = downstream.connectionTerminated(cause)
 
 
 }

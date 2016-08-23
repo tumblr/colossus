@@ -8,7 +8,6 @@ import subprotocols.rawstring._
 import akka.actor._
 
 import scala.concurrent.duration._
-/*
 
 class PrimeGenerator extends Actor {
 
@@ -48,18 +47,21 @@ object WebsocketExample {
     
     val generator = io.actorSystem.actorOf(Props[PrimeGenerator])
 
-    WebsocketServer.start("websocket", port){worker => new WebsocketInitializer(worker) {
+    WebsocketServer.start[RawString]("websocket", port){worker => new WebsocketInitializer[RawString](worker) {
+
+      def provideCodec() = new RawStringCodec
       
-      def onConnect = ctx => new WebsocketServerHandler[RawString](ctx) with ProxyActor {
+      def onConnect = ctx => new WebsocketHandler[RawString](ctx.context) {
         private var sending = false
 
-        override def preStart() {
-          sendMessage("HELLO THERE!")
+        println("STARTINGUP")
+
+        override def onConnected() {
+          send("HELLO THERE!")
         }
 
-        override def shutdown() {
-          sendMessage("goodbye!")
-          super.shutdown()
+        override def onShutdown() {
+          send("goodbye!")
         }
 
         def handle = {
@@ -71,34 +73,37 @@ object WebsocketExample {
             sending = false
           }
           case "LARGE" => {
-            sendMessage((0 to 1000).mkString)
+            send((0 to 1000).mkString)
           }
           case "MANY" => {
             //send one message per event loop iteration
             def next(i: Int) {
-              if (i > 0) sendMessage(i.toString){_ => next(i - 1)}
+              if (i > 0) send(i.toString)//{_ => next(i - 1)}
             }
             next(1000)
           }
           case "EXIT" => {
-            disconnect()
+            //uhhh
+            upstream.upstream.connection.disconnect()
           }
           case other => {
-            sendMessage(s"unknown command: $other")
+            send(s"unknown command: $other")
           }
         }
 
         def handleError(reason: Throwable){}
 
+        /*
         def receive = {
           case prime: Integer => {
-            sendMessage(s"PRIME: $prime")
+            send(s"PRIME: $prime")
             if(sending) {
               import io.actorSystem.dispatcher
               io.actorSystem.scheduler.scheduleOnce(100.milliseconds, generator , Next)
             }
           }
         }
+        */
 
       }
 
@@ -106,4 +111,3 @@ object WebsocketExample {
 
   }
 }
-*/

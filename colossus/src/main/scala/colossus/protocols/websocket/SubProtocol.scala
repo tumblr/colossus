@@ -1,26 +1,26 @@
 package colossus
 package protocols.websocket
 
-import service._
+import controller.Encoding
 
 import scala.util.Try
 
 import core.DataBlock
 
 
-trait FrameCodec[P <: Protocol] {
+trait FrameCodec[E <: Encoding] {
 
-  def decode(data: DataBlock): Try[P#Input]
-  def encode(output: P#Output): DataBlock
+  def decode(data: DataBlock): Try[E#Input]
+  def encode(output: E#Output): DataBlock
 }
 
 object subprotocols {
 
   object rawstring {
     
-    trait RawString extends Protocol {
-      type Request = String
-      type Response = String
+    trait RawString extends Encoding {
+      type Input = String
+      type Output = String
     }
 
     class RawStringCodec extends FrameCodec[RawString] {
@@ -34,8 +34,8 @@ object subprotocols {
   }
 }
 
-trait FrameCodecProvider[P <: Protocol] {
+trait FrameCodecProvider[E <: Encoding] {
   
-  def provideCodec(): FrameCodec[P]
+  def provideCodec(): FrameCodec[E]
 
 }
