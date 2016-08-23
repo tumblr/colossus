@@ -154,11 +154,12 @@ class ServiceClient[P <: Protocol](
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
 extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstream[P#ClientEncoding]] with Sender[P, Callback] with HandlerTail {
 
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true)
 
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
     val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-    val fullhandler = new CoreHandler(new Controller(this, codec, controllerConfig), this)
+    val fullhandler = new CoreHandler(new Controller(this, codec), this)
     worker.worker ! WorkerCommand.Bind(fullhandler)
   }
 

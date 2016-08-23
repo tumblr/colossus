@@ -34,6 +34,8 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
     println(s"Fatal Error: $reason, disconnecting")
     None
   }
+
+  def controllerConfig: ControllerConfig
 }
 
 trait Writer[T] {
@@ -70,7 +72,7 @@ trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] w
   implicit val namespace: MetricNamespace
 }
 
-class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E], val controllerConfig: ControllerConfig) 
+class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E]) 
 extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
   //TODO : FIX - probably put this in controller config
@@ -79,6 +81,7 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
   downstream.setUpstream(this)
   
   def connection = upstream
+  def controllerConfig = downstream.controllerConfig
   
 
 }

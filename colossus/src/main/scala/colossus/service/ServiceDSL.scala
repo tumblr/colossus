@@ -110,7 +110,7 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val s
 }
 
 
-abstract class HandlerGenerator[P <: Protocol, T <: GenRequestHandler[P]](ctx: InitContext) {
+abstract class HandlerGenerator[T](ctx: InitContext) {
   implicit val worker = ctx.worker
   val server = ctx.server
 
@@ -118,16 +118,14 @@ abstract class HandlerGenerator[P <: Protocol, T <: GenRequestHandler[P]](ctx: I
   def fullHandler: T => ServerConnectionHandler
 }
 
-trait ServiceInitializer[P <: Protocol, T <: GenRequestHandler[P]] extends HandlerGenerator[P,T] {
+trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
   def onConnect: ServerContext => T
 }
 
+trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
-
-trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializer[P,R]] {
-
-  def basicInitializer: InitContext => HandlerGenerator[P, R]
+  def basicInitializer: InitContext => HandlerGenerator[T]
 
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, settings){i => new core.Initializer(i) {
@@ -144,18 +142,12 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
     }}
   }
 
-  def basic(name: String, port: Int, handler: ServerContext => R)(implicit io: IOSystem) = {
+  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
     Server.start(name, port){i => new core.Initializer(i) {
       val rinit = basicInitializer(i)
       def onConnect = ctx => rinit.fullHandler(handler(ctx))
     }}
   }
-
-  /*
-  def basic(name: String, port: Int)(handler: PartialHandler[P])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
-    def onConnect = new RequestHandler(_) { def handle = handler }
-  }}
-  */
 
 }
 
@@ -164,6 +156,8 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
  * functionality.  Just provide a codec and you're good to go
  */
 trait BasicServiceDSL[P <: Protocol] {
+  import controller.Controller
+  import core.CoreHandler
 
   protected def provideCodec(): Codec.Server[P]
 
@@ -172,28 +166,25 @@ trait BasicServiceDSL[P <: Protocol] {
   protected class ServiceHandler(rh: RequestHandler) 
   extends DSLService[P](rh) {
 
-    //val codec = provideCodec()
-
     def unhandledError = {
       case error => errorMessage(error)
     }
 
   }
 
-  protected class Generator(context: InitContext) extends HandlerGenerator[P, RequestHandler](context) {
+  protected class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
 
-    //TODO: FIX
-    def fullHandler = ???//new ServiceHandler(_)
+    def fullHandler = rh => new CoreHandler(new Controller(new ServiceHandler(rh), provideCodec()), rh)
 
   }
 
-  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[P, RequestHandler]
+  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[RequestHandler]
 
   abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
     def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
   }
 
-  object Server extends ServiceDSL[P, RequestHandler, Initializer] {
+  object Server extends ServiceDSL[RequestHandler, Initializer] {
 
     def basicInitializer = new Generator(_)
 

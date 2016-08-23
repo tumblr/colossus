@@ -28,7 +28,7 @@ extends DSLService[Http](rh) {
 }
 
 
-protected[server] class Generator(context: InitContext) extends HandlerGenerator[Http, RequestHandler](context) {
+protected[server] class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
   
   val DateHeader = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)
@@ -38,22 +38,21 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
   def fullHandler = requestHandler => new CoreHandler(
     new Controller(
       new HttpServiceHandler(requestHandler),
-      new StaticHttpServerCodec(defaultHeaders),
-      ControllerConfig(50, Duration.Inf, metricsEnabled = false)      
+      new StaticHttpServerCodec(defaultHeaders)
     ),
     requestHandler
   )
 
 }
 
-abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[Http, RequestHandler]
+abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[RequestHandler]
 
 
 abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
   def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
 }
 
-object HttpServer extends ServiceDSL[Http, RequestHandler, Initializer]{
+object HttpServer extends ServiceDSL[RequestHandler, Initializer]{
 
   def basicInitializer = new Generator(_)
   

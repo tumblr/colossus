@@ -134,6 +134,7 @@ extends ControllerDownstream[P#ServerEncoding] with UpstreamEventHandler[Control
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
+  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")
