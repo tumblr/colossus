@@ -4,7 +4,7 @@ package stream
 
 import colossus.metrics.MetricNamespace
 import controller._
-import service.Protocol
+import service.{Protocol, HandlerGenerator, ServiceInitializer, ServiceDSL}
 import core._
 import parsing.Combinators.Parser
 
@@ -254,4 +254,16 @@ extends StreamHandler[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse]
 
 }
 
+class StreamHandlerGenerator(ctx: InitContext) extends HandlerGenerator[StreamServerHandler](ctx) {
+  
+  def fullHandler = handler => {
+    new CoreHandler(new Controller(new ServerStreamController(handler), new StreamHttpServerCodec), handler) with ServerConnectionHandler
+  }
+}
+
+abstract class Initializer(ctx: InitContext) extends StreamHandlerGenerator(ctx) with ServiceInitializer[StreamServerHandler] 
+
+object StreamHttpServer extends ServiceDSL[StreamServerHandler, Initializer] {
+  def basicInitializer = new StreamHandlerGenerator(_)
+}
 
