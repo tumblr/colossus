@@ -477,7 +477,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           try {
             val len = sc.read(buffer)
             if (len > -1) {
-              println("GOT DATA")
               key.attachment match {
                 case connection: Connection => {
                   buffer.flip

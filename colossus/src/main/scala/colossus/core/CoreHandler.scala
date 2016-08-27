@@ -147,7 +147,6 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
  */
 trait UpstreamEvents {
   def shutdown() {
-    println(s"$this SHUTDOWN")
     onShutdown()
   }
 
@@ -158,7 +157,6 @@ trait UpstreamEvents {
 
 trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasUpstream[T]{
   override def shutdown() {
-    println(s"$this shutdown event")
     super.shutdown()
     upstream.shutdown()
   }
@@ -286,7 +284,6 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
   }
 
   def receivedData(buffer: DataBuffer){
-    println("DATA")
     downstream.receivedData(buffer)
   }
 

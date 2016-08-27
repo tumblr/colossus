@@ -42,7 +42,6 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
   }
 
   def receivedData(data: DataBuffer) {
-    println("DATA")
     try {
       var done = false
       while (!done) {

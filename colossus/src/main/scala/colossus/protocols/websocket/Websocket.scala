@@ -182,7 +182,10 @@ with HasUpstream[ControllerUpstream[WebsocketEncoding]] {
 
   private def send(bytes: DataBlock)(postWrite: OutputResult => Unit): Boolean = {
     //note - as per the spec, server frames are never masked
-    upstream.push(Frame(Header(OpCodes.Text, false), bytes))(postWrite)
+    val frame = Frame(Header(OpCodes.Text, false), bytes)
+    val buf = frame.encode(new Random)
+    println(s"PUSHING $frame : ${ByteString(buf.takeAll)}")
+    upstream.push(frame)(postWrite)
   }
 
   def send(message: E#Output) {
