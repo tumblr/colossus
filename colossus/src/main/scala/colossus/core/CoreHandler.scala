@@ -153,6 +153,7 @@ trait UpstreamEvents {
   protected def onShutdown() {}
 
 
+
 }
 
 trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasUpstream[T]{

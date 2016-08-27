@@ -28,7 +28,10 @@ object StreamExample {
             upstream.pushCompleteMessage(HttpResponse.badRequest(reason.getMessage)){_ => ()}
           }
         }
-        case Head(head) => upstream.pushCompleteMessage(HttpResponse.ok("Hello World!")){_ => ()}
+        case Head(head) if (head.path == "/") => upstream.pushCompleteMessage(HttpResponse.ok("Hello World!")){_ => ()}
+        case Head(_) => {
+          upstream.pushCompleteMessage(HttpResponse.notFound("Bye!")){_ => shutdown()}
+        }
         case _ => {}
       }
     }

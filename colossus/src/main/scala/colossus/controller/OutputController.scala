@@ -144,7 +144,10 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
   private def checkShutdown() {
     if (disconnecting && outputBuffer.isEmpty) {
-      upstream.shutdown()
+      //we do this instead of shutting down immediately since this could be
+      //called while in the middle of writing and end up prematurely closing the
+      //connection
+      signalWrite()
     }
   }
 
@@ -161,7 +164,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
   def readyForData(buffer: DataOutBuffer) =  {
     if (disconnecting && outputBuffer.isEmpty) {
-      checkShutdown()
+      upstream.shutdown()
       MoreDataResult.Complete
     } else {
       while (writesEnabled && outputBuffer.size > 0 && ! buffer.isOverflowed) {
