@@ -248,7 +248,7 @@ abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {
 
 
   def fullHandler(w: WebsocketHandler[E]): ServerConnectionHandler = {
-    new CoreHandler(
+    new PipelineHandler(
       new Controller(
         new WebsocketController(
           w,

@@ -136,6 +136,12 @@ object ClientState {
   case object Terminated    extends ClientState
 
 }
+
+
+//this is needed because trying to mix in any trait to CoreHandler when constructing causes the compiler to crash.
+
+class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandler(ds, tail) with ManualUnbindHandler
+
 /**
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
@@ -159,7 +165,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
     val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-    val fullhandler = new CoreHandler(new Controller(this, codec), this)
+    val fullhandler: ClientConnectionHandler = new UnbindHandler(new Controller(this, codec), this)
     worker.worker ! WorkerCommand.Bind(fullhandler)
   }
 
@@ -279,8 +285,6 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
     checkGracefulDisconnect()
     if (!upstream.writesEnabled) upstream.resumeWrites()
   }
-
-  def receivedMessage(message: Any, sender: ActorRef) {}
 
   override def connected() {
     log.info(s"$id Connected to $address")

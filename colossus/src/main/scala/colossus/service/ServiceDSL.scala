@@ -178,7 +178,7 @@ trait BasicServiceDSL[P <: Protocol] {
 
   protected class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
 
-    def fullHandler = rh => new CoreHandler(new Controller(new ServiceHandler(rh), provideCodec()), rh)
+    def fullHandler = rh => new PipelineHandler(new Controller(new ServiceHandler(rh), provideCodec()), rh)
 
   }
 

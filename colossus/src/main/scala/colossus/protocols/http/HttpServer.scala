@@ -35,7 +35,7 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
 
   val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
 
-  def fullHandler = requestHandler => new CoreHandler(
+  def fullHandler = requestHandler => new PipelineHandler(
     new Controller(
       new HttpServiceHandler(requestHandler),
       new StaticHttpServerCodec(defaultHeaders)

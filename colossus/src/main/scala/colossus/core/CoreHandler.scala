@@ -83,17 +83,15 @@ trait HasDownstream[T] {
 /**
  * These are events that propagate to each layer starting from the head and moving downstream
  */
-trait DownstreamEvents {
+trait DownstreamEvents extends WorkerItemEvents {
   
   def connected() { onConnected() }
   def connectionTerminated(reason: DisconnectCause) { onConnectionTerminated(reason) }
   def idleCheck(period: FiniteDuration) { onIdleCheck(period) }
   def bind() { onBind() }
   def unbind() { onUnbind() }
-  def receivedMessage(sender: ActorRef, message: Any) { onReceivedMessage(sender, message) }
+  override def receivedMessage(message: Any, sender: ActorRef) { onReceivedMessage(sender, message) }
 
-  protected def onBind() {}
-  protected def onUnbind() {}
   protected def onConnected() {}
   protected def onConnectionTerminated(reason: DisconnectCause) {}
   protected def onIdleCheck(period: FiniteDuration){}
@@ -132,9 +130,9 @@ trait DownstreamEventHandler[T <: DownstreamEvents] extends DownstreamEvents wit
     super.unbind()
     downstream.unbind()
   }
-  override def receivedMessage(sender: ActorRef, message: Any) { 
-    super.receivedMessage(sender, message)
-    downstream.receivedMessage(sender, message)
+  override def receivedMessage(message: Any, sender: ActorRef) { 
+    super.receivedMessage(message, sender)
+    downstream.receivedMessage(message, sender)
   }
 
   def context = downstream.context
@@ -151,6 +149,8 @@ trait UpstreamEvents {
   }
 
   protected def onShutdown() {}
+
+
 
 
 
@@ -189,14 +189,11 @@ trait HandlerTail extends UpstreamEvents {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends ConnectionHandler with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler{
+abstract class CoreHandler(val context: Context) extends ConnectionHandler {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
-  def context = downstream.context
-
-  downstream.setUpstream(this)
 
   def connectionState = _connectionState
   def isConnected: Boolean = connectionState != ConnectionState.NotConnected
@@ -214,13 +211,11 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
       case NotConnected => _connectionState = Connected(endpt)
       case other => throw new InvalidConnectionStateException(other)
     }
-    downstream.connected()
   }
 
   override def connectionTerminated(cause: DisconnectCause) {
     _connectionState = NotConnected
     super.connectionTerminated(cause)
-    downstream.connectionTerminated(cause)
   }
 
   /**
@@ -268,20 +263,50 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)
-        tail.shutdown()
+        onShutdown()
       }
-      case NotConnected => shutdown()
+      case NotConnected => completeShutdown()
       case _ => {}
     }
   }
 
-  final override def shutdown() {
+  def shutdown() {
+    onShutdown()
+  }
+
+  protected def onShutdown() {
+    completeShutdown()
+  }
+
+  final protected def completeShutdown() {
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
         worker.worker ! WorkerCommand.SwapHandler(newHandlerFactory())
       }
     }
+  }
+
+
+
+}
+
+class PipelineHandler(val downstream: CoreDownstream, val tail: HandlerTail) 
+extends CoreHandler(downstream.context) with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler {
+
+  downstream.setUpstream(this)
+
+  override def onShutdown() {
+    tail.shutdown()
+  }
+
+  override def shutdown() {
+    completeShutdown()
+  }
+
+  override def connected(endpt: WriteEndpoint) {
+    super.connected(endpt)
+    downstream.connected()
   }
 
   def receivedData(buffer: DataBuffer){
@@ -304,13 +329,17 @@ class CoreHandler(val downstream: CoreDownstream, val tail: HandlerTail) extends
     downstream.unbind()
   }
 
-  def receivedMessage(message: Any, sender: ActorRef) {
-    downstream.receivedMessage(sender, message)
+  override def receivedMessage(message: Any, sender: ActorRef) {
+    downstream.receivedMessage(message, sender)
   }
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = downstream.connectionTerminated(cause)
   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = downstream.connectionTerminated(cause)
 
+}
 
+object PipelineHandler {
+  
+  def apply(handler: CoreDownstream with HandlerTail): PipelineHandler = new PipelineHandler(handler, handler)
 }
 
 /*

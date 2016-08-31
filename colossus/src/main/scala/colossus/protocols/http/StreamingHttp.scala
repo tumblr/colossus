@@ -257,7 +257,7 @@ extends StreamHandler[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse]
 class StreamHandlerGenerator(ctx: InitContext) extends HandlerGenerator[StreamServerHandler](ctx) {
   
   def fullHandler = handler => {
-    new CoreHandler(new Controller(new ServerStreamController(handler), new StreamHttpServerCodec), handler) with ServerConnectionHandler
+    new PipelineHandler(new Controller(new ServerStreamController(handler), new StreamHttpServerCodec), handler) with ServerConnectionHandler
   }
 }
 
