@@ -82,9 +82,22 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
   
   def connection = upstream
   def controllerConfig = downstream.controllerConfig
+
+  override def onConnectionTerminated(cause: DisconnectCause) {
+    cause match {
+      case error: DisconnectError => connectionLost(error)
+      case other => connectionClosed(other)
+    }
+  }
   
 
 }
 
+object Controller {
+
+  def apply[E <: Encoding](downstream: ControllerDownstream[E] with HandlerTail, codec: Codec[E]): PipelineHandler = {
+    new PipelineHandler(new Controller(downstream, codec), downstream)
+  }
+}
 
 

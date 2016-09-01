@@ -10,7 +10,6 @@ import scala.concurrent.duration._
 
 class NoopWorkerItem(c: Context) extends WorkerItem {
   val context = c
-  def receivedMessage(message: Any, sender: ActorRef){}
 }
 
 

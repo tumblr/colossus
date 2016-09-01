@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
-class NoopHandler(val context: Context) extends CoreHandler with ServerConnectionHandler with ClientConnectionHandler {
+class NoopHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler with ClientConnectionHandler {
   def this(s: ServerContext) = this(s.context)
 
   def receivedData(data: DataBuffer){}
@@ -20,9 +20,6 @@ class NoopHandler(val context: Context) extends CoreHandler with ServerConnectio
    protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
    protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
    def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
-
-   // Members declared in colossus.core.WorkerItem
-   def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
 
 }
 

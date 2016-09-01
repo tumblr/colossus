@@ -6,6 +6,7 @@ import testkit._
 import stream._
 
 import akka.util.ByteString
+/*
 
 class StreamHttpSpec extends ColossusSpec {
 
@@ -111,3 +112,4 @@ class StreamHttpSpec extends ColossusSpec {
   }
 
 }
+*/

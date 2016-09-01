@@ -127,13 +127,9 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     }
   }
 
-  //TODO: controller should not get access to this!!!
   private def signalWrite() {
-    upstream.connectionState match {
-      case a: AliveState => {
-        if (writesEnabled) a.endpoint.requestWrite()
-      }
-      case _ => {}
+    if (writesEnabled) {
+      upstream.requestWrite()
     }
   }
 

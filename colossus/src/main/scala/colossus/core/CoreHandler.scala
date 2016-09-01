@@ -61,7 +61,7 @@ trait FlowControl {
  */
 trait CoreUpstream extends ConnectionManager  with UpstreamEvents {
 
-  //def requestWrite()
+  def requestWrite()
 
 
 }
@@ -334,6 +334,13 @@ extends CoreHandler(downstream.context) with CoreUpstream with ServerConnectionH
   }
   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = downstream.connectionTerminated(cause)
   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = downstream.connectionTerminated(cause)
+
+  def requestWrite() {
+    connectionState match {
+      case a: AliveState => a.endpoint.requestWrite()
+      case _ => {} //maybe do something here?
+    }
+  }
 
 }
 

@@ -22,6 +22,7 @@ trait PR extends Protocol {
   type Request = String
   type Response = Int
 }
+/*
 
 class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
@@ -165,3 +166,5 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
 
 }
+
+*/

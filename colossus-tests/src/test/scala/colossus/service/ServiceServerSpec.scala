@@ -7,50 +7,58 @@ import akka.actor.ActorRef
 import akka.util.ByteString
 import colossus.RawProtocol._
 import colossus.core._
+import controller._
 import colossus.parsing.DataSize._
 import colossus.testkit._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import org.scalamock.scalatest.MockFactory
 
-class ServiceServerSpec extends ColossusSpec {
+class ServiceServerSpec extends ColossusSpec with MockFactory {
+  val config = ServiceConfig.Default.copy(
+    requestBufferSize = 2,
+    requestTimeout = 50.milliseconds,
+    maxRequestSize = 300.bytes
+  )
 
-  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends {
-      val config = ServiceConfig.Default.copy(
-        requestBufferSize = 2,
-        requestTimeout = 50.milliseconds,
-        maxRequestSize = 300.bytes
-      )
-      val codec = RawServerCodec
-      val serverContext = srv
-  
-  } with ServiceServer[Raw]{
+  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[Raw](config){
+    val serverContext = srv
+    val context = srv.context
 
     def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
 
     def processRequest(input: ByteString) = handler(input)
 
-    def receivedMessage(x: Any, s: ActorRef){}
-    
-    def testCanPush = canPush //expose protected method
+    def testCanPush = upstream.canPush //expose protected method
   }
 
-  def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): TypedMockConnection[FakeService] = {
-    val endpoint = MockConnection.server(new FakeService(handler, _))
+  /*
+  def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): TypedMockConnection[PipelineHandler] = {
+    val endpoint = MockConnection.server(ctx => Controller(new FakeService(handler, ctx), RawServerCodec))
 
     endpoint.handler.connected(endpoint)
     endpoint
+  }
+  */
+
+  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (FakeService, ControllerUpstream[Raw#ServerEncoding])  = {
+    val thestub = stub[ControllerUpstream[Raw#ServerEncoding]]
+    
+    val handler = new FakeService(fn, FakeIOSystem.fakeServerContext)
+    handler.setUpstream(thestub)
+    (handler, thestub)
   }
 
   "ServiceServer" must {
 
     "process a request" in {
-      val t = fakeService()
-      t.handler.receivedData(DataBuffer(ByteString("hello")))
-      t.iterate()
-      t.expectOneWrite(ByteString("hello"))
+      val (h,s) = fs()
+      h.processRequest(ByteString("hello"))
+      (s.push _).expects(ByteString("hello"), * )
     }
+    /*
 
     "return an error response for failed callback" in{
       val t = fakeService(x => Callback.failed(new Exception("FAIL")))
@@ -142,31 +150,6 @@ class ServiceServerSpec extends ColossusSpec {
         maxIdleTime = Duration.Inf
       )
 
-      /* TODO REWRITE WITHOUT SERVER
-      withIOSystem{implicit io =>
-        val server = RedisServer.basic("test", serverSettings,  new RequestHandler(_){
-          def handle = {
-              case req => Callback.schedule(500.milliseconds)(Callback.successful(StatusReply("HEllo")))
-          }
-        })
-        withServer(server) {
-          val clientConfig = ClientConfig(
-            name = "/test-client",
-            address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = 800.milliseconds,
-            connectRetry = NoRetry
-          )
-          val client = Redis.futureClient(clientConfig)
-          val t = Try {
-            Await.result(client.get(ByteString("foo")), 1.second)
-          }
-          t match {
-            case Success(x) => throw new Exception(s"Non-error reply: $x")
-            case Failure(ex) =>{}
-          }
-        }
-      }
-      */
     }
     
     "gracefully handle bad input" in {
@@ -176,5 +159,7 @@ class ServiceServerSpec extends ColossusSpec {
       t.iterate()
       t.expectOneWrite(ByteString("ERROR"))
     }
+
+    */
   }
 }

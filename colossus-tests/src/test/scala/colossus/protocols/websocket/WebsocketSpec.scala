@@ -102,6 +102,7 @@ class WebsocketSpec extends ColossusSpec {
     }
   }
 
+  /*
 
   "WebsocketHandler" must {
     //a simple codec to test decoding errors 
@@ -221,6 +222,7 @@ class WebsocketSpec extends ColossusSpec {
 
     }
   }
+  */
 
 }
 

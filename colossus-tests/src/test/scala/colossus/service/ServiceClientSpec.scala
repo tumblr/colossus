@@ -21,6 +21,7 @@ import scala.concurrent.Await
 
 import RawProtocol._
 import org.scalamock.scalatest.MockFactory
+/*
 
 class ServiceClientSpec extends ColossusSpec with MockFactory {
 
@@ -483,4 +484,4 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   }
 }
-
+*/

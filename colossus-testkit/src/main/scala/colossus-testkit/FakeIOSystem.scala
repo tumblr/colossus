@@ -36,6 +36,13 @@ object FakeIOSystem {
     FakeWorker(p, w)
   }
 
+  def fakeContext(implicit system: ActorSystem) = fakeWorker.worker.generateContext()
+
+  def fakeServerContext(implicit system: ActorSystem) = {
+    val (_serverProbe, server) = FakeIOSystem.fakeServerRef
+    ServerContext(server, fakeContext)
+  }
+
   /**
    * Returns a ServerRef representing a server in the Bound state
    */
