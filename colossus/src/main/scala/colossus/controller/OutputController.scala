@@ -150,7 +150,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
   def canPush = state.canPush && !outputBuffer.isFull
 
-  def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
+  def pushFrom(item: E#Output, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
     if (canPush) {
       if (outputBuffer.isEmpty) signalWrite()
       outputBuffer.enqueue(item, postWrite, createdMillis)

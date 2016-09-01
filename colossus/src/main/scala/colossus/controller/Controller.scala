@@ -39,7 +39,8 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
 }
 
 trait Writer[T] {
-  def push(item: T, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
+  def pushFrom(item: T, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean
+  def push(item: T)(postWrite: QueuedItem.PostWrite): Boolean = pushFrom(item , System.currentTimeMillis, postWrite)
   def canPush: Boolean
 }
 
@@ -59,11 +60,7 @@ trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] with UpstreamEv
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
 trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { 
-  def fatalError(reason: Throwable) {
-    //TODO: FIX
-    //onFatalError(reason).foreach{o => push(o){_ => ()}}
-    upstream.disconnect()
-  }
+  def fatalError(reason: Throwable) 
 
   def controllerConfig: ControllerConfig
   def codec: Codec[E]
@@ -88,6 +85,12 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
       case error: DisconnectError => connectionLost(error)
       case other => connectionClosed(other)
     }
+  }
+
+  def fatalError(reason: Throwable) {
+    //TODO: FIX
+    downstream.onFatalError(reason).foreach{o => push(o){_ => ()}}
+    upstream.disconnect()
   }
   
 

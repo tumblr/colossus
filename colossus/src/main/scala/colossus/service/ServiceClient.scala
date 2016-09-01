@@ -241,7 +241,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   private def sendNow(request: P#Request)(handler: ResponseHandler){
     if (canSend) {
       val queueTime = System.currentTimeMillis
-      val pushed = upstream.push(request, queueTime){
+      val pushed = upstream.pushFrom(request, queueTime, {
         case OutputResult.Success         => {
           val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
           sentBuffer.enqueue(s)
@@ -251,7 +251,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
         }
         case OutputResult.Failure(err)    => failRequest(handler, err)
         case OutputResult.Cancelled(err)  => failRequest(handler, err)
-      }
+      })
       if (!pushed) {
         failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
       }

@@ -139,7 +139,7 @@ with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]]
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
-  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics)
+  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")
@@ -238,7 +238,7 @@ with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]]
       requests.hit(tags = tags)
       latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
     }
-    val pushed = upstream.push(response, startTime) {
+    val pushed = upstream.pushFrom(response, startTime, {
       case OutputResult.Success => {
         if (dequeuePaused) {
           dequeuePaused = false
@@ -248,7 +248,7 @@ with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]]
       case f: OutputError => {
         addError(RecoverableError(request, f.reason))
       }
-    }
+    })
 
     //this should never happen because we are always checking if the outputqueue
     //is full before calling this
