@@ -159,7 +159,7 @@ class ServerSpec extends ColossusSpec {
       "signal open connections before termination when shutdown" in {
         val probe = TestProbe()
         class MyHandler(c: ServerContext) extends NoopHandler(c) {
-          override def shutdown() {probe.ref ! "SHUTDOWN"}
+          override def onShutdown() {probe.ref ! "SHUTDOWN"}
           override def connectionTerminated(cause: DisconnectCause) {
             probe.ref ! "TERMINATED"
           }

@@ -423,7 +423,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       }
     }
 
-    "not try to reconnect if disconnect is called while failing to connect" taggedAs(org.scalatest.Tag("test")) in {
+    "not try to reconnect if disconnect is called while failing to connect"  in {
       val fakeWorker = FakeIOSystem.fakeWorker
       implicit val w = fakeWorker.worker
       val client = Raw.clientFactory("localhost", TEST_PORT, 1.second)
@@ -464,7 +464,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       failed must equal(true)
     }
 
-    "timeout requests while waiting to reconnect"  in {
+    "timeout requests while waiting to reconnect"  taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{ implicit io => 
         val config = ClientConfig(
           name = "/test",

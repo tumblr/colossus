@@ -292,7 +292,7 @@ abstract class CoreHandler(val context: Context) extends ConnectionHandler {
 }
 
 class PipelineHandler(val downstream: CoreDownstream, val tail: HandlerTail) 
-extends CoreHandler(downstream.context) with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler {
+extends CoreHandler(downstream.context) with CoreUpstream with ServerConnectionHandler with ClientConnectionHandler with IdleCheck {
 
   downstream.setUpstream(this)
 
