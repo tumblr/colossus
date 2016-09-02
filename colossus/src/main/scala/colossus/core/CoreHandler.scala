@@ -265,7 +265,7 @@ abstract class CoreHandler(val context: Context) extends ConnectionHandler {
         _connectionState = ShuttingDown(endpoint)
         onShutdown()
       }
-      case NotConnected => completeShutdown()
+      case NotConnected => onShutdown()
       case _ => {}
     }
   }

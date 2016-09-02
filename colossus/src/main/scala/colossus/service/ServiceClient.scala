@@ -160,13 +160,16 @@ class ServiceClient[P <: Protocol](
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
 extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstream[P#ClientEncoding]] with Sender[P, Callback] with HandlerTail {
 
-  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true)
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
+
+  //TODO: this should be moved somewhere else, maybe constructor parameter,
+  //maybe ServiceClient shouldn't do this at all, especially since users don't
+  //really directly create this anymore
+  protected def fullHandler(me: ServiceClient[P]): ClientConnectionHandler = new UnbindHandler(new Controller(this, codec), this)
 
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
-    val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-    val fullhandler: ClientConnectionHandler = new UnbindHandler(new Controller(this, codec), this)
-    worker.worker ! WorkerCommand.Bind(fullhandler)
+    worker.worker ! WorkerCommand.Bind(fullHandler(this))
   }
 
   import colossus.core.WorkerCommand._
@@ -368,8 +371,8 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && pendingBufferSize == 0) {
-      super.shutdown()
+    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && upstream.pendingBufferSize == 0) {
+      upstream.shutdown()
     }
   }
 

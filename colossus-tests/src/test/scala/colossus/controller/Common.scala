@@ -51,6 +51,7 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
     val downstream = stub[ControllerDownstream[Raw#ServerEncoding]]
     (downstream.controllerConfig _).when().returns(config)
     (downstream.context _).when().returns(FakeIOSystem.fakeContext)
+    (downstream.onFatalError _).when(*).returns(None)
 
     val controller = new Controller(downstream, RawServerCodec) with TestController[Raw#ServerEncoding]
     controller.setUpstream(upstream)
