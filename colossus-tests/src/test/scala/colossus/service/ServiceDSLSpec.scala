@@ -1,7 +1,7 @@
 package colossus
 package service
 
-import core.Server
+import core.{ProxyActor, Server}
 import testkit._
 
 import akka.actor._
@@ -59,14 +59,15 @@ class ServiceDSLSpec extends ColossusSpec {
     }
     */
 
-    /*
-     * TODO FIX
-     *
 
     "receive connection messages" in {
       val probe = TestProbe()
       withIOSystem{ implicit system =>
-        val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) {
+        val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) with ProxyActor {
+            def shutdownRequest() {
+              shutdown()
+            }
+
             override def receive = {
               case "PING" => {
                 probe.ref ! "PONG"
@@ -74,9 +75,7 @@ class ServiceDSLSpec extends ColossusSpec {
             }
             def handle = {
               case x if (x == ByteString("PING")) => {
-                connection.foreach{ h =>
-                  h.worker.worker ! core.WorkerCommand.Message(h.id, "PING")
-                }
+                self ! "PING"
                 Callback.successful(ByteString("WHATEVER"))
               }
             }
@@ -89,7 +88,6 @@ class ServiceDSLSpec extends ColossusSpec {
         }
       }
     }
-    */
 
     "override error handler" in {
       withIOSystem{ implicit system =>
@@ -113,8 +111,6 @@ class ServiceDSLSpec extends ColossusSpec {
       withIOSystem{ implicit sys =>
         import protocols.http._
         import protocols.memcache._
-        import Http.defaults._
-        import Memcache.defaults._
         //this test passes if it compiles
         val s = Http.futureClient("localhost", TEST_PORT, 1.second)
         val t = Memcache.futureClient("localhost", TEST_PORT, 1.second)
@@ -124,7 +120,6 @@ class ServiceDSLSpec extends ColossusSpec {
     "be able to lift a sender to a type-specific client" in {
       withIOSystem{ implicit sys =>
         import protocols.http._
-        import Http.defaults._
 
         val s = Http.futureFactory("localhost", TEST_PORT, 1.second)
         val t = Http.futureClient(s)

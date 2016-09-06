@@ -175,9 +175,11 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   import colossus.core.WorkerCommand._
   import config._
   implicit val namespace = context.worker.system.namespace / config.name
-  def worker = context.worker
-  def connection = upstream.connection
+  private def worker = context.worker
+  private def connection = upstream.connection
   def id = context.id
+
+  def connectionState = connection.connectionState
 
   type ResponseHandler = Try[P#Response] => Unit
 
