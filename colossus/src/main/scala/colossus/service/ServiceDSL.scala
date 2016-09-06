@@ -161,7 +161,6 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
  */
 trait BasicServiceDSL[P <: Protocol] {
   import controller.Controller
-  import core.CoreHandler
 
   protected def provideCodec(): Codec.Server[P]
 

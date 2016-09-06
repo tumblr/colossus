@@ -3,7 +3,6 @@ package protocols.memcache
 
 import controller.Codec
 import core._
-import service._
 
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.zip.{Deflater, Inflater}

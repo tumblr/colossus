@@ -173,8 +173,7 @@ object FrameParser {
 class WebsocketController[E <: Encoding] (val downstream: WebsocketControllerDownstream[E], val frameCodec: FrameCodec[E]) 
 extends ControllerDownstream[WebsocketEncoding] 
 with DownstreamEventHandler[WebsocketControllerDownstream[E]]
-with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]]
-with HasUpstream[ControllerUpstream[WebsocketEncoding]] {
+with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
 
   val controllerConfig = ControllerConfig(50, Duration.Inf, metricsEnabled = true)
   downstream.setUpstream(this)
@@ -184,7 +183,6 @@ with HasUpstream[ControllerUpstream[WebsocketEncoding]] {
     //note - as per the spec, server frames are never masked
     val frame = Frame(Header(OpCodes.Text, false), bytes)
     val buf = frame.encode(new Random)
-    println(s"PUSHING $frame : ${ByteString(buf.takeAll)}")
     upstream.push(frame)(postWrite)
   }
 
@@ -193,7 +191,6 @@ with HasUpstream[ControllerUpstream[WebsocketEncoding]] {
   }
 
   def processMessage(frame: Frame) {
-    println("MESSAGE")
     frame.header.opcode match {
       case OpCodes.Binary | OpCodes.Text => frameCodec.decode(frame.payload) match {
         case Success(obj) => downstream.handle(obj)
@@ -239,6 +236,8 @@ extends WebsocketControllerDownstream[E] with UpstreamEventHandler[WebsocketCont
 
 }
 
+abstract class WebsocketServerHandler[E <: Encoding](serverContext: ServerContext) extends WebsocketHandler[E](serverContext.context)
+
 
 abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {
 
@@ -269,7 +268,6 @@ extends protocols.http.server.RequestHandler(ServiceConfig.Default, ctx) {
     case request if (request.head.path == upgradePath) => {
       val response = UpgradeRequest.validate(request) match {
         case Some(upgrade) => {
-          println("SWITCHING")
           connection.become(() => websocketInit.fullHandler(websocketInit.onConnect(ctx)))
           upgrade
         }

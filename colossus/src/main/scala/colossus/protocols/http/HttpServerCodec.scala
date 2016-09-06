@@ -3,7 +3,6 @@ package protocols.http
 
 
 import core._
-import service._
 import controller.Codec
 
 class StaticHttpServerCodec(headers: HttpHeaders) extends Codec[Http#ServerEncoding] {

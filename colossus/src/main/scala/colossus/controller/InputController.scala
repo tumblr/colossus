@@ -4,7 +4,6 @@ package controller
 import colossus.metrics.Histogram
 import colossus.parsing.ParserSizeTracker
 import core._
-import colossus.service.NotConnectedException
 
 //TODO : pausing reads should immediately stop calls to processMessage, so we
 //need to copy and hold remaining data in the databuffer and drain it when

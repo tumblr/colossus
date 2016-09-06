@@ -43,6 +43,12 @@ object FakeIOSystem {
     ServerContext(server, fakeContext)
   }
 
+  def fakeInitContext(implicit system: ActorSystem) = {
+    val (_, s) = fakeServerRef
+    val (_, w) = fakeWorkerRef
+    InitContext(s, w)
+  }
+
   /**
    * Returns a ServerRef representing a server in the Bound state
    */

@@ -1,5 +1,7 @@
 package colossus.core
 
+import scala.concurrent.duration._
+import akka.actor.ActorRef
 
 /**
  * This trait must be implemented by any non-head member of a pipeline.  

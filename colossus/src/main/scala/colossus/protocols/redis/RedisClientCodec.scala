@@ -3,7 +3,6 @@ package protocols.redis
 
 import controller.Codec
 import core._
-import service._
 
 class RedisClientCodec() extends Codec.Client[Redis] {
   private var replyParser = RedisReplyParser()

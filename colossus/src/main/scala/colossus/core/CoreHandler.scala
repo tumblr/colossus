@@ -1,6 +1,5 @@
 package colossus.core
 
-import scala.concurrent.duration._
 import akka.actor.ActorRef
 
 sealed abstract class ShutdownAction(val rank: Int) {

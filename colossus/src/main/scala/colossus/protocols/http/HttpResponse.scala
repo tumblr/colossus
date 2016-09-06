@@ -5,7 +5,6 @@ import akka.util.{ByteString, ByteStringBuilder}
 import colossus.core.DataBuffer
 import core._
 import service.Callback
-import controller._
 import HttpParse._
 import java.nio.ByteBuffer
 

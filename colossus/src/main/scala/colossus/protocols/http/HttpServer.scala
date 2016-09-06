@@ -7,8 +7,6 @@ import core._
 import controller._
 import service._
 
-import scala.concurrent.duration._
-
 class HttpServiceHandler(rh: RequestHandler) 
 extends DSLService[Http](rh) {
 
