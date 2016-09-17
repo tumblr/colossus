@@ -149,35 +149,32 @@ hist.add(98765)
 
 ## Metric Reporting
 
-Currently metric reporting is mostly focused on reporting to OpenTSDB.  To setup reporting you basically need 2 things:
-
-* A MetricSender - this is the object that encodes metrics to be sent
-* A set of metric filters - These are used to select and aggregate which metrics to send
-
-In addition to OpenTSDB, metrics may also be logged to file. To use logging, change the MetricSystem to use
-a LoggingSender as the metrics reporter:
+Metric reporters are used to take the periodically generated snapshots of
+metrics and report them to an external system.  A `MetricSender` is the
+interface to the remote system and is responsible for properly formatting
+metrics and handling all communication.  Colossus currently has native support
+for OpenTSDB.
 
 {% highlight scala %}
 
 import akka.actor._
-import metrics._
+import colossus.metrics._
 import scala.concurrent.duration._
 
-implicit val actor_system = ActorSystem()
 
-//create the metric system
-val metric_system = MetricSystem("/my-service")
+implicit val system = ActorSystem()
+implicit val metrics = MetricSystem()
 
-//create the config, providing LoggerSender as the MetricSender
-val metric_config = MetricReporterConfig(LoggerSender)
+val reporterConfig = MetricReporterConfig(
+  metricSenders = Seq(OpenTsdbSender("host", 123)),
+  filters = MetricReporterFilter.All
+)
 
-//set this as the reporting for the metric system
-metric_system.metricIntervals(1.minute).report(metric_config)
+//A reporter must be attached to a specific collection interval.  
+metrics.collectionIntervals.get(1.minute).foreach(_.report(reporterConfig))
 
-//get a collection
-val collection = metric_system.sharedCollection
-
-//proceed as normal
+//now once per minute the value of this rate and any other metrics will be reported
+val rate = Rate("myrate")
 
 {% endhighlight %}
 
