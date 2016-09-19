@@ -11,7 +11,7 @@ trait HasUpstream[T] {
   def setUpstream(up: T) {
     _upstream = Some(up)
   }
-  def upstream = _upstream.getOrElse(throw new Exception("Attempt to use uninitialized upstream reference"))
+  lazy val upstream = _upstream.getOrElse(throw new Exception("Attempt to use uninitialized upstream reference"))
 }
 
 /**
