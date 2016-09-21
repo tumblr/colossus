@@ -4,12 +4,11 @@ package controller
 import colossus.metrics.Histogram
 import colossus.parsing.ParserSizeTracker
 import core._
-import colossus.service.NotConnectedException
 
 //TODO : pausing reads should immediately stop calls to processMessage, so we
 //need to copy and hold remaining data in the databuffer and drain it when
 //resume is called
-trait StaticInputController[E <: Encoding] extends BaseController[E] {this: ControllerIface[E] =>
+trait StaticInputController[E <: Encoding] extends BaseController[E] {
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
 
@@ -22,7 +21,7 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {this: Cont
   lazy val inputSizeTracker = new ParserSizeTracker(Some(controllerConfig.inputMaxSize), inputSizeHistogram)
 
   def pauseReads() {
-    connectionState match {
+    upstream.connectionState match {
       case a : AliveState => {
         _readsEnabled = false
         a.endpoint.disableReads()
@@ -32,7 +31,7 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {this: Cont
   }
 
   def resumeReads() {
-    connectionState match {
+    upstream.connectionState match {
       case a: AliveState => {
         _readsEnabled = true
         a.endpoint.enableReads()
@@ -46,7 +45,7 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {this: Cont
       var done = false
       while (!done) {
         inputSizeTracker.track(data)(codec.decode(data)) match {
-          case Some(msg) => processMessage(msg)
+          case Some(msg) => downstream.processMessage(msg)
           case None => done = true
         }
       }
@@ -57,8 +56,8 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {this: Cont
     }
   }
 
-  override def connected(endpt: WriteEndpoint) {
-    super.connected(endpt)
+  override def onConnected() {
+    super.onConnected()
     codec.reset()
   }
 

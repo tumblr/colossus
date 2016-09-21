@@ -12,9 +12,9 @@ class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends NoopHa
 
   var shutdownCalled = false
 
-  override def shutdown() {
+  override def onShutdown() {
     shutdownCalled =true
-    if (callSuperShutdown) super.shutdown()
+    if (callSuperShutdown) super.onShutdown()
   }
 
 }

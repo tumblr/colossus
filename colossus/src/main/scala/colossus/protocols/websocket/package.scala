@@ -2,7 +2,7 @@ package colossus
 package protocols
 
 import core._
-import service._
+import controller.Encoding
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.Random
 import controller.Codec
@@ -27,7 +27,7 @@ import controller.Codec
  */
 package object websocket {
 
-  class WebsocketCodec extends Codec[Websocket#ServerEncoding]{
+  class WebsocketCodec extends Codec[WebsocketEncoding]{
     
     private val random = new Random
     private val parser = FrameParser.frame
@@ -41,11 +41,10 @@ package object websocket {
     def reset(){}
   }
 
-  trait Websocket extends Protocol {
-    type Request = Frame
-    type Response = Frame
+  trait WebsocketEncoding extends Encoding {
+    type Input = Frame
+    type Output = Frame
   }
-
 
 }
 

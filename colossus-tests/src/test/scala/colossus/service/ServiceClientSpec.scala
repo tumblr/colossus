@@ -13,6 +13,7 @@ import scala.util.{Success, Failure}
 import scala.concurrent.duration._
 import akka.util.ByteString
 import java.net.InetSocketAddress
+import controller._
 
 import protocols.redis._
 import Redis.defaults._
@@ -43,15 +44,29 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       connectRetry = connectRetry
     )
     implicit val w = fakeWorker.worker
-    val client = Redis.clientFactory(config)
+    class TestClient extends ServiceClient[Redis](new RedisClientCodec, config, w.generateContext) {
+      val mockController: ControllerUpstream[Redis#ClientEncoding] = stub[ControllerUpstream[Redis#ClientEncoding]]
+      val mockConnectionHandler = stub[ClientConnectionHandler]
+      override protected def fullHandler(me: ServiceClient[Redis]) = {
+        this.setUpstream(mockController)
+        mockConnectionHandler
+      }
+    }
+    val client = new ServiceClient[Redis](new RedisClientCodec, config, w)
 
-    fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
-    client.setBind()
+    //fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
+    val fullHandler: ClientConnectionHandler = fakeWorker.probe.receiveOne(100.milliseconds) match {
+      case WorkerCommand.Bind(handler: ClientConnectionHandler) => handler
+      case other => throw new Exception(s"received invalid message $other")
+    }
+    fullHandler.setBind()
     fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
-    val endpoint = MockConnection.client(client, fakeWorker, 30)
-    client.connected(endpoint)
+    val endpoint = MockConnection.client(fullHandler, fakeWorker, 30)
+    fullHandler.connected(endpoint)
     (endpoint, client, fakeWorker.probe)
   }
+
+
 
   def sendCommandReplies(client: ServiceClient[Redis], endpoint: MockConnection, commandReplies: Map[Command, Reply]) {
     var numCalledBack = 0
@@ -68,7 +83,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       endpoint.iterate()
       bytes = endpoint.clearBuffer()
       parser.decodeAll(DataBuffer.fromByteString(bytes)){command =>
-        client.receivedData(commandReplies(command).raw)
+        client.processMessage(commandReplies(command))
       }
     } while (bytes.size > 0)
     numCalledBack must equal (commandReplies.size)
@@ -105,7 +120,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       }.recover{ case t => throw t}.execute()
       endpoint.iterate()
       endpoint.expectOneWrite(command.raw)
-      client.receivedData(reply.raw)
+      client.processMessage(reply)
       executed must equal(true)
 
     }
@@ -251,11 +266,11 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         endpoint.iterate()
         endpoint.expectOneWrite(cmd.raw)
         endpoint.clearBuffer()
-        client.receivedData(reply.raw)
+        client.processMessage(reply)
       }
     }
 
-    "graceful disconnect allows outstanding request to complete" in {
+    "graceful disconnect allows outstanding request to complete"  in {
       val cmd1 = Command(CMD_GET, "foo")
       val rep1 = StatusReply("foo")
       var res1: Option[String] = None
@@ -271,8 +286,10 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       endpoint.clearBuffer()
       endpoint.disconnectCalled must equal(false)
       probe.expectNoMsg(100.milliseconds)
-      client.receivedData(rep1.raw)
+      println("process")
+      client.processMessage(rep1)
       res1 must equal(Some(rep1.message))
+      endpoint.iterate()
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
@@ -293,6 +310,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "graceful disconnect immediately disconnects if there's no outstanding requests" in {
       val (endpoint, client, probe) = newClient(true, 10)
       client.disconnect()
+      endpoint.iterate() //needed for final shutdown in controller
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
@@ -323,7 +341,8 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       endpoint.iterate()
       endpoint.expectOneWrite(cmd.raw)
       probe.expectNoMsg(100.milliseconds)
-      client.receivedData(reply.raw)
+      client.processMessage(reply)
+      endpoint.iterate()
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
     }
 
@@ -404,13 +423,13 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       }
     }
 
-    "not try to reconnect if disconnect is called while failing to connect" in {
+    "not try to reconnect if disconnect is called while failing to connect"  in {
       val fakeWorker = FakeIOSystem.fakeWorker
       implicit val w = fakeWorker.worker
       val client = Raw.clientFactory("localhost", TEST_PORT, 1.second)
 
       fakeWorker.probe.expectMsgType[WorkerCommand.Bind](100.milliseconds)
-      client.setBind()
+      client.bind()
       fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
 
       client.connectionTerminated(DisconnectCause.ConnectFailed(new Exception("HI!!")))
@@ -445,7 +464,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       failed must equal(true)
     }
 
-    "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "timeout requests while waiting to reconnect"  taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{ implicit io => 
         val config = ClientConfig(
           name = "/test",
@@ -483,4 +502,3 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   }
 }
-

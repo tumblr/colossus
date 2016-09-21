@@ -4,7 +4,7 @@ package stream
 
 import colossus.metrics.MetricNamespace
 import controller._
-import service.Protocol
+import service.{Protocol, HandlerGenerator, ServiceInitializer, ServiceDSL}
 import core._
 import parsing.Combinators.Parser
 
@@ -201,31 +201,69 @@ class StreamHttpClientCodec extends Codec[StreamHttp#ClientEncoding] with Stream
 }
 
 
-trait BaseHandler[H <: HttpMessageHead[H], T <: HttpMessage[H]] extends Writer[StreamHttpMessage[H]] {self: WorkerItem =>
-
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
+abstract class StreamController[E <: Encoding {type Output = StreamHttpMessage[H]}, H <: HttpMessageHead[H], T <: HttpMessage[H]](val downstream: StreamHandler[E,H,T])
+extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[StreamHandler[E,H,T]] with StreamHandle[E,H,T] with ControllerDownstream[E] {
 
   val namespace: MetricNamespace = context.worker.system.metrics
+  val controllerConfig = ControllerConfig(1024, scala.concurrent.duration.Duration.Inf)
 
-  protected def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite) {
+  downstream.setUpstream(this)
+
+  def push(message: E#Output)(postWrite: QueuedItem.PostWrite = _ => ()) = {
+    upstream.push(message)(postWrite)
+  }
+
+  def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite = _ => ()) {
     val withCL : H = message.head.withHeader(HttpHeaders.ContentLength, message.body.size.toString)
     val withCT : H = message.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
-    push(Head(withCT)){_ => ()}
-    push(BodyData(message.body.asDataBlock)){_ => ()}
-    push(End())(postWrite)
+    upstream.push(Head(withCT)){_ => ()}
+    upstream.push(BodyData(message.body.asDataBlock)){_ => ()}
+    upstream.push(End())(postWrite)
+  }
+
+  def processMessage(m: E#Input) {
+    downstream.handle(m)
   }
 
 }
 
-abstract class StreamServerHandler(context: ServerContext) 
-extends BasicController[StreamHttp#ServerEncoding](new StreamHttpServerCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context.context) 
-with ServerConnectionHandler with ControllerIface[StreamHttp#ServerEncoding] with BaseHandler[HttpResponseHead, HttpResponse]{
+trait StreamHandle[ E <: Encoding {type Output = StreamHttpMessage[H]}, H <: HttpMessageHead[H], T <: HttpMessage[H]] extends UpstreamEvents{
+  def push(message: E#Output)(postWrite: QueuedItem.PostWrite = _ => ())
+
+  def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite = _ => ()) 
+
+}
+
+class ServerStreamController(downstream: StreamServerHandler) extends StreamController[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse](downstream) {
+
+  val codec = new StreamHttpServerCodec
+
+}
+
+
+abstract class StreamHandler[E <: Encoding{ type Output = StreamHttpMessage[H] }, H <: HttpMessageHead[H], T <: HttpMessage[H]](val context: Context) 
+extends UpstreamEventHandler[StreamHandle[E,H,T]] with HandlerTail with DownstreamEvents{
+
+  def handle(message: E#Input)
+}
+
+
+abstract class StreamServerHandler(serverContext: ServerContext) 
+extends StreamHandler[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse](serverContext.context) {
 
 
 }
 
-abstract class StreamClient(context: Context) 
-extends BasicController[StreamHttp#ClientEncoding](new StreamHttpClientCodec, ControllerConfig(1024, scala.concurrent.duration.Duration.Inf), context) 
-with ClientConnectionHandler with ControllerIface[StreamHttp#ClientEncoding] with BaseHandler[HttpRequestHead, HttpRequest]{
-
+class StreamHandlerGenerator(ctx: InitContext) extends HandlerGenerator[StreamServerHandler](ctx) {
+  
+  def fullHandler = handler => {
+    new PipelineHandler(new Controller(new ServerStreamController(handler), new StreamHttpServerCodec), handler) with ServerConnectionHandler
+  }
 }
+
+abstract class Initializer(ctx: InitContext) extends StreamHandlerGenerator(ctx) with ServiceInitializer[StreamServerHandler] 
+
+object StreamHttpServer extends ServiceDSL[StreamServerHandler, Initializer] {
+  def basicInitializer = new StreamHandlerGenerator(_)
+}
+

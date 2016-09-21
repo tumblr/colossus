@@ -3,14 +3,12 @@ package protocols.http
 package server
 
 import colossus.metrics.TagMap
-import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
+import core._
 import controller._
 import service._
 
-class HttpServiceHandler(rh: RequestHandler, defaultHeaders: HttpHeaders) 
-extends BasicServiceHandler[Http](rh) {
-
-  val codec = new StaticHttpServerCodec(defaultHeaders)
+class HttpServiceHandler(rh: RequestHandler) 
+extends DSLService[Http](rh) {
 
   val defaults = new Http.ServerDefaults
 
@@ -18,7 +16,7 @@ extends BasicServiceHandler[Http](rh) {
 
   override def processRequest(input: Http#Input): Callback[Http#Output] = {
     val response = super.processRequest(input)
-    if(!input.head.persistConnection) disconnect()
+    if(!input.head.persistConnection) connection.disconnect()
     response
   }
   def unhandledError = {
@@ -28,25 +26,31 @@ extends BasicServiceHandler[Http](rh) {
 }
 
 
-protected[server] class Generator(context: InitContext) extends HandlerGenerator[Http, RequestHandler](context) {
+protected[server] class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
   
   val DateHeader = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)
 
   val defaultHeaders = HttpHeaders(DateHeader, ServerHeader)
 
-  def fullHandler = new HttpServiceHandler(_, defaultHeaders)
+  def fullHandler = requestHandler => new PipelineHandler(
+    new Controller(
+      new HttpServiceHandler(requestHandler),
+      new StaticHttpServerCodec(defaultHeaders)
+    ),
+    requestHandler
+  )
 
 }
 
-abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[Http, RequestHandler]
+abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[RequestHandler]
 
 
 abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
   def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
 }
 
-object HttpServer extends ServiceDSL[Http, RequestHandler, Initializer]{
+object HttpServer extends ServiceDSL[RequestHandler, Initializer]{
 
   def basicInitializer = new Generator(_)
   

@@ -474,7 +474,7 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
 
 object DateHeader {
 
-  val DATE_FORMAT = "EEE, MMM d yyyy HH:MM:ss z"
+  val DATE_FORMAT = "EEE, MMM d yyyy HH:mm:ss z"
 
 }
 

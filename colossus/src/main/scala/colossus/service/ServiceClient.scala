@@ -136,6 +136,12 @@ object ClientState {
   case object Terminated    extends ClientState
 
 }
+
+
+//this is needed because trying to mix in any trait to CoreHandler when constructing causes the compiler to crash.
+
+class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandler(ds, tail) with ManualUnbindHandler
+
 /**
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
@@ -152,25 +158,32 @@ class ServiceClient[P <: Protocol](
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
-extends {
-  //needed to deal with initialization order
-  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize)
-} with Controller[P#ClientEncoding] with ControllerIface[P#ClientEncoding]
-with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
+extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstream[P#ClientEncoding]] with Sender[P, Callback] with HandlerTail {
 
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
+
+  //TODO: this should be moved somewhere else, maybe constructor parameter,
+  //maybe ServiceClient shouldn't do this at all, especially since users don't
+  //really directly create this anymore
+  protected def fullHandler(me: ServiceClient[P]): ClientConnectionHandler = new UnbindHandler(new Controller(this, codec), this)
 
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
-    worker.worker ! WorkerCommand.Bind(this)
+    worker.worker ! WorkerCommand.Bind(fullHandler(this))
   }
 
   import colossus.core.WorkerCommand._
   import config._
   implicit val namespace = context.worker.system.namespace / config.name
+  private def worker = context.worker
+  private def connection = upstream.connection
+  def id = context.id
+
+  def connectionState = connection.connectionState
 
   type ResponseHandler = Try[P#Response] => Unit
 
-  override val maxIdleTime = config.idleTimeout
+  //override val maxIdleTime = config.idleTimeout
 
   private val requests            = Rate("requests", "client-requests")
   private val errors              = Rate("errors", "client-errors")
@@ -217,7 +230,6 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   override def onBind(){
-    super.onBind()
     if(clientState == ClientState.Initializing){
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
@@ -234,17 +246,17 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   private def sendNow(request: P#Request)(handler: ResponseHandler){
     if (canSend) {
       val queueTime = System.currentTimeMillis
-      val pushed = push(request, queueTime){
+      val pushed = upstream.pushFrom(request, queueTime, {
         case OutputResult.Success         => {
           val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
           sentBuffer.enqueue(s)
           if (sentBuffer.size >= config.sentBufferSize) {
-            pauseWrites() //writes resumed in processMessage
+            upstream.pauseWrites() //writes resumed in processMessage
           }
         }
         case OutputResult.Failure(err)    => failRequest(handler, err)
         case OutputResult.Cancelled(err)  => failRequest(handler, err)
-      }
+      })
       if (!pushed) {
         failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
       }
@@ -276,13 +288,10 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
       }
     }
     checkGracefulDisconnect()
-    if (!writesEnabled) resumeWrites()
+    if (!upstream.writesEnabled) upstream.resumeWrites()
   }
 
-  def receivedMessage(message: Any, sender: ActorRef) {}
-
-  override def connected(endpoint: WriteEndpoint) {
-    super.connected(endpoint)
+  override def connected() {
     log.info(s"$id Connected to $address")
     clientState = ClientState.Connected
     retryIncident = None
@@ -292,19 +301,17 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     sentBuffer.foreach { s => failRequest(s.handler, reason) }
     sentBuffer.clear()
     if (failFast) {
-      purgePending(reason)
+      upstream.purgePending(reason)
     }
   }
 
-  override protected def connectionClosed(cause: DisconnectCause): Unit = {
-    super.connectionClosed(cause)
+  protected def connectionClosed(cause: DisconnectCause): Unit = {
     clientState = ClientState.Terminated
     disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
     purgeBuffers(new NotConnectedException(s"${cause.logString}"))
   }
 
-  override protected def connectionLost(cause : DisconnectError) {
-    super.connectionLost(cause)
+  protected def connectionLost(cause : DisconnectError) {
     cause match {
       case DisconnectCause.ConnectFailed(error) => {
         log.warning(s"$id failed to connect to ${address.toString}: ${error.getMessage}")
@@ -318,6 +325,13 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
       }
     }
     attemptReconnect()
+  }
+
+  override protected def onConnectionTerminated(reason: DisconnectCause) {
+    reason match {
+      case error: DisconnectError => connectionLost(error)
+      case _ => connectionClosed(reason)
+    }
   }
 
 
@@ -359,15 +373,13 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && pendingBufferSize == 0) {
-      super.shutdown()
+    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && upstream.pendingBufferSize == 0) {
+      upstream.shutdown()
     }
   }
 
 
-  override def idleCheck(period: FiniteDuration) {
-    super.idleCheck(period)
-
+  override protected def onIdleCheck(period: FiniteDuration) {
     if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
       // the oldest sent message has expired with no response - kill the connection
       // sending the Kill message instead of disconnecting will trigger the reconnection logic
@@ -379,5 +391,9 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
     errors.hit(tags = hpTags + ("type" -> exception.metricsName))
     handler(Failure(exception))
+  }
+
+  def disconnect() {
+    connection.disconnect()
   }
 }

@@ -6,7 +6,7 @@ import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /**
  * Configuration for the controller
@@ -24,57 +24,83 @@ case class ControllerConfig(
   metricsEnabled: Boolean = true
 )
 
-//these are the methods that the controller layer requires to be implemented
-trait ControllerIface[E <: Encoding] {
-  protected def connectionState: ConnectionState
-  protected def codec: Codec[E]
-  protected def processMessage(input: E#Input)
-  protected def controllerConfig: ControllerConfig
-  implicit val namespace: MetricNamespace
+//these are the methods that the controller layer requires to be implemented by it's downstream neighbor
+trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
-  protected def onFatalError(reason: Throwable): Option[E#Output] = {
+  def processMessage(input: E#Input)
+
+  def onFatalError(reason: Throwable): Option[E#Output] = {
     //TODO: Logging
     println(s"Fatal Error: $reason, disconnecting")
     None
   }
+
+  def controllerConfig: ControllerConfig
 }
 
 trait Writer[T] {
-  protected def push(item: T, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean
-  protected def canPush: Boolean
+  def pushFrom(item: T, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean
+  def push(item: T)(postWrite: QueuedItem.PostWrite): Boolean = pushFrom(item , System.currentTimeMillis, postWrite)
+  def canPush: Boolean
 }
 
-//these are the method that a controller layer itself must implement
-trait ControllerImpl[E <: Encoding] extends Writer[E#Output] {
-  protected def purgePending(reason: Throwable)
-  protected def writesEnabled: Boolean
-  protected def pauseWrites()
-  protected def resumeWrites()
-  protected def pauseReads()
-  protected def resumeReads()
-  protected def pendingBufferSize: Int
+//these are the method that a controller layer itself must implement for its downstream neighbor
+trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] with UpstreamEvents {
+  def writesEnabled: Boolean
+  def pauseWrites()
+  def resumeWrites()
+  def pauseReads()
+  def resumeReads()
+  def purgePending(reason: Throwable)
+  def pendingBufferSize: Int
+  def connection: ConnectionManager
 }
 
 /**
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
-trait BaseController[E <: Encoding] extends CoreHandler with IdleCheck with ControllerImpl[E]{this: ControllerIface[E] =>
-  def fatalError(reason: Throwable) {
-    onFatalError(reason).foreach{o => push(o){_ => ()}}
-    disconnect()
-  }
+trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { 
+  def fatalError(reason: Throwable) 
+
+  def controllerConfig: ControllerConfig
+  def codec: Codec[E]
+  def context: Context
+
+  implicit val namespace: MetricNamespace
 }
 
-trait Controller[E <: Encoding] extends StaticInputController[E] with StaticOutputController[E]{this: ControllerIface[E] => }
+class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E]) 
+extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
-/**
- * This can be used to build connection handlers directly on top of the
- * controller layer
- */
-abstract class BasicController[E <: Encoding](
-  val codec: Codec[E],
-  val controllerConfig: ControllerConfig,
-  val context: Context
-) extends Controller[E] { self: ControllerIface[E] => }
+  //TODO : FIX - probably put this in controller config
+  implicit val namespace: MetricNamespace = context.worker.system.metrics
+  
+  downstream.setUpstream(this)
+  
+  def connection = upstream
+  def controllerConfig = downstream.controllerConfig
+
+  override def onConnectionTerminated(cause: DisconnectCause) {
+    cause match {
+      case error: DisconnectError => connectionLost(error)
+      case other => connectionClosed(other)
+    }
+  }
+
+  def fatalError(reason: Throwable) {
+    //TODO: FIX
+    downstream.onFatalError(reason).foreach{o => push(o){_ => ()}}
+    upstream.disconnect()
+  }
+  
+
+}
+
+object Controller {
+
+  def apply[E <: Encoding](downstream: ControllerDownstream[E] with HandlerTail, codec: Codec[E]): PipelineHandler = {
+    new PipelineHandler(new Controller(downstream, codec), downstream)
+  }
+}
 
 

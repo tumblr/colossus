@@ -51,16 +51,25 @@ import Protocol._
 class UnhandledRequestException(message: String) extends Exception(message)
 class ReceiveException(message: String) extends Exception(message)
 
-trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{ 
+abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) 
+extends ServiceServer[C](requestHandler.config) 
+with DownstreamEventHandler[GenRequestHandler[C]] { 
 
-  def requestHandler: GenRequestHandler[C]
+  downstream.setUpstream(this)
+
+  override def onBind() {
+    requestHandler.setConnection(upstream.connection)
+  }
 
   protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
     case other =>
       Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
 
+  def serverContext = requestHandler.serverContext
+
   protected def unhandledError: ErrorHandler[C] 
+  def downstream = requestHandler
 
   private lazy val handler: PartialHandler[C] = requestHandler.handle orElse unhandled
   private lazy val errorHandler: ErrorHandler[C] = requestHandler.onError orElse unhandledError
@@ -71,36 +80,16 @@ trait DSLService[C <: Protocol] extends ServiceServer[C] with ConnectionManager{
 
 }
 
-/**
- * This needs to be mixed with Controller, ServiceServer, and DSLService
- * sub-traits to work (right now there's only one implementation of each but
- * that may change
- *
- */
-abstract class BasicServiceHandler[P <: Protocol](val requestHandler : GenRequestHandler[P]) 
-extends {
-  val serverContext = requestHandler.context
-  val config        = requestHandler.config
-
-} with DSLService[P] {
-
-  override def onBind() {
-    requestHandler.onBind(this)
-  }
-
-  //TODO: possibly build out an API for request handlers to deal with this
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
-
-}
-
 class RequestHandlerException(message: String) extends Exception(message)
 
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val context: ServerContext) {
+abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) 
+extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstream[P]] {
 
   def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
 
-  val server = context.server
-  implicit val worker = context.context.worker
+  val server = serverContext.server
+  def context = serverContext.context
+  implicit val worker = context.worker
 
   private var _connectionManager: Option[ConnectionManager] = None
 
@@ -108,11 +97,11 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
     throw new RequestHandlerException("Cannot access connection before request handler is bound")
   }
 
-  def onBind(connection: ConnectionManager) {
+  def setConnection(connection: ConnectionManager) {
     _connectionManager = Some(connection)
   }
 
-  implicit val executor   = context.context.worker.callbackExecutor
+  implicit val executor   = context.worker.callbackExecutor
 
   def handle: PartialHandler[P]
 
@@ -125,7 +114,7 @@ abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val c
 }
 
 
-abstract class HandlerGenerator[P <: Protocol, T <: GenRequestHandler[P]](ctx: InitContext) {
+abstract class HandlerGenerator[T](ctx: InitContext) {
   implicit val worker = ctx.worker
   val server = ctx.server
 
@@ -133,16 +122,14 @@ abstract class HandlerGenerator[P <: Protocol, T <: GenRequestHandler[P]](ctx: I
   def fullHandler: T => ServerConnectionHandler
 }
 
-trait ServiceInitializer[P <: Protocol, T <: GenRequestHandler[P]] extends HandlerGenerator[P,T] {
+trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
   def onConnect: ServerContext => T
 }
 
+trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
-
-trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializer[P,R]] {
-
-  def basicInitializer: InitContext => HandlerGenerator[P, R]
+  def basicInitializer: InitContext => HandlerGenerator[T]
 
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, settings){i => new core.Initializer(i) {
@@ -159,18 +146,12 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
     }}
   }
 
-  def basic(name: String, port: Int, handler: ServerContext => R)(implicit io: IOSystem) = {
+  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
     Server.start(name, port){i => new core.Initializer(i) {
       val rinit = basicInitializer(i)
       def onConnect = ctx => rinit.fullHandler(handler(ctx))
     }}
   }
-
-  /*
-  def basic(name: String, port: Int)(handler: PartialHandler[P])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
-    def onConnect = new RequestHandler(_) { def handle = handler }
-  }}
-  */
 
 }
 
@@ -179,15 +160,14 @@ trait ServiceDSL[P <: Protocol, R <: GenRequestHandler[P], I <: ServiceInitializ
  * functionality.  Just provide a codec and you're good to go
  */
 trait BasicServiceDSL[P <: Protocol] {
+  import controller.Controller
 
   protected def provideCodec(): Codec.Server[P]
 
   protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
 
   protected class ServiceHandler(rh: RequestHandler) 
-  extends BasicServiceHandler[P](rh) {
-
-    val codec = provideCodec()
+  extends DSLService[P](rh) {
 
     def unhandledError = {
       case error => errorMessage(error)
@@ -195,19 +175,19 @@ trait BasicServiceDSL[P <: Protocol] {
 
   }
 
-  protected class Generator(context: InitContext) extends HandlerGenerator[P, RequestHandler](context) {
+  protected class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
 
-    def fullHandler = new ServiceHandler(_)
+    def fullHandler = rh => new PipelineHandler(new Controller(new ServiceHandler(rh), provideCodec()), rh)
 
   }
 
-  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[P, RequestHandler]
+  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[RequestHandler]
 
   abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
     def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
   }
 
-  object Server extends ServiceDSL[P, RequestHandler, Initializer] {
+  object Server extends ServiceDSL[RequestHandler, Initializer] {
 
     def basicInitializer = new Generator(_)
 

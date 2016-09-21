@@ -36,6 +36,34 @@ class Context(val id: Long, val worker: WorkerRef) {
   private[colossus] def proxyExists = _proxyExists
 }
 
+/**
+ * This trait contains event handler methods for when a worker item is
+ * bound and unbound to/from a worker.  This is used both by [[WorkerItem]]
+ * itself as well as components of connection handler pipelines like
+ * [[DownstreamEvents]].
+ */
+trait WorkerItemEvents {
+
+  /**
+   * Called when the item is bound to a worker.
+   */
+  protected def onBind(){}
+
+  /**
+   * Called when the item has been unbound from a worker
+   */
+  protected def onUnbind(){}
+
+  /**
+   * Provides a way to send this WorkerItem a message from an Actor by way of
+   * WorkerCommand.Message.
+   * @param message  The message that was sent
+   * @param sender The sender who sent the message
+   */
+  def receivedMessage(message: Any, sender: ActorRef){}
+
+}
+
 
 /**
  * A WorkerItem is anything that can be bound to worker to receive both events
@@ -53,7 +81,7 @@ class Context(val id: Long, val worker: WorkerRef) {
  * in some cases we want one WorkerItem to replace another, in which case the
  * context must be transferred
  */
-trait WorkerItem {
+trait WorkerItem extends WorkerItemEvents {
 
   def context: Context
 
@@ -95,25 +123,6 @@ trait WorkerItem {
   }
 
   /**
-   * Provides a way to send this WorkerItem a message from an Actor by way of
-   * WorkerCommand.Message.
-   * @param message  The message that was sent
-   * @param sender The sender who sent the message
-   */
-  def receivedMessage(message: Any, sender: ActorRef)
-
-  /**
-   * Called when the item is bound to a worker.
-   */
-  protected def onBind(){}
-
-  /**
-   * Called when the item has been unbound from a worker
-   */
-  protected def onUnbind(){}
-
-
-  /**
    * A Request has been made to shutdown this WorkerItem.  By default this will
    * simply unbind the item from its Worker, but this can be overriden to add in
    * custom shutdown behaviors.  Be aware that in some cases this method may not
@@ -149,25 +158,26 @@ trait IdleCheck extends WorkerItem {
 }
 
 /**
- * This is a mixin for [[WorkerItem]] that gives it actor-like capabilities.  A
+ * This is a mixin for [[WorkerItemEvents]] that gives it actor-like capabilities.  A
  * "proxy" Akka actor is spun up, such that any message sent to the proxy will
  * be relayed to the WorkerItem.  
  *
- * The proxy actors lifecycle will be linked to the lifecycle of this
+ * The proxy actors lifecycle will be linked to the lifecycle of the bound WorkerItem.
  * workeritem, so if the actor is kill, the `shutdownRequest` method will be
  * invoked, and likewise if this item is unbound the proxy actor will be killed.
+ *
+ * This is intended to be mixed in both to worker items as well as Pipeline Componenents.
  */
-trait ProxyActor extends WorkerItem { 
-  
-  import ProxyActor._
-  
-  implicit val self : ActorRef = context.proxy
+trait ProxyActor extends WorkerItemEvents {
 
-  private var currentReceiver : Receive = receive
-    
-  def becomeReceive(receive: Receive) {
-    currentReceiver = receive
-  }
+  //TODO: figure out how to not need to define this here separately from WorkerItem
+  def shutdownRequest()
+  def context: Context
+
+
+  import ProxyActor._
+  implicit val self : ActorRef = context.proxy
+  private var killedByProxy = false
 
   override def onBind() {
     super.onBind()
@@ -183,20 +193,31 @@ trait ProxyActor extends WorkerItem {
       self ! WorkerItemProxy.Unbound
     }
   }
+  
+
+  private var currentReceiver : Receive = receive
+    
+  def becomeReceive(receive: Receive) {
+    currentReceiver = receive
+  }
+
     
   private var lastSender = ActorRef.noSender
-  private var killedByProxy = false
   def sender() : ActorRef = lastSender
 
-  def receivedMessage(message: Any, sender: ActorRef) {
+  override def receivedMessage(message: Any, sender: ActorRef) {
     lastSender = sender
     message match {
       case WorkerItemProxy.Shutdown => {
         killedByProxy = true
         shutdownRequest()
       }
-      case other => currentReceiver.applyOrElse(message, (_: Any) => ())
+      case other => handleReceive(message, currentReceiver)
     }
+  }
+
+  protected def handleReceive(message: Any, receiver: Receive) {
+    receiver.applyOrElse(message, (_: Any) => ())
   }
 
   def receive : Receive

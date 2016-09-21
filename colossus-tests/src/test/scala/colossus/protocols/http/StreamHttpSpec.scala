@@ -2,12 +2,14 @@ package colossus
 package protocols.http
 
 import core._
+import controller._
 import testkit._
 import stream._
 
 import akka.util.ByteString
+import org.scalamock.scalatest.MockFactory
 
-class StreamHttpSpec extends ColossusSpec {
+class StreamHttpSpec extends ColossusSpec with MockFactory{
 
 
   "streamhttp codec" must {
@@ -91,22 +93,26 @@ class StreamHttpSpec extends ColossusSpec {
   "StreamHttpServerHandler" must {
     class MyHandler(ctx: ServerContext) extends StreamServerHandler(ctx) {
       
-      def processMessage(msg: StreamHttpMessage[HttpRequestHead]) = msg match {
+      def handle(msg: StreamHttpMessage[HttpRequestHead]) = msg match {
         case Head(h) => {
-          pushCompleteMessage(HttpResponse.ok("hello"))(_ => ())
+          upstream.pushCompleteMessage(HttpResponse.ok("hello"))(_ => ())
         }
         case _ => {}
       }
     }
     
     "push a full response" in {
-      val con = MockConnection.server(new MyHandler(_))
-      con.typedHandler.connected(con)
-      con.typedHandler.receivedData(DataBuffer(HttpRequest.get("/foo").bytes))
-      con.iterate()
-      con.iterate()
-      val expected = ByteString("HTTP/1.1 200 OK\r\ncontent-length: 5\r\nContent-Type: text/plain\r\n\r\nhello")
-      con.expectOneWrite(expected)
+      val controllerStub = stub[ControllerUpstream[StreamHttp#ServerEncoding]]
+      val handler        = new MyHandler(FakeIOSystem.fakeServerContext)
+      val controller = new ServerStreamController(handler)
+      controller.setUpstream(controllerStub)
+      controller.processMessage(Head(HttpRequest.get("/foo").head))
+      val response = HttpResponse.ok("hello").withHeader("content-length", "5").withHeader("Content-Type", "text/plain")
+      inSequence {
+        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
+        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(BodyData[HttpResponseHead](DataBlock("hello")), *)
+        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(End[HttpResponseHead](), *)
+      }
     }
   }
 

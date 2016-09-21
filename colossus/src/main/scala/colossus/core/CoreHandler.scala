@@ -1,5 +1,7 @@
 package colossus.core
 
+import akka.actor.ActorRef
+
 sealed abstract class ShutdownAction(val rank: Int) {
   
   def >=(a: ShutdownAction): Boolean = rank >= a.rank
@@ -26,18 +28,6 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
 
 
 /**
- * These are methods made available to all layers extending the core layer
- */
-trait ConnectionManager {
-  def connectionState: ConnectionState
-  def disconnect()
-  def forceDisconnect()
-  def become(nh: () => ConnectionHandler): Boolean
-
-  def isConnected: Boolean
-}
-
-/**
  * This is the connection handler on which the controller and service layers are
  * built.  It contains some common functionality that is ultimately exposed to
  * the users, such as methods to call for disconnecting and safely getting a
@@ -45,7 +35,7 @@ trait ConnectionManager {
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-trait CoreHandler extends ConnectionHandler with ConnectionManager {
+abstract class CoreHandler(val context: Context) extends ConnectionHandler {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
@@ -119,14 +109,22 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)
-        shutdown()
+        onShutdown()
       }
-      case NotConnected => shutdown()
+      case NotConnected => onShutdown()
       case _ => {}
     }
   }
 
-  protected def shutdown() {
+  def shutdown() {
+    onShutdown()
+  }
+
+  protected def onShutdown() {
+    completeShutdown()
+  }
+
+  final protected def completeShutdown() {
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
@@ -136,17 +134,6 @@ trait CoreHandler extends ConnectionHandler with ConnectionManager {
   }
 
 
-}
-
-/*
-class BasicCoreHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler {
-
-  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
-  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
-  def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
-  def readyForData(buffer: DataOutBuffer): colossus.core.MoreDataResult = MoreDataResult.Complete
-  def receivedData(data: colossus.core.DataBuffer): Unit = {}
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
-*/
+

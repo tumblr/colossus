@@ -1,7 +1,8 @@
 package colossus
 package protocols.websocket
 
-import core.{DataBlock, DataBuffer, ServerContext}
+import controller.{ControllerUpstream, Encoding, QueuedItem}
+import core.{ConnectionManager, DataBlock, DataBuffer, ServerContext}
 
 import service.Protocol
 import protocols.http._
@@ -14,8 +15,10 @@ import akka.util.ByteString
 
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
+import org.scalamock.scalatest.MockFactory
 
-class WebsocketSpec extends ColossusSpec {
+
+class WebsocketSpec extends ColossusSpec with MockFactory {
 
   import HttpHeader.Conversions._
 
@@ -103,11 +106,11 @@ class WebsocketSpec extends ColossusSpec {
   }
 
 
-  "WebsocketHandler" must {
+  "WebsocketController" must {
     //a simple codec to test decoding errors 
-    trait CString extends Protocol {
-      type Request = String
-      type Response = String
+    trait CString extends Encoding {
+      type Input = String
+      type Output = String
     }
 
     class CStringCodec extends FrameCodec[CString] {
@@ -129,26 +132,32 @@ class WebsocketSpec extends ColossusSpec {
     class MyHandler(context: ServerContext) extends WebsocketServerHandler[CString](context) {
       def handle = {
         case "A" => {
-          sendMessage("B")
+          send("B")
         }
       }
-
-      // Members declared in colossus.protocols.websocket.WebsocketHandler
       def handleError(reason: Throwable): Unit = {
-        sendMessage("E")
+        send("E")
       }
 
-      // Members declared in colossus.core.WorkerItem
-      def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
     }
     val random = new java.util.Random
 
+    def mock(): (ControllerUpstream[WebsocketEncoding], WebsocketController[CString]) = {
+      
+      val corestub = stub[ConnectionManager]
+      val cstub = stub[ControllerUpstream[WebsocketEncoding]]
+      (cstub.connection _).when().returns(corestub)
+      val handler = new MyHandler(FakeIOSystem.fakeServerContext)
+      val controller = new WebsocketController(handler, new CStringCodec)
+      controller.setUpstream(cstub)
+      controller.connected()
+      (cstub, controller)
+    }
+
     def sendReceive(send: Frame, expected: Frame) {
-      val con = MockConnection.server(new MyHandler(_))
-      con.typedHandler.connected(con)
-      con.typedHandler.receivedData(send.encode(random))
-      con.iterate()
-      con.expectOneWrite(ByteString(expected.encode(random).takeAll))
+      val (cstub, controller) = mock()
+      controller.processMessage(send)
+      (cstub.push (_: Frame) ( _: QueuedItem.PostWrite) ).verify(expected, *)
     }
 
     "properly handle a frame" in {
@@ -170,11 +179,10 @@ class WebsocketSpec extends ColossusSpec {
     }
 
     "close" in {
-      val con = MockConnection.server(new MyHandler(_))
+      val (cstub, controller) = mock()
       val send = Frame(Header(OpCodes.Close, true), DataBlock(""))
-      con.typedHandler.connected(con)
-      con.typedHandler.receivedData(send.encode(random))
-      con.expectDisconnectAttempt()
+      controller.processMessage(send)
+      (cstub.connection.disconnect _).verify()
     }
 
       
@@ -184,28 +192,33 @@ class WebsocketSpec extends ColossusSpec {
   "WebsocketHttp" must {
     import subprotocols.rawstring._
     import protocols.http.server.HttpServiceHandler
-    val myinit = new WebsocketInitializer(FakeIOSystem.fakeWorker.worker) {
+    val myinit = new WebsocketInitializer[RawString](FakeIOSystem.fakeWorker.worker) {
+      def provideCodec = new RawStringCodec
       def onConnect = new WebsocketServerHandler[RawString](_) {
         def handle = {
           case "A" => {
-            sendMessage("B")
+            send("B")
           }
         }
         def handleError(reason: Throwable): Unit = {
-          sendMessage("E")
+          send("E")
         }
-        def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = ???
       }
     }
 
-    def createHandler = MockConnection.server(ctx => new HttpServiceHandler(new WebsocketHttpHandler(ctx, myinit, "/foo"), HttpHeaders.Empty))
+    def createHandler = {
+      val init = new protocols.http.server.Initializer(FakeIOSystem.fakeInitContext) {
+        def onConnect = new WebsocketHttpHandler(_, myinit, "/foo")
+      }
+      MockConnection.server(ctx => init.fullHandler(init.onConnect(ctx)))
+    }
 
     "switch connection handler on successful upgrade request" in {
       val con = createHandler
       con.typedHandler.connected(con)
       con.typedHandler.receivedData(DataBuffer(valid.bytes))
       con.iterate()
-      con.expectOneWrite(validResponse.bytes)
+      //con.expectOneWrite(validResponse.bytes)
       con.iterate()
       con.workerProbe.expectMsgType[core.WorkerCommand.SwapHandler](100.milliseconds)
     }

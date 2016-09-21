@@ -95,6 +95,8 @@ class FatalServiceServerException(message: String) extends ServiceServerExceptio
 
 class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
+trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
+
 
 /**
  * The ServiceServer provides an interface and basic functionality to create a server that processes
@@ -109,16 +111,17 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with ControllerIface[P#ServerEncoding] with ServerConnectionHandler {
+abstract class ServiceServer[P <: Protocol](val config: ServiceConfig)
+extends ControllerDownstream[P#ServerEncoding] 
+with ServiceUpstream[P] 
+with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] 
+{
   import ServiceServer._
 
   type I = P#ServerEncoding#Input
   type O = P#ServerEncoding#Output
 
-  //"constructor" parameters
-  //codec is already defined in controller
-  def config: ServiceConfig
-  def serverContext: ServerContext
+  protected def serverContext: ServerContext
 
   protected def processRequest(request: I): Callback[O]
 
@@ -126,13 +129,9 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
  
   protected def processFailure(error: ProcessingFailure[I]): O
 
-  //passthrough to lower layers
-  def controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize, true, config.requestMetrics)
-  def context = serverContext.context
+  def connection = upstream.connection
 
-
-  private val myconfig = config
-  import myconfig._
+  import config._
 
   implicit val namespace = serverContext.server.namespace
   def name = serverContext.server.config.name
@@ -140,6 +139,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
+  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")
@@ -194,14 +194,11 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
   def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
-  override def idleCheck(period: FiniteDuration) {
-    super.idleCheck(period)
-
+  override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.peek.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
       requestBuffer.peek.complete(handleFailure(RecoverableError(requestBuffer.peek.request, new TimeoutError)))
-
     }
   }
     
@@ -209,13 +206,13 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
+    while (upstream.connection.isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && upstream.canPush) {
       val done = requestBuffer.remove()
       val comp = done.response
       if (requestMetrics) concurrentRequests.decrement()
       pushResponse(done.request, comp, done.creationTime)
     }
-    if (!canPush) {
+    if (!upstream.canPush) {
       //this means the output buffer cannot accept any more messages, so we have
       //to pause dequeuing responses and wait for the next message in the output
       //buffer to be written
@@ -224,8 +221,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
     checkGracefulDisconnect()
   }
 
-  abstract override def connectionClosed(cause : DisconnectCause) {
-    super.connectionClosed(cause)
+  override def onConnectionTerminated(cause : DisconnectCause) {
     if (requestMetrics) {
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(amount = requestBuffer.size)
@@ -236,17 +232,13 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
     }
   }
 
-  override def connectionLost(cause : DisconnectError) {
-    connectionClosed(cause)
-  }
-
   private def pushResponse(request: I, response: O, startTime: Long) {
     if (requestMetrics) {
       val tags = tagDecorator.tagsFor(request, response)
       requests.hit(tags = tags)
       latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
     }
-    val pushed = push(response, startTime) {
+    val pushed = upstream.pushFrom(response, startTime, {
       case OutputResult.Success => {
         if (dequeuePaused) {
           dequeuePaused = false
@@ -256,7 +248,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
       case f: OutputError => {
         addError(RecoverableError(request, f.reason))
       }
-    }
+    })
 
     //this should never happen because we are always checking if the outputqueue
     //is full before calling this
@@ -265,7 +257,7 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
     }
   }
 
-  protected def processMessage(request: I) {
+  def processMessage(request: I) {
     numRequests += 1
     val promise = new SyncPromise(request)
     requestBuffer.add(promise)
@@ -306,12 +298,12 @@ trait ServiceServer[P <: Protocol] extends Controller[P#ServerEncoding] with Con
 
   private def checkGracefulDisconnect() {
     if (disconnecting && requestBuffer.size == 0) {
-      super.shutdown()
+      upstream.shutdown()
     }
   }
 
   override def shutdown() {
-    pauseReads()
+    upstream.pauseReads()
     disconnecting = true
     checkGracefulDisconnect()
   }

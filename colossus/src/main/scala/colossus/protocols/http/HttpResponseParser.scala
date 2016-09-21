@@ -8,7 +8,6 @@ import akka.util.{ByteString, ByteStringBuilder}
 import colossus.parsing._
 import HttpParse._
 import Combinators._
-import controller._
 import java.nio.ByteBuffer
 import scala.language.higherKinds
 

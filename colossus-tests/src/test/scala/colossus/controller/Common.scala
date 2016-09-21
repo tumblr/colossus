@@ -4,7 +4,12 @@ package controller
 import core._
 import testkit._
 import akka.actor._
+import akka.util.ByteString
 import scala.concurrent.duration._
+import org.scalamock.scalatest.MockFactory
+import colossus.parsing.DataSize._
+
+import RawProtocol._
 
 //simple helper class for testing push results, just stores the value so we can
 //check if it gets set at all and to the right value
@@ -28,57 +33,34 @@ class PushPromise {
   def expectCancelled() {  assert(isCancelled == true)}
 }
 
-trait TestController[E <: Encoding] extends ControllerIface[E] { self: Controller[E] with ServerConnectionHandler =>
-
-  implicit val namespace = {
-    import metrics._
-    MetricContext("/", Collection.withReferenceConf(Seq()))
-  }
-
-  var _received : Seq[E#Input] = Seq()
-  def received = _received
-
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
-
-  def processMessage(message: E#Input) {
-    _received = received :+ message
-  }
-
-
-  def testPause() { pauseWrites() }
-  def testResume() { resumeWrites() }
-
-  //these methods just expose protected versions
-  def testPush(message: E#Output)(onPush: OutputResult => Unit) {
-    push(message)(onPush)
-  }
-
-  def pPush(message: E#Output): PushPromise = {
+trait TestController[T <: Encoding] extends Controller[T] {
+  
+  def pPush(message: T#Output): PushPromise = {
     val p = new PushPromise
-    p.pushed = push(message)(p.func)
+    push(message)(p.func)
     p
   }
 }
 
-object TestController {
-  import RawProtocol._
+trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFactory with org.scalatest.Suite =>
 
-  val defaultConfig = ControllerConfig(4, 50.milliseconds)
+  val defaultConfig = ControllerConfig(4, 50.milliseconds, 2000.bytes)
 
-  type T[E <: Encoding] = Controller[E] with TestController[E] with ServerConnectionHandler
+  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, TestController[Raw#ServerEncoding], ControllerDownstream[Raw#ServerEncoding]) = {
+    val upstream = stub[CoreUpstream]
+    val downstream = stub[ControllerDownstream[Raw#ServerEncoding]]
+    (downstream.controllerConfig _).when().returns(config)
+    (downstream.context _).when().returns(FakeIOSystem.fakeContext)
+    (downstream.onFatalError _).when(*).returns(None)
 
-  def controller[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[E]] = {
-    val con =MockConnection.server(
-      c => {
-        val t: T[E] = new BasicController[E](codec, config, c.context) with Controller[E] with TestController[E] with ServerConnectionHandler
-        t
-      },
-      500
-    )
-    con.handler.connected(con)
-    con
+    val controller = new Controller(downstream, RawServerCodec) with TestController[Raw#ServerEncoding]
+    controller.setUpstream(upstream)
+    (upstream, controller, downstream)
   }
 
-  def static(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(RawServerCodec, config)
-
+  def expectWrite(c: CoreDownstream, expected: ByteString, bufferSize: Int = 100) {
+    val d = new DynamicOutBuffer(bufferSize)
+    c.readyForData(d)
+    assert(ByteString(d.data.takeAll) == expected)
+  }
 }

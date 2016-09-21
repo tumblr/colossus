@@ -64,7 +64,7 @@ object StaticOutState {
   case object Terminated extends StaticOutState(false)
 }
 
-trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: ControllerIface[E] =>
+trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   private var state: StaticOutState = StaticOutState.Suspended
@@ -72,7 +72,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
   private var _writesEnabled = true
   private var outputBuffer = new MessageQueue[E#Output](controllerConfig.outputBufferSize)
 
-  protected def pendingBufferSize = outputBuffer.size
+  def pendingBufferSize = outputBuffer.size
 
   def writesEnabled = _writesEnabled
 
@@ -88,15 +88,15 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
     if (!outputBuffer.isEmpty) signalWrite()
   }
 
-  protected def purgePending(reason: Throwable) {
+  def purgePending(reason: Throwable) {
     while (!outputBuffer.isEmpty) {
       outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
     }
 
   }
 
-  override def connected(endpt: WriteEndpoint) {
-    super.connected(endpt)
+  override def onConnected() {
+    super.onConnected()
     state = StaticOutState.Alive
     if (!outputBuffer.isEmpty) signalWrite()
   }
@@ -119,7 +119,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
     onClosed()
   }
 
-  def idleCheck(period: FiniteDuration) {
+  override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
       val expired = outputBuffer.dequeue
@@ -128,11 +128,8 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
   }
 
   private def signalWrite() {
-    connectionState match {
-      case a: AliveState => {
-        if (writesEnabled) a.endpoint.requestWrite()
-      }
-      case _ => {}
+    if (writesEnabled) {
+      upstream.requestWrite()
     }
   }
 
@@ -143,14 +140,17 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
 
   private def checkShutdown() {
     if (disconnecting && outputBuffer.isEmpty) {
-      super.shutdown()
+      //we do this instead of shutting down immediately since this could be
+      //called while in the middle of writing and end up prematurely closing the
+      //connection
+      signalWrite()
     }
   }
 
 
   def canPush = state.canPush && !outputBuffer.isFull
 
-  def push(item: E#Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
+  def pushFrom(item: E#Output, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
     if (canPush) {
       if (outputBuffer.isEmpty) signalWrite()
       outputBuffer.enqueue(item, postWrite, createdMillis)
@@ -160,7 +160,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{this: Cont
 
   def readyForData(buffer: DataOutBuffer) =  {
     if (disconnecting && outputBuffer.isEmpty) {
-      checkShutdown()
+      upstream.shutdown()
       MoreDataResult.Complete
     } else {
       while (writesEnabled && outputBuffer.size > 0 && ! buffer.isOverflowed) {
