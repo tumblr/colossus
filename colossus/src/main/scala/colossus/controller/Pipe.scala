@@ -3,9 +3,17 @@ package controller
 
 import core.DataBuffer
 import akka.util.ByteString
+import java.util.LinkedList
 import scala.util.{Try, Success, Failure}
 
 import service.{Callback, UnmappedCallback}
+
+
+trait StreamState[T] {
+
+  def terminus: T
+
+}
 
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
@@ -29,11 +37,12 @@ trait Sink[T] extends Transport {
   def isFull: Boolean
 
   //after this is called, data can no longer be written, but can still be read until EOS
-  def complete()
+  def complete(): Try[Unit]
 
   def feed(from: Source[T], linkState: Boolean) {
     def tryPush(item: T): Unit = push(item) match {
       case PushResult.Ok            => feed(from, linkState)
+      case PushResult.Filling            => feed(from, linkState)
       case PushResult.Closed        => from.terminate(new Exception("This is probably not what we want to do"))
       case PushResult.Complete      => from.terminate(new Exception("This is probably not what we want to do"))
       case PushResult.Full(trig)    => trig.fill(() => tryPush(item))
@@ -141,9 +150,9 @@ object Source {
  */
 trait Pipe[T, U] extends Sink[T] with Source[U] {
 
-  def join[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = PipeCombinator.join(this, pipe)(f)
+  //def join[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = PipeCombinator.join(this, pipe)(f)
 
-  def ->>[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = join(pipe)(f)
+  //def ->>[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = join(pipe)(f)
 }
 
 
@@ -187,13 +196,17 @@ object PushResult {
   //the item was successfully pushed and is ready for more data
   case object Ok extends Pushed
 
+  //the item was pushed, but is approaching capacity, proactive backpressure measures should be taken if possible
+  case object Filling extends Pushed
+
   //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when it's ready
   case class Filled(trigger: Trigger) extends Pushed
 
   //the item was successfully pushed but that's the last one, future pushes will return Closed
   case object Complete extends Pushed
 
-  //the item was not pushed because the pipe is already full
+  //the item was not pushed because the pipe is already full, the same trigger
+  //returned when the Filled result was returned is included
   case class Full(trigger: Trigger) extends NotPushed
 
   //The pipe has been manually closed (without error) and is not accepting any more items
@@ -201,57 +214,6 @@ object PushResult {
 
   //The pipe has been terminated or some other error has occurred
   case class Error(reason: Throwable) extends NotPushed
-}
-
-/** A pipe designed to accept a fixed number of bytes
- * 
- * BE AWARE: when pushing buffers into this pipe, if the pipe completes, the
- * buffer may still contain unread data meant for another consumer
- */
-class FiniteBytePipe(totalBytes: Long) extends InfinitePipe[DataBuffer] {
-  require(totalBytes >= 0, "A FiniteBytePipe must accept 0 or more bytes")
-
-  private var taken = 0L
-  def remaining = totalBytes - taken
-
-  if(totalBytes == 0){
-    complete()
-  }
-
-  override def push(data: DataBuffer): PushResult = {
-    //notice we're only dong these checks to avoid the databuffer copying,
-    //won't need this when we get slices
-    if (!terminated && !isFull && !isClosed) {
-      if (taken == totalBytes) {
-        throw new Exception("All bytes have been read but pipe is not closed!") //this should never happen
-      } else {
-        val partial = if (remaining >= data.remaining) {
-          data
-        } else {
-          //TODO: need databuffer slices to avoid copying here
-          DataBuffer(ByteString(data.take(remaining.toInt)))
-        }
-        //need to get this value here, since remaining might be 0 after call
-        val toAdd = partial.remaining
-        val res = super.push(partial) 
-        if (res.isInstanceOf[PushResult.Pushed]) {
-          taken += toAdd
-          if (taken == totalBytes) {
-            complete()
-            PushResult.Complete
-          } else {
-            res
-          }
-        } else {
-          res
-        }
-      }
-    } else {
-      //lazy but effective, just push an empty buffer since it will be rejected anyway with the correct response
-      super.push(DataBuffer(ByteString()))
-    }
-  }
-
 }
 
 /**
@@ -300,22 +262,28 @@ class PipeStateException(message: String) extends Exception(message) with PipeEx
  */
 class PipeCancelledException extends Exception("Pipe Cancelled") with PipeException
 
-class InfinitePipe[T] extends Pipe[T, T] {
+class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Double = 0.9) extends Pipe[T, T] {
 
   sealed trait State
+  sealed trait PushableState extends State
   case class Full(trigger: Trigger) extends State
-  case class Pulling(callback: Try[Option[T]] => Unit) extends State
+  case class Pulling(callback: Try[Option[T]] => Unit) extends PushableState
   case object Closed extends State
+  case object Idle extends PushableState
   case class Dead(reason: Throwable) extends State
 
   //Full is the default state because we can only push once we've received a callback from pull
-  private var state: State = Full(new Trigger)
+  private var state: State = Idle
+  private val buffer = new LinkedList[T]
+  private val lowWatermark = size * lowWatermarkP
+  private val highWatermark = size * highWatermarkP
+
 
   def terminated  = state.isInstanceOf[Dead]
   def isFull      = state.isInstanceOf[Full]
   def isClosed    = state == Closed
 
-  def isPushable  = state.isInstanceOf[Pulling]
+  def isPushable  = state.isInstanceOf[PushableState]
 
   /** Attempt to push a value into the pipe.
    *
@@ -324,60 +292,74 @@ class InfinitePipe[T] extends Pipe[T, T] {
    * will never interally queue a value.
    * 
    * @return the result of the push
-   * @throws PipeException when pushing to a full pipe
    */
   def push(item: T): PushResult = state match {
     case Full(trig)   => PushResult.Full(trig)
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
     case Pulling(cb)  => {
-      state = Full(new Trigger) //maybe create a new state here might be some weirdness if the puller pushes to the pipe
+      //notice we could only have been in this state if the puller called pull
+      //while the buffer was empty, so we know we can just directly send this
+      //item to the puller
+      state = Idle
       cb(Success(Some(item)))
-      //notice that the callback may (and probably will) call "pull" in its
+      //The callback may (and probably will) close or terminate the pipe in its
       //execution.  Thus we can expect the state to have changed here
       state match {
-        case Full(trig)   => PushResult.Filled(trig)    //cb didn't call "pull"
-        case Dead(reason) => PushResult.Error(reason)   //cb terminated the pipe
         case Closed       => PushResult.Complete        //cb closed the pipe
-        case Pulling(_)   => PushResult.Ok              //cb called pull
+        case _            => PushResult.Ok  //note - the pipe may be dead at this point, but we pushed the item to the puller, so whatever!
+      }
+    }
+    case Idle => {
+      buffer.add(item)
+      if (buffer.size >= size) {
+        val t = new Trigger
+        state = Full(t)
+        PushResult.Filled(t)
+      } else if (buffer.size > highWatermark) {
+        PushResult.Filling
+      } else {
+        PushResult.Ok
       }
     }
   }
 
-  //this is useful for inherited pipes that need to do some processing on a value before it is pushed
-  protected def whenPushable(f: => PushResult): PushResult = if (isPushable) f else state match {
-    case Full(trig)   => PushResult.Full(trig)
-    case Dead(reason) => PushResult.Error(reason)
-    case Closed       => PushResult.Closed
-    case Pulling(cb)  => throw new PipeStateException("This should never happen")
-  }
-  
   /** Request the next value from the pipe
    * 
    * Only one value can be requested at a time.  Also there can only be one
    * outstanding request at a time.
    *
+   * `whenReady`'s parameter has type Try[Option[T]] instead of some kind of ADT to be compatible with Callbacks
    */
-  // NOTE - whenReady's parameter has type Try[Option[T]] instead of some kind of ADT to be compatible with Callbacks
   def pull(whenReady: Try[Option[T]] => Unit): Unit = state match {
     case Dead(reason)  => whenReady(Failure(reason))
-    case Closed        => whenReady(Success(None))
+    case Closed if (buffer.size == 0)  => whenReady(Success(None))
     case Pulling(_)    => whenReady(Failure(new PipeStateException("Pipe already being pulled")))
-    case Full(trig)    => {
-      state = Pulling(whenReady)
-      trig.trigger()
+    case other => {
+      if (buffer.size == 0) {
+        state = Pulling(whenReady)
+      } else {
+        whenReady(Success(Some(buffer.remove())))
+        other match {
+          case Full(trig) if (buffer.size <= lowWatermark) => {
+            state = Idle
+            trig.trigger()
+          }
+          case _ => ()
+        }
+      }
     }
   }
       
     
-  def complete() {
+  def complete(): Try[Unit] = {
     val oldstate = state
     state = Closed
     oldstate match {
-      case Full(trig)   => trig.trigger()
-      case Pulling(cb)  => cb(Success(None))
-      case Dead(reason) => throw new PipeTerminatedException(reason) 
-      case _ => {}
+      case Full(trig)   => Success(trig.trigger())
+      case Pulling(cb)  => Success(cb(Success(None)))
+      case Dead(reason) => Failure(new PipeTerminatedException(reason))
+      case _            => Success(())
     }
   }
 
@@ -390,8 +372,7 @@ class InfinitePipe[T] extends Pipe[T, T] {
     oldstate match {
       case Full(trig)   => trig.trigger()
       case Pulling(cb)  => cb(Failure(new PipeTerminatedException(reason)))
-      case Dead(r)      => throw new PipeStateException("Cannot terminate a pipe that has already been terminated")
-      case Closed       => {} //don't think there's anything to do here
+      case _            => {}
     }
   }
 
