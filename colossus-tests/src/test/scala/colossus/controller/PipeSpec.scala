@@ -18,18 +18,18 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   implicit val duration = 1.second
 
-  "InfinitePipe" must {
+  "BufferedPipe" must {
 
-    "push an item after pull request" in {
-      val pipe = new InfinitePipe[Int]
+    "push an item after pull request without buffering" in {
+      val pipe = new BufferedPipe[Int](0)
       var v = 0
       pipe.pull{x => v = x.get.get}
-      pipe.push(2) mustBe an[Filled]
+      pipe.push(2) mustBe Ok
       v must equal(2)
     }
 
     "push an item after pull request with another request during execution" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       var v = 0
       def pl() {
         pipe.pull{x => v = x.get.get;pl()}
@@ -40,31 +40,31 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "receive Complete result when puller completes pipe during execution" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       pipe.pull{x => pipe.complete()}
       pipe.push(2) must equal(Complete)
     }
 
 
     "fail to push when pipe is full" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       pipe.push(1) mustBe an[Full]
     }
 
     "received Close if pipe is closed outside pull execution" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       pipe.complete()
       pipe.push(1) must equal(Closed)
     }
 
     "fail to push when pipe has been terminated" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       pipe.terminate(new Exception("sadfsadf"))
       pipe.push(1) mustBe an[Error]
     }
 
     "full trigger fired when pipe opens up" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       val f = pipe.push(1) match {
         case Full(trig) => trig
         case other => fail(s"didn't get trigger, got $other")
@@ -77,31 +77,15 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "immediately fail pulls when terminated" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       pipe.terminate(new Exception("asdf"))
       var pulled = false
       pipe.pull{r => pulled = true; r mustBe an[Failure[_]]}
       pulled mustBe true
     }
 
-    /*
-    "get a callback from pullCB" in {
-      val pipe = new InfinitePipe[Int]
-      pipe.push(1) must equal(Success(PushResult.Ok))
-      pipe.push(2) must equal(Success(PushResult.Ok))
-      var ok = false
-      val cb = pipe.pullCB().map{
-        case Some(1) => ok = true
-        case _ => throw new Exception("failed!!")
-      }
-      ok must equal(false)
-      cb.execute()
-      ok must equal(true)
-    }
-    */
-
     "fold" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       var executed = false
       pipe.fold(0){case (a, b) => a + b}.execute{
         case Success(6) => {executed = true}
@@ -121,7 +105,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "foldWhile folds before terminal condition is met" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       var executed = false
       pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
         case Success(x) if x < 10 => {executed = true}
@@ -141,7 +125,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "foldWhile stops folding after terminal condition" in {
-      val pipe = new InfinitePipe[Int]
+      val pipe = new BufferedPipe[Int](0)
       var executed = false
       pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
         case Success(10) => {executed = true}
@@ -161,65 +145,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
         executed must equal(true)
     }
   }
-
-  "FiniteBytePipe" must {
-    "close after correct number of bytes have been pushed" in {
-      val pipe = new FiniteBytePipe(7)
-      val data = DataBuffer(ByteString("1234567890"))
-      pipe.fold(ByteString){(a, b) => b}.execute()
-      pipe.push(data) must equal(Complete)
-      data.remaining must equal(3)
-    }
-
-    "not allow negatively sized pipes" in {
-      intercept[IllegalArgumentException] {
-        new FiniteBytePipe(-1)
-      }
-    }
-
-    "immediately close 0 sized pipes" in {
-      val pipe = new FiniteBytePipe(0)
-      val data = DataBuffer(ByteString("1234567890"))
-      pipe.push(data) must equal(Closed)
-      data.remaining must equal(10)
-      //this works..because the CB will never fire if the pipe is not closed
-      pipe.pullCB() must evaluateTo { x : Option[DataBuffer]=>
-        x must be (None)
-      }
-
-    }
-
-    "properly calculates bytes remaining" taggedAs(org.scalatest.Tag("test")) in {
-      //arose from a bug where the pipe was using the buffer's total length
-      //instead of how many bytes were readable
-      val pipe = new FiniteBytePipe(4)
-      val data = DataBuffer(ByteString("1234567"))
-      var res = ByteString()
-      data.take(5)
-      pipe.fold(ByteString()){(buf, build) => build ++ ByteString(buf.takeAll)}.execute{
-        case Success(bstr) => res = bstr
-        case Failure(err) => throw err
-      }
-      pipe.push(data) must equal(Ok)
-      val data2 = DataBuffer(ByteString("abcdefg"))
-      pipe.push(data2) must equal(Complete)
-      res must equal(ByteString("67ab"))
-    }
-
-  }
-
-  /*
-  "DualPipe" must {
-    "combine two pipes" in {
-      val p1 = new FiniteBytePipe(10, 5)
-      val p2 = new FiniteBytePipe(10, 5)
-      val p3 = p1 ++ p2
-      p1.push(DataBuffer(ByteString("12345")))
-      p1.push(DataBuffer(ByteString("67890")))
-      p2.push(DataBuffer(ByteString("abcde")))
-      var res: String = ""
-      def drain
-      */
 
 
 }

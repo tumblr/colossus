@@ -311,15 +311,21 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
       }
     }
     case Idle => {
-      buffer.add(item)
-      if (buffer.size >= size) {
+      if (size == 0) {
         val t = new Trigger
         state = Full(t)
-        PushResult.Filled(t)
-      } else if (buffer.size > highWatermark) {
-        PushResult.Filling
+        PushResult.Full(t)
       } else {
-        PushResult.Ok
+        buffer.add(item)
+        if (buffer.size >= size) {
+          val t = new Trigger
+          state = Full(t)
+          PushResult.Filled(t)
+        } else if (buffer.size > highWatermark) {
+          PushResult.Filling
+        } else {
+          PushResult.Ok
+        }
       }
     }
   }
@@ -337,7 +343,12 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Pulling(_)    => whenReady(Failure(new PipeStateException("Pipe already being pulled")))
     case other => {
       if (buffer.size == 0) {
+        val oldstate = state
         state = Pulling(whenReady)
+        oldstate match {
+          case Full(trig) => trig.trigger
+          case _ => ()
+        }            
       } else {
         whenReady(Success(Some(buffer.remove())))
         other match {
