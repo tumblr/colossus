@@ -152,12 +152,25 @@ object Source {
  * A Pipe is a callback-based data transport abstraction meant for handling
  * streams.  It provides backpressure feedback for both the write and read
  * ends.
+ *
+ * Pipes are primarily a way to easily process incoming/outgoing streams and manage
+ * backpressure.  A Producer pushes items into a pipe and a consumer pulls them
+ * out.  Pulling is done through the use of a callback function which the Pipe
+ * holds onto until an item is pushed.  Each call to `pull` will only ever pull one
+ * item out of the pipe, so generally the consumer enters a loop by calling pull
+ * within the callback function.
+ * 
+ * Backpressure is handled differently for the producer and consumer.  In effect,
+ * the consumer is the "leader" in terms of backpressure, since the consumer must
+ * always ask for more items.  For the producer, the return value of `push` will
+ * indicate if backpressure is occurring.  When the pipe is "full", `push` returns
+ * a `Trigger`, which the producer "fills" by supplying a callback function.  This
+ * function will be called once the backpressure has been alleviated and the pipe
+ * can accept more items.
+ * 
  */
 trait Pipe[T, U] extends Sink[T] with Source[U] {
 
-  //def join[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = PipeCombinator.join(this, pipe)(f)
-
-  //def ->>[V, W](pipe : Pipe[V, W])(f : U => Seq[V]) : Pipe[T, W] = join(pipe)(f)
 }
 
 
