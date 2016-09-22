@@ -39,10 +39,11 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       v must equal(2)
     }
 
-    "receive Complete result when puller completes pipe during execution" in {
+    "reject pushes after pipe is closed" in {
       val pipe = new BufferedPipe[Int](0)
       pipe.pull{x => pipe.complete()}
-      pipe.push(2) must equal(Complete)
+      pipe.push(2) must equal(Ok)
+      pipe.push(3) mustBe Closed
     }
 
 
@@ -70,7 +71,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
         case other => fail(s"didn't get trigger, got $other")
       }
       var triggered = false
-      f.fill{() => triggered = true}
+      f.react{triggered = true}
       triggered must equal(false)
       pipe.pull{_ => ()}
       triggered must equal(true)
@@ -183,12 +184,12 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       (1 to 4).foreach{_ => 
         pipe.push(1)
       }
-      val t: Trigger = pipe.push(1) match {
+      val t: Signal = pipe.push(1) match {
         case Filled(trig) => trig
         case other => throw new Exception(s"Got $other instead of full")
       }
       var triggered = false
-      t.fill(() => triggered = true)
+      t.react{triggered = true}
       pipe.pull(_ => ())
       pipe.pull(_ => ())
       triggered mustBe false
@@ -197,6 +198,45 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
   }
+
+  "Sink" must {
+    "feed an iterator" in {
+      val p = new BufferedPipe[Int](3)
+      val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
+      p.feed(items.toIterator)
+      CallbackAwait.result(p.reduce{_ + _}, 1.second) mustBe items.sum
+    }
+  }
+
+  "Source" must {
+
+    "Source.fromIterator" in {
+      val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
+      val s: Source[Int] = Source.fromIterator(items.toIterator)
+      CallbackAwait.result(s.reduce{_ + _}, 1.second) mustBe items.sum
+    }
+      
+
+    "Source.one" in {
+      val s: Source[Int] = Source.one(5)
+      CallbackAwait.result(s.pullCB, 1.second) mustBe Some(5)
+      CallbackAwait.result(s.pullCB, 1.second) mustBe None
+    }
+
+  }
+
+  "DualSource" must {
+    "correctly link two sources" in {
+      val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
+
+      
+      val c = (a ++ b).fold((0, true)){ case (next, (last, ok)) => (next, next > last && ok) }
+      CallbackAwait.result(c, 1.second) mustBe (8, true)
+    }
+  }
+
+
 
 
 

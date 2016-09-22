@@ -9,12 +9,6 @@ import scala.util.{Try, Success, Failure}
 import service.{Callback, UnmappedCallback}
 
 
-trait StreamState[T] {
-
-  def terminus: T
-
-}
-
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
   //all subsequent pull and pushes to return an Error
@@ -39,22 +33,27 @@ trait Sink[T] extends Transport {
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete(): Try[Unit]
 
-  def feed(from: Source[T], linkState: Boolean) {
-    def tryPush(item: T): Unit = push(item) match {
-      case PushResult.Ok            => feed(from, linkState)
-      case PushResult.Filling            => feed(from, linkState)
-      case PushResult.Closed        => from.terminate(new Exception("This is probably not what we want to do"))
-      case PushResult.Complete      => from.terminate(new Exception("This is probably not what we want to do"))
-      case PushResult.Full(trig)    => trig.fill(() => tryPush(item))
-      case PushResult.Filled(trig)  => trig.fill(() => tryPush(item))
-      case PushResult.Error(reason) => from.terminate(reason)
+  def feed(iterator: Iterator[T]) {
+    var continue = true
+    while (iterator.hasNext && continue) {
+      this.push(iterator.next) match {
+        case PushResult.Filled(sig) => {
+          continue = false
+          sig.react { feed(iterator) }
+        }
+        case other: PushResult.NotPushed => {
+          //the pipe is closed or dead, so just stop feeding
+          continue = false
+        }
+        case other => {}
+      }
     }
-    from.pull{
-      case Success(Some(item)) => tryPush(item)
-      case Success(None)       => if (linkState) complete()
-      case Failure(err)        => if (linkState) terminate(err)
+    if (!iterator.hasNext) {
+      this.complete()
     }
   }
+
+    
 
 }
 
@@ -101,33 +100,6 @@ trait Source[T] extends Transport {
 
 }
 
-abstract class Generator[T] extends Source[T] {
-  
-  private var _terminated: Option[Throwable] = None
-  private var _closed = false
-
-  def terminated = _terminated.isDefined
-  def isClosed = _closed
-
-  def terminate(reason: Throwable) {
-    _terminated = Some(reason)
-  }
-
-  def generate(): Option[T]
-
-  def pull(f: Try[Option[T]] => Unit) {
-    _terminated.map{t => f(Failure(new PipeTerminatedException(t)))}.getOrElse {
-      val r = generate()
-      if (r.isEmpty) _closed = true
-      f(Success(r))
-    }
-  }
-}
-
-class IteratorGenerator[T](iterator: Iterator[T]) extends Generator[T] {
-  def generate() = if (iterator.hasNext) Some(iterator.next) else None
-}
-
 object Source {
   def one[T](data: T) = new Source[T] {
     var item: Try[Option[T]] = Success(Some(data))
@@ -144,6 +116,43 @@ object Source {
 
     def terminated = item.isFailure
     def isClosed = item.filter{_.isEmpty}.isSuccess
+  }
+
+  def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
+    //this will either be set to a Left (terminate was called) or a Right(complete was called)
+    private var stop : Option[Either[Throwable, Unit]] = None
+    def pull(on: Try[Option[T]] => Unit) {
+      stop match {
+        case None => if (iterator.hasNext) {
+          on(Success(Some(iterator.next)))
+        } else {
+          on(Success(None))
+        }
+        case Some(Left(err)) => on(Failure(err))
+        case Some(Right(_)) => on(Success(None))
+      }
+    }
+
+    def terminate(reason: Throwable) {
+      stop = Some(Left(reason))
+    }
+
+    def complete(){ 
+      if (stop.isEmpty) {
+        stop = Some(Right(()))
+      }
+    }
+
+    def terminated = stop match {
+      case Some(Left(_)) => true
+      case _ => false
+    }
+
+    def isClosed = stop match {
+      case None => !iterator.hasNext
+      case Some(_) => true
+    }
+
   }
 }
 
@@ -173,6 +182,9 @@ trait Pipe[T, U] extends Sink[T] with Source[U] {
 
 }
 
+trait Signal {
+  def react(cb: => Unit)
+}
 
 /**
  * When a user attempts to push a value into a pipe, and the pipe either fills
@@ -184,11 +196,12 @@ trait Pipe[T, U] extends Sink[T] with Source[U] {
  * about the state of the pipe.  The handler can just try pushing again to
  * determine if the pipe is dead or not.
  */
-class Trigger {
+class Trigger extends Signal{
 
   private var callback: Option[() => Unit] = None
-  def fill(cb: () => Unit) {
-    callback = Some(cb)
+
+  def react(cb: => Unit) {
+    callback = Some(() => cb)
   }
 
   def trigger() {
@@ -206,10 +219,16 @@ class Trigger {
 
 }
 
-sealed trait PushResult
+sealed trait PushResult {
+  def pushed: Boolean
+}
 object PushResult {
-  sealed trait Pushed extends PushResult
-  sealed trait NotPushed extends PushResult
+  sealed trait Pushed extends PushResult {
+    def pushed = true
+  }
+  sealed trait NotPushed extends PushResult {
+    def pushed = false
+  }
 
   //the item was successfully pushed and is ready for more data
   case object Ok extends Pushed
@@ -218,14 +237,11 @@ object PushResult {
   case object Filling extends Pushed
 
   //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when it's ready
-  case class Filled(trigger: Trigger) extends Pushed
-
-  //the item was successfully pushed but that's the last one, future pushes will return Closed
-  case object Complete extends Pushed
+  case class Filled(onReady: Signal) extends Pushed
 
   //the item was not pushed because the pipe is already full, the same trigger
   //returned when the Filled result was returned is included
-  case class Full(trigger: Trigger) extends NotPushed
+  case class Full(onReady: Signal) extends NotPushed
 
   //The pipe has been manually closed (without error) and is not accepting any more items
   case object Closed extends NotPushed
@@ -316,17 +332,12 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
     case Pulling(cb)  => {
-      //notice we could only have been in this state if the puller called pull
+      //notice we could only have been in this state if the consumer called pull
       //while the buffer was empty, so we know we can just directly send this
       //item to the puller
       state = Idle
       cb(Success(Some(item)))
-      //The callback may (and probably will) close or terminate the pipe in its
-      //execution.  Thus we can expect the state to have changed here
-      state match {
-        case Closed       => PushResult.Complete        //cb closed the pipe
-        case _            => PushResult.Ok  //note - the pipe may be dead at this point, but we pushed the item to the puller, so whatever!
-      }
+      PushResult.Ok
     }
     case Idle => {
       if (size == 0) {
