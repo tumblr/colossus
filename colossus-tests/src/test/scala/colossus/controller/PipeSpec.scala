@@ -85,6 +85,14 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       pulled mustBe true
     }
 
+    "can't pull twice" in {
+      val pipe = new BufferedPipe(0)
+      pipe.pull(_ => ())
+      intercept[PipeStateException] {
+        CallbackAwait.result(pipe.pullCB, 1.second)
+      }
+    }
+
     "fold" in {
       val pipe = new BufferedPipe[Int](0)
       var executed = false
@@ -208,14 +216,26 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
   }
 
-  "Source" must {
+  "Source.fromIterator" must {
 
-    "Source.fromIterator" in {
+    "read a full iterator" in {
       val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
       val s: Source[Int] = Source.fromIterator(items.toIterator)
+      s.isClosed mustBe false
       CallbackAwait.result(s.reduce{_ + _}, 1.second) mustBe items.sum
+      s.isClosed mustBe true
     }
-      
+
+    "terminate before reading everything" in {
+      val s = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      CallbackAwait.result(s.pullCB, 1.second) mustBe Some(1)
+      s.terminated mustBe false
+      s.terminate(new Exception("HI"))
+      s.terminated mustBe true
+      intercept[Exception] {
+        CallbackAwait.result(s.pullCB, 1.second)
+      }
+    }
 
     "Source.one" in {
       val s: Source[Int] = Source.one(5)
@@ -234,6 +254,41 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       val c = (a ++ b).fold((0, true)){ case (next, (last, ok)) => (next, next > last && ok) }
       CallbackAwait.result(c, 1.second) mustBe (8, true)
     }
+
+    "terminating first source immediately terminates the dual" in {
+      val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
+      val c = (a ++ b)
+      a.terminate(new Exception("A"))
+      c.terminated mustBe true
+      intercept[Exception] {
+        CallbackAwait.result(c.pullCB, 1.second)
+      }
+    }
+
+    "terminating second source only terminates dual when first source is empty" in {
+      val a = Source.fromIterator(Array(1).toIterator)
+      val b = Source.fromIterator(Array(5, 6).toIterator)
+      val c = (a ++ b)
+      b.terminate(new Exception("B"))
+      c.terminated mustBe false
+      c.pull(_ => ())
+      intercept[Exception] {
+        CallbackAwait.result(c.pullCB, 1.second)
+      }
+      c.terminated mustBe true
+
+    }
+
+    "terminating the dual terminates both sources" in {
+      val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
+      val c = (a ++ b)
+      c.terminate(new Exception("C"))
+      a.terminated mustBe true
+      b.terminated mustBe true
+    }
+      
   }
 
 

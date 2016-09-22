@@ -120,7 +120,7 @@ object Source {
 
   def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
     //this will either be set to a Left (terminate was called) or a Right(complete was called)
-    private var stop : Option[Either[Throwable, Unit]] = None
+    private var stop : Option[Throwable] = None
     def pull(on: Try[Option[T]] => Unit) {
       stop match {
         case None => if (iterator.hasNext) {
@@ -128,30 +128,20 @@ object Source {
         } else {
           on(Success(None))
         }
-        case Some(Left(err)) => on(Failure(err))
-        case Some(Right(_)) => on(Success(None))
+        case Some(err) => on(Failure(err))
       }
     }
 
     def terminate(reason: Throwable) {
-      stop = Some(Left(reason))
-    }
-
-    def complete(){ 
-      if (stop.isEmpty) {
-        stop = Some(Right(()))
-      }
+      stop = Some(reason)
     }
 
     def terminated = stop match {
-      case Some(Left(_)) => true
+      case Some(_) => true
       case _ => false
     }
 
-    def isClosed = stop match {
-      case None => !iterator.hasNext
-      case Some(_) => true
-    }
+    def isClosed = !iterator.hasNext
 
   }
 }
@@ -276,7 +266,7 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     b.terminate(reason)
   }
 
-  override def terminated: Boolean = a.terminated && b.terminated
+  override def terminated: Boolean = if (a_empty) b.terminated else a.terminated
 
   def isClosed = a.isClosed && b.isClosed
 }
