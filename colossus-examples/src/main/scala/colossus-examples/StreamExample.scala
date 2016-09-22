@@ -5,6 +5,7 @@ import colossus._
 import protocols.http._
 import stream._
 import core.{DataBlock, ServerContext}
+import controller._
 
 import scala.util.{Failure, Success, Try}
 

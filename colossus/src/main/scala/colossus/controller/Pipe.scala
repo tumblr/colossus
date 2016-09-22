@@ -8,7 +8,6 @@ import scala.util.{Try, Success, Failure}
 
 import service.{Callback, UnmappedCallback}
 
-
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
   //all subsequent pull and pushes to return an Error
@@ -64,7 +63,7 @@ trait Sink[T] extends Transport {
  * consumer of the sink can implicitly apply backpressure by only pulling when
  * it is able to
  */
-trait Source[T] extends Transport {
+trait Source[+T] extends Transport {
   def pull(onReady: Try[Option[T]] => Unit)
 
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
@@ -90,13 +89,13 @@ trait Source[T] extends Transport {
       }
   }
 
-  def reduce(reducer: (T, T) => T): Callback[T] = pullCB().flatMap {
-    case Some(i) => fold(i)(reducer)
+  def reduce[U >: T](reducer: (U, U) => U): Callback[U] = pullCB().flatMap {
+    case Some(i) => fold[U](i)(reducer)
     case None => Callback.failed(new PipeStateException("Empty reduce on pipe"))
   }
     
 
-  def ++(next: Source[T]): Source[T] = new DualSource(this, next)
+  def ++[U >: T](next: Source[U]): Source[U] = new DualSource(this, next)
 
 }
 
