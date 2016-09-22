@@ -1,7 +1,7 @@
 package colossus
 package controller
 
-import colossus.testkit.{FakeIOSystem, ColossusSpec, CallbackMatchers}
+import colossus.testkit._
 import org.scalatest._
 
 import akka.util.ByteString
@@ -18,7 +18,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   implicit val duration = 1.second
 
-  "BufferedPipe" must {
+  "BufferedPipe (no buffering)" must {
 
     "push an item after pull request without buffering" in {
       val pipe = new BufferedPipe[Int](0)
@@ -145,6 +145,60 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
         executed must equal(true)
     }
   }
+
+  "BufferedPipe (with buffering)" must {
+
+    "buffer until full" in {
+      val pipe = new BufferedPipe[Int](3)
+      pipe.push(1) mustBe Ok
+      pipe.push(1) mustBe Ok
+      pipe.push(1) mustBe a[Filled]
+      pipe.push(1) mustBe a[Full]
+      pipe.complete()
+      CallbackAwait.result(pipe.reduce{_ + _}, 1.second) mustBe 3
+    }
+
+    "enqueue and dequeue in the right order" in {
+      val pipe = new BufferedPipe[Int](10)
+      pipe.push(1) mustBe Ok
+      pipe.push(2) mustBe Ok
+      pipe.push(3) mustBe Ok
+      val c = pipe.fold((0, true)){ case (next, (last, ok)) => (next, next > last && ok) }
+      pipe.complete()
+      CallbackAwait.result(c, 1.second) mustBe (3, true)
+    }
+
+
+    "return Filling past highWatermark" in {
+      val pipe = new BufferedPipe[Int](5, highWatermarkP = 0.5)
+      pipe.push(1) mustBe Ok
+      pipe.push(1) mustBe Ok
+      pipe.push(1) mustBe Filling
+      pipe.push(1) mustBe Filling
+      pipe.push(1) mustBe a[Filled]
+    }
+
+    "execute trigger only on hitting low watermark" in {
+      val pipe = new BufferedPipe[Int](5, highWatermarkP = 1.0, lowWatermarkP = 0.5)
+      (1 to 4).foreach{_ => 
+        pipe.push(1)
+      }
+      val t: Trigger = pipe.push(1) match {
+        case Filled(trig) => trig
+        case other => throw new Exception(s"Got $other instead of full")
+      }
+      var triggered = false
+      t.fill(() => triggered = true)
+      pipe.pull(_ => ())
+      pipe.pull(_ => ())
+      triggered mustBe false
+      pipe.pull(_ => ())
+      triggered mustBe true
+    }
+
+  }
+
+
 
 
 }

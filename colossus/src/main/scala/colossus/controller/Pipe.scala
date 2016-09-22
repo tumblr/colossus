@@ -90,6 +90,11 @@ trait Source[T] extends Transport {
       case None => Callback.successful(init)
       }
   }
+
+  def reduce(reducer: (T, T) => T): Callback[T] = pullCB().flatMap {
+    case Some(i) => fold(i)(reducer)
+    case None => Callback.failed(new PipeStateException("Empty reduce on pipe"))
+  }
     
 
   def ++(next: Source[T]): Source[T] = new DualSource(this, next)
