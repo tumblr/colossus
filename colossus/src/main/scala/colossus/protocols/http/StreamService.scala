@@ -5,8 +5,10 @@ package stream
 import controller._
 import service.Protocol
 import core._
+import service._
 
 import scala.language.higherKinds
+import scala.util.{Try, Success, Failure}
 
 trait StreamingHttpMessage[T <: HttpMessageHead] {
 
@@ -20,13 +22,18 @@ case class StreamingHttpRequest(head: HttpRequestHead, body: Source[BodyData[Htt
 case class StreamingHttpResponse(head: HttpResponseHead, body: Source[BodyData[HttpResponseHead]]) extends StreamingHttpMessage[HttpResponseHead]
 
 
-trait StreamingHttp extends Protocol {
-  type Request = StreamingHttpRequest
-  type Response = StreamingHttpResponse
-}
 
 object GenEncoding {
-  trait HeadEncoding extends Encoding {
+  type StreamingHttp = Protocol {
+    type Request = StreamingHttpMessage[HttpRequestHead]
+    type Response = StreamingHttpMessage[HttpResponseHead]
+  }
+
+  type StreamHeader = Protocol {
+    type Request = HttpRequestHead
+    type Response = HttpResponseHead
+  }
+  type HeadEncoding = Encoding {
     type Input <: HttpMessageHead
     type  Output <: HttpMessageHead
   }
@@ -35,16 +42,23 @@ object GenEncoding {
     type Input = M[E#Input]
     type Output = M[E#Output]
   }
+
+  type HttpHeadProtocol = Protocol {
+    type Request = HttpRequestHead
+    type Response = HttpResponseHead
+  }
 }
 import GenEncoding._
 
-trait HttpHeadProtocol extends Protocol {
-  type Request = HttpRequestHead
-  type Response = HttpResponseHead
-}
 
 trait InputMessageBuilder[T <: HttpMessageHead] {
   def build(head: T): (Sink[BodyData[T]], StreamingHttpMessage[T])
+}
+object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
+  def build(head: HttpRequestHead) = {
+    val pipe = new BufferedPipe[BodyData[HttpRequestHead]](10)
+    (pipe, StreamingHttpRequest(head, pipe))
+  }
 }
 
 class StreamServiceServerController[E <: GenEncoding.HeadEncoding](
@@ -62,6 +76,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
   type OutputHead = E#Output
 
   private var currentInputStream: Option[Sink[BodyData[InputHead]]] = None
+
+  private val outputStreams = new MessageQueue[Source[StreamHttpMessage[OutputHead]]](100)
 
   protected def fatal(message: String) {
     println(s"FATAL ERROR: $message")
@@ -116,17 +132,92 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
 
   // Members declared in colossus.controller.ControllerUpstream
   def connection: colossus.core.ConnectionManager = upstream.connection
-  def pauseReads(): Unit = ???
-  def pauseWrites(): Unit = ???
+  def pauseReads(): Unit = upstream.pauseReads()
+  def pauseWrites(): Unit = upstream.pauseWrites()
   def pendingBufferSize: Int = ???
   def purgePending(reason: Throwable): Unit = ???
-  def resumeReads(): Unit = ???
-  def resumeWrites(): Unit = ???
-  def writesEnabled: Boolean = ???
+  def resumeReads(): Unit = upstream.resumeReads()
+  def resumeWrites(): Unit = upstream.resumeWrites()
+  def writesEnabled: Boolean = upstream.writesEnabled
 
   // Members declared in colossus.controller.Writer
-  def canPush: Boolean = ???
-  def pushFrom(item: colossus.protocols.http.stream.GenEncoding.GenEncoding[colossus.protocols.http.stream.StreamingHttpMessage,E]#Output,createdMillis: Long,postWrite: colossus.controller.QueuedItem.PostWrite): Boolean = ???
+  def canPush: Boolean = !outputStreams.isFull
+
+  def pushFrom(item: GenEncoding[StreamingHttpMessage,E]#Output,createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
+    if (canPush) {
+      val source = item.collapse
+      outputStreams.enqueue(source, postWrite, createdMillis)
+      if (outputStreams.size == 1) {
+        drain(source)
+      }
+      true
+    } else false
+  }
+
+  def drain(source: Source[StreamHttpMessage[OutputHead]]) {
+    source.pull{
+      case Success(Some(item)) => {
+        //TODO:
+        upstream.push(item)(_ => ())
+        drain(source)
+      }
+      case Success(None) => {
+        val done = outputStreams.dequeue
+        done.postWrite(OutputResult.Success)
+        if (!outputStreams.isEmpty) {
+          drain(outputStreams.head.item)
+        }
+      }
+      case Failure(reason) => {
+        fatal(s"Error writing stream: $reason")
+      }
+    }
+  }
+
   
 
+}
+
+
+class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
+extends DSLService[StreamingHttp](rh) {
+
+  /*
+  val defaults = new Http.ServerDefaults
+
+  override def tagDecorator = new ReturnCodeTagDecorator
+
+  override def processRequest(input: Http#Input): Callback[Http#Output] = {
+    val response = super.processRequest(input)
+    if(!input.head.persistConnection) connection.disconnect()
+    response
+  }
+  */
+  def unhandledError = {
+    case error => ???//defaults.errorResponse(error)
+  }
+
+}
+
+
+class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[GenRequestHandler[StreamingHttp]](ctx) {
+  
+  def fullHandler = handler => {
+    new PipelineHandler(
+      new Controller(
+        new StreamServiceServerController[StreamHeader#ServerEncoding](
+          new StreamingHttpServiceHandler(handler),
+          StreamRequestBuilder
+        ),
+        new StreamHttpServerCodec
+      ), 
+      handler
+    ) with ServerConnectionHandler
+  }
+}
+
+abstract class StreamServiceInitializer(ctx: InitContext) extends StreamServiceHandlerGenerator(ctx) with ServiceInitializer[GenRequestHandler[StreamingHttp]] 
+
+object StreamHttpServiceServer extends ServiceDSL[GenRequestHandler[StreamingHttp], StreamServiceInitializer] {
+  def basicInitializer = new StreamServiceHandlerGenerator(_)
 }
