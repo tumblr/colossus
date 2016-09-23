@@ -10,18 +10,18 @@ import parsing.Combinators.Parser
 
 class StreamHttpException(message: String) extends Exception(message)
 
-sealed trait StreamHttpMessage[T <: HttpMessageHead[T]]
+sealed trait StreamHttpMessage[T <: HttpMessageHead]
 
-case class Head[T <: HttpMessageHead[T]](head: T) extends StreamHttpMessage[T]
+case class Head[T <: HttpMessageHead](head: T) extends StreamHttpMessage[T]
 
-sealed trait StreamBodyMessage[T <: HttpMessageHead[T]] extends StreamHttpMessage[T]
+sealed trait StreamBodyMessage[T <: HttpMessageHead] extends StreamHttpMessage[T]
 /**
  * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
  * is raw data(false) or a properly encoded http chunk (true).  In most cases
  * this should be false unless the data is being proxied verbatim.
  */
-case class BodyData[T <: HttpMessageHead[T]](data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage[T]
-case class End[T <: HttpMessageHead[T]]() extends StreamBodyMessage[T]
+case class BodyData[T <: HttpMessageHead](data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage[T]
+case class End[T <: HttpMessageHead]() extends StreamBodyMessage[T]
 
 
 trait StreamHttp extends Protocol {
@@ -31,7 +31,7 @@ trait StreamHttp extends Protocol {
   type Response = StreamHttpMessage[HttpResponseHead]
 }
 
-trait HeadParserProvider[T <: HttpMessageHead[T]] {
+trait HeadParserProvider[T <: HttpMessageHead] {
   def parser: Parser[T]
   def eosTerminatesMessage : Boolean
 }
@@ -50,7 +50,7 @@ object HeadParserProvider {
   }
 }
 
-trait StreamDecoder[T <: HttpMessageHead[T]] { 
+trait StreamDecoder[T <: HttpMessageHead] { 
 
   def parserProvider: HeadParserProvider[T]
 
@@ -128,7 +128,7 @@ trait StreamDecoder[T <: HttpMessageHead[T]] {
 
 }
 
-trait StreamEncoder[T <: HttpMessageHead[T]] {
+trait StreamEncoder[T <: HttpMessageHead] {
 
   private sealed trait State
   private case object HeadState extends State
@@ -201,7 +201,11 @@ class StreamHttpClientCodec extends Codec[StreamHttp#ClientEncoding] with Stream
 }
 
 
-abstract class StreamController[E <: Encoding {type Output = StreamHttpMessage[H]}, H <: HttpMessageHead[H], T <: HttpMessage[H]](val downstream: StreamHandler[E,H,T])
+abstract class StreamController[
+  E <: Encoding {type Output = StreamHttpMessage[H]}, 
+  H <: HttpMessageHead,
+  T <: HttpMessage[H]
+](val downstream: StreamHandler[E,H,T])(implicit ops: HeadOps[H])
 extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[StreamHandler[E,H,T]] with StreamHandle[E,H,T] with ControllerDownstream[E] {
 
   val namespace: MetricNamespace = context.worker.system.metrics
@@ -214,8 +218,8 @@ extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[
   }
 
   def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite = _ => ()) {
-    val withCL : H = message.head.withHeader(HttpHeaders.ContentLength, message.body.size.toString)
-    val withCT : H = message.body.contentType.map{t => withCL.withHeader(t)}.getOrElse(withCL)
+    val withCL : H = ops.withHeader(message.head, HttpHeaders.ContentLength, message.body.size.toString)
+    val withCT : H = message.body.contentType.map{t => ops.withHeader(withCL, t)}.getOrElse(withCL)
     upstream.push(Head(withCT)){_ => ()}
     upstream.push(BodyData(message.body.asDataBlock)){_ => ()}
     upstream.push(End())(postWrite)
@@ -227,7 +231,7 @@ extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[
 
 }
 
-trait StreamHandle[ E <: Encoding {type Output = StreamHttpMessage[H]}, H <: HttpMessageHead[H], T <: HttpMessage[H]] extends UpstreamEvents{
+trait StreamHandle[ E <: Encoding {type Output = StreamHttpMessage[H]}, H <: HttpMessageHead, T <: HttpMessage[H]] extends UpstreamEvents{
   def push(message: E#Output)(postWrite: QueuedItem.PostWrite = _ => ())
 
   def pushCompleteMessage(message: T)(postWrite: QueuedItem.PostWrite = _ => ()) 
@@ -241,7 +245,7 @@ class ServerStreamController(downstream: StreamServerHandler) extends StreamCont
 }
 
 
-abstract class StreamHandler[E <: Encoding{ type Output = StreamHttpMessage[H] }, H <: HttpMessageHead[H], T <: HttpMessage[H]](val context: Context) 
+abstract class StreamHandler[E <: Encoding{ type Output = StreamHttpMessage[H] }, H <: HttpMessageHead, T <: HttpMessage[H]](val context: Context) 
 extends UpstreamEventHandler[StreamHandle[E,H,T]] with HandlerTail with DownstreamEvents{
 
   def handle(message: E#Input)

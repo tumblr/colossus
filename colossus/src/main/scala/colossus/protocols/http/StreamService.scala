@@ -8,7 +8,7 @@ import core._
 
 import scala.language.higherKinds
 
-trait StreamingHttpMessage[T <: HttpMessageHead[T]] {
+trait StreamingHttpMessage[T <: HttpMessageHead] {
 
   def head: T
   def body: Source[BodyData[T]]
@@ -27,11 +27,11 @@ trait StreamingHttp extends Protocol {
 
 object GenEncoding {
   trait HeadEncoding extends Encoding {
-    type Input <: HttpMessageHead[Input]
-    type  Output <: HttpMessageHead[Output]
+    type Input <: HttpMessageHead
+    type  Output <: HttpMessageHead
   }
 
-  type GenEncoding[M[T <: HttpMessageHead[T]], E <: HeadEncoding] = Encoding {
+  type GenEncoding[M[T <: HttpMessageHead], E <: HeadEncoding] = Encoding {
     type Input = M[E#Input]
     type Output = M[E#Output]
   }
@@ -43,15 +43,20 @@ trait HttpHeadProtocol extends Protocol {
   type Response = HttpResponseHead
 }
 
-trait InputMessageBuilder[T <: HttpMessageHead[T]] {
+trait InputMessageBuilder[T <: HttpMessageHead] {
   def build(head: T): (Sink[BodyData[T]], StreamingHttpMessage[T])
 }
 
-class StreamServiceServerController[E <: GenEncoding.HeadEncoding](builder: InputMessageBuilder[E#Input])
-extends ControllerDownstream[GenEncoding[StreamHttpMessage, E]] with ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]
+class StreamServiceServerController[E <: GenEncoding.HeadEncoding](
+  val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
+  builder: InputMessageBuilder[E#Input]
+)
+extends ControllerDownstream[GenEncoding[StreamHttpMessage, E]] 
+with ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]
 with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamingHttpMessage, E]]] 
 with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]] {
 
+  downstream.setUpstream(this)
 
   type InputHead = E#Input
   type OutputHead = E#Output
@@ -105,6 +110,23 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
       }
     }
   }
+
+  // Members declared in colossus.controller.ControllerDownstream
+  def controllerConfig: colossus.controller.ControllerConfig = ???
+
+  // Members declared in colossus.controller.ControllerUpstream
+  def connection: colossus.core.ConnectionManager = upstream.connection
+  def pauseReads(): Unit = ???
+  def pauseWrites(): Unit = ???
+  def pendingBufferSize: Int = ???
+  def purgePending(reason: Throwable): Unit = ???
+  def resumeReads(): Unit = ???
+  def resumeWrites(): Unit = ???
+  def writesEnabled: Boolean = ???
+
+  // Members declared in colossus.controller.Writer
+  def canPush: Boolean = ???
+  def pushFrom(item: colossus.protocols.http.stream.GenEncoding.GenEncoding[colossus.protocols.http.stream.StreamingHttpMessage,E]#Output,createdMillis: Long,postWrite: colossus.controller.QueuedItem.PostWrite): Boolean = ???
   
 
 }

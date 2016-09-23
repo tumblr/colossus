@@ -44,7 +44,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  trait HttpMessage[H <: HttpMessageHead[H]] {
+  trait HttpMessage[H <: HttpMessageHead] {
     def head: H
     def body: HttpBody
   }
@@ -52,16 +52,26 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   /**
    * common methods of both request and response heads
    */
-  trait HttpMessageHead[H <: HttpMessageHead[H]] { self: H =>
+  trait HttpMessageHead {
     def headers: HttpHeaders
     def version: HttpVersion
-
-    def withHeader(header: HttpHeader): H
-
-    def withHeader(key: String, value: String): H = withHeader(HttpHeader(key,value))
-
     def encode(out: core.DataOutBuffer)
   }
+
+  trait HeadOps[H <: HttpMessageHead] {
+    def withHeader(head: H, header: HttpHeader): H
+    def withHeader(head: H, key: String, value: String): H = withHeader(head, HttpHeader(key,value))
+  }
+
+  implicit object RequestHeadOps extends HeadOps[HttpRequestHead] {
+    def withHeader(head: HttpRequestHead, header: HttpHeader) = head.withHeader(header)
+  }
+
+  implicit object ResponseHeadOps extends HeadOps[HttpResponseHead] {
+    def withHeader(head: HttpResponseHead, header: HttpHeader) = head.withHeader(header)
+  }
+
+
 
   class ReturnCodeTagDecorator extends TagDecorator[Http] {
     override def tagsFor(request: HttpRequest, response: HttpResponse): TagMap = {
