@@ -179,7 +179,7 @@ trait StreamEncoder[T <: HttpMessageHead] {
 
 }
 
-class StreamHttpServerCodec extends Codec[StreamHttp#ServerEncoding] with StreamDecoder[HttpRequestHead] with StreamEncoder[HttpResponseHead] {
+class StreamHttpServerCodec extends Codec.Server[StreamHttp] with StreamDecoder[HttpRequestHead] with StreamEncoder[HttpResponseHead] {
 
   def parserProvider = HeadParserProvider.RequestHeadParserProvider
 
@@ -189,7 +189,7 @@ class StreamHttpServerCodec extends Codec[StreamHttp#ServerEncoding] with Stream
   }
 
 }
-class StreamHttpClientCodec extends Codec[StreamHttp#ClientEncoding] with StreamDecoder[HttpResponseHead] with StreamEncoder[HttpRequestHead] {
+class StreamHttpClientCodec extends Codec.Client[StreamHttp] with StreamDecoder[HttpResponseHead] with StreamEncoder[HttpRequestHead] {
 
   def parserProvider = HeadParserProvider.ResponseHeadParserProvider
 
@@ -238,7 +238,7 @@ trait StreamHandle[ E <: Encoding {type Output = StreamHttpMessage[H]}, H <: Htt
 
 }
 
-class ServerStreamController(downstream: StreamServerHandler) extends StreamController[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse](downstream) {
+class ServerStreamController(downstream: StreamServerHandler) extends StreamController[Encoding.Server[StreamHttp], HttpResponseHead, HttpResponse](downstream) {
 
   val codec = new StreamHttpServerCodec
 
@@ -253,7 +253,7 @@ extends UpstreamEventHandler[StreamHandle[E,H,T]] with HandlerTail with Downstre
 
 
 abstract class StreamServerHandler(serverContext: ServerContext) 
-extends StreamHandler[StreamHttp#ServerEncoding, HttpResponseHead, HttpResponse](serverContext.context) {
+extends StreamHandler[Encoding.Server[StreamHttp], HttpResponseHead, HttpResponse](serverContext.context) {
 
 
 }

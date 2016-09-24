@@ -102,16 +102,16 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
     }
     
     "push a full response" in {
-      val controllerStub = stub[ControllerUpstream[StreamHttp#ServerEncoding]]
+      val controllerStub = stub[ControllerUpstream[Encoding.Server[StreamHttp]]]
       val handler        = new MyHandler(FakeIOSystem.fakeServerContext)
       val controller = new ServerStreamController(handler)
       controller.setUpstream(controllerStub)
       controller.processMessage(Head(HttpRequest.get("/foo").head))
       val response = HttpResponse.ok("hello").withHeader("content-length", "5").withHeader("Content-Type", "text/plain")
       inSequence {
-        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
-        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(BodyData[HttpResponseHead](DataBlock("hello")), *)
-        (controllerStub.push (_: StreamHttp#ServerEncoding#Output) (_: QueuedItem.PostWrite)).verify(End[HttpResponseHead](), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(BodyData[HttpResponseHead](DataBlock("hello")), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(End[HttpResponseHead](), *)
       }
     }
   }

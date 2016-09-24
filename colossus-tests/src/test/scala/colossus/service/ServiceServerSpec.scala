@@ -42,8 +42,8 @@ class ServiceServerSpec extends ColossusSpec with MockFactory {
     endpoint
   }
 
-  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (FakeService, ControllerUpstream[Raw#ServerEncoding])  = {
-    val controllerstub = stub[ControllerUpstream[Raw#ServerEncoding]]
+  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (FakeService, ControllerUpstream[Encoding.Server[Raw]])  = {
+    val controllerstub = stub[ControllerUpstream[Encoding.Server[Raw]]]
     val connectionstub = stub[ConnectionManager]
     (connectionstub.isConnected _).when().returns(true)
     (controllerstub.connection _).when().returns(connectionstub)
@@ -55,7 +55,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory {
     (handler, controllerstub)
   }
 
-  def expectPush(controller: ControllerUpstream[Raw#ServerEncoding], message: ByteString) {
+  def expectPush(controller: ControllerUpstream[Encoding.Server[Raw]], message: ByteString) {
       (controller.pushFrom _ ).verify(message, *, *)
   }
 

@@ -112,14 +112,14 @@ trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
  *
  */
 abstract class ServiceServer[P <: Protocol](val config: ServiceConfig)
-extends ControllerDownstream[P#ServerEncoding] 
+extends ControllerDownstream[Encoding.Server[P]] 
 with ServiceUpstream[P] 
-with UpstreamEventHandler[ControllerUpstream[P#ServerEncoding]] 
+with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]] 
 {
   import ServiceServer._
 
-  type I = P#ServerEncoding#Input
-  type O = P#ServerEncoding#Output
+  type I = P#Request
+  type O = P#Response
 
   protected def serverContext: ServerContext
 

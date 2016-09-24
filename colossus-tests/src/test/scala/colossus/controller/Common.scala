@@ -46,14 +46,14 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
 
   val defaultConfig = ControllerConfig(4, 50.milliseconds, 2000.bytes)
 
-  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, TestController[Raw#ServerEncoding], ControllerDownstream[Raw#ServerEncoding]) = {
+  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, TestController[Encoding.Server[Raw]], ControllerDownstream[Encoding.Server[Raw]]) = {
     val upstream = stub[CoreUpstream]
-    val downstream = stub[ControllerDownstream[Raw#ServerEncoding]]
+    val downstream = stub[ControllerDownstream[Encoding.Server[Raw]]]
     (downstream.controllerConfig _).when().returns(config)
     (downstream.context _).when().returns(FakeIOSystem.fakeContext)
     (downstream.onFatalError _).when(*).returns(None)
 
-    val controller = new Controller(downstream, RawServerCodec) with TestController[Raw#ServerEncoding]
+    val controller = new Controller(downstream, RawServerCodec) with TestController[Encoding.Server[Raw]]
     controller.setUpstream(upstream)
     (upstream, controller, downstream)
   }

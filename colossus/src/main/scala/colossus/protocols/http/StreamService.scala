@@ -64,14 +64,14 @@ object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
   }
 }
 
-class StreamServiceServerController[E <: GenEncoding.HeadEncoding](
+class StreamServiceServerController[E <: HeadEncoding](
   val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
   builder: InputMessageBuilder[E#Input]
 )
 extends ControllerDownstream[GenEncoding[StreamHttpMessage, E]] 
+with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamingHttpMessage, E]]] 
 with ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]
-with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamHttpMessage, E]]] 
-with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]] {
+with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]] {
 
   downstream.setUpstream(this)
 
@@ -207,8 +207,8 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   
   def fullHandler = handler => {
     new PipelineHandler(
-      new Controller[GenEncoding[StreamHttpMessage, StreamHeader#ServerEncoding]](
-        new StreamServiceServerController[StreamHeader#ServerEncoding](
+      new Controller[GenEncoding[StreamHttpMessage, Encoding.Server[StreamHeader]]](
+        new StreamServiceServerController[Encoding.Server[StreamHeader]](
           new StreamingHttpServiceHandler(handler),
           StreamRequestBuilder
         ),
