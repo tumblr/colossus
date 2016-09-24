@@ -13,26 +13,9 @@ import java.net.InetSocketAddress
 import metrics.MetricAddress
 import controller.{Encoding, Codec}
 
-trait Protocol {self =>
+trait Protocol {
   type Request
   type Response
-
-  //deprecated
-  type Input = Request
-  //deprecated
-  type Output = Response
-
-  trait ServerEncoding extends Encoding {
-    type Input = Request
-    type Output = Response
-  }
-
-  trait ClientEncoding extends Encoding {
-    type Input = Response
-    type Output = Request
-  }
-
-
 }
 
 object Protocol {

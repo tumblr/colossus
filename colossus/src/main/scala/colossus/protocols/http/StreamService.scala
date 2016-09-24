@@ -23,8 +23,9 @@ case class StreamingHttpResponse(head: HttpResponseHead, body: Source[BodyData[H
 
 
 
+
 object GenEncoding {
-  type StreamingHttp = Protocol {
+  trait StreamingHttp extends Protocol {
     type Request = StreamingHttpMessage[HttpRequestHead]
     type Response = StreamingHttpMessage[HttpResponseHead]
   }
@@ -47,6 +48,8 @@ object GenEncoding {
     type Request = HttpRequestHead
     type Response = HttpResponseHead
   }
+
+  //type StreamingEncoding = Encoding { type Input <: StreamingHttpMessage
 }
 import GenEncoding._
 
@@ -67,8 +70,8 @@ class StreamServiceServerController[E <: GenEncoding.HeadEncoding](
 )
 extends ControllerDownstream[GenEncoding[StreamHttpMessage, E]] 
 with ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]
-with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamingHttpMessage, E]]] 
-with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]] {
+with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamHttpMessage, E]]] 
+with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]] {
 
   downstream.setUpstream(this)
 
@@ -204,7 +207,7 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   
   def fullHandler = handler => {
     new PipelineHandler(
-      new Controller(
+      new Controller[GenEncoding[StreamHttpMessage, StreamHeader#ServerEncoding]](
         new StreamServiceServerController[StreamHeader#ServerEncoding](
           new StreamingHttpServiceHandler(handler),
           StreamRequestBuilder
