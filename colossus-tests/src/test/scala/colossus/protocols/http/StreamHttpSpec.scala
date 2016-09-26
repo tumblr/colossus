@@ -22,7 +22,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
         "content-length" -> "10", "something-else" -> "bleh"
       ))))
       codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("0123456789")))
-      codec.decode(requestBytes) mustBe Some(End())
+      codec.decode(requestBytes) mustBe Some(End)
       codec.decode(requestBytes) mustBe None
     }
 
@@ -38,7 +38,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       codec.decode(requestBytes1) mustBe None
       codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("hello")))
       codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("ok")))
-      codec.decode(requestBytes2) mustBe Some(End())
+      codec.decode(requestBytes2) mustBe Some(End)
       codec.decode(requestBytes2) mustBe None
     }
 
@@ -49,7 +49,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ncontent-length: 10\r\n\r\n0123456789"
       codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("0123456789")), out)
-      codec.encode(End(), out)
+      codec.encode(End, out)
       out.data.asByteString.utf8String mustBe expected
     }
 
@@ -61,7 +61,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       codec.encode(Head(resp), out)
       codec.encode(BodyData(DataBlock("hello")), out)
       codec.encode(BodyData(DataBlock("world!")), out)
-      codec.encode(End(), out)
+      codec.encode(End, out)
       out.data.asByteString.utf8String mustBe expected
     }
 
@@ -72,7 +72,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       intercept[StreamHttpException] {
         codec.encode(Head(HttpResponse.ok("foo").head), out)
       }
-      codec.encode(End(), out)
+      codec.encode(End, out)
       //now it should work
       codec.encode(Head(HttpResponse.ok("foo").head), out)
     }
@@ -110,8 +110,8 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       val response = HttpResponse.ok("hello").withHeader("content-length", "5").withHeader("Content-Type", "text/plain")
       inSequence {
         (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(BodyData[HttpResponseHead](DataBlock("hello")), *)
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(End[HttpResponseHead](), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(BodyData(DataBlock("hello")), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(End, *)
       }
     }
   }
