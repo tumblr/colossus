@@ -97,6 +97,8 @@ trait Source[+T] extends Transport {
 
   def ++[U >: T](next: Source[U]): Source[U] = new DualSource(this, next)
 
+  def collected: Callback[Iterator[T]] = fold(new collection.mutable.ArrayBuffer[T]){ case (next, buf) => buf append next ; buf } map {_.toIterator}
+
 }
 
 object Source {
@@ -142,6 +144,16 @@ object Source {
 
     def isClosed = !iterator.hasNext
 
+  }
+
+  def empty[T] = new Source[T] {
+    def isClosed = true
+    def terminated = false
+    def pull(on: Try[Option[T]] => Unit) {
+      on(Success(None))
+    }
+
+    def terminate(reason: Throwable){}
   }
 }
 

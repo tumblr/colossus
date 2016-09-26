@@ -10,18 +10,18 @@ import parsing.Combinators.Parser
 
 class StreamHttpException(message: String) extends Exception(message)
 
-sealed trait StreamHttpMessage[T <: HttpMessageHead]
+sealed trait StreamHttpMessage[+T <: HttpMessageHead]
 
 case class Head[T <: HttpMessageHead](head: T) extends StreamHttpMessage[T]
 
-sealed trait StreamBodyMessage[T <: HttpMessageHead] extends StreamHttpMessage[T]
+sealed trait StreamBodyMessage extends StreamHttpMessage[Nothing]
 /**
  * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
  * is raw data(false) or a properly encoded http chunk (true).  In most cases
  * this should be false unless the data is being proxied verbatim.
  */
-case class BodyData[T <: HttpMessageHead](data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage[T]
-case class End[T <: HttpMessageHead]() extends StreamBodyMessage[T]
+case class BodyData(data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage
+case object End extends StreamBodyMessage
 
 
 trait StreamHttp extends Protocol {
@@ -59,15 +59,15 @@ trait StreamDecoder[T <: HttpMessageHead] {
   private sealed trait State
   private case object HeadState extends State
   private sealed trait BodyState extends State {
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]]
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage]
   }
   //used when the transfer-encoding is identity or a content-length is provided
   //(so non-chunked encoding)
   private class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
     def done = size.map{_ == taken}.getOrElse(false)
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = if (done) {
-      Some(End())
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = if (done) {
+      Some(End)
     } else if (input.hasUnreadData) {
       val bytes = input.take(size.map{_ - taken}.getOrElse(input.remaining))
       taken += bytes.length
@@ -78,11 +78,11 @@ trait StreamDecoder[T <: HttpMessageHead] {
   }
   private class ChunkedBodyState extends BodyState {
     import parsing.Combinators._
-    val parser: Parser[StreamBodyMessage[T]] = intUntil('\r', 16) <~ byte |> {
-      case 0 => bytes(2) >> {_ => End()}
+    val parser: Parser[StreamBodyMessage] = intUntil('\r', 16) <~ byte |> {
+      case 0 => bytes(2) >> {_ => End}
       case n => bytes(n.toInt) <~ bytes(2) >> {bytes => BodyData(DataBlock(bytes), false)}
     }
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage[T]] = parser.parse(input)
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = parser.parse(input)
   
   }
   private var state: State = HeadState
@@ -105,9 +105,9 @@ trait StreamDecoder[T <: HttpMessageHead] {
       case None => None
     }
     case b: BodyState => b.nextPiece(data) match {
-      case Some(End()) => {
+      case Some(End) => {
         state = HeadState
-        Some(End())
+        Some(End)
       }
       case other => other
     }
@@ -121,7 +121,7 @@ trait StreamDecoder[T <: HttpMessageHead] {
 
   
   def endOfStream(): Option[StreamHttpMessage[T]] = state match {
-    case f: FiniteBodyState if (f.size.isEmpty && parserProvider.eosTerminatesMessage) => Some(End())
+    case f: FiniteBodyState if (f.size.isEmpty && parserProvider.eosTerminatesMessage) => Some(End)
     case _ => None
   }
 
@@ -161,7 +161,7 @@ trait StreamEncoder[T <: HttpMessageHead] {
             encodeChunk(data, buffer)
           }
           case BodyData(data, _) => buffer.write(data)
-          case End() => {
+          case End => {
             if (current.headers.transferEncoding == TransferEncoding.Chunked) {
               encodeChunk(DataBlock.Empty, buffer)
             }
@@ -222,7 +222,7 @@ extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[
     val withCT : H = message.body.contentType.map{t => ops.withHeader(withCL, t)}.getOrElse(withCL)
     upstream.push(Head(withCT)){_ => ()}
     upstream.push(BodyData(message.body.asDataBlock)){_ => ()}
-    upstream.push(End())(postWrite)
+    upstream.push(End)(postWrite)
   }
 
   def processMessage(m: E#Input) {

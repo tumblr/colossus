@@ -13,27 +13,28 @@ import scala.util.{Try, Success, Failure}
 trait StreamingHttpMessage[T <: HttpMessageHead] {
 
   def head: T
-  def body: Source[BodyData[T]]
+  def body: Source[BodyData]
 
   def collapse: Source[StreamHttpMessage[T]] = Source.one[StreamHttpMessage[T]](Head(head)) ++ body
 }
 
-case class StreamingHttpRequest(head: HttpRequestHead, body: Source[BodyData[HttpRequestHead]]) extends StreamingHttpMessage[HttpRequestHead]
-case class StreamingHttpResponse(head: HttpResponseHead, body: Source[BodyData[HttpResponseHead]]) extends StreamingHttpMessage[HttpResponseHead]
+case class StreamingHttpRequest(head: HttpRequestHead, body: Source[BodyData]) extends StreamingHttpMessage[HttpRequestHead]
+case class StreamingHttpResponse(head: HttpResponseHead, body: Source[BodyData]) extends StreamingHttpMessage[HttpResponseHead]
 
 
+trait StreamingHttp extends Protocol {
+  type Request = StreamingHttpMessage[HttpRequestHead]
+  type Response = StreamingHttpMessage[HttpResponseHead]
+}
 
 
 object GenEncoding {
-  trait StreamingHttp extends Protocol {
-    type Request = StreamingHttpMessage[HttpRequestHead]
-    type Response = StreamingHttpMessage[HttpResponseHead]
-  }
 
   type StreamHeader = Protocol {
     type Request = HttpRequestHead
     type Response = HttpResponseHead
   }
+
   type HeadEncoding = Encoding {
     type Input <: HttpMessageHead
     type  Output <: HttpMessageHead
@@ -44,22 +45,16 @@ object GenEncoding {
     type Output = M[E#Output]
   }
 
-  type HttpHeadProtocol = Protocol {
-    type Request = HttpRequestHead
-    type Response = HttpResponseHead
-  }
-
-  //type StreamingEncoding = Encoding { type Input <: StreamingHttpMessage
 }
 import GenEncoding._
 
 
 trait InputMessageBuilder[T <: HttpMessageHead] {
-  def build(head: T): (Sink[BodyData[T]], StreamingHttpMessage[T])
+  def build(head: T): (Sink[BodyData], StreamingHttpMessage[T])
 }
 object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
   def build(head: HttpRequestHead) = {
-    val pipe = new BufferedPipe[BodyData[HttpRequestHead]](10)
+    val pipe = new BufferedPipe[BodyData](10)
     (pipe, StreamingHttpRequest(head, pipe))
   }
 }
@@ -78,7 +73,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
   type InputHead = E#Input
   type OutputHead = E#Output
 
-  private var currentInputStream: Option[Sink[BodyData[InputHead]]] = None
+  private var currentInputStream: Option[Sink[BodyData]] = None
 
   private val outputStreams = new MessageQueue[Source[StreamHttpMessage[OutputHead]]](100)
 
@@ -118,7 +113,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
           fatal("Received body data but no input stream exists")
         }
       }
-      case e @ End() => currentInputStream match {
+      case e @ End => currentInputStream match {
         case Some(sink) => {
           sink.complete()
           currentInputStream = None
@@ -131,7 +126,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
   }
 
   // Members declared in colossus.controller.ControllerDownstream
-  def controllerConfig: colossus.controller.ControllerConfig = ???
+  def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig
 
   // Members declared in colossus.controller.ControllerUpstream
   def connection: colossus.core.ConnectionManager = upstream.connection
@@ -165,6 +160,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
         drain(source)
       }
       case Success(None) => {
+        upstream.push(End)(_ => ())
         val done = outputStreams.dequeue
         done.postWrite(OutputResult.Success)
         if (!outputStreams.isEmpty) {
