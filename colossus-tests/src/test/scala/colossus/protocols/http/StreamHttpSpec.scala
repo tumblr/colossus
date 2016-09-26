@@ -21,7 +21,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       codec.decode(requestBytes) mustBe Some(Head(HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.fromString(
         "content-length" -> "10", "something-else" -> "bleh"
       ))))
-      codec.decode(requestBytes) mustBe Some(BodyData(DataBlock("0123456789")))
+      codec.decode(requestBytes) mustBe Some(Data(DataBlock("0123456789")))
       codec.decode(requestBytes) mustBe Some(End)
       codec.decode(requestBytes) mustBe None
     }
@@ -36,8 +36,8 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       ))))
 
       codec.decode(requestBytes1) mustBe None
-      codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("hello")))
-      codec.decode(requestBytes2) mustBe Some(BodyData(DataBlock("ok")))
+      codec.decode(requestBytes2) mustBe Some(Data(DataBlock("hello")))
+      codec.decode(requestBytes2) mustBe Some(Data(DataBlock("ok")))
       codec.decode(requestBytes2) mustBe Some(End)
       codec.decode(requestBytes2) mustBe None
     }
@@ -48,7 +48,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       val resp = HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders.fromString("foo" -> "bar", "content-length" -> "10"))
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ncontent-length: 10\r\n\r\n0123456789"
       codec.encode(Head(resp), out)
-      codec.encode(BodyData(DataBlock("0123456789")), out)
+      codec.encode(Data(DataBlock("0123456789")), out)
       codec.encode(End, out)
       out.data.asByteString.utf8String mustBe expected
     }
@@ -59,8 +59,8 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       val resp = HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders.fromString("foo" -> "bar", "transfer-encoding" -> "chunked"))
       val expected = "HTTP/1.1 200 OK\r\nfoo: bar\r\ntransfer-encoding: chunked\r\n\r\n5\r\nhello\r\n6\r\nworld!\r\n0\r\n\r\n"
       codec.encode(Head(resp), out)
-      codec.encode(BodyData(DataBlock("hello")), out)
-      codec.encode(BodyData(DataBlock("world!")), out)
+      codec.encode(Data(DataBlock("hello")), out)
+      codec.encode(Data(DataBlock("world!")), out)
       codec.encode(End, out)
       out.data.asByteString.utf8String mustBe expected
     }
@@ -93,7 +93,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
   "StreamHttpServerHandler" must {
     class MyHandler(ctx: ServerContext) extends StreamServerHandler(ctx) {
       
-      def handle(msg: StreamHttpMessage[HttpRequestHead]) = msg match {
+      def handle(msg: HttpStream[HttpRequestHead]) = msg match {
         case Head(h) => {
           upstream.pushCompleteMessage(HttpResponse.ok("hello"))(_ => ())
         }
@@ -110,7 +110,7 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
       val response = HttpResponse.ok("hello").withHeader("content-length", "5").withHeader("Content-Type", "text/plain")
       inSequence {
         (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(BodyData(DataBlock("hello")), *)
+        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Data(DataBlock("hello")), *)
         (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(End, *)
       }
     }

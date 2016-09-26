@@ -13,13 +13,13 @@ import scala.util.{Try, Success, Failure}
 trait StreamingHttpMessage[T <: HttpMessageHead] {
 
   def head: T
-  def body: Source[BodyData]
+  def body: Source[Data]
 
-  def collapse: Source[StreamHttpMessage[T]] = Source.one[StreamHttpMessage[T]](Head(head)) ++ body
+  def collapse: Source[HttpStream[T]] = Source.one[HttpStream[T]](Head(head)) ++ body
 }
 
-case class StreamingHttpRequest(head: HttpRequestHead, body: Source[BodyData]) extends StreamingHttpMessage[HttpRequestHead]
-case class StreamingHttpResponse(head: HttpResponseHead, body: Source[BodyData]) extends StreamingHttpMessage[HttpResponseHead]
+case class StreamingHttpRequest(head: HttpRequestHead, body: Source[Data]) extends StreamingHttpMessage[HttpRequestHead]
+case class StreamingHttpResponse(head: HttpResponseHead, body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
 
 
 trait StreamingHttp extends Protocol {
@@ -50,11 +50,11 @@ import GenEncoding._
 
 
 trait InputMessageBuilder[T <: HttpMessageHead] {
-  def build(head: T): (Sink[BodyData], StreamingHttpMessage[T])
+  def build(head: T): (Sink[Data], StreamingHttpMessage[T])
 }
 object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
   def build(head: HttpRequestHead) = {
-    val pipe = new BufferedPipe[BodyData](10)
+    val pipe = new BufferedPipe[Data](10)
     (pipe, StreamingHttpRequest(head, pipe))
   }
 }
@@ -63,26 +63,26 @@ class StreamServiceServerController[E <: HeadEncoding](
   val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
   builder: InputMessageBuilder[E#Input]
 )
-extends ControllerDownstream[GenEncoding[StreamHttpMessage, E]] 
+extends ControllerDownstream[GenEncoding[HttpStream, E]] 
 with DownstreamEventHandler[ControllerDownstream[GenEncoding[StreamingHttpMessage, E]]] 
 with ControllerUpstream[GenEncoding[StreamingHttpMessage, E]]
-with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]] {
+with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   downstream.setUpstream(this)
 
   type InputHead = E#Input
   type OutputHead = E#Output
 
-  private var currentInputStream: Option[Sink[BodyData]] = None
+  private var currentInputStream: Option[Sink[Data]] = None
 
-  private val outputStreams = new MessageQueue[Source[StreamHttpMessage[OutputHead]]](100)
+  private val outputStreams = new MessageQueue[Source[HttpStream[OutputHead]]](100)
 
   protected def fatal(message: String) {
     println(s"FATAL ERROR: $message")
     upstream.connection.forceDisconnect()
   }
 
-  def processMessage(input: StreamHttpMessage[InputHead]) {
+  def processMessage(input: HttpStream[InputHead]) {
     input match {
       case Head(head) => currentInputStream match {
         case None => {
@@ -95,7 +95,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
           fatal("received head during unfinished stream")
         }
       }
-      case b @ BodyData(_, _) => currentInputStream match {
+      case b @ Data(_, _) => currentInputStream match {
         case Some(sink) => sink.push(b) match {
           case PushResult.Filled(signal) => {
             upstream.pauseReads()
@@ -152,7 +152,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[StreamHttpMessage, E]]]
     } else false
   }
 
-  def drain(source: Source[StreamHttpMessage[OutputHead]]) {
+  def drain(source: Source[HttpStream[OutputHead]]) {
     source.pull{
       case Success(Some(item)) => {
         //TODO:
@@ -203,7 +203,7 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   
   def fullHandler = handler => {
     new PipelineHandler(
-      new Controller[GenEncoding[StreamHttpMessage, Encoding.Server[StreamHeader]]](
+      new Controller[GenEncoding[HttpStream, Encoding.Server[StreamHeader]]](
         new StreamServiceServerController[Encoding.Server[StreamHeader]](
           new StreamingHttpServiceHandler(handler),
           StreamRequestBuilder
