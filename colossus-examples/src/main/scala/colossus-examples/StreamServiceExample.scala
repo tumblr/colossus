@@ -25,14 +25,14 @@ object StreamServiceExample {
       def handle = {
         case StreamingHttpRequest(head, source) if (head.url == "/plaintext") => source.collected.map{_ =>
           StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK, headers),
+            HttpResponseHead(head.version, HttpCodes.OK, None, None, None, headers),
             Source.one(bodydata)
           )
         }
 
         case StreamingHttpRequest(head, source) if (head.url == "/chunked") => source.collected.map{_ => 
           StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK,  HttpHeaders(HttpHeader("transfer-encoding",TransferEncoding.Chunked.value))), 
+            HttpResponseHead(head.version, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, HttpHeaders.Empty), 
             Source.fromIterator(List("hello", "world", "blah").toIterator.map{s => Data(DataBlock(s))})
           )
         }

@@ -72,6 +72,17 @@ object HttpResponseHead{
   def apply(version: HttpVersion, code: HttpCode, headers: HttpHeaders): HttpResponseHead = {
     HttpResponseHead(BasicResponseFL(version, code), headers)
   }
+
+  def apply(
+    version: HttpVersion,
+    code: HttpCode,
+    transferEncoding: Option[TransferEncoding],
+    contentLength: Option[Int],
+    connection: Option[Connection],
+    extraHeaders: HttpHeaders
+  ): HttpResponseHead = {
+    apply(version, code, new ParsedHttpHeaders(extraHeaders, transferEncoding, contentLength, connection))
+  }
 }
   
 
