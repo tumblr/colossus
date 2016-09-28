@@ -71,7 +71,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
         case other => fail(s"didn't get trigger, got $other")
       }
       var triggered = false
-      f.react{triggered = true}
+      f.react{_ => triggered = true}
       triggered must equal(false)
       pipe.pull{_ => ()}
       triggered must equal(true)
@@ -83,14 +83,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       var pulled = false
       pipe.pull{r => pulled = true; r mustBe an[Failure[_]]}
       pulled mustBe true
-    }
-
-    "can't pull twice" in {
-      val pipe = new BufferedPipe(0)
-      pipe.pull(_ => ())
-      intercept[PipeStateException] {
-        CallbackAwait.result(pipe.pullCB, 1.second)
-      }
     }
 
     "fold" in {
@@ -192,12 +184,12 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       (1 to 4).foreach{_ => 
         pipe.push(1)
       }
-      val t: Signal = pipe.push(1) match {
+      val t: Signal[Unit] = pipe.push(1) match {
         case Filled(trig) => trig
         case other => throw new Exception(s"Got $other instead of full")
       }
       var triggered = false
-      t.react{triggered = true}
+      t.react{_ => triggered = true}
       pipe.pull(_ => ())
       pipe.pull(_ => ())
       triggered mustBe false
@@ -221,17 +213,17 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     "read a full iterator" in {
       val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
       val s: Source[Int] = Source.fromIterator(items.toIterator)
-      s.isClosed mustBe false
+      s.outputState mustBe TransportState.Open
       CallbackAwait.result(s.reduce{_ + _}, 1.second) mustBe items.sum
-      s.isClosed mustBe true
+      s.outputState mustBe TransportState.Closed
     }
 
     "terminate before reading everything" in {
       val s = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
       CallbackAwait.result(s.pullCB, 1.second) mustBe Some(1)
-      s.terminated mustBe false
+      s.outputState mustBe TransportState.Open
       s.terminate(new Exception("HI"))
-      s.terminated mustBe true
+      s.outputState mustBe a[TransportState.Terminated]
       intercept[Exception] {
         CallbackAwait.result(s.pullCB, 1.second)
       }
@@ -256,37 +248,37 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "terminating first source immediately terminates the dual" in {
-      val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
-      val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
-      val c = (a ++ b)
-      a.terminate(new Exception("A"))
-      c.terminated mustBe true
+      val x = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      val y = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
+      val c = (x ++ y)
+      x.terminate(new Exception("A"))
+      c.outputState mustBe a[TransportState.Terminated]
       intercept[Exception] {
         CallbackAwait.result(c.pullCB, 1.second)
       }
     }
 
     "terminating second source only terminates dual when first source is empty" in {
-      val a = Source.fromIterator(Array(1).toIterator)
-      val b = Source.fromIterator(Array(5, 6).toIterator)
-      val c = (a ++ b)
-      b.terminate(new Exception("B"))
-      c.terminated mustBe false
+      val x = Source.fromIterator(Array(1).toIterator)
+      val y = Source.fromIterator(Array(5, 6).toIterator)
+      val c = (x ++ y)
+      y.terminate(new Exception("B"))
+      c.outputState mustBe TransportState.Open
       c.pull(_ => ())
       intercept[Exception] {
         CallbackAwait.result(c.pullCB, 1.second)
       }
-      c.terminated mustBe true
+      c.outputState mustBe a[TransportState.Terminated]
 
     }
 
     "terminating the dual terminates both sources" in {
-      val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
-      val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
-      val c = (a ++ b)
+      val x = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
+      val y = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
+      val c = (x ++ y)
       c.terminate(new Exception("C"))
-      a.terminated mustBe true
-      b.terminated mustBe true
+      x.outputState mustBe a[TransportState.Terminated]
+      y.outputState mustBe a[TransportState.Terminated]
     }
       
   }

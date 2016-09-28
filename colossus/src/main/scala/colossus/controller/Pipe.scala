@@ -13,9 +13,13 @@ trait Transport {
   //all subsequent pull and pushes to return an Error
   def terminate(reason: Throwable)
 
-  def terminated : Boolean
+}
 
-  def isClosed: Boolean
+sealed trait TransportState
+object TransportState {
+  case object Open extends TransportState
+  case object Closed extends TransportState
+  case class Terminated(reason: Throwable) extends TransportState
 }
 
 /**
@@ -27,7 +31,7 @@ trait Transport {
 trait Sink[T] extends Transport {
   def push(item: T): PushResult
 
-  def isFull: Boolean
+  def inputState: TransportState
 
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete(): Try[Unit]
@@ -38,7 +42,7 @@ trait Sink[T] extends Transport {
       this.push(iterator.next) match {
         case PushResult.Filled(sig) => {
           continue = false
-          sig.react { feed(iterator) }
+          sig.react { _ => feed(iterator) }
         }
         case other: PushResult.NotPushed => {
           //the pipe is closed or dead, so just stop feeding
@@ -56,6 +60,15 @@ trait Sink[T] extends Transport {
 
 }
 
+sealed trait PullResult[+T]
+sealed trait NEPullResult[+T] extends PullResult[T]
+object PullResult {
+  case class Item[T](item: T) extends NEPullResult[T]
+  case class Empty[T](whenReady: Signal[NEPullResult[T]]) extends PullResult[T]
+  case object Closed extends NEPullResult[Nothing]
+  case class Terminated(reason: Throwable) extends NEPullResult[Nothing]
+}
+
 /**
  * A Source is the read side of a pipe.  You provide a handler for when an item
  * is ready and the Source will call it.  Note that if the underlying pipe has
@@ -64,7 +77,27 @@ trait Sink[T] extends Transport {
  * it is able to
  */
 trait Source[+T] extends Transport {
-  def pull(onReady: Try[Option[T]] => Unit)
+  
+  def pull(): PullResult[T]
+
+  def outputState: TransportState
+
+  def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
+    case PullResult.Item(item)      => whenReady(Success(Some(item)))
+    case PullResult.Terminated(err) => whenReady(Failure(err))
+    case PullResult.Closed          => whenReady(Success(None))
+    case PullResult.Empty(trig)     => trig.react{  
+      case PullResult.Item(item)      => whenReady(Success(Some(item)))
+      case PullResult.Terminated(err) => whenReady(Failure(err))
+      case PullResult.Closed          => whenReady(Success(None))
+    }
+  }
+
+
+  //TODO: This could lead to infinite recursion, implementation should probably be moved into BufferedPipe
+  def pullWhile(fn: Try[Option[T]] => Boolean) {
+    pull{x => if (fn(x)) pullWhile(fn)}
+  }
 
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
 
@@ -103,33 +136,38 @@ trait Source[+T] extends Transport {
 
 object Source {
   def one[T](data: T) = new Source[T] {
-    var item: Try[Option[T]] = Success(Some(data))
-    def pull(onReady: Try[Option[T]] => Unit) {
+    var item: PullResult[T] = PullResult.Item(data)
+    def pull(): PullResult[T] = {
       val t = item
-      if (item.isSuccess) {
-        item = Success(None)
+      item match {
+        case PullResult.Terminated(_) => {}
+        case _ => item = PullResult.Closed
       }
-      onReady(t)
+      t
     }
     def terminate(reason: Throwable) {
-      item = Failure(reason)
+      item = PullResult.Terminated(reason)
     }
 
-    def terminated = item.isFailure
-    def isClosed = item.filter{_.isEmpty}.isSuccess
+    def outputState = item match {
+      case PullResult.Terminated(err) => TransportState.Terminated(err)
+      case PullResult.Closed => TransportState.Closed
+      case _ => TransportState.Open
+    }
+
   }
 
   def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
     //this will either be set to a Left (terminate was called) or a Right(complete was called)
     private var stop : Option[Throwable] = None
-    def pull(on: Try[Option[T]] => Unit) {
+    def pull(): PullResult[T] = {
       stop match {
         case None => if (iterator.hasNext) {
-          on(Success(Some(iterator.next)))
+          PullResult.Item(iterator.next)
         } else {
-          on(Success(None))
+          PullResult.Closed
         }
-        case Some(err) => on(Failure(err))
+        case Some(err) => PullResult.Terminated(err)
       }
     }
 
@@ -137,22 +175,17 @@ object Source {
       stop = Some(reason)
     }
 
-    def terminated = stop match {
-      case Some(_) => true
-      case _ => false
+    def outputState = stop match {
+      case Some(err) => TransportState.Terminated(err)
+      case _ => if (iterator.hasNext) TransportState.Open else TransportState.Closed
     }
 
-    def isClosed = !iterator.hasNext
 
   }
 
   def empty[T] = new Source[T] {
-    def isClosed = true
-    def terminated = false
-    def pull(on: Try[Option[T]] => Unit) {
-      on(Success(None))
-    }
-
+    def pull() = PullResult.Closed 
+    def outputState = TransportState.Closed
     def terminate(reason: Throwable){}
   }
 }
@@ -183,8 +216,9 @@ trait Pipe[T, U] extends Sink[T] with Source[U] {
 
 }
 
-trait Signal {
-  def react(cb: => Unit)
+trait Signal[T] {
+  def react(cb: T => Unit)
+
 }
 
 /**
@@ -197,16 +231,16 @@ trait Signal {
  * about the state of the pipe.  The handler can just try pushing again to
  * determine if the pipe is dead or not.
  */
-class Trigger extends Signal{
+class Trigger[T] extends Signal[T]{
 
-  private var callback: Option[() => Unit] = None
+  private var callback: Option[T => Unit] = None
 
-  def react(cb: => Unit) {
-    callback = Some(() => cb)
+  def react(cb: T => Unit) {
+    callback = Some(cb)
   }
 
-  def trigger() {
-    callback.foreach{f => f()}
+  def trigger(item: T) {
+    callback.foreach{f => f(item)}
   }
 
   /**
@@ -218,6 +252,12 @@ class Trigger extends Signal{
     callback = None
   }
 
+}
+
+class BlankTrigger extends Trigger[Unit] {
+  def trigger() {
+    trigger(())
+  }
 }
 
 sealed trait PushResult {
@@ -238,11 +278,11 @@ object PushResult {
   case object Filling extends Pushed
 
   //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when it's ready
-  case class Filled(onReady: Signal) extends Pushed
+  case class Filled(onReady: Signal[Unit]) extends Pushed
 
   //the item was not pushed because the pipe is already full, the same trigger
   //returned when the Filled result was returned is included
-  case class Full(onReady: Signal) extends NotPushed
+  case class Full(onReady: Signal[Unit]) extends NotPushed
 
   //The pipe has been manually closed (without error) and is not accepting any more items
   case object Closed extends NotPushed
@@ -258,16 +298,17 @@ object PushResult {
  */
 class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
   private var a_empty = false
-  def pull(cb: Try[Option[T]] => Unit) {
+  def pull(): PullResult[T] = {
     if (a_empty) {
-      b.pull(cb)
+      b.pull()
     } else {
-      a.pull{
-        case Success(None) => {
+      val r = a.pull()
+      r match {
+        case PullResult.Closed => {
           a_empty = true
-          pull(cb)
+          b.pull()
         }
-        case other => cb(other)
+        case other => r
       }
     }
   }
@@ -277,9 +318,7 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     b.terminate(reason)
   }
 
-  override def terminated: Boolean = if (a_empty) b.terminated else a.terminated
-
-  def isClosed = a.isClosed && b.isClosed
+  def outputState = if (a_empty) b.outputState else a.outputState
 }
 
 
@@ -301,8 +340,8 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
 
   sealed trait State
   sealed trait PushableState extends State
-  case class Full(trigger: Trigger) extends State
-  case class Pulling(callback: Try[Option[T]] => Unit) extends PushableState
+  case class Full(trigger: BlankTrigger) extends State
+  case class Pulling(trigger: Trigger[NEPullResult[T]]) extends PushableState
   case object Closed extends State
   case object Idle extends PushableState
   case class Dead(reason: Throwable) extends State
@@ -313,12 +352,13 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   private val lowWatermark = size * lowWatermarkP
   private val highWatermark = size * highWatermarkP
 
-
-  def terminated  = state.isInstanceOf[Dead]
-  def isFull      = state.isInstanceOf[Full]
-  def isClosed    = state == Closed
-
-  def isPushable  = state.isInstanceOf[PushableState]
+  def inputState = state match {
+    case p : PushableState => TransportState.Open
+    case Full(_) => TransportState.Open
+    case Closed => TransportState.Closed
+    case Dead(reason) => TransportState.Terminated(reason)
+  }
+  def outputState = inputState
 
   /** Attempt to push a value into the pipe.
    *
@@ -333,22 +373,19 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
     case Pulling(cb)  => {
-      //notice we could only have been in this state if the consumer called pull
-      //while the buffer was empty, so we know we can just directly send this
-      //item to the puller
       state = Idle
-      cb(Success(Some(item)))
+      cb.trigger(PullResult.Item(item))
       PushResult.Ok
     }
     case Idle => {
       if (size == 0) {
-        val t = new Trigger
+        val t = new BlankTrigger
         state = Full(t)
         PushResult.Full(t)
       } else {
         buffer.add(item)
         if (buffer.size >= size) {
-          val t = new Trigger
+          val t = new BlankTrigger
           state = Full(t)
           PushResult.Filled(t)
         } else if (buffer.size > highWatermark) {
@@ -360,27 +397,22 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     }
   }
 
-  /** Request the next value from the pipe
-   * 
-   * Only one value can be requested at a time.  Also there can only be one
-   * outstanding request at a time.
-   *
-   * `whenReady`'s parameter has type Try[Option[T]] instead of some kind of ADT to be compatible with Callbacks
-   */
-  def pull(whenReady: Try[Option[T]] => Unit): Unit = state match {
-    case Dead(reason)  => whenReady(Failure(reason))
-    case Closed if (buffer.size == 0)  => whenReady(Success(None))
-    case Pulling(_)    => whenReady(Failure(new PipeStateException("Pipe already being pulled")))
+  def pull(): PullResult[T] = state match {
+    case Dead(reason) => PullResult.Terminated(reason)
+    case Closed if (buffer.size == 0) => PullResult.Closed
+    case Pulling(trig) => PullResult.Empty(trig)
     case other => {
       if (buffer.size == 0) {
         val oldstate = state
-        state = Pulling(whenReady)
+        val t = new Trigger[NEPullResult[T]]
+        state = Pulling(t)
         oldstate match {
           case Full(trig) => trig.trigger
           case _ => ()
-        }            
+        }
+        PullResult.Empty(t)
       } else {
-        whenReady(Success(Some(buffer.remove())))
+        val item = buffer.remove()
         other match {
           case Full(trig) if (buffer.size <= lowWatermark) => {
             state = Idle
@@ -388,17 +420,18 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
           }
           case _ => ()
         }
+        PullResult.Item(item)
       }
     }
   }
-      
-    
+
+
   def complete(): Try[Unit] = {
     val oldstate = state
     state = Closed
     oldstate match {
       case Full(trig)   => Success(trig.trigger())
-      case Pulling(cb)  => Success(cb(Success(None)))
+      case Pulling(cb)  => Success(cb.trigger(PullResult.Closed))
       case Dead(reason) => Failure(new PipeTerminatedException(reason))
       case _            => Success(())
     }
@@ -412,11 +445,45 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     state = Dead(new PipeTerminatedException(reason))
     oldstate match {
       case Full(trig)   => trig.trigger()
-      case Pulling(cb)  => cb(Failure(new PipeTerminatedException(reason)))
+      case Pulling(cb)  => cb.trigger(PullResult.Terminated(reason))
       case _            => {}
     }
   }
 
 }
+
+class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
+
+  def push(item: I): PushResult = sink.push(item)
+
+  def pull() = source.pull() 
+
+  def outputState = source.outputState
+  def inputState = sink.inputState
+
+  def complete() = sink.complete()
+
+
+  //TODO: This works fine when the termination is done on the channel, but what
+  //happens if either the source or sink is independantly terminated?  Perhaps
+  //we have to add a termination hook or something, or perhaps half-terminated channels don't matter?
+  def terminate(reason: Throwable) {
+    sink.terminate(reason)
+    source.terminate(reason)
+  }
+
+}
+
+object Channel {
+
+  def apply[I,O]() : (Channel[I,O], Channel[O,I]) = {
+    val inpipe = new BufferedPipe[I](10)
+    val outpipe = new BufferedPipe[O](10)
+    (new Channel(inpipe, outpipe), new Channel(outpipe, inpipe))
+  }
+
+}
+
+  
 
 
