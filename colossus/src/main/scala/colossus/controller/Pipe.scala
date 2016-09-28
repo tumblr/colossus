@@ -296,7 +296,6 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   case object Idle extends PushableState
   case class Dead(reason: Throwable) extends State
 
-  //Full is the default state because we can only push once we've received a callback from pull
   private var state: State = Idle
   private val buffer = new LinkedList[T]
   private val lowWatermark = size * lowWatermarkP
