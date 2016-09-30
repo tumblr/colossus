@@ -39,6 +39,15 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       v must equal(2)
     }
 
+    "pull an item immediately while triggering a push signal" in {
+      val pipe = new BufferedPipe[Int](0)
+      pipe.push(1) match {
+        case PushResult.Full(sig) => sig.react{_ => pipe.push(1);()}
+        case _ => throw new Exception("wrong push result")
+      }
+      pipe.pull() mustBe PullResult.Item(1)
+    }
+
     "reject pushes after pipe is closed" in {
       val pipe = new BufferedPipe[Int](0)
       pipe.pull{x => pipe.complete()}
@@ -205,6 +214,27 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
       p.feed(items.toIterator)
       CallbackAwait.result(p.reduce{_ + _}, 1.second) mustBe items.sum
+    }
+  }
+
+  "Pipe.fuse" must {
+    "weld two pipes" in {
+      val p1 = new BufferedPipe[Int](0)
+      val p2 = new BufferedPipe[Int](0)
+      val p3 = p1 weld p2
+      p3.push(1)
+      p3.pull() mustBe PullResult.Item(1)
+    }
+  }
+
+  "Source.into" must {
+    "push items into sink" taggedAs(org.scalatest.Tag("test")) in {
+      val x = Source.fromIterator(Array(2, 4).toIterator)
+      val y = new BufferedPipe[Int](0)
+      x into y
+      y.pull mustBe PullResult.Item(2)
+      y.pull mustBe PullResult.Item(4)
+      y.pull mustBe PullResult.Closed
     }
   }
 

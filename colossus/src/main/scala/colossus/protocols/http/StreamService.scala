@@ -167,7 +167,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
         }
         false
       }
-      case PullResult.Terminated(reason) => {
+      case PullResult.Error(reason) => {
         fatal(s"Error writing stream: $reason")
         false
       }

@@ -56,6 +56,7 @@ trait Sink[T] extends Transport {
     }
   }
 
+
     
 
 }
@@ -66,7 +67,7 @@ object PullResult {
   case class Item[T](item: T) extends NEPullResult[T]
   case class Empty[T](whenReady: Signal[NEPullResult[T]]) extends PullResult[T]
   case object Closed extends NEPullResult[Nothing]
-  case class Terminated(reason: Throwable) extends NEPullResult[Nothing]
+  case class Error(reason: Throwable) extends NEPullResult[Nothing]
 }
 
 /**
@@ -84,11 +85,11 @@ trait Source[+T] extends Transport {
 
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))
-    case PullResult.Terminated(err) => whenReady(Failure(err))
+    case PullResult.Error(err) => whenReady(Failure(err))
     case PullResult.Closed          => whenReady(Success(None))
     case PullResult.Empty(trig)     => trig.react{  
       case PullResult.Item(item)      => whenReady(Success(Some(item)))
-      case PullResult.Terminated(err) => whenReady(Failure(err))
+      case PullResult.Error(err) => whenReady(Failure(err))
       case PullResult.Closed          => whenReady(Success(None))
     }
   }
@@ -132,7 +133,75 @@ trait Source[+T] extends Transport {
 
   def collected: Callback[Iterator[T]] = fold(new collection.mutable.ArrayBuffer[T]){ case (next, buf) => buf append next ; buf } map {_.toIterator}
 
+  /**
+   * Link this source to a sink.  Items will be pulled from the source and
+   * pushed to the sink, respecting backpressure, until either the source is
+   * closed or an error occurs.  The sink will be closed when this source is
+   * closed.  If the sink is closed before this source, this source will be
+   * terminated.  Other terminations are propagated in both directions.
+   */
+  def into[U >: T] (sink: Sink[U]) {
+    def tryPush(item: T): Boolean = sink.push(item) match {
+      case PushResult.Filled(sig) => {
+        sig.react{_ => into(sink)}
+        false
+      }
+      case PushResult.Full(sig) => {
+        sig.react{_ => if (tryPush(item)) into(sink)}
+        false
+      }
+      case PushResult.Closed => {
+        terminate(new PipeStateException("downstream sink unexpectedly closed"))
+        false
+      }
+      case PushResult.Error(err) => {
+        terminate(err)
+        false
+      }
+      case ok => true
+    }
+    def handlePull(r: PullResult[T]): Boolean =  r match {
+      case PullResult.Item(item) => {
+        tryPush(item)
+      }
+      case PullResult.Closed => {
+        sink.complete()
+        false
+      }
+      case PullResult.Error(err) => {
+        sink.terminate(err)
+        false
+      }
+      case PullResult.Empty(sig) => {
+        sig.react{i =>
+          if (handlePull(i)) {
+            into(sink)
+          }
+        }
+        false
+      }
+    }
+    while (handlePull(pull())) {}
+  }
+
+  def map[B](f: T => B): Source[B] = {
+    val me = this
+    new Source[B] {
+      def pull(): PullResult[B] = me.pull match {
+        case PullResult.Item(i) => PullResult.Item(f(i))
+        case other => other.asInstanceOf[PullResult[B]]
+      }
+
+      def outputState = me.outputState
+      def terminate(err: Throwable) {
+        me.terminate(err)
+      }
+    }
+  }
+
+
 }
+
 
 object Source {
   def one[T](data: T) = new Source[T] {
@@ -140,17 +209,17 @@ object Source {
     def pull(): PullResult[T] = {
       val t = item
       item match {
-        case PullResult.Terminated(_) => {}
+        case PullResult.Error(_) => {}
         case _ => item = PullResult.Closed
       }
       t
     }
     def terminate(reason: Throwable) {
-      item = PullResult.Terminated(reason)
+      item = PullResult.Error(reason)
     }
 
     def outputState = item match {
-      case PullResult.Terminated(err) => TransportState.Terminated(err)
+      case PullResult.Error(err) => TransportState.Terminated(err)
       case PullResult.Closed => TransportState.Closed
       case _ => TransportState.Open
     }
@@ -167,7 +236,7 @@ object Source {
         } else {
           PullResult.Closed
         }
-        case Some(err) => PullResult.Terminated(err)
+        case Some(err) => PullResult.Error(err)
       }
     }
 
@@ -212,7 +281,12 @@ object Source {
  * can accept more items.
  * 
  */
-trait Pipe[T, U] extends Sink[T] with Source[U] {
+trait Pipe[I, O] extends Sink[I] with Source[O] {
+
+  def weld[U >: O, T](next: Pipe[U,T]): Pipe[I, T] = {
+    this into next
+    new Channel(this, next)
+  }
 
 }
 
@@ -398,7 +472,7 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   }
 
   def pull(): PullResult[T] = state match {
-    case Dead(reason) => PullResult.Terminated(reason)
+    case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
     case Pulling(trig) => PullResult.Empty(trig)
     case other => {
@@ -406,11 +480,22 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
         val oldstate = state
         val t = new Trigger[NEPullResult[T]]
         state = Pulling(t)
-        oldstate match {
-          case Full(trig) => trig.trigger
-          case _ => ()
+        val maybeItem: Option[PullResult[T]] = oldstate match {
+          case Full(trig) => {
+            //it's likely that as soon as we trigger this signal, the pusher
+            //will try to push an item.  So we'll react on the signal ourselves
+            //to "capture" the pushed item so that we can return it in this function call
+            var reacted: Option[PullResult[T]] = None
+            t.react{p => reacted = Some(p)}              
+            trig.trigger
+            reacted
+          }
+          case _ => None
         }
-        PullResult.Empty(t)
+        maybeItem match {
+          case Some(i) => i
+          case None => PullResult.Empty(t)
+        }
       } else {
         val item = buffer.remove()
         other match {
@@ -445,7 +530,7 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     state = Dead(new PipeTerminatedException(reason))
     oldstate match {
       case Full(trig)   => trig.trigger()
-      case Pulling(cb)  => cb.trigger(PullResult.Terminated(reason))
+      case Pulling(cb)  => cb.trigger(PullResult.Error(reason))
       case _            => {}
     }
   }
