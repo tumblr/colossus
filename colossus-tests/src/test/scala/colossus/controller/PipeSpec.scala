@@ -206,6 +206,42 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       triggered mustBe true
     }
 
+    "fast-track pushes" in {
+      val p = new BufferedPipe[Int](5)
+      var sum = 0
+      p.pullWhile{
+        case PullResult.Item(i) => {
+          sum += i
+          if (i == 1) true else false
+        }
+        case _ => true
+      }
+      p.push(1)
+      sum mustBe 1
+      p.push(2)
+      sum mustBe 3
+      p.push(1)
+      sum mustBe 3
+    }
+
+    "drain the buffer when fast-tracking" in {
+      val p = new BufferedPipe[Int](10)
+      p.push(1)
+      p.push(2)
+      p.push(3)
+      var sum = 0
+      p.pullWhile{
+        case PullResult.Item(i) => {
+          sum += i
+          true
+        }
+        case _ => true
+      }
+      sum mustBe 6
+      p.push(1)
+      sum mustBe 7
+    }
+
   }
 
   "Sink" must {

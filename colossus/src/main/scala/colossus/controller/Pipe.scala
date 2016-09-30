@@ -16,6 +16,17 @@ trait Transport {
 
 }
 
+object Types {
+  trait Functor[F[_]] {
+    def map[A,B](a: F[A], f: A => B): F[B]
+  }
+
+  implicit class FunctorOps[F[_], A](val value: F[A]) extends AnyVal {
+    def map[B](f: A => B)(implicit fct: Functor[F]): F[B] = fct.map(value, f)
+  }
+}
+import Types._
+
 sealed trait TransportState
 object TransportState {
   case object Open extends TransportState
@@ -69,6 +80,26 @@ object PullResult {
   case class Empty[T](whenReady: Signal[NEPullResult[T]]) extends PullResult[T]
   case object Closed extends NEPullResult[Nothing]
   case class Error(reason: Throwable) extends NEPullResult[Nothing]
+
+  implicit object NEPullResultMapper extends Functor[NEPullResult] {
+    def map[A,B](p: NEPullResult[A], f: A => B): NEPullResult[B] = p match {
+      case Item(i) => Item(f(i))
+      case other => other.asInstanceOf[NEPullResult[B]]
+    }
+  }
+  implicit object PullResultMapper extends Functor[PullResult] {
+    def map[A,B](p: PullResult[A], f: A => B): PullResult[B] = p match {
+      case Empty(sig) => {
+        val t = new Trigger[NEPullResult[B]]
+        sig.react{nep =>
+          t.trigger(NEPullResultMapper.map(nep, f))
+        }
+        Empty(t)
+      }
+      case Item(i) => Item(f(i))
+      case other => other.asInstanceOf[PullResult[B]]
+    }
+  }
 }
 
 /**
@@ -96,9 +127,47 @@ trait Source[+T] extends Transport {
   }
 
 
-  //TODO: This could lead to infinite recursion, implementation should probably be moved into BufferedPipe
-  def pullWhile(fn: Try[Option[T]] => Boolean) {
-    pull{x => if (fn(x)) pullWhile(fn)}
+  def pullWhile(fn: NEPullResult[T] => Boolean) {
+    var continue = true
+    while (continue) {
+      continue = pull() match {
+        case PullResult.Empty(trig) => {
+          trig.react{x => 
+            if (fn(x)) {
+              pullWhile(fn)
+            }
+          }
+          false
+        }
+        case p @ PullResult.Item(_) => fn(p) 
+        case other => {
+          //░░░░░░░░░░░░▄▐
+          //░░░░░░▄▄▄░░▄██▄
+          //░░░░░▐▀█▀▌░░░░▀█▄
+          //░░░░░▐█▄█▌░░░░░░▀█▄
+          //░░░░░░▀▄▀░░░▄▄▄▄▄▀▀
+          //░░░░▄▄▄██▀▀▀▀
+          //░░░█▀▄▄▄█░▀▀
+          //░░░▌░▄▄▄▐▌▀▀▀
+          //▄░▐░░░▄▄░█░▀▀ 
+          //▀█▌░░░▄░▀█▀░▀
+          //░░░░░░░▄▄▐▌▄▄
+          //░░░░░░░▀███▀█░▄
+          //░░░░░░▐▌▀▄▀▄▀▐▄
+          //░░░░░░▐▀░░░░░░▐▌
+          //░░░░░░█░░░░░░░░█
+          //░░░░░▐▌░░░░░░░░░█
+          //░░░░░█░░░░░░░░░░▐▌
+          // you have been visited by the spooky skelton of ClassCastException!!! 
+          //
+          // Good performance will come to you
+          //
+          // but only if you .asInstanceOf 10 more types!!!
+          fn(other.asInstanceOf[NEPullResult[T]])
+          false
+        }
+      }
+    }
   }
 
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
@@ -161,7 +230,7 @@ trait Source[+T] extends Transport {
       }
       case ok => true
     }
-    def handlePull(r: PullResult[T]): Boolean =  r match {
+    def handlePull(r: NEPullResult[T]): Boolean =  r match {
       case PullResult.Item(item) => {
         tryPush(item)
       }
@@ -173,55 +242,32 @@ trait Source[+T] extends Transport {
         sink.terminate(err)
         false
       }
-      case PullResult.Empty(sig) => {
-        sig.react{i =>
-          if (handlePull(i)) {
-            into(sink)
-          }
-        }
-        false
-      }
     }
-    while (handlePull(pull())) {}
+    pullWhile(handlePull)
   }
 
 }
 
 object PipeOps {
 
-  object SourceMapper {
+  implicit object SourceMapper extends Functor[Source]{
     def map[A,B](source: Source[A], fn: A => B): Source[B] = new Source[B] {
-      def pull(): PullResult[B] = source.pull() match {
-        case PullResult.Item(i) => PullResult.Item(fn(i))
-        case PullResult.Empty(sig) => {
-          val t = new Trigger[NEPullResult[B]]
-          sig.react{nep =>
-            val mapped = nep match {
-              case PullResult.Item(i) => PullResult.Item(fn(i))
-              case other => other.asInstanceOf[NEPullResult[B]]
-            }
-            t.trigger(mapped)
-          }
-          PullResult.Empty(t)
-        }
-        case other => {println(s"other $other");other.asInstanceOf[PullResult[B]]}
-      }
+      def pull(): PullResult[B] = source.pull().map(fn)
 
       def outputState = source.outputState
       def terminate(err: Throwable) {
         source.terminate(err)
       }
+      override def pullWhile(whilefn: NEPullResult[B] => Boolean) {
+        source.pullWhile{x => whilefn(x.map(fn))}
+      }
     }
   }
 
-  //note - sadly trying to unify these with a HKT like Functor doesn't seem to
+  //note - sadly trying to unify this with a HKT like Functor doesn't seem to
   //work since type inferrence fails on the type-lambda needed to squash
   //Pipe[_,_] down to M[_].  See: https://issues.scala-lang.org/browse/SI-6895
   
-  implicit class SourceOps[A](val source: Source[A]) extends AnyVal {
-    def map[B](f: A => B): Source[B] = SourceMapper.map(source, f)
-  }
-
   implicit class PipeOps[A,B](val pipe: Pipe[A,B]) extends AnyVal {
     def map[C](fn: B => C): Pipe[A,C] = {
       val mappedsource = SourceMapper.map(pipe, fn)
@@ -444,6 +490,11 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   sealed trait PushableState extends State
   case class Full(trigger: BlankTrigger) extends State
   case class Pulling(trigger: Trigger[NEPullResult[T]]) extends PushableState
+  //this is used when the consumer basically says "gimme all you got and I'll
+  //tell you when to stop".  This is different from Pulling becuase in that case
+  //there has to be a constant back-and-forth where each side signals that more
+  //works can be done
+  case class PullFastTrack(fn: NEPullResult[T] => Boolean) extends PushableState
   case object Closed extends State
   case object Idle extends PushableState
   case class Dead(reason: Throwable) extends State
@@ -474,6 +525,14 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Full(trig)   => PushResult.Full(trig)
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
+    case PullFastTrack(fn) => {
+      //notice if we're in this state, then we know the buffer must be empty,
+      //since it would have been drained into the fn
+      if (!fn(PullResult.Item(item))) {
+        state = Idle
+      }
+      PushResult.Ok
+    }
     case Pulling(cb)  => {
       state = Idle
       cb.trigger(PullResult.Item(item))
@@ -503,6 +562,7 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
     case Pulling(trig) => PullResult.Empty(trig)
+    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
     case other => {
       if (buffer.size == 0) {
         val oldstate = state
@@ -545,6 +605,7 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     oldstate match {
       case Full(trig)   => Success(trig.trigger())
       case Pulling(cb)  => Success(cb.trigger(PullResult.Closed))
+      case PullFastTrack(fn) => Success(fn(PullResult.Closed))
       case Dead(reason) => Failure(new PipeTerminatedException(reason))
       case _            => Success(())
     }
@@ -555,13 +616,28 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   //accurate
   def terminate(reason: Throwable) {
     val oldstate = state
+    println(s"terminating with $reason")
     state = Dead(new PipeTerminatedException(reason))
     oldstate match {
       case Full(trig)   => trig.trigger()
       case Pulling(cb)  => cb.trigger(PullResult.Error(reason))
+      case PullFastTrack(fn) => Success(fn(PullResult.Error(reason)))
       case _            => {}
     }
   }
+
+  override def pullWhile(fn: NEPullResult[T] => Boolean) {
+    state = PullFastTrack(fn)
+    var continue = true
+    while (continue && buffer.size > 0) {
+      continue = fn(PullResult.Item(buffer.remove()))
+    }
+    if (!continue) {
+      state = Idle
+    }
+  }
+
+
 
 }
 
