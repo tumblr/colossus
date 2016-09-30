@@ -7,6 +7,7 @@ import java.util.LinkedList
 import scala.util.{Try, Success, Failure}
 
 import service.{Callback, UnmappedCallback}
+import scala.language.higherKinds
 
 trait Transport {
   //can be triggered by either a source or sink, this will immediately cause
@@ -184,24 +185,51 @@ trait Source[+T] extends Transport {
     while (handlePull(pull())) {}
   }
 
-  def map[B](f: T => B): Source[B] = {
-    val me = this
-    new Source[B] {
-      def pull(): PullResult[B] = me.pull match {
-        case PullResult.Item(i) => PullResult.Item(f(i))
-        case other => other.asInstanceOf[PullResult[B]]
+}
+
+object PipeOps {
+
+  object SourceMapper {
+    def map[A,B](source: Source[A], fn: A => B): Source[B] = new Source[B] {
+      def pull(): PullResult[B] = source.pull() match {
+        case PullResult.Item(i) => PullResult.Item(fn(i))
+        case PullResult.Empty(sig) => {
+          val t = new Trigger[NEPullResult[B]]
+          sig.react{nep =>
+            val mapped = nep match {
+              case PullResult.Item(i) => PullResult.Item(fn(i))
+              case other => other.asInstanceOf[NEPullResult[B]]
+            }
+            t.trigger(mapped)
+          }
+          PullResult.Empty(t)
+        }
+        case other => {println(s"other $other");other.asInstanceOf[PullResult[B]]}
       }
 
-      def outputState = me.outputState
+      def outputState = source.outputState
       def terminate(err: Throwable) {
-        me.terminate(err)
+        source.terminate(err)
       }
     }
   }
 
+  //note - sadly trying to unify these with a HKT like Functor doesn't seem to
+  //work since type inferrence fails on the type-lambda needed to squash
+  //Pipe[_,_] down to M[_].  See: https://issues.scala-lang.org/browse/SI-6895
+  
+  implicit class SourceOps[A](val source: Source[A]) extends AnyVal {
+    def map[B](f: A => B): Source[B] = SourceMapper.map(source, f)
+  }
+
+  implicit class PipeOps[A,B](val pipe: Pipe[A,B]) extends AnyVal {
+    def map[C](fn: B => C): Pipe[A,C] = {
+      val mappedsource = SourceMapper.map(pipe, fn)
+      new Channel(pipe, mappedsource)
+    }
+  }
 
 }
-
 
 object Source {
   def one[T](data: T) = new Source[T] {

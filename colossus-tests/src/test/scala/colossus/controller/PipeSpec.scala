@@ -217,13 +217,35 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
   }
 
+  "Source" must {
+    "map" in {
+      import PipeOps._
+      val s = Source.fromIterator(Array(1, 2).toIterator)
+      val t = s.map{_.toString}
+      t.pull() mustBe PullResult.Item("1")
+    }
+  }
+
+  "Pipe" must {
+    "map" in {
+      import PipeOps._
+      val p = new BufferedPipe[Int](5)
+      val q = p.map{_.toString}
+      q.push(4)
+      q.pull() mustBe PullResult.Item("4")
+    }
+  }
+
   "Pipe.fuse" must {
     "weld two pipes" in {
+      import PipeOps._
       val p1 = new BufferedPipe[Int](0)
-      val p2 = new BufferedPipe[Int](0)
-      val p3 = p1 weld p2
-      p3.push(1)
-      p3.pull() mustBe PullResult.Item(1)
+      val p2 = new BufferedPipe[String](5)
+      val p3: Pipe[Int, String] = p1 map {_.toString} weld p2
+      p3.push(1) mustBe PushResult.Ok
+      p3.push(2) mustBe PushResult.Ok
+      p3.pull() mustBe PullResult.Item("1")
+      p3.pull() mustBe PullResult.Item("2")
     }
   }
 
