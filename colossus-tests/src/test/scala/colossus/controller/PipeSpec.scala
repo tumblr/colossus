@@ -255,6 +255,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   "Source" must {
     "map" in {
+      import Types._
       import PipeOps._
       val s = Source.fromIterator(Array(1, 2).toIterator)
       val t = s.map{_.toString}

@@ -88,14 +88,11 @@ object PullResult {
     }
   }
   implicit object PullResultMapper extends Functor[PullResult] {
+    import Signal._
+    implicit val s: Functor[Signal] = SignalMapper
+    val x = implicitly[Functor[Signal]]
     def map[A,B](p: PullResult[A], f: A => B): PullResult[B] = p match {
-      case Empty(sig) => {
-        val t = new Trigger[NEPullResult[B]]
-        sig.react{nep =>
-          t.trigger(NEPullResultMapper.map(nep, f))
-        }
-        Empty(t)
-      }
+      case Empty(sig) => Empty(sig.map{_.map(f)})
       case Item(i) => Item(f(i))
       case other => other.asInstanceOf[PullResult[B]]
     }
@@ -184,13 +181,13 @@ trait Source[+T] extends Transport {
       case Some(i) => {
         val aggr = cb(i, init)
         if(f(aggr)){
-              foldWhile(aggr)(cb)(f)
-            }else{
-              Callback.successful(aggr)
-            }
+          foldWhile(aggr)(cb)(f)
+        }else{
+          Callback.successful(aggr)
         }
-      case None => Callback.successful(init)
       }
+      case None => Callback.successful(init)
+    }
   }
 
   def reduce[U >: T](reducer: (U, U) => U): Callback[U] = pullCB().flatMap {
@@ -366,7 +363,21 @@ trait Pipe[I, O] extends Sink[I] with Source[O] {
 
 trait Signal[T] {
   def react(cb: T => Unit)
+  def notify(cb: => Unit)
+}
 
+object Signal {
+  
+  implicit object SignalMapper extends Functor[Signal] {
+    def map[A,B](sig: Signal[A], f: A => B): Signal[B] = new Trigger[B] {
+      override def react(cb: B => Unit) {
+        sig.react{a => cb(f(a))}
+      }
+      override def notify(cb: => Unit) {
+        sig.notify(cb)
+      }
+    }
+  }
 }
 
 /**
@@ -381,14 +392,21 @@ trait Signal[T] {
  */
 class Trigger[T] extends Signal[T]{
 
-  private var callback: Option[T => Unit] = None
+  private var callback: Option[Either[T => Unit, () => Unit]] = None
 
   def react(cb: T => Unit) {
-    callback = Some(cb)
+    callback = Some(Left(cb))
   }
 
-  def trigger(item: T) {
-    callback.foreach{f => f(item)}
+  def notify(cb: => Unit) {
+    callback = Some(Right(() => cb))
+  }
+
+  def trigger(forNotify: => Unit, forReact: => T) {
+    callback.foreach{
+      case Left(reactor) => reactor(forReact)
+      case Right(notifier) => {forNotify; notifier()}
+    }
   }
 
   /**
@@ -404,7 +422,7 @@ class Trigger[T] extends Signal[T]{
 
 class BlankTrigger extends Trigger[Unit] {
   def trigger() {
-    trigger(())
+    trigger(() , ())
   }
 }
 
@@ -535,7 +553,10 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     }
     case Pulling(cb)  => {
       state = Idle
-      cb.trigger(PullResult.Item(item))
+      cb.trigger(
+        forReact = PullResult.Item(item),
+        forNotify = buffer.add(item)
+      )
       PushResult.Ok
     }
     case Idle => {
@@ -604,7 +625,7 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     state = Closed
     oldstate match {
       case Full(trig)   => Success(trig.trigger())
-      case Pulling(cb)  => Success(cb.trigger(PullResult.Closed))
+      case Pulling(cb)  => Success(cb.trigger((), PullResult.Closed))
       case PullFastTrack(fn) => Success(fn(PullResult.Closed))
       case Dead(reason) => Failure(new PipeTerminatedException(reason))
       case _            => Success(())
@@ -616,11 +637,10 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
   //accurate
   def terminate(reason: Throwable) {
     val oldstate = state
-    println(s"terminating with $reason")
     state = Dead(new PipeTerminatedException(reason))
     oldstate match {
       case Full(trig)   => trig.trigger()
-      case Pulling(cb)  => cb.trigger(PullResult.Error(reason))
+      case Pulling(cb)  => cb.trigger((), PullResult.Error(reason))
       case PullFastTrack(fn) => Success(fn(PullResult.Error(reason)))
       case _            => {}
     }
