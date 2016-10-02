@@ -287,7 +287,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
   }
 
   "Source.into" must {
-    "push items into sink" taggedAs(org.scalatest.Tag("test")) in {
+    "push items into sink"  in {
       val x = Source.fromIterator(Array(2, 4).toIterator)
       val y = new BufferedPipe[Int](0)
       x into y
@@ -371,6 +371,61 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
       
   }
+
+  "Pipe Demultiplexer" must {
+    import streaming._
+    import StreamComponent._
+    import service.Callback
+
+    case class FooFrame(id: Int, component: StreamComponent, value: Int)
+    implicit object FooStream extends MultiStream[Int, FooFrame] {
+      def streamId(f: FooFrame) = f.id
+      def component(f: FooFrame) = f.component
+    }
+
+    "start a new stream" in {
+      val s = new BufferedPipe[FooFrame](5)
+      
+      val dem: Source[Substream[Int, FooFrame]] = Multiplexing.demultiplex(s)
+
+      s.push(FooFrame(1, Head, 1))
+
+      val x: Callback[Int] = dem.pull() match {
+        case PullResult.Item(sub) => sub.stream.fold(0){case (build, next) => next + build.value}
+        case other => throw new Exception(s"wrong value $other")
+      }
+      s.push(FooFrame(1, Body, 2))
+      s.push(FooFrame(1, Body, 3))
+      s.push(FooFrame(1, Tail, 4))
+      CallbackAwait.result(x, 1.second) mustBe 10
+    }
+
+    "demultiplex" in {
+      import Types._
+      import PipeOps._
+      val s = new BufferedPipe[FooFrame](5)
+      
+      val dem: Source[Substream[Int, FooFrame]] = Multiplexing.demultiplex(s)
+      var results = Map[Int, Int]()
+      dem.map{sub => sub.stream.fold(0){case (build, next) => next + build.value}.execute{ 
+        case Success(v) => results += (sub.id -> v)
+        case Failure(e) => throw e
+      }} into Sink.blackHole
+
+      s.push(FooFrame(1, Head, 1))
+      s.push(FooFrame(2, Head, 1))
+      s.push(FooFrame(1, Body, 1))
+      s.push(FooFrame(2, Tail, 1))
+      s.push(FooFrame(1, Tail, 1))
+
+      results mustBe Map(1 -> 3, 2 -> 2)
+    }
+  }
+
+
+
+      
+      
 
 
 

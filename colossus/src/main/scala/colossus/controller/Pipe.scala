@@ -68,9 +68,21 @@ trait Sink[T] extends Transport {
     }
   }
 
+}
 
-    
-
+object Sink {
+  def blackHole[T]: Sink[T] = new Sink[T] {
+    private var state: TransportState = TransportState.Open
+    def push(item: T): PushResult = PushResult.Ok
+    def inputState = state
+    def complete() = {
+      state = TransportState.Closed
+      Success(())
+    }
+    def terminate(reason: Throwable) {
+      state = TransportState.Terminated(reason)
+    }
+  }
 }
 
 sealed trait PullResult[+T]
