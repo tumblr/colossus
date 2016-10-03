@@ -7,18 +7,76 @@ trait MultiStream[K, T] extends Stream[T] {
   def streamId(t: T): K
 }
 
-case class Substream[K,T](id: K, stream: Source[T])
+case class SubSource[K,T](id: K, stream: Source[T])
+case class SubSink[K,T](id: K, stream: Sink[T])
 
 object Multiplexing {
+  
+  /*
 
-  def demultiplex[K,T](base: Source[T])(implicit ms: MultiStream[K,T]): Source[Substream[K,T]] = {
+  def multiplex[K,T](base: Sink[T])(implicit ms: MultiStream[K,T]): Sink[SubSource[K,T]] = {
+    var active = Map[K, Source[T]]()
+    //sources add themselves to this when they are waiting to send data
+    val sources = new BufferedPipe[Source[T]](10)
+    var waitingToPush = false
+
+    def feedBase() {
+      if (!waitingToPush && !active.isEmpty) {
+        var continue = true
+        while (continue) {
+          val it = active.toIterator
+          if (!it.hasNext) {
+            continue = false
+          }
+          while (it.hasNext) {
+            val next = it.next
+            next.pull() match {
+              case PullResult.Item(i) => {
+                base.push(i) match {
+                  case PushResult.Full(
+              }
+              
+      while (base.canPush) {
+        val it = active.toIterator
+        var stop = true
+        while (it.hasNext && base.canPush && !stop) {
+          it.next.pull() match {
+            case PullResult.Item(i) => {
+              stop = false
+              base.push(i)
+            }
+            case PullResult.Empty(sig) => sig.notify{ feedBase() }
+            //TODO : How should substream terminations be handled?
+            case _ => {}
+          }
+        }
+      }
+    }
+
+    sources.pullWhile{
+      case PullRestult.Item(sub) => {
+        active = active + (sub.id, sub.source)
+        def doPull():Unit = sub.source.pullWhile{
+          case PushResult.Item(item) => base.push(item) match {
+            case PushResult.Full
+        checkActive()
+        true
+      }
+      case _ => false
+    }
+
+
+  }
+  */
+
+  def demultiplex[K,T](base: Source[T])(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
     var active = Map[K, Pipe[T,T]]()
     def fatal(reason: String): Boolean = {
       base.terminate(new PipeStateException(reason))
       active.foreach{case (_, sink) => sink.terminate(new PipeStateException(reason))}
       false
     }
-    val sources = new BufferedPipe[Substream[K,T]](10)
+    val sources = new BufferedPipe[SubSource[K,T]](10)
     def doPull(): Unit = base.pullWhile {
       case PullResult.Item(item) => {
         println(s"GOT A $item")
@@ -54,7 +112,7 @@ object Multiplexing {
             n.push(item)
             //TODO sources backpressure
             active = active + (id -> n)
-            sources.push(Substream(id, n))
+            sources.push(SubSource(id, n))
             true
           }
           case StreamComponent.Body => tryPush(false)

@@ -95,8 +95,9 @@ object PullResult {
 
   implicit object NEPullResultMapper extends Functor[NEPullResult] {
     def map[A,B](p: NEPullResult[A], f: A => B): NEPullResult[B] = p match {
-      case Item(i) => Item(f(i))
-      case other => other.asInstanceOf[NEPullResult[B]]
+      case Item(i)  => Item(f(i))
+      case Closed   => Closed
+      case Error(r) => Error(r)
     }
   }
   implicit object PullResultMapper extends Functor[PullResult] {
@@ -105,8 +106,9 @@ object PullResult {
     val x = implicitly[Functor[Signal]]
     def map[A,B](p: PullResult[A], f: A => B): PullResult[B] = p match {
       case Empty(sig) => Empty(sig.map{_.map(f)})
-      case Item(i) => Item(f(i))
-      case other => other.asInstanceOf[PullResult[B]]
+      case Item(i)    => Item(f(i))
+      case Closed     => Closed
+      case Error(r)   => Error(r)
     }
   }
 }
@@ -542,6 +544,15 @@ class BufferedPipe[T](size: Int, lowWatermarkP: Double = 0.8, highWatermarkP: Do
     case Dead(reason) => TransportState.Terminated(reason)
   }
   def outputState = inputState
+
+  def canPush: Boolean = state.isInstanceOf[PushableState]
+
+  def attemptPush: PushResult = state match {
+    case p: PushableState => PushResult.Ok
+    case Full(t)          => PushResult.Full(t)
+    case Closed           => PushResult.Closed
+    case Dead(reason)     => PushResult.Error(reason)
+  }
 
   /** Attempt to push a value into the pipe.
    *

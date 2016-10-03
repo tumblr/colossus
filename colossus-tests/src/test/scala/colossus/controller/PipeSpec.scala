@@ -386,7 +386,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     "start a new stream" in {
       val s = new BufferedPipe[FooFrame](5)
       
-      val dem: Source[Substream[Int, FooFrame]] = Multiplexing.demultiplex(s)
+      val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s)
 
       s.push(FooFrame(1, Head, 1))
 
@@ -405,7 +405,7 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       import PipeOps._
       val s = new BufferedPipe[FooFrame](5)
       
-      val dem: Source[Substream[Int, FooFrame]] = Multiplexing.demultiplex(s)
+      val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s)
       var results = Map[Int, Int]()
       dem.map{sub => sub.stream.fold(0){case (build, next) => next + build.value}.execute{ 
         case Success(v) => results += (sub.id -> v)
