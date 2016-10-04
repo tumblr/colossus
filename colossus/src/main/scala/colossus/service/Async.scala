@@ -12,7 +12,7 @@ import colossus.core.WorkerRef
  */
 trait Sender[C <: Protocol, M[_]] {
 
-  def send(input: C#Input): M[C#Output]
+  def send(input: C#Request): M[C#Response]
 
   def disconnect()
 

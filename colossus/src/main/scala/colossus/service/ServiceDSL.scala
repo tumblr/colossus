@@ -13,37 +13,20 @@ import java.net.InetSocketAddress
 import metrics.MetricAddress
 import controller.{Encoding, Codec}
 
-trait Protocol {self =>
+trait Protocol {
   type Request
   type Response
-
-  //deprecated
-  type Input = Request
-  //deprecated
-  type Output = Response
-
-  trait ServerEncoding extends Encoding {
-    type Input = Request
-    type Output = Response
-  }
-
-  trait ClientEncoding extends Encoding {
-    type Input = Response
-    type Output = Request
-  }
-
-
 }
 
 object Protocol {
 
-  type PartialHandler[C <: Protocol] = PartialFunction[C#Input, Callback[C#Output]]
+  type PartialHandler[C <: Protocol] = PartialFunction[C#Request, Callback[C#Response]]
 
   type Receive = PartialFunction[Any, Unit]
 
-  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Input], C#Output]
+  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Request], C#Response]
 
-  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Output]
+  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Response]
 }
 
 import Protocol._
@@ -61,7 +44,7 @@ with DownstreamEventHandler[GenRequestHandler[C]] {
     requestHandler.setConnection(upstream.connection)
   }
 
-  protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
+  protected def unhandled: PartialHandler[C] = PartialFunction[C#Request,Callback[C#Response]]{
     case other =>
       Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
@@ -74,9 +57,9 @@ with DownstreamEventHandler[GenRequestHandler[C]] {
   private lazy val handler: PartialHandler[C] = requestHandler.handle orElse unhandled
   private lazy val errorHandler: ErrorHandler[C] = requestHandler.onError orElse unhandledError
 
-  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
+  protected def processRequest(i: C#Request): Callback[C#Response] = handler(i)
 
-  protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
+  protected def processFailure(error: ProcessingFailure[C#Request]): C#Response = errorHandler(error)
 
 }
 
@@ -318,9 +301,9 @@ trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
   def client: Sender[C,M]
   implicit val async: Async[M]
 
-  def send(input: C#Input): M[C#Output] = client.send(input)
+  def send(input: C#Request): M[C#Response] = client.send(input)
 
-  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = async.flatMap(send(i))(f)
+  protected def executeAndMap[T](i : C#Request)(f : C#Response => M[T]) = async.flatMap(send(i))(f)
 
   def disconnect() {
     client.disconnect()

@@ -45,7 +45,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     )
     implicit val w = fakeWorker.worker
     class TestClient extends ServiceClient[Redis](new RedisClientCodec, config, w.generateContext) {
-      val mockController: ControllerUpstream[Redis#ClientEncoding] = stub[ControllerUpstream[Redis#ClientEncoding]]
+      val mockController: ControllerUpstream[Encoding.Client[Redis]] = stub[ControllerUpstream[Encoding.Client[Redis]]]
       val mockConnectionHandler = stub[ClientConnectionHandler]
       override protected def fullHandler(me: ServiceClient[Redis]) = {
         this.setUpstream(mockController)

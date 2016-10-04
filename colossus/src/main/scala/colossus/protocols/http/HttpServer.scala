@@ -14,7 +14,7 @@ extends DSLService[Http](rh) {
 
   override def tagDecorator = new ReturnCodeTagDecorator
 
-  override def processRequest(input: Http#Input): Callback[Http#Output] = {
+  override def processRequest(input: Http#Request): Callback[Http#Response] = {
     val response = super.processRequest(input)
     if(!input.head.persistConnection) connection.disconnect()
     response

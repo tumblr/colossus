@@ -97,7 +97,7 @@ class LoadBalancingClient[P <: Protocol] (
   update(initialClients)
 
   //note, this type must be inner to avoid type erasure craziness
-  case class Send(request: P#Input, promise: Promise[P#Output])
+  case class Send(request: P#Request, promise: Promise[P#Response])
 
 
   private def regeneratePermutations() {
@@ -146,9 +146,9 @@ class LoadBalancingClient[P <: Protocol] (
   }
       
 
-  def send(request: P#Input): Callback[P#Output] = {
+  def send(request: P#Request): Callback[P#Response] = {
     val retryList =  permutations.next().take(maxTries)
-    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Output] = next.send(request).recoverWith{
+    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Response] = next.send(request).recoverWith{
       case err => list match {
         case head :: tail => go(head, tail)
         case Nil => Callback.failed(new SendFailedException(retryList.size, err))

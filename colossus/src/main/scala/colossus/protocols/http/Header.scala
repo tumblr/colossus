@@ -190,6 +190,13 @@ class ParsedHttpHeaders(
   override val connection: Option[Connection]
 ) extends HttpHeaders(headers) {
 
+  def this(
+    headers: HttpHeaders, 
+    transferEncodingOpt: Option[TransferEncoding],
+    contentLength: Option[Int],
+    connection: Option[Connection]
+  ) = this(headers.headers, transferEncodingOpt, contentLength, connection)
+
   override def transferEncoding = transferEncodingOpt.getOrElse(TransferEncoding.Identity)
 
 }
@@ -199,7 +206,7 @@ class ParsedHttpHeaders(
 /**
  * A Wrapper class for a set of Http headers, for a request or response.
  */
-class HttpHeaders(private val headers: JList[HttpHeader]) {
+class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   // NOTE - the headers value should contain ALL headers, even ones like
   // content-length that we track separately

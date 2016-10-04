@@ -44,5 +44,7 @@ object Main extends App {
 
   val streamServer = StreamExample.start(9009)
 
+  val streamServiceServer = StreamServiceExample.start(9010)
+
 
 }
