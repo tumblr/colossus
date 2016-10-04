@@ -89,7 +89,7 @@ sealed trait PullResult[+T]
 sealed trait NEPullResult[+T] extends PullResult[T]
 object PullResult {
   case class Item[T](item: T) extends NEPullResult[T]
-  case class Empty[T](whenReady: Signal[NEPullResult[T]]) extends PullResult[T]
+  case class Empty(whenReady: Signal) extends PullResult[Nothing]
   case object Closed extends NEPullResult[Nothing]
   case class Error(reason: Throwable) extends NEPullResult[Nothing]
 
@@ -101,11 +101,8 @@ object PullResult {
     }
   }
   implicit object PullResultMapper extends Functor[PullResult] {
-    import Signal._
-    implicit val s: Functor[Signal] = SignalMapper
-    val x = implicitly[Functor[Signal]]
     def map[A,B](p: PullResult[A], f: A => B): PullResult[B] = p match {
-      case Empty(sig) => Empty(sig.map{_.map(f)})
+      case Empty(sig) => Empty(sig)
       case Item(i)    => Item(f(i))
       case Closed     => Closed
       case Error(r)   => Error(r)
@@ -128,13 +125,9 @@ trait Source[+T] extends Transport {
 
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))
-    case PullResult.Error(err) => whenReady(Failure(err))
+    case PullResult.Error(err)      => whenReady(Failure(err))
     case PullResult.Closed          => whenReady(Success(None))
-    case PullResult.Empty(trig)     => trig.react{  
-      case PullResult.Item(item)      => whenReady(Success(Some(item)))
-      case PullResult.Error(err) => whenReady(Failure(err))
-      case PullResult.Closed          => whenReady(Success(None))
-    }
+    case PullResult.Empty(trig)     => trig.notify(pull(whenReady))  
   }
 
 
@@ -143,11 +136,7 @@ trait Source[+T] extends Transport {
     while (continue) {
       continue = pull() match {
         case PullResult.Empty(trig) => {
-          trig.react{x => 
-            if (fn(x)) {
-              pullWhile(fn)
-            }
-          }
+          trig.notify(pullWhile(fn))
           false
         }
         case p @ PullResult.Item(_) => fn(p) 
@@ -357,23 +346,8 @@ trait Pipe[I, O] extends Sink[I] with Source[O] {
 
 }
 
-trait Signal[T] {
-  def react(cb: T => Unit)
+trait Signal {
   def notify(cb: => Unit)
-}
-
-object Signal {
-  
-  implicit object SignalMapper extends Functor[Signal] {
-    def map[A,B](sig: Signal[A], f: A => B): Signal[B] = new Trigger[B] {
-      override def react(cb: B => Unit) {
-        sig.react{a => cb(f(a))}
-      }
-      override def notify(cb: => Unit) {
-        sig.notify(cb)
-      }
-    }
-  }
 }
 
 /**
@@ -386,7 +360,7 @@ object Signal {
  * about the state of the pipe.  The handler can just try pushing again to
  * determine if the pipe is dead or not.
  */
-class Trigger[T] extends Signal[T]{
+class Trigger extends Signal{
 
   private var callbacks = new java.util.LinkedList[() => Unit]
 
@@ -413,9 +387,6 @@ class Trigger[T] extends Signal[T]{
 
 }
 
-class BlankTrigger extends Trigger[Unit] {
-    
-}
 
 sealed trait PushResult {
   def pushed: Boolean
@@ -432,11 +403,11 @@ object PushResult {
   case object Ok extends Pushed
 
   //the item was successfully pushed but the pipe is not yet ready for more data, trigger is called when it's ready
-  case class Filled(onReady: Signal[Unit]) extends Pushed
+  case class Filled(onReady: Signal) extends Pushed
 
   //the item was not pushed because the pipe is already full, the same trigger
   //returned when the Filled result was returned is included
-  case class Full(onReady: Signal[Unit]) extends NotPushed
+  case class Full(onReady: Signal) extends NotPushed
 
   //The pipe has been manually closed (without error) and is not accepting any more items
   case object Closed extends NotPushed
@@ -491,29 +462,27 @@ class PipeStateException(message: String) extends Exception(message) with PipeEx
 class PipeCancelledException extends Exception("Pipe Cancelled") with PipeException
 
 class BufferedPipe[T](size: Int) extends Pipe[T, T] {
+  require(size > 0, "buffer size must be greater than 0")
 
   sealed trait State
   sealed trait PushableState extends State
-  case object Full extends State
-  case object Pulling extends PushableState
   //this is used when the consumer basically says "gimme all you got and I'll
   //tell you when to stop".  This is different from Pulling becuase in that case
   //there has to be a constant back-and-forth where each side signals that more
   //works can be done
   case class PullFastTrack(fn: NEPullResult[T] => Boolean) extends PushableState
   case object Closed extends State
-  case object Idle extends PushableState
+  case object Active extends PushableState
   case class Dead(reason: Throwable) extends State
 
-  private val pushTrigger = new BlankTrigger
-  private val pullTrigger = new Trigger[NEPullResult[T]]
+  private val pushTrigger = new Trigger
+  private val pullTrigger = new Trigger
 
-  private var state: State = Idle
+  private var state: State = Active
   private val buffer = new LinkedList[T]
 
   def inputState = state match {
     case p : PushableState => TransportState.Open
-    case Full => TransportState.Open
     case Closed => TransportState.Closed
     case Dead(reason) => TransportState.Terminated(reason)
   }
@@ -521,12 +490,8 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
 
   def canPush: Boolean = state.isInstanceOf[PushableState]
 
-  def attemptPush: PushResult = state match {
-    case p: PushableState => PushResult.Ok
-    case Full             => PushResult.Full(pushTrigger)
-    case Closed           => PushResult.Closed
-    case Dead(reason)     => PushResult.Error(reason)
-  }
+  private def bufferFull = buffer.size >= size
+  private def bufferEmpty = buffer.size == 0
 
   /** Attempt to push a value into the pipe.
    *
@@ -537,84 +502,35 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
    * @return the result of the push
    */
   def push(item: T): PushResult = state match {
-    case Full         => PushResult.Full(pushTrigger)
+    case Active if (bufferFull) => PushResult.Full(pushTrigger)
+    case Active  => {
+      //this state only occurs when somebody calls pull and the buffer is empty
+      buffer.add(item)
+      while (!bufferEmpty && pullTrigger.trigger()) {}
+      if (bufferFull) PushResult.Filled(pushTrigger) else PushResult.Ok
+    }
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
     case PullFastTrack(fn) => {
       //notice if we're in this state, then we know the buffer must be empty,
       //since it would have been drained into the fn
       if (!fn(PullResult.Item(item))) {
-        state = Idle
+        state = Active
       }
       PushResult.Ok
-    }
-    case Pulling  => {
-      //this state only occurs when somebody calls pull and the buffer is empty
-
-      pullTrigger.trigger(
-        forReact = PullResult.Item(item),
-        forNotify = buffer.add(item)
-      )
-      //it's possible whoever we just notified didn't take the item, so try them
-      //all if it was buffered
-      while (buffer.size > 0 && pullTrigger.trigger(forReact = PullResult.Item(buffer.remove()), forNotify = ())) {}
-
-      if (pullTrigger.empty && inputState == TransportState.Open) state = if (pushTrigger.empty || size > 0) Idle else Full
-      PushResult.Ok
-    }
-    case Idle => {
-      if (size == 0) {
-        state = Full
-        PushResult.Full(pushTrigger)
-      } else {
-        buffer.add(item)
-        if (buffer.size >= size) {
-          state = Full
-          PushResult.Filled(pushTrigger)
-        } else {
-          PushResult.Ok
-        }
-      }
     }
   }
 
   def pull(): PullResult[T] = state match {
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
-    case Pulling => PullResult.Empty(pullTrigger)
     case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
-    case other => {  //either full, idle, or closed with data buffered
-      if (buffer.size == 0) {
-        val oldstate = state
-        state = Pulling
-        val maybeItem: Option[PullResult[T]] = oldstate match {
-          case Full => {
-            //in this state we know the buffer is empty, somebody tried to push,
-            //AND nobody else is pulling.  To avoid buffering, we'll react on
-            //the trigger ourselves so that the pushed item can be returned in
-            //this function call
-            var reacted: Option[PullResult[T]] = None
-            pullTrigger.react{p => reacted = Some(p)}              
-            pushTrigger.trigger()
-            //if the producer we just notified did not try to push anything,
-            //then our trigger is still sitting there and we need to clear it
-            pullTrigger.clear()
-            reacted
-          }
-          case _ => None
-        }
-        maybeItem match {
-          case Some(i) => i
-          case None => PullResult.Empty(pullTrigger)
-        }
+    case other => {  //either Active or Closed with data buffered
+      if (bufferEmpty) {
+        PullResult.Empty(pullTrigger)
       } else {
         val item = buffer.remove()
-        if (state == Full){
-          state = Idle
-          //now that we've freed up some space, we can start notifying producers
-          //one at a time we fill up again
-          while (canPush && pushTrigger.trigger()) {}
-        }
+        while (!bufferFull && pushTrigger.trigger()) {}
         PullResult.Item(item)
       }
     }
@@ -624,9 +540,9 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   def complete(): Try[Unit] = {
     val oldstate = state
     state = Closed
+    pushTrigger.triggerAll() //alert anyone trying to push that the pipe is closed
+    pullTrigger.triggerAll() //notice that there will only be listeners if the buffer is empty
     oldstate match {
-      case Full         => Success(pushTrigger.triggerAll())
-      case Pulling  => Success(pullTrigger.triggerAll((), PullResult.Closed))
       case PullFastTrack(fn) => Success(fn(PullResult.Closed))
       case Dead(reason) => Failure(new PipeTerminatedException(reason))
       case _            => Success(())
@@ -639,9 +555,9 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   def terminate(reason: Throwable) {
     val oldstate = state
     state = Dead(new PipeTerminatedException(reason))
+    pushTrigger.triggerAll()
+    pullTrigger.triggerAll()
     oldstate match {
-      case Full               => pushTrigger.triggerAll()
-      case Pulling            => pullTrigger.triggerAll((), PullResult.Error(reason))
       case PullFastTrack(fn)  => Success(fn(PullResult.Error(reason)))
       case _                  => {}
     }
@@ -654,7 +570,7 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
       continue = fn(PullResult.Item(buffer.remove()))
     }
     if (!continue) {
-      state = Idle
+      state = Active
     }
   }
 

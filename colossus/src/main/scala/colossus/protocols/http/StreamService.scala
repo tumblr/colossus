@@ -99,7 +99,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
         case Some(sink) => sink.push(b) match {
           case PushResult.Filled(signal) => {
             upstream.pauseReads()
-            signal.react{_ =>
+            signal.notify{
+              sink.push(b)
               upstream.resumeReads()
             }
           }
