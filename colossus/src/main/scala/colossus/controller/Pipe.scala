@@ -54,7 +54,7 @@ trait Sink[T] extends Transport {
       this.push(iterator.next) match {
         case PushResult.Filled(sig) => {
           continue = false
-          sig.react { _ => feed(iterator) }
+          sig.notify { feed(iterator) }
         }
         case other: PushResult.NotPushed => {
           //the pipe is closed or dead, so just stop feeding
@@ -151,30 +151,12 @@ trait Source[+T] extends Transport {
           false
         }
         case p @ PullResult.Item(_) => fn(p) 
-        case other => {
-          //░░░░░░░░░░░░▄▐
-          //░░░░░░▄▄▄░░▄██▄
-          //░░░░░▐▀█▀▌░░░░▀█▄
-          //░░░░░▐█▄█▌░░░░░░▀█▄
-          //░░░░░░▀▄▀░░░▄▄▄▄▄▀▀
-          //░░░░▄▄▄██▀▀▀▀
-          //░░░█▀▄▄▄█░▀▀
-          //░░░▌░▄▄▄▐▌▀▀▀
-          //▄░▐░░░▄▄░█░▀▀ 
-          //▀█▌░░░▄░▀█▀░▀
-          //░░░░░░░▄▄▐▌▄▄
-          //░░░░░░░▀███▀█░▄
-          //░░░░░░▐▌▀▄▀▄▀▐▄
-          //░░░░░░▐▀░░░░░░▐▌
-          //░░░░░░█░░░░░░░░█
-          //░░░░░▐▌░░░░░░░░░█
-          //░░░░░█░░░░░░░░░░▐▌
-          // you have been visited by the spooky skelton of ClassCastException!!! 
-          //
-          // Good performance will come to you
-          //
-          // but only if you .asInstanceOf 10 more types!!!
-          fn(other.asInstanceOf[NEPullResult[T]])
+        case PullResult.Closed => {
+          fn(PullResult.Closed)
+          false
+        }
+        case PullResult.Error(err) => {
+          fn(PullResult.Error(err))
           false
         }
       }
@@ -224,11 +206,11 @@ trait Source[+T] extends Transport {
   def into[U >: T] (sink: Sink[U]) {
     def tryPush(item: T): Boolean = sink.push(item) match {
       case PushResult.Filled(sig) => {
-        sig.react{_ => into(sink)}
+        sig.notify{into(sink)}
         false
       }
       case PushResult.Full(sig) => {
-        sig.react{_ => if (tryPush(item)) into(sink)}
+        sig.notify{if (tryPush(item)) into(sink)}
         false
       }
       case PushResult.Closed => {
