@@ -388,30 +388,23 @@ object Signal {
  */
 class Trigger[T] extends Signal[T]{
 
-  private var callbacks = new java.util.LinkedList[Either[T => Unit, () => Unit]]
+  private var callbacks = new java.util.LinkedList[() => Unit]
 
   def empty = callbacks.size == 0
 
-  def react(cb: T => Unit) {
-    callbacks.add(Left(cb))
-  }
-
   def notify(cb: => Unit) {
-    callbacks.add(Right(() => cb))
+    callbacks.add(() => cb)
   }
 
-  def trigger(forNotify: => Unit, forReact: => T): Boolean = {
+  def trigger(): Boolean = {
     if (callbacks.size == 0) false else {
-      callbacks.remove() match {
-        case Left(reactor) => reactor(forReact)
-        case Right(notifier) => {forNotify; notifier()}
-      }
+      callbacks.remove()() 
       true
     }
   }
 
-  def triggerAll(forNotify: => Unit, forReact: => T) {
-    while (trigger(forNotify, forReact)) {}
+  def triggerAll() {
+    while (trigger()) {}
   }
 
   def clear() {
@@ -421,13 +414,6 @@ class Trigger[T] extends Signal[T]{
 }
 
 class BlankTrigger extends Trigger[Unit] {
-  def trigger(): Boolean = {
-    trigger(() , ())
-  }
-
-  def triggerAll() {
-    while (trigger()) {}
-  }
     
 }
 
