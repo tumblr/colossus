@@ -154,6 +154,21 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
         pipe.complete()
         executed must equal(true)
     }
+
+    "handle multiple push triggers"  in {
+      val pipe = new BufferedPipe[Int](0)
+      def tryPush(i: Int): Unit = pipe.push(i) match {
+        case PushResult.Full(t) => t.notify{ println(s"triggered $i");pipe.push(i) match { 
+          case PushResult.Ok => ()
+          case other => throw new Exception(s"wrong notify result $other")
+        }}
+        case other => throw new Exception(s"wrong pushresult $other")
+      }
+      tryPush(1)
+      tryPush(2)
+      pipe.pull() mustBe PullResult.Item(1)
+      pipe.pull() mustBe PullResult.Item(2)
+    }
   }
 
   "BufferedPipe (with buffering)" must {
@@ -179,33 +194,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
 
-    "return Filling past highWatermark" in {
-      val pipe = new BufferedPipe[Int](5, highWatermarkP = 0.5)
-      pipe.push(1) mustBe Ok
-      pipe.push(1) mustBe Ok
-      pipe.push(1) mustBe Filling
-      pipe.push(1) mustBe Filling
-      pipe.push(1) mustBe a[Filled]
-    }
-
-    "execute trigger only on hitting low watermark" in {
-      val pipe = new BufferedPipe[Int](5, highWatermarkP = 1.0, lowWatermarkP = 0.5)
-      (1 to 4).foreach{_ => 
-        pipe.push(1)
-      }
-      val t: Signal[Unit] = pipe.push(1) match {
-        case Filled(trig) => trig
-        case other => throw new Exception(s"Got $other instead of full")
-      }
-      var triggered = false
-      t.react{_ => triggered = true}
-      pipe.pull(_ => ())
-      pipe.pull(_ => ())
-      triggered mustBe false
-      pipe.pull(_ => ())
-      triggered mustBe true
-    }
-
     "fast-track pushes" in {
       val p = new BufferedPipe[Int](5)
       var sum = 0
@@ -223,6 +211,24 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       p.push(1)
       sum mustBe 3
     }
+
+    "fast-track: callback is notified of closing" in {
+      val p = new BufferedPipe[Int](5)
+      var closed = false
+      p.pullWhile{
+        case PullResult.Closed => {
+          closed = true
+          false
+        }
+        case _ => true
+      }
+      p.push(1)
+      closed mustBe false
+      p.complete()
+      closed mustBe true
+    }
+
+
 
     "drain the buffer when fast-tracking" in {
       val p = new BufferedPipe[Int](10)
@@ -421,6 +427,121 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       results mustBe Map(1 -> 3, 2 -> 2)
     }
   }
+
+  "Pipe Multiplexer" must {
+    import streaming._
+    import StreamComponent._
+    import service.Callback
+    import Types._
+    import PipeOps._
+
+    case class FooFrame(id: Int, component: StreamComponent, value: Int)
+    implicit object FooStream extends MultiStream[Int, FooFrame] {
+      def streamId(f: FooFrame) = f.id
+      def component(f: FooFrame) = f.component
+    }
+
+    def multiplexed: Pipe[SubSource[Int, FooFrame], FooFrame] = {
+      val base = new BufferedPipe[FooFrame](5)
+      val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
+      new Channel(mplexed, base)
+    }
+
+    def foo(id: Int): Pipe[Int, FooFrame] = new BufferedPipe[Int](10).map{i => FooFrame(id, StreamComponent.Body, i)}
+
+    "basic multiplexing"  in {
+      val mplexed = multiplexed
+      val s1 = foo(1)
+      val s2 = foo(2)
+
+      s1.push(3)
+
+      mplexed.push(SubSource(1, s1)) mustBe PushResult.Ok
+      mplexed.push(SubSource(2, s2)) mustBe PushResult.Ok
+
+      s2.push(5)
+      s1.push(7)
+
+      mplexed.pull() mustBe PullResult.Item(FooFrame(1, StreamComponent.Body, 3))
+      mplexed.pull() mustBe PullResult.Item(FooFrame(2, StreamComponent.Body, 5))
+      mplexed.pull() mustBe PullResult.Item(FooFrame(1, StreamComponent.Body, 7))
+    }
+
+    "closing the multiplexed sink keeps the mplexed open until all active substreams are finished"  in {
+      val mplexed = multiplexed
+
+      val s1 = foo(1)
+      val s2 = foo(2)
+      mplexed.push(SubSource(1, s1)) mustBe PushResult.Ok
+      mplexed.push(SubSource(2, s2)) mustBe PushResult.Ok
+      mplexed.complete()
+      mplexed.outputState mustBe TransportState.Open
+
+      s1.push(7)
+      mplexed.pull() mustBe PullResult.Item(FooFrame(1, StreamComponent.Body, 7))
+
+      s1.complete()
+      mplexed.outputState mustBe TransportState.Open
+      s2.complete()
+      mplexed.outputState mustBe TransportState.Closed
+    }
+
+    "terminating a substream doesn't fuck up the multiplexed stream" in {
+      val mplexed = multiplexed
+      val s1 = foo(1)
+      val s2 = foo(2)
+      mplexed.push(SubSource(1, s1))
+      mplexed.push(SubSource(2, s2))
+
+      s1.terminate(new Exception("AHHH FUCK"))
+      s2.push(5)
+      mplexed.pull() mustBe PullResult.Item(FooFrame(2, StreamComponent.Body, 5))
+    }
+
+    "terminated substreams are accurately accounted for in closing a multiplexed stream" in {
+      val mplexed = multiplexed
+      val s1 = foo(1)
+      val s2 = foo(2)
+      mplexed.push(SubSource(1, s1))
+      mplexed.push(SubSource(2, s2))
+
+      s1.terminate(new Exception("AHHH FUCK"))
+      mplexed.complete()
+      s2.complete()
+      mplexed.outputState mustBe TransportState.Closed
+      
+    }
+
+    "terminating the multiplexed stream fucks up everything" in {
+      val mplexed = multiplexed
+      val s1 = foo(1)
+      mplexed.push(SubSource(1, s1))
+      mplexed.terminate(new Exception("I need to return some video tapes"))
+      s1.push(3) mustBe a[PushResult.Error]
+    }
+
+    "backpressure is correctly handled on the base stream" taggedAs(org.scalatest.Tag("test")) in {
+      val mplexed = multiplexed
+      val s1 = foo(1)
+      val s2 = foo(2)
+      mplexed.push(SubSource(1, s1))
+      mplexed.push(SubSource(2, s2))
+
+      (1 to 6).foreach(i => s1.push(i) mustBe PushResult.Ok)
+      (1 to 6).foreach(i => s2.push(i) mustBe PushResult.Ok)
+
+      (1 to 12).foreach{i =>
+        val p = mplexed.pull() 
+        println(s"got $p")
+        p mustBe a[PullResult.Item[FooFrame]]
+      }
+    }
+
+      
+
+      
+  }
+
 
 
 

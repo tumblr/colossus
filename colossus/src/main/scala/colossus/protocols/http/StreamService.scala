@@ -153,7 +153,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   }
 
   def drain(source: Source[HttpStream[OutputHead]]) {
-    def handlePull(res : PullResult[HttpStream[OutputHead]]) : Boolean = res match {
+    source.pullWhile {
       case PullResult.Item(item) => {
         upstream.push(item)(_ => ())
         true
@@ -171,12 +171,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
         fatal(s"Error writing stream: $reason")
         false
       }
-      case PullResult.Empty(signal) => {
-        signal.react(handlePull)
-        false
-      }
     }
-    while (handlePull(source.pull())) {}
   }
 
   
