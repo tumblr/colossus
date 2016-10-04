@@ -70,12 +70,13 @@ object Multiplexing {
   
   def demultiplex[K,T](base: Source[T])(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
     var active = Map[K, Pipe[T,T]]()
+    val sources = new BufferedPipe[SubSource[K,T]](10)
     def fatal(reason: String): Boolean = {
       base.terminate(new PipeStateException(reason))
+      sources.terminate(new PipeStateException(reason))
       active.foreach{case (_, sink) => sink.terminate(new PipeStateException(reason))}
       false
     }
-    val sources = new BufferedPipe[SubSource[K,T]](10)
     def doPull(): Unit = base.pullWhile {
       case PullResult.Item(item) => {
         val id = ms.streamId(item)
@@ -117,7 +118,11 @@ object Multiplexing {
           case StreamComponent.Tail => tryPush(true)
         }
       }
-      case PullResult.Closed => fatal(s"Source Pipe closed unexpectedly")
+      case PullResult.Closed => {
+        sources.complete()
+        active.foreach{ case (_, sub) => sub.terminate(new PipeStateException("multiplexed stream closed"))}
+        false
+      }
       case PullResult.Error(error) => fatal(s"Source terminated with error: $error")
     }
     doPull()

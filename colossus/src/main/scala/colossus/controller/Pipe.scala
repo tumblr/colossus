@@ -73,7 +73,11 @@ trait Sink[T] extends Transport {
 object Sink {
   def blackHole[T]: Sink[T] = new Sink[T] {
     private var state: TransportState = TransportState.Open
-    def push(item: T): PushResult = PushResult.Ok
+    def push(item: T): PushResult = state match {
+      case TransportState.Open => PushResult.Ok
+      case TransportState.Closed => PushResult.Closed
+      case TransportState.Terminated(err) => PushResult.Error(err)
+    }
     def inputState = state
     def complete() = {
       state = TransportState.Closed

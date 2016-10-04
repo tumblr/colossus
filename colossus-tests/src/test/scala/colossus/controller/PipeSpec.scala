@@ -263,6 +263,22 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
   }
 
+  "Sink.blackhole" must {
+    "act like a sink" in {
+      val b = Sink.blackHole[Int]
+      b.push(3) mustBe PushResult.Ok
+      b.inputState mustBe TransportState.Open
+      b.complete()
+      b.push(5) mustBe PushResult.Closed
+      b.inputState mustBe TransportState.Closed
+
+      val c = Sink.blackHole[Int]
+      c.terminate(new Exception("FUCK"))
+      c.push(4) mustBe a[PushResult.Error]
+      c.inputState mustBe a[TransportState.Terminated]
+    }
+  }
+
   "Source" must {
     "map" in {
       import Types._
@@ -297,14 +313,40 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
   }
 
   "Source.into" must {
-    "push items into sink"  in {
+    def setup: (Source[Int], Pipe[Int, Int]) = {
       val x = Source.fromIterator(Array(2, 4).toIterator)
       val y = new BufferedPipe[Int](1)
       x into y
+      (x, y)
+    }
+
+    "push items into sink"  in {
+      val (x, y) = setup
       y.pull mustBe PullResult.Item(2)
       y.pull mustBe PullResult.Item(4)
       y.pull mustBe PullResult.Closed
     }
+    "correctly deal with an initially full pipe" in {
+      val x = Source.fromIterator(Array(2, 4).toIterator)
+      val y = new BufferedPipe[Int](1)
+      y.push(3)
+      x into y
+      y.pull() mustBe PullResult.Item(3)
+      y.pull() mustBe PullResult.Item(2)
+    }
+
+    "terminate when downstream sink closes unexpectedly" in {
+      val (x, y) = setup
+      y.complete()
+      x.outputState mustBe a[TransportState.Terminated]
+    }
+
+    "terminate when downstream sink is terminated" in {
+      val (x, y) = setup
+      y.terminate(new Exception("ADF"))
+      x.outputState mustBe a[TransportState.Terminated]
+    }
+      
   }
 
   "Source.fromIterator" must {
@@ -430,6 +472,35 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
       results mustBe Map(1 -> 3, 2 -> 2)
     }
+
+    "terminating the base terminates demultiplexed pipe and all substreams" in {
+      val s = new BufferedPipe[FooFrame](5)
+      
+      val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s)
+      s.push(FooFrame(1, Head, 1))
+      s.push(FooFrame(2, Head, 1))
+      val PullResult.Item(SubSource(_, s1)) = dem.pull().asInstanceOf[PullResult.Item[SubSource[Int, FooFrame]]]
+      val PullResult.Item(SubSource(_, s2)) = dem.pull().asInstanceOf[PullResult.Item[SubSource[Int, FooFrame]]]
+      s1.outputState mustBe TransportState.Open
+      s2.outputState mustBe TransportState.Open
+      s.terminate(new Exception("BYE"))
+      dem.outputState mustBe a[TransportState.Terminated]
+      s1.outputState mustBe a[TransportState.Terminated]
+      s2.outputState mustBe a[TransportState.Terminated]
+    }
+
+    "closing the base pipe closes the demultiplexed pipe and terminates all substreams" in {
+      val s = new BufferedPipe[FooFrame](5)
+      val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s)
+      s.push(FooFrame(1, Head, 1))
+      val PullResult.Item(SubSource(_, s1)) = dem.pull().asInstanceOf[PullResult.Item[SubSource[Int, FooFrame]]]
+      s1.outputState mustBe TransportState.Open
+      s.complete()
+      dem.outputState mustBe TransportState.Closed
+      s1.outputState mustBe a[TransportState.Terminated]
+    }
+
+      
   }
 
   "Pipe Multiplexer" must {
@@ -541,21 +612,30 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       }
     }
 
-      
-
-      
   }
 
+  "channel" must {
+    "correctly link a source and sink" in {
+      import PipeOps._
+      val p1 = new BufferedPipe[Int](4)
+      val p2 = new BufferedPipe[String](4)
+      val channel: Pipe[Int, String] = new Channel(p1, p2)
+      channel.push(4) mustBe PushResult.Ok
+      p1.pull() mustBe PullResult.Item(4)
 
+      p2.push("HELLO") mustBe PushResult.Ok
+      channel.pull() mustBe PullResult.Item("HELLO")
+    }
 
+    "create two linked pipes" in {
+      val (a,b) = Channel[Int, String]()
+      a.push(3) mustBe PushResult.Ok
+      b.pull() mustBe PullResult.Item(3)
 
-      
-      
-
-
-
-
-
+      b.push("hello") mustBe PushResult.Ok
+      a.pull() mustBe PullResult.Item("hello")
+    }
+  }
 
 }
 
