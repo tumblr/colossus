@@ -540,7 +540,6 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   private val pushTrigger = new BlankTrigger
   private val pullTrigger = new Trigger[NEPullResult[T]]
 
-  //Full is the default state because we can only push once we've received a callback from pull
   private var state: State = Idle
   private val buffer = new LinkedList[T]
 
