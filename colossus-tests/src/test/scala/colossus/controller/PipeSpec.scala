@@ -500,6 +500,23 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       s1.outputState mustBe a[TransportState.Terminated]
     }
 
+    "base reacts to backpressure from a substream" in {
+      import PipeOps._
+      import Types._
+      val s = new BufferedPipe[FooFrame](1)
+      val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s, substreamBufferSize = 1)
+      s.push(FooFrame(1, Head, 1))
+      val PullResult.Item(SubSource(_, s1)) = dem.pull().asInstanceOf[PullResult.Item[SubSource[Int, FooFrame]]]
+      //this message will get "stuck" in the full callback to the substream
+      s.push(FooFrame(1, Body, 2)) mustBe PushResult.Ok
+      //this one gets buffered in the base stream
+      s.push(FooFrame(1, Body, 3)) mustBe a[PushResult.Filled]
+      val m = s1.map{_.value}
+      m.pull() mustBe PullResult.Item(1)
+      m.pull() mustBe PullResult.Item(2)
+      m.pull() mustBe PullResult.Item(3)
+    }
+
       
   }
 
@@ -542,7 +559,15 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       mplexed.pull() mustBe PullResult.Item(FooFrame(1, StreamComponent.Body, 7))
     }
 
-    "closing the multiplexed sink keeps the mplexed open until all active substreams are finished"  in {
+    "closing multiplexing sink with no open substreams immediately closes multiplexed pipe" in {
+      val base = new BufferedPipe[FooFrame](5)
+      val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
+      mplexed.complete()
+      base.outputState mustBe TransportState.Closed
+    }
+      
+
+    "closing the multiplexing sink keeps the mplexed open until all active substreams are finished"  in {
       val mplexed = multiplexed
 
       val s1 = foo(1)
@@ -587,12 +612,40 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
       
     }
 
-    "terminating the multiplexed stream fucks up everything" in {
-      val mplexed = multiplexed
+    "terminating the multiplexing sink fucks up everything" in {
+      val base = new BufferedPipe[FooFrame](5)
+      val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
       val s1 = foo(1)
       mplexed.push(SubSource(1, s1))
       mplexed.terminate(new Exception("I need to return some video tapes"))
       s1.push(3) mustBe a[PushResult.Error]
+    }
+
+    "terminating the multiplexed pipe fucks up everything" in {
+      val base = new BufferedPipe[FooFrame](5)
+      val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
+      val s1 = foo(1)
+      mplexed.push(SubSource(1, s1))
+      base.terminate(new Exception("I need to return some video tapes"))
+      //TODO: This is a little weird, but essentially the substream can't know
+      //the multiplexed stream is terminated until it tries to push to it.  This
+      //can be solved by having the pullWhile callback return an ADT with
+      //Ok/Stop/Error instead of just true/false
+      s1.push(3) mustBe PushResult.Ok
+      s1.push(3) mustBe a[PushResult.Error]
+      mplexed.inputState mustBe a[TransportState.Terminated]
+    }
+
+    "closing the multiplexed pipe fucks up everything" in {
+      val base = new BufferedPipe[FooFrame](5)
+      val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
+      val s1 = foo(1)
+      mplexed.push(SubSource(1, s1))
+      base.complete()
+      //TODO: same as above
+      s1.push(3) mustBe PushResult.Ok
+      s1.push(3) mustBe a[PushResult.Error]
+      mplexed.inputState mustBe a[TransportState.Terminated]
     }
 
     "backpressure is correctly handled on the base stream" taggedAs(org.scalatest.Tag("test")) in {

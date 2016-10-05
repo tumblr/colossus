@@ -21,13 +21,16 @@ object Multiplexing {
         base.complete()
       }
     }
+    def fatal(message: String): Boolean = {
+      val exception = new PipeStateException(message)
+      base.terminate(exception)
+      sources.terminate(exception)
+      active.foreach{case (_, sub) => sub.terminate(exception)}
+      false
+    }
     sources.pullWhile {
       case PullResult.Item(sub) => {
         active = active + (sub.id -> sub.stream)
-        def fatal(message: String): Boolean = {
-          sub.stream.terminate(new PipeStateException(message))
-          false
-        }
         def doPull(): Unit = sub.stream.pullWhile{
           case PullResult.Item(item) => base.push(item) match {
             case PushResult.Full(sig) => {
@@ -35,7 +38,7 @@ object Multiplexing {
                 base.push(item) match {
                   case PushResult.Ok => doPull()
                   case PushResult.Filled(_) => doPull() //TODO: ignoring Filled makes sense here
-                  case other => {println(s"oops: $other");fatal(s"Unexpected PushResult while multiplexing $other")}
+                  case other => fatal(s"Unexpected PushResult while multiplexing $other")
                 }
               }
               false
@@ -58,19 +61,15 @@ object Multiplexing {
         }
         false
       }
-      case PullResult.Error(err) => {
-        base.terminate(new PipeStateException(s"Multiplexed Sink Terminated: $err"))
-        active.foreach{case (id, source) => source.terminate(err)}
-        false
-      }
+      case PullResult.Error(err) => fatal(s"Multiplexed Sink Terminated: $err")
     }
     sources
   }
                 
   
-  def demultiplex[K,T](base: Source[T])(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
+  def demultiplex[K,T](base: Source[T], sourcesBufferSize: Int = 10, substreamBufferSize: Int = 10)(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
     var active = Map[K, Pipe[T,T]]()
-    val sources = new BufferedPipe[SubSource[K,T]](10)
+    val sources = new BufferedPipe[SubSource[K,T]](sourcesBufferSize)
     def fatal(reason: String): Boolean = {
       base.terminate(new PipeStateException(reason))
       sources.terminate(new PipeStateException(reason))
@@ -107,7 +106,7 @@ object Multiplexing {
           case StreamComponent.Head => if (active contains id) {
             fatal(s"duplicate id $id")
           } else {
-            val n = new BufferedPipe[T](10)
+            val n = new BufferedPipe[T](substreamBufferSize)
             n.push(item)
             //TODO sources backpressure
             active = active + (id -> n)
