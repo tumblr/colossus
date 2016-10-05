@@ -52,9 +52,9 @@ trait Sink[T] extends Transport {
     var continue = true
     while (iterator.hasNext && continue) {
       this.push(iterator.next) match {
-        case PushResult.Filled(sig) => {
+        case PushResult.Filled(signal) => {
           continue = false
-          sig.notify { feed(iterator) }
+          signal.notify { feed(iterator) }
         }
         case other: PushResult.NotPushed => {
           //the pipe is closed or dead, so just stop feeding
@@ -106,7 +106,7 @@ object PullResult {
   }
   implicit object PullResultMapper extends Functor[PullResult] {
     def map[A,B](p: PullResult[A], f: A => B): PullResult[B] = p match {
-      case Empty(sig) => Empty(sig)
+      case Empty(signal) => Empty(signal)
       case Item(i)    => Item(f(i))
       case Closed     => Closed
       case Error(r)   => Error(r)
@@ -131,7 +131,7 @@ trait Source[+T] extends Transport {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))
     case PullResult.Error(err)      => whenReady(Failure(err))
     case PullResult.Closed          => whenReady(Success(None))
-    case PullResult.Empty(trig)     => trig.notify(pull(whenReady))  
+    case PullResult.Empty(signal)   => signal.notify(pull(whenReady))  
   }
 
 
@@ -198,12 +198,12 @@ trait Source[+T] extends Transport {
    */
   def into[U >: T] (sink: Sink[U]) {
     def tryPush(item: T): Boolean = sink.push(item) match {
-      case PushResult.Filled(sig) => {
-        sig.notify{into(sink)}
+      case PushResult.Filled(signal) => {
+        signal.notify{into(sink)}
         false
       }
-      case PushResult.Full(sig) => {
-        sig.notify{if (tryPush(item)) into(sink)}
+      case PushResult.Full(signal) => {
+        signal.notify{if (tryPush(item)) into(sink)}
         false
       }
       case PushResult.Closed => {

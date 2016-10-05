@@ -10,10 +10,32 @@ trait MultiStream[K, T] extends Stream[T] {
 case class SubSource[K,T](id: K, stream: Source[T])
 case class SubSink[K,T](id: K, stream: Sink[T])
 
+  /**
+   * Multiplexing is the process of combining multiple independant streams into
+   * a single stream.  Each message in the multiplexed stream carries
+   * information about which sub-stream it originated from, so that eventually
+   * the stream can be demultiplexed back into the constituent sub-streams.
+   *
+   * By multiplexing a "base" `Sink[T]`, a new `Sink[SubSource[K,T]]` is
+   * created, with each [[SubSource]] containing a `Source[T]`.  When a
+   * [[Source]] is pushed into the multiplexing sink, all messages pushed to
+   * that source are routed into the base sink.
+   *
+   * Likewise, demultiplexing a multiplexed `Source[T]` will create a
+   * `Source[SubSource[K,T]]`, with each [[Subsource]] being one of the
+   * sub-streams being fed into the multiplexed source.
+   */
 object Multiplexing {
 
+  /**
+   * Multiplex a base [[Sink]] into a multiplexed `Sink[SubSource[K,T]]`.  See
+   * the docs on [[Multiplexing]] for more details.
+   *
+   * @param base The sink to multiplex
+   * @return A multiplexing Sink that can accept new sources to route into the base sink
+   */
   def multiplex[K,T](base: Sink[T])(implicit ms: MultiStream[K,T]): Sink[SubSource[K,T]] = {
-    val sources = new BufferedPipe[SubSource[K,T]](10)
+    val sources = new BufferedPipe[SubSource[K,T]](1) //backpressure never an issue with this pipe
     var active = Map[K, Source[T]]()
     def onSubClosed(id: K) {
       active  = active - id
@@ -33,8 +55,8 @@ object Multiplexing {
         active = active + (sub.id -> sub.stream)
         def doPull(): Unit = sub.stream.pullWhile{
           case PullResult.Item(item) => base.push(item) match {
-            case PushResult.Full(sig) => {
-              sig.notify{
+            case PushResult.Full(signal) => {
+              signal.notify{
                 base.push(item) match {
                   case PushResult.Ok => doPull()
                   case PushResult.Filled(_) => doPull() //TODO: ignoring Filled makes sense here
@@ -67,6 +89,16 @@ object Multiplexing {
   }
                 
   
+  /**
+   * Demultiplex a multiplexed stream into individual sub-streams.  An implicit
+   * [[Multistream[K,T] Multistream]] is required in order to determine the
+   * proper substream of each message in the multiplexed stream.
+   *
+   * @param base The multiplexed source
+   * @param sourcesBufferSize the internal buffer size of the stream of sources
+   * @param substreamBufferSize the internal buffer size of each newly created substream
+   * @return A Source of substreams
+   */
   def demultiplex[K,T](base: Source[T], sourcesBufferSize: Int = 10, substreamBufferSize: Int = 10)(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
     var active = Map[K, Pipe[T,T]]()
     val sources = new BufferedPipe[SubSource[K,T]](sourcesBufferSize)
@@ -89,8 +121,8 @@ object Multiplexing {
               }
               false
             }
-            case PushResult.Closed => fatal(s"sub-pipe $id unexpectedly closed")
-            case PushResult.Error(error) => fatal(s"sub-pipe error: $error")
+            case PushResult.Closed => fatal(s"sub-stream $id unexpectedly closed")
+            case PushResult.Error(error) => fatal(s"error in substream $id: $error")
             case other => {
               if (close) {
                 active(id).complete()
