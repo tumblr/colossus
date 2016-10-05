@@ -1,5 +1,5 @@
 package colossus
-package controller
+package streaming
 
 import colossus.testkit._
 import org.scalatest._
@@ -281,8 +281,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   "Source" must {
     "map" in {
-      import Types._
-      import PipeOps._
       val s = Source.fromIterator(Array(1, 2).toIterator)
       val t = s.map{_.toString}
       t.pull() mustBe PullResult.Item("1")
@@ -291,7 +289,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   "Pipe" must {
     "map" in {
-      import PipeOps._
       val p = new BufferedPipe[Int](5)
       val q = p.map{_.toString}
       q.push(4)
@@ -301,7 +298,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   "Pipe.fuse" must {
     "weld two pipes" in {
-      import PipeOps._
       val p1 = new BufferedPipe[Int](1)
       val p2 = new BufferedPipe[String](5)
       val p3: Pipe[Int, String] = p1 map {_.toString} weld p2
@@ -425,7 +421,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
   }
 
   "Pipe Demultiplexer" must {
-    import streaming._
     import StreamComponent._
     import service.Callback
 
@@ -453,8 +448,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "demultiplex" in {
-      import Types._
-      import PipeOps._
       val s = new BufferedPipe[FooFrame](5)
       
       val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s)
@@ -501,8 +494,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
     }
 
     "base reacts to backpressure from a substream" in {
-      import PipeOps._
-      import Types._
       val s = new BufferedPipe[FooFrame](1)
       val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s, substreamBufferSize = 1)
       s.push(FooFrame(1, Head, 1))
@@ -521,11 +512,8 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
   }
 
   "Pipe Multiplexer" must {
-    import streaming._
     import StreamComponent._
     import service.Callback
-    import Types._
-    import PipeOps._
 
     case class FooFrame(id: Int, component: StreamComponent, value: Int)
     implicit object FooStream extends MultiStream[Int, FooFrame] {
@@ -669,7 +657,6 @@ class PipeSpec extends ColossusSpec with MustMatchers with CallbackMatchers {
 
   "channel" must {
     "correctly link a source and sink" in {
-      import PipeOps._
       val p1 = new BufferedPipe[Int](4)
       val p2 = new BufferedPipe[String](4)
       val channel: Pipe[Int, String] = new Channel(p1, p2)

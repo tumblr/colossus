@@ -2,6 +2,7 @@ package colossus
 package protocols.http
 package stream
 
+import streaming._
 import controller._
 import service.Protocol
 import core._
