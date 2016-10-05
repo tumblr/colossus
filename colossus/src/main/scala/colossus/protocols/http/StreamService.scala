@@ -99,7 +99,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
         case Some(sink) => sink.push(b) match {
           case PushResult.Filled(signal) => {
             upstream.pauseReads()
-            signal.react{
+            signal.notify{
+              sink.push(b)
               upstream.resumeReads()
             }
           }
@@ -153,22 +154,23 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   }
 
   def drain(source: Source[HttpStream[OutputHead]]) {
-    source.pull{
-      case Success(Some(item)) => {
-        //TODO:
+    source.pullWhile {
+      case PullResult.Item(item) => {
         upstream.push(item)(_ => ())
-        drain(source)
+        true
       }
-      case Success(None) => {
+      case PullResult.Closed => {
         upstream.push(End)(_ => ())
         val done = outputStreams.dequeue
         done.postWrite(OutputResult.Success)
         if (!outputStreams.isEmpty) {
           drain(outputStreams.head.item)
         }
+        false
       }
-      case Failure(reason) => {
+      case PullResult.Error(reason) => {
         fatal(s"Error writing stream: $reason")
+        false
       }
     }
   }
