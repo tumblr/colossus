@@ -144,6 +144,21 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+  /**
+   * Iterate through all buffered items, removing any where the provided
+   * function returns true
+   */
+  def filterScan(f: T => Boolean) {
+    var i = 0
+    while (i < buffer.size) {
+      if (f(buffer.get(i))) {
+        buffer.remove(i)
+      } else {
+        i += 1
+      }
+    }
+  }
+
 
   def complete(): Try[Unit] = {
     val oldstate = state

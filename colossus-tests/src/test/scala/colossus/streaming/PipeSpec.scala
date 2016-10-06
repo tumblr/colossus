@@ -259,6 +259,16 @@ class PipeSpec extends ColossusSpec {
       q.push(4)
       q.pull() mustBe PullResult.Item("4")
     }
+
+    "filterScan" in {
+      val p = new BufferedPipe[Int](10)
+      (1 to 4).foreach(p.push)
+      p.filterScan(_ % 2 == 0)
+      p.pull() mustBe PullResult.Item(1)
+      p.pull() mustBe PullResult.Item(3)
+      p.pull() mustBe a[PullResult.Empty]
+    }
+
   }
 
   "Pipe.fuse" must {
