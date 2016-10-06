@@ -6,6 +6,7 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
   def push(item: I): PushResult = sink.push(item)
 
   def pull() = source.pull() 
+  def peek = source.peek
 
   def outputState = source.outputState
   def inputState = sink.inputState

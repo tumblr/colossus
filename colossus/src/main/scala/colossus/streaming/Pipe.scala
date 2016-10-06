@@ -116,6 +116,19 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+  def peek: PullResult[Unit] = state match {
+    case Dead(reason) => PullResult.Error(reason)
+    case Closed if (buffer.size == 0) => PullResult.Closed
+    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
+    case other => {  //either Active or Closed with data buffered
+      if (bufferEmpty) {
+        PullResult.Empty(pullTrigger)
+      } else {
+        PullResult.Item(())
+      }
+    }
+  }
+
   def pull(): PullResult[T] = state match {
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed

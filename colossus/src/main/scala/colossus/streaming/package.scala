@@ -13,6 +13,7 @@ package object streaming {
   implicit object SourceMapper extends Functor[Source]{
     def map[A,B](source: Source[A], fn: A => B): Source[B] = new Source[B] {
       def pull(): PullResult[B] = source.pull().map(fn)
+      def peek = source.peek
 
       def outputState = source.outputState
       def terminate(err: Throwable) {
@@ -23,37 +24,6 @@ package object streaming {
       }
     }
 
-    def flatten[A](source: Source[Source[A]]): Source[A] = {
-      val flattened = new BufferedPipe[A](1)
-      def killall(reason: Throwable) {
-        flattened.terminate(reason)
-        source.pullWhile{
-          case PullResult.Item(sub) => {
-            sub.terminate(reason)
-            true
-          }
-          case _ => false
-        }
-        source.terminate(reason)
-      }
-      def next(): Unit = source.pullWhile{
-        case PullResult.Item(subsource) => {
-          //TODO: remove possible recursion
-          subsource.into(flattened, true) {
-            case TransportState.Closed => next()
-            case TransportState.Terminated(err) => killall(err)
-          }
-          false
-        }
-        case PullResult.Closed => false
-        case PullResult.Error(err) => {
-          killall(err)
-          false
-        }
-      }
-      next()
-      flattened
-    }
   }
 
   //note - sadly trying to unify this with a HKT like Functor doesn't seem to
