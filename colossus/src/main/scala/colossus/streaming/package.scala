@@ -13,6 +13,7 @@ package object streaming {
   implicit object SourceMapper extends Functor[Source]{
     def map[A,B](source: Source[A], fn: A => B): Source[B] = new Source[B] {
       def pull(): PullResult[B] = source.pull().map(fn)
+      def canPullNonEmpty = source.canPullNonEmpty
 
       def outputState = source.outputState
       def terminate(err: Throwable) {
@@ -22,6 +23,7 @@ package object streaming {
         source.pullWhile{x => whilefn(x.map(fn))}
       }
     }
+
   }
 
   //note - sadly trying to unify this with a HKT like Functor doesn't seem to

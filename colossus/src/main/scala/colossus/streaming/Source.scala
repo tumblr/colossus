@@ -16,6 +16,8 @@ trait Source[+T] extends Transport {
 
   def outputState: TransportState
 
+  def canPullNonEmpty: Boolean
+
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))
     case PullResult.Error(err)      => whenReady(Failure(err))
@@ -135,6 +137,9 @@ object Source {
       }
       t
     }
+
+    def canPullNonEmpty = item.isInstanceOf[PullResult.Item[_]]
+
     def terminate(reason: Throwable) {
       item = PullResult.Error(reason)
     }
@@ -161,6 +166,8 @@ object Source {
       }
     }
 
+    def canPullNonEmpty = iterator.hasNext
+
     def terminate(reason: Throwable) {
       stop = Some(reason)
     }
@@ -177,6 +184,7 @@ object Source {
     def pull() = PullResult.Closed 
     def outputState = TransportState.Closed
     def terminate(reason: Throwable){}
+    def canPullNonEmpty = false
   }
 }
 
@@ -207,6 +215,8 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     a.terminate(reason)
     b.terminate(reason)
   }
+
+  def canPullNonEmpty = if (a_empty) b.canPullNonEmpty else a.canPullNonEmpty
 
   def outputState = if (a_empty) b.outputState else a.outputState
 }

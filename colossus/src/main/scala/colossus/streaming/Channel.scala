@@ -10,6 +10,8 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
   def outputState = source.outputState
   def inputState = sink.inputState
 
+  def canPullNonEmpty = source.canPullNonEmpty
+
   def complete() = sink.complete()
 
 
@@ -25,9 +27,9 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
 object Channel {
 
-  def apply[I,O]() : (Channel[I,O], Channel[O,I]) = {
-    val inpipe = new BufferedPipe[I](10)
-    val outpipe = new BufferedPipe[O](10)
+  def apply[I,O](bufferSize: Int= 10) : (Channel[I,O], Channel[O,I]) = {
+    val inpipe = new BufferedPipe[I](bufferSize)
+    val outpipe = new BufferedPipe[O](bufferSize)
     (new Channel(inpipe, outpipe), new Channel(outpipe, inpipe))
   }
 

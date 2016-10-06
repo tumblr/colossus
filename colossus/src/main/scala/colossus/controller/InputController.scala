@@ -4,6 +4,44 @@ package controller
 import colossus.metrics.Histogram
 import colossus.parsing.ParserSizeTracker
 import core._
+import streaming._
+
+abstract class CodecBufferIterator[E <: Encoding](
+  codec: Codec[E], 
+  buffer: DataBuffer
+) extends Iterator[E#Input] {
+  
+  def onComplete()
+  def onError(reason: Throwable)
+
+  var done = false
+
+  def maybeNext(): Option[E#Input] = try {
+    val n = codec.decode(buffer)
+    if (n.isEmpty) {
+      onComplete()
+    }
+    n
+  } catch {
+    case t: Throwable => {
+      onError(t)
+      None
+    }
+  }
+
+  var nextItem = maybeNext()
+
+  def hasNext = nextItem.isDefined
+  def next() = {
+    val n = nextItem.get
+    nextItem = maybeNext()
+    n
+  }
+}
+
+
+
+  
 
 //TODO : pausing reads should immediately stop calls to processMessage, so we
 //need to copy and hold remaining data in the databuffer and drain it when
@@ -42,13 +80,34 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
 
   def receivedData(data: DataBuffer) {
     try {
-      var done = false
-      while (!done) {
+      while (
         inputSizeTracker.track(data)(codec.decode(data)) match {
-          case Some(msg) => downstream.processMessage(msg)
-          case None => done = true
+          case Some(msg) => messages.push(msg) match {
+            case PushResult.Filled(signal) => {
+              pauseReads()
+              messages feed new CodecBufferIterator(codec, data.takeCopy) {
+                def onComplete() { resumeReads() }
+                def onError(reason: Throwable) { fatalError(reason) }
+              }
+              false
+            }
+            case PushResult.Error(reason) => {
+              fatalError(reason)
+              false
+            }
+            case PushResult.Full(signal) => {
+              fatalError(new Exception("overflow"))
+              false
+            }
+            case PushResult.Closed => {
+              fatalError(new Exception("attempted to push to closed pipe"))
+              false
+            }
+            case PushResult.Ok => true
+          }
+          case None => false
         }
-      }
+      ){}
     } catch {
       case reason: Throwable => {
         fatalError(reason)

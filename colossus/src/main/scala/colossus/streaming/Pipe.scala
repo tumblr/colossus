@@ -85,6 +85,8 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
 
   def canPush: Boolean = state.isInstanceOf[PushableState]
 
+  def canPullNonEmpty = state == Active && buffer.size > 0
+
   private def bufferFull = buffer.size >= size
   private def bufferEmpty = buffer.size == 0
 

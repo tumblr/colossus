@@ -6,6 +6,7 @@ import java.util.LinkedList
 import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.util.{Success, Failure}
+import streaming._
 
 import service.{NotConnectedException, RequestTimeoutException}
 
@@ -70,42 +71,28 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   private var state: StaticOutState = StaticOutState.Suspended
   private def disconnecting = state.disconnecting
   private var _writesEnabled = true
-  private var outputBuffer = new MessageQueue[E#Output](controllerConfig.outputBufferSize)
 
-  def pendingBufferSize = outputBuffer.size
 
   def writesEnabled = _writesEnabled
-
-  def pauseWrites() {
-    _writesEnabled = false
-  }
-
-  /**
-   * Resumes writing of messages if currently paused, otherwise has no affect
-   */
-  def resumeWrites() {
-    _writesEnabled = true
-    if (!outputBuffer.isEmpty) signalWrite()
-  }
-
-  def purgePending(reason: Throwable) {
-    while (!outputBuffer.isEmpty) {
-      outputBuffer.dequeue.postWrite(OutputResult.Cancelled(reason))
-    }
-
-  }
 
   override def onConnected() {
     super.onConnected()
     state = StaticOutState.Alive
-    if (!outputBuffer.isEmpty) signalWrite()
+    if (messages.canPullNonEmpty) {
+      signalWrite()
+    } else {
+      messages.pull() match {
+        case PullResult.Empty(signal) => signal.notify { signalWrite() }
+        case _ => ???
+      }
+    }
   }
 
 
   private def onClosed() {
     if (disconnecting) {
       val reason = new NotConnectedException("Connection Closed")
-      purgePending(reason)
+      //purgePending(reason)
     } 
   }
 
@@ -120,11 +107,13 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
   override def onIdleCheck(period: FiniteDuration) {
+  /*
     val time = System.currentTimeMillis
     while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
       val expired = outputBuffer.dequeue
       expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
     }
+    */
   }
 
   private def signalWrite() {
@@ -139,7 +128,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
   private def checkShutdown() {
-    if (disconnecting && outputBuffer.isEmpty) {
+    if (disconnecting && !messages.canPullNonEmpty) {
       //we do this instead of shutting down immediately since this could be
       //called while in the middle of writing and end up prematurely closing the
       //connection
@@ -148,27 +137,20 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
 
-  def canPush = state.canPush && !outputBuffer.isFull
-
-  def pushFrom(item: E#Output, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
-    if (canPush) {
-      if (outputBuffer.isEmpty) signalWrite()
-      outputBuffer.enqueue(item, postWrite, createdMillis)
-      true
-    } else false
-  }
-
   def readyForData(buffer: DataOutBuffer) =  {
-    if (disconnecting && outputBuffer.isEmpty) {
+    if (disconnecting && !messages.canPullNonEmpty) {
       upstream.shutdown()
       MoreDataResult.Complete
     } else {
-      while (writesEnabled && outputBuffer.size > 0 && ! buffer.isOverflowed) {
-        val next = outputBuffer.dequeue
-        codec.encode(next.item, buffer)
-        next.postWrite(OutputResult.Success)
+      while (writesEnabled && messages.canPullNonEmpty && ! buffer.isOverflowed) {
+        messages.pull() match {
+          case PullResult.Item(item) => {
+            codec.encode(item, buffer)
+          }
+          case _ => ???
+        }
       }
-      if (disconnecting || (writesEnabled && outputBuffer.size > 0)) {
+      if (disconnecting || (writesEnabled && messages.canPullNonEmpty)) {
         //return incomplete only if we overflowed the buffer and have more in
         //the queue, or if there's nothing left but we're disconnecting to
         //finish the disconnect process
