@@ -303,7 +303,6 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   }
 
   override def shutdown() {
-    upstream.pauseReads()
     disconnecting = true
     checkGracefulDisconnect()
   }
