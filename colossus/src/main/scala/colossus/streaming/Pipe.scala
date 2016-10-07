@@ -118,6 +118,19 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+  def peek: PullResult[Unit] = state match {
+    case Dead(reason) => PullResult.Error(reason)
+    case Closed if (buffer.size == 0) => PullResult.Closed
+    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
+    case other => {  //either Active or Closed with data buffered
+      if (bufferEmpty) {
+        PullResult.Empty(pullTrigger)
+      } else {
+        PullResult.Item(())
+      }
+    }
+  }
+
   def pull(): PullResult[T] = state match {
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
@@ -129,6 +142,21 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         val item = buffer.remove()
         while (!bufferFull && pushTrigger.trigger()) {}
         PullResult.Item(item)
+      }
+    }
+  }
+
+  /**
+   * Iterate through all buffered items, removing any where the provided
+   * function returns true
+   */
+  def filterScan(f: T => Boolean) {
+    var i = 0
+    while (i < buffer.size) {
+      if (f(buffer.get(i))) {
+        buffer.remove(i)
+      } else {
+        i += 1
       }
     }
   }
@@ -161,13 +189,20 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   }
 
   override def pullWhile(fn: NEPullResult[T] => Boolean) {
-    state = PullFastTrack(fn)
-    var continue = true
-    while (continue && buffer.size > 0) {
-      continue = fn(PullResult.Item(buffer.remove()))
-    }
-    if (!continue) {
-      state = Active
+    state match {
+      case Dead(reason) => fn(PullResult.Error(reason))
+      case Closed if (buffer.size == 0) => fn(PullResult.Closed)
+      case _ => {
+        val oldstate = state
+        state = PullFastTrack(fn)
+        var continue = true
+        while (continue && buffer.size > 0) {
+          continue = fn(PullResult.Item(buffer.remove()))
+        }
+        if (!continue) {
+          state = oldstate
+        }
+      }
     }
   }
 

@@ -13,8 +13,9 @@ trait Transport {
 }
 
 sealed trait TransportState
+sealed trait NonOpenTransportState extends TransportState
 object TransportState {
   case object Open extends TransportState
-  case object Closed extends TransportState
-  case class Terminated(reason: Throwable) extends TransportState
+  case object Closed extends NonOpenTransportState
+  case class Terminated(reason: Throwable) extends NonOpenTransportState
 }

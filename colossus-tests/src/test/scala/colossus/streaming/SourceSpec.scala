@@ -1,6 +1,7 @@
 
 package colossus
 package streaming
+import service.{Callback, UnmappedCallback}
 
 import colossus.testkit._
 
@@ -54,6 +55,38 @@ class SourceSpec extends ColossusSpec {
       y.terminate(new Exception("ADF"))
       x.outputState mustBe a[TransportState.Terminated]
     }
+
+    "not close downstream when linkClosed is false"  in {
+      val x = Source.fromIterator(Array(1).toIterator)
+      val y = new BufferedPipe[Int](1)
+      x.into(y, false)(_ => ())
+      y.pull() mustBe PullResult.Item(1)
+      x.outputState mustBe TransportState.Closed
+      y.inputState mustBe TransportState.Open
+    } 
+
+    "notify on closing" in {
+      val x = Source.empty[Int]
+      val y = new BufferedPipe[Int](1)
+      var notified = false
+      x.into(y, false)(_ => {notified = true})
+      x.outputState mustBe TransportState.Closed
+      y.inputState mustBe TransportState.Open
+      notified mustBe true
+    }
+
+    "notify on terminating" in {
+      val x = new BufferedPipe[Int](1)
+      val y = new BufferedPipe[Int](1)
+      var notified = false
+      x.into(y, false)(_ => {notified = true})
+      x.terminate(new Exception("BYE"))
+      x.outputState mustBe a[TransportState.Terminated]
+      y.inputState mustBe a[TransportState.Terminated]
+      notified mustBe true
+
+    }
+      
       
   }
 
@@ -85,6 +118,55 @@ class SourceSpec extends ColossusSpec {
     }
 
   }
+
+  "Source.flatten" must {
+    def setup: (Source[Int], Source[Int], Sink[Source[Int]], Source[Int]) = {
+      val a = Source.fromIterator(Array(1,2).toIterator)
+      val b = Source.fromIterator(Array(3).toIterator)
+      val pipe = new BufferedPipe[Source[Int]](5)
+      val flat = Source.flatten(pipe)
+      pipe.push(a)
+      pipe.push(b)
+      (a,b, pipe, flat)
+    }
+
+    "pull from input sources one at a time" in {
+      val (a,b,_,flat) = setup
+      flat.pull() mustBe PullResult.Item(1)
+      flat.pull() mustBe PullResult.Item(2)
+      flat.pull() mustBe PullResult.Item(3)
+      flat.outputState mustBe TransportState.Open
+    }
+
+    "closing the base pipe closes the flattened pipe" taggedAs(org.scalatest.Tag("test")) in {
+      val (a,b,pipe,flat) = setup
+      pipe.complete()
+      flat.pull() mustBe PullResult.Item(1)
+      flat.pull() mustBe PullResult.Item(2)
+      flat.pull() mustBe PullResult.Item(3)
+      flat.outputState mustBe TransportState.Closed
+    }
+
+
+    "fuck up everything if flattend source terminates"  in {
+      val (x,y,_,flat) = setup
+      flat.terminate(new Exception("BYE"))
+      x.outputState mustBe a[TransportState.Terminated]
+      y.outputState mustBe a[TransportState.Terminated]
+    }
+
+    "fuck up everything if the base source terminates" ignore {
+      val (x,y,pipe,_) = setup
+      pipe.terminate(new Exception("BYE"))
+      //TODO: the flattener is unable to terminate the sub-pipes because it
+      //can't get them out of the base pipe.  We should consider allowing a
+      //terminated pipe to drain before it starts reporting Error
+      x.outputState mustBe a[TransportState.Terminated]
+      y.outputState mustBe a[TransportState.Terminated]
+    }
+
+  }
+      
 
   "DualSource" must {
     "correctly link two sources" in {

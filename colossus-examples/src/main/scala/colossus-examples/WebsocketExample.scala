@@ -50,11 +50,15 @@ object WebsocketExample {
     WebsocketServer.start[RawString]("websocket", port){worker => new WebsocketInitializer[RawString](worker) {
 
       def provideCodec() = new RawStringCodec
+
       
-      def onConnect = ctx => new WebsocketHandler[RawString](ctx.context) {
+      def onConnect = ctx => new WebsocketHandler[RawString](ctx.context) with ProxyActor {
         private var sending = false
 
-        println("STARTINGUP")
+
+        def shutdownRequest() {
+          upstream.upstream.connection.disconnect()
+        }
 
         override def onConnected() {
           send("HELLO THERE!")
@@ -93,7 +97,6 @@ object WebsocketExample {
 
         def handleError(reason: Throwable){}
 
-        /*
         def receive = {
           case prime: Integer => {
             send(s"PRIME: $prime")
@@ -103,7 +106,6 @@ object WebsocketExample {
             }
           }
         }
-        */
 
       }
 
