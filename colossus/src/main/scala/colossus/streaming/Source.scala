@@ -89,8 +89,9 @@ trait Source[+T] extends Transport {
    *
    * @param sink The sink to link to this source
    * @param linkClosed if true, the linked sink will be closed when this source is closed
+   * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
-  def into[U >: T] (sink: Sink[U], linkClosed: Boolean)(onComplete: NonOpenTransportState => Any) {
+  def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
     def tryPush(item: T): Boolean = sink.push(item) match {
       case PushResult.Full(signal) => {
         signal.notify{if (tryPush(item)) continue()}
@@ -121,7 +122,7 @@ trait Source[+T] extends Transport {
         false
       }
       case PullResult.Error(err) => {
-        sink.terminate(err)
+        if (linkTerminated) sink.terminate(err)
         onComplete(TransportState.Terminated(err))
         false
       }
@@ -131,7 +132,7 @@ trait Source[+T] extends Transport {
   }
 
   def into[U >: T] (sink: Sink[U]) {
-    into(sink, true)( _ => ())
+    into(sink, true, true)( _ => ())
   }
 
 }
@@ -210,7 +211,7 @@ object Source {
     def next(): Unit = source.pullWhile{
       case PullResult.Item(subsource) => {
         //TODO: remove possible recursion
-        subsource.into(flattened, false) {
+        subsource.into(flattened, false, true) {
           case TransportState.Closed => next()
           case TransportState.Terminated(err) => killall(err)
         }

@@ -1,5 +1,7 @@
 package colossus
 
+import scala.language.higherKinds
+
 package object streaming {
 
   trait Functor[F[_]] {

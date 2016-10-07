@@ -53,27 +53,17 @@ object Multiplexing {
     sources.pullWhile {
       case PullResult.Item(sub) => {
         active = active + (sub.id -> sub.stream)
-        def doPull(): Unit = sub.stream.pullWhile{
-          case PullResult.Item(item) => base.push(item) match {
-            case PushResult.Full(signal) => {
-              signal.notify{
-                base.push(item) match {
-                  case PushResult.Ok => doPull()
-                  case other => fatal(s"Unexpected PushResult while multiplexing $other")
-                }
-              }
-              false
-            }
-            case PushResult.Closed => fatal(s"Multiplexed base stream unexpectedly closed")
-            case PushResult.Error(err)  => fatal(s"Failed to push to base stream: $err")
-            case other => true
+        sub.stream.into(base, false, false){
+          case TransportState.Terminated(err) if (base.inputState != TransportState.Open) => {
+            //when this occurs it means the base sink was terminated.  At this
+            //point only this subsource knows about that, so we'll call fatal
+            //and kill everything
+            fatal(s"Multiplexed Stream Terminated: $err")
           }
           case other => {
             onSubClosed(sub.id)
-            false
           }
         }
-        doPull()
         true
       }
       case PullResult.Closed => {

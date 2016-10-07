@@ -59,17 +59,27 @@ class SourceSpec extends ColossusSpec {
     "not close downstream when linkClosed is false"  in {
       val x = Source.fromIterator(Array(1).toIterator)
       val y = new BufferedPipe[Int](1)
-      x.into(y, false)(_ => ())
+      x.into(y, false, true)(_ => ())
       y.pull() mustBe PullResult.Item(1)
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
     } 
 
+    "not terminate downstream when linkTerminated is false" in {
+      val x = Source.fromIterator(Array(1).toIterator)
+      val y = new BufferedPipe[Int](1)
+      x.into(y, false, false)(_ => ())
+      x.terminate(new Exception("foo"))
+      x.outputState mustBe a[TransportState.Terminated]
+      y.inputState mustBe TransportState.Open
+
+    }
+
     "notify on closing" in {
       val x = Source.empty[Int]
       val y = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false)(_ => {notified = true})
+      x.into(y, false, false)(_ => {notified = true})
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
       notified mustBe true
@@ -79,7 +89,7 @@ class SourceSpec extends ColossusSpec {
       val x = new BufferedPipe[Int](1)
       val y = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false)(_ => {notified = true})
+      x.into(y, false, false)(_ => {notified = true})
       x.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.inputState mustBe a[TransportState.Terminated]

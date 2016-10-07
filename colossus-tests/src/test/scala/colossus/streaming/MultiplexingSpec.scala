@@ -200,7 +200,7 @@ class MultiplexingSpec extends ColossusSpec {
       s1.push(3) mustBe a[PushResult.Error]
     }
 
-    "terminating the multiplexed pipe fucks up everything" in {
+    "terminating the multiplexed pipe fucks up everything" taggedAs(org.scalatest.Tag("test")) in {
       val base = new BufferedPipe[FooFrame](5)
       val mplexed: Sink[SubSource[Int, FooFrame]] = Multiplexing.multiplex(base)
       val s1 = foo(1)
@@ -227,7 +227,7 @@ class MultiplexingSpec extends ColossusSpec {
       mplexed.inputState mustBe a[TransportState.Terminated]
     }
 
-    "backpressure is correctly handled on the base stream" taggedAs(org.scalatest.Tag("test")) in {
+    "backpressure is correctly handled on the base stream"  in {
       val mplexed = multiplexed
       val s1 = foo(1)
       val s2 = foo(2)
@@ -239,7 +239,6 @@ class MultiplexingSpec extends ColossusSpec {
 
       (1 to 12).foreach{i =>
         val p = mplexed.pull() 
-        println(s"got $p")
         p mustBe a[PullResult.Item[FooFrame]]
       }
     }
