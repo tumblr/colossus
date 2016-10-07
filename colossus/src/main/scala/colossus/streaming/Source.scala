@@ -92,10 +92,6 @@ trait Source[+T] extends Transport {
    */
   def into[U >: T] (sink: Sink[U], linkClosed: Boolean)(onComplete: NonOpenTransportState => Any) {
     def tryPush(item: T): Boolean = sink.push(item) match {
-      case PushResult.Filled(signal) => {
-        signal.notify{continue()}
-        false
-      }
       case PushResult.Full(signal) => {
         signal.notify{if (tryPush(item)) continue()}
         false
@@ -146,6 +142,7 @@ object Source {
   def one[T](data: T): Source[T] = {
     val p = new BufferedPipe[T](1)
     p.push(data)
+    p.complete()
     p
   }
 

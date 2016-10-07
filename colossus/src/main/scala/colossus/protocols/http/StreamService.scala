@@ -98,18 +98,18 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
       }
       case b @ Data(_, _) => currentInputStream match {
         case Some(sink) => sink.push(b) match {
-          case PushResult.Filled(signal) => {
+          case PushResult.Full(signal) => {
             upstream.pauseReads()
             signal.notify{
               sink.push(b)
               upstream.resumeReads()
             }
           }
-          case bad: PushResult.NotPushed => {
+          case PushResult.Ok => {}
+          case other => {
             // :(
-            fatal("failed to push message to stream")
+            fatal(s"failed to push message to stream with result $other")
           }
-          case other => {}
         }
         case None => {
           fatal("Received body data but no input stream exists")

@@ -59,7 +59,6 @@ object Multiplexing {
               signal.notify{
                 base.push(item) match {
                   case PushResult.Ok => doPull()
-                  case PushResult.Filled(_) => doPull() //TODO: ignoring Filled makes sense here
                   case other => fatal(s"Unexpected PushResult while multiplexing $other")
                 }
               }

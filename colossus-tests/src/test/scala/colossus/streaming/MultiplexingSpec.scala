@@ -92,7 +92,7 @@ class MultiplexingSpec extends ColossusSpec {
       //this message will get "stuck" in the full callback to the substream
       s.push(FooFrame(1, Body, 2)) mustBe PushResult.Ok
       //this one gets buffered in the base stream
-      s.push(FooFrame(1, Body, 3)) mustBe a[PushResult.Filled]
+      s.push(FooFrame(1, Body, 3)) mustBe PushResult.Ok
       val m = s1.map{_.value}
       m.pull() mustBe PullResult.Item(1)
       m.pull() mustBe PullResult.Item(2)
