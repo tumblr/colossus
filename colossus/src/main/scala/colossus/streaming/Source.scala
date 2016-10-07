@@ -16,7 +16,13 @@ trait Source[+T] extends Transport {
 
   def peek: PullResult[Unit]
 
+  def canPullNonEmpty = peek match {
+    case PullResult.Item(_) => true
+    case _ => false
+  }
+
   def outputState: TransportState
+
 
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))

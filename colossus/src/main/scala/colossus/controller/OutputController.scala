@@ -78,13 +78,10 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   override def onConnected() {
     super.onConnected()
     state = StaticOutState.Alive
-    if (messages.canPullNonEmpty) {
-      signalWrite()
-    } else {
-      messages.pull() match {
-        case PullResult.Empty(signal) => signal.notify { signalWrite() }
-        case _ => ???
-      }
+    messages.peek match {
+      case PullResult.Item(_) => signalWrite()
+      case PullResult.Empty(signal) => signal.notify { signalWrite() }
+      case other => ???
     }
   }
 
