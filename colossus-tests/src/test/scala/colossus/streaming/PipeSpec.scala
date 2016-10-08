@@ -160,9 +160,6 @@ class PipeSpec extends ColossusSpec {
       pipe.pull() mustBe PullResult.Item(1)
       pipe.pull() mustBe PullResult.Item(2)
     }
-  }
-
-  "BufferedPipe (with buffering)" must {
 
     "buffer until full" in {
       val pipe = new BufferedPipe[Int](3)
@@ -240,7 +237,28 @@ class PipeSpec extends ColossusSpec {
     }
 
   }
-
+  
+  "BufferedPipe.peek" must {
+    "return Item" in {
+      val p = new BufferedPipe[Int](3)
+      p.peek mustBe a[PullResult.Empty]
+      p.push(2)
+      p.peek mustBe PullResult.Item(())
+    }
+    "return item after being closed until empty" in {
+      val p = new BufferedPipe[Int](3)
+      p.push(2)
+      p.complete()
+      p.peek mustBe PullResult.Item(())
+      p.pull()
+      p.peek mustBe PullResult.Closed
+    }
+    "return Terminated" in {
+      val p = new BufferedPipe[Int](3)
+      p.terminate(new Exception("WAT"))
+      p.peek mustBe a[PullResult.Error]
+    }
+  }
 
 
   "Pipe" must {
