@@ -121,6 +121,16 @@ class SourceSpec extends ColossusSpec {
       }
     }
 
+    "peek" in {
+      val s = Source.fromIterator(Array(1).toIterator)
+      s.peek mustBe PullResult.Item(())
+      s.pull()
+      s.peek mustBe PullResult.Closed
+      s.terminate(new Exception("ASF"))
+      s.peek mustBe a[PullResult.Error]
+    }
+
+
 
   }
 
