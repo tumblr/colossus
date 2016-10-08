@@ -175,6 +175,7 @@ class SourceSpec extends ColossusSpec {
 
     "closing the base pipe closes the flattened pipe" taggedAs(org.scalatest.Tag("test")) in {
       val (a,b,pipe,flat) = setup
+      println("closing now")
       pipe.complete()
       flat.pull() mustBe PullResult.Item(1)
       flat.pull() mustBe PullResult.Item(2)

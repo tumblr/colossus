@@ -209,10 +209,18 @@ object Source {
     }
 
     override def pullWhile(f: NEPullResult[T] => Boolean) {
-      while (
-        iterator.hasNext && f(PullResult.Item(iterator.next)) ||
-        !iterator.hasNext && f(PullResult.Closed)
-      ){}
+      stop match {  
+        case Some(err) => f(PullResult.Error(err))
+        case None => {
+          var continue = true
+          while ( iterator.hasNext && continue ){
+            continue = f(PullResult.Item(iterator.next))
+          }
+          if (continue) {
+            f(PullResult.Closed)
+          }
+        }
+      }
     }
 
 
@@ -252,14 +260,25 @@ object Source {
         //sub-source does not immediately drain in this function call.  But if
         //the source is already closed by the very next line, then we know we're
         //ready for the next sub-source and can continue this pullWhile loop
-        var completedImmediately = true
+        //println("pulled item")
+        var callNext = false
+        var closed = false
         subsource.into(flattened, false, true) {
-          case TransportState.Closed => {if (!completedImmediately) next()}
+          case TransportState.Closed => {closed = true; if (callNext) next()}
           case TransportState.Terminated(err) => killall(err)
         }
-        completedImmediately = false
-        //if the subsource is already finished, we can return true and immediately get the next item
-        subsource.outputState == TransportState.Closed
+
+        //we have to use this variable and not just check the state of the
+        //subsource mainly due to the logic in Source.into that can result in a
+        //"hanging item", where the source is closed but there is still one item
+        //that is sitting in a callback function waiting to be pushed.  So we
+        //instead need to rely on the callback passed to into, whch will be
+        //triggered once that last item has been successfully pushed
+        //TODO - this weirdness can be fixed if we can figure out a way to avoid these hanging items
+        if (!closed) {
+          callNext = true
+        }
+        closed
       }
       case PullResult.Closed => {
         flattened.complete()
