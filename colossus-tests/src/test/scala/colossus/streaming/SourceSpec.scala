@@ -121,13 +121,28 @@ class SourceSpec extends ColossusSpec {
       }
     }
 
-    "Source.one" in {
+
+  }
+
+  "Source.one" must {
+    "pull" in {
       val s: Source[Int] = Source.one(5)
       CallbackAwait.result(s.pullCB, 1.second) mustBe Some(5)
       CallbackAwait.result(s.pullCB, 1.second) mustBe None
     }
-
+    "peek" in {
+      val s = Source.one(4)
+      s.peek mustBe PullResult.Item(())
+      s.pull() mustBe PullResult.Item(4)
+      s.peek mustBe PullResult.Closed
+    }
+    "terminate" in {
+      val s = Source.one(4)
+      s.terminate(new Exception("A"))
+      s.pull() mustBe a[PullResult.Error]
+    }
   }
+
 
   "Source.flatten" must {
     def setup: (Source[Int], Source[Int], Sink[Source[Int]], Source[Int]) = {
