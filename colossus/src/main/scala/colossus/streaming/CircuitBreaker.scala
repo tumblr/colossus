@@ -1,8 +1,8 @@
 package colossus.streaming
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
-trait CircuitBreaker[T] {
+trait CircuitBreaker[T <: Transport] {
 
   protected var current: Option[T] = None
 
@@ -22,7 +22,7 @@ trait CircuitBreaker[T] {
   }
 
   def terminate(err: Throwable) {
-    //??? wat do here
+    unset().foreach{_.terminate(err)}
   }
 
 }
@@ -53,8 +53,7 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
   }
 
   def complete(): Try[Unit] = {
-    //uhhhh
-    ???
+    unset.map{_.complete()}.getOrElse(Success(()))
   }
 
 }
