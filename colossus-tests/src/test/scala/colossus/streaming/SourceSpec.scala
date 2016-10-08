@@ -89,7 +89,7 @@ class SourceSpec extends ColossusSpec {
       val x = new BufferedPipe[Int](1)
       val y = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false, false)(_ => {notified = true})
+      x.into(y, false, true)(_ => {notified = true})
       x.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.inputState mustBe a[TransportState.Terminated]
