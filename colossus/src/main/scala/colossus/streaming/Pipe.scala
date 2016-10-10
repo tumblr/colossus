@@ -101,8 +101,11 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     case Active  => {
       //this state only occurs when somebody calls pull and the buffer is empty
       buffer.add(item)
+      //if someone was waiting for items to enter the buffer, let them know now.
+      //It's possible the notified consumer doesn't actually pull any data, so
+      //keep notifying until the buffer is empty again
       while (!bufferEmpty && pullTrigger.trigger()) {}
-      if (bufferFull) PushResult.Filled(pushTrigger) else PushResult.Ok
+      PushResult.Ok
     }
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
@@ -113,6 +116,19 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         state = Active
       }
       PushResult.Ok
+    }
+  }
+
+  def peek: PullResult[Unit] = state match {
+    case Dead(reason) => PullResult.Error(reason)
+    case Closed if (buffer.size == 0) => PullResult.Closed
+    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
+    case other => {  //either Active or Closed with data buffered
+      if (bufferEmpty) {
+        PullResult.Empty(pullTrigger)
+      } else {
+        PullResult.Item(())
+      }
     }
   }
 
@@ -127,6 +143,21 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         val item = buffer.remove()
         while (!bufferFull && pushTrigger.trigger()) {}
         PullResult.Item(item)
+      }
+    }
+  }
+
+  /**
+   * Iterate through all buffered items, removing any where the provided
+   * function returns true
+   */
+  def filterScan(f: T => Boolean) {
+    var i = 0
+    while (i < buffer.size) {
+      if (f(buffer.get(i))) {
+        buffer.remove(i)
+      } else {
+        i += 1
       }
     }
   }
@@ -159,13 +190,20 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   }
 
   override def pullWhile(fn: NEPullResult[T] => Boolean) {
-    state = PullFastTrack(fn)
-    var continue = true
-    while (continue && buffer.size > 0) {
-      continue = fn(PullResult.Item(buffer.remove()))
-    }
-    if (!continue) {
-      state = Active
+    state match {
+      case Dead(reason) => fn(PullResult.Error(reason))
+      case Closed if (buffer.size == 0) => fn(PullResult.Closed)
+      case _ => {
+        val oldstate = state
+        state = PullFastTrack(fn)
+        var continue = true
+        while (continue && buffer.size > 0) {
+          continue = fn(PullResult.Item(buffer.remove()))
+        }
+        if (!continue) {
+          state = oldstate
+        }
+      }
     }
   }
 

@@ -14,6 +14,8 @@ trait Source[+T] extends Transport {
   
   def pull(): PullResult[T]
 
+  def peek: PullResult[Unit]
+
   def outputState: TransportState
 
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
@@ -84,23 +86,26 @@ trait Source[+T] extends Transport {
    * closed or an error occurs.  The sink will be closed when this source is
    * closed.  If the sink is closed before this source, this source will be
    * terminated.  Other terminations are propagated in both directions.
+   *
+   * @param sink The sink to link to this source
+   * @param linkClosed if true, the linked sink will be closed when this source is closed
+   * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
-  def into[U >: T] (sink: Sink[U]) {
+  def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
     def tryPush(item: T): Boolean = sink.push(item) match {
-      case PushResult.Filled(signal) => {
-        signal.notify{into(sink)}
-        false
-      }
       case PushResult.Full(signal) => {
-        signal.notify{if (tryPush(item)) into(sink)}
+        signal.notify{if (tryPush(item)) continue()}
         false
       }
       case PushResult.Closed => {
-        terminate(new PipeStateException("downstream sink unexpectedly closed"))
+        val err = new PipeStateException("downstream sink unexpectedly closed")
+        terminate(err)
+        onComplete(TransportState.Terminated(err))
         false
       }
       case PushResult.Error(err) => {
         terminate(err)
+        onComplete(TransportState.Terminated(err))
         false
       }
       case ok => true
@@ -110,41 +115,36 @@ trait Source[+T] extends Transport {
         tryPush(item)
       }
       case PullResult.Closed => {
-        sink.complete()
+        if (linkClosed) {
+          sink.complete()
+        }
+        onComplete(TransportState.Closed)
         false
       }
       case PullResult.Error(err) => {
-        sink.terminate(err)
+        if (linkTerminated) sink.terminate(err)
+        onComplete(TransportState.Terminated(err))
         false
       }
     }
-    pullWhile(handlePull)
+    def continue(): Unit = pullWhile(handlePull)
+    continue
+  }
+
+  def into[U >: T] (sink: Sink[U]) {
+    into(sink, true, true)( _ => ())
   }
 
 }
 
 
 object Source {
-  def one[T](data: T) = new Source[T] {
-    var item: PullResult[T] = PullResult.Item(data)
-    def pull(): PullResult[T] = {
-      val t = item
-      item match {
-        case PullResult.Error(_) => {}
-        case _ => item = PullResult.Closed
-      }
-      t
-    }
-    def terminate(reason: Throwable) {
-      item = PullResult.Error(reason)
-    }
 
-    def outputState = item match {
-      case PullResult.Error(err) => TransportState.Terminated(err)
-      case PullResult.Closed => TransportState.Closed
-      case _ => TransportState.Open
-    }
-
+  def one[T](data: T): Source[T] = {
+    val p = new BufferedPipe[T](1)
+    p.push(data)
+    p.complete()
+    p
   }
 
   def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
@@ -165,6 +165,15 @@ object Source {
       stop = Some(reason)
     }
 
+    def peek = stop match {
+      case None => if (iterator.hasNext) {
+        PullResult.Item(())
+      } else {
+        PullResult.Closed
+      }
+      case Some(err) => PullResult.Error(err)
+    }
+
     def outputState = stop match {
       case Some(err) => TransportState.Terminated(err)
       case _ => if (iterator.hasNext) TransportState.Open else TransportState.Closed
@@ -175,8 +184,50 @@ object Source {
 
   def empty[T] = new Source[T] {
     def pull() = PullResult.Closed 
+    def peek = PullResult.Closed
     def outputState = TransportState.Closed
     def terminate(reason: Throwable){}
+  }
+
+
+  /**
+   * Flatten a source of sources into a single source.  Sources pulled out of
+   * the base source will be streamed into the flattened source one at a time.
+   * Terminations are cascaded across all sources
+   */
+  def flatten[A](source: Source[Source[A]]): Source[A] = {
+    val flattened = new BufferedPipe[A](1) //do we need to make this configurable?  probably not
+    def killall(reason: Throwable) {
+      flattened.terminate(reason)
+      source.pullWhile{
+        case PullResult.Item(sub) => {
+          sub.terminate(reason)
+          true
+        }
+        case _ => false
+      }
+      source.terminate(reason)
+    }
+    def next(): Unit = source.pullWhile{
+      case PullResult.Item(subsource) => {
+        //TODO: remove possible recursion
+        subsource.into(flattened, false, true) {
+          case TransportState.Closed => next()
+          case TransportState.Terminated(err) => killall(err)
+        }
+        false
+      }
+      case PullResult.Closed => {
+        flattened.complete()
+        false
+      }
+      case PullResult.Error(err) => {
+        killall(err)
+        false
+      }
+    }
+    next()
+    flattened
   }
 }
 
@@ -202,6 +253,8 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
       }
     }
   }
+
+  def peek = if (a_empty) b.peek else a.peek
 
   def terminate(reason: Throwable) {
     a.terminate(reason)

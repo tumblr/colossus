@@ -16,26 +16,6 @@ trait Sink[T] extends Transport {
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete(): Try[Unit]
 
-  def feed(iterator: Iterator[T]) {
-    var continue = true
-    while (iterator.hasNext && continue) {
-      this.push(iterator.next) match {
-        case PushResult.Filled(signal) => {
-          continue = false
-          signal.notify { feed(iterator) }
-        }
-        case other: PushResult.NotPushed => {
-          //the pipe is closed or dead, so just stop feeding
-          continue = false
-        }
-        case other => {}
-      }
-    }
-    if (!iterator.hasNext) {
-      this.complete()
-    }
-  }
-
 }
 
 object Sink {
