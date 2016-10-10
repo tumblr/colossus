@@ -25,7 +25,7 @@ case class StreamingHttpRequest(head: HttpRequestHead, body: Source[Data]) exten
 case class StreamingHttpResponse(head: HttpResponseHead, body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
 object StreamingHttpResponse {
   def apply(response: HttpResponse) = new StreamingHttpMessage[HttpResponseHead] {
-    def head = response.head//.withHeader(new ContentLengthHeader(response.body.size))
+    def head = response.head
     def body = Source.one(Data(response.body.asDataBlock))
 
     override def collapse = Source.fromArray(Array(Head(head), Data(response.body.asDataBlock), End))
