@@ -85,8 +85,6 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
 
   def canPush: Boolean = state.isInstanceOf[PushableState]
 
-  def canPullNonEmpty = state == Active && buffer.size > 0
-
   private def bufferFull = buffer.size >= size
   private def bufferEmpty = buffer.size == 0
 
@@ -121,24 +119,23 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+  val hasItem = PullResult.Item[Unit](())
+
   def peek: PullResult[Unit] = state match {
-    case Dead(reason) => PullResult.Error(reason)
-    case Closed if (buffer.size == 0) => PullResult.Closed
-    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
-    case other => {  //either Active or Closed with data buffered
+    case Active => {  //either Active or Closed with data buffered
       if (bufferEmpty) {
         PullResult.Empty(pullTrigger)
       } else {
-        PullResult.Item(())
+        hasItem
       }
     }
-  }
-
-  def pull(): PullResult[T] = state match {
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
     case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
-    case other => {  //either Active or Closed with data buffered
+  }
+
+  def pull(): PullResult[T] = state match {
+    case Active => {  //either Active or Closed with data buffered
       if (bufferEmpty) {
         PullResult.Empty(pullTrigger)
       } else {
@@ -147,6 +144,9 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         PullResult.Item(item)
       }
     }
+    case Dead(reason) => PullResult.Error(reason)
+    case Closed if (buffer.size == 0) => PullResult.Closed
+    case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
   }
 
   /**

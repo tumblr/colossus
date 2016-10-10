@@ -83,20 +83,16 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
       while (
         inputSizeTracker.track(data)(codec.decode(data)) match {
           case Some(msg) => messages.push(msg) match {
-            case PushResult.Filled(signal) => {
+            case PushResult.Full(signal) => {
               pauseReads()
-              messages feed new CodecBufferIterator(codec, data.takeCopy) {
+              Source.one(msg) ++ Source.fromIterator( new CodecBufferIterator(codec, data.takeCopy) {
                 def onComplete() { resumeReads() }
                 def onError(reason: Throwable) { fatalError(reason) }
-              }
+              }) into messages
               false
             }
             case PushResult.Error(reason) => {
               fatalError(reason)
-              false
-            }
-            case PushResult.Full(signal) => {
-              fatalError(new Exception("overflow"))
               false
             }
             case PushResult.Closed => {

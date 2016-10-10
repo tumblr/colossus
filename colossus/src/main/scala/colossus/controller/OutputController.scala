@@ -135,17 +135,21 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   def readyForData(buffer: DataOutBuffer) =  {
-    if (disconnecting && !messages.canPullNonEmpty) {
+    if (disconnecting && messages.peek == PullResult.Item(())) {
       upstream.shutdown()
       MoreDataResult.Complete
     } else {
-      while (writesEnabled && messages.canPullNonEmpty && ! buffer.isOverflowed) {
+      while (writesEnabled && messages.peek == PullResult.Item(()) && ! buffer.isOverflowed) {
         messages.pull() match {
           case PullResult.Item(item) => {
             codec.encode(item, buffer)
           }
           case _ => ???
         }
+      }
+      messages.peek match {
+        case PullResult.Empty(sig) => sig.notify{ signalWrite() }
+        case _ => {}
       }
       if (disconnecting || (writesEnabled && messages.canPullNonEmpty)) {
         //return incomplete only if we overflowed the buffer and have more in
