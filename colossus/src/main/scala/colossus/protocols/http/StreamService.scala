@@ -92,21 +92,16 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   }
 
   val pipe = new PipeCircuitBreaker[Source[HttpStream[OutputHead]], HttpStream[OutputHead]]
-  
-  //setup routing the pipe into upstream
-  pipe.pullWhile {
-    case PullResult.Item(item) => {
-      upstream.pushFrom(item, 0, _ => ())
-      true
-    }
-    case other => {
-      fatal(s"Unexpected streaming item $other")
-      false
-    }
-  }
 
+  downstream.messages.map{_.collapse} into pipe
+
+  val incoming = new BufferedPipe[HttpStream[InputHead]](100)
+
+  val messages = new Channel(incoming, pipe)
+  
   override def onConnected() {
     pipe.set(outputStream)
+    readin()
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
@@ -119,13 +114,13 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
     upstream.connection.forceDisconnect()
   }
 
-  def processMessage(input: HttpStream[InputHead]) {
-    input match {
-      case Head(head) => currentInputStream match {
+  def readin(): Unit = incoming.pullWhile {
+    case PullResult.Item(i) =>{ i match {
+      case Head(head) =>  currentInputStream match {
         case None => {
           val (sink, msg) = builder.build(head)
           currentInputStream = Some(sink)
-          downstream.processMessage(msg)
+          downstream.messages.push(msg)
         }
         case Some(uhoh) => {
           //we got a head before the last stream finished, not good
@@ -135,10 +130,9 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
       case b @ Data(_, _) => currentInputStream match {
         case Some(sink) => sink.push(b) match {
           case PushResult.Full(signal) => {
-            upstream.pauseReads()
             signal.notify{
               sink.push(b)
-              upstream.resumeReads()
+              readin()
             }
           }
           case PushResult.Ok => {}
@@ -160,7 +154,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
           fatal("attempted to end non-existant input stream")
         }
       }
-    }
+    } ;true }
+    case _ => ???
   }
 
   // Members declared in colossus.controller.ControllerDownstream
@@ -168,25 +163,6 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   // Members declared in colossus.controller.ControllerUpstream
   def connection: colossus.core.ConnectionManager = upstream.connection
-  def pauseReads(): Unit = upstream.pauseReads()
-  def pauseWrites(): Unit = upstream.pauseWrites()
-  def pendingBufferSize: Int = ???
-  def purgePending(reason: Throwable): Unit = ???
-  def resumeReads(): Unit = upstream.resumeReads()
-  def resumeWrites(): Unit = upstream.resumeWrites()
-  def writesEnabled: Boolean = upstream.writesEnabled
-
-  // Members declared in colossus.controller.Writer
-  def canPush: Boolean = true
-
-  def pushFrom(item: GenEncoding[StreamingHttpMessage,E]#Output,createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
-    val source = item.collapse
-    val res = pipe push source 
-    res match {
-      case PushResult.Ok => true
-      case _ => false
-    }
-  }
 
 }
 
