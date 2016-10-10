@@ -46,8 +46,10 @@ class StreamServiceSpec extends ColossusSpec with MockFactory{
     "flatten and push a response" in {
       val (ctrlr, stub) = create()
       val response = HttpResponse.ok("helllo")
+      val s : GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output = StreamingHttpResponse(response)
       ctrlr.connected()
-      ctrlr.push(StreamingHttpResponse(response))(_ => ())
+      //you can thank Scala 2.10 for this insanity
+      ctrlr.asInstanceOf[ControllerUpstream[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]]].push(s.asInstanceOf[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output])(_ => ())
       expectPush(stub, Head(response.head))
       expectPush(stub, Data(response.body.asDataBlock))
       expectPush(stub, End)
