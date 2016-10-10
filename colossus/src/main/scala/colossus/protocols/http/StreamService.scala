@@ -70,7 +70,7 @@ object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
   }
 }
 
-class StreamServiceServerController[E <: HeadEncoding](
+class StreamServiceController[E <: HeadEncoding](
   val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
   builder: InputMessageBuilder[E#Input]
 )
@@ -96,7 +96,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   //setup routing the pipe into upstream
   pipe.pullWhile {
     case PullResult.Item(item) => {
-      upstream.push(item)(_ => ())
+      upstream.pushFrom(item, 0, _ => ())
       true
     }
     case other => {
@@ -217,7 +217,7 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   def fullHandler = handler => {
     new PipelineHandler(
       new Controller[GenEncoding[HttpStream, Encoding.Server[StreamHeader]]](
-        new StreamServiceServerController[Encoding.Server[StreamHeader]](
+        new StreamServiceController[Encoding.Server[StreamHeader]](
           new StreamingHttpServiceHandler(handler),
           StreamRequestBuilder
         ),

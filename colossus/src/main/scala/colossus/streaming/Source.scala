@@ -209,16 +209,14 @@ object Source {
     }
 
     override def pullWhile(f: NEPullResult[T] => Boolean) {
-      stop match {  
-        case Some(err) => f(PullResult.Error(err))
-        case None => {
-          var continue = true
-          while ( iterator.hasNext && continue ){
-            continue = f(PullResult.Item(iterator.next))
-          }
-          if (continue) {
-            f(PullResult.Closed)
-          }
+      var continue = true
+      while ( stop == None && iterator.hasNext && continue ){
+        continue = f(PullResult.Item(iterator.next))
+      }
+      if (continue) {
+        stop match {
+          case Some(err) => f(PullResult.Error(err))
+          case None =>  f(PullResult.Closed)
         }
       }
     }

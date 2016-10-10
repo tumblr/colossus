@@ -100,6 +100,22 @@ class SourceSpec extends ColossusSpec {
       
   }
 
+  "Source.fromArray" must {
+    "do the thing we expect it to do" in {
+      val s = Source.fromArray(Array(1, 2, 3))
+      var sum = 0
+      s.pullWhile{
+        case PullResult.Item(i) => {
+          sum += i
+          true
+        }
+        case PullResult.Closed => false
+        case PullResult.Error(err) => throw err
+      }
+      sum mustBe 6
+    }
+  }
+
   "Source.fromIterator" must {
 
     "read a full iterator" in {
@@ -121,6 +137,20 @@ class SourceSpec extends ColossusSpec {
       }
     }
 
+    "terminate pullWhile correctly" in {
+      val s = Source.fromArray(Array(1,2, 3))
+      var sum = 0
+      s.pullWhile{
+        case PullResult.Item(i) => {
+          sum += i
+          s.terminate(new Exception("BYE"))
+          true
+        }
+        case _ => false
+      }
+      sum mustBe 1
+    }
+
     "peek" in {
       val s = Source.fromIterator(Array(1).toIterator)
       s.peek mustBe PullResult.Item(())
@@ -129,8 +159,6 @@ class SourceSpec extends ColossusSpec {
       s.terminate(new Exception("ASF"))
       s.peek mustBe a[PullResult.Error]
     }
-
-
 
   }
 
@@ -145,10 +173,13 @@ class SourceSpec extends ColossusSpec {
       s.peek mustBe PullResult.Item(())
       s.pull() mustBe PullResult.Item(4)
       s.peek mustBe PullResult.Closed
+      s.outputState mustBe TransportState.Closed
     }
     "terminate" in {
       val s = Source.one(4)
+      s.outputState mustBe TransportState.Open
       s.terminate(new Exception("A"))
+      s.outputState mustBe a[TransportState.Terminated]
       s.pull() mustBe a[PullResult.Error]
     }
   }
