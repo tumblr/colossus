@@ -12,15 +12,6 @@ class SinkSpec extends ColossusSpec {
 
   implicit val cbe = FakeIOSystem.testExecutor
 
-  "Sink" must {
-    "feed an iterator" in {
-      val p = new BufferedPipe[Int](3)
-      val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
-      p.feed(items.toIterator)
-      CallbackAwait.result(p.reduce{_ + _}, 1.second) mustBe items.sum
-    }
-  }
-
   "Sink.blackhole" must {
     "act like a sink" in {
       val b = Sink.blackHole[Int]

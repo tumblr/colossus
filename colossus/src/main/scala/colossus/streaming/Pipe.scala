@@ -103,8 +103,11 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     case Active  => {
       //this state only occurs when somebody calls pull and the buffer is empty
       buffer.add(item)
+      //if someone was waiting for items to enter the buffer, let them know now.
+      //It's possible the notified consumer doesn't actually pull any data, so
+      //keep notifying until the buffer is empty again
       while (!bufferEmpty && pullTrigger.trigger()) {}
-      if (bufferFull) PushResult.Filled(pushTrigger) else PushResult.Ok
+      PushResult.Ok
     }
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed

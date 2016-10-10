@@ -101,7 +101,6 @@ class ServiceServerSpec extends ColossusSpec with MockFactory {
       val r1 = ByteString("AAAA")
       t.typedHandler.receivedData(DataBuffer(r1))
       t.typedHandler.disconnect()
-      t.readsEnabled must equal(false)
       t.status must equal(ConnectionStatus.Connected)
       t.workerProbe.expectNoMsg(100.milliseconds)
       promises(0).success(ByteString("B"))

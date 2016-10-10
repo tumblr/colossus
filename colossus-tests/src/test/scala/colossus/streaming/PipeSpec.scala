@@ -35,15 +35,6 @@ class PipeSpec extends ColossusSpec {
       v must equal(2)
     }
 
-    "pull an item immediately while triggering a push signal" in {
-      val pipe = new BufferedPipe[Int](1)
-      pipe.push(1) match {
-        case PushResult.Filled(sig) => sig.notify{pipe.push(1);()}
-        case _ => throw new Exception("wrong push result")
-      }
-      pipe.pull() mustBe PullResult.Item(1)
-    }
-
     "reject pushes after pipe is closed" in {
       val pipe = new BufferedPipe[Int](1)
       pipe.pull{x => pipe.complete()}
@@ -54,7 +45,7 @@ class PipeSpec extends ColossusSpec {
 
     "fail to push when pipe is full" in {
       val pipe = new BufferedPipe[Int](1)
-      pipe.push(1) mustBe an[Filled]
+      pipe.push(1) mustBe PushResult.Ok
       pipe.push(1) mustBe an[Full]
     }
 
@@ -72,8 +63,9 @@ class PipeSpec extends ColossusSpec {
 
     "full trigger fired when pipe opens up" in {
       val pipe = new BufferedPipe[Int](1)
+      pipe.push(8)
       val f = pipe.push(1) match {
-        case Filled(trig) => trig
+        case Full(trig) => trig
         case other => fail(s"didn't get trigger, got $other")
       }
       var triggered = false
@@ -157,7 +149,6 @@ class PipeSpec extends ColossusSpec {
       def tryPush(i: Int): Unit = pipe.push(i) match {
         case PushResult.Full(t) => t.notify{ println(s"triggered $i");pipe.push(i) match { 
           case PushResult.Ok => ()
-          case PushResult.Filled(_) => ()
           case other => throw new Exception(s"wrong notify result $other")
         }}
         case other => throw new Exception(s"wrong pushresult $other")
@@ -169,15 +160,12 @@ class PipeSpec extends ColossusSpec {
       pipe.pull() mustBe PullResult.Item(1)
       pipe.pull() mustBe PullResult.Item(2)
     }
-  }
-
-  "BufferedPipe (with buffering)" must {
 
     "buffer until full" in {
       val pipe = new BufferedPipe[Int](3)
       pipe.push(1) mustBe Ok
       pipe.push(1) mustBe Ok
-      pipe.push(1) mustBe a[Filled]
+      pipe.push(1) mustBe Ok
       pipe.push(1) mustBe a[Full]
       pipe.complete()
       CallbackAwait.result(pipe.reduce{_ + _}, 1.second) mustBe 3
@@ -249,7 +237,28 @@ class PipeSpec extends ColossusSpec {
     }
 
   }
-
+  
+  "BufferedPipe.peek" must {
+    "return Item" in {
+      val p = new BufferedPipe[Int](3)
+      p.peek mustBe a[PullResult.Empty]
+      p.push(2)
+      p.peek mustBe PullResult.Item(())
+    }
+    "return item after being closed until empty" in {
+      val p = new BufferedPipe[Int](3)
+      p.push(2)
+      p.complete()
+      p.peek mustBe PullResult.Item(())
+      p.pull()
+      p.peek mustBe PullResult.Closed
+    }
+    "return Terminated" in {
+      val p = new BufferedPipe[Int](3)
+      p.terminate(new Exception("WAT"))
+      p.peek mustBe a[PullResult.Error]
+    }
+  }
 
 
   "Pipe" must {

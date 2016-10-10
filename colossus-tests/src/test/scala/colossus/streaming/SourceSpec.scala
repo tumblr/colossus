@@ -59,17 +59,27 @@ class SourceSpec extends ColossusSpec {
     "not close downstream when linkClosed is false"  in {
       val x = Source.fromIterator(Array(1).toIterator)
       val y = new BufferedPipe[Int](1)
-      x.into(y, false)(_ => ())
+      x.into(y, false, true)(_ => ())
       y.pull() mustBe PullResult.Item(1)
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
     } 
 
+    "not terminate downstream when linkTerminated is false" in {
+      val x = Source.fromIterator(Array(1).toIterator)
+      val y = new BufferedPipe[Int](1)
+      x.into(y, false, false)(_ => ())
+      x.terminate(new Exception("foo"))
+      x.outputState mustBe a[TransportState.Terminated]
+      y.inputState mustBe TransportState.Open
+
+    }
+
     "notify on closing" in {
       val x = Source.empty[Int]
       val y = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false)(_ => {notified = true})
+      x.into(y, false, false)(_ => {notified = true})
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
       notified mustBe true
@@ -79,7 +89,7 @@ class SourceSpec extends ColossusSpec {
       val x = new BufferedPipe[Int](1)
       val y = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false)(_ => {notified = true})
+      x.into(y, false, true)(_ => {notified = true})
       x.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.inputState mustBe a[TransportState.Terminated]
@@ -111,13 +121,38 @@ class SourceSpec extends ColossusSpec {
       }
     }
 
-    "Source.one" in {
+    "peek" in {
+      val s = Source.fromIterator(Array(1).toIterator)
+      s.peek mustBe PullResult.Item(())
+      s.pull()
+      s.peek mustBe PullResult.Closed
+      s.terminate(new Exception("ASF"))
+      s.peek mustBe a[PullResult.Error]
+    }
+
+
+
+  }
+
+  "Source.one" must {
+    "pull" in {
       val s: Source[Int] = Source.one(5)
       CallbackAwait.result(s.pullCB, 1.second) mustBe Some(5)
       CallbackAwait.result(s.pullCB, 1.second) mustBe None
     }
-
+    "peek" in {
+      val s = Source.one(4)
+      s.peek mustBe PullResult.Item(())
+      s.pull() mustBe PullResult.Item(4)
+      s.peek mustBe PullResult.Closed
+    }
+    "terminate" in {
+      val s = Source.one(4)
+      s.terminate(new Exception("A"))
+      s.pull() mustBe a[PullResult.Error]
+    }
   }
+
 
   "Source.flatten" must {
     def setup: (Source[Int], Source[Int], Sink[Source[Int]], Source[Int]) = {
@@ -140,6 +175,7 @@ class SourceSpec extends ColossusSpec {
 
     "closing the base pipe closes the flattened pipe" taggedAs(org.scalatest.Tag("test")) in {
       val (a,b,pipe,flat) = setup
+      println("closing now")
       pipe.complete()
       flat.pull() mustBe PullResult.Item(1)
       flat.pull() mustBe PullResult.Item(2)
