@@ -209,6 +209,23 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+  override def pullUntilNull(fn: T => Boolean): Option[NullPullResult] = state match {
+    case Dead(reason) => Some(PullResult.Error(reason))
+    case Closed if (buffer.size == 0) => Some(PullResult.Closed)
+    case _ => {
+      var continue = true
+      while (continue && buffer.size > 0) {
+        continue = fn(buffer.remove())
+      }
+      if (continue) {
+        Some(PullResult.Empty(pullTrigger))
+      } else {
+        None
+      }
+    }
+
+  }
+
 
 
 }

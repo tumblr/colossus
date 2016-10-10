@@ -53,6 +53,23 @@ trait Source[+T] extends Transport {
     }
   }
 
+  /**
+   * Pull until either the supplied function returns false or there are no more
+   * items immediately available to pull, in which case a `Some[NullPullResult]`
+   * is returned indicating why the loop stopped.
+   */
+  def pullUntilNull(fn: T => Boolean): Option[NullPullResult] = {
+    var done: Option[NullPullResult] = None
+    while (pull() match {
+      case PullResult.Item(item) => fn(item)
+      case other => {
+        done = Some(other.asInstanceOf[NullPullResult])
+        false
+      }
+    }) {}
+    done
+  }
+
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
 
   def fold[U](init: U)(cb: (T, U) => U): Callback[U] = {

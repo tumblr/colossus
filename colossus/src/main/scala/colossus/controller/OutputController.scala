@@ -139,19 +139,19 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
       upstream.shutdown()
       MoreDataResult.Complete
     } else {
-      while (writesEnabled && messages.peek == PullResult.Item(()) && ! buffer.isOverflowed) {
-        messages.pull() match {
-          case PullResult.Item(item) => {
-            codec.encode(item, buffer)
-          }
-          case _ => ???
+      val hasMore = messages.pullUntilNull { item =>
+        codec.encode(item, buffer)
+        !buffer.isOverflowed
+      } match {
+        case Some(PullResult.Empty(sig)) => {
+          sig.notify{ signalWrite() }
+          false
         }
+        case Some(PullResult.Error(uhoh)) => ???
+        case Some(PullResult.Closed) => ???
+        case None => true //this would only occur if we returned false due to buffer overflowing
       }
-      messages.peek match {
-        case PullResult.Empty(sig) => sig.notify{ signalWrite() }
-        case _ => {}
-      }
-      if (disconnecting || (writesEnabled && messages.canPullNonEmpty)) {
+      if (disconnecting || hasMore) {
         //return incomplete only if we overflowed the buffer and have more in
         //the queue, or if there's nothing left but we're disconnecting to
         //finish the disconnect process
