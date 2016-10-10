@@ -485,14 +485,3 @@ object DateHeader {
 
 }
 
-class ContentLengthHeader(length: Int) extends HttpHeader {
-  def key = "Content-Length"
-  def value = length.toString
-
-  def encode(out: DataOutBuffer) {
-    HttpHeader.encodeContentLength(out, length)
-    out write HttpParse.NEWLINE_ARRAY
-  }
-}
-
-
