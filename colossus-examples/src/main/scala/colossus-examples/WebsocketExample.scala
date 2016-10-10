@@ -8,6 +8,7 @@ import subprotocols.rawstring._
 import akka.actor._
 
 import scala.concurrent.duration._
+/*
 
 class PrimeGenerator extends Actor {
 
@@ -113,3 +114,5 @@ object WebsocketExample {
 
   }
 }
+
+*/

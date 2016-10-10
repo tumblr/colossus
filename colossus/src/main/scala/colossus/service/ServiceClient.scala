@@ -17,6 +17,7 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
+import streaming._
 
 /**
  * Configuration used to specify a Client's parameters
@@ -161,6 +162,9 @@ class ServiceClient[P <: Protocol](
 extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Sender[P, Callback] with HandlerTail {
 
   type Request = Encoding.Client[P]#Output
+  type Response = Encoding.Client[P]#Input
+
+  val (messages, mymessage) = Channel[Response, Request]()
 
   val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
 
@@ -248,6 +252,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   private def sendNow(request: Request)(handler: ResponseHandler){
     if (canSend) {
       val queueTime = System.currentTimeMillis
+      /*
       val pushed = upstream.pushFrom(request, queueTime, {
         case OutputResult.Success         => {
           val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
@@ -262,6 +267,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
       if (!pushed) {
         failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
       }
+      */
     } else {
       droppedRequests.hit(tags = hpTags)
       failRequest(handler, new NotConnectedException("Not Connected"))
@@ -290,7 +296,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
       }
     }
     checkGracefulDisconnect()
-    if (!upstream.writesEnabled) upstream.resumeWrites()
+    //if (!upstream.writesEnabled) upstream.resumeWrites()
   }
 
   override def connected() {
@@ -303,7 +309,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
     sentBuffer.foreach { s => failRequest(s.handler, reason) }
     sentBuffer.clear()
     if (failFast) {
-      upstream.purgePending(reason)
+      //upstream.purgePending(reason)
     }
   }
 
@@ -375,9 +381,11 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def checkGracefulDisconnect() {
+    /*
     if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && upstream.pendingBufferSize == 0) {
       upstream.shutdown()
     }
+    */
   }
 
 

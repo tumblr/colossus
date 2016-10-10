@@ -8,6 +8,7 @@ import core.{DataBlock, ServerContext}
 import controller._
 
 import scala.util.{Failure, Success, Try}
+/*
 
 object StreamExample {
 
@@ -42,4 +43,6 @@ object StreamExample {
     StreamHttpServer.basic("stream", port, new Handler(_))
   }
 }
+
+*/
 

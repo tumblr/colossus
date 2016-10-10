@@ -10,6 +10,7 @@ import service._
 
 import scala.language.higherKinds
 import scala.util.{Try, Success, Failure}
+/*
 
 trait StreamingHttpMessage[T <: HttpMessageHead] {
 
@@ -194,17 +195,6 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
 extends DSLService[StreamingHttp](rh) {
 
-  /*
-  val defaults = new Http.ServerDefaults
-
-  override def tagDecorator = new ReturnCodeTagDecorator
-
-  override def processRequest(input: Http#Input): Callback[Http#Output] = {
-    val response = super.processRequest(input)
-    if(!input.head.persistConnection) connection.disconnect()
-    response
-  }
-  */
   def unhandledError = {
     case error => ???//defaults.errorResponse(error)
   }
@@ -233,3 +223,5 @@ abstract class StreamServiceInitializer(ctx: InitContext) extends StreamServiceH
 object StreamHttpServiceServer extends ServiceDSL[GenRequestHandler[StreamingHttp], StreamServiceInitializer] {
   def basicInitializer = new StreamServiceHandlerGenerator(_)
 }
+
+*/

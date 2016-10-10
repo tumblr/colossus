@@ -201,6 +201,7 @@ class StreamHttpClientCodec extends Codec.Client[StreamHttp] with StreamDecoder[
 }
 
 
+  /*
 abstract class StreamController[
   E <: Encoding {type Output = HttpStream[H]}, 
   H <: HttpMessageHead,
@@ -212,6 +213,7 @@ extends UpstreamEventHandler[ControllerUpstream[E]] with DownstreamEventHandler[
   val controllerConfig = ControllerConfig(1024, scala.concurrent.duration.Duration.Inf)
 
   downstream.setUpstream(this)
+
 
   def push(message: E#Output)(postWrite: QueuedItem.PostWrite = _ => ()) = {
     upstream.push(message)(postWrite)
@@ -271,3 +273,4 @@ object StreamHttpServer extends ServiceDSL[StreamServerHandler, Initializer] {
   def basicInitializer = new StreamHandlerGenerator(_)
 }
 
+  */

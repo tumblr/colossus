@@ -169,6 +169,7 @@ object FrameParser {
     p >> {data => Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data)))}
   }
 }
+/*
 
 class WebsocketController[E <: Encoding] (val downstream: WebsocketControllerDownstream[E], val frameCodec: FrameCodec[E]) 
 extends ControllerDownstream[WebsocketEncoding] 
@@ -224,9 +225,6 @@ trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with H
 }
 
 
-/**
- * A websocket server connection handler that uses a specified sub-protocol.
- */
 abstract class WebsocketHandler[E <: Encoding](val context: Context)
 extends WebsocketControllerDownstream[E] with UpstreamEventHandler[WebsocketController[E]] with HandlerTail {
 
@@ -286,12 +284,6 @@ object WebsocketServer {
   import server._
 
 
-  /**
-   * Start a Websocket server on the specified port.  Since Websocket
-   * connections are upgraded from HTTP connections, this will actually start an
-   * HTTP server and react to Websocket upgrade requests on the path
-   * `upgradePath`, all other paths will 404.
-   */
 
   def start[E <: Encoding](name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer[E])(implicit io: IOSystem) = {
     HttpServer.start(name, port){context => new Initializer(context) {
@@ -305,3 +297,4 @@ object WebsocketServer {
 
 }
 
+*/
