@@ -217,6 +217,24 @@ class PipeSpec extends ColossusSpec {
     }
 
 
+    "pullWhile triggers pushes on emptying a full buffer" in {
+      val p = new BufferedPipe[Int](2)
+      p.push(1) mustBe PushResult.Ok
+      p.push(2) mustBe PushResult.Ok
+      p.push(3) match {
+        case PushResult.Full(signal) => signal.notify{ p.push(4) }
+        case _ => throw new Exception("WRONG")
+      }
+      var sum = 0
+      p.pullWhile {
+        case PullResult.Item(i) => {
+          sum += i
+          true
+        }
+        case _ => false
+      }
+      sum mustBe 7
+    }
 
 
     "drain the buffer when fast-tracking" in {
