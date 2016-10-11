@@ -203,6 +203,7 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         if (!continue) {
           state = oldstate
         }
+        while (!bufferFull && pushTrigger.trigger()) {}
       }
     }
   }
