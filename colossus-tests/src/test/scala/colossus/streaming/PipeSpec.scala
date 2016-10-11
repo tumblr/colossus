@@ -218,6 +218,7 @@ class PipeSpec extends ColossusSpec {
 
 
 
+
     "drain the buffer when fast-tracking" in {
       val p = new BufferedPipe[Int](10)
       p.push(1)

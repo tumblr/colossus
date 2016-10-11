@@ -10,7 +10,6 @@ import service._
 
 import scala.language.higherKinds
 import scala.util.{Try, Success, Failure}
-/*
 
 trait StreamingHttpMessage[T <: HttpMessageHead] {
 
@@ -200,4 +199,3 @@ object StreamHttpServiceServer extends ServiceDSL[GenRequestHandler[StreamingHtt
   def basicInitializer = new StreamServiceHandlerGenerator(_)
 }
 
-*/

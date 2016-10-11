@@ -41,6 +41,22 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: Circuit
 
   def outputState = TransportState.Open
 
+  //these overrides are not required to compile, but do result in significant
+  //performance improvements since it lets us invoke the optimized versions
+  //inside BufferedPipe
+
+  override def pullWhile(fn: NEPullResult[A] => Boolean) {
+    current match {
+      case Some(c) => c.pullWhile(fn)
+      case None    => super.pullWhile(fn)
+    }
+  }
+
+  override def pullUntilNull(fn: A => Boolean): Option[NullPullResult] = current match {
+    case Some(c)  => c.pullUntilNull(fn)
+    case None     => Some(PullResult.Empty(trigger))
+  }
+
 }
 
 trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker[T] => 

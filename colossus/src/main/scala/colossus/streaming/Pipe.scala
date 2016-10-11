@@ -215,10 +215,12 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     case _ => {
       var continue = true
       while (continue && buffer.size > 0) {
-        continue = fn(buffer.remove())
+        val item = buffer.remove()
+        continue = fn(item)
+        println(s"$item - $continue - ${buffer.size}, $size")
       }
       if (continue) {
-        Some(PullResult.Empty(pullTrigger))
+        Some(if (state == Closed) PullResult.Closed else PullResult.Empty(pullTrigger))
       } else {
         None
       }

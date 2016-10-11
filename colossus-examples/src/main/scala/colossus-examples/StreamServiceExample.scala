@@ -9,7 +9,6 @@ import service._
 import streaming._
 
 import scala.util.{Failure, Success, Try}
-/*
 
 object StreamServiceExample {
 
@@ -41,4 +40,3 @@ object StreamServiceExample {
   }
 }
 
-*/
