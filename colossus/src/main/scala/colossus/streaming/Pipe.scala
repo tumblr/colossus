@@ -210,18 +210,37 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
+
   override def pullUntilNull(fn: T => Boolean): Option[NullPullResult] = state match {
     case Dead(reason) => Some(PullResult.Error(reason))
     case Closed if (buffer.size == 0) => Some(PullResult.Closed)
     case _ => {
       var continue = true
+      val wasFull = bufferFull
       while (continue && buffer.size > 0) {
         val item = buffer.remove()
         continue = fn(item)
-        println(s"$item - $continue - ${buffer.size}, $size")
+        //println(s"$item - $continue - ${buffer.size}, $size")
       }
       if (continue) {
-        Some(if (state == Closed) PullResult.Closed else PullResult.Empty(pullTrigger))
+        if (wasFull) {
+          //need to call pushTriggers
+          state = PullFastTrack({
+            case PullResult.Item(i) => fn(i)
+            case other => false
+          })
+          while (!bufferFull && pushTrigger.trigger()) {}
+          //now at this point either the user fn returned false at some point or the pipe has been closed/terminated/emptied
+        }
+        state match {
+          case Closed if (buffer.size == 0) => Some(PullResult.Closed)
+          case Dead(reason) => Some(PullResult.Error(reason))
+          case PullFastTrack(_) => {
+            state = Active
+            None
+          }
+          case _ => None
+        }
       } else {
         None
       }
