@@ -11,6 +11,10 @@ import scala.util.{Try, Success, Failure}
 trait Sink[T] extends Transport {
   def push(item: T): PushResult
 
+  def pushPeek: PushResult
+
+  def canPush = pushPeek = PushResult.Ok
+
   def inputState: TransportState
 
   //after this is called, data can no longer be written, but can still be read until EOS
@@ -34,5 +38,7 @@ object Sink {
     def terminate(reason: Throwable) {
       state = TransportState.Terminated(reason)
     }
+
+    def pushPeek = PushResult.Ok
   }
 }

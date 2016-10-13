@@ -83,7 +83,15 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   }
   def outputState = inputState
 
-  def canPush: Boolean = state.isInstanceOf[PushableState]
+  def pushPeek: PushResult = state match {
+    case p: PushableState => if (bufferFull) {
+      PushResult.Full(pushTrigger)
+    } else {
+      PushResult.Ok
+    }
+    case Closed => PushResult.Closed
+    case Dead(reason) => PushResult.Error(reason)
+  }
 
   private def bufferFull = buffer.size >= size
   private def bufferEmpty = buffer.size == 0
