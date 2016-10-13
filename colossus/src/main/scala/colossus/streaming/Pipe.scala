@@ -220,7 +220,6 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
       while (continue && buffer.size > 0) {
         val item = buffer.remove()
         continue = fn(item)
-        //println(s"$item - $continue - ${buffer.size}, $size")
       }
       if (continue) {
         if (wasFull) {
@@ -237,9 +236,9 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
           case Dead(reason) => Some(PullResult.Error(reason))
           case PullFastTrack(_) => {
             state = Active
-            None
+            Some(PullResult.Empty(pullTrigger))
           }
-          case _ => None
+          case _ => Some(PullResult.Empty(pullTrigger))
         }
       } else {
         None
