@@ -68,12 +68,17 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
     case None => PushResult.Full(trigger)
   }
 
+  def pushPeek = current match {
+    case Some(c) => c.pushPeek
+    case None => PushResult.Full(trigger)
+  }
+
   def complete(): Try[Unit] = {
     unset.map{_.complete()}.getOrElse(Success(()))
   }
 
 }
 
-class PipeCircuitBreaker[I, O] extends CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
+class PipeCircuitBreaker[I, O] extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
 
 

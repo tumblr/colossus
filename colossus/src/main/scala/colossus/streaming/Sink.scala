@@ -13,7 +13,7 @@ trait Sink[T] extends Transport {
 
   def pushPeek: PushResult
 
-  def canPush = pushPeek = PushResult.Ok
+  def canPush = pushPeek == PushResult.Ok
 
   def inputState: TransportState
 

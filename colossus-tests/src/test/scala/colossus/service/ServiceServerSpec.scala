@@ -17,6 +17,7 @@ import scala.util.{Failure, Success, Try}
 import org.scalamock.scalatest.MockFactory
 
 import QueuedItem.PostWrite
+/*
 
 class ServiceServerSpec extends ColossusSpec with MockFactory {
   val config = ServiceConfig.Default.copy(
@@ -110,39 +111,6 @@ class ServiceServerSpec extends ColossusSpec with MockFactory {
       t.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.id))
     }
 
-    /*
-    "handle backpressure from output controller" in {
-      var promises = Vector[CallbackPromise[ByteString]]()
-      val s = fakeService(x => {
-        val p = new CallbackPromise[ByteString]()
-        promises = promises :+ p
-        p.callback
-      })
-
-      //these next two fill up the output controller's message queue (set to 2 in fakeService())
-      s.typedHandler.receivedData(DataBuffer(ByteString("G")))
-      s.typedHandler.receivedData(DataBuffer(ByteString("H")))
-      promises(0).success(ByteString("A"))
-      promises(1).success(ByteString("B"))
-      s.typedHandler.testCanPush must equal(false)
-      s.typedHandler.currentRequestBufferSize must equal(0)
-
-      //this last one should not even attempt to write and instead keep the
-      //response waiting in the request buffer
-      s.typedHandler.receivedData(DataBuffer(ByteString("I")))
-      promises(2).success(ByteString("C"))
-      s.typedHandler.currentRequestBufferSize must equal(1)
-      s.typedHandler.testCanPush must equal(false)
-
-      //now as we begin draining the write buffer, both the controller and
-      //service layers should begin clearing their buffers
-      s.iterateAndClear()
-
-      s.typedHandler.testCanPush must equal(true)
-      s.typedHandler.currentRequestBufferSize must equal(0)
-    }
-    */
-
 
     "timeout request that takes too long" ignore {
       import colossus.protocols.redis._
@@ -164,3 +132,4 @@ class ServiceServerSpec extends ColossusSpec with MockFactory {
 
   }
 }
+*/

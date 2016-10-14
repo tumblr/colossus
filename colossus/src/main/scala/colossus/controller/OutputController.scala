@@ -68,6 +68,8 @@ object StaticOutState {
 trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
+  val outgoing = new BufferedPipe[E#Output](controllerConfig.outputBufferSize)
+    
   private var state: StaticOutState = StaticOutState.Suspended
   private def disconnecting = state.disconnecting
   private var _writesEnabled = true
@@ -78,7 +80,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   override def onConnected() {
     super.onConnected()
     state = StaticOutState.Alive
-    messages.peek match {
+    outgoing.peek match {
       case PullResult.Item(_) => signalWrite()
       case PullResult.Empty(signal) => signal.notify { signalWrite() }
       case other => ???
@@ -125,7 +127,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
   private def checkShutdown() {
-    if (disconnecting && !messages.canPullNonEmpty) {
+    if (disconnecting && !outgoing.canPullNonEmpty) {
       //we do this instead of shutting down immediately since this could be
       //called while in the middle of writing and end up prematurely closing the
       //connection
@@ -135,11 +137,11 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   def readyForData(buffer: DataOutBuffer) =  {
-    if (disconnecting && messages.peek == PullResult.Item(())) {
+    if (disconnecting && outgoing.peek == PullResult.Item(())) {
       upstream.shutdown()
       MoreDataResult.Complete
     } else {
-      val hasMore = messages.pullUntilNull { item =>
+      val hasMore = outgoing.pullUntilNull { item =>
         codec.encode(item, buffer)
         !buffer.isOverflowed
       } match {

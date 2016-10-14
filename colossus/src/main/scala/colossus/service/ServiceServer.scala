@@ -132,7 +132,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
 
   def connection = upstream.connection
 
-  val (messages, mymessages) = Channel[I,O](50)
+  val incoming = new BufferedPipe[I](50)
 
   import config._
 
@@ -218,9 +218,9 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
         requests.hit(tags = tags)
         latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
       }
-      mymessages.push(done.response) match {
+      upstream.outgoing.push(done.response) match {
         case PushResult.Full(signal) => signal.notify{
-          mymessages.push(done.response)
+          upstream.outgoing.push(done.response)
           checkBuffer()
         }
         case PushResult.Ok => {}
@@ -246,7 +246,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   }
 
   def processMessages() {
-    mymessages.pullWhile {
+    incoming.pullWhile {
       case PullResult.Item(request) => {
         numRequests += 1
         val promise = new SyncPromise(request)

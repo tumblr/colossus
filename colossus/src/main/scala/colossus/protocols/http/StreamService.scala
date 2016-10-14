@@ -86,26 +86,25 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   private var currentInputStream: Option[Sink[Data]] = None
 
-  def outputStream: Pipe[Source[HttpStream[OutputHead]], HttpStream[OutputHead]] = {
-    val p = new BufferedPipe[Source[HttpStream[OutputHead]]](100)
+
+  def outputStream: Pipe[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]] = {
+    val p = new BufferedPipe[StreamingHttpMessage[OutputHead]](100).map{_.collapse}
     new Channel(p, Source.flatten(p))
   }
 
-  val pipe = new PipeCircuitBreaker[Source[HttpStream[OutputHead]], HttpStream[OutputHead]]
+  val outgoing = new PipeCircuitBreaker[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]]
 
-  downstream.messages.map{_.collapse} into pipe
 
   val incoming = new BufferedPipe[HttpStream[InputHead]](100)
 
-  val messages = new Channel(incoming, pipe)
-  
   override def onConnected() {
-    pipe.set(outputStream)
+    outgoing.set(outputStream)
+    outgoing into upstream.outgoing
     readin()
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
-    pipe.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
+    outgoing.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
   }
 
 
@@ -120,7 +119,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
         case None => {
           val (sink, msg) = builder.build(head)
           currentInputStream = Some(sink)
-          downstream.messages.push(msg)
+          downstream.incoming.push(msg)
         }
         case Some(uhoh) => {
           //we got a head before the last stream finished, not good

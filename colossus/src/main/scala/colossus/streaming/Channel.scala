@@ -19,6 +19,8 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
   override def pullUntilNull(fn: O => Boolean): Option[NullPullResult] = source.pullUntilNull(fn)
 
+  def pushPeek = sink.pushPeek
+
 
   //TODO: This works fine when the termination is done on the channel, but what
   //happens if either the source or sink is independantly terminated?  Perhaps

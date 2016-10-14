@@ -16,7 +16,7 @@ import akka.util.ByteString
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 import org.scalamock.scalatest.MockFactory
-
+/*
 
 class WebsocketSpec extends ColossusSpec with MockFactory {
 
@@ -236,4 +236,4 @@ class WebsocketSpec extends ColossusSpec with MockFactory {
   }
 
 }
-
+*/

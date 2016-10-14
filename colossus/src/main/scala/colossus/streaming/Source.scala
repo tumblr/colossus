@@ -115,9 +115,9 @@ trait Source[+T] extends Transport {
    * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
   def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
-    def tryPush(item: T): Boolean = sink.push(item) match {
+    def tryPush: Boolean = sink.pushPeek match {
       case PushResult.Full(signal) => {
-        signal.notify{if (tryPush(item)) continue()}
+        signal.notify{ continue() }
         false
       }
       case PushResult.Closed => {
@@ -135,7 +135,9 @@ trait Source[+T] extends Transport {
     }
     def handlePull(r: NEPullResult[T]): Boolean =  r match {
       case PullResult.Item(item) => {
-        tryPush(item)
+        sink.push(item)
+        tryPush
+        true
       }
       case PullResult.Closed => {
         if (linkClosed) {
@@ -150,8 +152,14 @@ trait Source[+T] extends Transport {
         false
       }
     }
-    def continue(): Unit = pullWhile(handlePull)
-    continue
+
+    def continue(): Unit = sink.pushPeek match {
+      case PushResult.Ok => pullWhile(handlePull)
+      case PushResult.Full(signal) => signal.notify{ pullWhile(handlePull) }
+      case PushResult.Closed => ???
+      case PushResult.Error(err) => ???
+    }
+    continue()
   }
 
   def into[U >: T] (sink: Sink[U]) {

@@ -83,7 +83,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       endpoint.iterate()
       bytes = endpoint.clearBuffer()
       parser.decodeAll(DataBuffer.fromByteString(bytes)){command =>
-        client.processMessage(commandReplies(command))
+        client.messages.push(commandReplies(command))
       }
     } while (bytes.size > 0)
     numCalledBack must equal (commandReplies.size)

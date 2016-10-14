@@ -28,7 +28,7 @@ case class ControllerConfig(
 //these are the methods that the controller layer requires to be implemented by it's downstream neighbor
 trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
-  def messages: Pipe[E#Input, E#Output]
+  def incoming: Sink[E#Input]
 
   def onFatalError(reason: Throwable): Option[E#Output] = {
     //TODO: Logging
@@ -42,6 +42,7 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
 //these are the method that a controller layer itself must implement for its downstream neighbor
 trait ControllerUpstream[E <: Encoding] extends UpstreamEvents {
   def connection: ConnectionManager
+  def outgoing: Sink[E#Output]
 }
 
 /**
@@ -54,7 +55,7 @@ trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] w
   def codec: Codec[E]
   def context: Context
 
-  def messages: Pipe[E#Input, E#Output]
+  def incoming: Sink[E#Input]
 
   implicit val namespace: MetricNamespace
 }
@@ -79,11 +80,11 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
 
   def fatalError(reason: Throwable) {
     //TODO: FIX
-    //downstream.onFatalError(reason).foreach{o => push(o){_ => ()}}
+    downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
     upstream.disconnect()
   }
 
-  val messages = downstream.messages
+  val incoming = downstream.incoming
   
 
 }

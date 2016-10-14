@@ -227,15 +227,11 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   private var clientState: ClientState = ClientState.Initializing
 
-  val (messages, mymessages) = Channel[Response, Request]()
+  val incoming = new BufferedPipe[Response](config.sentBufferSize)
 
   private val pending = new BufferedPipe[SourcedRequest](config.pendingBufferSize)
   private val sentBuffer    = mutable.Queue[SourcedRequest]()
 
-  pending.map{sourced =>
-    sentBuffer.enqueue(sourced)
-    sourced.message
-  } into mymessages
 
   private var retryIncident: Option[RetryIncident] = None
 
@@ -263,6 +259,10 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   override def onBind(){
     if(clientState == ClientState.Initializing){
+      pending.map{sourced =>
+        sentBuffer.enqueue(sourced)
+        sourced.message
+      } into upstream.outgoing
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
@@ -296,7 +296,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
    */
   def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
-  def processMessages(): Unit = mymessages.pullWhile {
+  def processMessages(): Unit = incoming.pullWhile {
     case PullResult.Item(response) => {
       val now = System.currentTimeMillis
       try {
@@ -404,7 +404,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && mymessages.peek != PullResult.Item(())) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && incoming.peek != PullResult.Item(())) {
       upstream.shutdown()
     }
   }

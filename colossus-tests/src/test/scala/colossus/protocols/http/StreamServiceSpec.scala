@@ -9,7 +9,7 @@ import streaming._
 import GenEncoding._
 
 import org.scalamock.scalatest.MockFactory
-
+/*
 class StreamServiceSpec extends ColossusSpec with MockFactory{
 
   "Streaming Http Response" must {
@@ -57,4 +57,4 @@ class StreamServiceSpec extends ColossusSpec with MockFactory{
   }
 
 }
-      
+  */    
