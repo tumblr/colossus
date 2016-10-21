@@ -5,6 +5,7 @@ import akka.util.ByteString
 import colossus.core._
 import colossus.parsing.DataSize._
 import colossus.testkit._
+import colossus.streaming._
 import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.duration._
@@ -18,7 +19,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
       val input = ByteString("hello")
       val (u, con, d) = get()
       con.receivedData(DataBuffer(input))
-      (d.processMessage _).verify(ByteString("hello"))
+      d.pipe.pull mustBe PullResult.Item(ByteString("hello"))
     }
 
     

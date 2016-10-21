@@ -22,7 +22,7 @@ import scala.concurrent.Await
 
 import RawProtocol._
 import org.scalamock.scalatest.MockFactory
-
+/*
 class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   //TODO: we no longer need to return a triple, just the connection, as the others are members
@@ -502,3 +502,4 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   }
 }
+*/

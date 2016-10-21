@@ -8,7 +8,7 @@ import stream._
 
 import akka.util.ByteString
 import org.scalamock.scalatest.MockFactory
-
+/*
 class StreamHttpSpec extends ColossusSpec with MockFactory{
 
 
@@ -117,3 +117,4 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
   }
 
 }
+*/

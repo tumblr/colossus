@@ -115,6 +115,7 @@ trait Source[+T] extends Transport {
    * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
   def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
+    //TODO: This can probably be cleaned up a lot
     def tryPush: Boolean = sink.pushPeek match {
       case PushResult.Full(signal) => {
         signal.notify{ continue() }
@@ -158,6 +159,15 @@ trait Source[+T] extends Transport {
     def continue(): Unit = sink.pushPeek match {
       case PushResult.Ok => pullWhile(handlePull)
       case PushResult.Full(signal) => signal.notify{ pullWhile(handlePull) }
+      case PushResult.Closed => {
+        val err = new PipeStateException("downstream sink unexpectedly closed")
+        terminate(err)
+        onComplete(TransportState.Terminated(err))
+      }
+      case PushResult.Error(err) => {
+        terminate(err)
+        onComplete(TransportState.Terminated(err))
+      }
       case PushResult.Closed => ???
       case PushResult.Error(err) => ???
     }
