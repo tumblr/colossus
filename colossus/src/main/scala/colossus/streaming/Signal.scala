@@ -21,6 +21,7 @@ class Trigger extends Signal{
   def empty = callbacks.size == 0
 
   def notify(cb: => Unit) {
+    //println("adding signal")
     callbacks.add(() => cb)
   }
 

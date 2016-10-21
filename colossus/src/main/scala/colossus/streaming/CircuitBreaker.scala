@@ -11,7 +11,7 @@ trait CircuitBreaker[T <: Transport] {
   def set(item: T): Option[T] = {
     val t = current
     current = Some(item)
-    trigger.triggerAll()
+    while (current.isDefined && trigger.trigger()){}
     t
   }
 
@@ -80,5 +80,24 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
 }
 
 class PipeCircuitBreaker[I, O] extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
+
+class Valve[I,O](pipe: Pipe[I,O]) extends PipeCircuitBreaker[I,O] {
+
+  private var _isClosed = false
+  set(pipe)
+
+  def isClosed = _isClosed
+  def isOpen = ! _isClosed
+
+  def open() {
+    _isClosed = false
+    set(pipe)
+  }
+
+  def close() {
+    _isClosed = true
+    unset()
+  }
+}
 
 

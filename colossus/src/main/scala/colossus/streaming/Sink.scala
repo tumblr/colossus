@@ -20,6 +20,17 @@ trait Sink[T] extends Transport {
   //after this is called, data can no longer be written, but can still be read until EOS
   def complete(): Try[Unit]
 
+  def mapIn[A](f: A => T): Sink[A] = {
+    val me = this
+    new Sink[A] {
+      def push(item: A) = me.push(f(item))
+      def pushPeek = me.pushPeek
+      def inputState = me.inputState
+      def complete(): Try[Unit] = me.complete()
+      def terminate(reason: Throwable): Unit = me.terminate(reason)
+    }
+  }
+
 }
 
 object Sink {
@@ -40,5 +51,26 @@ object Sink {
     }
 
     def pushPeek = PushResult.Ok
+  }
+
+  def valve[T](sink: Sink[T], valve: Sink[T]): Sink[T] = new Sink[T] {
+    
+    def push(item: T): PushResult = valve.push(item) match {
+      case PushResult.Ok => sink.push(item)
+      case other => other
+    }
+
+    def pushPeek = valve.pushPeek match {
+      case PushResult.Ok => sink.pushPeek
+      case other => other
+    }
+
+    def inputState = sink.inputState
+
+    def complete() = sink.complete()
+    def terminate(reason: Throwable) {
+      sink.terminate(reason)
+      valve.terminate(reason)
+    }
   }
 }

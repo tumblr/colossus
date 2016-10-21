@@ -122,6 +122,8 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
   override def shutdown() {
+    println("disconnecting")
+    (new Exception("WAT")).printStackTrace
     state = StaticOutState.Disconnecting
     checkShutdown()
   }

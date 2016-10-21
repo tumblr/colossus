@@ -208,7 +208,7 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   }
 
   def add(value: Int) {
-    require(value >= 0, "value cannot be negative")
+    require(value >= 0, s"value $value cannot be negative")
     mCount.incrementAndGet
     def compAndSet(l: AtomicLong, newVal: Long, c: (Long, Long) => Boolean) {
       val old = l.get

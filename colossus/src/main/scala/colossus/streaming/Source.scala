@@ -135,9 +135,11 @@ trait Source[+T] extends Transport {
     }
     def handlePull(r: NEPullResult[T]): Boolean =  r match {
       case PullResult.Item(item) => {
+        //println(s"got $item")
         sink.push(item)
-        tryPush
-        true
+        val r = tryPush
+        //println(r)
+        r
       }
       case PullResult.Closed => {
         if (linkClosed) {

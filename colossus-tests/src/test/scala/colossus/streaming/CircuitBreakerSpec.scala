@@ -47,5 +47,23 @@ class CircuitBreakerSpec extends ColossusSpec {
       p.push(1) mustBe a [PushResult.Full]
     }
   }
+
+  "Valve" must {
+    "work" in {
+      val a = Source.fromArray((1 to 100).toArray)
+      var counter = 0
+      val b = new BufferedPipe[Int](5)
+      val valve = new Valve(b)
+      a.map{i => 
+        counter += 1
+        if (counter >= 3) {
+          valve.close()
+        }
+        i
+      } into valve
+      counter mustBe 3
+    }
+  }
+
 }
 

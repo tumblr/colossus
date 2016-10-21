@@ -33,6 +33,7 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
   def onFatalError(reason: Throwable): Option[E#Output] = {
     //TODO: Logging
     println(s"Fatal Error: $reason, disconnecting")
+    reason.printStackTrace()
     None
   }
 

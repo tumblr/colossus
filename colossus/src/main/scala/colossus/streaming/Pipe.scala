@@ -93,6 +93,11 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     case Dead(reason) => PushResult.Error(reason)
   }
 
+  //used by ServiceClient, maybe there's a way to avoid this
+
+  def length = buffer.size
+  def head = buffer.peek()
+
   private def bufferFull = buffer.size >= size
   private def bufferEmpty = buffer.size == 0
 

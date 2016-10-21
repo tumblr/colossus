@@ -230,7 +230,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   val incoming = new BufferedPipe[Response](config.sentBufferSize)
 
   private val pending = new BufferedPipe[SourcedRequest](config.pendingBufferSize)
-  private val sentBuffer    = mutable.Queue[SourcedRequest]()
+  private val sentBuffer    = new BufferedPipe[SourcedRequest](config.sentBufferSize)
 
 
   private var retryIncident: Option[RetryIncident] = None
@@ -259,10 +259,8 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   override def onBind(){
     if(clientState == ClientState.Initializing){
-      pending.map{sourced =>
-        sentBuffer.enqueue(sourced)
-        sourced.message
-      } into upstream.outgoing
+      //use the sent buffer as a valve, which will control the number of in-flight messages
+      pending into Sink.valve(upstream.outgoing.mapIn[SourcedRequest]{sourced => sourced.markSent;sourced.message}, sentBuffer)
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
@@ -299,17 +297,20 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   def processMessages(): Unit = incoming.pullWhile {
     case PullResult.Item(response) => {
       val now = System.currentTimeMillis
-      try {
-        val source: SourcedRequest = sentBuffer.dequeue()
-        val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
-        latency.add(tags = tags, value = (now - source.queueTime).toInt)
-        transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
-        queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
-        source.complete(Success(response))
-        requests.hit(tags = tags)
-      } catch {
-        case e: java.util.NoSuchElementException => {
+      sentBuffer.pull match {
+        case PullResult.Item(source) => {
+          val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
+          latency.add(tags = tags, value = (now - source.queueTime).toInt)
+          transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
+          queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
+          source.complete(Success(response))
+          requests.hit(tags = tags)
+        }
+        case PullResult.Empty(_) => {
           throw new DataException(s"No Request for response ${response.toString}!")
+        }
+        case other => {
+          throw new DataException(s"Invalid state on sent buffer $other")
         }
       }
       checkGracefulDisconnect()
@@ -329,8 +330,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach { s => failRequest(s, reason) }
-    sentBuffer.clear()
+    sentBuffer.filterScan { s => failRequest(s, reason); true }
     if (failFast) {
       pending.filterScan{ s => failRequest(s, reason); true }
     }
@@ -404,7 +404,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && incoming.peek != PullResult.Item(())) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.peek != PullResult.Item(()) && incoming.peek != PullResult.Item(())) {
       upstream.shutdown()
     }
   }
@@ -412,7 +412,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   override protected def onIdleCheck(period: FiniteDuration) {
     val now = System.currentTimeMillis
-    if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(now)) {
+    if (sentBuffer.length > 0 && sentBuffer.head.isTimedOut(now)) {
       // the oldest sent message has expired with no response - kill the connection
       // sending the Kill message instead of disconnecting will trigger the reconnection logic
       //TODO : We can probably just fail the request but keep the item buffered and not have to kill the connection
