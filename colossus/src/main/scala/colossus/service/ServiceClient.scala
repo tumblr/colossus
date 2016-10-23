@@ -38,7 +38,7 @@ case class ClientConfig(
   address: InetSocketAddress,
   requestTimeout: Duration,
   name: MetricAddress,
-  pendingBufferSize: Int = 100,
+  pendingBufferSize: Int = 500,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
@@ -404,7 +404,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.peek != PullResult.Item(()) && incoming.peek != PullResult.Item(())) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.length == 0 && pending.length == 0) {
       upstream.shutdown()
     }
   }
