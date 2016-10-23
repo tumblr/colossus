@@ -34,7 +34,7 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: Circuit
     case None => PullResult.Empty(trigger)
   }
 
-  def peek: PullResult[Unit] = current match {
+  def peek: PullResult[A] = current match {
     case Some(c) => c.peek
     case None => PullResult.Empty(trigger)
   }
@@ -45,7 +45,7 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: Circuit
   //performance improvements since it lets us invoke the optimized versions
   //inside BufferedPipe
 
-  override def pullWhile(fn: NEPullResult[A] => Boolean) {
+  override def pullWhile(fn: NEPullResult[A] => PullAction) {
     current match {
       case Some(c) => c.pullWhile(fn)
       case None    => super.pullWhile(fn)

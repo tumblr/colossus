@@ -65,7 +65,7 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
   //tell you when to stop".  This is different from Pulling becuase in that case
   //there has to be a constant back-and-forth where each side signals that more
   //works can be done
-  case class PullFastTrack(fn: NEPullResult[T] => Boolean) extends PushableState
+  case class PullFastTrack(fn: NEPullResult[T] => PullAction) extends PushableState
   case object Closed extends State
   case object Active extends PushableState
   case class Dead(reason: Throwable) extends State
@@ -122,29 +122,44 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
     case Dead(reason) => PushResult.Error(reason)
     case Closed       => PushResult.Closed
-    case PullFastTrack(fn) => {
-      //notice if we're in this state, then we know the buffer must be empty,
-      //since it would have been drained into the fn
-      if (!fn(PullResult.Item(item))) {
+    case PullFastTrack(fn) =>fn(PullResult.Item(item)) match {
+      case PullAction.PullContinue => PushResult.Ok
+      case PullAction.PullStop => {
         state = Active
+        PushResult.Ok
       }
-      PushResult.Ok
+      case PullAction.Stop => {
+        buffer.add(item)
+        state = Active
+        PushResult.Ok
+      }
+      case PullAction.Wait(signal) => {
+        buffer.add(item)
+        signal.notify(pullWhile(fn))
+        state = Active
+        PushResult.Ok
+      }
+      case PullAction.Terminate(reason) => {
+        terminate(reason)
+        PushResult.Error(reason)
+      }
+
     }
   }
 
   val hasItem = PullResult.Item[Unit](())
 
-  def peek: PullResult[Unit] = state match {
-    case Active => {  //either Active or Closed with data buffered
-      if (bufferEmpty) {
-        PullResult.Empty(pullTrigger)
-      } else {
-        hasItem
-      }
-    }
+  def peek: PullResult[T] = state match {
     case Dead(reason) => PullResult.Error(reason)
     case Closed if (buffer.size == 0) => PullResult.Closed
     case PullFastTrack(_) => PullResult.Error(new PipeStateException("cannot pull while fast-tracking"))
+    case other => {  //either Active or Closed with data buffered
+      if (bufferEmpty) {
+        PullResult.Empty(pullTrigger)
+      } else {
+        PullResult.Item(buffer.peek)
+      }
+    }
   }
 
   def pull(): PullResult[T] = state match {
@@ -204,7 +219,8 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
     }
   }
 
-  override def pullWhile(fn: NEPullResult[T] => Boolean) {
+  override def pullWhile(fn: NEPullResult[T] => PullAction) {
+    import PullAction._
     state match {
       case Dead(reason) => fn(PullResult.Error(reason))
       case Closed if (buffer.size == 0) => fn(PullResult.Closed)
@@ -213,7 +229,25 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         state = PullFastTrack(fn)
         var continue = true
         while (continue && buffer.size > 0) {
-          continue = fn(PullResult.Item(buffer.remove()))
+          continue = fn(PullResult.Item(buffer.peek())) match {
+            case PullContinue => {
+              buffer.remove()
+              true
+            }
+            case PullStop => {
+              buffer.remove()
+              false
+            }
+            case Stop => false
+            case Wait(signal) => {signal.notify(pullWhile(fn)) ; false }
+            case Terminate(reason) => { 
+              terminate(reason)
+              //a little odd since it was the function that initiated the
+              //termination, but seems to make sense
+              fn(PullResult.Error(reason))
+              false 
+            }
+          }              
         }
         if (!continue) {
           state = oldstate
@@ -238,8 +272,11 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         if (wasFull) {
           //need to call pushTriggers
           state = PullFastTrack({
-            case PullResult.Item(i) => fn(i)
-            case other => false
+            case PullResult.Item(i) => fn(i) match {
+              case true => PullAction.PullContinue
+              case false => PullAction.PullStop
+            }
+            case other => PullAction.Stop
           })
           while (!bufferFull && pushTrigger.trigger()) {}
           //now at this point either the user fn returned false at some point or the pipe has been closed/terminated/emptied

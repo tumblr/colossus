@@ -273,7 +273,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
           case Success(res) => promise.complete(res)
           case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
         }
-        true
+        PullAction.PullContinue
       }
       case _ => ???
     }

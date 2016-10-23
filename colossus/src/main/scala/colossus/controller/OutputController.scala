@@ -105,16 +105,6 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     onClosed()
   }
 
-  override def onIdleCheck(period: FiniteDuration) {
-  /*
-    val time = System.currentTimeMillis
-    while (!outputBuffer.isEmpty && outputBuffer.head.isTimedOut(time, controllerConfig.sendTimeout)) {
-      val expired = outputBuffer.dequeue
-      expired.postWrite(OutputResult.Cancelled(new RequestTimeoutException))
-    }
-    */
-  }
-
   private def signalWrite() {
     if (writesEnabled) {
       upstream.requestWrite()
@@ -122,8 +112,6 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
   }
 
   override def shutdown() {
-    println("disconnecting")
-    (new Exception("WAT")).printStackTrace
     state = StaticOutState.Disconnecting
     checkShutdown()
   }
@@ -139,7 +127,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   def readyForData(buffer: DataOutBuffer) =  {
-    if (disconnecting && outgoing.peek == PullResult.Item(())) {
+    if (disconnecting && !outgoing.peek.isInstanceOf[PullResult.Item[_]]) {
       upstream.shutdown()
       MoreDataResult.Complete
     } else {

@@ -153,7 +153,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
           fatal("attempted to end non-existant input stream")
         }
       }
-    } ;true }
+    } ;PullAction.PullContinue }
     case _ => ???
   }
 

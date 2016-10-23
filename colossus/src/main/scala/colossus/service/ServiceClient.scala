@@ -314,11 +314,11 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
         }
       }
       checkGracefulDisconnect()
-      true
+      PullAction.PullContinue
     }
     case other => {
       //TODO what do here?
-      false
+      PullAction.Stop
     }
   }
 
@@ -405,6 +405,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   private def checkGracefulDisconnect() {
     if (clientState == ClientState.ShuttingDown && sentBuffer.peek != PullResult.Item(()) && incoming.peek != PullResult.Item(())) {
+      println("TIME TO SHUTDOWN")
       upstream.shutdown()
     }
   }

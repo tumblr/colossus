@@ -43,12 +43,12 @@ object Multiplexing {
         base.complete()
       }
     }
-    def fatal(message: String): Boolean = {
+    def fatal(message: String): PullAction = {
       val exception = new PipeStateException(message)
       base.terminate(exception)
       sources.terminate(exception)
       active.foreach{case (_, sub) => sub.terminate(exception)}
-      false
+      PullAction.Stop
     }
     sources.pullWhile {
       case PullResult.Item(sub) => {
@@ -64,13 +64,13 @@ object Multiplexing {
             onSubClosed(sub.id)
           }
         }
-        true
+        PullAction.PullContinue
       }
       case PullResult.Closed => {
         if (active.size == 0) {
           base.complete()
         }
-        false
+        PullAction.Stop
       }
       case PullResult.Error(err) => fatal(s"Multiplexed Sink Terminated: $err")
     }
@@ -91,25 +91,18 @@ object Multiplexing {
   def demultiplex[K,T](base: Source[T], sourcesBufferSize: Int = 10, substreamBufferSize: Int = 10)(implicit ms: MultiStream[K,T]): Source[SubSource[K,T]] = {
     var active = Map[K, Pipe[T,T]]()
     val sources = new BufferedPipe[SubSource[K,T]](sourcesBufferSize)
-    def fatal(reason: String): Boolean = {
+    def fatal(reason: String): PullAction = {
       base.terminate(new PipeStateException(reason))
       sources.terminate(new PipeStateException(reason))
       active.foreach{case (_, sink) => sink.terminate(new PipeStateException(reason))}
-      false
+      PullAction.Stop
     }
     def doPull(): Unit = base.pullWhile {
       case PullResult.Item(item) => {
         val id = ms.streamId(item)
-        def tryPush(close: Boolean): Boolean = if (active contains id) {
+        def tryPush(close: Boolean): PullAction = if (active contains id) {
           active(id).push(item) match {
-            case PushResult.Full(signal) => {
-              signal.notify{
-                if (tryPush(close)) {
-                  doPull()
-                }
-              }
-              false
-            }
+            case PushResult.Full(signal) => PullAction.Wait(signal)
             case PushResult.Closed => fatal(s"sub-stream $id unexpectedly closed")
             case PushResult.Error(error) => fatal(s"error in substream $id: $error")
             case other => {
@@ -117,7 +110,7 @@ object Multiplexing {
                 active(id).complete()
                 active = active - id
               }
-              true
+              PullAction.PullContinue
             }
           }
         } else {
@@ -132,7 +125,7 @@ object Multiplexing {
             //TODO sources backpressure
             active = active + (id -> n)
             sources.push(SubSource(id, n))
-            true
+            PullAction.PullContinue
           }
           case StreamComponent.Body => tryPush(false)
           case StreamComponent.Tail => tryPush(true)
@@ -141,7 +134,7 @@ object Multiplexing {
       case PullResult.Closed => {
         sources.complete()
         active.foreach{ case (_, sub) => sub.terminate(new PipeStateException("multiplexed stream closed"))}
-        false
+        PullAction.Stop
       }
       case PullResult.Error(error) => fatal(s"Source terminated with error: $error")
     }

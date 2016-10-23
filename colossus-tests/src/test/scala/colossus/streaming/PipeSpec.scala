@@ -181,6 +181,8 @@ class PipeSpec extends ColossusSpec {
       CallbackAwait.result(c, 1.second) mustBe (3, true)
     }
 
+    val PA = PullAction
+
 
     "fast-track pushes" in {
       val p = new BufferedPipe[Int](5)
@@ -188,9 +190,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Item(i) => {
           sum += i
-          if (i == 1) true else false
+          if (i == 1) PA.PullContinue else PA.PullStop
         }
-        case _ => true
+        case _ => PA.Stop
       }
       p.push(1)
       sum mustBe 1
@@ -206,9 +208,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Closed => {
           closed = true
-          false
+          PA.Stop
         }
-        case _ => true
+        case _ => PA.PullContinue
       }
       p.push(1)
       closed mustBe false
@@ -229,9 +231,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile {
         case PullResult.Item(i) => {
           sum += i
-          true
+          PA.PullContinue
         }
-        case _ => false
+        case _ => PA.Stop
       }
       sum mustBe 7
     }
@@ -246,9 +248,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Item(i) => {
           sum += i
-          true
+          PA.PullContinue
         }
-        case _ => true
+        case _ => PA.PullContinue
       }
       sum mustBe 6
       p.push(1)
@@ -262,13 +264,13 @@ class PipeSpec extends ColossusSpec {
       val p = new BufferedPipe[Int](3)
       p.peek mustBe a[PullResult.Empty]
       p.push(2)
-      p.peek mustBe PullResult.Item(())
+      p.peek mustBe PullResult.Item(2)
     }
     "return item after being closed until empty" in {
       val p = new BufferedPipe[Int](3)
       p.push(2)
       p.complete()
-      p.peek mustBe PullResult.Item(())
+      p.peek mustBe PullResult.Item(2)
       p.pull()
       p.peek mustBe PullResult.Closed
     }

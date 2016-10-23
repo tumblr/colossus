@@ -13,7 +13,7 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
   def complete() = sink.complete()
 
-  override def pullWhile(fn: NEPullResult[O] => Boolean) {
+  override def pullWhile(fn: NEPullResult[O] => PullAction) {
     source.pullWhile(fn)
   }
 

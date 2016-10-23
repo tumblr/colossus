@@ -15,13 +15,13 @@ package object streaming {
   implicit object SourceMapper extends Functor[Source]{
     def map[A,B](source: Source[A], fn: A => B): Source[B] = new Source[B] {
       def pull(): PullResult[B] = source.pull().map(fn)
-      def peek = source.peek
+      def peek = source.peek.map(fn)
 
       def outputState = source.outputState
       def terminate(err: Throwable) {
         source.terminate(err)
       }
-      override def pullWhile(whilefn: NEPullResult[B] => Boolean) {
+      override def pullWhile(whilefn: NEPullResult[B] => PullAction) {
         source.pullWhile{x => whilefn(x.map(fn))}
       }
     }
