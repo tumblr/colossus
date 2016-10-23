@@ -68,7 +68,9 @@ object StaticOutState {
 trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
-  val outgoing = new BufferedPipe[E#Output](controllerConfig.outputBufferSize)
+  private def pipe = new BufferedPipe[E#Output](controllerConfig.outputBufferSize)
+
+  val outgoing = new PipeCircuitBreaker[E#Output, E#Output]()
     
   private var state: StaticOutState = StaticOutState.Suspended
   private def disconnecting = state.disconnecting
@@ -79,6 +81,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
   override def onConnected() {
     super.onConnected()
+    outgoing.set(pipe)
     state = StaticOutState.Alive
     outgoing.peek match {
       case PullResult.Item(_) => signalWrite()
@@ -89,10 +92,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
 
 
   private def onClosed() {
-    if (disconnecting) {
-      val reason = new NotConnectedException("Connection Closed")
-      //purgePending(reason)
-    } 
+    outgoing.unset()
   }
 
   protected def connectionClosed(cause : DisconnectCause) {

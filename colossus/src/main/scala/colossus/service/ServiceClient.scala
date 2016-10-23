@@ -405,7 +405,6 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   private def checkGracefulDisconnect() {
     if (clientState == ClientState.ShuttingDown && sentBuffer.peek != PullResult.Item(()) && incoming.peek != PullResult.Item(())) {
-      println("TIME TO SHUTDOWN")
       upstream.shutdown()
     }
   }
@@ -429,7 +428,6 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def failRequest(request: SourcedRequest, exception: Throwable): Unit = {
-    // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
     errors.hit(tags = hpTags + ("type" -> exception.metricsName))
     request.complete(Failure(exception))
   }

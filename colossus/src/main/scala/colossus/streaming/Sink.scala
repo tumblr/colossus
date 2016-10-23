@@ -55,8 +55,11 @@ object Sink {
 
   def valve[T](sink: Sink[T], valve: Sink[T]): Sink[T] = new Sink[T] {
     
-    def push(item: T): PushResult = valve.push(item) match {
-      case PushResult.Ok => sink.push(item)
+    def push(item: T): PushResult = pushPeek match {
+      case PushResult.Ok => {
+        valve.push(item)
+        sink.push(item)
+      }
       case other => other
     }
 

@@ -259,7 +259,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       }
     }
 
-    "graceful disconnect allows outstanding request to complete" taggedAs(org.scalatest.Tag("test")) in {
+    "graceful disconnect allows outstanding request to complete"  in {
       val cmd1 = Command(CMD_GET, "foo")
       val rep1 = StatusReply("foo")
       var res1: Option[String] = None
@@ -452,7 +452,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       failed must equal(true)
     }
 
-    "timeout requests while waiting to reconnect"  in {
+    "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{ implicit io => 
         val config = ClientConfig(
           name = "/test",
