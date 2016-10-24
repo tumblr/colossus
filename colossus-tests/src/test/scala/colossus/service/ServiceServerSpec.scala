@@ -99,8 +99,6 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
 
 
     "timeout request that takes too long" ignore {
-      import colossus.protocols.redis._
-      import colossus.protocols.redis.server._
       val serverSettings = ServerSettings (
         port = TEST_PORT,
         maxIdleTime = Duration.Inf

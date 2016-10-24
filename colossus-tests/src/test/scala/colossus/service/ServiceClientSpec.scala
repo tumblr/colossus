@@ -13,10 +13,8 @@ import scala.util.{Success, Failure}
 import scala.concurrent.duration._
 import akka.util.ByteString
 import java.net.InetSocketAddress
-import controller._
 
 import protocols.redis._
-import Redis.defaults._
 import UnifiedProtocol._
 import scala.concurrent.Await
 

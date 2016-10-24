@@ -2,13 +2,12 @@ package colossus
 package protocols.http
 
 import core._
-import controller._
 import testkit._
 import stream._
 
 import akka.util.ByteString
 import org.scalamock.scalatest.MockFactory
-/*
+
 class StreamHttpSpec extends ColossusSpec with MockFactory{
 
 
@@ -90,31 +89,5 @@ class StreamHttpSpec extends ColossusSpec with MockFactory{
 
   }
 
-  "StreamHttpServerHandler" must {
-    class MyHandler(ctx: ServerContext) extends StreamServerHandler(ctx) {
-      
-      def handle(msg: HttpStream[HttpRequestHead]) = msg match {
-        case Head(h) => {
-          upstream.pushCompleteMessage(HttpResponse.ok("hello"))(_ => ())
-        }
-        case _ => {}
-      }
-    }
-    
-    "push a full response" in {
-      val controllerStub = stub[ControllerUpstream[Encoding.Server[StreamHttp]]]
-      val handler        = new MyHandler(FakeIOSystem.fakeServerContext)
-      val controller = new ServerStreamController(handler)
-      controller.setUpstream(controllerStub)
-      controller.processMessage(Head(HttpRequest.get("/foo").head))
-      val response = HttpResponse.ok("hello").withHeader("content-length", "5").withHeader("Content-Type", "text/plain")
-      inSequence {
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Head(response.head), *)
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(Data(DataBlock("hello")), *)
-        (controllerStub.push (_: Encoding.Server[StreamHttp]#Output) (_: QueuedItem.PostWrite)).verify(End, *)
-      }
-    }
-  }
 
 }
-*/
