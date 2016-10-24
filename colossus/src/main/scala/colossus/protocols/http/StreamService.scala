@@ -16,11 +16,21 @@ trait StreamingHttpMessage[T <: HttpMessageHead] {
   def head: T
   def body: Source[Data]
 
-  def collapse: Source[HttpStream[T]] = Source.one[HttpStream[T]](Head(head)) ++ body
+  def collapse: Source[HttpStream[T]] = Source.one[HttpStream[T]](Head(head)) ++ body ++ Source.one[HttpStream[T]](End)
 }
 
 case class StreamingHttpRequest(head: HttpRequestHead, body: Source[Data]) extends StreamingHttpMessage[HttpRequestHead]
+
+
 case class StreamingHttpResponse(head: HttpResponseHead, body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
+object StreamingHttpResponse {
+  def apply(response: HttpResponse) = new StreamingHttpMessage[HttpResponseHead] {
+    def head = response.head
+    def body = Source.one(Data(response.body.asDataBlock))
+
+    override def collapse = Source.fromArray(Array(Head(head), Data(response.body.asDataBlock), End))
+  }
+}
 
 
 trait StreamingHttp extends Protocol {
@@ -60,7 +70,7 @@ object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
   }
 }
 
-class StreamServiceServerController[E <: HeadEncoding](
+class StreamServiceController[E <: HeadEncoding](
   val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
   builder: InputMessageBuilder[E#Input]
 )
@@ -76,7 +86,33 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   private var currentInputStream: Option[Sink[Data]] = None
 
-  private val outputStreams = new MessageQueue[Source[HttpStream[OutputHead]]](100)
+  def outputStream: Pipe[Source[HttpStream[OutputHead]], HttpStream[OutputHead]] = {
+    val p = new BufferedPipe[Source[HttpStream[OutputHead]]](100)
+    new Channel(p, Source.flatten(p))
+  }
+
+  val pipe = new PipeCircuitBreaker[Source[HttpStream[OutputHead]], HttpStream[OutputHead]]
+  
+  //setup routing the pipe into upstream
+  pipe.pullWhile {
+    case PullResult.Item(item) => {
+      upstream.pushFrom(item, 0, _ => ())
+      true
+    }
+    case other => {
+      fatal(s"Unexpected streaming item $other")
+      false
+    }
+  }
+
+  override def onConnected() {
+    pipe.set(outputStream)
+  }
+
+  override def onConnectionTerminated(reason: DisconnectCause) {
+    pipe.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
+  }
+
 
   protected def fatal(message: String) {
     println(s"FATAL ERROR: $message")
@@ -141,42 +177,16 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   def writesEnabled: Boolean = upstream.writesEnabled
 
   // Members declared in colossus.controller.Writer
-  def canPush: Boolean = !outputStreams.isFull
+  def canPush: Boolean = true
 
   def pushFrom(item: GenEncoding[StreamingHttpMessage,E]#Output,createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
-    if (canPush) {
-      val source = item.collapse
-      outputStreams.enqueue(source, postWrite, createdMillis)
-      if (outputStreams.size == 1) {
-        drain(source)
-      }
-      true
-    } else false
-  }
-
-  def drain(source: Source[HttpStream[OutputHead]]) {
-    source.pullWhile {
-      case PullResult.Item(item) => {
-        upstream.push(item)(_ => ())
-        true
-      }
-      case PullResult.Closed => {
-        upstream.push(End)(_ => ())
-        val done = outputStreams.dequeue
-        done.postWrite(OutputResult.Success)
-        if (!outputStreams.isEmpty) {
-          drain(outputStreams.head.item)
-        }
-        false
-      }
-      case PullResult.Error(reason) => {
-        fatal(s"Error writing stream: $reason")
-        false
-      }
+    val source = item.collapse
+    val res = pipe push source 
+    res match {
+      case PushResult.Ok => true
+      case _ => false
     }
   }
-
-  
 
 }
 
@@ -207,7 +217,7 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   def fullHandler = handler => {
     new PipelineHandler(
       new Controller[GenEncoding[HttpStream, Encoding.Server[StreamHeader]]](
-        new StreamServiceServerController[Encoding.Server[StreamHeader]](
+        new StreamServiceController[Encoding.Server[StreamHeader]](
           new StreamingHttpServiceHandler(handler),
           StreamRequestBuilder
         ),

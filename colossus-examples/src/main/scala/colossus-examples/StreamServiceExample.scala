@@ -15,6 +15,7 @@ object StreamServiceExample {
   def start(port: Int)(implicit sys: IOSystem) = {
     val bodydata = Data(DataBlock("Hello World!"))
     val headers = HttpHeaders(HttpHeader("Content-Length", bodydata.data.length.toString))
+    val body = HttpBody("Hello World!")
 
     val config = ServiceConfig.Default.copy(
       requestMetrics = false
@@ -24,10 +25,7 @@ object StreamServiceExample {
 
       def handle = {
         case StreamingHttpRequest(head, source) if (head.url == "/plaintext") => source.collected.map{_ =>
-          StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK, None, None, None, headers),
-            Source.one(bodydata)
-          )
+          StreamingHttpResponse(HttpResponse(HttpResponseHead(head.version, HttpCodes.OK, None, None, None, headers), body))
         }
 
         case StreamingHttpRequest(head, source) if (head.url == "/chunked") => source.collected.map{_ => 

@@ -140,12 +140,41 @@ trait Source[+T] extends Transport {
 
 object Source {
 
-  def one[T](data: T): Source[T] = {
-    val p = new BufferedPipe[T](1)
-    p.push(data)
-    p.complete()
-    p
+  def one[T](data: T) = new Source[T] {
+    var item: PullResult[T] = PullResult.Item(data)
+    def pull(): PullResult[T] = {
+      val t = item
+      item match {
+        case PullResult.Error(_) => {}
+        case _ => item = PullResult.Closed
+      }
+      t
+    }
+
+    def peek = item match {
+      case PullResult.Item(_) => PullResult.Item(())
+      case other => other.asInstanceOf[PullResult[Unit]]
+    }
+
+    def terminate(reason: Throwable) {
+      item = PullResult.Error(reason)
+    }
+ 
+    def outputState = item match {
+      case PullResult.Error(err) => TransportState.Terminated(err)
+      case PullResult.Closed => TransportState.Closed
+      case _ => TransportState.Open
+    }
   }
+
+  def fromArray[T](arr: Array[T]): Source[T] = fromIterator(new Iterator[T] {
+    private var index = 0
+    def hasNext = index < arr.length
+    def next = {
+      index += 1
+      arr(index - 1)
+    }
+  })
 
   def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
     //this will either be set to a Left (terminate was called) or a Right(complete was called)
@@ -179,6 +208,19 @@ object Source {
       case _ => if (iterator.hasNext) TransportState.Open else TransportState.Closed
     }
 
+    override def pullWhile(f: NEPullResult[T] => Boolean) {
+      var continue = true
+      while ( stop == None && iterator.hasNext && continue ){
+        continue = f(PullResult.Item(iterator.next))
+      }
+      if (continue) {
+        stop match {
+          case Some(err) => f(PullResult.Error(err))
+          case None =>  f(PullResult.Closed)
+        }
+      }
+    }
+
 
   }
 
@@ -210,12 +252,31 @@ object Source {
     }
     def next(): Unit = source.pullWhile{
       case PullResult.Item(subsource) => {
-        //TODO: remove possible recursion
+        //this is a little weird, but eliminates recursion that could occur when
+        //a bunch of sources are all pushed at once and all are able to complete
+        //immediately.  We only want to do the recursive call of next() if the
+        //sub-source does not immediately drain in this function call.  But if
+        //the source is already closed by the very next line, then we know we're
+        //ready for the next sub-source and can continue this pullWhile loop
+        //println("pulled item")
+        var callNext = false
+        var closed = false
         subsource.into(flattened, false, true) {
-          case TransportState.Closed => next()
+          case TransportState.Closed => {closed = true; if (callNext) next()}
           case TransportState.Terminated(err) => killall(err)
         }
-        false
+
+        //we have to use this variable and not just check the state of the
+        //subsource mainly due to the logic in Source.into that can result in a
+        //"hanging item", where the source is closed but there is still one item
+        //that is sitting in a callback function waiting to be pushed.  So we
+        //instead need to rely on the callback passed to into, whch will be
+        //triggered once that last item has been successfully pushed
+        //TODO - this weirdness can be fixed if we can figure out a way to avoid these hanging items
+        if (!closed) {
+          callNext = true
+        }
+        closed
       }
       case PullResult.Closed => {
         flattened.complete()
