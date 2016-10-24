@@ -334,7 +334,10 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     }
   }
 
-  def peek = if (a_empty) b.peek else a.peek
+  def peek = a.peek match {
+    case PullResult.Closed => b.peek
+    case other => other
+  }
 
   def terminate(reason: Throwable) {
     a.terminate(reason)
@@ -342,4 +345,6 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
   }
 
   def outputState = if (a_empty) b.outputState else a.outputState
+
+  override def toString = s"DualSource($a,$b)"
 }
