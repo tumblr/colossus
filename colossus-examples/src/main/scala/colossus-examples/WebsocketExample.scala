@@ -3,12 +3,12 @@ package colossus.examples
 import colossus._
 import colossus.core._
 import colossus.protocols.websocket._
+import colossus.streaming.PushResult
 import subprotocols.rawstring._
 
 import akka.actor._
 
 import scala.concurrent.duration._
-/*
 
 class PrimeGenerator extends Actor {
 
@@ -58,7 +58,7 @@ object WebsocketExample {
 
 
         def shutdownRequest() {
-          upstream.upstream.connection.disconnect()
+          upstream.connection.disconnect()
         }
 
         override def onConnected() {
@@ -83,13 +83,17 @@ object WebsocketExample {
           case "MANY" => {
             //send one message per event loop iteration
             def next(i: Int) {
-              if (i > 0) send(i.toString)//{_ => next(i - 1)}
+              if (i > 0) send(i.toString) match {
+                case PushResult.Ok => next(i - 1)
+                case PushResult.Full(signal) => signal.notify{ next(i - 1) }
+                case _ => {}
+              }
             }
             next(1000)
           }
           case "EXIT" => {
             //uhhh
-            upstream.upstream.connection.disconnect()
+            upstream.connection.disconnect()
           }
           case other => {
             send(s"unknown command: $other")
@@ -115,4 +119,3 @@ object WebsocketExample {
   }
 }
 
-*/

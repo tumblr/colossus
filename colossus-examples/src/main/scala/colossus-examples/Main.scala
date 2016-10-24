@@ -40,9 +40,9 @@ object Main extends App {
 
   val benchmarkServer = BenchmarkService.start(9007)
 
-  /*
   val websocketServer = WebsocketExample.start(9008)
 
+  /*
   val streamServer = StreamExample.start(9009)
   */
 

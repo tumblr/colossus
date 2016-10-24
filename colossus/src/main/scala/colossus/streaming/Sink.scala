@@ -34,6 +34,23 @@ trait Sink[T] extends Transport {
 }
 
 object Sink {
+
+  /**
+   * Create a sink from a function.  The Sink will always report itself as being
+   * open and cannot be completed nor terminated
+   */
+  def open[T](f: T => PushResult) = new Sink[T] {
+    def push(item: T) = f(item)
+
+    def pushPeek = PushResult.Ok
+
+    def inputState = TransportState.Open
+
+    def complete() = Success(())
+
+    def terminate(reason: Throwable){}
+  }
+
   def blackHole[T]: Sink[T] = new Sink[T] {
     private var state: TransportState = TransportState.Open
     def push(item: T): PushResult = state match {

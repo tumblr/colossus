@@ -1,8 +1,9 @@
 package colossus
 package protocols.websocket
 
-import controller.{ControllerUpstream, Encoding, QueuedItem}
+import controller.{ControllerUpstream, Encoding}
 import core.{ConnectionManager, DataBlock, DataBuffer, ServerContext}
+import streaming.PullResult
 
 import service.Protocol
 import protocols.http._
@@ -10,15 +11,15 @@ import java.util.Random
 
 import org.scalatest._
 import colossus.testkit._
+import colossus.controller.ControllerMocks
 
 import akka.util.ByteString
 
 import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 import org.scalamock.scalatest.MockFactory
-/*
 
-class WebsocketSpec extends ColossusSpec with MockFactory {
+class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
   import HttpHeader.Conversions._
 
@@ -142,11 +143,9 @@ class WebsocketSpec extends ColossusSpec with MockFactory {
     }
     val random = new java.util.Random
 
-    def mock(): (ControllerUpstream[WebsocketEncoding], WebsocketController[CString]) = {
+    def mock(): (TestUpstream[WebsocketEncoding], WebsocketController[CString]) = {
       
-      val corestub = stub[ConnectionManager]
-      val cstub = stub[ControllerUpstream[WebsocketEncoding]]
-      (cstub.connection _).when().returns(corestub)
+      val cstub = new TestUpstream[WebsocketEncoding]
       val handler = new MyHandler(FakeIOSystem.fakeServerContext)
       val controller = new WebsocketController(handler, new CStringCodec)
       controller.setUpstream(cstub)
@@ -156,8 +155,8 @@ class WebsocketSpec extends ColossusSpec with MockFactory {
 
     def sendReceive(send: Frame, expected: Frame) {
       val (cstub, controller) = mock()
-      controller.processMessage(send)
-      (cstub.push (_: Frame) ( _: QueuedItem.PostWrite) ).verify(expected, *)
+      controller.incoming.push(send)
+      cstub.pipe.pull() mustBe PullResult.Item(expected)
     }
 
     "properly handle a frame" in {
@@ -181,7 +180,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory {
     "close" in {
       val (cstub, controller) = mock()
       val send = Frame(Header(OpCodes.Close, true), DataBlock(""))
-      controller.processMessage(send)
+      controller.incoming.push(send)
       (cstub.connection.disconnect _).verify()
     }
 
@@ -236,4 +235,3 @@ class WebsocketSpec extends ColossusSpec with MockFactory {
   }
 
 }
-*/

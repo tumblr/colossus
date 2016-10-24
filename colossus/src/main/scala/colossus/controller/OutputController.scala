@@ -2,58 +2,7 @@ package colossus
 package controller
 
 import core._
-import java.util.LinkedList
-import scala.annotation.tailrec
-import scala.concurrent.duration._
-import scala.util.{Success, Failure}
 import streaming._
-
-import service.{NotConnectedException, RequestTimeoutException}
-
-
-case class QueuedItem[T](item: T, postWrite: QueuedItem.PostWrite, creationTimeMillis: Long) {
-  def isTimedOut(now: Long, timeout: Duration) = timeout.isFinite && now > (creationTimeMillis + timeout.toMillis)
-}
-object QueuedItem {
-  type PostWrite = OutputResult => Unit
-}
-
-class MessageQueue[T](maxSize: Int) {
-
-  private val queue = new LinkedList[QueuedItem[T]]
-
-  def isEmpty = queue.size == 0
-  def isFull = queue.size >= maxSize
-  def size = queue.size
-
-  def enqueue(item: T, postWrite: QueuedItem.PostWrite, created: Long): Boolean = if (!isFull) {
-    queue.add(QueuedItem(item, postWrite, created))
-    true
-  } else false
-
-  def head = queue.peek
-
-  def dequeue = queue.remove
-
-}
-
-/** An ADT representing the result of a pushing a message to write
-*/
-sealed trait OutputResult
-sealed trait OutputError extends OutputResult {
-  def reason: Throwable
-}
-object OutputResult {
-
-  // the message was successfully written
-  case object Success extends OutputResult
-
-  // the message failed while it was being written, most likely due to the connection closing partway
-  case class Failure(reason: Throwable) extends OutputResult with OutputError
-
-  // the message was cancelled before it was written
-  case class Cancelled(reason: Throwable) extends OutputResult with OutputError
-}
 
 abstract class StaticOutState(val canPush: Boolean) {
   def disconnecting = !canPush

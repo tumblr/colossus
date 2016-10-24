@@ -27,6 +27,14 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
     def context = FakeIOSystem.fakeContext
   }
 
+  class TestUpstream[E <: Encoding](val outgoing: Pipe[E#Output, E#Output] = new BufferedPipe[E#Output](2)) extends ControllerUpstream[E] {
+    val connection = stub[ConnectionManager]
+    (connection.isConnected _).when().returns(true)
+
+    val pipe = outgoing
+
+  }
+
   def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[Encoding.Server[Raw]], TestDownstream) = {
     val upstream = stub[CoreUpstream]
     val downstream = new TestDownstream(config)
