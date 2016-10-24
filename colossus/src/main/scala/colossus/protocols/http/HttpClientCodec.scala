@@ -6,9 +6,9 @@ import colossus.service._
 import parsing._
 import Combinators.Parser
 
-import controller.Codec
+import controller.{Codec, Encoding}
 
-class StaticHttpClientCodec extends Codec[Http#ClientEncoding] {
+class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
 
   private var parser : Parser[HttpResponse] = HttpResponseParser.static()
 

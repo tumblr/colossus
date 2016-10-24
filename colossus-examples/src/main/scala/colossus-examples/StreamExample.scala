@@ -5,21 +5,22 @@ import colossus._
 import protocols.http._
 import stream._
 import core.{DataBlock, ServerContext}
+import controller._
 
 import scala.util.{Failure, Success, Try}
 
 object StreamExample {
 
   class Handler(ctx: ServerContext) extends StreamServerHandler(ctx) {
-    def handle(message: StreamHttpMessage[HttpRequestHead]) {
+    def handle(message: HttpStream[HttpRequestHead]) {
       message match {
         case Head(head) if (head.path == "/zop") => head.parameters.getFirstAs[Int]("num") match {
           case Success(num) => {
             upstream.push (Head(HttpResponseHead(head.version, HttpCodes.OK, HttpHeaders.fromString("transfer-encoding" -> "chunked")))){_ => ()}
             def sendNumbers(num: Int): Unit = num match {
-              case 0 => upstream.push(End()){_ => ()}
+              case 0 => upstream.push(End){_ => ()}
               case n => {
-                upstream.push (BodyData(DataBlock(s"$n\r\n"))){_ => sendNumbers(n - 1)}
+                upstream.push (Data(DataBlock(s"$n\r\n"))){_ => sendNumbers(n - 1)}
               }
             }
             sendNumbers(num)

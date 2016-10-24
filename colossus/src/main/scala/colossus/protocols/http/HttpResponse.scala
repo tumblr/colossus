@@ -49,7 +49,7 @@ case class ParsedResponseFL(data: Array[Byte]) extends ResponseFL with LazyParsi
 
 case class BasicResponseFL(version : HttpVersion, code: HttpCode) extends ResponseFL
 
-case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) extends HttpMessageHead[HttpResponseHead] {
+case class HttpResponseHead(fl: ResponseFL, headers : HttpHeaders ) extends HttpMessageHead {
 
   def version = fl.version
   def code = fl.code
@@ -72,6 +72,17 @@ object HttpResponseHead{
   def apply(version: HttpVersion, code: HttpCode, headers: HttpHeaders): HttpResponseHead = {
     HttpResponseHead(BasicResponseFL(version, code), headers)
   }
+
+  def apply(
+    version: HttpVersion,
+    code: HttpCode,
+    transferEncoding: Option[TransferEncoding],
+    contentLength: Option[Int],
+    connection: Option[Connection],
+    extraHeaders: HttpHeaders
+  ): HttpResponseHead = {
+    apply(version, code, new ParsedHttpHeaders(extraHeaders, transferEncoding, contentLength, connection))
+  }
 }
   
 
@@ -93,7 +104,7 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
   }
 
 
-  def withHeader(key: String, value: String) = copy(head = head.withHeader(key,value))
+  def withHeader(key: String, value: String) = copy(head = head.withHeader(HttpHeader(key,value)))
 
   def code = head.code
 

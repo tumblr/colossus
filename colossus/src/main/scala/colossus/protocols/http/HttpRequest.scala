@@ -36,7 +36,7 @@ case class BuiltHead(firstLine: BuildFL, headers: HttpHeaders) extends HttpReque
 
 case class ParsedHead(firstLine: ParsedFL, headers: HttpHeaders) extends HttpRequestHead
 
-trait HttpRequestHead extends Encoder with HttpMessageHead[HttpRequestHead] {
+trait HttpRequestHead extends Encoder with HttpMessageHead {
   def firstLine: FirstLine
   def headers: HttpHeaders
 

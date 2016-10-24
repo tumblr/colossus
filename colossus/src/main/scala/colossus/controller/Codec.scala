@@ -25,8 +25,8 @@ object Codec {
 
   import service.Protocol
 
-  type Server[P <: Protocol] = Codec[P#ServerEncoding]
-  type Client[P <: Protocol] = Codec[P#ClientEncoding]
+  type Server[P <: Protocol] = Codec[Encoding.Server[P]]
+  type Client[P <: Protocol] = Codec[Encoding.Client[P]]
 
 }
 

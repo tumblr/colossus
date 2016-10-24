@@ -158,14 +158,16 @@ class ServiceClient[P <: Protocol](
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
-extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstream[P#ClientEncoding]] with Sender[P, Callback] with HandlerTail {
+extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Sender[P, Callback] with HandlerTail {
+
+  type Request = Encoding.Client[P]#Output
 
   val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
 
   //TODO: this should be moved somewhere else, maybe constructor parameter,
   //maybe ServiceClient shouldn't do this at all, especially since users don't
   //really directly create this anymore
-  protected def fullHandler(me: ServiceClient[P]): ClientConnectionHandler = new UnbindHandler(new Controller(this, codec), this)
+  protected def fullHandler(me: ServiceClient[P]): ClientConnectionHandler = new UnbindHandler(new Controller[Encoding.Client[P]](me, codec), me)
 
   def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
     this(codec, config, worker.generateContext())
@@ -198,7 +200,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
 
   private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
 
-  case class SourcedRequest(message: P#Request, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
+  case class SourcedRequest(message: Request, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
     def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
   }
 
@@ -243,7 +245,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
   /**
    * Sent a request to the service, along with a handler for processing the response.
    */
-  private def sendNow(request: P#Request)(handler: ResponseHandler){
+  private def sendNow(request: Request)(handler: ResponseHandler){
     if (canSend) {
       val queueTime = System.currentTimeMillis
       val pushed = upstream.pushFrom(request, queueTime, {
@@ -270,7 +272,7 @@ extends ControllerDownstream[P#ClientEncoding] with HasUpstream[ControllerUpstre
    * Create a callback for sending a request.  this allows you to do something like
    * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
-  def send(request: P#Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
+  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
   def processMessage(response: P#Response) {
     val now = System.currentTimeMillis
