@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import akka.pattern.ask
 import akka.util.{ByteString, Timeout}
 import colossus.core._
+import controller.{Codec, Encoding}
 import colossus.service.{FutureClient, ClientConfig, Protocol}
 
 import scala.concurrent.{Await, Future, ExecutionContext}
@@ -45,9 +46,40 @@ class EchoHandler(c: ServerContext) extends NoopHandler(c){
 
 }
 
+object SimpleProtocol {
+  //this differs from the raw protocol in that messages have a length, so we can encode multiple messages into a single bytestring
+
+  trait SimpleEncoding extends Encoding {
+    type Input = ByteString
+    type Output = ByteString
+  }
+
+  class SimpleCodec extends Codec[SimpleEncoding] {
+    import parsing.Combinators._
+    def newparser = bytes(intUntil(';') >> {_.toInt}) >> {bytes => ByteString(bytes)}
+    var parser = newparser
+
+    def decode(data: DataBuffer) = parser.parse(data)
+    def encode(bytes: ByteString, buffer: DataOutBuffer) { 
+      buffer write ByteString(bytes.length.toString)
+      buffer write ';'
+      buffer write bytes
+    }
+
+    def reset() {
+      parser = newparser
+    }
+    def endOfStream() = None
+  }
+
+  trait Simple extends Protocol {
+    type Request = ByteString
+    type Response = ByteString
+  }
+}
+
 object RawProtocol {
   import colossus.service._
-  import controller.Codec
 
   trait BaseRawCodec  {
     def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None

@@ -14,11 +14,11 @@ import RawProtocol._
 
 trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFactory with org.scalatest.Suite =>
 
-  val defaultConfig = ControllerConfig(4, 50.milliseconds, 2000.bytes)
+  val defaultConfig = ControllerConfig(4, 2000.bytes)
 
-  class TestDownstream(config: ControllerConfig)(implicit actorsystem: ActorSystem) extends ControllerDownstream[Encoding.Server[Raw]] {
+  class TestDownstream[E <: Encoding](config: ControllerConfig)(implicit actorsystem: ActorSystem) extends ControllerDownstream[E] {
 
-    val pipe = new BufferedPipe[ByteString](3)
+    val pipe = new BufferedPipe[E#Input](3)
 
     def incoming = pipe
 
@@ -35,10 +35,14 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
 
   }
 
-  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[Encoding.Server[Raw]], TestDownstream) = {
+  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[Encoding.Server[Raw]], TestDownstream[Encoding.Server[Raw]]) = {
+    get(RawServerCodec, config)
+  }
+
+  def get[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[E], TestDownstream[E]) = {
     val upstream = stub[CoreUpstream]
-    val downstream = new TestDownstream(config)
-    val controller = new Controller(downstream, RawServerCodec)
+    val downstream = new TestDownstream[E](config)
+    val controller = new Controller(downstream, codec)
     controller.setUpstream(upstream)
     (upstream, controller, downstream)
   }

@@ -142,7 +142,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
-  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
+  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")

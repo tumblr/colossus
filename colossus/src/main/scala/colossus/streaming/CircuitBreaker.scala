@@ -81,23 +81,3 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
 
 class PipeCircuitBreaker[I, O] extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
 
-class Valve[I,O](pipe: Pipe[I,O]) extends PipeCircuitBreaker[I,O] {
-
-  private var _isClosed = false
-  set(pipe)
-
-  def isClosed = _isClosed
-  def isOpen = ! _isClosed
-
-  def open() {
-    _isClosed = false
-    set(pipe)
-  }
-
-  def close() {
-    _isClosed = true
-    unset()
-  }
-}
-
-

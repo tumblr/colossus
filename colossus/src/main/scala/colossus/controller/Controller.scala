@@ -19,9 +19,7 @@ import scala.concurrent.duration._
  */
 case class ControllerConfig(
   outputBufferSize: Int,
-  sendTimeout: Duration,
   inputMaxSize: DataSize = 1.MB,
-  flushBufferOnClose: Boolean = true,
   metricsEnabled: Boolean = true
 )
 

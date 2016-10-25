@@ -281,6 +281,41 @@ class PipeSpec extends ColossusSpec {
     }
   }
 
+  "BufferedPipe.pullUntilNull" must {
+
+    def setup(onNotify: => Unit): BufferedPipe[Int] = {
+      val p = new BufferedPipe[Int](2)
+      p.push(1) mustBe PushResult.Ok
+      p.push(2) mustBe PushResult.Ok
+      p.push(3) match {
+        case PushResult.Full(signal) => signal.notify{ onNotify }
+        case _ => throw new Exception("WRONG")
+      }
+      p
+    }
+
+    "set off signals when previously full" in {
+      var sum = 0
+      lazy val p: BufferedPipe[Int] = setup(p.push(3))
+      p.pullUntilNull({x => sum += x; true}).get mustBe a[PullResult.Empty]
+      sum mustBe 6
+    }
+
+    "return Closed if push trigger closes" in {
+      var sum = 0
+      lazy val p : BufferedPipe[Int] = setup(p.complete())
+      p.pullUntilNull({x => sum += x; true}) mustBe Some(PullResult.Closed)
+      sum mustBe 3
+    }
+
+    "return Error if terminated in push trigger" in {
+      lazy val p : BufferedPipe[Int] = setup(p.terminate(new Exception("ASDF")))
+      p.pullUntilNull(_ => true).get mustBe a[PullResult.Error]
+    }
+      
+  }
+
+
 
   "Pipe" must {
     "map" in {

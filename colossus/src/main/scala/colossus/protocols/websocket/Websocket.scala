@@ -176,7 +176,7 @@ extends ControllerDownstream[WebsocketEncoding] with ControllerUpstream[E]
 with DownstreamEventHandler[WebsocketControllerDownstream[E]]
 with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
 
-  val controllerConfig = ControllerConfig(50, Duration.Inf, metricsEnabled = true)
+  val controllerConfig = ControllerConfig(50, metricsEnabled = true)
   downstream.setUpstream(this)
   def connection = upstream.connection
 

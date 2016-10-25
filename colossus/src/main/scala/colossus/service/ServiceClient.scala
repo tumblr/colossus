@@ -189,7 +189,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
 
-  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
 
   //TODO: this should be moved somewhere else, maybe constructor parameter,
   //maybe ServiceClient shouldn't do this at all, especially since users don't
