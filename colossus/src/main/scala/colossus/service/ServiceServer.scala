@@ -11,6 +11,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import util.ConfigCache
 import util.ExceptionFormatter._
+import streaming._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -131,6 +132,8 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
 
   def connection = upstream.connection
 
+  val incoming = new BufferedPipe[I](50)
+
   import config._
 
   implicit val namespace = serverContext.server.namespace
@@ -139,7 +142,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   val log = Logging(context.worker.system.actorSystem, name.toString())
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
   def requestLogFormat : Option[RequestFormatter[I]] = None
-  val controllerConfig = ControllerConfig(config.requestBufferSize, Duration.Inf, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
+  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")
@@ -206,19 +209,31 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (upstream.connection.isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && upstream.canPush) {
-      val done = requestBuffer.remove()
-      val comp = done.response
-      if (requestMetrics) concurrentRequests.decrement()
-      pushResponse(done.request, comp, done.creationTime)
-    }
-    if (!upstream.canPush) {
-      //this means the output buffer cannot accept any more messages, so we have
-      //to pause dequeuing responses and wait for the next message in the output
-      //buffer to be written
-      dequeuePaused = true
+    var continue = true
+    while (continue && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
+      upstream.outgoing.pushPeek match {
+        case PushResult.Ok => {
+          val done = requestBuffer.remove()
+          if (requestMetrics) {
+            concurrentRequests.decrement()
+            val tags = tagDecorator.tagsFor(done.request, done.response)
+            requests.hit(tags = tags)
+            latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+          }
+          upstream.outgoing.push(done.response)
+        }
+        case PushResult.Full(signal) => {
+          signal.notify{ checkBuffer() }
+          continue = false
+        }
+        case other => ???
+      }
     }
     checkGracefulDisconnect()
+  }
+
+  override def onConnected() {
+    processMessages()
   }
 
   override def onConnectionTerminated(cause : DisconnectCause) {
@@ -232,56 +247,37 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
     }
   }
 
-  private def pushResponse(request: I, response: O, startTime: Long) {
-    if (requestMetrics) {
-      val tags = tagDecorator.tagsFor(request, response)
-      requests.hit(tags = tags)
-      latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
-    }
-    val pushed = upstream.pushFrom(response, startTime, {
-      case OutputResult.Success => {
-        if (dequeuePaused) {
-          dequeuePaused = false
-          checkBuffer()
+  def processMessages() {
+    incoming.pullWhile {
+      case PullResult.Item(request) => {
+        numRequests += 1
+        val promise = new SyncPromise(request)
+        requestBuffer.add(promise)
+        /**
+         * Notice, if the request buffer is full we're still adding to it, but by skipping
+         * processing of requests we can hope to alleviate overloading
+         */
+        val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
+          try {
+            processRequest(request)
+          } catch {
+            case t: ParseException =>
+              Callback.successful(handleFailure(IrrecoverableError(t)))
+            case t: Throwable => {
+              Callback.successful(handleFailure(RecoverableError(request, t)))
+            }
+          }
+        } else {
+          Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
         }
-      }
-      case f: OutputError => {
-        addError(RecoverableError(request, f.reason))
-      }
-    })
-
-    //this should never happen because we are always checking if the outputqueue
-    //is full before calling this
-    if (!pushed) {
-      throw new FatalServiceServerException("Attempted to push response to a full output buffer")
-    }
-  }
-
-  def processMessage(request: I) {
-    numRequests += 1
-    val promise = new SyncPromise(request)
-    requestBuffer.add(promise)
-    /**
-     * Notice, if the request buffer is full we're still adding to it, but by skipping
-     * processing of requests we can hope to alleviate overloading
-     */
-    val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
-      try {
-        processRequest(request)
-      } catch {
-        case t: ParseException =>
-          Callback.successful(handleFailure(IrrecoverableError(t)))
-        case t: Throwable => {
-          Callback.successful(handleFailure(RecoverableError(request, t)))
+        if (requestMetrics) concurrentRequests.increment()
+        response.execute{
+          case Success(res) => promise.complete(res)
+          case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
         }
+        PullAction.PullContinue
       }
-    } else {
-      Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
-    }
-    if (requestMetrics) concurrentRequests.increment()
-    response.execute{
-      case Success(res) => promise.complete(res)
-      case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
+      case _ => ???
     }
   }
   

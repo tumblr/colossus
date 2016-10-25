@@ -17,6 +17,7 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
+import streaming._
 
 /**
  * Configuration used to specify a Client's parameters
@@ -37,7 +38,7 @@ case class ClientConfig(
   address: InetSocketAddress,
   requestTimeout: Duration,
   name: MetricAddress,
-  pendingBufferSize: Int = 100,
+  pendingBufferSize: Int = 500,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
@@ -161,8 +162,34 @@ class ServiceClient[P <: Protocol](
 extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Sender[P, Callback] with HandlerTail {
 
   type Request = Encoding.Client[P]#Output
+  type Response = Encoding.Client[P]#Input
 
-  val controllerConfig = ControllerConfig(config.pendingBufferSize, config.requestTimeout, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
+  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
+
+  class SourcedRequest(val message: Request, handler: ResponseHandler) {
+    private var handled = false
+    val queueTime = System.currentTimeMillis
+    private var _sendTime = 0L
+    def sendTime = _sendTime
+
+    def markSent() {
+      _sendTime = System.currentTimeMillis
+    }
+
+    def complete(result: Try[Response]) {
+      if (!handled) {
+        handled = true
+        handler(result)
+      }
+    }
+    
+
+
+    def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
+  }
+
+
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
 
   //TODO: this should be moved somewhere else, maybe constructor parameter,
   //maybe ServiceClient shouldn't do this at all, especially since users don't
@@ -183,7 +210,7 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   def connectionState = connection.connectionState
 
-  type ResponseHandler = Try[P#Response] => Unit
+  type ResponseHandler = Try[Response] => Unit
 
   //override val maxIdleTime = config.idleTimeout
 
@@ -198,16 +225,15 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
-  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
-
-  case class SourcedRequest(message: Request, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
-    def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
-  }
-
   private var clientState: ClientState = ClientState.Initializing
 
+  val incoming = new BufferedPipe[Response](config.sentBufferSize)
+
+  private val pending = new BufferedPipe[SourcedRequest](config.pendingBufferSize)
+  private val sentBuffer    = new BufferedPipe[SourcedRequest](config.sentBufferSize)
+
+
   private var retryIncident: Option[RetryIncident] = None
-  private val sentBuffer    = mutable.Queue[SourcedRequest]()
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
@@ -233,6 +259,8 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
   override def onBind(){
     if(clientState == ClientState.Initializing){
+      //use the sent buffer as a valve, which will control the number of in-flight messages
+      pending into Sink.valve(upstream.outgoing.mapIn[SourcedRequest]{sourced => sourced.markSent;sourced.message}, sentBuffer)
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
@@ -246,25 +274,17 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
    * Sent a request to the service, along with a handler for processing the response.
    */
   private def sendNow(request: Request)(handler: ResponseHandler){
+    val sourced = new SourcedRequest(request, handler)
     if (canSend) {
-      val queueTime = System.currentTimeMillis
-      val pushed = upstream.pushFrom(request, queueTime, {
-        case OutputResult.Success         => {
-          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
-          sentBuffer.enqueue(s)
-          if (sentBuffer.size >= config.sentBufferSize) {
-            upstream.pauseWrites() //writes resumed in processMessage
-          }
-        }
-        case OutputResult.Failure(err)    => failRequest(handler, err)
-        case OutputResult.Cancelled(err)  => failRequest(handler, err)
-      })
-      if (!pushed) {
-        failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
+      pending.push(sourced) match {
+        case PushResult.Ok => {}
+        case PushResult.Error(reason) => failRequest(sourced, reason)
+        case PushResult.Full(trig) => failRequest(sourced, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
+        case PushResult.Closed => failRequest(sourced, new Exception("WAT"))
       }
     } else {
       droppedRequests.hit(tags = hpTags)
-      failRequest(handler, new NotConnectedException("Not Connected"))
+      failRequest(sourced, new NotConnectedException("Not Connected"))
     }
   }
 
@@ -274,36 +294,45 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
    */
   def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
-  def processMessage(response: P#Response) {
-    val now = System.currentTimeMillis
-    try {
-      val source: SourcedRequest = sentBuffer.dequeue()
-      val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
-      latency.add(tags = tags, value = (now - source.queueTime).toInt)
-      transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
-      queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
-      source.handler(Success(response))
-      requests.hit(tags = tags)
-    } catch {
-      case e: java.util.NoSuchElementException => {
-        throw new DataException(s"No Request for response ${response.toString}!")
+  def processMessages(): Unit = incoming.pullWhile {
+    case PullResult.Item(response) => {
+      val now = System.currentTimeMillis
+      sentBuffer.pull match {
+        case PullResult.Item(source) => {
+          val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
+          latency.add(tags = tags, value = (now - source.queueTime).toInt)
+          transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
+          queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
+          source.complete(Success(response))
+          requests.hit(tags = tags)
+        }
+        case PullResult.Empty(_) => {
+          throw new DataException(s"No Request for response ${response.toString}!")
+        }
+        case other => {
+          throw new DataException(s"Invalid state on sent buffer $other")
+        }
       }
+      checkGracefulDisconnect()
+      PullAction.PullContinue
     }
-    checkGracefulDisconnect()
-    if (!upstream.writesEnabled) upstream.resumeWrites()
+    case other => {
+      //TODO what do here?
+      PullAction.Stop
+    }
   }
 
   override def connected() {
     log.info(s"$id Connected to $address")
     clientState = ClientState.Connected
     retryIncident = None
+    processMessages()
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach { s => failRequest(s.handler, reason) }
-    sentBuffer.clear()
+    sentBuffer.filterScan { s => failRequest(s, reason); true }
     if (failFast) {
-      upstream.purgePending(reason)
+      pending.filterScan{ s => failRequest(s, reason); true }
     }
   }
 
@@ -375,24 +404,32 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && upstream.pendingBufferSize == 0) {
+    if (clientState == ClientState.ShuttingDown && sentBuffer.length == 0 && pending.length == 0) {
       upstream.shutdown()
     }
   }
 
 
   override protected def onIdleCheck(period: FiniteDuration) {
-    if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
+    val now = System.currentTimeMillis
+    if (sentBuffer.length > 0 && sentBuffer.head.isTimedOut(now)) {
       // the oldest sent message has expired with no response - kill the connection
       // sending the Kill message instead of disconnecting will trigger the reconnection logic
+      //TODO : We can probably just fail the request but keep the item buffered and not have to kill the connection
       worker ! Kill(id, DisconnectCause.TimedOut)
+    }
+    //remove any pending messages that have timed out.
+    pending.filterScan{ pending =>
+      if (pending.isTimedOut(now)) {
+        failRequest(pending, new RequestTimeoutException)
+        true
+      } else false
     }
   }
 
-  private def failRequest(handler: ResponseHandler, exception: Throwable): Unit = {
-    // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
+  private def failRequest(request: SourcedRequest, exception: Throwable): Unit = {
     errors.hit(tags = hpTags + ("type" -> exception.metricsName))
-    handler(Failure(exception))
+    request.complete(Failure(exception))
   }
 
   def disconnect() {

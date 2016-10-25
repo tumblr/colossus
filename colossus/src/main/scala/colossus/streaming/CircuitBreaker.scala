@@ -11,7 +11,7 @@ trait CircuitBreaker[T <: Transport] {
   def set(item: T): Option[T] = {
     val t = current
     current = Some(item)
-    trigger.triggerAll()
+    while (current.isDefined && trigger.trigger()){}
     t
   }
 
@@ -34,12 +34,28 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: Circuit
     case None => PullResult.Empty(trigger)
   }
 
-  def peek: PullResult[Unit] = current match {
+  def peek: PullResult[A] = current match {
     case Some(c) => c.peek
     case None => PullResult.Empty(trigger)
   }
 
   def outputState = TransportState.Open
+
+  //these overrides are not required to compile, but do result in significant
+  //performance improvements since it lets us invoke the optimized versions
+  //inside BufferedPipe
+
+  override def pullWhile(fn: NEPullResult[A] => PullAction) {
+    current match {
+      case Some(c) => c.pullWhile(fn)
+      case None    => super.pullWhile(fn)
+    }
+  }
+
+  override def pullUntilNull(fn: A => Boolean): Option[NullPullResult] = current match {
+    case Some(c)  => c.pullUntilNull(fn)
+    case None     => Some(PullResult.Empty(trigger))
+  }
 
 }
 
@@ -52,12 +68,16 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
     case None => PushResult.Full(trigger)
   }
 
+  def pushPeek = current match {
+    case Some(c) => c.pushPeek
+    case None => PushResult.Full(trigger)
+  }
+
   def complete(): Try[Unit] = {
     unset.map{_.complete()}.getOrElse(Success(()))
   }
 
 }
 
-class PipeCircuitBreaker[I, O] extends CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
-
+class PipeCircuitBreaker[I, O] extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
 

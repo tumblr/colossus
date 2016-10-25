@@ -8,52 +8,41 @@ import akka.util.ByteString
 import scala.concurrent.duration._
 import org.scalamock.scalatest.MockFactory
 import colossus.parsing.DataSize._
+import streaming._
 
 import RawProtocol._
 
-//simple helper class for testing push results, just stores the value so we can
-//check if it gets set at all and to the right value
-class PushPromise {
-
-  private var _result: Option[OutputResult] = None
-  var pushed = false
-
-  def result = _result
-
-  val func: OutputResult => Unit = r => _result = Some(r)
-
-  def isSet = result.isDefined
-  def isSuccess = result == Some(OutputResult.Success)
-  def isCancelled = result.isDefined && result.get.isInstanceOf[OutputResult.Cancelled]
-  def isFailure = result.isDefined && result.get.isInstanceOf[OutputResult.Failure]
-
-  def expectNoSet() { assert(isSet == false) }
-  def expectSuccess() { assert(isSuccess == true) }
-  def expectFailure() {  assert(isFailure == true)}
-  def expectCancelled() {  assert(isCancelled == true)}
-}
-
-trait TestController[T <: Encoding] extends Controller[T] {
-  
-  def pPush(message: T#Output): PushPromise = {
-    val p = new PushPromise
-    push(message)(p.func)
-    p
-  }
-}
-
 trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFactory with org.scalatest.Suite =>
 
-  val defaultConfig = ControllerConfig(4, 50.milliseconds, 2000.bytes)
+  val defaultConfig = ControllerConfig(4, 2000.bytes)
 
-  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, TestController[Encoding.Server[Raw]], ControllerDownstream[Encoding.Server[Raw]]) = {
+  class TestDownstream[E <: Encoding](config: ControllerConfig)(implicit actorsystem: ActorSystem) extends ControllerDownstream[E] {
+
+    val pipe = new BufferedPipe[E#Input](3)
+
+    def incoming = pipe
+
+    def controllerConfig = config
+
+    def context = FakeIOSystem.fakeContext
+  }
+
+  class TestUpstream[E <: Encoding](val outgoing: Pipe[E#Output, E#Output] = new BufferedPipe[E#Output](2)) extends ControllerUpstream[E] {
+    val connection = stub[ConnectionManager]
+    (connection.isConnected _).when().returns(true)
+
+    val pipe = outgoing
+
+  }
+
+  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[Encoding.Server[Raw]], TestDownstream[Encoding.Server[Raw]]) = {
+    get(RawServerCodec, config)
+  }
+
+  def get[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[E], TestDownstream[E]) = {
     val upstream = stub[CoreUpstream]
-    val downstream = stub[ControllerDownstream[Encoding.Server[Raw]]]
-    (downstream.controllerConfig _).when().returns(config)
-    (downstream.context _).when().returns(FakeIOSystem.fakeContext)
-    (downstream.onFatalError _).when(*).returns(None)
-
-    val controller = new Controller(downstream, RawServerCodec) with TestController[Encoding.Server[Raw]]
+    val downstream = new TestDownstream[E](config)
+    val controller = new Controller(downstream, codec)
     controller.setUpstream(upstream)
     (upstream, controller, downstream)
   }

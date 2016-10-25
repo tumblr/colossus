@@ -42,8 +42,6 @@ object Main extends App {
 
   val websocketServer = WebsocketExample.start(9008)
 
-  val streamServer = StreamExample.start(9009)
-
   val streamServiceServer = StreamServiceExample.start(9010)
 
 

@@ -3,6 +3,15 @@ package colossus.streaming
 import scala.util.{Try, Success, Failure}
 import colossus.service.{Callback, UnmappedCallback}
 
+sealed trait PullAction
+object PullAction {
+  case object PullContinue extends PullAction
+  case object PullStop extends PullAction //might not need this one
+  case object Stop extends PullAction //might not need this one
+  case class Wait(signal: Signal) extends PullAction
+  case class Terminate(reason: Throwable) extends PullAction
+}
+
 /**
  * A Source is the read side of a pipe.  You provide a handler for when an item
  * is ready and the Source will call it.  Note that if the underlying pipe has
@@ -14,9 +23,15 @@ trait Source[+T] extends Transport {
   
   def pull(): PullResult[T]
 
-  def peek: PullResult[Unit]
+  def peek: PullResult[T]
+
+  def canPullNonEmpty = peek match {
+    case PullResult.Item(_) => true
+    case _ => false
+  }
 
   def outputState: TransportState
+
 
   def pull(whenReady: Try[Option[T]] => Unit): Unit = pull() match {
     case PullResult.Item(item)      => whenReady(Success(Some(item)))
@@ -26,15 +41,37 @@ trait Source[+T] extends Transport {
   }
 
 
-  def pullWhile(fn: NEPullResult[T] => Boolean) {
+  def pullWhile(fn: NEPullResult[T] => PullAction) {
+    import PullAction._
     var continue = true
     while (continue) {
-      continue = pull() match {
+      continue = peek match {
         case PullResult.Empty(trig) => {
           trig.notify(pullWhile(fn))
           false
         }
-        case p @ PullResult.Item(_) => fn(p) 
+        case p @ PullResult.Item(_) => fn(p) match {
+          case PullContinue => {
+            pull()
+            true
+          }
+          case PullStop => {
+            pull()
+            false
+          }
+          case Stop => {
+            false
+          }
+          case Wait(signal) => {
+            signal.notify(pullWhile(fn))
+            false
+          }
+          case Terminate(reason) => {
+            terminate(reason)
+            fn(PullResult.Error(reason))
+            false
+          }
+        }
         case PullResult.Closed => {
           fn(PullResult.Closed)
           false
@@ -45,6 +82,23 @@ trait Source[+T] extends Transport {
         }
       }
     }
+  }
+
+  /**
+   * Pull until either the supplied function returns false or there are no more
+   * items immediately available to pull, in which case a `Some[NullPullResult]`
+   * is returned indicating why the loop stopped.
+   */
+  def pullUntilNull(fn: T => Boolean): Option[NullPullResult] = {
+    var done: Option[NullPullResult] = None
+    while (pull() match {
+      case PullResult.Item(item) => fn(item)
+      case other => {
+        done = Some(other.asInstanceOf[NullPullResult])
+        false
+      }
+    }) {}
+    done
   }
 
   def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
@@ -92,44 +146,28 @@ trait Source[+T] extends Transport {
    * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
   def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
-    def tryPush(item: T): Boolean = sink.push(item) match {
-      case PushResult.Full(signal) => {
-        signal.notify{if (tryPush(item)) continue()}
-        false
-      }
-      case PushResult.Closed => {
-        val err = new PipeStateException("downstream sink unexpectedly closed")
-        terminate(err)
-        onComplete(TransportState.Terminated(err))
-        false
-      }
-      case PushResult.Error(err) => {
-        terminate(err)
-        onComplete(TransportState.Terminated(err))
-        false
-      }
-      case ok => true
-    }
-    def handlePull(r: NEPullResult[T]): Boolean =  r match {
-      case PullResult.Item(item) => {
-        tryPush(item)
+    pullWhile {
+      case PullResult.Item(i) => sink.push(i) match {
+        case PushResult.Full(signal)        => PullAction.Wait(signal)
+        case PushResult.Ok                  => PullAction.PullContinue
+        case PushResult.Closed              => PullAction.Terminate(new PipeStateException("Downstream link unexpectedly closed"))
+        case PushResult.Error(reason)       => PullAction.Terminate(reason)
       }
       case PullResult.Closed => {
         if (linkClosed) {
           sink.complete()
         }
         onComplete(TransportState.Closed)
-        false
+        PullAction.Stop
       }
       case PullResult.Error(err) => {
         if (linkTerminated) sink.terminate(err)
         onComplete(TransportState.Terminated(err))
-        false
+        PullAction.Stop
       }
     }
-    def continue(): Unit = pullWhile(handlePull)
-    continue
   }
+
 
   def into[U >: T] (sink: Sink[U]) {
     into(sink, true, true)( _ => ())
@@ -151,10 +189,7 @@ object Source {
       t
     }
 
-    def peek = item match {
-      case PullResult.Item(_) => PullResult.Item(())
-      case other => other.asInstanceOf[PullResult[Unit]]
-    }
+    def peek = item 
 
     def terminate(reason: Throwable) {
       item = PullResult.Error(reason)
@@ -179,48 +214,30 @@ object Source {
   def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
     //this will either be set to a Left (terminate was called) or a Right(complete was called)
     private var stop : Option[Throwable] = None
+    private var nextitem: NEPullResult[T] = if (iterator.hasNext) PullResult.Item(iterator.next) else PullResult.Closed
+
     def pull(): PullResult[T] = {
-      stop match {
-        case None => if (iterator.hasNext) {
-          PullResult.Item(iterator.next)
-        } else {
-          PullResult.Closed
+      nextitem match {
+        case i @ PullResult.Item(_) => {
+          val n = nextitem
+          nextitem = if (iterator.hasNext) PullResult.Item(iterator.next) else PullResult.Closed
+          n
         }
-        case Some(err) => PullResult.Error(err)
+        case other => other
       }
     }
 
     def terminate(reason: Throwable) {
-      stop = Some(reason)
+      nextitem = PullResult.Error(reason)
     }
 
-    def peek = stop match {
-      case None => if (iterator.hasNext) {
-        PullResult.Item(())
-      } else {
-        PullResult.Closed
-      }
-      case Some(err) => PullResult.Error(err)
-    }
+    def peek = nextitem
 
-    def outputState = stop match {
-      case Some(err) => TransportState.Terminated(err)
-      case _ => if (iterator.hasNext) TransportState.Open else TransportState.Closed
+    def outputState = nextitem match {
+      case PullResult.Error(err) => TransportState.Terminated(err)
+      case PullResult.Closed =>  TransportState.Closed
+      case _ => TransportState.Open
     }
-
-    override def pullWhile(f: NEPullResult[T] => Boolean) {
-      var continue = true
-      while ( stop == None && iterator.hasNext && continue ){
-        continue = f(PullResult.Item(iterator.next))
-      }
-      if (continue) {
-        stop match {
-          case Some(err) => f(PullResult.Error(err))
-          case None =>  f(PullResult.Closed)
-        }
-      }
-    }
-
 
   }
 
@@ -244,9 +261,9 @@ object Source {
       source.pullWhile{
         case PullResult.Item(sub) => {
           sub.terminate(reason)
-          true
+          PullAction.PullContinue
         }
-        case _ => false
+        case _ => PullAction.Stop
       }
       source.terminate(reason)
     }
@@ -275,16 +292,18 @@ object Source {
         //TODO - this weirdness can be fixed if we can figure out a way to avoid these hanging items
         if (!closed) {
           callNext = true
+          PullAction.PullStop
+        } else {
+          PullAction.PullContinue
         }
-        closed
       }
       case PullResult.Closed => {
         flattened.complete()
-        false
+        PullAction.Stop
       }
       case PullResult.Error(err) => {
         killall(err)
-        false
+        PullAction.Stop
       }
     }
     next()
@@ -315,7 +334,10 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
     }
   }
 
-  def peek = if (a_empty) b.peek else a.peek
+  def peek = a.peek match {
+    case PullResult.Closed => b.peek
+    case other => other
+  }
 
   def terminate(reason: Throwable) {
     a.terminate(reason)
@@ -323,4 +345,6 @@ class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
   }
 
   def outputState = if (a_empty) b.outputState else a.outputState
+
+  override def toString = s"DualSource($a,$b)"
 }

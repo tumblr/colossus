@@ -2,6 +2,7 @@ package colossus
 package controller
 
 import core._
+import streaming._
 import testkit._
 import akka.util.ByteString
 
@@ -16,55 +17,42 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
     "push a message" in {
       val (u, con, d) = get()
       val message = ByteString("Hello World!")
-      val p = con.pPush(message)
-      p.isSet must equal(false)
+      con.connected()
+      con.outgoing.push(message)
       expectWrite(con, message)
-      p.isSuccess must equal(true)
-
     }
     "push multiple messages" in {
       val (u, con, d) = get()
       val data = ByteString("Hello World!")
-      val p1 = con.pPush(data)
-      val p2 = con.pPush(data)
+      con.connected()
+      con.outgoing.push(data)
+      con.outgoing.push(data)
       expectWrite(con, data ++ data)
-      p1.expectSuccess()
-      p2.expectSuccess()
-
     }
 
     "respect buffer soft overflow" in {
       val (u, con, d) = get()
       val over = ByteString("abc")
       val next = ByteString("hey")
-      val p1 = con.pPush(over)
-      val p2 = con.pPush(next)
+      con.connected()
+      con.outgoing.push(over)
+      con.outgoing.push(next)
       expectWrite(con, ByteString("abc"), 2)
-      p1.expectSuccess()
-      p2.expectNoSet
       expectWrite(con, ByteString("hey"), 2)
-      p2.expectSuccess()
     }
 
-    "respect pausing writes while writing" in {
+    "don't allow messages when not connected" in {
       val (u, con, d) = get()
-      val data = ByteString("hello")
-      con.push(data){ case _ => con.pauseWrites() }
-      val p = con.pPush(data)
-      expectWrite(con, data)
-      p.expectNoSet()
-      con.resumeWrites()
-      expectWrite(con, data)
-      p.expectSuccess()
-    }
+      con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
+      con.connected()
+      con.outgoing.push(ByteString("asdf")) mustBe PushResult.Ok
+      con.connectionTerminated(DisconnectCause.Disconnect)
+      con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
 
-    "not request a write when writes are paused" in {
-      val (u, con, d) = get()
-      val data = ByteString("hello")
-      con.pauseWrites()
-      val p = con.pPush(data)
-      (u.requestWrite _).verify().never()
     }
+      
+
+    /*
 
     "don't call upstream shutdown on shutdown when there are messages to be sent" in {
       val (u, con, d) = get()
@@ -93,33 +81,7 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       con.readyForData(new DynamicOutBuffer(100))
       (u.shutdown _).verify()
     }
-
-    "timeout queued messages that haven't been sent" in {
-      val (u, con, d) = get()
-      val p = con.pPush(ByteString("wat"))
-      Thread.sleep(300)
-      con.idleCheck(1.millisecond)
-      p.expectCancelled()
-    }
-
-
-    "fail pending messages on connectionClosed while gracefully disconnecting"  in {
-      val (u, con, d) = get()
-      val p = con.pPush(ByteString("hello"))
-      con.shutdown()
-      p.expectNoSet()
-      con.connectionTerminated(DisconnectCause.Closed)
-      p.expectCancelled()
-    }
-
-    "not fail pending messages when connection disrupted" in {
-      val (u, con, d) = get()
-      val p = con.pPush(ByteString("hello"))
-      con.connectionTerminated(DisconnectCause.Closed)
-      p.expectNoSet()
-    }
-
-
+    */
 
       
   }

@@ -5,6 +5,7 @@ import colossus.metrics.MetricNamespace
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
+import colossus.streaming._
 
 import scala.concurrent.duration._
 
@@ -18,42 +19,29 @@ import scala.concurrent.duration._
  */
 case class ControllerConfig(
   outputBufferSize: Int,
-  sendTimeout: Duration,
   inputMaxSize: DataSize = 1.MB,
-  flushBufferOnClose: Boolean = true,
   metricsEnabled: Boolean = true
 )
 
 //these are the methods that the controller layer requires to be implemented by it's downstream neighbor
 trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
-  def processMessage(input: E#Input)
+  def incoming: Sink[E#Input]
 
   def onFatalError(reason: Throwable): Option[E#Output] = {
     //TODO: Logging
     println(s"Fatal Error: $reason, disconnecting")
+    reason.printStackTrace()
     None
   }
 
   def controllerConfig: ControllerConfig
 }
 
-trait Writer[T] {
-  def pushFrom(item: T, createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean
-  def push(item: T)(postWrite: QueuedItem.PostWrite): Boolean = pushFrom(item , System.currentTimeMillis, postWrite)
-  def canPush: Boolean
-}
-
 //these are the method that a controller layer itself must implement for its downstream neighbor
-trait ControllerUpstream[E <: Encoding] extends Writer[E#Output] with UpstreamEvents {
-  def writesEnabled: Boolean
-  def pauseWrites()
-  def resumeWrites()
-  def pauseReads()
-  def resumeReads()
-  def purgePending(reason: Throwable)
-  def pendingBufferSize: Int
+trait ControllerUpstream[E <: Encoding] extends UpstreamEvents {
   def connection: ConnectionManager
+  def outgoing: Sink[E#Output]
 }
 
 /**
@@ -65,6 +53,8 @@ trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] w
   def controllerConfig: ControllerConfig
   def codec: Codec[E]
   def context: Context
+
+  def incoming: Sink[E#Input]
 
   implicit val namespace: MetricNamespace
 }
@@ -89,9 +79,11 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
 
   def fatalError(reason: Throwable) {
     //TODO: FIX
-    downstream.onFatalError(reason).foreach{o => push(o){_ => ()}}
+    downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
     upstream.disconnect()
   }
+
+  val incoming = downstream.incoming
   
 
 }

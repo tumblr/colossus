@@ -107,9 +107,9 @@ class SourceSpec extends ColossusSpec {
       s.pullWhile{
         case PullResult.Item(i) => {
           sum += i
-          true
+          PullAction.PullContinue
         }
-        case PullResult.Closed => false
+        case PullResult.Closed => PullAction.Stop
         case PullResult.Error(err) => throw err
       }
       sum mustBe 6
@@ -144,16 +144,16 @@ class SourceSpec extends ColossusSpec {
         case PullResult.Item(i) => {
           sum += i
           s.terminate(new Exception("BYE"))
-          true
+          PullAction.PullContinue
         }
-        case _ => false
+        case _ => PullAction.Stop
       }
       sum mustBe 1
     }
 
     "peek" in {
       val s = Source.fromIterator(Array(1).toIterator)
-      s.peek mustBe PullResult.Item(())
+      s.peek mustBe PullResult.Item(1)
       s.pull()
       s.peek mustBe PullResult.Closed
       s.terminate(new Exception("ASF"))
@@ -170,7 +170,7 @@ class SourceSpec extends ColossusSpec {
     }
     "peek" in {
       val s = Source.one(4)
-      s.peek mustBe PullResult.Item(())
+      s.peek mustBe PullResult.Item(4)
       s.pull() mustBe PullResult.Item(4)
       s.peek mustBe PullResult.Closed
       s.outputState mustBe TransportState.Closed
@@ -204,7 +204,7 @@ class SourceSpec extends ColossusSpec {
       flat.outputState mustBe TransportState.Open
     }
 
-    "closing the base pipe closes the flattened pipe" taggedAs(org.scalatest.Tag("test")) in {
+    "closing the base pipe closes the flattened pipe"  in {
       val (a,b,pipe,flat) = setup
       println("closing now")
       pipe.complete()
@@ -215,7 +215,7 @@ class SourceSpec extends ColossusSpec {
     }
 
 
-    "fuck up everything if flattend source terminates"  in {
+    "fuck up everything if flattend source terminates" taggedAs(org.scalatest.Tag("test")) in {
       val (x,y,_,flat) = setup
       flat.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]

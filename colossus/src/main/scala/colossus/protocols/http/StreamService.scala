@@ -86,31 +86,25 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   private var currentInputStream: Option[Sink[Data]] = None
 
-  def outputStream: Pipe[Source[HttpStream[OutputHead]], HttpStream[OutputHead]] = {
-    val p = new BufferedPipe[Source[HttpStream[OutputHead]]](100)
+
+  def outputStream: Pipe[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]] = {
+    val p = new BufferedPipe[StreamingHttpMessage[OutputHead]](100).map{_.collapse}
     new Channel(p, Source.flatten(p))
   }
 
-  val pipe = new PipeCircuitBreaker[Source[HttpStream[OutputHead]], HttpStream[OutputHead]]
-  
-  //setup routing the pipe into upstream
-  pipe.pullWhile {
-    case PullResult.Item(item) => {
-      upstream.pushFrom(item, 0, _ => ())
-      true
-    }
-    case other => {
-      fatal(s"Unexpected streaming item $other")
-      false
-    }
-  }
+  val outgoing = new PipeCircuitBreaker[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]]
+
+
+  val incoming = new BufferedPipe[HttpStream[InputHead]](100)
 
   override def onConnected() {
-    pipe.set(outputStream)
+    outgoing.set(outputStream)
+    outgoing into upstream.outgoing
+    readin()
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
-    pipe.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
+    outgoing.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
   }
 
 
@@ -119,13 +113,13 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
     upstream.connection.forceDisconnect()
   }
 
-  def processMessage(input: HttpStream[InputHead]) {
-    input match {
-      case Head(head) => currentInputStream match {
+  def readin(): Unit = incoming.pullWhile {
+    case PullResult.Item(i) =>{ i match {
+      case Head(head) =>  currentInputStream match {
         case None => {
           val (sink, msg) = builder.build(head)
           currentInputStream = Some(sink)
-          downstream.processMessage(msg)
+          downstream.incoming.push(msg)
         }
         case Some(uhoh) => {
           //we got a head before the last stream finished, not good
@@ -135,10 +129,9 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
       case b @ Data(_, _) => currentInputStream match {
         case Some(sink) => sink.push(b) match {
           case PushResult.Full(signal) => {
-            upstream.pauseReads()
             signal.notify{
               sink.push(b)
-              upstream.resumeReads()
+              readin()
             }
           }
           case PushResult.Ok => {}
@@ -160,7 +153,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
           fatal("attempted to end non-existant input stream")
         }
       }
-    }
+    } ;PullAction.PullContinue }
+    case _ => ???
   }
 
   // Members declared in colossus.controller.ControllerDownstream
@@ -168,25 +162,6 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   // Members declared in colossus.controller.ControllerUpstream
   def connection: colossus.core.ConnectionManager = upstream.connection
-  def pauseReads(): Unit = upstream.pauseReads()
-  def pauseWrites(): Unit = upstream.pauseWrites()
-  def pendingBufferSize: Int = ???
-  def purgePending(reason: Throwable): Unit = ???
-  def resumeReads(): Unit = upstream.resumeReads()
-  def resumeWrites(): Unit = upstream.resumeWrites()
-  def writesEnabled: Boolean = upstream.writesEnabled
-
-  // Members declared in colossus.controller.Writer
-  def canPush: Boolean = true
-
-  def pushFrom(item: GenEncoding[StreamingHttpMessage,E]#Output,createdMillis: Long, postWrite: QueuedItem.PostWrite): Boolean = {
-    val source = item.collapse
-    val res = pipe push source 
-    res match {
-      case PushResult.Ok => true
-      case _ => false
-    }
-  }
 
 }
 
@@ -194,17 +169,6 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
 extends DSLService[StreamingHttp](rh) {
 
-  /*
-  val defaults = new Http.ServerDefaults
-
-  override def tagDecorator = new ReturnCodeTagDecorator
-
-  override def processRequest(input: Http#Input): Callback[Http#Output] = {
-    val response = super.processRequest(input)
-    if(!input.head.persistConnection) connection.disconnect()
-    response
-  }
-  */
   def unhandledError = {
     case error => ???//defaults.errorResponse(error)
   }
@@ -233,3 +197,4 @@ abstract class StreamServiceInitializer(ctx: InitContext) extends StreamServiceH
 object StreamHttpServiceServer extends ServiceDSL[GenRequestHandler[StreamingHttp], StreamServiceInitializer] {
   def basicInitializer = new StreamServiceHandlerGenerator(_)
 }
+

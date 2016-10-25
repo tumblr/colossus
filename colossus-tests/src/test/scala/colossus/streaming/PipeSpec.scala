@@ -13,6 +13,8 @@ class PipeSpec extends ColossusSpec {
   implicit val cbe = FakeIOSystem.testExecutor
 
   implicit val duration = 1.second
+  
+  val PA = PullAction
 
   "BufferedPipe" must {
 
@@ -181,6 +183,10 @@ class PipeSpec extends ColossusSpec {
       CallbackAwait.result(c, 1.second) mustBe (3, true)
     }
 
+  }
+
+  "BufferedPipe.pullWhile" must {
+
 
     "fast-track pushes" in {
       val p = new BufferedPipe[Int](5)
@@ -188,9 +194,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Item(i) => {
           sum += i
-          if (i == 1) true else false
+          if (i == 1) PA.PullContinue else PA.PullStop
         }
-        case _ => true
+        case _ => PA.Stop
       }
       p.push(1)
       sum mustBe 1
@@ -206,9 +212,9 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Closed => {
           closed = true
-          false
+          PA.Stop
         }
-        case _ => true
+        case _ => PA.PullContinue
       }
       p.push(1)
       closed mustBe false
@@ -217,7 +223,7 @@ class PipeSpec extends ColossusSpec {
     }
 
 
-    "pullWhile triggers pushes on emptying a full buffer" in {
+    "trigger pushes on emptying a full buffer" in {
       val p = new BufferedPipe[Int](2)
       p.push(1) mustBe PushResult.Ok
       p.push(2) mustBe PushResult.Ok
@@ -229,12 +235,13 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile {
         case PullResult.Item(i) => {
           sum += i
-          true
+          PA.PullContinue
         }
-        case _ => false
+        case _ => PA.Stop
       }
       sum mustBe 7
     }
+
 
     "drain the buffer when fast-tracking" in {
       val p = new BufferedPipe[Int](10)
@@ -245,13 +252,28 @@ class PipeSpec extends ColossusSpec {
       p.pullWhile{
         case PullResult.Item(i) => {
           sum += i
-          true
+          PA.PullContinue
         }
-        case _ => true
+        case _ => PA.PullContinue
       }
       sum mustBe 6
       p.push(1)
       sum mustBe 7
+    }
+
+    "properly terminate when Terminate action is returned" in {
+      val p = new BufferedPipe[Int](10)
+      p.push(1)
+      var terminated = false
+      p.pullWhile{
+        case PullResult.Item(i) => PullAction.Terminate(new Exception("HEY"))
+        case PullResult.Error(reason) => {
+          terminated = true
+          PullAction.Stop
+        }
+      }
+      terminated mustBe true
+      p.outputState mustBe a[TransportState.Terminated]
     }
 
   }
@@ -261,13 +283,13 @@ class PipeSpec extends ColossusSpec {
       val p = new BufferedPipe[Int](3)
       p.peek mustBe a[PullResult.Empty]
       p.push(2)
-      p.peek mustBe PullResult.Item(())
+      p.peek mustBe PullResult.Item(2)
     }
     "return item after being closed until empty" in {
       val p = new BufferedPipe[Int](3)
       p.push(2)
       p.complete()
-      p.peek mustBe PullResult.Item(())
+      p.peek mustBe PullResult.Item(2)
       p.pull()
       p.peek mustBe PullResult.Closed
     }
@@ -277,6 +299,41 @@ class PipeSpec extends ColossusSpec {
       p.peek mustBe a[PullResult.Error]
     }
   }
+
+  "BufferedPipe.pullUntilNull" must {
+
+    def setup(onNotify: => Unit): BufferedPipe[Int] = {
+      val p = new BufferedPipe[Int](2)
+      p.push(1) mustBe PushResult.Ok
+      p.push(2) mustBe PushResult.Ok
+      p.push(3) match {
+        case PushResult.Full(signal) => signal.notify{ onNotify }
+        case _ => throw new Exception("WRONG")
+      }
+      p
+    }
+
+    "set off signals when previously full" in {
+      var sum = 0
+      lazy val p: BufferedPipe[Int] = setup(p.push(3))
+      p.pullUntilNull({x => sum += x; true}).get mustBe a[PullResult.Empty]
+      sum mustBe 6
+    }
+
+    "return Closed if push trigger closes" in {
+      var sum = 0
+      lazy val p : BufferedPipe[Int] = setup(p.complete())
+      p.pullUntilNull({x => sum += x; true}) mustBe Some(PullResult.Closed)
+      sum mustBe 3
+    }
+
+    "return Error if terminated in push trigger" in {
+      lazy val p : BufferedPipe[Int] = setup(p.terminate(new Exception("ASDF")))
+      p.pullUntilNull(_ => true).get mustBe a[PullResult.Error]
+    }
+      
+  }
+
 
 
   "Pipe" must {

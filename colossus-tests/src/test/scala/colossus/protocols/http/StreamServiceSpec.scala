@@ -9,8 +9,7 @@ import streaming._
 import GenEncoding._
 
 import org.scalamock.scalatest.MockFactory
-
-class StreamServiceSpec extends ColossusSpec with MockFactory{
+class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
   "Streaming Http Response" must {
     "build from regular response" in {
@@ -21,26 +20,29 @@ class StreamServiceSpec extends ColossusSpec with MockFactory{
       data.pull() mustBe PullResult.Item(Data(r.body.asDataBlock))
       data.pull() mustBe PullResult.Item(End)
     }
+
+    "build and collapse a streaming response" in {
+      val response = StreamingHttpResponse(
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, HttpHeaders.Empty), 
+        Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
+      )
+      val collapsed = response.collapse
+      collapsed.pull() mustBe PullResult.Item(Head(response.head))
+      collapsed.pull() mustBe PullResult.Item(Data(DataBlock("hello")))
+      collapsed.pull() mustBe PullResult.Item(Data(DataBlock("world")))
+      collapsed.pull() mustBe PullResult.Item(End)
+    }
   }
 
   type Con = StreamServiceController[Encoding.Server[StreamHeader]]
 
-  def create(): (Con, ControllerUpstream[Encoding.Server[StreamHttp]])  = {
-    val controllerstub = stub[ControllerUpstream[Encoding.Server[StreamHttp]]]
-    val connectionstub = stub[ConnectionManager]
-    (connectionstub.isConnected _).when().returns(true)
-    (controllerstub.connection _).when().returns(connectionstub)
-    (controllerstub.pushFrom _).when(*, *, *).returns(true)
-    (controllerstub.canPush _).when().returns(true)
-    
+  def create(): (Con, TestUpstream[Encoding.Server[StreamHttp]])  = {
+    val controllerstub = new TestUpstream[Encoding.Server[StreamHttp]]
     val handler = new StreamServiceController[Encoding.Server[StreamHeader]](stub[ControllerDownstream[Encoding.Server[StreamingHttp]]], StreamRequestBuilder)
     handler.setUpstream(controllerstub)
     (handler, controllerstub)
   }
 
-  def expectPush(controller: ControllerUpstream[Encoding.Server[StreamHttp]], message: HttpStream[HttpResponseHead]) {
-      (controller.pushFrom _ ).verify(message, *, *)
-  }
 
   "StreamServiceController" must {
     "flatten and push a response" in {
@@ -49,12 +51,25 @@ class StreamServiceSpec extends ColossusSpec with MockFactory{
       val s : GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output = StreamingHttpResponse(response)
       ctrlr.connected()
       //you can thank Scala 2.10 for this insanity
-      ctrlr.asInstanceOf[ControllerUpstream[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]]].push(s.asInstanceOf[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output])(_ => ())
-      expectPush(stub, Head(response.head))
-      expectPush(stub, Data(response.body.asDataBlock))
-      expectPush(stub, End)
+      ctrlr.asInstanceOf[ControllerUpstream[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]]].outgoing.push(s.asInstanceOf[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output])
+      stub.pipe.pull() mustBe PullResult.Item(Head(response.head))
+      stub.pipe.pull() mustBe PullResult.Item(Data(response.body.asDataBlock))
+      stub.pipe.pull() mustBe PullResult.Item(End)
+    }
+
+    "push a chunked response" taggedAs(org.scalatest.Tag("test")) in {
+      val (ctrlr, stub) = create()
+      val response = StreamingHttpResponse(
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, HttpHeaders.Empty), 
+        Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
+      )
+      ctrlr.connected()
+      ctrlr.outgoing.push(response) mustBe PushResult.Ok
+      stub.pipe.pull() mustBe PullResult.Item(Head(response.head))
+      stub.pipe.pull() mustBe PullResult.Item(Data(DataBlock("hello")))
+      stub.pipe.pull() mustBe PullResult.Item(Data(DataBlock("world")))
+      stub.pipe.pull() mustBe PullResult.Item(End)
     }
   }
 
 }
-      

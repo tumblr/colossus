@@ -13,6 +13,14 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
   def complete() = sink.complete()
 
+  override def pullWhile(fn: NEPullResult[O] => PullAction) {
+    source.pullWhile(fn)
+  }
+
+  override def pullUntilNull(fn: O => Boolean): Option[NullPullResult] = source.pullUntilNull(fn)
+
+  def pushPeek = sink.pushPeek
+
 
   //TODO: This works fine when the termination is done on the channel, but what
   //happens if either the source or sink is independantly terminated?  Perhaps
@@ -26,9 +34,9 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
 object Channel {
 
-  def apply[I,O]() : (Channel[I,O], Channel[O,I]) = {
-    val inpipe = new BufferedPipe[I](10)
-    val outpipe = new BufferedPipe[O](10)
+  def apply[I,O](bufferSize: Int = 10) : (Channel[I,O], Channel[O,I]) = {
+    val inpipe = new BufferedPipe[I](bufferSize)
+    val outpipe = new BufferedPipe[O](bufferSize)
     (new Channel(inpipe, outpipe), new Channel(outpipe, inpipe))
   }
 

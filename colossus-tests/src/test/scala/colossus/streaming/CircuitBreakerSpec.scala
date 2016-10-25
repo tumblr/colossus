@@ -47,5 +47,6 @@ class CircuitBreakerSpec extends ColossusSpec {
       p.push(1) mustBe a [PushResult.Full]
     }
   }
+
 }
 

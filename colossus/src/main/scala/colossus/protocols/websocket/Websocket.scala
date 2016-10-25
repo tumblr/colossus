@@ -4,6 +4,7 @@ package protocols.websocket
 import core._
 import controller._
 import service._
+import streaming.{PushResult, Sink}
 import akka.util.{ByteString, ByteStringBuilder}
 
 import java.math.BigInteger
@@ -171,51 +172,55 @@ object FrameParser {
 }
 
 class WebsocketController[E <: Encoding] (val downstream: WebsocketControllerDownstream[E], val frameCodec: FrameCodec[E]) 
-extends ControllerDownstream[WebsocketEncoding] 
+extends ControllerDownstream[WebsocketEncoding] with ControllerUpstream[E]
 with DownstreamEventHandler[WebsocketControllerDownstream[E]]
 with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
 
-  val controllerConfig = ControllerConfig(50, Duration.Inf, metricsEnabled = true)
+  val controllerConfig = ControllerConfig(50, metricsEnabled = true)
   downstream.setUpstream(this)
+  def connection = upstream.connection
 
-
-  private def send(bytes: DataBlock)(postWrite: OutputResult => Unit): Boolean = {
-    //note - as per the spec, server frames are never masked
-    val frame = Frame(Header(OpCodes.Text, false), bytes)
-    val buf = frame.encode(new Random)
-    upstream.push(frame)(postWrite)
-  }
-
-  def send(message: E#Output) {
-    send(frameCodec.encode(message))(_ => ())
-  }
-
-  def processMessage(frame: Frame) {
+  val incoming = Sink.open[Frame]{frame => 
     frame.header.opcode match {
       case OpCodes.Binary | OpCodes.Text => frameCodec.decode(frame.payload) match {
-        case Success(obj) => downstream.handle(obj)
-        case Failure(err) => downstream.handleError(err)
+        case Success(obj) => {
+          downstream.handle(obj)
+          PushResult.Ok
+        }
+        case Failure(err) => {
+          downstream.handleError(err)
+          PushResult.Ok
+        }
       }
       case OpCodes.Ping => {
-        upstream.push(Frame(Header(OpCodes.Pong, false), frame.payload))(_ => ())
+        upstream.outgoing.push(Frame(Header(OpCodes.Pong, false), frame.payload))
       }
       case OpCodes.Close => {
         upstream.connection.disconnect()
+        PushResult.Ok
       }
-      case _ => {}
+      case _ => PushResult.Ok
     }
   }
 
+  lazy val outgoing = upstream.outgoing.mapIn[E#Output]{ message => 
+    val data = frameCodec.encode(message)
+    Frame(Header(OpCodes.Text, false), data)
+  }
+
+  private def send(bytes: DataBlock): PushResult = {
+    //note - as per the spec, server frames are never masked
+    val frame = Frame(Header(OpCodes.Text, false), bytes)
+    upstream.outgoing.push(frame)
+  }
+
+  def send(message: E#Output) {
+    send(frameCodec.encode(message))
+  }
 
 }
 
-trait WebsocketControllerUpstream[E <: Encoding] {
-
-  def send(message: E#Output)
-
-}
-
-trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with HasUpstream[WebsocketController[E]] with DownstreamEvents {
+trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
  
   def handle: PartialFunction[E#Input, Unit]
 
@@ -224,14 +229,11 @@ trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with H
 }
 
 
-/**
- * A websocket server connection handler that uses a specified sub-protocol.
- */
 abstract class WebsocketHandler[E <: Encoding](val context: Context)
-extends WebsocketControllerDownstream[E] with UpstreamEventHandler[WebsocketController[E]] with HandlerTail {
+extends WebsocketControllerDownstream[E] with UpstreamEventHandler[ControllerUpstream[E]] with HandlerTail {
 
-  def send(message: E#Output) {
-    upstream.send(message)
+  def send(message: E#Output): PushResult = {
+    upstream.outgoing.push(message)
   }
 
 }
@@ -286,12 +288,6 @@ object WebsocketServer {
   import server._
 
 
-  /**
-   * Start a Websocket server on the specified port.  Since Websocket
-   * connections are upgraded from HTTP connections, this will actually start an
-   * HTTP server and react to Websocket upgrade requests on the path
-   * `upgradePath`, all other paths will 404.
-   */
 
   def start[E <: Encoding](name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer[E])(implicit io: IOSystem) = {
     HttpServer.start(name, port){context => new Initializer(context) {

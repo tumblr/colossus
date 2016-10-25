@@ -85,13 +85,11 @@ class MultiplexingSpec extends ColossusSpec {
     }
 
     "base reacts to backpressure from a substream" in {
-      val s = new BufferedPipe[FooFrame](1)
+      val s = new BufferedPipe[FooFrame](2)
       val dem: Source[SubSource[Int, FooFrame]] = Multiplexing.demultiplex(s, substreamBufferSize = 1)
       s.push(FooFrame(1, Head, 1))
       val PullResult.Item(SubSource(_, s1)) = dem.pull().asInstanceOf[PullResult.Item[SubSource[Int, FooFrame]]]
-      //this message will get "stuck" in the full callback to the substream
       s.push(FooFrame(1, Body, 2)) mustBe PushResult.Ok
-      //this one gets buffered in the base stream
       s.push(FooFrame(1, Body, 3)) mustBe PushResult.Ok
       val m = s1.map{_.value}
       m.pull() mustBe PullResult.Item(1)
@@ -206,11 +204,6 @@ class MultiplexingSpec extends ColossusSpec {
       val s1 = foo(1)
       mplexed.push(SubSource(1, s1))
       base.terminate(new Exception("I need to return some video tapes"))
-      //TODO: This is a little weird, but essentially the substream can't know
-      //the multiplexed stream is terminated until it tries to push to it.  This
-      //can be solved by having the pullWhile callback return an ADT with
-      //Ok/Stop/Error instead of just true/false
-      s1.push(3) mustBe PushResult.Ok
       s1.push(3) mustBe a[PushResult.Error]
       mplexed.inputState mustBe a[TransportState.Terminated]
     }
@@ -221,8 +214,6 @@ class MultiplexingSpec extends ColossusSpec {
       val s1 = foo(1)
       mplexed.push(SubSource(1, s1))
       base.complete()
-      //TODO: same as above
-      s1.push(3) mustBe PushResult.Ok
       s1.push(3) mustBe a[PushResult.Error]
       mplexed.inputState mustBe a[TransportState.Terminated]
     }
