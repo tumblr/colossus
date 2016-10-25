@@ -13,6 +13,8 @@ class PipeSpec extends ColossusSpec {
   implicit val cbe = FakeIOSystem.testExecutor
 
   implicit val duration = 1.second
+  
+  val PA = PullAction
 
   "BufferedPipe" must {
 
@@ -181,7 +183,9 @@ class PipeSpec extends ColossusSpec {
       CallbackAwait.result(c, 1.second) mustBe (3, true)
     }
 
-    val PA = PullAction
+  }
+
+  "BufferedPipe.pullWhile" must {
 
 
     "fast-track pushes" in {
@@ -219,7 +223,7 @@ class PipeSpec extends ColossusSpec {
     }
 
 
-    "pullWhile triggers pushes on emptying a full buffer" in {
+    "trigger pushes on emptying a full buffer" in {
       val p = new BufferedPipe[Int](2)
       p.push(1) mustBe PushResult.Ok
       p.push(2) mustBe PushResult.Ok
@@ -255,6 +259,21 @@ class PipeSpec extends ColossusSpec {
       sum mustBe 6
       p.push(1)
       sum mustBe 7
+    }
+
+    "properly terminate when Terminate action is returned" in {
+      val p = new BufferedPipe[Int](10)
+      p.push(1)
+      var terminated = false
+      p.pullWhile{
+        case PullResult.Item(i) => PullAction.Terminate(new Exception("HEY"))
+        case PullResult.Error(reason) => {
+          terminated = true
+          PullAction.Stop
+        }
+      }
+      terminated mustBe true
+      p.outputState mustBe a[TransportState.Terminated]
     }
 
   }

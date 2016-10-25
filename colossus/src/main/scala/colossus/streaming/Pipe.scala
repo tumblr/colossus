@@ -249,7 +249,7 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
             }
           }              
         }
-        if (!continue) {
+        if (!continue && state.isInstanceOf[PullFastTrack]) {
           state = oldstate
         }
         while (!bufferFull && pushTrigger.trigger()) {}
