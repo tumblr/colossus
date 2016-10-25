@@ -210,20 +210,23 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
    */
   private def checkBuffer() {
     var continue = true
-    while (upstream.connection.isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
-      val done = requestBuffer.remove()
-      if (requestMetrics) {
-        concurrentRequests.decrement()
-        val tags = tagDecorator.tagsFor(done.request, done.response)
-        requests.hit(tags = tags)
-        latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
-      }
+    while (continue && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
+      val done = requestBuffer.peek()
       upstream.outgoing.push(done.response) match {
-        case PushResult.Full(signal) => signal.notify{
-          upstream.outgoing.push(done.response)
-          checkBuffer()
+        case PushResult.Ok => {
+          requestBuffer.remove()
+          if (requestMetrics) {
+            concurrentRequests.decrement()
+            val tags = tagDecorator.tagsFor(done.request, done.response)
+            requests.hit(tags = tags)
+            latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+          }
+          //upstream.outgoing.push(done.response)
         }
-        case PushResult.Ok => {}
+        case PushResult.Full(signal) => {
+          signal.notify{ checkBuffer() }
+          continue = false
+        }
         case other => ???
       }
     }

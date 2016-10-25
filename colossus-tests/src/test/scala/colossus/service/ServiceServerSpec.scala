@@ -114,5 +114,19 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
       t.expectOneWrite(ByteString("ERROR"))
     }
 
+    "properly react to full output buffer" in {
+      //the output buffer is set to 2 (see common.scala) so this will force
+      //items to stay buffered in the request buffer , but since the request
+      //buffer only has size 2, the last item should generate an error
+      val (handler,upstream) = fs()
+      (1 to 5).foreach{i => 
+        handler.incoming.push(ByteString(i.toString))
+      }
+      (1 to 4).foreach{i => 
+        upstream.pipe.pull() mustBe PullResult.Item(ByteString(i.toString))
+      }
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("ERROR"))
+    }
+
   }
 }

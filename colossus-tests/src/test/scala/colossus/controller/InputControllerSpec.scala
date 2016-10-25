@@ -34,13 +34,34 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
 
     "properly copy and buffer data when input buffer fills" in {
       //input buffer size set to 3 (see common.scala) so it will have to take a copy
-      val input = DataBuffer(ByteString("1;a;1;b;1;c;1;d;1;e;1;f"))
+      val input = DataBuffer(ByteString("1;a1;b1;c1;d1;e1;f"))
       val (u, con, d) = get(new SimpleCodec, defaultConfig)
       con.receivedData(input)
       input.remaining mustBe 0
-      (1 to 6).foreach {_ => 
-        d.pipe.pull() mustBe a[PullResult.Item[_]]
+      ('a' to 'f').foreach {i => 
+        d.pipe.pull() mustBe PullResult.Item(ByteString(i.toString))
       }
+    }
+
+    "properly handle parse failure" in {
+      val input = DataBuffer(ByteString("1;a@#%@"))
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      con.receivedData(input)
+      d.pipe.pull() mustBe PullResult.Item(ByteString("a"))
+      d.pipe.pull() mustBe a[PullResult.Empty]
+      (u.disconnect _).verify()
+    }
+
+    "properly handle parse failure with buffeerd data" in {
+      val input = DataBuffer(ByteString("1;a1;b1;c1;d1;e1#$@;f"))
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      con.receivedData(input)
+      input.remaining mustBe 0
+      ('a' to 'e').foreach {i => 
+        d.pipe.pull() mustBe PullResult.Item(ByteString(i.toString))
+      }
+      d.pipe.pull() mustBe a[PullResult.Empty]
+      (u.disconnect _).verify()
     }
 
   }

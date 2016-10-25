@@ -6,6 +6,9 @@ import colossus.parsing.ParserSizeTracker
 import core._
 import streaming._
 
+//TODO: the onComplete/onError logic should be moved out of here and instead use
+//the callback passed to Source.into.  However, that requires having an iterator
+//that can return an error
 abstract class CodecBufferIterator[E <: Encoding](
   codec: Codec[E], 
   buffer: DataBuffer
@@ -43,9 +46,6 @@ abstract class CodecBufferIterator[E <: Encoding](
 
   
 
-//TODO : pausing reads should immediately stop calls to processMessage, so we
-//need to copy and hold remaining data in the databuffer and drain it when
-//resume is called
 trait StaticInputController[E <: Encoding] extends BaseController[E] {
   private var _readsEnabled = true
   def readsEnabled = _readsEnabled
@@ -85,10 +85,10 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
           case Some(msg) => incoming.push(msg) match {
             case PushResult.Full(signal) => {
               pauseReads()
-              Source.one(msg) ++ Source.fromIterator( new CodecBufferIterator(codec, data.takeCopy) {
+              (Source.one(msg) ++ Source.fromIterator( new CodecBufferIterator(codec, data.takeCopy) {
                 def onComplete() { resumeReads() }
                 def onError(reason: Throwable) { fatalError(reason) }
-              }) into incoming
+              })).into(incoming, linkClosed = false, linkTerminated = false)(_ => {})
               false
             }
             case PushResult.Error(reason) => {
