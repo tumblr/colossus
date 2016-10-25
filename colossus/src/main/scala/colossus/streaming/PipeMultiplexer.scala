@@ -50,8 +50,8 @@ object Multiplexing {
       active.foreach{case (_, sub) => sub.terminate(exception)}
       PullAction.Stop
     }
-    sources.pullWhile {
-      case PullResult.Item(sub) => {
+    sources.pullWhile (
+      sub => {
         active = active + (sub.id -> sub.stream)
         sub.stream.into(base, false, false){
           case TransportState.Terminated(err) if (base.inputState != TransportState.Open) => {
@@ -65,15 +65,15 @@ object Multiplexing {
           }
         }
         PullAction.PullContinue
-      }
-      case PullResult.Closed => {
-        if (active.size == 0) {
-          base.complete()
+      }, {
+        case PullResult.Closed => {
+          if (active.size == 0) {
+            base.complete()
+          }
         }
-        PullAction.Stop
+        case PullResult.Error(err) => fatal(s"Multiplexed Sink Terminated: $err")
       }
-      case PullResult.Error(err) => fatal(s"Multiplexed Sink Terminated: $err")
-    }
+    )
     sources
   }
                 
@@ -97,8 +97,8 @@ object Multiplexing {
       active.foreach{case (_, sink) => sink.terminate(new PipeStateException(reason))}
       PullAction.Stop
     }
-    def doPull(): Unit = base.pullWhile {
-      case PullResult.Item(item) => {
+    def doPull(): Unit = base.pullWhile (
+      item => {
         val id = ms.streamId(item)
         def tryPush(close: Boolean): PullAction = if (active contains id) {
           active(id).push(item) match {
@@ -130,14 +130,14 @@ object Multiplexing {
           case StreamComponent.Body => tryPush(false)
           case StreamComponent.Tail => tryPush(true)
         }
+      }, {
+        case PullResult.Closed => {
+          sources.complete()
+          active.foreach{ case (_, sub) => sub.terminate(new PipeStateException("multiplexed stream closed"))}
+        }
+        case PullResult.Error(error) => fatal(s"Source terminated with error: $error")
       }
-      case PullResult.Closed => {
-        sources.complete()
-        active.foreach{ case (_, sub) => sub.terminate(new PipeStateException("multiplexed stream closed"))}
-        PullAction.Stop
-      }
-      case PullResult.Error(error) => fatal(s"Source terminated with error: $error")
-    }
+    )
     doPull()
     sources
   }

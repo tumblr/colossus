@@ -248,8 +248,8 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   }
 
   def processMessages() {
-    incoming.pullWhile {
-      case PullResult.Item(request) => {
+    incoming.pullWhile (
+      request => {
         numRequests += 1
         val promise = new SyncPromise(request)
         requestBuffer.add(promise)
@@ -276,9 +276,9 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
           case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
         }
         PullAction.PullContinue
-      }
-      case _ => ???
-    }
+      },
+      _ => ()
+    )
   }
   
   def processBadRequest(reason: Throwable) = {

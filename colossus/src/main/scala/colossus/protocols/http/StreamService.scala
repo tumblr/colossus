@@ -113,49 +113,53 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
     upstream.connection.forceDisconnect()
   }
 
-  def readin(): Unit = incoming.pullWhile {
-    case PullResult.Item(i) =>{ i match {
-      case Head(head) =>  currentInputStream match {
-        case None => {
-          val (sink, msg) = builder.build(head)
-          currentInputStream = Some(sink)
-          downstream.incoming.push(msg)
+  def readin(): Unit = incoming.pullWhile (
+    item => {
+      item match {
+        case Head(head) =>  currentInputStream match {
+          case None => {
+            val (sink, msg) = builder.build(head)
+            currentInputStream = Some(sink)
+            downstream.incoming.push(msg)
+          }
+          case Some(uhoh) => {
+            //we got a head before the last stream finished, not good
+            fatal("received head during unfinished stream")
+          }
         }
-        case Some(uhoh) => {
-          //we got a head before the last stream finished, not good
-          fatal("received head during unfinished stream")
-        }
-      }
-      case b @ Data(_, _) => currentInputStream match {
-        case Some(sink) => sink.push(b) match {
-          case PushResult.Full(signal) => {
-            signal.notify{
-              sink.push(b)
-              readin()
+        case b @ Data(_, _) => currentInputStream match {
+          case Some(sink) => sink.push(b) match {
+            case PushResult.Full(signal) => {
+              signal.notify{
+                sink.push(b)
+                readin()
+              }
+            }
+            case PushResult.Ok => {}
+            case other => {
+              // :(
+              fatal(s"failed to push message to stream with result $other")
             }
           }
-          case PushResult.Ok => {}
-          case other => {
-            // :(
-            fatal(s"failed to push message to stream with result $other")
+          case None => {
+            fatal("Received body data but no input stream exists")
           }
         }
-        case None => {
-          fatal("Received body data but no input stream exists")
+        case e @ End => currentInputStream match {
+          case Some(sink) => {
+            sink.complete()
+            currentInputStream = None
+          }
+          case None => {
+            fatal("attempted to end non-existant input stream")
+          }
         }
-      }
-      case e @ End => currentInputStream match {
-        case Some(sink) => {
-          sink.complete()
-          currentInputStream = None
-        }
-        case None => {
-          fatal("attempted to end non-existant input stream")
-        }
-      }
-    } ;PullAction.PullContinue }
-    case _ => ???
-  }
+      } 
+      PullAction.PullContinue 
+    },
+    _ => ()
+  
+  )
 
   // Members declared in colossus.controller.ControllerDownstream
   def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig

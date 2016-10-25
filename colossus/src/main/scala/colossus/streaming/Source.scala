@@ -41,16 +41,16 @@ trait Source[+T] extends Transport {
   }
 
 
-  def pullWhile(fn: NEPullResult[T] => PullAction) {
+  def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any) {
     import PullAction._
     var continue = true
     while (continue) {
       continue = peek match {
         case PullResult.Empty(trig) => {
-          trig.notify(pullWhile(fn))
+          trig.notify(pullWhile(fn, onComplete))
           false
         }
-        case p @ PullResult.Item(_) => fn(p) match {
+        case p @ PullResult.Item(i) => fn(i) match {
           case PullContinue => {
             pull()
             true
@@ -63,21 +63,21 @@ trait Source[+T] extends Transport {
             false
           }
           case Wait(signal) => {
-            signal.notify(pullWhile(fn))
+            signal.notify(pullWhile(fn, onComplete))
             false
           }
           case Terminate(reason) => {
             terminate(reason)
-            fn(PullResult.Error(reason))
+            onComplete(PullResult.Error(reason))
             false
           }
         }
         case PullResult.Closed => {
-          fn(PullResult.Closed)
+          onComplete(PullResult.Closed)
           false
         }
         case PullResult.Error(err) => {
-          fn(PullResult.Error(err))
+          onComplete(PullResult.Error(err))
           false
         }
       }
@@ -146,26 +146,27 @@ trait Source[+T] extends Transport {
    * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
   def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
-    pullWhile {
-      case PullResult.Item(i) => sink.push(i) match {
+    pullWhile (
+      i => sink.push(i) match {
         case PushResult.Full(signal)        => PullAction.Wait(signal)
         case PushResult.Ok                  => PullAction.PullContinue
         case PushResult.Closed              => PullAction.Terminate(new PipeStateException("Downstream link unexpectedly closed"))
         case PushResult.Error(reason)       => PullAction.Terminate(reason)
-      }
-      case PullResult.Closed => {
-        if (linkClosed) {
-          sink.complete()
+      }, {
+        case PullResult.Closed => {
+          if (linkClosed) {
+            sink.complete()
+          }
+          onComplete(TransportState.Closed)
+          PullAction.Stop
         }
-        onComplete(TransportState.Closed)
-        PullAction.Stop
+        case PullResult.Error(err) => {
+          if (linkTerminated) sink.terminate(err)
+          onComplete(TransportState.Terminated(err))
+          PullAction.Stop
+        }
       }
-      case PullResult.Error(err) => {
-        if (linkTerminated) sink.terminate(err)
-        onComplete(TransportState.Terminated(err))
-        PullAction.Stop
-      }
-    }
+    )
   }
 
 
@@ -258,17 +259,17 @@ object Source {
     val flattened = new BufferedPipe[A](1) //do we need to make this configurable?  probably not
     def killall(reason: Throwable) {
       flattened.terminate(reason)
-      source.pullWhile{
-        case PullResult.Item(sub) => {
+      source.pullWhile(
+        sub => {
           sub.terminate(reason)
           PullAction.PullContinue
-        }
-        case _ => PullAction.Stop
-      }
+        },
+         _ => ()
+      )
       source.terminate(reason)
     }
-    def next(): Unit = source.pullWhile{
-      case PullResult.Item(subsource) => {
+    def next(): Unit = source.pullWhile(
+      subsource => {
         //this is a little weird, but eliminates recursion that could occur when
         //a bunch of sources are all pushed at once and all are able to complete
         //immediately.  We only want to do the recursive call of next() if the
@@ -296,16 +297,16 @@ object Source {
         } else {
           PullAction.PullContinue
         }
+      },
+      {
+        case PullResult.Closed => {
+          flattened.complete()
+        }
+        case PullResult.Error(err) => {
+          killall(err)
+        }
       }
-      case PullResult.Closed => {
-        flattened.complete()
-        PullAction.Stop
-      }
-      case PullResult.Error(err) => {
-        killall(err)
-        PullAction.Stop
-      }
-    }
+    )
     next()
     flattened
   }
