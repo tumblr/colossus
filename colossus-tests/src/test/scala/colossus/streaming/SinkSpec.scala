@@ -28,5 +28,30 @@ class SinkSpec extends ColossusSpec {
     }
   }
 
+  "Sink.open" must {
+    "do what it's supposed to" in {
+      val s = Sink.open[Int](i => PushResult.Ok)
+
+      s.push(3) mustBe PushResult.Ok
+      s.complete()
+      s.terminate(new Exception("WAT"))
+      s.inputState mustBe TransportState.Open
+      s.pushPeek mustBe PushResult.Ok
+    }
+  }
+
+  "Sink.mapIn" must {
+    "map items" in {
+      val s = new BufferedPipe[String](4)
+      val t: Sink[Int] = s.mapIn[Int](i => i.toString)
+      t.push(4) mustBe PushResult.Ok
+      s.pull mustBe PullResult.Item("4")
+      t.complete()
+      s.pull mustBe PullResult.Closed
+      t.terminate()
+      s.pull mustBe a[PullResult.Error]
+    }
+  }
+
 }
 
