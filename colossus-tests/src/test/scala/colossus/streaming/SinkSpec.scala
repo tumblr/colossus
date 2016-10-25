@@ -48,7 +48,7 @@ class SinkSpec extends ColossusSpec {
       s.pull mustBe PullResult.Item("4")
       t.complete()
       s.pull mustBe PullResult.Closed
-      t.terminate()
+      t.terminate(new Exception("WASDF"))
       s.pull mustBe a[PullResult.Error]
     }
   }
