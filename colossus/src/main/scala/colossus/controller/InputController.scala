@@ -83,6 +83,7 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
       while (
         inputSizeTracker.track(data)(codec.decode(data)) match {
           case Some(msg) => incoming.push(msg) match {
+            case PushResult.Ok => true
             case PushResult.Full(signal) => {
               pauseReads()
               (Source.one(msg) ++ Source.fromIterator( new CodecBufferIterator(codec, data.takeCopy) {
@@ -99,7 +100,6 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
               fatalError(new Exception("attempted to push to closed pipe"))
               false
             }
-            case PushResult.Ok => true
           }
           case None => false
         }

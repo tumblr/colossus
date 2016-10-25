@@ -110,18 +110,6 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
    * @return the result of the push
    */
   def push(item: T): PushResult = state match {
-    case Active if (bufferFull) => PushResult.Full(pushTrigger)
-    case Active  => {
-      //this state only occurs when somebody calls pull and the buffer is empty
-      buffer.add(item)
-      //if someone was waiting for items to enter the buffer, let them know now.
-      //It's possible the notified consumer doesn't actually pull any data, so
-      //keep notifying until the buffer is empty again
-      while (!bufferEmpty && pullTrigger.trigger()) {}
-      PushResult.Ok
-    }
-    case Dead(reason) => PushResult.Error(reason)
-    case Closed       => PushResult.Closed
     case PullFastTrack(fn) =>fn(PullResult.Item(item)) match {
       case PullAction.PullContinue => PushResult.Ok
       case PullAction.PullStop => {
@@ -145,6 +133,18 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
       }
 
     }
+    case Active if (bufferFull) => PushResult.Full(pushTrigger)
+    case Active  => {
+      //this state only occurs when somebody calls pull and the buffer is empty
+      buffer.add(item)
+      //if someone was waiting for items to enter the buffer, let them know now.
+      //It's possible the notified consumer doesn't actually pull any data, so
+      //keep notifying until the buffer is empty again
+      while (!bufferEmpty && pullTrigger.trigger()) {}
+      PushResult.Ok
+    }
+    case Dead(reason) => PushResult.Error(reason)
+    case Closed       => PushResult.Closed
   }
 
   val hasItem = PullResult.Item[Unit](())
