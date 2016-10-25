@@ -41,48 +41,7 @@ trait Source[+T] extends Transport {
   }
 
 
-  def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any) {
-    import PullAction._
-    var continue = true
-    while (continue) {
-      continue = peek match {
-        case PullResult.Empty(trig) => {
-          trig.notify(pullWhile(fn, onComplete))
-          false
-        }
-        case p @ PullResult.Item(i) => fn(i) match {
-          case PullContinue => {
-            pull()
-            true
-          }
-          case PullStop => {
-            pull()
-            false
-          }
-          case Stop => {
-            false
-          }
-          case Wait(signal) => {
-            signal.notify(pullWhile(fn, onComplete))
-            false
-          }
-          case Terminate(reason) => {
-            terminate(reason)
-            onComplete(PullResult.Error(reason))
-            false
-          }
-        }
-        case PullResult.Closed => {
-          onComplete(PullResult.Closed)
-          false
-        }
-        case PullResult.Error(err) => {
-          onComplete(PullResult.Error(err))
-          false
-        }
-      }
-    }
-  }
+  def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any) 
 
   /**
    * Pull until either the supplied function returns false or there are no more
@@ -177,9 +136,55 @@ trait Source[+T] extends Transport {
 }
 
 
-object Source {
 
-  def one[T](data: T) = new Source[T] {
+object Source {
+  trait BasicMethods[T] extends Source[T] {
+    def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any){
+      import PullAction._
+      var continue = true
+      while (continue) {
+        continue = peek match {
+          case PullResult.Empty(trig) => {
+            trig.notify(pullWhile(fn, onComplete))
+            false
+          }
+          case p @ PullResult.Item(i) => fn(i) match {
+            case PullContinue => {
+              pull()
+              true
+            }
+            case PullStop => {
+              pull()
+              false
+            }
+            case Stop => {
+              false
+            }
+            case Wait(signal) => {
+              signal.notify(pullWhile(fn, onComplete))
+              false
+            }
+            case Terminate(reason) => {
+              terminate(reason)
+              onComplete(PullResult.Error(reason))
+              false
+            }
+          }
+          case PullResult.Closed => {
+            onComplete(PullResult.Closed)
+            false
+          }
+          case PullResult.Error(err) => {
+            onComplete(PullResult.Error(err))
+            false
+          }
+        }
+      }
+    }
+
+  }
+
+  def one[T](data: T) = new Source[T] with BasicMethods[T] {
     var item: PullResult[T] = PullResult.Item(data)
     def pull(): PullResult[T] = {
       val t = item
@@ -212,7 +217,7 @@ object Source {
     }
   })
 
-  def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] {
+  def fromIterator[T](iterator: Iterator[T]): Source[T] = new Source[T] with BasicMethods[T] {
     //this will either be set to a Left (terminate was called) or a Right(complete was called)
     private var stop : Option[Throwable] = None
     private var nextitem: NEPullResult[T] = if (iterator.hasNext) PullResult.Item(iterator.next) else PullResult.Closed
@@ -242,7 +247,7 @@ object Source {
 
   }
 
-  def empty[T] = new Source[T] {
+  def empty[T] = new Source[T] with BasicMethods[T] {
     def pull() = PullResult.Closed 
     def peek = PullResult.Closed
     def outputState = TransportState.Closed
@@ -318,7 +323,7 @@ object Source {
  * the first is empty.  The `None` from the first sink is never exposed.  The
  * first error reported from either sink is propagated.
  */
-class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] {
+class DualSource[T](a: Source[T], b: Source[T]) extends Source[T] with Source.BasicMethods[T] {
   private var a_empty = false
   def pull(): PullResult[T] = {
     if (a_empty) {

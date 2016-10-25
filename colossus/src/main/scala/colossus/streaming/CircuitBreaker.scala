@@ -27,7 +27,7 @@ trait CircuitBreaker[T <: Transport] {
 
 }
 
-trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: CircuitBreaker[T] => 
+trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { self: CircuitBreaker[T] => 
 
   def pull(): PullResult[A] = current match {
     case Some(c) => c.pull
