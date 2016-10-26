@@ -85,6 +85,7 @@ class HelloInitializer(worker: WorkerRef) extends Initializer(worker) {
 
 object Main extends App {
 
+  implicit val actorSystem = ActorSystem()
   implicit val io = IOSystem()
 
   Server.start("hello-world", 9000){ worker => new HelloInitializer(worker) }
