@@ -183,7 +183,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
 
     private var _response: Option[O] = None
     def isComplete = _response.isDefined
-    def response = _response.getOrElse(throw new Exception("Attempt to use incomplete response"))
+    def response = if (_response.isDefined) _response.get else throw new Exception("Attempt to use incomplete response")
 
     def complete(response: O) {
       _response = Some(response)
@@ -211,18 +211,22 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   private def checkBuffer() {
     var continue = true
     while (continue && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
-      upstream.outgoing.pushPeek match {
+      val done = requestBuffer.remove()
+      upstream.outgoing.push(done.response) match {
         case PushResult.Ok => {
-          val done = requestBuffer.remove()
           if (requestMetrics) {
             concurrentRequests.decrement()
             val tags = tagDecorator.tagsFor(done.request, done.response)
             requests.hit(tags = tags)
             latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
           }
-          upstream.outgoing.push(done.response)
+          //upstream.outgoing.push(done.response)
         }
         case PushResult.Full(signal) => {
+          //this might seem odd to remove the head and then add it back, but
+          //it's faster than peeking since we have to do less operations on the
+          //linkedlist on average
+          requestBuffer.addFirst(done)
           signal.notify{ checkBuffer() }
           continue = false
         }

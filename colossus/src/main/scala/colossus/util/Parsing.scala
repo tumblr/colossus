@@ -65,8 +65,10 @@ class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogra
 
   private var used = 0L
 
-  def reset() {
-    histogramOpt.foreach{_.add(used.toInt)}
+  @inline private final def reset() {
+    if (histogramOpt.isDefined) {
+      histogramOpt.foreach{_.add(used.toInt)}
+    }
     used = 0
   }
 
@@ -81,7 +83,7 @@ class ParserSizeTracker(maxSize: Option[DataSize], histogramOpt: Option[Histogra
     val start = buffer.taken
     val res = op
     add(buffer.taken - start)
-    res.foreach{_ => reset()}
+    if (res.isDefined) { reset()}
     res
   }
 }
