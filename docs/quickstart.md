@@ -13,7 +13,7 @@ Colossus is for and how it works.  While Colossus is a fully generalized I/O
 framework for building many different types of applications, this guide is
 focused on the primary use case, services.  A **Service** is a reactive server
 application that receives incoming requests from clients, processes them (often
-in parallel), and returns responses.  
+in parallel), and returns responses.
 
 To be even more specific, Colossus is focused on building **Microservices**,
 which generally are stateless, single-feature, RESTful HTTP servers which exist
@@ -159,6 +159,7 @@ it gets used like a factory.
 Lastly, let's look at the bootstrap code to get the service running
 
 {% highlight scala %}
+implicit val actorSystem = ActorSystem()
 implicit val io = IOSystem()
 {% endhighlight %}
 
@@ -167,9 +168,7 @@ Servers do not manage their own workers, but instead attach to an IOSystem and
 let the system do all the Worker management.  Likewise, on its own, an
 IOSystem does nothing and its workers sit idle.
 
-Because an `IOSystem` is really just a set of Akka actors, in this context
-the `IOSystem` will create its own Akka `ActorSystem`, but it can also use
-an existing `ActorSystem`.
+Because an `IOSystem` is really just a set of Akka actors, it requires an `ActorSystem` to start.
 
 
 {% highlight scala %}
@@ -225,7 +224,7 @@ and all connections handled by that worker will use this client.  Again, since
 everything here is per-worker and hence single-threaded, there are no issues
 with many request handlers using the same redis client. 
 
-This gives us service that conceptually looks like:
+This gives us a service that conceptually looks like:
 
 ![redis]({{site.baseurl}}/img/redis.png)
 
