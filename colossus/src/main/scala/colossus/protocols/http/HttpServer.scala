@@ -7,7 +7,7 @@ import core._
 import controller._
 import service._
 
-class HttpServiceHandler(rh: RequestHandler) 
+protected[server] class HttpServiceHandler(rh: RequestHandler) 
 extends DSLService[Http](rh) {
 
   val defaults = new Http.ServerDefaults
@@ -46,10 +46,16 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
 abstract class Initializer(ctx: InitContext) extends Generator(ctx) with ServiceInitializer[RequestHandler]
 
 
+/**
+ * A RequestHandler contains the business logic for transforming [[HttpRequest]] into [[HttpResponse]] objects.  
+ */
 abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
   def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
 }
 
+/**
+ * Entry point for starting a Http server
+ */
 object HttpServer extends ServiceDSL[RequestHandler, Initializer]{
 
   def basicInitializer = new Generator(_)
