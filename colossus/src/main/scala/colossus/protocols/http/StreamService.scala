@@ -121,43 +121,45 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
             val (sink, msg) = builder.build(head)
             currentInputStream = Some(sink)
             downstream.incoming.push(msg)
+            PullAction.PullContinue 
           }
           case Some(uhoh) => {
             //we got a head before the last stream finished, not good
             fatal("received head during unfinished stream")
+            PullAction.Stop
           }
         }
         case b @ Data(_, _) => currentInputStream match {
           case Some(sink) => sink.push(b) match {
             case PushResult.Full(signal) => {
-              signal.notify{
-                sink.push(b)
-                readin()
-              }
+              PullAction.Wait(signal)
             }
-            case PushResult.Ok => {}
+            case PushResult.Ok => PullAction.PullContinue
             case other => {
               // :(
               fatal(s"failed to push message to stream with result $other")
+              PullAction.Stop
             }
           }
           case None => {
             fatal("Received body data but no input stream exists")
+            PullAction.Stop
           }
         }
         case e @ End => currentInputStream match {
           case Some(sink) => {
             sink.complete()
             currentInputStream = None
+            PullAction.PullContinue
           }
           case None => {
             fatal("attempted to end non-existant input stream")
+            PullAction.Stop
           }
         }
       } 
-      PullAction.PullContinue 
     },
-    _ => ()
+    _ => fatal("upstream link unexpected terminated")
   
   )
 

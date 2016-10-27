@@ -73,7 +73,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
     "correctly assemble an http request" in {
       val (ctrlr, stub) = create()
-      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](10)
+      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
       (ctrlr.downstream.incoming _).when().returns(p)
       val expected = HttpRequest.get("/foo").withHeader("key", "value").withBody(HttpBody("hello there"))
       ctrlr.connected()
@@ -90,6 +90,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
         case other => throw new Exception("WRONG")
       }
     }
+
   }
 
 }
