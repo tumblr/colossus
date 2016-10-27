@@ -70,6 +70,26 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       stub.pipe.pull() mustBe PullResult.Item(Data(DataBlock("world")))
       stub.pipe.pull() mustBe PullResult.Item(End)
     }
+
+    "correctly assemble an http request" in {
+      val (ctrlr, stub) = create()
+      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](10)
+      (ctrlr.downstream.incoming _).when().returns(p)
+      val expected = HttpRequest.get("/foo").withHeader("key", "value").withBody(HttpBody("hello there"))
+      ctrlr.connected()
+      ctrlr.incoming.push(Head(expected.head)) mustBe PushResult.Ok
+      ctrlr.incoming.push(Data(expected.body.asDataBlock)) mustBe PushResult.Ok
+      ctrlr.incoming.push(End) mustBe PushResult.Ok
+
+      p.pull() match {
+        case PullResult.Item(streaming) => {
+          streaming.head mustBe expected.head
+          streaming.body.pull() mustBe PullResult.Item(Data(DataBlock("hello there")))
+          streaming.body.pull() mustBe PullResult.Closed
+        }
+        case other => throw new Exception("WRONG")
+      }
+    }
   }
 
 }
