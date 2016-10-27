@@ -91,6 +91,38 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       }
     }
 
+    def expectDisconnect(f: Con => Any) {
+      val (ctrlr, stub) = create()
+      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
+      (ctrlr.downstream.incoming _).when().returns(p)
+      ctrlr.connected()
+      f(ctrlr)
+      (stub.connection.forceDisconnect _).verify()
+    }
+
+    "disconnect if head received before end" in expectDisconnect { ctrlr => 
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+    }
+
+    "disconnect if end received before head" in expectDisconnect { ctrlr => 
+      ctrlr.incoming.push(End)
+    }
+
+    "disconnect if Data received before head" in expectDisconnect { ctrlr =>
+      ctrlr.incoming.push(Data(DataBlock("WAT")))
+    }
+
+    "disconnect if pipe is terminated" in expectDisconnect { ctrlr =>
+      ctrlr.incoming.terminate(new Exception("WHATAT"))
+    }
+
+    "disconnect if downstream pipe closes" in expectDisconnect { ctrlr =>
+      ctrlr.downstream.incoming.complete()
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+    }
+      
+
   }
 
 }

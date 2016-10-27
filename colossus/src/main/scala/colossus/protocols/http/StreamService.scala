@@ -120,8 +120,12 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
           case None => {
             val (sink, msg) = builder.build(head)
             currentInputStream = Some(sink)
-            downstream.incoming.push(msg)
-            PullAction.PullContinue 
+            downstream.incoming.push(msg) match {
+              case PushResult.Ok => PullAction.PullContinue
+              case PushResult.Full(signal) => PullAction.Wait(signal)
+              case PushResult.Closed => PullAction.Terminate(new PipeStateException("downstream link closed unexpectedly"))
+              case PushResult.Error(err) => PullAction.Terminate(err)
+            }
           }
           case Some(uhoh) => {
             //we got a head before the last stream finished, not good
