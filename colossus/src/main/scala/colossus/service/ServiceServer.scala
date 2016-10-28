@@ -220,7 +220,6 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
             requests.hit(tags = tags)
             latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
           }
-          //upstream.outgoing.push(done.response)
         }
         case PushResult.Full(signal) => {
           //this might seem odd to remove the head and then add it back, but
@@ -230,7 +229,10 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
           signal.notify{ checkBuffer() }
           continue = false
         }
-        case other => ???
+        case other => {
+          log.error(s"invalid state on incoming stream $other")
+          connection.forceDisconnect()
+        }
       }
     }
     checkGracefulDisconnect()
