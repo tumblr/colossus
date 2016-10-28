@@ -27,7 +27,7 @@ trait CircuitBreaker[T <: Transport] {
 
 }
 
-trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: CircuitBreaker[T] => 
+trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { self: CircuitBreaker[T] => 
 
   def pull(): PullResult[A] = current match {
     case Some(c) => c.pull
@@ -45,10 +45,10 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source[A] { self: Circuit
   //performance improvements since it lets us invoke the optimized versions
   //inside BufferedPipe
 
-  override def pullWhile(fn: NEPullResult[A] => PullAction) {
+  override def pullWhile(fn: A => PullAction, onc: TerminalPullResult => Any) {
     current match {
-      case Some(c) => c.pullWhile(fn)
-      case None    => super.pullWhile(fn)
+      case Some(c) => c.pullWhile(fn, onc)
+      case None    => super.pullWhile(fn, onc)
     }
   }
 

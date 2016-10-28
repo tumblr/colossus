@@ -4,11 +4,12 @@ package colossus.streaming
 sealed trait PullResult[+T]
 sealed trait NEPullResult[+T] extends PullResult[T]
 sealed trait NullPullResult extends PullResult[Nothing]
+sealed trait TerminalPullResult extends NullPullResult
 object PullResult {
   case class Item[T](item: T) extends NEPullResult[T]
   case class Empty(whenReady: Signal) extends NullPullResult
-  case object Closed extends NEPullResult[Nothing] with NullPullResult
-  case class Error(reason: Throwable) extends NEPullResult[Nothing] with NullPullResult
+  case object Closed extends NEPullResult[Nothing] with TerminalPullResult
+  case class Error(reason: Throwable) extends NEPullResult[Nothing] with TerminalPullResult
 
   implicit object NEPullResultMapper extends Functor[NEPullResult] {
     def map[A,B](p: NEPullResult[A], f: A => B): NEPullResult[B] = p match {

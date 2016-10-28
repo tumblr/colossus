@@ -294,8 +294,8 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
    */
   def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
-  def processMessages(): Unit = incoming.pullWhile {
-    case PullResult.Item(response) => {
+  def processMessages(): Unit = incoming.pullWhile (
+    response => {
       val now = System.currentTimeMillis
       sentBuffer.pull match {
         case PullResult.Item(source) => {
@@ -315,12 +315,9 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
       }
       checkGracefulDisconnect()
       PullAction.PullContinue
-    }
-    case other => {
-      //TODO what do here?
-      PullAction.Stop
-    }
-  }
+    },
+    _ => ()
+  )
 
   override def connected() {
     log.info(s"$id Connected to $address")

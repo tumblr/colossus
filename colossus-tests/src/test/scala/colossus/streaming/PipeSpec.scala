@@ -191,13 +191,13 @@ class PipeSpec extends ColossusSpec {
     "fast-track pushes" in {
       val p = new BufferedPipe[Int](5)
       var sum = 0
-      p.pullWhile{
-        case PullResult.Item(i) => {
+      p.pullWhile(
+        i => {
           sum += i
           if (i == 1) PA.PullContinue else PA.PullStop
-        }
-        case _ => PA.Stop
-      }
+        },
+        _ => ()
+      )
       p.push(1)
       sum mustBe 1
       p.push(2)
@@ -209,13 +209,12 @@ class PipeSpec extends ColossusSpec {
     "fast-track: callback is notified of closing" in {
       val p = new BufferedPipe[Int](5)
       var closed = false
-      p.pullWhile{
-        case PullResult.Closed => {
-          closed = true
-          PA.Stop
+      p.pullWhile(
+        _ => PA.PullContinue,
+        {
+          case PullResult.Closed => closed = true
         }
-        case _ => PA.PullContinue
-      }
+      )
       p.push(1)
       closed mustBe false
       p.complete()
@@ -232,13 +231,13 @@ class PipeSpec extends ColossusSpec {
         case _ => throw new Exception("WRONG")
       }
       var sum = 0
-      p.pullWhile {
-        case PullResult.Item(i) => {
+      p.pullWhile (
+        i => {
           sum += i
           PA.PullContinue
-        }
-        case _ => PA.Stop
-      }
+        },
+         _ => PA.Stop
+      )
       sum mustBe 7
     }
 
@@ -249,13 +248,13 @@ class PipeSpec extends ColossusSpec {
       p.push(2)
       p.push(3)
       var sum = 0
-      p.pullWhile{
-        case PullResult.Item(i) => {
+      p.pullWhile(
+        i => {
           sum += i
           PA.PullContinue
-        }
-        case _ => PA.PullContinue
-      }
+        },
+        _ => ()
+      )
       sum mustBe 6
       p.push(1)
       sum mustBe 7
@@ -265,13 +264,12 @@ class PipeSpec extends ColossusSpec {
       val p = new BufferedPipe[Int](10)
       p.push(1)
       var terminated = false
-      p.pullWhile{
-        case PullResult.Item(i) => PullAction.Terminate(new Exception("HEY"))
-        case PullResult.Error(reason) => {
-          terminated = true
-          PullAction.Stop
+      p.pullWhile(
+        i => PullAction.Terminate(new Exception("HEY")),
+        {
+          case PullResult.Error(reason) => terminated = true
         }
-      }
+      )
       terminated mustBe true
       p.outputState mustBe a[TransportState.Terminated]
     }

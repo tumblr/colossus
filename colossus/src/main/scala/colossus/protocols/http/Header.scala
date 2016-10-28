@@ -197,7 +197,7 @@ class ParsedHttpHeaders(
     connection: Option[Connection]
   ) = this(headers.headers, transferEncodingOpt, contentLength, connection)
 
-  override def transferEncoding = transferEncodingOpt.getOrElse(TransferEncoding.Identity)
+  override def transferEncoding = if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
 
 }
 

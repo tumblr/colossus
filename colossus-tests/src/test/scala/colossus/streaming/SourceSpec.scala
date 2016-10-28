@@ -104,14 +104,15 @@ class SourceSpec extends ColossusSpec {
     "do the thing we expect it to do" in {
       val s = Source.fromArray(Array(1, 2, 3))
       var sum = 0
-      s.pullWhile{
-        case PullResult.Item(i) => {
+      s.pullWhile(
+        i => {
           sum += i
           PullAction.PullContinue
+        }, {
+          case PullResult.Closed => PullAction.Stop
+          case PullResult.Error(err) => throw err
         }
-        case PullResult.Closed => PullAction.Stop
-        case PullResult.Error(err) => throw err
-      }
+      )
       sum mustBe 6
     }
   }
@@ -140,14 +141,14 @@ class SourceSpec extends ColossusSpec {
     "terminate pullWhile correctly" in {
       val s = Source.fromArray(Array(1,2, 3))
       var sum = 0
-      s.pullWhile{
-        case PullResult.Item(i) => {
+      s.pullWhile(
+        i => {
           sum += i
           s.terminate(new Exception("BYE"))
           PullAction.PullContinue
-        }
-        case _ => PullAction.Stop
-      }
+        },
+        _ => ()
+      )
       sum mustBe 1
     }
 

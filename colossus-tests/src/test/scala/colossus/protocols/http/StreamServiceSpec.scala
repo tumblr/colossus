@@ -70,6 +70,59 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       stub.pipe.pull() mustBe PullResult.Item(Data(DataBlock("world")))
       stub.pipe.pull() mustBe PullResult.Item(End)
     }
+
+    "correctly assemble an http request" in {
+      val (ctrlr, stub) = create()
+      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
+      (ctrlr.downstream.incoming _).when().returns(p)
+      val expected = HttpRequest.get("/foo").withHeader("key", "value").withBody(HttpBody("hello there"))
+      ctrlr.connected()
+      ctrlr.incoming.push(Head(expected.head)) mustBe PushResult.Ok
+      ctrlr.incoming.push(Data(expected.body.asDataBlock)) mustBe PushResult.Ok
+      ctrlr.incoming.push(End) mustBe PushResult.Ok
+
+      p.pull() match {
+        case PullResult.Item(streaming) => {
+          streaming.head mustBe expected.head
+          streaming.body.pull() mustBe PullResult.Item(Data(DataBlock("hello there")))
+          streaming.body.pull() mustBe PullResult.Closed
+        }
+        case other => throw new Exception("WRONG")
+      }
+    }
+
+    def expectDisconnect(f: Con => Any) {
+      val (ctrlr, stub) = create()
+      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
+      (ctrlr.downstream.incoming _).when().returns(p)
+      ctrlr.connected()
+      f(ctrlr)
+      (stub.connection.forceDisconnect _).verify()
+    }
+
+    "disconnect if head received before end" in expectDisconnect { ctrlr => 
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+    }
+
+    "disconnect if end received before head" in expectDisconnect { ctrlr => 
+      ctrlr.incoming.push(End)
+    }
+
+    "disconnect if Data received before head" in expectDisconnect { ctrlr =>
+      ctrlr.incoming.push(Data(DataBlock("WAT")))
+    }
+
+    "disconnect if pipe is terminated" in expectDisconnect { ctrlr =>
+      ctrlr.incoming.terminate(new Exception("WHATAT"))
+    }
+
+    "disconnect if downstream pipe closes" in expectDisconnect { ctrlr =>
+      ctrlr.downstream.incoming.complete()
+      ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
+    }
+      
+
   }
 
 }

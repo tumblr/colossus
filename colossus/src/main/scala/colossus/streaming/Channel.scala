@@ -13,8 +13,8 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
   def complete() = sink.complete()
 
-  override def pullWhile(fn: NEPullResult[O] => PullAction) {
-    source.pullWhile(fn)
+  override def pullWhile(fn: O => PullAction, onc: TerminalPullResult => Any) {
+    source.pullWhile(fn, onc)
   }
 
   override def pullUntilNull(fn: O => Boolean): Option[NullPullResult] = source.pullUntilNull(fn)

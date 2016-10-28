@@ -21,8 +21,8 @@ package object streaming {
       def terminate(err: Throwable) {
         source.terminate(err)
       }
-      override def pullWhile(whilefn: NEPullResult[B] => PullAction) {
-        source.pullWhile{x => whilefn(x.map(fn))}
+      override def pullWhile(whilefn: B => PullAction, onc: TerminalPullResult => Any) {
+        source.pullWhile(x => whilefn(fn(x)), onc)
       }
     }
 
