@@ -61,6 +61,16 @@ class RetryPolicySpec extends ColossusSpec {
       i.nextAttempt() must equal(Stop)
     }
 
+    "not cause overlow after enough attempts" in {
+      val p = BackoffPolicy(20.milliseconds, Exponential(1.second), maxTime = Some(50.milliseconds), immediateFirstAttempt = false)
+      val i = p.start()
+      (1 to 50).foreach{_ =>
+        i.nextAttempt()
+      }
+      i.nextAttempt() must equal(RetryIn(1.second))
+    }
+      
+
 
   }
 

@@ -129,9 +129,21 @@ object BackoffMultiplier {
     
     def max: FiniteDuration
 
+    //needed to avoid possible out-of-range issue with FiniteDuration
+    private var hitMax = false
+
     def value(base: FiniteDuration, attempt: Int) = {
-      val i = increaseValue(base, attempt)
-      if (i > max) max else i
+      if (hitMax) {
+        max
+      } else {
+        val i = increaseValue(base, attempt)
+        if (i > max) {
+          hitMax = true
+          max 
+        } else {
+          i
+        }
+      }
     }
 
     protected def increaseValue(base: FiniteDuration, attempt: Int): FiniteDuration
@@ -148,7 +160,9 @@ object BackoffMultiplier {
    * A multiplier that will double the backoff time with each attempt, up to `max`
    */
   case class Exponential(max: FiniteDuration) extends IncreasingMultiplier {
-    protected def increaseValue(base: FiniteDuration, attempt: Int) = base * math.pow(2, attempt - 1).toLong
+    protected def increaseValue(base: FiniteDuration, attempt: Int) = {
+      base * math.pow(2, attempt - 1).toLong
+    }
   }
 }
 
