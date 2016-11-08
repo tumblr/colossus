@@ -363,6 +363,11 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
     }
   }
 
+  override def fatalInputError(reason: Throwable) = {
+    worker ! Kill(id, DisconnectCause.Error(reason))
+    None
+  }
+
 
   override def idleCheck(period: FiniteDuration) {
     super.idleCheck(period)
