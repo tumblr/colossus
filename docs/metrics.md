@@ -105,7 +105,7 @@ A counter simply allows you to set, increment, and decrement values:
 
 {% highlight scala %}
 
-val counter = Counter("/my-counter")
+val counter = Counter("my-counter")
 
 counter.set(2, Map("foo" -> "bar"))
 
@@ -121,7 +121,7 @@ interval.  Rates are also tracked for every interval.
 
 {% highlight scala %}
 
-val rate = Rate("/my-rate")
+val rate = Rate("my-rate")
 
 rate.hit()
 
@@ -138,7 +138,7 @@ this can be overridden.
 
 {% highlight scala %}
 
-val hist = Histogram("/my-histogram", percentiles = List(0.5, 0.99, 0.999))
+val hist = Histogram("my-histogram", percentiles = List(0.5, 0.99, 0.999))
 
 hist.add(12)
 hist.add(1)

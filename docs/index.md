@@ -6,7 +6,9 @@ categories: docs
 
 [Quickstart](quickstart)
 
-[Working with Clients](clients)
+[Clients](clients)
+
+[Workers](workers)
 
 [Configuration](configuration)
 
