@@ -49,7 +49,7 @@ class CounterSpec extends MetricIntegrationSpec {
 
     }
 
-    
+
   }
 
 }

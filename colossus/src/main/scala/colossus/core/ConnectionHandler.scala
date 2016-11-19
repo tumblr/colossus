@@ -81,7 +81,7 @@ trait ServerConnectionHandler extends ConnectionHandler {}
 
 
 /**
- * ClientConnectionHandler is a trait meant to be used with outgoing connections.  
+ * ClientConnectionHandler is a trait meant to be used with outgoing connections.
  */
 trait ClientConnectionHandler extends ConnectionHandler {
 

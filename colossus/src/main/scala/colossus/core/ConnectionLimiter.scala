@@ -64,7 +64,7 @@ case class ConnectionLimiterConfig(enabled: Boolean, initial: Int, duration: Fin
 
 object ConnectionLimiterConfig {
   import colossus.metrics.ConfigHelpers._
-  
+
   def fromConfig(config: Config): ConnectionLimiterConfig = {
     val enabled   = config.getBoolean("enabled")
     val initial   = config.getInt("initial")

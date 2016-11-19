@@ -404,7 +404,7 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
    * Additional arguments for this function are the limit/offset/count options.
    *
    * http://redis.io/commands/zrangebyscore
-   * 
+   *
    * @param key
    * @param min
    * @param max
@@ -498,7 +498,7 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 object RedisClient {
 
   implicit object RedisClientLifter extends ClientLifter[Redis, RedisClient] {
-    
+
     def lift[M[_]](client: Sender[Redis,M])(implicit async: Async[M]) = new BasicLiftedClient(client) with RedisClient[M]
   }
 

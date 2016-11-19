@@ -176,7 +176,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
    * messages to either get sent or timeout
    */
   private[controller] def outputGracefulDisconnect() {
-    manualDisconnect = true 
+    manualDisconnect = true
     outputState match {
       case a : AliveOutputState => {
         checkOutputGracefulDisconnect()
@@ -191,7 +191,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
     }
   }
 
-  
+
   /**
    * returns true if the state is switched to Terminated
    */
@@ -238,7 +238,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
   protected def canPush = outputState.canPush && !msgq.isFull
 
-  private def drainSource(){ 
+  private def drainSource(){
     outputState match {
       case Streaming(source, dataQ, post) => source.pull {
         case Success(Some(data)) => {
@@ -262,7 +262,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
 
 
   /** Purge all pending messages
-   * 
+   *
    * If a message is currently being written, it is not affected
    */
   protected def purgePending(reason: Throwable) {
@@ -350,7 +350,7 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
       case _ => MoreDataResult.Complete
     }
   }
-        
+
   def idleCheck(period: FiniteDuration): Unit = {
     val time = System.currentTimeMillis
     while (!msgq.isEmpty && msgq.head.isTimedOut(time, controllerConfig.sendTimeout)) {

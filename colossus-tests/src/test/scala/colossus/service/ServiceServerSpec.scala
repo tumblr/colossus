@@ -33,7 +33,7 @@ class ServiceServerSpec extends ColossusSpec {
     def processRequest(input: ByteString) = handler(input)
 
     def receivedMessage(x: Any, s: ActorRef){}
-    
+
     def testCanPush = canPush //expose protected method
   }
 
@@ -165,7 +165,7 @@ class ServiceServerSpec extends ColossusSpec {
         }
       }
     }
-    
+
     "gracefully handle bad input" in {
       val t = fakeService()
       // this is above  max request size

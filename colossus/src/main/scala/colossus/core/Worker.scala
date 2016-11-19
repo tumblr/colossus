@@ -403,13 +403,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   }
 
   /** Removes a closed connection and possibly unbinds the associated Connection Handler
-    * 
+    *
     * In general, the only time we don't want to unbind the handler is when the
     * connection is a client connection with the ManualUnbindHandler mixed in
     * and the disconnect cause is an error.  This allows the client to possibly
     * reconnect and still receive messages.
     *
-    * Here's the table 
+    * Here's the table
     *
     *   Server/Client   ManualUnbindHandler   DisconnectError   Unbind?
     *         S                 -                   -             Y

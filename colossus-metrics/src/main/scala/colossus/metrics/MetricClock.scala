@@ -101,8 +101,8 @@ class SystemMetricsCollector(namespace: MetricNamespace) {
         (namespace.namespace / "system" / "gc" / "msec") -> msec
       )
     }
-    
-    val fdInfo: MetricMap = ManagementFactory.getOperatingSystemMXBean match {    
+
+    val fdInfo: MetricMap = ManagementFactory.getOperatingSystemMXBean match {
       case u: com.sun.management.UnixOperatingSystemMXBean => Map(
         (namespace.namespace / "system" / "fd_count") -> Map(Map() -> u.getOpenFileDescriptorCount)
       )

@@ -27,7 +27,7 @@ import java.util.Random
 package object websocket {
 
   class WebsocketCodec extends Codec[Frame, Frame]{
-    
+
     private val random = new Random
     private val parser = FrameParser.frame
 
@@ -48,7 +48,7 @@ package object websocket {
     def provideCodec() = new WebsocketCodec
 
   }
-    
+
 
 }
 

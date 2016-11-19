@@ -86,7 +86,7 @@ class OutputControllerSpec extends ColossusSpec {
       endpoint.writeReadyEnabled must equal(false)
     }
 
-      
+
 
     "drain output buffer on disconnect" in {
       val endpoint = static()
@@ -133,7 +133,7 @@ class OutputControllerSpec extends ColossusSpec {
     }
 
 
-      
+
   }
 
 

@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 object HttpExample {
 
   class HttpExampleService(redis: RedisClient[Callback], context: ServerContext) extends HttpService(ServiceConfig.Default, context){
-    
+
     def invalidReply(reply: Reply) = s"Invalid reply from redis $reply"
 
     def handle = {

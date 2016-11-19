@@ -39,7 +39,7 @@ object ScatterGather {
       argIndex += 1
       i += groupSize
     }
-        
+
     i = 0
     val res = shardCommands.map{case (shard, args) =>
       val s = Command(cmd.utf8String, args)
@@ -93,7 +93,7 @@ class MGetScatterGather[T](orig: Command, hasher: CommandHasher[T]) extends Scat
 
 class MSetScatterGather[T](orig: Command, hasher: CommandHasher[T]) extends ScatterGather[T]{
   val MSET_BYTES = ByteString("MSET")
-  
+
   def scatter: Seq[(T,Command)] = {
     val (i, s) = ScatterGather.scatterGrouped(orig.args, hasher, MSET_BYTES, 2)
     s

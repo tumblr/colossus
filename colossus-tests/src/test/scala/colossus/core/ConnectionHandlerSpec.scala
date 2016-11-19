@@ -28,7 +28,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
         def receivedData(data: DataBuffer) {}
       }
-      withServer(context => new MyHandler(context)) { server => 
+      withServer(context => new MyHandler(context)) { server =>
         val c = TestClient(server.system, TEST_PORT)
         probe.expectMsg(100.milliseconds, "BOUND")
       }

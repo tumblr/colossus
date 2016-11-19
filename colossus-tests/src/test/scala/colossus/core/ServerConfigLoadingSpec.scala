@@ -8,7 +8,7 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.duration._
 
 class ServerConfigLoadingSpec  extends ColossusSpec {
-  
+
   val refBindingRetry =  BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second), immediateFirstAttempt = false)
   val refDelegatorCreationPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(100.milliseconds, BackoffMultiplier.Constant, immediateFirstAttempt = false))
 

@@ -1,7 +1,7 @@
 package colossus.core
 
 sealed abstract class ShutdownAction(val rank: Int) {
-  
+
   def >=(a: ShutdownAction): Boolean = rank >= a.rank
 
 }

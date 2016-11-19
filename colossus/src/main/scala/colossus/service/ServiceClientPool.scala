@@ -47,7 +47,7 @@ class ServiceClientPool[T <: Sender[_, Callback]](val commonConfig: ClientConfig
   }
 
   def get(address: InetSocketAddress) = clients.get(address)
-  
+
 
 }
 

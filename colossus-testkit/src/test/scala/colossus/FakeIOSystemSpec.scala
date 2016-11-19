@@ -32,6 +32,6 @@ class FakeIOSystemSpec extends ColossusSpec with CallbackMatchers {
 
 
 
-      
+
 
 }

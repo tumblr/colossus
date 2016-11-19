@@ -37,7 +37,7 @@ class ServiceSpecSpec extends ServiceSpec[Redis] {
       expectResponseType[ErrorReply](Command("ASDF"))
     }
 
-    
+
   }
 }
 
@@ -52,6 +52,6 @@ class ServiceSpecTimeoutSpec extends ServiceSpec[Redis] {
       intercept[TestFailedException]{
         expectResponse(Command("DELAY"), StatusReply("OK"))
       }
-    }      
+    }
   }
 }

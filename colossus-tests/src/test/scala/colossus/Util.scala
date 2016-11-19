@@ -24,7 +24,7 @@ class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with Ser
     out.write(buffer.dequeue)
     if (buffer.isEmpty) MoreDataResult.Complete else MoreDataResult.Incomplete
   }
-      
+
 
 }
 
@@ -43,12 +43,12 @@ object RawProtocol {
   }
 
   implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
-    
+
     def lift[M[_]](client: Sender[Raw,M])(implicit async: Async[M]) = new BasicLiftedClient(client) with RawClient[M]
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
-    
+
   }
 
   trait RawClient[M[_]] extends LiftedClient[Raw, M]
@@ -56,7 +56,7 @@ object RawProtocol {
   object RawClient {
   }
 
-  
+
 
   implicit object RawCodecProvider extends ServiceCodecProvider[Raw] {
     def provideCodec() = RawCodec

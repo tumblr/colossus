@@ -5,7 +5,7 @@ import org.scalatest._
 class CollectionMapSpec extends WordSpec with MustMatchers with BeforeAndAfterAll{
 
   "CollectionMap" must {
-      
+
     "increment a non-existing value" in {
       val c = new CollectionMap[String]
       c.get("foo") must equal(None)

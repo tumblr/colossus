@@ -32,7 +32,7 @@ class MemcacheCommandSuite extends FlatSpec with ShouldMatchers{
     experimental.toString() should equal("replace key 0 30 5\r\nmagic\r\n")
     experimental.bytes(NoCompressor) should equal(ByteString("replace key 0 30 5\r\nmagic\r\n"))
   }
-  
+
   it should "format an APPEND correctly" in {
     val experimental = Append(ByteString("key"), ByteString("magic"))
     experimental.toString() should equal("append key 0 0 5\r\nmagic\r\n")

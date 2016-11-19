@@ -28,7 +28,7 @@ object EchoExample {
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
 
     Server.basic("echo", port)(new EchoHandler(_))
-  
+
   }
 
 }

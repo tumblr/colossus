@@ -17,7 +17,7 @@ trait FrameCodec[P <: Protocol] {
 object subprotocols {
 
   object rawstring {
-    
+
     trait RawString extends Protocol {
       type Input = String
       type Output = String
@@ -35,7 +35,7 @@ object subprotocols {
 }
 
 trait FrameCodecProvider[P <: Protocol] {
-  
+
   def provideCodec(): FrameCodec[P]
 
 }
