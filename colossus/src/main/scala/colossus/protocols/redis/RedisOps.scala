@@ -499,7 +499,7 @@ object RedisClient {
 
   implicit object RedisClientLifter extends ClientLifter[Redis, RedisClient] {
     
-    def lift[M[_]](client: Sender[Redis,M], clientConfig: ClientConfig)(implicit async: Async[M]) = {
+    def lift[M[_]](client: Sender[Redis,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) = {
       new BasicLiftedClient(client, clientConfig) with RedisClient[M]
     }
   }
