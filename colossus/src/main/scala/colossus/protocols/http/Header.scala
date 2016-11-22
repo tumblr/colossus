@@ -262,6 +262,7 @@ object HttpHeaders {
   val ContentLength     = "content-length"
   val ContentType       = "content-type"
   val CookieHeader      = "cookie"
+  val Host              = "host"
   val SetCookie         = "set-cookie"
   val TransferEncoding  = "transfer-encoding"
 

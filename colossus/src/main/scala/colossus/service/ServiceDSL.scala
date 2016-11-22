@@ -144,7 +144,7 @@ object Service {
  */
 trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
-  def lift[M[_]](baseClient: Sender[C, M])(implicit async: Async[M]) : T[M]
+  def lift[M[_]](baseClient: Sender[C, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) : T[M]
 
 }
 
@@ -216,11 +216,16 @@ class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Send
 extends ClientFactory[C,M,T[M],E] {
 
   def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
-    apply(baseFactory(config))
+    apply(baseFactory(config), config)
   }
 
-  def apply(sender: Sender[C,M])(implicit env: E): T[M] = lifter.lift(sender)(builder.build(env))
+  def apply(sender: Sender[C,M], clientConfig: ClientConfig)(implicit env: E): T[M] = {
+    lifter.lift(sender, Some(clientConfig))(builder.build(env))
+  }
 
+  def apply(sender: Sender[C,M])(implicit env: E): T[M] = {
+    lifter.lift(sender, None)(builder.build(env))
+  }
 }
 
 /**
@@ -236,6 +241,7 @@ class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: C
 
 trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
 
+  def clientConfig: Option[ClientConfig]
   def client: Sender[C,M]
   implicit val async: Async[M]
 
@@ -249,6 +255,7 @@ trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
 
 }
 
-class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends LiftedClient[C,M] {
+class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M], val clientConfig: Option[ClientConfig])
+                                             (implicit val async: Async[M]) extends LiftedClient[C,M] {
 
 }
