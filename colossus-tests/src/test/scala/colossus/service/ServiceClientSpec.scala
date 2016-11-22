@@ -17,6 +17,8 @@ import java.net.InetSocketAddress
 import protocols.redis._
 import UnifiedProtocol._
 import scala.concurrent.Await
+import parsing.DataSize
+import DataSize._
 
 import RawProtocol._
 import org.scalamock.scalatest.MockFactory
@@ -26,7 +28,8 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     failFast: Boolean = false,
     maxSentSize: Int = 10,
     connectRetry: RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
-    requestTimeout: Duration = 10.seconds
+    requestTimeout: Duration = 10.seconds,
+    maxResponseSize: DataSize = 1.MB
   ): (MockConnection, ServiceClient[Redis], TestProbe) = {
     val address = new InetSocketAddress("localhost", 12345)
     val fakeWorker = FakeIOSystem.fakeWorker
@@ -37,7 +40,8 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       pendingBufferSize = 100,
       sentBufferSize = maxSentSize,
       failFast = failFast,
-      connectRetry = connectRetry
+      connectRetry = connectRetry,
+      maxResponseSize = maxResponseSize
     )
     implicit val w = fakeWorker.worker
 
@@ -449,6 +453,16 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
       failed must equal(true)
     }
+
+    "kill the connection if a parse exception occurs" in {
+      val (endpoint, client, probe) = newClient(requestTimeout = 10.milliseconds, connectRetry = NoRetry, maxResponseSize = DataSize(1))
+      val cb = client.send(Command(CMD_GET, "foo")).execute()
+      endpoint.iterate()
+      endpoint.handler.receivedData(StatusReply("uhoh").raw)
+      val msg = probe.receiveOne(500.milliseconds)
+      msg mustBe a[WorkerCommand.Kill]
+    }
+      
 
     "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
       withIOSystem{ implicit io => 

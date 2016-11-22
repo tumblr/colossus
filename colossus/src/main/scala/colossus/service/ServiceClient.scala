@@ -406,6 +406,11 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
     }
   }
 
+  override def onFatalError(reason: Throwable) = {
+    worker ! Kill(id, DisconnectCause.Error(reason))
+    None
+  }
+
 
   override protected def onIdleCheck(period: FiniteDuration) {
     val now = System.currentTimeMillis

@@ -192,7 +192,7 @@ trait BasicServiceDSL[P <: Protocol] {
  */
 trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
-  def lift[M[_]](baseClient: Sender[C, M])(implicit async: Async[M]) : T[M]
+  def lift[M[_]](baseClient: Sender[C, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) : T[M]
 
 }
 
@@ -274,11 +274,16 @@ extends ClientFactory[C,M,T[M],E] {
   def defaultName = baseFactory.defaultName
 
   def apply(config: ClientConfig)(implicit env: E): T[M] = {
-    apply(baseFactory(config))
+    apply(baseFactory(config), config)
   }
 
-  def apply(sender: Sender[C,M])(implicit env: E): T[M] = lifter.lift(sender)(builder.build(env))
+  def apply(sender: Sender[C,M], clientConfig: ClientConfig)(implicit env: E): T[M] = {
+    lifter.lift(sender, Some(clientConfig))(builder.build(env))
+  }
 
+  def apply(sender: Sender[C,M])(implicit env: E): T[M] = {
+    lifter.lift(sender, None)(builder.build(env))
+  }
 }
 
 /**
@@ -298,6 +303,7 @@ abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit 
 
 trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
 
+  def clientConfig: Option[ClientConfig]
   def client: Sender[C,M]
   implicit val async: Async[M]
 
@@ -311,6 +317,7 @@ trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
 
 }
 
-class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M])(implicit val async: Async[M]) extends LiftedClient[C,M] {
+class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M], val clientConfig: Option[ClientConfig])
+                                             (implicit val async: Async[M]) extends LiftedClient[C,M] {
 
 }
