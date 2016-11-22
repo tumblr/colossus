@@ -14,7 +14,7 @@ package object redis {
 
   object Redis extends ClientFactories[Redis, RedisClient]{
 
-    implicit def clientFactory = ServiceClientFactory.staticClient("redis", () => new RedisClientCodec)
+    implicit def clientFactory = ServiceClientFactory.basic("redis", () => new RedisClientCodec)
     
 
     object defaults {

@@ -29,7 +29,6 @@ class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
 trait Client[P <: Protocol, M[_]] extends Sender[P, M] {
   def connectionStatus: M[ConnectionStatus]
   def disconnect()
-  def clientConfig : ClientConfig
 
 }
 

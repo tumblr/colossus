@@ -104,7 +104,7 @@ object RawProtocol {
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
-    implicit def clientFactory = ServiceClientFactory.staticClient("redis", () => RawClientCodec)
+    implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
     
   }
 
