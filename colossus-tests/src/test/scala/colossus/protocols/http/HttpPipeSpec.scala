@@ -17,7 +17,7 @@ import scala.util.{Try, Success, Failure}
 
 
 class HttpPipeSuite extends WordSpec with MustMatchers{
-    
+
   val chunkedBody = ByteString("3\r\nfoo\r\nb\r\n12345678901\r\n0\r\n\r\n")
   val badChunkedBody = ByteString("3\r\nfoo\r\n1WHATTT\r\n12345678901\r\n0\r\n\r\n")
 

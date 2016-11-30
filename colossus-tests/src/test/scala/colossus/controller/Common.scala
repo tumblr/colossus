@@ -15,7 +15,7 @@ case class TestInputImpl(data: FiniteBytePipe) extends TestInput{
   def source = data
   def sink = data
 }
-  
+
 case class TestOutput(data: Source[DataBuffer])
 
 

@@ -65,7 +65,7 @@ class WebsocketSpec extends ColossusSpec {
       val masked = DataBlock("abcd") ++ DataBlock(ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69).toArray)
       FrameParser.unmask(true, masked).byteString must equal(ByteString("Hello World!"))
     }
-    
+
     "parse a frame" in {
       val data = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87).toArray
       val expected = Frame(Header(OpCodes.Ping, true), DataBlock("Hello World!"))
@@ -104,7 +104,7 @@ class WebsocketSpec extends ColossusSpec {
 
 
   "WebsocketHandler" must {
-    //a simple codec to test decoding errors 
+    //a simple codec to test decoding errors
     trait CString extends Protocol {
       type Input = String
       type Output = String
@@ -112,13 +112,13 @@ class WebsocketSpec extends ColossusSpec {
 
     class CStringCodec extends FrameCodec[CString] {
       def encode(str: String): DataBlock = DataBlock(":" + str)
-      def decode(block: DataBlock): Try[String] = { 
-        val x = block.utf8String 
+      def decode(block: DataBlock): Try[String] = {
+        val x = block.utf8String
         if (x.startsWith(":")) {
           Success(x.drop(1))
         } else {
           Failure(new Exception("Bad formatting!"))
-        }      
+        }
       }
     }
 
@@ -177,8 +177,8 @@ class WebsocketSpec extends ColossusSpec {
       con.expectDisconnectAttempt()
     }
 
-      
-    
+
+
   }
 
   "WebsocketHttp" must {

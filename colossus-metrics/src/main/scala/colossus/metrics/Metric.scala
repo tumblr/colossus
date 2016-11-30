@@ -22,7 +22,7 @@ case class MetricAddress(components: List[String]) {
   def pieceString = components.mkString("/")
 
   def idString = components.mkString("_")
-  
+
   /**
    * String version the address used for loading configuration
    */

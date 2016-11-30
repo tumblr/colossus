@@ -7,7 +7,7 @@ import Combinators._
 
 object HttpRequestParser {
   import HttpParse._
-  
+
   def apply() = httpRequest
 
   //TODO : don't parse body as a bytestring
@@ -22,11 +22,11 @@ object HttpRequestParser {
   }
 
   protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
-    ParsedHead(fl, headersBuilder.buildHeaders) 
+    ParsedHead(fl, headersBuilder.buildHeaders)
   }
 
   def firstLine = line(ParsedFL.apply, true)
-  
+
 }
 
 

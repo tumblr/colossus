@@ -7,7 +7,7 @@ import akka.util.{ByteString, ByteStringBuilder}
 class DataBlockSpec extends ColossusSpec {
 
   "DataBlock" must {
-    
+
     "respect equality" in {
       DataBlock("123456") == DataBlock("123456") must equal(true)
     }
@@ -27,5 +27,5 @@ class DataBlockSpec extends ColossusSpec {
   }
 }
 
-    
+
 

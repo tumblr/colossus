@@ -461,7 +461,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
 /**
  * Represents the startup status of the server.
- *  
+ *
  *  - `Initializing` : The server was just started and is registering with the IOSystem
  *  - `Binding` : The server is registered and in the process of binding to its port
  *  - `Bound` : The server is actively listening on the port and accepting connections
@@ -496,7 +496,7 @@ object Server extends ServerDSL {
   case class ConnectionClosed(id: Long, cause : RootDisconnectCause)
 
   /** Sent from a worker to the server when the server is not registered with the worker.
-   * 
+   *
    * This generally happens when a worker has just been killed and restarted.  See Server.MaxConnectionRegisterAttempts
    */
   private[core] case class ConnectionRefused(channel: SocketChannel, attempt: Int)

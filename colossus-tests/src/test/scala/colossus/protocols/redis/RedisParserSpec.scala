@@ -147,7 +147,7 @@ class FastReplySuite extends FlatSpec with ShouldMatchers{
 
   it should "parse bulk reply in fragments" in {
     val reply = ByteString("$5\r\nabcde\r\n")
-    (1 until reply.size-1).foreach{i => 
+    (1 until reply.size-1).foreach{i =>
       val parser = replyParser
       val (p1, p2) = reply.splitAt(i)
       parser.parse(DataBuffer.fromByteString(p1)) should equal (None)

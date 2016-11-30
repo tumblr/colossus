@@ -38,17 +38,17 @@ class PrimeGenerator extends Actor {
 }
 
 case object Next
-    
+
 
 
 object WebsocketExample {
 
   def start(port: Int)(implicit io: IOSystem) = {
-    
+
     val generator = io.actorSystem.actorOf(Props[PrimeGenerator])
 
     WebsocketServer.start("websocket", port){worker => new WebsocketInitializer(worker) {
-      
+
       def onConnect = ctx => new WebsocketServerHandler[RawString](ctx) with ProxyActor {
         private var sending = false
 

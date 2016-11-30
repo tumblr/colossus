@@ -16,7 +16,7 @@ object UpgradeRequest {
   import protocols.http._
 
   val salt = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" //GUID for websocket
-  
+
   val b64 = new BASE64Encoder
 
   def processKey(key: String): String = {
@@ -25,7 +25,7 @@ object UpgradeRequest {
     digest.update((key + salt).getBytes("UTF-8"))
     new String(b64.encode(digest.digest()))
   }
-  
+
 
   /**
    * Validate a HttpRequest as a websocket upgrade request, returning the
@@ -34,12 +34,12 @@ object UpgradeRequest {
   def validate(request : HttpRequest): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
-      cheader   <- headers.firstValue("connection") 
-      uheader   <- headers.firstValue("upgrade") 
+      cheader   <- headers.firstValue("connection")
+      uheader   <- headers.firstValue("upgrade")
       host      <- headers.firstValue("host")
       origin    <- headers.firstValue("origin")
       seckey    <- headers.firstValue("sec-websocket-key")
-      secver    <- headers.firstValue("sec-websocket-version") 
+      secver    <- headers.firstValue("sec-websocket-version")
       if (request.head.version  == HttpVersion.`1.1`)
       if (request.head.method   == HttpMethod.Get)
       if (secver == "13")
@@ -56,7 +56,7 @@ object UpgradeRequest {
         )
       ),
       HttpBody.NoBody
-    )      
+    )
   }
 }
 
@@ -72,7 +72,7 @@ object OpCodes {
   val Pong      = 0x0A.toByte
 
   def fromHeaderByte(b: Byte) = b & 0x0F
-  
+
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
 
 }
@@ -149,9 +149,9 @@ object FrameParser {
     val payload = data.drop(4)
     Frame.mask(mask, payload)
   }
-  
 
-  
+
+
   //see https://tools.ietf.org/html/rfc6455#section-5.2
   def frame = bytes(2) |> {head =>
     val opcode = head(0) & 0x0F
@@ -236,7 +236,7 @@ object WebsocketHandler {
   val NoopPostWrite: OutputResult => Unit = _ => ()
 }
 
- 
+
 abstract class WebsocketServerHandler[P <: Protocol](serverContext: ServerContext, config: ControllerConfig)(implicit provider: FrameCodecProvider[P])
 extends WebsocketHandler[P](serverContext.context, config)(provider) with ServerConnectionHandler {
 
@@ -281,11 +281,11 @@ object WebsocketServer {
    */
   def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
     Server.start(name, port){worker => new Initializer(worker) {
-    
+
       val websockinit : WebsocketInitializer = init(worker)
 
       def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath)
-      
+
     }}
   }
 

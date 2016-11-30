@@ -36,7 +36,7 @@ trait Codec[Output,Input] {
 
   def encode(out: Output): DataReader
   /**
-   * Decode a single object from a bytestream.  
+   * Decode a single object from a bytestream.
    */
   def decode(data: DataBuffer): Option[DecodedResult[Input]]
 

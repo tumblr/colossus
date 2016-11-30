@@ -41,7 +41,7 @@ trait HttpRequestHead extends Encoder {
   def headers: HttpHeaders
 
   def copy(
-    method  : HttpMethod  = firstLine.method, 
+    method  : HttpMethod  = firstLine.method,
     path    : String      = firstLine.path,
     version : HttpVersion = firstLine.version,
     headers : HttpHeaders = headers
@@ -103,7 +103,7 @@ trait HttpRequestHead extends Encoder {
 }
 
 object HttpRequestHead {
-  
+
   def apply(method: HttpMethod, url: String, version: HttpVersion, headers: HttpHeaders): HttpRequestHead = {
     BuiltHead(BuildFL(method, url, version), headers)
   }
@@ -138,7 +138,7 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder wi
       buffer write HttpParse.N2
       body encode buffer
     }
-      
+
   }
 
 }

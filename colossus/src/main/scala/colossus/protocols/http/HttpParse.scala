@@ -48,7 +48,7 @@ object HttpParse {
       if (co.isEmpty && header.matches(HttpHeaders.Connection)) {
         co = Some(Connection(header.value))
       }
-      
+
       this
     }
 
@@ -56,7 +56,7 @@ object HttpParse {
     def buildHeaders: ParsedHttpHeaders = {
       new ParsedHttpHeaders(build.asInstanceOf[java.util.List[HttpHeader]], te, cl, co) //silly invariant java collections :/
     }
-    
+
   }
 }
 

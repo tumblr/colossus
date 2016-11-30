@@ -7,7 +7,7 @@ import akka.util.ByteString
 class DataOutBufferSpec extends ColossusSpec {
 
   "DynamicOutBuffer" must {
-    
+
     "handle overflow" in {
       val data = ByteString("123456789")
       val n = new DynamicOutBuffer(5)
@@ -30,6 +30,6 @@ class DataOutBufferSpec extends ColossusSpec {
       n.write(DataBuffer(data))
       ByteString(n.data.takeAll) must equal(data)
     }
-      
+
   }
 }

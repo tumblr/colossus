@@ -75,9 +75,9 @@ object HttpResponseHead{
     HttpResponseHead(BasicResponseFL(version, code), headers)
   }
 }
-  
 
-sealed trait BaseHttpResponse { 
+
+sealed trait BaseHttpResponse {
 
   def head: HttpResponseHead
 
@@ -173,13 +173,13 @@ case class StreamingHttpResponse(head: HttpResponseHead, body: Option[Source[Dat
     builder write NEWLINE_ARRAY
 
     val headerBytes = builder.data
-    body.map{stream => 
+    body.map{stream =>
       DataStream(new DualSource[DataBuffer](Source.one(headerBytes), stream))
     }.getOrElse(headerBytes)
 
   }
 
-  def resolveBody: Option[Callback[ByteString]] = body.map{data => 
+  def resolveBody: Option[Callback[ByteString]] = body.map{data =>
     data.fold(new ByteStringBuilder){(buffer: DataBuffer, builder: ByteStringBuilder) => builder.putBytes(buffer.takeAll)}.map{_.result}
   }
 
@@ -195,7 +195,7 @@ object StreamingHttpResponse {
 
   def apply[T : HttpBodyEncoder](version : HttpVersion, code : HttpCode, headers : HttpHeaders, data : T) : StreamingHttpResponse = {
     fromStatic(HttpResponse(
-      HttpResponseHead(version, code, headers), 
+      HttpResponseHead(version, code, headers),
       HttpBody(data)
     ))
   }

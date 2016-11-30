@@ -99,9 +99,9 @@ trait MockChannelActions extends ChannelActions {
     val call = writeCalls.dequeue()
     f(call)
   }
-    
 
-    
+
+
 }
 
 class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer with MockChannelActions {

@@ -86,9 +86,9 @@ trait HttpBodyEncoders {
 }
 
 object HttpBody extends HttpBodyEncoders {
-  
+
   val NoBody = new HttpBody(Array(), None)
-  
+
   def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
 
   def apply[T](data: T, contentType: String)(implicit encoder: HttpBodyEncoder[T]) = {

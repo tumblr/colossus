@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 import scala.util.Success
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers{
-  
+
   import TestController._
 
   "Input Controller" must {
@@ -62,7 +62,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
       //now it should be done
       executed must equal(true)
     }
-    
+
     "reject data above the size limit" in {
       val input = ByteString("hello")
       val config = ControllerConfig(4, 50.milliseconds, 2.bytes)
@@ -75,7 +75,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
 
     "stream is terminated when connection disrupted" in {
       var source: Option[Source[DataBuffer]] = None
-      val (endpoint, con) = createController({input => 
+      val (endpoint, con) = createController({input =>
         source = Some(input.source)
       })
       con.receivedData(DataBuffer(ByteString("4\r\n")))
@@ -92,12 +92,12 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
         }
       }
       wrong must equal(false)
-      failed must equal(true)   
+      failed must equal(true)
     }
 
     "input stream allowed to complete during graceful disconnect" in {
       var source: Option[Source[DataBuffer]] = None
-      val (endpoint, con) = createController({input => 
+      val (endpoint, con) = createController({input =>
         source = Some(input.source)
       })
       endpoint.readsEnabled must equal(true)
@@ -119,8 +119,8 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers{
 
     }
     */
-        
-      
+
+
 
   }
 
