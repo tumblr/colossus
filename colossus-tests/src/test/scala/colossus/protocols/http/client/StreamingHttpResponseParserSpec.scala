@@ -148,7 +148,7 @@ class StreamingHttpResponseParserSpec extends ColossusSpec with MustMatchers wit
 
   private def validateEncodedStreamingHttpResponse(body : Option[ByteString]){
     val res = StreamingHttpResponse(
-      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("a"->"b", "content-length"->body.map{_.size.toString}.getOrElse("0"))), 
+      HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, Vector("a"->"b", "content-length"->body.map{_.size.toString}.getOrElse("0"))),
       body.map{bod => Source.one(DataBuffer(bod))}
     )
     val clientProtocol = new StreamingHttpClientCodec

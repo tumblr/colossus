@@ -127,7 +127,7 @@ class StaleClientException(msg : String) extends Exception(msg)
 
 sealed trait ClientState
 object ClientState {
-  
+
 
   case object Initializing  extends ClientState
   case object Connecting    extends ClientState
@@ -221,7 +221,7 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
-      
+
     }else{
       throw new StaleClientException("This client has already been manually disconnected and cannot be reused, create a new one.")
     }

@@ -32,8 +32,8 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
         )
-      ), HttpBody.NoBody)        
-      
+      ), HttpBody.NoBody)
+
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
     }
 
@@ -51,11 +51,11 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "authorization" -> "Basic XXX",
           "accept-encoding" -> "gzip, deflate"
         )
-      ), HttpBody.NoBody)        
+      ), HttpBody.NoBody)
 
       (0 until req.length).foreach{splitIndex =>
         val p1 = req.take(splitIndex)
-        val p2 = req.drop(splitIndex)      
+        val p2 = req.drop(splitIndex)
         try {
           parser.parse(DataBuffer(ByteString(p1))).toList must equal(Nil)
           parser.parse(DataBuffer(ByteString(p2))).toList must equal(List(expected))
@@ -86,10 +86,10 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" ->  "*/*",
           "content-length" -> len.toString
         )
-      ), HttpBody(body))        
+      ), HttpBody(body))
 
       val parser = requestParser
-      
+
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
     }
 
@@ -104,10 +104,10 @@ class HttpParserSuite extends WordSpec with MustMatchers{
           "accept" -> "*/*",
           "content-length" -> "0"
         )
-      ), HttpBody.NoBody)        
+      ), HttpBody.NoBody)
 
       val parser = requestParser
-      
+
       parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
 
     }
@@ -204,10 +204,10 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       parsed.body must equal(HttpBody(ByteString("foo123456789abcde")))
       data.remaining must equal(0)
     }
-    
-      
 
-      
+
+
+
   }
 
   "HttpMethod" must {
@@ -247,7 +247,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
     def h(url: String) = HttpRequestHead(HttpMethod.Get, url, HttpVersion.`1.1`, Nil).parameters
     def p(params: (String, String)*) = QueryParameters(params.toSeq)
-      
+
     "parse a basic url" in {
       h("/hello/blah.php?foo=bar&baz=moo") must equal(p("foo" -> "bar" , "baz" -> "moo"))
     }
@@ -259,7 +259,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "handle terminating &" in {
       h("/x?a=b&") must equal(p("a" -> "b"))
     }
-    
+
     "handle empty value" in {
       h("/x?a=&b=c") must equal(p("a" -> "", "b" -> "c"))
     }
@@ -284,8 +284,8 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       p.contains("b") must equal(true)
       p.contains("c") must equal(false)
     }
-      
-    
+
+
   }
 
   "Http Url Matcher" must {
@@ -308,7 +308,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
       }
       r must equal(true)
     }
-      
+
 
 
     "match url" in {
@@ -381,9 +381,9 @@ class HttpParserSuite extends WordSpec with MustMatchers{
         case _ => throw new Exception(s"$req failed to parse correctly")
       }
     }
-      
-      
+
+
   }
-      
+
 
 }

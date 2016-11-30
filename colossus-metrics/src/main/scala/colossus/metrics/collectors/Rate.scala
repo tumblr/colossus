@@ -29,7 +29,7 @@ trait Rate extends Collector{
    *
    * @param collectionInterval The collection interval to retrieve the value for.  Collection intervals are configured per [[MetricSystem]]
    * @param tags The tags for the value to get, defaults to an empty tagmap
-   * 
+   *
    */
   def value(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Long
 

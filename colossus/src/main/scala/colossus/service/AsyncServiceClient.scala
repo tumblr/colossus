@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 
 class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
-  
+
   override def preStart() {
     context.watch(proxy)
   }

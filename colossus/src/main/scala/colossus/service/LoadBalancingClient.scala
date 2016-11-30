@@ -56,10 +56,10 @@ class PermutationGenerator[T : ClassTag](val seedlist: List[T]) extends Iterator
   }
 
 }
-  
-class LoadBalancingClientException(message: String) extends Exception(message)  
+
+class LoadBalancingClientException(message: String) extends Exception(message)
 class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
-  s"Failed after ${tries} tries, error on last try: ${finalCause.getMessage}", 
+  s"Failed after ${tries} tries, error on last try: ${finalCause.getMessage}",
   finalCause
 )
 
@@ -79,8 +79,8 @@ class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
  */
 class LoadBalancingClient[P <: Protocol] (
   worker: WorkerRef,
-  generator: InetSocketAddress => Sender[P, Callback], 
-  maxTries: Int = Int.MaxValue,   
+  generator: InetSocketAddress => Sender[P, Callback],
+  maxTries: Int = Int.MaxValue,
   initialClients: Seq[InetSocketAddress] = Nil
 ) extends WorkerItem(worker.generateContext) with Sender[P, Callback]  {
 
@@ -104,7 +104,7 @@ class LoadBalancingClient[P <: Protocol] (
 
   def currentClients = clients.toList
 
-    
+
   private def addClient(address: InetSocketAddress, regen: Boolean): Sender[P, Callback] = {
     val client = generator(address)
     clients(address) = client
@@ -130,7 +130,7 @@ class LoadBalancingClient[P <: Protocol] (
   def update(addresses: Seq[InetSocketAddress]) {
     val toRemove = clients.filter{case (i, c) => !addresses.contains(i)}.keys
     toRemove.foreach(removeClient)
-    addresses.foreach{address => 
+    addresses.foreach{address =>
       if (! (clients contains address)) {
         addClient(address,false)
       }
@@ -142,7 +142,7 @@ class LoadBalancingClient[P <: Protocol] (
     clients.foreach{case (i,c) => c.disconnect()}
     clients.clear()
   }
-      
+
 
   def send(request: P#Input): Callback[P#Output] = {
     val retryList =  permutations.next().take(maxTries)
@@ -150,7 +150,7 @@ class LoadBalancingClient[P <: Protocol] (
       case err => list match {
         case head :: tail => go(head, tail)
         case Nil => Callback.failed(new SendFailedException(retryList.size, err))
-      }      
+      }
     }
     if (retryList.isEmpty) {
       Callback.failed(new SendFailedException(retryList.size, new Exception("Empty client list!")))

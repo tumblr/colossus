@@ -8,7 +8,7 @@ import akka.testkit.TestProbe
 import scala.concurrent.duration._
 
 trait MockConnection extends Connection with MockChannelActions {
-  
+
   /**
    * Simulate event-loop iterations, calling readyForData until this buffer
    * fills or everything is written.  This can be used to test backpressure
@@ -42,7 +42,7 @@ trait MockConnection extends Connection with MockChannelActions {
       clearBuffer()
     }
   }
-    
+
 
   def iterate(bsize: Int = 100) = iterate[Unit](bsize)({})
 
@@ -58,7 +58,7 @@ trait MockConnection extends Connection with MockChannelActions {
 
   /**
    * checks to see if the connection handler has attempted to close the
-   * connection.  
+   * connection.
    */
   def expectDisconnectAttempt() {
     workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(id))

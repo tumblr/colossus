@@ -44,7 +44,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
     f.futureValue must be (mutable.HashSet(true, false)) //some keys are deleted by the tests.
     super.afterAll()
   }
-  
+
   val mValue = ByteString("value")
   "Memcached client" should {
     "add" in {

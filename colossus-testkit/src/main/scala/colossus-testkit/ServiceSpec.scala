@@ -12,13 +12,13 @@ import service._
 import scala.reflect.ClassTag
 
 abstract class ServiceSpec[C <: Protocol](implicit provider: ServiceCodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
-  
+
   type Request = C#Input
   type Response = C#Output
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-  
+
   def service: ServerRef
   def requestTimeout: FiniteDuration
 

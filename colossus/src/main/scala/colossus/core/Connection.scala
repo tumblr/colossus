@@ -64,7 +64,7 @@ trait ConnectionInfo {
    * The address of the remote host for this connection, if connected
    */
   def remoteAddress: Option[InetSocketAddress]
-  
+
 }
 
 /**
@@ -143,7 +143,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
       }
     }
   }
-    
+
   val startTime = System.currentTimeMillis
 
   def remoteAddress: Option[InetSocketAddress] = None
@@ -208,7 +208,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
       //request, so it should have something to write
       val more  = handler.readyForData(data)
       val toWrite = data.data
-      
+
       //its possible for the handler to not actually have written anything, this
       //can occur due to the fact that we use the writeReady flag to track both
       //pending data from the handler and from the partial buffer, so we can end up
@@ -258,7 +258,7 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
 /**
  * This mixin is used with all real connections, not in tests
  */
-private[core] trait LiveConnection extends ChannelActions { self: Connection => 
+private[core] trait LiveConnection extends ChannelActions { self: Connection =>
 
   protected def channel: SocketChannel
   def key: SelectionKey
@@ -304,7 +304,7 @@ private[core] trait LiveConnection extends ChannelActions { self: Connection =>
 }
 
 abstract class ServerConnection(
-  id: Long, 
+  id: Long,
   handler: ServerConnectionHandler,
   val server: ServerRef,
   worker: WorkerRef
@@ -327,7 +327,7 @@ abstract class ServerConnection(
 }
 
 abstract class ClientConnection(
-  id: Long, 
+  id: Long,
   val clientHandler: ClientConnectionHandler,
   worker: WorkerRef
 )  extends Connection(id, clientHandler, worker) {

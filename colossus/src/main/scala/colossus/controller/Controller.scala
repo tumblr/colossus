@@ -95,16 +95,16 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
     outputGracefulDisconnect()
     checkControllerGracefulDisconnect()
   }
-  
+
   def fatalInputError(reason: Throwable) = {
-    
+
     processBadRequest(reason).foreach { output =>
       push(output) { _ => {} }
     }
     disconnect()
     //throw reason
   }
-  
+
   /**
    * Checks the status of the shutdown procedure.  Only when both the input and
    * output sides are terminated do we call shutdownRequest on the parent
@@ -118,7 +118,7 @@ extends CoreHandler(context) with InputController[Input, Output] with OutputCont
         //can happen when disconnect is called before being connected
         super.shutdown()
       }
-      case _ => {} 
+      case _ => {}
     }
   }
 

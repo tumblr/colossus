@@ -31,7 +31,7 @@ object KeyValDB {
 }
 
 object KeyValExample {
-  
+
 
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
@@ -59,4 +59,4 @@ object KeyValExample {
     }}
   }
 }
-        
+

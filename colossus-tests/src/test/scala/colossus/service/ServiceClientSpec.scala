@@ -147,7 +147,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         Command(CMD_GET, "foo") -> BulkReply(ByteString("foo")),
         Command(CMD_GET, "123456789012345678901234567890") -> BulkReply(ByteString("big")),
         Command(CMD_DEL, "bar") -> IntegerReply(1)
-      
+
       )
       val (endpoint, client, probe) = newClient()
 
@@ -458,10 +458,10 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       val msg = probe.receiveOne(500.milliseconds)
       msg mustBe a[WorkerCommand.Kill]
     }
-      
+
 
     "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
-      withIOSystem{ implicit io => 
+      withIOSystem{ implicit io =>
         val config = ClientConfig(
           name = "/test",
           requestTimeout = 100.milliseconds,
@@ -494,7 +494,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       CallbackAwait.result(c.send(HttpRequest.get("/foo")), 1.second) mustBe resp
 
     }
-      
+
 
   }
 }

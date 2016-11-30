@@ -188,7 +188,7 @@ extends Actor with ActorLogging with Stash {
     }
     def retryRegister(message: String) = {
       val incident = retry.getOrElse(server.config.settings.delegatorCreationPolicy.retryPolicy.start())
-      val fullMessage = s"Failed to register server ${server.name} after ${incident.attempts} attempts:" 
+      val fullMessage = s"Failed to register server ${server.name} after ${incident.attempts} attempts:"
       incident.nextAttempt() match {
         case RetryAttempt.Stop => {
           log.error(s"$fullMessage, aborting")

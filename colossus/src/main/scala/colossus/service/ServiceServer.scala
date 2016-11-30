@@ -125,7 +125,7 @@ with ServerConnectionHandler {
   def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
   def requestLogFormat : Option[RequestFormatter[I]] = None
 
-  
+
   private val requests  = Rate("requests", "connection-handler-requests")
   private val latency   = Histogram("latency", "connection-handler-latency")
   private val errors    = Rate("errors", "connection-handler-errors")
@@ -188,7 +188,7 @@ with ServerConnectionHandler {
 
     }
   }
-    
+
   /**
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
@@ -276,7 +276,7 @@ with ServerConnectionHandler {
       case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
     }
   }
-  
+
   override def processBadRequest(reason: Throwable) = {
     Some(handleFailure(IrrecoverableError(reason)))
   }
@@ -303,9 +303,9 @@ with ServerConnectionHandler {
   protected def processRequest(request: I): Callback[O]
 
   //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
- 
+
   protected def processFailure(error: ProcessingFailure[I]): O
-  
+
 }
 
 sealed trait ProcessingFailure[C] {

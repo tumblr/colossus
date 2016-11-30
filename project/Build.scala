@@ -23,10 +23,10 @@ object ColossusBuild extends Build {
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(
-        "-feature", 
-        "-language:implicitConversions", 
-        "-language:postfixOps", 
-        "-unchecked", 
+        "-feature",
+        "-language:implicitConversions",
+        "-language:postfixOps",
+        "-unchecked",
         "-deprecation"
       )
       if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
@@ -45,17 +45,17 @@ object ColossusBuild extends Build {
   ) ++ Defaults.itSettings
 
   val ColossusSettings = GeneralSettings ++ Publish.settings
-  
+
   val noPubSettings = GeneralSettings ++ Seq(
     publishArtifact := false,
-    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))) 
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
     )
 
   val testkitDependencies = libraryDependencies ++= Seq(
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
   )
 
-  val MetricSettings = ColossusSettings 
+  val MetricSettings = ColossusSettings
 
   val ExamplesSettings = Seq (
     libraryDependencies ++= Seq(
@@ -94,7 +94,7 @@ object ColossusBuild extends Build {
       .dependsOn(ColossusProject)
 
   lazy val ColossusTestsProject = Project(
-    id="colossus-tests", 
+    id="colossus-tests",
     base = file("colossus-tests"),
     dependencies = Seq(ColossusTestkitProject % "compile;test->test")
   ).settings(noPubSettings:_*).configs(IntegrationTest)

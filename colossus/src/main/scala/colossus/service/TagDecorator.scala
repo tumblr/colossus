@@ -12,7 +12,7 @@ class DefaultTagDecorator[I,O] extends TagDecorator[I,O] {
 }
 
 object TagDecorator {
-  
+
   def default[I, O] = new DefaultTagDecorator[I,O]
 }
 

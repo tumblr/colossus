@@ -26,7 +26,7 @@ trait PR extends Protocol {
 class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
   type C = ServiceClient[PR]
-  
+
   def mockClient(address: InetSocketAddress, customReturn: Option[Try[Int]]): C = {
     val config = ClientConfig(
       address = address,
@@ -38,7 +38,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
     when(c.send("hey")).thenReturn(Callback.complete(r))
     when(c.config).thenReturn(config)
     when(c.connectionState).thenReturn(core.ConnectionState.Connected(mock[core.WriteEndpoint]))
-    c        
+    c
   }
 
   def mockClient(port: Int, customReturn: Option[Try[Int]] = None): C = mockClient(new InetSocketAddress("0.0.0.0", port), customReturn)
@@ -71,12 +71,12 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
 
     "evenly divide requests among clients" in {
-      (1 to 5).foreach{num => 
+      (1 to 5).foreach{num =>
         val ops = (1 to num).permutations.toList.size //lazy factorial
         val clients = addrs(num)
         val (probe, worker) = FakeIOSystem.fakeWorkerRef
         val l = new LoadBalancingClient[PR](worker, mockGenerator, maxTries = 2, initialClients = clients)
-        (1 to ops).foreach{i => 
+        (1 to ops).foreach{i =>
           l.send("hey").execute()
         }
         l.currentClients.foreach{case (i,c) =>
@@ -93,10 +93,10 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       val l = new LoadBalancingClient[PR](worker, staticClients(List(good, bad)), maxTries = 2, initialClients = addrs(2))
       //sending a bunch of commands ensures both clients are attempted as the first try at least once
       //the test succeeds if no exception is thrown
-      (1 to 10).foreach{i => 
+      (1 to 10).foreach{i =>
         l.send("hey").execute{
           case Success(_) => {}
-          case Failure(wat) => throw wat 
+          case Failure(wat) => throw wat
         }
       }
     }
@@ -123,7 +123,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       removed.connectionState.isInstanceOf[ConnectionState.ShuttingDown] must equal(true)
 
     }
-      
+
   }
 
   "ServiceClientPool" must {
@@ -138,8 +138,8 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
         x.typedHandler
       }
     )
-    
-    
+
+
     "create and get a client" in {
       val p = pool
       val addr = new InetSocketAddress("1.2.3.4", 123)

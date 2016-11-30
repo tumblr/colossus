@@ -29,8 +29,8 @@ class ScatterGatherSpec extends WordSpec with MustMatchers{
       val s = new MGetScatterGather(mget, hasher)
       s.scatter
       val replies = Seq(
-        MBulkReply(List(BulkReply(ByteString("vb2")), BulkReply(ByteString("vb1")))), 
-        MBulkReply(List(BulkReply(ByteString("va1")), BulkReply(ByteString("va2")))), 
+        MBulkReply(List(BulkReply(ByteString("vb2")), BulkReply(ByteString("vb1")))),
+        MBulkReply(List(BulkReply(ByteString("va1")), BulkReply(ByteString("va2")))),
         MBulkReply(List(BulkReply(ByteString("vc1"))))
       )
       val expected = MBulkReply(mget.args.map{arg => BulkReply(ByteString("v" + arg.utf8String))})
@@ -48,8 +48,8 @@ class ScatterGatherSpec extends WordSpec with MustMatchers{
         "c" -> Command(CMD_MSET, "c1", "vc1")
       )
       new MSetScatterGather(mset, hasher).scatter must equal(expected)
-      
-      
+
+
     }
     "gather replies" in {
       //notice - right now mset gathering doesn't depend on scattering (unlike mget which needs the indices), that may eventually change

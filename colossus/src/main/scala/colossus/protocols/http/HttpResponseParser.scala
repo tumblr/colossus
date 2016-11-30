@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import service.DecodedResult
 import scala.language.higherKinds
 
-sealed trait ResponseResult 
+sealed trait ResponseResult
 object ResponseResult {
   case class StaticResponse(response: HttpResponse) extends ResponseResult
   case class StreamResponse(sink: Sink[DataBuffer], response: HttpResponse) extends ResponseResult
@@ -50,7 +50,7 @@ object HttpResponseParser  {
         case Some(n) => streamingResponse(parsedHead, Some(n), false)
         case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => DecodedResult.Static(StreamingHttpResponse(parsedHead, None))
         //TODO: adding support for this requires upcoming changes to stream termination error handling
-        case None => throw new ParseException("Infinite non-chunked responses not supported") 
+        case None => throw new ParseException("Infinite non-chunked responses not supported")
       }
       case _  => streamingResponse(parsedHead, None, dechunk)
     }
@@ -63,9 +63,9 @@ object HttpResponseParser  {
     }
     DecodedResult.Stream(StreamingHttpResponse(head, Some(pipe)), pipe)
   }
-    
 
-  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder => 
+
+  protected def head: Parser[HttpResponseHead] = firstLine ~ headers >> {case fl ~ hbuilder =>
     HttpResponseHead(fl, hbuilder.buildHeaders)
   }
 
@@ -75,7 +75,7 @@ object HttpResponseParser  {
 }
 
 object HttpChunk {
-  
+
   def wrap(data: DataBuffer): DataBuffer = {
     val builder = new ByteStringBuilder
     builder.sizeHint(data.size + 25)
@@ -92,7 +92,7 @@ object HttpChunk {
  * in (like in a proxy)
  *
  * Right now this ends up copying the DataBuffer.
- * 
+ *
  */
 class ChunkEncodingPipe extends InfinitePipe[DataBuffer] {
 
@@ -130,7 +130,7 @@ class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
   private var parsingTrailer = false
 
   override def push(data: DataBuffer): PushResult = whenPushable {
-    val (done, bytesRead) = data.peek{d => 
+    val (done, bytesRead) = data.peek{d =>
       try {
         if (!parsingTrailer) {
           var chunkSize = Int.MaxValue
@@ -149,7 +149,7 @@ class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
           }
         } else {
           false
-        }        
+        }
       } catch {
         case p: ParseException => {
           terminate(p)
@@ -173,11 +173,11 @@ class ChunkPassThroughPipe extends InfinitePipe[DataBuffer] {
  * The pipe will scan the chunk headers and auto-close itself when it hits the
  * end of the stream (reading a 0 length chunk).  It also strips all chunk
  * headers from the data, so the output stream is the raw data
- *  
+ *
  */
 class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
 
-  
+
   private val chunkParser: Parser[Array[Byte]] = intUntil('\r', 16) <~ byte |> {
     case 0 => const(Array())
     case n => bytes(n.toInt) <~ bytes(2)
@@ -211,4 +211,4 @@ class ChunkDecodingPipe extends InfinitePipe[DataBuffer] {
   }
 
 }
-    
+

@@ -40,8 +40,8 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
         case IrrecoverableError(reason) =>
           HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
       }
-        
-        
+
+
 
     }
 
@@ -51,7 +51,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
 
     object defaults  {
-      
+
       implicit val httpServerDefaults = new ServerDefaults
 
       implicit val httpClientDefaults = new ClientDefaults
@@ -80,7 +80,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   abstract class HttpService(config: ServiceConfig, context: ServerContext)
   extends BaseHttpServiceHandler[Http](config, Http.defaults.httpServerDefaults, context) {
-      
+
     def this(context: ServerContext) = this(ServiceConfig.load(context.server.name.idString), context)
   }
 
@@ -101,9 +101,9 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
         toStreamed(
           HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
         )
-      
+
     }
-      
+
 
     private def toStreamed(response : HttpResponse) : StreamingHttpResponse = {
       StreamingHttpResponse.fromStatic(response)

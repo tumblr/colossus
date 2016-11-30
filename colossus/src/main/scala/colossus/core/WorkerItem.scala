@@ -151,20 +151,20 @@ trait IdleCheck extends WorkerItem {
 /**
  * This is a mixin for [[WorkerItem]] that gives it actor-like capabilities.  A
  * "proxy" Akka actor is spun up, such that any message sent to the proxy will
- * be relayed to the WorkerItem.  
+ * be relayed to the WorkerItem.
  *
  * The proxy actors lifecycle will be linked to the lifecycle of this
  * workeritem, so if the actor is kill, the `shutdownRequest` method will be
  * invoked, and likewise if this item is unbound the proxy actor will be killed.
  */
-trait ProxyActor extends WorkerItem { 
-  
+trait ProxyActor extends WorkerItem {
+
   import ProxyActor._
-  
+
   implicit val self : ActorRef = context.proxy
 
   private var currentReceiver : Receive = receive
-    
+
   def becomeReceive(receive: Receive) {
     currentReceiver = receive
   }
@@ -183,7 +183,7 @@ trait ProxyActor extends WorkerItem {
       self ! WorkerItemProxy.Unbound
     }
   }
-    
+
   private var lastSender = ActorRef.noSender
   private var killedByProxy = false
   def sender() : ActorRef = lastSender

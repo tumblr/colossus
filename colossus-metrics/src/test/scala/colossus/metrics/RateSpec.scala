@@ -95,7 +95,7 @@ class RateSpec extends MetricIntegrationSpec {
       implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
       val r = Rate("/baz")
       r.address must equal(MetricAddress("/foo/bar/baz"))
-      
+
     }
   }
 }

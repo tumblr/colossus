@@ -231,7 +231,7 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       }
     }
 
-      
+
 
 
   }
@@ -292,5 +292,5 @@ class CombinatorSuite extends WordSpec with MustMatchers{
   }
 
 }
-      
+
 
