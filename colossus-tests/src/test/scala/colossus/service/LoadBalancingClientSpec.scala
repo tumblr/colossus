@@ -27,7 +27,11 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
   implicit val executor = FakeIOSystem.testExecutor
 
-  type C = ServiceClient[PR]
+  type C = Sender[PR, Callback]
+
+  trait MockClient extends Sender[PR, Callback] {
+
+  }
 
   def mockClient(address: InetSocketAddress, customReturn: Option[Try[Int]]): C = {
     val config = ClientConfig(
@@ -36,10 +40,8 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       requestTimeout = 1.second
     )
     val r = customReturn.getOrElse(Success(address.getPort))
-    val c = mock[ServiceClient[PR]]
+    val c = mock[MockClient]
     when(c.send("hey")).thenReturn(Callback.complete(r))
-    when(c.config).thenReturn(config)
-    when(c.connectionState).thenReturn(core.ConnectionState.Connected(mock[core.WriteEndpoint]))
     c
   }
 
@@ -112,6 +114,19 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       CallbackAwait.result(l.send("hey"), 1.second) mustBe 2
       CallbackAwait.result(l.send("hey"), 1.second) mustBe 3
       CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+    }
+
+    "removing by address removes all connections" in {
+      val hosts = (new InetSocketAddress("1.1.1.1", 5)) :: (1 to 2).map{i => new InetSocketAddress("0.0.0.0", 1)}.toList
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[PR](worker, mockGenerator, maxTries = 2, initialClients = hosts)
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      l.removeClient(new InetSocketAddress("0.0.0.0", 1))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
     }
 
     "close removed connection on update" in {

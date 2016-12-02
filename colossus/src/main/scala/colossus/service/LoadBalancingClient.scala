@@ -107,15 +107,21 @@ class LoadBalancingClient[P <: Protocol] (
   def addClient(address: InetSocketAddress): Unit = addClient(address, true)
 
   private def removeFilter(filter: Client => Boolean) {
-    clients.zipWithIndex.filter{ case (c,i) => filter(c)}.foreach{ case (client, i) =>
-      client.client.disconnect()
-      clients.remove(i)
+    var i = 0
+    while (i < clients.length) {
+      if (filter(clients(i))) {
+        clients(i).client.disconnect()
+        clients.remove(i)
+      } else {
+        i += 1
+      }
     }
-
   }
   
   def removeClient(address: InetSocketAddress) {
-    removeFilter{_.address == address}
+    removeFilter{c =>
+      c.address == address
+    }
     regeneratePermutations()
   }
 
