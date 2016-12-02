@@ -28,7 +28,7 @@ class CoreHandlerSpec extends ColossusSpec {
   }
 
   "Core Handler" must {
-    
+
     "set connectionStatus to Connected" in {
       val con = MockConnection.server(srv => new NoopHandler(srv.context))
       con.typedHandler.connectionState must equal(NotConnected)
@@ -78,7 +78,7 @@ class CoreHandlerSpec extends ColossusSpec {
       con.typedHandler.connectionState must equal(NotConnected)
     }
 
-      
+
 
     "not call shutdown when disconnect is called while in the shuttingdown state" in {
       val con = setup(false)
@@ -88,9 +88,9 @@ class CoreHandlerSpec extends ColossusSpec {
       con.typedHandler.shutdownRequest()
       con.typedHandler.shutdownCalled must equal(false)
     }
-      
 
-      
+
+
 
   }
 

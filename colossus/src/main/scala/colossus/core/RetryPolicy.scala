@@ -69,7 +69,7 @@ case class IncidentReport(totalTime: FiniteDuration, totalAttempts: Int)
  * operation is and takes no action itself, but instead is used by the performer
  * of the operation as a control flow mechanism.  For example, when a
  * [[colossus.service.ServiceClient]] fails to connect to its target host, it
- * will create a new `RetryIncident` from it's given [[RetryPolicy]].  
+ * will create a new `RetryIncident` from it's given [[RetryPolicy]].
  *
  * On each successive failure of the operation, a call to [[nextAttempt()]]
  * should be made that will return a `RetryAttempt` indicating what action
@@ -110,7 +110,7 @@ object BackoffMultiplier {
 
   def fromConfig(config: Config) = {
     val mtype = config.getString("type").toUpperCase
-    mtype match { 
+    mtype match {
       case "CONSTANT"     => Constant
       case "LINEAR"       => Linear(config.getFiniteDuration("max"))
       case "EXPONENTIAL"  => Exponential(config.getFiniteDuration("max"))
@@ -126,7 +126,7 @@ object BackoffMultiplier {
   }
 
   trait IncreasingMultiplier extends BackoffMultiplier {
-    
+
     def max: FiniteDuration
 
     //needed to avoid possible out-of-range issue with FiniteDuration
@@ -139,7 +139,7 @@ object BackoffMultiplier {
         val i = increaseValue(base, attempt)
         if (i > max) {
           hitMax = true
-          max 
+          max
         } else {
           i
         }
@@ -206,7 +206,7 @@ case class BackoffPolicy(
     def nextAttempt() = {
       val now = System.currentTimeMillis
       if (
-        maxTime.map{t => start + t.toMillis < now}.getOrElse(false) || 
+        maxTime.map{t => start + t.toMillis < now}.getOrElse(false) ||
         maxTries.map{_ <= attempt}.getOrElse(false)
       ) {
         Stop
@@ -230,7 +230,7 @@ case class BackoffPolicy(
  * A [[RetryPolicy]] that will never retry
  */
 case object NoRetry extends RetryPolicy with RetryIncident {
-  
+
   def start() = this
 
   def attempts = 1

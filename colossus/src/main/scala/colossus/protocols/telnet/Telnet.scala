@@ -50,13 +50,13 @@ package object telnet {
           argBuilder = new StringBuilder
         }
       }
-          
+
 
       def result = TelnetCommand(args.reverse)
     }
 
     var builder: Builder = new Builder
-    
+
 
     def parse(data: DataBuffer): Option[TelnetCommand] = {
       var line: Option[TelnetCommand] = None
@@ -101,7 +101,7 @@ package object telnet {
           builder.argBuilder.append(next.toChar)
         }
       }
-      line        
+      line
     }
   }
 

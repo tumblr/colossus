@@ -69,7 +69,7 @@ class RetryPolicySpec extends ColossusSpec {
       }
       i.nextAttempt() must equal(RetryIn(1.second))
     }
-      
+
 
 
   }

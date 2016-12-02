@@ -14,7 +14,7 @@ import scala.concurrent.duration._
  * encode output messages.  There is no coupling between input and output
  * messages.  The service layer extends this layer to add request/response
  * semantics.
- * 
+ *
  * This example is a simple chat server built on the controller layer.  This example is largely
  * a motivator for cleaning up the controller API.  It should become simpler as
  * we improve the interface.
@@ -43,7 +43,7 @@ class ChatCodec extends Codec[ChatMessage, String]{
   def reset(){}
 
 }
-  
+
 class Broadcaster extends Actor {
   import Broadcaster._
 
@@ -78,7 +78,7 @@ extends Controller[String, ChatMessage](new ChatCodec, ControllerConfig(50, 10.s
 with ProxyActor with ServerConnectionHandler {
 
   implicit val namespace = context.server.namespace
-  
+
   sealed trait State
   object State {
     case object LoggingIn extends State
@@ -136,7 +136,7 @@ object ChatExample {
     val broadcaster = io.actorSystem.actorOf(Props[Broadcaster])
 
     Server.basic("chat", port)(context => new ChatHandler(broadcaster, context))
-  
+
   }
 
 }

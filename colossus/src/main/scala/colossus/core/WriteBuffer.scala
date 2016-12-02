@@ -18,7 +18,7 @@ object WriteStatus {
 }
 
 /**
- * This trait abstracts actions performed on a raw socket channel.  
+ * This trait abstracts actions performed on a raw socket channel.
  *
  * This is essentially the only trait that should differ between live
  * connections and fake connections in testing
@@ -136,7 +136,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       }
     } catch {
       case t: CancelledKeyException => {
-        //no cleanup is required since the connection is closed for good, 
+        //no cleanup is required since the connection is closed for good,
         Failed
       }
     }

@@ -41,7 +41,7 @@ trait HttpRequestHead extends Encoder with HttpMessageHead {
   def headers: HttpHeaders
 
   def copy(
-    method  : HttpMethod  = firstLine.method, 
+    method  : HttpMethod  = firstLine.method,
     path    : String      = firstLine.path,
     version : HttpVersion = firstLine.version,
     headers : HttpHeaders = headers
@@ -103,7 +103,7 @@ trait HttpRequestHead extends Encoder with HttpMessageHead {
 }
 
 object HttpRequestHead {
-  
+
   def apply(method: HttpMethod, url: String, version: HttpVersion, headers: HttpHeaders): HttpRequestHead = {
     BuiltHead(BuildFL(method, url, version), headers)
   }
@@ -128,7 +128,7 @@ extends Encoder with HttpRequestBuilding[HttpRequest] with HttpMessage[HttpReque
       buffer write HttpParse.N2
       body encode buffer
     }
-      
+
   }
 
 }

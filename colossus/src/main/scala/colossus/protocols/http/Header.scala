@@ -65,7 +65,7 @@ object HttpMethod {
       case head :: tail => if (head.name == ucase) head else loop(tail)
       case Nil => throw new ParseException(s"Invalid http method $str")
     }
-    loop(methods)    
+    loop(methods)
   }
 }
 
@@ -104,7 +104,7 @@ object HttpHeader {
   private val ContentLengthKey = ByteString("Content-Length: ")
   private val ContentLengthKeyArray = ContentLengthKey.toArray
 
-  /** 
+  /**
    * Directly write a content-length header to a buffer.  Note that this does
    * NOT write the terminating newline
    */
@@ -140,7 +140,7 @@ object HttpHeader {
   def apply(key: String, value: String) : HttpHeader = new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
 
   implicit object FPHZero extends parsing.Zero[EncodedHttpHeader] {
-    def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n 
+    def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n
   }
 
 }
@@ -201,7 +201,7 @@ class ParsedHttpHeaders(
 
 }
 
-    
+
 
 /**
  * A Wrapper class for a set of Http headers, for a request or response.
@@ -222,7 +222,7 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
   }
 
   /** Returns the value of the content-length header, if it exists.
-   * 
+   *
    * Be aware that lacking this header may or may not be a valid request,
    * depending if the "transfer-encoding" header is set to "chunked"
    */
@@ -453,7 +453,7 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.text.SimpleDateFormat
 
   private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
-  
+
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
   private var lastDate = generate(start)
   private var lastTime = start

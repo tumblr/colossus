@@ -309,7 +309,7 @@ class DefaultHistogram private[metrics](
   private def withHist[T](collectionInterval: FiniteDuration, tags: TagMap)(op: BaseHistogram => T): Option[T] = {
     Option(tagHists(collectionInterval).get(tags)).map(op)
   }
-    
+
 
   def percentile(collectionInterval: FiniteDuration, percent: Double, tags: TagMap = TagMap.Empty): Int = {
     withHist(collectionInterval, tags)(_.percentile(percent)).getOrElse(0)

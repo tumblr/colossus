@@ -119,7 +119,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       decodedResponse must equal(expected)
       encodedResponse.remaining must equal(0)
     }
-    
+
     "parse a response with chunked transfer encoding" in {
       val res = "HTTP/1.1 200 OK\r\ntransfer-encoding: chunked\r\n\r\n3\r\nfoo\r\ne\r\n123456789abcde\r\n0\r\n\r\n"
       val parser = HttpResponseParser.static()
@@ -127,7 +127,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val parsed = parser.parse(DataBuffer(ByteString(res))).get
       parsed.body.bytes must equal (ByteString("foo123456789abcde"))
     }
-      
+
 
   }
 

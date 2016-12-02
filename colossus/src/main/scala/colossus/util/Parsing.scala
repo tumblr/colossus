@@ -99,7 +99,7 @@ trait Zero[T] {
  *
  * === Overview ===
  *
- * A `Parser[T]` is an object that consumes a stream of bytes to produce a result of type `T`.  
+ * A `Parser[T]` is an object that consumes a stream of bytes to produce a result of type `T`.
  *
  * A Combinator is a "higher-order" parser that takes one or more parsers to produce a new parser
  *
@@ -167,7 +167,7 @@ object Combinators {
           parse(data) //need to give b a chance
         } else {
           None
-        }                
+        }
       } else {
         doneb = second.parse(data)
         if (doneb.isDefined) {
@@ -229,7 +229,7 @@ object Combinators {
     def |>[B](f: T => Parser[B]): Parser[B] = new FlatMapParser(this, f)
 
     def flatMap[B](f: T => Parser[B]): Parser[B] = |>(f)
-        
+
 
   }
 
@@ -254,7 +254,7 @@ object Combinators {
     def parse(data: DataBuffer) = {
       while(data.hasNext && index < lit.size) {
         if (data.next != arr(index)) {
-          throw new ParseException(s"Parsed byte string does not match expected literal")    
+          throw new ParseException(s"Parsed byte string does not match expected literal")
         }
         index += 1
       }
@@ -266,7 +266,7 @@ object Combinators {
       }
     }
   }
-  
+
   /**
    * Creates a parser that wraps another parser and will throw an exception if
    * more than `size` data is required to parse a single object.  See the
@@ -298,7 +298,7 @@ object Combinators {
   def bytes(num: Int, maxSize: DataSize, maxInitBufferSize: DataSize): Parser[Array[Byte]] = new Parser[Array[Byte]] {
     if (num < 0 || num > maxSize.bytes.value) {
       throw new ParseException(s"Invalid number $num for bytes parser")
-    } 
+    }
 
     val builder = new FastArrayBuilder(math.min(num, maxInitBufferSize.bytes.value.toInt), false)
 
@@ -392,7 +392,7 @@ object Combinators {
       }
     }
   }
-        
+
 
 
   /** Parse a string until a designated byte is encountered
@@ -494,10 +494,10 @@ object Combinators {
       }
     }
   }
-      
+
 
   /** Parse a pattern multiple times based on a numeric prefix
-   * 
+   *
    * This is useful for any situation where the repeated pattern is prefixed by
    * the number of repetitions, for example `num:[obj1][obj2][obj3]`.  In
    * situations where the pattern doesn't immediately follow the number, you'll
@@ -519,7 +519,7 @@ object Combinators {
         } else {
           None
         }
-      } else if (parsedTimes.get > 0) {          
+      } else if (parsedTimes.get > 0) {
         parser.parse(data).foreach{res =>
           build = build :+ res
         }
@@ -613,7 +613,7 @@ object Combinators {
    /*
     NOTE - this is commented out because right now in all cases we need to know
     how much data was peeked, so instead we're using peek on the databuffer and
-    regular parsers inside of the peek, 
+    regular parsers inside of the peek,
   def peek[T](p: Parser[T]): Parser[T] = new Parser[(T] {
     def parse(data: DataBuffer): Option[T] = data.peek{buf => p.parse(data)}
   }
@@ -665,7 +665,7 @@ object Combinators {
    */
   def repeatUntilEOS[T](parser: Parser[T]): Parser[Seq[T]] = new Parser[Seq[T]] {
     var build = collection.mutable.ArrayBuffer[T]()
-    def parse(data: DataBuffer) = { 
+    def parse(data: DataBuffer) = {
       while (data.hasNext) {
         parser.parse(data).foreach{t =>
           build += t
@@ -722,7 +722,7 @@ object Combinators {
   }
 
   class FoldZeroParser[T, U](parser: Parser[T], init: => U)(folder: (T, U) => U)(implicit zero: Zero[T]) extends Parser[U] {
-    
+
     var current: U = init
 
     def parse(data: DataBuffer): Option[U] = {
@@ -756,10 +756,10 @@ object Combinators {
    * replace this with any out-of-the-box Java/Scala class.  This is faster.
    */
   trait FastArrayBuilding {
-    
+
     def initSize: Int
     def shrinkOnComplete: Boolean
-    
+
     //TODO : This class is somewhat similar to the DynamicOutBuffer, maybe
     //there's a way to avoid duplicated logic
 
@@ -798,8 +798,8 @@ object Combinators {
       System.arraycopy(bytes, 0, build, writePos, bytes.length)
       writePos += bytes.length
     }
-      
-      
+
+
 
     def complete(): Array[Byte] = {
       val res = new Array[Byte](writePos)
@@ -842,7 +842,7 @@ object Combinators {
         if (includeNewline) {
           write(CR)
           write(LF)
-        } 
+        }
         scanByte = CR
         constructor(complete())
       } else {
@@ -886,4 +886,4 @@ object Combinators {
   case class ~[+A,+B](a: A, b: B)
 
 }
-    
+
