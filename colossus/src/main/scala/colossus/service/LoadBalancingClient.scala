@@ -92,7 +92,7 @@ class LoadBalancingClient[P <: Protocol] (
 
   private var permutations = new PermutationGenerator(clients.map{_.client})
 
-  update(initialClients)
+  update(initialClients, true)
 
   private def regeneratePermutations() {
     permutations = new PermutationGenerator(clients.map{_.client})
@@ -129,10 +129,12 @@ class LoadBalancingClient[P <: Protocol] (
    * Updates the client list, creating connections for new addresses not in the
    * existing list and closing connections not in the new list
    */
-  def update(addresses: Seq[InetSocketAddress]) {
+  def update(addresses: Seq[InetSocketAddress], allowDuplicates: Boolean = false) {
     removeFilter(c => !addresses.contains(c.address))
     addresses.foreach{address =>
-      addClient(address,false)
+      if (! clients.exists{_.address == address} || allowDuplicates) {
+        addClient(address,false)
+      }
     }
     regeneratePermutations()
   }

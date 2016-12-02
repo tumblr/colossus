@@ -129,6 +129,19 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
     }
 
+    "update doesn't open duplicate connections when allowDuplicates is false" in {
+      val address = new InetSocketAddress("1.1.1.1", 5)
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val clients = (1 to 3).map{i => mockClient(1, Some(Success(i)))}
+      val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      l.update(List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+    }
+
     "close removed connection on update" in {
       val fw = FakeIOSystem.fakeWorker
 
