@@ -16,7 +16,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.duration._
 
 import RawProtocol._
-import testkit.MockConnection
+import testkit._
 
 trait PR extends Protocol {
   type Input = String
@@ -25,7 +25,13 @@ trait PR extends Protocol {
 
 class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
 
-  type C = ServiceClient[PR]
+  implicit val executor = FakeIOSystem.testExecutor
+
+  type C = Sender[PR, Callback]
+
+  trait MockClient extends Sender[PR, Callback] {
+
+  }
 
   def mockClient(address: InetSocketAddress, customReturn: Option[Try[Int]]): C = {
     val config = ClientConfig(
@@ -34,10 +40,8 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       requestTimeout = 1.second
     )
     val r = customReturn.getOrElse(Success(address.getPort))
-    val c = mock[ServiceClient[PR]]
+    val c = mock[MockClient]
     when(c.send("hey")).thenReturn(Callback.complete(r))
-    when(c.config).thenReturn(config)
-    when(c.connectionState).thenReturn(core.ConnectionState.Connected(mock[core.WriteEndpoint]))
     c
   }
 
@@ -62,10 +66,10 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
       val clients = addrs(3)
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
       val l = new LoadBalancingClient[PR](worker, mockGenerator, initialClients = clients)
-      l.send("hey").execute{_ must equal(Success(1))}
-      l.send("hey").execute{_ must equal(Success(3))}
       l.send("hey").execute{_ must equal(Success(2))}
+      l.send("hey").execute{_ must equal(Success(3))}
       l.send("hey").execute{_ must equal(Success(1))}
+      l.send("hey").execute{_ must equal(Success(2))}
 
     }
 
@@ -73,13 +77,14 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
     "evenly divide requests among clients" in {
       (1 to 5).foreach{num =>
         val ops = (1 to num).permutations.toList.size //lazy factorial
-        val clients = addrs(num)
+        val addresses = addrs(num)
+        val clients = addresses.map{a => mockClient(a, None)}
         val (probe, worker) = FakeIOSystem.fakeWorkerRef
-        val l = new LoadBalancingClient[PR](worker, mockGenerator, maxTries = 2, initialClients = clients)
+        val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = addresses)
         (1 to ops).foreach{i =>
           l.send("hey").execute()
         }
-        l.currentClients.foreach{case (i,c) =>
+        clients.foreach{c =>
           verify(c, times(ops / num)).send("hey")
         }
       }
@@ -99,6 +104,42 @@ class LoadBalancingClientSpec extends ColossusSpec with MockitoSugar{
           case Failure(wat) => throw wat
         }
       }
+    }
+
+    "open multiple connections to a single host" in {
+      val hosts = (1 to 3).map{i => new InetSocketAddress("0.0.0.0", 1)}
+      val clients = (1 to 3).map{i => mockClient(1, Some(Success(i)))}
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = hosts)
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 2
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 3
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+    }
+
+    "removing by address removes all connections" in {
+      val hosts = (new InetSocketAddress("1.1.1.1", 5)) :: (1 to 2).map{i => new InetSocketAddress("0.0.0.0", 1)}.toList
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[PR](worker, mockGenerator, maxTries = 2, initialClients = hosts)
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      l.removeClient(new InetSocketAddress("0.0.0.0", 1))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+    }
+
+    "update doesn't open duplicate connections when allowDuplicates is false" in {
+      val address = new InetSocketAddress("1.1.1.1", 5)
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val clients = (1 to 3).map{i => mockClient(1, Some(Success(i)))}
+      val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      l.update(List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
     }
 
     "close removed connection on update" in {

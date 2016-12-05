@@ -15,7 +15,7 @@ import java.net.InetSocketAddress
  * This currently doesn't iterate through every possible permutation, but it
  * does evenly distribute 1st and 2nd tries...needs some more work
  */
-class PermutationGenerator[T : ClassTag](val seedlist: List[T]) extends Iterator[List[T]] {
+class PermutationGenerator[T : ClassTag](val seedlist: Seq[T]) extends Iterator[List[T]] {
   private val items:Array[T] = seedlist.toArray
 
   private var swapIndex = 1
@@ -86,40 +86,42 @@ class LoadBalancingClient[P <: Protocol] (
 
   worker.bind(_ => this)
 
-  type Client = Sender[P, Callback]
+  case class Client(address: InetSocketAddress, client: Sender[P, Callback])
 
-  private val clients = collection.mutable.Map[InetSocketAddress, Client]()
+  private val clients = collection.mutable.ArrayBuffer[Client]()
 
-  private var permutations = new PermutationGenerator(clients.values.toList)
+  private var permutations = new PermutationGenerator(clients.map{_.client})
 
-  update(initialClients)
-
-  //note, this type must be inner to avoid type erasure craziness
-  case class Send(request: P#Input, promise: Promise[P#Output])
-
+  update(initialClients, true)
 
   private def regeneratePermutations() {
-    permutations = new PermutationGenerator(clients.values.toList)
+    permutations = new PermutationGenerator(clients.map{_.client})
   }
 
-  def currentClients = clients.toList
-
-
-  private def addClient(address: InetSocketAddress, regen: Boolean): Sender[P, Callback] = {
-    val client = generator(address)
-    clients(address) = client
+  private def addClient(address: InetSocketAddress, regen: Boolean): Unit = {
+    val client = Client(address, generator(address))
+    clients append client
     regeneratePermutations()
-    client
   }
 
-  def addClient(address: InetSocketAddress): Sender[P, Callback] = addClient(address, true)
+  def addClient(address: InetSocketAddress): Unit = addClient(address, true)
 
+  private def removeFilter(filter: Client => Boolean) {
+    var i = 0
+    while (i < clients.length) {
+      if (filter(clients(i))) {
+        clients(i).client.disconnect()
+        clients.remove(i)
+      } else {
+        i += 1
+      }
+    }
+  }
+  
   def removeClient(address: InetSocketAddress) {
-    val client = clients.get(address).getOrElse(
-      throw new LoadBalancingClientException(s"Tried to remove non-existant client: $address")
-    )
-    clients -= address
-    client.disconnect()
+    removeFilter{c =>
+      c.address == address
+    }
     regeneratePermutations()
   }
 
@@ -127,11 +129,10 @@ class LoadBalancingClient[P <: Protocol] (
    * Updates the client list, creating connections for new addresses not in the
    * existing list and closing connections not in the new list
    */
-  def update(addresses: Seq[InetSocketAddress]) {
-    val toRemove = clients.filter{case (i, c) => !addresses.contains(i)}.keys
-    toRemove.foreach(removeClient)
+  def update(addresses: Seq[InetSocketAddress], allowDuplicates: Boolean = false) {
+    removeFilter(c => !addresses.contains(c.address))
     addresses.foreach{address =>
-      if (! (clients contains address)) {
+      if (! clients.exists{_.address == address} || allowDuplicates) {
         addClient(address,false)
       }
     }
@@ -139,7 +140,7 @@ class LoadBalancingClient[P <: Protocol] (
   }
 
   def disconnect() {
-    clients.foreach{case (i,c) => c.disconnect()}
+    clients.foreach{_.client.disconnect()}
     clients.clear()
   }
 
@@ -160,9 +161,6 @@ class LoadBalancingClient[P <: Protocol] (
   }
 
   override def receivedMessage(message: Any, sender: ActorRef) {
-    message match {
-      case Send(request, promise) => send(request).execute(promise.complete)
-    }
   }
 
 }
