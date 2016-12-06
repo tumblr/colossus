@@ -25,7 +25,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
           probe.ref ! "BOUND"
         }
       }
-      withServer(context => new MyHandler(context)) { server => 
+      withServer(context => new MyHandler(context)) { server =>
         val c = TestClient(server.system, TEST_PORT)
         probe.expectMsg(100.milliseconds, "BOUND")
       }

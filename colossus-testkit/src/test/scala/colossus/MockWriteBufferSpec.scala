@@ -43,7 +43,7 @@ class MockWriteBufferSpec extends WordSpec with MustMatchers{
       m.expectOneWrite(ByteString("cd"))
     }
 
-      
+
   }
 }
 

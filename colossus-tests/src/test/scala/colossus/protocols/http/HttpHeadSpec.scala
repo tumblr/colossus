@@ -8,7 +8,7 @@ import scala.util.{Try, Success, Failure}
 
 
 class HttpRequestHeadSuite extends WordSpec with MustMatchers{
-  
+
   import HttpHeader.Conversions._
 
   "Cookie" must {
@@ -27,7 +27,7 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       HttpHeaders(HttpHeader("a", "b"), HttpHeader("b", "c")) must equal(HttpHeaders(HttpHeader("b", "c"), HttpHeader("a", "b")))
     }
   }
-  
+
 
   "HttpRequestHead" must {
     "correctly parse a cookie" in {
@@ -91,7 +91,7 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
 
     val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
     def date(time: Long) = "Date: " + formatter.format(new Date(time)) + "\r\n"
-    
+
     "generate a correct date" in {
       val time = System.currentTimeMillis + 1000000
       (new DateHeader(123)).bytes(time).utf8String must equal(date(time))

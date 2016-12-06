@@ -27,6 +27,6 @@ case class ConnectionSnapshot(
 ) {
 
   def timeIdle = math.min(readIdle, writeIdle)
-  
+
 }
 

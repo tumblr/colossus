@@ -93,7 +93,7 @@ case class MetricContext(namespace: MetricAddress, collection: Collection, tags:
 case class SystemMetricsConfig(enabled: Boolean, namespace: MetricAddress)
 
 
-/** 
+/**
  * Configuration object for a [[MetricSystem]]
  *
  * @param enabled true to enable all functionality.  Setting to false will effectively create a dummy system that does nothing
@@ -119,7 +119,7 @@ object MetricSystemConfig {
    * config object, the format should be that of the `colossus.metrics` section
    * in the reference.conf.  For example, if creating a metric system named
    * "foo" that will create a rate named "bar", the config should look like:
-   * 
+   *
    * ```
    foo {
      system.enabled = true

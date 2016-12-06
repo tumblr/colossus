@@ -10,7 +10,7 @@ import scala.concurrent.duration._
 
 class TaskTest extends ColossusSpec {
 
-  /* 
+  /*
    * Notice in these tests we have to explicitly provide the sender when
    * sending an actor message from within the task, since there's ambiguous
    * implicits (the task's self actor and the testkit implicit sender pulled
@@ -33,13 +33,13 @@ class TaskTest extends ColossusSpec {
 
           def receive = {case _ => ()}
         })
-            
+
         probe.expectMsg(500.milliseconds, "BOUND")
       }
-    }    
+    }
 
     "receive a message through the proxy" in {
-      withIOSystem{ implicit io => 
+      withIOSystem{ implicit io =>
         val probe = TestProbe()
         val task = Task.start(new Task(_) {
           def run(){
@@ -57,7 +57,7 @@ class TaskTest extends ColossusSpec {
     }
 
     "receive through self" in {
-      withIOSystem{ implicit io => 
+      withIOSystem{ implicit io =>
         val probe = TestProbe()
         val task = Task.start(new Task(_) {
           def run(){
@@ -90,7 +90,7 @@ class TaskTest extends ColossusSpec {
         probe.expectMsg(100.milliseconds, "BOUND")
         task ! PoisonPill
         probe.expectMsg(100.milliseconds, "UNBOUND")
-        
+
       }
 
     }

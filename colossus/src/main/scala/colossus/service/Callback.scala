@@ -222,7 +222,7 @@ case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   def mapTry[U](f: Try[O] => Try[U]): Callback[U] = try { ConstantCallback(f(value)) } catch {
     case t: Throwable => ConstantCallback(Failure(t))
   }
-  
+
 
   def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = ConstantCallback(value.recover(p))
 

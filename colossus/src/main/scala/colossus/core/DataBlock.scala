@@ -17,7 +17,7 @@ import akka.util.ByteString
  */
 
 case class DataBlock(data: Array[Byte]) {
-  
+
   def size = data.length
   def length = data.length
 

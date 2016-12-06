@@ -14,7 +14,7 @@ object Publish {
 
   lazy val settings: Seq[Setting[_]] = Seq(
     publishMavenStyle := true,
-    
+
     publishTo := (if(isSnapshot.value) snapshots else releases),
 
     publishArtifact in Test := false,

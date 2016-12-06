@@ -33,7 +33,7 @@ abstract class HttpServiceSpec extends ServiceSpec[Http] {
     assert(response.head.code == expectedCode, msg)
   }
 
-    
+
   def assertBody(request : HttpRequest, response : HttpResponse, expectedBody : String){
     val body = response.body.bytes.utf8String
     assert(body == expectedBody, s"$body did not equal $expectedBody")

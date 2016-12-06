@@ -61,7 +61,7 @@ trait DataOutBuffer {
  * buffer to avoid copying
  */
 class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends DataOutBuffer {
-  
+
   private val base = if (allocateDirect) {
     ByteBuffer.allocateDirect(baseSize)
   } else {

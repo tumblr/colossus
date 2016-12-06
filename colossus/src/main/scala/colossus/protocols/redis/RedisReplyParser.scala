@@ -10,7 +10,7 @@ object RedisReplyParser {
   import Combinators._
 
   def apply(): Parser[Reply] = reply
-  
+
 
   def reply: Parser[Reply] = byte |> {
     case BULK_BYTE    => bulkReply
@@ -26,7 +26,7 @@ object RedisReplyParser {
   }
 
   protected def statusReply = stringReply >> {s => StatusReply(s)}
-  
+
   protected def errorReply = stringReply >> {s => ErrorReply(s)}
 
   protected def integerReply = intUntil('\r') <~ byte >> {i => IntegerReply(i)}

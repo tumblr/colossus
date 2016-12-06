@@ -10,7 +10,7 @@ class RedisITSpec extends BaseRedisITSpec{
   val keyPrefix = "colossusKeyIT"
 
   "Redis key and string commands" should {
-    
+
     val value = ByteString("value")
 
     "append" in {
@@ -204,7 +204,7 @@ class RedisITSpec extends BaseRedisITSpec{
         }
       res.futureValue.toSet must be (Set(key1, key2))
     }
-    
+
     "mget" in {
       val key1 = getKey()
       val key2 = getKey()
@@ -218,7 +218,7 @@ class RedisITSpec extends BaseRedisITSpec{
       }
       res.futureValue must be (Seq(Some(value), Some(value), None))
     }
-    
+
     "mset" in {
       val key1 = getKey()
       val key2 = getKey()
@@ -231,7 +231,7 @@ class RedisITSpec extends BaseRedisITSpec{
 
       res.futureValue must be ((true, Seq(Some(value), Some(value))))
     }
-    
+
     "msetnx" in {
       val key1 = getKey()
       val key2 = getKey()

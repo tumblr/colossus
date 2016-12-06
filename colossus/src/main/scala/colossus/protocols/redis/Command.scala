@@ -35,7 +35,7 @@ case class Command(command: String, args: Seq[ByteString]) {
 }
 
 object Command {
-  
+
   def apply(args: String*): Command = {
     Command(args.head, args.tail.map{ByteString(_)})
   }

@@ -25,7 +25,7 @@ abstract class Delegator(val server: ServerRef,  _worker: WorkerRef) {
 
   //this is so users can do import context.worker
   implicit val worker = _worker
-  
+
   val log = Logging(worker.system.actorSystem, s"${server.name}-delegator-${worker.id}")
 
   implicit val executor = server.system.actorSystem.dispatcher

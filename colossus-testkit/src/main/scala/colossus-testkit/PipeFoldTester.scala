@@ -22,7 +22,7 @@ class PipeFoldTester[T](foldCB: Callback[T]) {
   private var res: Option[Try[T]] = None
   foldCB.execute{result => res = Some(result)}
 
-  private def expectRes(r: Try[T] => Unit) { 
+  private def expectRes(r: Try[T] => Unit) {
     res.map(r).getOrElse{
       throw new Exception("Callback did not complete")
     }

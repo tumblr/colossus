@@ -23,7 +23,7 @@ trait Sender[C <: Protocol, M[_]] {
  * A Typeclass for abstracting over callbacks and futures
  */
 trait Async[M[_]] {
-  
+
   //the environment type is really only needed by futures (the execution context
   //when mapping and flatmapping)
   type E
@@ -43,7 +43,7 @@ trait Async[M[_]] {
 
 /**
  * A Typeclass for building Async instances, used internally by ClientFactory.
- * This is needed to get the environment into the Async.  
+ * This is needed to get the environment into the Async.
  */
 trait AsyncBuilder[M[_], E] {
 
@@ -63,7 +63,7 @@ object AsyncBuilder {
 
 
 object CallbackAsync extends Async[Callback] {
-  
+
   type E = Unit //we don't actually need any environment for callbacks
 
   implicit val environment: E = ()

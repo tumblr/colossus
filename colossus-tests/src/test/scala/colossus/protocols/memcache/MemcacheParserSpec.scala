@@ -23,7 +23,7 @@ class MemcacheParserSpec extends FlatSpec with ShouldMatchers{
     val reply = DataBuffer(ByteString(86, 65, 76, 85, 69, 32, 102, 111, 111, 32, 48, 32, 51, 13, 10, 104, 101, 108, 13, 10, 69, 78, 68, 13, 10))
     val p = new MemcacheReplyParser
     p.parse(reply) should equal (Some(Value(ByteString("foo"), ByteString("hel"), 0)))
-  } 
+  }
 
   it should "parse a single END as no data" in {
     val reply = DataBuffer(ByteString("END\r\n"))
