@@ -16,7 +16,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.duration._
 
 import RawProtocol._
-import testkit.{CallbackAwait, MockConnection}
+import testkit._
 
 trait PR extends Protocol {
   type Request = String
@@ -27,6 +27,12 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
   
   type C = Sender[PR, Callback]
   
+  implicit val executor = FakeIOSystem.testExecutor
+
+  trait MockClient extends Sender[PR, Callback] {
+
+  }
+
   def mockClient(address: InetSocketAddress, customReturn: Option[Try[Int]]): C = {
     val r = customReturn.getOrElse(Success(address.getPort))
     val c = stub[C]
@@ -55,10 +61,10 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
       val clients = addrs(3)
       val (probe, worker) = FakeIOSystem.fakeWorkerRef
       val l = new LoadBalancingClient[PR](worker, mockGenerator, initialClients = clients)
-      l.send("hey").execute{_ must equal(Success(1))}
-      l.send("hey").execute{_ must equal(Success(3))}
       l.send("hey").execute{_ must equal(Success(2))}
+      l.send("hey").execute{_ must equal(Success(3))}
       l.send("hey").execute{_ must equal(Success(1))}
+      l.send("hey").execute{_ must equal(Success(2))}
 
     }
 
@@ -72,18 +78,18 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
         }
         def disconnect() {}
       }
-      implicit val ex = FakeIOSystem.testExecutor
       (1 to 5).foreach{num => 
         val ops = (1 to num).permutations.toList.size //lazy factorial
-        val clients = addrs(num)
+        val addresses = addrs(num)
+        val clients = addresses.map{a => fakeSender()}
         val (probe, worker) = FakeIOSystem.fakeWorkerRef
-        val l = new LoadBalancingClient[PR](worker, a => fakeSender(), maxTries = 2, initialClients = clients)
+        val l = new LoadBalancingClient[PR](worker,staticClients(clients.toList), maxTries = 2, initialClients = addresses)
         (1 to ops).foreach{i => 
           l.send("hey").execute()
         }
-        l.currentClients.foreach{c =>
+        clients.foreach{c =>
           // +1 is cause we're calling it again just to get the value
-          CallbackAwait.result(c._2.send("hey"), 1.second) mustBe ((ops / num) + 1)
+          CallbackAwait.result(c.send("hey"), 1.second) mustBe ((ops / num) + 1)
         }
 
       }
@@ -103,6 +109,42 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
           case Failure(wat) => throw wat 
         }
       }
+    }
+
+    "open multiple connections to a single host" in {
+      val hosts = (1 to 3).map{i => new InetSocketAddress("0.0.0.0", 1)}
+      val clients = (1 to 3).map{i => mockClient(1, Some(Success(i)))}
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = hosts)
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 2
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 3
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+    }
+
+    "removing by address removes all connections" in {
+      val hosts = (new InetSocketAddress("1.1.1.1", 5)) :: (1 to 2).map{i => new InetSocketAddress("0.0.0.0", 1)}.toList
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val l = new LoadBalancingClient[PR](worker, mockGenerator, maxTries = 2, initialClients = hosts)
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      l.removeClient(new InetSocketAddress("0.0.0.0", 1))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 5
+    }
+
+    "update doesn't open duplicate connections when allowDuplicates is false" in {
+      val address = new InetSocketAddress("1.1.1.1", 5)
+      val (probe, worker) = FakeIOSystem.fakeWorkerRef
+      val clients = (1 to 3).map{i => mockClient(1, Some(Success(i)))}
+      val l = new LoadBalancingClient[PR](worker, staticClients(clients.toList), maxTries = 2, initialClients = List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      l.update(List(address))
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
+      CallbackAwait.result(l.send("hey"), 1.second) mustBe 1
     }
 
     "close removed connection on update" in {
@@ -135,7 +177,6 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
 
   "ServiceClientPool" must {
     val fw = FakeIOSystem.fakeWorker
-    implicit val ex = FakeIOSystem.testExecutor
     def pool() = new ServiceClientPool(
       ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
       fw.worker,
