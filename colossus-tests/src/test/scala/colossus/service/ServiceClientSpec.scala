@@ -45,12 +45,10 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     )
     implicit val w = fakeWorker.worker
 
-    val client = new ServiceClient[Redis](new RedisClientCodec, config, w)
+    val client = new ServiceClient[Redis](config, w.generateContext())
 
-    val fullHandler: ClientConnectionHandler = fakeWorker.probe.receiveOne(100.milliseconds) match {
-      case WorkerCommand.Bind(handler: ClientConnectionHandler) => handler
-      case other => throw new Exception(s"received invalid message $other")
-    }
+    val fullHandler: ClientConnectionHandler = Redis.clientFactory.connectionHandler(client, new RedisClientCodec)
+
     fullHandler.setBind()
     fakeWorker.probe.expectMsgType[WorkerCommand.Connect](50.milliseconds)
     val endpoint = MockConnection.client(fullHandler, fakeWorker, 30)

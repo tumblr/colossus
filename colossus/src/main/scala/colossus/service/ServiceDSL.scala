@@ -11,7 +11,7 @@ import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
-import controller.{Encoding, Codec}
+import controller.{Encoding, Codec, Controller}
 
 trait Protocol {
   type Request
@@ -244,17 +244,32 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
   }
 }
 
-trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef]
+trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef] {
+
+  def connectionHandler(base: ServiceClient[P], codec: Codec[Encoding.Client[P]]) : ClientConnectionHandler = {
+    new UnbindHandler(new Controller[Encoding.Client[P]](base, codec), base)
+  }
+
+  def codecProvider: Codec.Client[P]
+
+  def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+    val base = new ServiceClient[P](config, worker.generateContext())
+    val handler = connectionHandler(base, codecProvider)
+    worker.worker ! WorkerCommand.Bind(handler)
+    base
+  }
+
+}
+
 
 object ServiceClientFactory {
   
-  def staticClient[P <: Protocol](name: String, codecProvider: () => Codec.Client[P]) = new ServiceClientFactory[P] {
+  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P]) = new ServiceClientFactory[P] {
 
     def defaultName = name
 
-    def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
-      new ServiceClient(codecProvider(), config, worker)
-    }
+    def codecProvider = provider()
+
   }
 
 }

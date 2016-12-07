@@ -155,7 +155,6 @@ class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandl
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  val codec: Codec.Client[P],
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
@@ -190,16 +189,6 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
 
 
   val controllerConfig = ControllerConfig(config.pendingBufferSize, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
-
-  //TODO: this should be moved somewhere else, maybe constructor parameter,
-  //maybe ServiceClient shouldn't do this at all, especially since users don't
-  //really directly create this anymore
-  protected def fullHandler(me: ServiceClient[P]): ClientConnectionHandler = new UnbindHandler(new Controller[Encoding.Client[P]](me, codec), me)
-
-  def this(codec: Codec.Client[P], config: ClientConfig, worker: WorkerRef) {
-    this(codec, config, worker.generateContext())
-    worker.worker ! WorkerCommand.Bind(fullHandler(this))
-  }
 
   import colossus.core.WorkerCommand._
   import config._
