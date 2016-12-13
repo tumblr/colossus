@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Metrics</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/metrics/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Metrics</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Colossus uses the (currently nameless) metrics library.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>High-throughput Colossus services can serve hundreds of thousands of requests
+per second, which can easily translate to millions of recordable events per
+second.  The Metrics library provides a way to work with metrics with as little
+overhead as possible.</p>
+
+<h3 id="collection-intervals">Collection Intervals</h3>
+
+<p>Collection intervals define how often the raw data from all event collectors
+are snapshotted and merged together into a single database of values.</p>
+
+<p>By default, a metric system is created with both 1 second and 1 minute
+collection intervals.  The 1 second interval is used to show
+real-time metrics where rates and histograms are all showing values reflective
+of the last second of activity, whereas the 1 minute intervals are used for
+reporting values to an external database in which case the values reported are
+all reflective of the last minute of activity.</p>
+
+<h3 id="metric-addresses-and-tags">Metric Addresses and Tags</h3>
+
+<p>Every metric has a url-like address used to identify it.  </p>
+
+<p>One of the most important aspects of metrics is that values can be tagged.  For
+example, a rate can track hits to API endpoints, using a “endpoint” tag to break
+down the usage by endpoint.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"my-rate"</span><span class="o">)</span>
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"endpoint"</span> <span class="o">-&gt;</span> <span class="s">"foo"</span><span class="o">))</span>
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"endpoint"</span> <span class="o">-&gt;</span> <span class="s">"bar"</span><span class="o">))</span>
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"endpoint"</span> <span class="o">-&gt;</span> <span class="s">"bar"</span><span class="o">))</span></code></pre></div>
+
+<p>This will in turn lead to</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>endpoint</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>foo</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>bar</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>If you are using colossus, it depends on the metrics library and pulls it in.
+Otherwise you must add the following to your build.sbt/Build.scala</p>
+
+<div class="highlight"><pre><code class="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"com.tumblr"</span> <span class="o">%%</span> <span class="s">"colossus-metrics"</span> <span class="o">%</span> <span class="s">"0.8.1"</span></code></pre></div>
+
+<p>From there, the only required step is to spin up a <code>MetricSystem</code></p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">metrics._</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">actorSystem</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+
+<span class="c1">//create the metric system
+</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">metricSystem</span> <span class="k">=</span> <span class="nc">MetricSystem</span><span class="o">()</span>
+
+<span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"my-rate"</span><span class="o">)</span>
+
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span></code></pre></div>
+
+<h3 id="namespaces">Namespaces</h3>
+
+<p>When creating a new collector, you always need an implicit <code>MetricNamespace</code> in
+scope.  The <code>MetricSystem</code> itself acts as the root namespace, but you can use it
+to create sub-namespaces:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">metricSystem</span> <span class="k">=</span> <span class="nc">MetricSystem</span><span class="o">()</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">namespace</span> <span class="k">=</span> <span class="n">metricSystem</span> <span class="o">/</span> <span class="s">"foo"</span> <span class="o">/</span> <span class="s">"bar"</span>
+
+<span class="c1">//this rate will have the address "/foo/bar/baz"
+</span><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"baz"</span><span class="o">)</span></code></pre></div>
+
+<h2 id="available-collectors">Available Collectors</h2>
+
+<p>All collectors are thread-safe.</p>
+
+<h3 id="counter">Counter</h3>
+
+<p>A counter simply allows you to set, increment, and decrement values:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">counter</span> <span class="k">=</span> <span class="nc">Counter</span><span class="o">(</span><span class="s">"my-counter"</span><span class="o">)</span>
+
+<span class="n">counter</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"foo"</span> <span class="o">-&gt;</span> <span class="s">"bar"</span><span class="o">))</span>
+
+<span class="n">counter</span><span class="o">.</span><span class="n">increment</span><span class="o">(</span><span class="nc">Map</span><span class="o">(</span><span class="s">"foo"</span> <span class="o">-&gt;</span> <span class="s">"bar"</span><span class="o">))</span></code></pre></div>
+
+<h3 id="rate">Rate</h3>
+
+<p>A rate is like a counter, but resets at the beginning of each collection
+interval.  Rates are also tracked for every interval.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"my-rate"</span><span class="o">)</span>
+
+<span class="n">rate</span><span class="o">.</span><span class="n">hit</span><span class="o">()</span></code></pre></div>
+
+<h3 id="histogram">Histogram</h3>
+
+<p>Histograms can gather statistical data about values added to them.  By default,
+histograms are setup with log-scale buckets, best for recording latency, but
+this can be overridden.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">hist</span> <span class="k">=</span> <span class="nc">Histogram</span><span class="o">(</span><span class="s">"my-histogram"</span><span class="o">,</span> <span class="n">percentiles</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mf">0.5</span><span class="o">,</span> <span class="mf">0.99</span><span class="o">,</span> <span class="mf">0.999</span><span class="o">))</span>
+
+<span class="n">hist</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">12</span><span class="o">)</span>
+<span class="n">hist</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">1</span><span class="o">)</span>
+<span class="n">hist</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="mi">98765</span><span class="o">)</span></code></pre></div>
+
+<h2 id="metric-reporting">Metric Reporting</h2>
+
+<p>Metric reporters are used to take the periodically generated snapshots of
+metrics and report them to an external system.  A <code>MetricSender</code> is the
+interface to the remote system and is responsible for properly formatting
+metrics and handling all communication.  Colossus currently has native support
+for OpenTSDB.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">import</span> <span class="nn">akka.actor._</span>
+<span class="k">import</span> <span class="nn">colossus.metrics._</span>
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">ActorSystem</span><span class="o">()</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">metrics</span> <span class="k">=</span> <span class="nc">MetricSystem</span><span class="o">()</span>
+
+<span class="k">val</span> <span class="n">reporterConfig</span> <span class="k">=</span> <span class="nc">MetricReporterConfig</span><span class="o">(</span>
+  <span class="n">metricSenders</span> <span class="k">=</span> <span class="nc">Seq</span><span class="o">(</span><span class="nc">OpenTsdbSender</span><span class="o">(</span><span class="s">"host"</span><span class="o">,</span> <span class="mi">123</span><span class="o">)),</span>
+  <span class="n">filters</span> <span class="k">=</span> <span class="nc">MetricReporterFilter</span><span class="o">.</span><span class="nc">All</span>
+<span class="o">)</span>
+
+<span class="c1">//A reporter must be attached to a specific collection interval.  
+</span><span class="n">metrics</span><span class="o">.</span><span class="n">collectionIntervals</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="mf">1.</span><span class="n">minute</span><span class="o">).</span><span class="n">foreach</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">report</span><span class="o">(</span><span class="n">reporterConfig</span><span class="o">))</span>
+
+<span class="c1">//now once per minute the value of this rate and any other metrics will be reported
+</span><span class="k">val</span> <span class="n">rate</span> <span class="k">=</span> <span class="nc">Rate</span><span class="o">(</span><span class="s">"myrate"</span><span class="o">)</span></code></pre></div>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#introduction">Introduction</a></li><li><a href="#getting-started">Getting Started</a></li><li><a href="#available-collectors">Available Collectors</a></li><li><a href="#metric-reporting">Metric Reporting</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
