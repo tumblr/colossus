@@ -67,6 +67,8 @@ import service._
 import protocols.http._
 import UrlParsing._
 import HttpMethod._
+import akka.actor.ActorSystem
+
 
 class HelloService(context: ServerContext) extends HttpService(context) {
   def handle = {
