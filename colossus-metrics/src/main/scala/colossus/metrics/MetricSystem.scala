@@ -152,7 +152,12 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
 
   val namespace: MetricAddress = "/"
 
-  private val localHostname = java.net.InetAddress.getLocalHost.getHostName
+  private lazy val localHostname = try  {
+    java.net.InetAddress.getLocalHost.getHostName
+  } catch {
+    case e: java.net.UnknownHostException => "unknown_host"
+  }
+
   val tags: TagMap = Map("host" -> localHostname)
 
   protected val collection = new Collection(config.collectorConfig)
