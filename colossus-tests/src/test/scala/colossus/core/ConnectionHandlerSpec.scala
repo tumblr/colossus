@@ -89,7 +89,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
     }
 
-    "automatically unbind on manual disconnect" in {
+    "automatically unbind on manual disconnect"  in {
       val probe = TestProbe()
       class MyHandler(context: Context) extends BasicSyncHandler(context) with ClientConnectionHandler{
         override def onUnbind() {
@@ -110,7 +110,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
     }
 
-    "automatically unbind on disrupted connection" taggedAs(org.scalatest.Tag("test")) in {
+    "automatically unbind on disrupted connection" in {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
         val server = Service.basic[Raw]("test", TEST_PORT){case x => x}
@@ -127,14 +127,14 @@ class ConnectionHandlerSpec extends ColossusSpec {
 
     }
 
-    "automatically unbind on failure to connect" in {
+    "automatically unbind on failure to connect" taggedAs(org.scalatest.Tag("test")) in {
       val probe = TestProbe()
       withIOSystem{ implicit io =>
         io ! IOCommand.BindAndConnectWorkerItem(
           new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c, probe.ref, true, true)
         )
         probe.expectMsg(250.milliseconds, "BOUND")
-        probe.expectMsg(250.milliseconds, "UNBOUND")
+        probe.expectMsg(10.seconds, "UNBOUND")
       }
     }
 
