@@ -478,7 +478,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         //beware, a java TimeoutException is NOT what we want, that is simply
         //the future timing out, which it shouldn't here
         intercept[RequestTimeoutException] {
-          Await.result(f, 100.milliseconds)
+          Await.result(f, 10.seconds)
         }
       }
     }

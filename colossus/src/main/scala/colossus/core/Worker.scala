@@ -324,7 +324,13 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       case _ =>{}
     }
     try {
-      newChannel.connect(address)
+      if (newChannel.connect(address)) {
+        //if this returns true it means the connection is already connected (can
+        //happen on Windows and maybe other OS's when connecting to localhost),
+        //so finish the connect process immediately.  The connection will
+        //properly set the key interest ops
+        connection.handleConnected()
+      }
     } catch {
       case t: Throwable => {
         log.error(t, s"Failed to establish connection to $address: $t")
