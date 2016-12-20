@@ -5,6 +5,46 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ThreadLocalRandom
 
 import scala.concurrent.duration._
+import com.typesafe.config.Config
+
+/**
+ * Configuration object for how a histogram's buckets should be specified
+ */
+sealed trait BucketConfig
+object BucketConfig {
+  case class Manual(buckets: List[Int]) extends BucketConfig
+  case class LinearScale(numBuckets: Int, infinity: Int) extends BucketConfig
+  case class LogScale(numBuckets: Int, infinity: Int) extends BucketConfig
+
+  def fromConfig(config: Config) : BucketConfig = {
+    import scala.collection.JavaConversions._
+    def infinity: Int = config.getString("infinity").toUpperCase match {
+      case "MAX" => Int.MaxValue
+      case other => other.toInt
+    }
+    config.getString("type").trim.toUpperCase match {
+      case "MANUAL"       => Manual(config.getIntList("values").map{_.toInt}.toList)
+      case "LINEARSCALE"  => LinearScale(
+        config.getInt("num-buckets"),
+        infinity
+      )
+      case "LOGSCALE"     => LogScale(
+        config.getInt("num-buckets"),
+        infinity
+      )
+      case other => throw new Exception(s"Unknown Histogram bucket scheme $other")
+    }
+  }
+
+  def buckets(config: BucketConfig) : BucketList = config match {
+    case Manual(buckets) => BucketList(buckets.toVector)
+    case LinearScale(num, inf) => BucketList((0 to num).map{i => i * (inf / num)}.toVector)
+    case LogScale(num, inf) => Histogram.generateBucketRanges(num, inf)
+  }
+}
+
+
+      
 
 /**
   * Metrics Collector which measures the distribution of values.
@@ -34,6 +74,11 @@ trait Histogram extends Collector{
   def pruneEmpty: Boolean
 
   /**
+   * The buckets to use to group histogram values
+   */
+  def buckets: BucketList
+
+  /**
     * Add a new value to this histogram,
     *
     * @param value The value to add
@@ -54,9 +99,15 @@ trait Histogram extends Collector{
    * Get the total number hits for a set of tags in a collection interval
    */
   def count(collectionInterval: FiniteDuration, tags: TagMap = TagMap.Empty): Int
+
 }
 
-private[metrics] case class BucketList(buckets: Vector[Int]) extends AnyVal
+/**
+ * A BucketList contains an ascending-sorted list of lower bounds to use as
+ * buckets for a histogram.  A value added to a histogram will get added to the
+ * first bucket whose lower bound is less then the value.
+ */
+case class BucketList(buckets: Vector[Int]) extends AnyVal
 
 /**
  * A Basic log-scale histogram, mainly designed to measure latency
@@ -126,7 +177,8 @@ object Histogram {
       val sampleRate = params.getDouble("sample-rate")
       val pruneEmpty = params.getBoolean("prune-empty")
       val enabled = params.getBoolean("enabled")
-      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+      val buckets = BucketConfig.buckets(BucketConfig.fromConfig(params.getConfig("buckets")))
+      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals, buckets)
     }
   }
 
@@ -144,10 +196,11 @@ object Histogram {
     percentiles: Seq[Double] = Histogram.defaultPercentiles,
     sampleRate: Double = 1.0,
     pruneEmpty: Boolean = false,
-    enabled : Boolean = true
+    enabled : Boolean = true,
+    buckets: BucketList = Histogram.defaultBucketRanges
   )(implicit ns : MetricNamespace): Histogram = {
     ns.getOrAdd(address){(fullAddress, config) =>
-      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals)
+      createHistogram(fullAddress, percentiles, sampleRate, pruneEmpty, enabled, config.intervals, buckets)
     }
   }
 
@@ -156,9 +209,10 @@ object Histogram {
                               sampleRate : Double,
                               pruneEmpty : Boolean,
                               enabled : Boolean,
-                              intervals : Seq[FiniteDuration]) : Histogram = {
+                              intervals : Seq[FiniteDuration],
+                              buckets: BucketList) : Histogram = {
     if(enabled){
-      new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty, intervals)
+      new DefaultHistogram(address, percentiles, sampleRate, pruneEmpty,  buckets, intervals)
     }else{
       new NopHistogram(address)
     }
@@ -283,6 +337,7 @@ class DefaultHistogram private[metrics](
   val percentiles: Seq[Double] = Histogram.defaultPercentiles,
   val sampleRate: Double = 1.0,
   val pruneEmpty: Boolean = false,
+  val buckets : BucketList = Histogram.defaultBucketRanges,
   intervals : Seq[FiniteDuration]
 )extends Histogram {
 
@@ -297,7 +352,7 @@ class DefaultHistogram private[metrics](
         Option(taghists.get(tags)) match {
           case Some(got) => got.add(value)
           case None => {
-            taghists.putIfAbsent(tags, new BaseHistogram)
+            taghists.putIfAbsent(tags, new BaseHistogram(buckets))
             //TODO: possible race condition if removed between these lines
             taghists.get(tags).add(value)
           }
@@ -351,7 +406,8 @@ class DefaultHistogram private[metrics](
 class NopHistogram private[metrics](val address: MetricAddress,
                                     val percentiles: Seq[Double] = Histogram.defaultPercentiles,
                                     val sampleRate: Double = 1.0,
-                                    val pruneEmpty: Boolean = false) extends Histogram {
+                                    val pruneEmpty: Boolean = false,
+                                    val buckets: BucketList = BucketList(Vector())) extends Histogram {
   val empty : MetricMap = Map()
   override def tick(interval: FiniteDuration): MetricMap = empty
 

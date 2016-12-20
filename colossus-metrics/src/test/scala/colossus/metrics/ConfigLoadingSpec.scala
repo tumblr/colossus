@@ -130,6 +130,10 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
         |  small-hist {
         |    prune-empty : false
         |    percentiles : [.50, .75]
+        |    buckets : {
+        |     type: manual
+        |     values: [0, 2, 4]
+        |   }
         |  }
         |  off-hist{
         |    enabled : false
@@ -162,6 +166,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       r.pruneEmpty mustBe false
       r.sampleRate mustBe 1.0
       r.percentiles mustBe Seq(0.5, 0.75)
+      r.buckets mustBe BucketList(Vector(0, 2, 4))
     }
     "load defaults if a defined configuration isn't found" in {
       val r = Histogram(MetricAddress("my-crazy-hist"), "crazy-hist")
