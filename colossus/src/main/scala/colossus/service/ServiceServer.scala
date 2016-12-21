@@ -112,37 +112,28 @@ trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[P <: Protocol](val config: ServiceConfig)
+abstract class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
 extends ControllerDownstream[Encoding.Server[P]] 
 with ServiceUpstream[P] 
 with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]] 
 {
   import ServiceServer._
 
-  type I = P#Request
-  type O = P#Response
+  type Request = P#Request
+  type Response = P#Response
 
-  protected def serverContext: ServerContext
+  def downstream = requestHandler
+  downstream.setUpstream(this)
 
-  protected def processRequest(request: I): Callback[O]
+  val incoming = new BufferedPipe[Request](50)
 
-  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
- 
-  protected def processFailure(error: ProcessingFailure[I]): O
-
-  def connection = upstream.connection
-
-  val incoming = new BufferedPipe[I](50)
-
-  import config._
-
-  implicit val namespace = serverContext.server.namespace
-  def name = serverContext.server.config.name
+  def config = requestHandler.config
+  def context = requestHandler.serverContext.context
+  implicit val namespace = requestHandler.serverContext.server.namespace
+  def name = requestHandler.serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
-  def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
-  def requestLogFormat : Option[RequestFormatter[I]] = None
-  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = maxRequestSize)
+  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = config.maxRequestSize)
 
   
   private val requests  = Rate("requests", "connection-handler-requests")
@@ -158,34 +149,28 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  private def addError(error: ProcessingFailure[I], extraTags: TagMap = TagMap.Empty) {
+  private def addError(error: ProcessingFailure[Request], extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> error.reason.metricsName)
     errors.hit(tags = tags)
-    if (logErrors) {
-      logError(error).foreach{message =>
-        log.error(error.reason, message )
+    if (config.logErrors) {
+      val formattedRequest = error match {
+        case RecoverableError(request, reason) => requestHandler.requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+        case IrrecoverableError(reason) => "Invalid Request"
       }
+      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}" )
     }
   }
 
-  protected def logError(error: ProcessingFailure[I]): Option[String] = {
-    val formattedRequest = error match {
-      case RecoverableError(request, reason) => requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
-      case IrrecoverableError(reason) => "Invalid Request"
-    }
-    Some(s"Error processing request: $formattedRequest: ${error.reason}")
-  }
-
-  private case class SyncPromise(request: I) {
+  private case class SyncPromise(request: Request) {
     val creationTime = System.currentTimeMillis
 
-    def isTimedOut(time: Long) = !isComplete && requestTimeout.isFinite && (time - creationTime) > requestTimeout.toMillis
+    def isTimedOut(time: Long) = !isComplete && config.requestTimeout.isFinite && (time - creationTime) > config.requestTimeout.toMillis
 
-    private var _response: Option[O] = None
+    private var _response: Option[Response] = None
     def isComplete = _response.isDefined
     def response = if (_response.isDefined) _response.get else throw new Exception("Attempt to use incomplete response")
 
-    def complete(response: O) {
+    def complete(response: Response) {
       _response = Some(response)
       checkBuffer()
     }
@@ -214,9 +199,9 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
       val done = requestBuffer.remove()
       upstream.outgoing.push(done.response) match {
         case PushResult.Ok => {
-          if (requestMetrics) {
+          if (config.requestMetrics) {
             concurrentRequests.decrement()
-            val tags = tagDecorator.tagsFor(done.request, done.response)
+            val tags = requestHandler.tagDecorator.tagsFor(done.request, done.response)
             requests.hit(tags = tags)
             latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
           }
@@ -231,11 +216,15 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
         }
         case other => {
           log.error(s"invalid state on incoming stream $other")
-          connection.forceDisconnect()
+          upstream.connection.forceDisconnect()
         }
       }
     }
     checkGracefulDisconnect()
+  }
+
+  override def onBind() {
+    requestHandler.setConnection(upstream.connection)
   }
 
   override def onConnected() {
@@ -243,7 +232,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   }
 
   override def onConnectionTerminated(cause : DisconnectCause) {
-    if (requestMetrics) {
+    if (config.requestMetrics) {
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(amount = requestBuffer.size)
     }
@@ -263,9 +252,9 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
          * Notice, if the request buffer is full we're still adding to it, but by skipping
          * processing of requests we can hope to alleviate overloading
          */
-        val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
+        val response: Callback[Response] = if (requestBuffer.size <= config.requestBufferSize) {
           try {
-            processRequest(request)
+            requestHandler.handleRequest(request)
           } catch {
             case t: ParseException =>
               Callback.successful(handleFailure(IrrecoverableError(t)))
@@ -276,7 +265,7 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
         } else {
           Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
         }
-        if (requestMetrics) concurrentRequests.increment()
+        if (config.requestMetrics) concurrentRequests.increment()
         response.execute{
           case Success(res) => promise.complete(res)
           case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
@@ -293,9 +282,9 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
 
   override def onFatalError(reason: Throwable) = processBadRequest(reason)
 
-  private def handleFailure(error: ProcessingFailure[I]): O = {
+  private def handleFailure(error: ProcessingFailure[Request]): Response = {
     addError(error)
-    processFailure(error)
+    requestHandler.handleFailure(error)
   }
 
   private def checkGracefulDisconnect() {

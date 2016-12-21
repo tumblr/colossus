@@ -177,11 +177,7 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
 
 class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
-extends DSLService[StreamingHttp](rh) {
-
-  def unhandledError = {
-    case error => ???//defaults.errorResponse(error)
-  }
+extends ServiceServer[StreamingHttp](rh) {
 
 }
 
