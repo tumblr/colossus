@@ -45,7 +45,7 @@ import scala.concurrent.Future
  * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
  * to handle delegator startup.  Since a Server waits for a signal from the
  * [[colossus.IOSystem]] that every worker has properly initialized a
- * [[colossus.core.Delegator]], this determines how long to wait before the
+ * [[colossus.core.Initializer]], this determines how long to wait before the
  * initialization is considered a failure and whether to retry the
  * initialization.
  *
@@ -116,12 +116,12 @@ object ServerSettings {
  *  and the name and settings by the user.
  *
  * @param name Name of the Server, all reported metrics are prefixed using this name
- * @param delegatorFactory Factory to generate [[colossus.core.Delegator]]s for each Worker
+ * @param initializerFactory Factory to generate [[colossus.core.Initializer]]s for each Worker
  * @param settings lower-level server configuration settings
  */
 case class ServerConfig(
   name: MetricAddress, //possibly move this into settings as well, needs more experimentation
-  delegatorFactory: Delegator.Factory,
+  initializerFactory: Initializer.Factory,
   settings : ServerSettings
 )
 
@@ -156,14 +156,19 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
   }
 
   /**
-   * Broadcast a message to a all of the [[Delegator]]s of this server.
+   * Broadcast a message to a all of the [[Initializer]]s of this server.
    *
    * @param message
    * @param sender
    * @return
    */
+  @deprecated("function has been deprecated, please use `initializerBroadcast` instead")
   def delegatorBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
-    server.!(Server.DelegatorBroadcast(message))(sender)
+    initializerBroadcast(message)
+  }
+
+  def initializerBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
+    server.!(Server.InitializerBroadcast(message))(sender)
   }
 
   /**
@@ -291,7 +296,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
       log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
       self ! PoisonPill
     }
-    case d: DelegatorBroadcast => stash()
+    case d: InitializerBroadcast => stash()
     case Shutdown => {
       self ! PoisonPill
     }
@@ -299,7 +304,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
 
   def binding(router: ActorRef): Receive = alwaysHandle orElse {
-    case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
+    case InitializerBroadcast(message) => router ! akka.routing.Broadcast(Worker.InitializerMessage(me, message))
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
@@ -343,7 +348,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     } else {
       router ! Worker.NewConnection(sc, attempt + 1)
     }
-    case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
+    case InitializerBroadcast(message) => router ! akka.routing.Broadcast(Worker.InitializerMessage(me, message))
     case Shutdown => {
       //initiate the shutdown sequence.  We broadcast a shutdown request to all
       //of our open connections, and then wait for them to close or timeout and
@@ -503,7 +508,7 @@ object Server extends ServerDSL {
 
   private[core] sealed trait ServerCommand
   private[core] case object Shutdown extends ServerCommand
-  private[core] case class DelegatorBroadcast(message: Any) extends ServerCommand
+  private[core] case class InitializerBroadcast(message: Any) extends ServerCommand
   private[core] case object GetInfo extends ServerCommand
 
   case class ServerInfo(openConnections: Int, status: ServerStatus)

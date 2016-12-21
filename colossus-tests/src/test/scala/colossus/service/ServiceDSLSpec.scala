@@ -33,7 +33,7 @@ class ServiceDSLSpec extends ColossusSpec {
             case _ => TelnetReply("meeh")
           }}
         }
-        server.delegatorBroadcast("PING")
+        server.initializerBroadcast("PING")
         probe.expectMsg(250.milliseconds, "PONG")
         probe.expectMsg(250.milliseconds, "PONG")
       }
