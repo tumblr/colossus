@@ -60,7 +60,7 @@ class ServiceDSLSpec extends ColossusSpec {
     */
 
 
-    "receive connection messages" in {
+    "receive connection messages" taggedAs(org.scalatest.Tag("test")) in {
       val probe = TestProbe()
       withIOSystem{ implicit system =>
         val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) with ProxyActor {

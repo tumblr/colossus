@@ -112,10 +112,11 @@ trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
+class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
 extends ControllerDownstream[Encoding.Server[P]] 
 with ServiceUpstream[P] 
 with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]] 
+with DownstreamEventHandler[GenRequestHandler[P]]
 {
   import ServiceServer._
 
@@ -128,7 +129,6 @@ with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
   val incoming = new BufferedPipe[Request](50)
 
   def config = requestHandler.config
-  def context = requestHandler.serverContext.context
   implicit val namespace = requestHandler.serverContext.server.namespace
   def name = requestHandler.serverContext.server.config.name
 
