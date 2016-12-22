@@ -35,6 +35,10 @@ object StreamServiceExample {
           )
         }
       }
+
+      def unhandledError = {
+        case err => StreamingHttpResponse(HttpResponse.error(s"error: $err"))
+      }
     })
 
   }
