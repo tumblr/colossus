@@ -93,7 +93,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
    * @param f The function which runs tests.
    * @return
    */
-  def withIOSystemAndServer(factory: Delegator.Factory,
+  def withIOSystemAndServer(factory: Initializer.Factory,
                            customSettings: Option[ServerSettings] = None,
                            waitTime: FiniteDuration = 500.milliseconds)(f : (IOSystem, ServerRef) => Any ) = {
     withIOSystem { implicit io =>
@@ -103,7 +103,7 @@ abstract class ColossusSpec(_system: ActorSystem) extends TestKit(_system) with 
         settings = customSettings.getOrElse(ServerSettings(
           port = TEST_PORT
         )),
-        delegatorFactory = factory
+        initializerFactory = factory
       )
       val server = Server(config)
       waitForServer(server, waitTime)

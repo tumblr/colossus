@@ -3,7 +3,6 @@ package core
 
 import colossus.metrics.MetricSystem
 import testkit._
-
 import akka.actor._
 import akka.agent._
 import akka.testkit.TestProbe
@@ -110,8 +109,8 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "shutdown when a delegator fails to instantiate" in {
-        val badDelegator : Delegator.Factory = (s, w) => throw new Exception("failed during delegator creation")
+      "shutdown when a initializer fails to instantiate" in {
+        val badDelegator : Initializer.Factory = (_) => throw new Exception("failed during initializer creation")
 
         withIOSystem{ implicit io =>
           val cfg = ServerConfig(
@@ -186,7 +185,7 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "shutdown when a delegator surpasses the allotted duration" in {
+      "shutdown when a initializer surpasses the allotted duration" in {
         withIOSystem{ implicit io =>
           val serverProbe = TestProbe()
           val failedServer = Server.start("fail", ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(new Initializer(_) {
@@ -276,7 +275,7 @@ class ServerSpec extends ColossusSpec {
         val (sys, mprobe) = FakeIOSystem.withManagerProbe()
         val server = Server.basic("test", TEST_PORT)(new EchoHandler(_))(sys)
         val workerRouterProbe = TestProbe()
-        server.delegatorBroadcast("TEST")
+        server.initializerBroadcast("TEST")
         mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
         mprobe.expectNoMsg(100.milliseconds)
         server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
@@ -287,11 +286,12 @@ class ServerSpec extends ColossusSpec {
 
       "properly registers when worker initially times out" in {
         //notice, this test failed due to a timeout beforet the fix
-        class SleepyDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
+        class SleepyInitializer(server: ServerRef, worker: WorkerRef) extends Initializer(InitContext(server, worker)) {
           Thread.sleep(600)
           def acceptNewConnection = None // >:(
+          override def onConnect: (ServerContext) => ServerConnectionHandler = ???
         }
-        withIOSystemAndServer((s,w) => new SleepyDelegator(s,w), waitTime = 10.seconds)((io, sys) =>())
+        withIOSystemAndServer((ic) => new SleepyInitializer(ic.server,ic.worker), waitTime = 10.seconds)((io, sys) =>())
       }
 
       "switch to high water timeout when connection count passes the high water mark" in {
@@ -316,19 +316,21 @@ class ServerSpec extends ColossusSpec {
         }
       }
 
-      "delegator onShutdown is called when a worker shuts down" in {
+      "initializer onShutdown is called when a worker shuts down" in {
         import scala.concurrent.ExecutionContext.Implicits.global
         val alive = Agent(0)
-        class WhineyDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
+        class WhineyInitializer(initContext: InitContext) extends Initializer(initContext) {
           alive send {_ + 1}
           def acceptNewConnection = None // >:(
+
+          override def onConnect: (ServerContext) => ServerConnectionHandler = ???
 
           override def onShutdown() {
             alive send {_ - 1}
           }
         }
 
-        withIOSystemAndServer((s,w) => new WhineyDelegator(s,w), waitTime = 10.seconds){(io, server)=>{
+        withIOSystemAndServer((initContext) => new WhineyInitializer(initContext), waitTime = 10.seconds){(io, server)=>{
           alive() must equal(server.system.numWorkers)
         }}
 
@@ -356,18 +358,19 @@ class ServerSpec extends ColossusSpec {
       }
   }
 
-  class TestDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
-    def acceptNewConnection = Some(new EchoHandler(ServerContext(server, worker.generateContext())))
-    override def handleMessage = {
+  class TestInitializer(initContext: InitContext) extends Initializer(initContext) {
+    override def onConnect: (ServerContext) => ServerConnectionHandler = (ctx) => new EchoHandler(ServerContext(ctx.server, ctx.context.worker.generateContext()))
+
+    override def receive = {
       case a: ActorRef => a.!(())
     }
   }
 
-  "delegator" must {
+  "initializer" must {
     "receive broadcast messages" in {
-      withIOSystemAndServer((s, w) => new TestDelegator(s,w)) { (io, server) =>
+      withIOSystemAndServer(initContext => new TestInitializer(initContext)) { (io, server) =>
         val dprobe = TestProbe()
-        server.server ! Server.DelegatorBroadcast(dprobe.ref)
+        server.server ! Server.InitializerBroadcast(dprobe.ref)
         dprobe.expectMsg(())
         dprobe.expectMsg(())
       }

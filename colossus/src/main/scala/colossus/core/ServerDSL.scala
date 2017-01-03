@@ -31,6 +31,8 @@ abstract class Initializer(context: InitContext) {
 
   implicit val worker = context.worker
 
+  val server = context.server
+
   /**
    * Given a [[ServerContext]] for a new connection, provide a new connection
    * handler for the connection
@@ -39,7 +41,7 @@ abstract class Initializer(context: InitContext) {
 
   /**
    * Message receive hook.  This is used to handle any messages that are sent
-   * using [[ServerRef]] `delegatorBroadcast`.
+   * using [[ServerRef]] `initializerBroadcast`.
    */
   def receive: Receive = Map() //empty receive
 
@@ -50,21 +52,10 @@ abstract class Initializer(context: InitContext) {
 
 }
 
-//almost seems like we don't need delegator anymore
-class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initializer) extends Delegator(server, _worker) {
-
-
-  def acceptNewConnection: Option[ServerConnectionHandler] = {
-    Some(initializer.onConnect(ServerContext(server, worker.generateContext)))
-  }
-
-  override def handleMessage: Receive = initializer.receive
-
-  override def onShutdown() {
-    initializer.onShutdown()
-  }
-
+object Initializer {
+  type Factory = InitContext => Initializer
 }
+
 
 //this is mixed in by Server
 trait ServerDSL {
@@ -113,7 +104,7 @@ trait ServerDSL {
   def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
-      settings = settings, delegatorFactory = (s, w) => new DSLDelegator(s, w, initializer(InitContext(s,w)))
+      settings = settings, initializerFactory = (ic) => initializer(ic)
     )
     Server(serverConfig)
 

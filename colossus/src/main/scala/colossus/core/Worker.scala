@@ -5,13 +5,13 @@ import akka.actor._
 import akka.event.LoggingAdapter
 import metrics._
 import service.CallbackExecution
-
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -174,8 +174,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   val connections = collection.mutable.Map[Long, Connection]()
 
 
-  //mapping of registered servers to their delegators
-  val delegators = collection.mutable.Map[ActorRef, Delegator]()
+  //mapping of registered servers to their initializers
+  val initializers = collection.mutable.Map[ActorRef, Initializer]()
 
   val me = WorkerRef(workerId, self, io)
 
@@ -215,14 +215,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       }
       sender() ! IdleCheckExecuted
     }
-    case WorkerManager.RegisterServer(server) => if (!delegators.contains(server.server)){
+    case WorkerManager.RegisterServer(server) => if (!initializers.contains(server.server)){
       try{
-        delegators(server.server) = server.config.delegatorFactory(server, me)
+        initializers(server.server) = server.config.initializerFactory(InitContext(server, me))
         log.debug(s"registered server ${server.name}")
         sender ! ServerRegistered
       }catch {
         case NonFatal(e) => {
-          log.error(e, s"failed to create delegator")
+          log.error(e, s"failed to create initializer")
           sender ! RegistrationFailed
         }
       }
@@ -238,25 +238,25 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         connection.serverHandler.shutdownRequest()
       }}
     }
-    case DelegatorMessage(server, message) => {
-      delegators
-        .find{case (_, delegator) => delegator.server == server}
-        .map{case (_, delegator) =>
-          delegator.handleMessage.orElse[Any, Unit] {
-            case unhandled => log.warning(s"Unhandled message $unhandled for delegator of server ${server.name}")
+    case InitializerMessage(server, message) => {
+      initializers
+        .find{case (_, initializer) => initializer.server == server}
+        .map{case (_, initializer) =>
+          initializer.receive.orElse[Any, Unit] {
+            case unhandled => log.warning(s"Unhandled message $unhandled for initializer of server ${server.name}")
           }(message)
         }
         .getOrElse{
-          log.error(s"delegator message $message for unknown server ${server.name}")
+          log.error(s"initializer message $message for unknown server ${server.name}")
         }
     }
-    case NewConnection(sc, attempt) => delegators.get(sender()).map{delegator =>
-      delegator.createConnectionHandler.map{handler =>
-        registerConnection(sc, delegator.server, handler)
+    case NewConnection(sc, attempt) => initializers.get(sender()).map{initializer =>
+      Try(initializer.onConnect.apply(ServerContext(initializer.server, initializer.worker.generateContext()))).map{handler =>
+        registerConnection(sc, initializer.server, handler)
       }.getOrElse{
         sc.close()
-        delegator.server.server ! Server.ConnectionClosed(0, DisconnectCause.Unhandled)
-        rejectedConnections.hit(tags = Map("server" -> delegator.server.name.idString) ++ workerIdTag)
+        initializer.server.server ! Server.ConnectionClosed(0, DisconnectCause.Unhandled)
+        rejectedConnections.hit(tags = Map("server" -> initializer.server.name.idString) ++ workerIdTag)
       }
     }.getOrElse{
       sender ! Server.ConnectionRefused(sc, attempt)
@@ -440,16 +440,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   }
 
   def unregisterServer(handler: ActorRef) {
-    if (delegators contains handler) {
-      val delegator = delegators(handler)
+    if (initializers contains handler) {
+      val initializer = initializers(handler)
       val closed = connections.collect{
-        case (_, s: ServerConnection) if (s.server == delegator.server) => {
+        case (_, s: ServerConnection) if (s.server == initializer.server) => {
           unregisterConnection(s, DisconnectCause.Terminated)
         }
       }
-      delegators -= handler
-      delegator.onShutdown()
-      log.info(s"unregistering server ${delegator.server.name} (terminating ${closed.size} associated connections)")
+      initializers -= handler
+      initializer.onShutdown()
+      log.info(s"unregistering server ${initializer.server.name} (terminating ${closed.size} associated connections)")
     } else {
       log.warning(s"Attempted to unregister unknown server actor ${handler.path.toString}")
     }
@@ -559,8 +559,8 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     connections.foreach{case (_, con) =>
       con.close(DisconnectCause.Terminated)
     }
-    delegators.foreach{ case (server, delegator) =>
-      delegator.onShutdown()
+    initializers.foreach{ case (server, initializer) =>
+      initializer.onShutdown()
     }
     selector.close()
     log.info("PEACE OUT")
@@ -592,9 +592,9 @@ object Worker {
   private[core] case class NewConnection(sc: SocketChannel, attempt: Int = 1)
 
   /**
-   * Send a message to the delegator belonging to the server
+   * Send a message to the initializer belonging to the server
    */
-  case class DelegatorMessage(server: ServerRef, message: Any)
+  case class InitializerMessage(server: ServerRef, message: Any)
 
   case class MessageDeliveryFailed(id: Long, message: Any)
 }

@@ -1,10 +1,9 @@
 package colossus
 package testkit
 
-import core._
+import core.{InitContext, _}
 import metrics._
 import service._
-
 import akka.agent.Agent
 import akka.actor._
 import akka.testkit.TestProbe
@@ -57,7 +56,7 @@ object FakeIOSystem {
     val probe = TestProbe()
     val config = ServerConfig(
       "/foo",
-      (s,w) => ???,
+      (initContext) => ???,
       ServerSettings(987)
     )
     val ref = ServerRef(config, probe.ref, apply(), Agent(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
