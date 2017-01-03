@@ -38,7 +38,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
   def create(): (Con, TestUpstream[Encoding.Server[StreamHttp]])  = {
     val controllerstub = new TestUpstream[Encoding.Server[StreamHttp]]
-    val handler = new StreamServiceController[Encoding.Server[StreamHeader]](stub[ControllerDownstream[Encoding.Server[StreamingHttp]]], StreamRequestBuilder)
+    val handler = new StreamServiceController[Encoding.Server[StreamHeader]](stub[ControllerDownstream[Encoding.Server[StreamingHttp]]], StreamingHttpRequest)
     handler.setUpstream(controllerstub)
     (handler, controllerstub)
   }

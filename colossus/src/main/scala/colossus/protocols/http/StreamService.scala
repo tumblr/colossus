@@ -56,19 +56,11 @@ object GenEncoding {
     type Output = M[E#Output]
   }
 
+  type InputMessageBuilder[T <: HttpMessageHead] = (T, Source[Data]) => StreamingHttpMessage[T]
+
 }
 import GenEncoding._
 
-
-trait InputMessageBuilder[T <: HttpMessageHead] {
-  def build(head: T): (Sink[Data], StreamingHttpMessage[T])
-}
-object StreamRequestBuilder extends InputMessageBuilder[HttpRequestHead] {
-  def build(head: HttpRequestHead) = {
-    val pipe = new BufferedPipe[Data](10)
-    (pipe, StreamingHttpRequest(head, pipe))
-  }
-}
 
 class StreamServiceController[E <: HeadEncoding](
   val downstream: ControllerDownstream[GenEncoding[StreamingHttpMessage, E]],
@@ -86,6 +78,17 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
 
   private var currentInputStream: Option[Sink[Data]] = None
 
+  implicit val ms:MultiStream[Unit, HttpStream[InputHead]] = new MultiStream[Unit, HttpStream[InputHead]] {
+    def component(c: HttpStream[InputHead]) = c match {
+      case Head(_) => StreamComponent.Head
+      case Data(_,_) => StreamComponent.Body
+      case End   => StreamComponent.Tail
+    }
+
+    def streamId(c: HttpStream[InputHead]) = ()
+  }
+
+
 
   def outputStream: Pipe[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]] = {
     val p = new BufferedPipe[StreamingHttpMessage[OutputHead]](100).map{_.collapse}
@@ -95,16 +98,38 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
   val outgoing = new PipeCircuitBreaker[StreamingHttpMessage[OutputHead], HttpStream[OutputHead]]
 
 
-  val incoming = new BufferedPipe[HttpStream[InputHead]](100)
+  def inputStream : Pipe[HttpStream[InputHead], StreamingHttpMessage[InputHead]] = {
+    val p = new BufferedPipe[HttpStream[InputHead]](100)
+    val demult = Multiplexing.demultiplex(p).map{ case SubSource(id, stream) =>
+      val head = stream.pull match {
+        case PullResult.Item(Head(head)) => head
+        case other => throw new Exception("not a head")
+      }
+      val mapped : Source[Data] = stream.filterMap{
+        case d @ Data(_,_) => Some(d)
+        case other => None
+      }
+      builder(head, mapped)
+    }
+    new Channel(p, demult)
+  }
+
+  val incoming = new PipeCircuitBreaker[HttpStream[InputHead], StreamingHttpMessage[InputHead]]
+
+    
 
   override def onConnected() {
+    
     outgoing.set(outputStream)
-    outgoing into upstream.outgoing
-    readin()
+    outgoing.into(upstream.outgoing, true, true){e => fatal(e.toString)}
+
+    incoming.set(inputStream)
+    incoming.into(downstream.incoming, true, true){e => fatal(e.toString)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
-    outgoing.unset().foreach{_.terminate(new ConnectionLostException("Closed"))}
+    outgoing.unset()//.foreach{_.terminate(new ConnectionLostException("Closed"))}
+    incoming.unset()
   }
 
 
@@ -113,64 +138,8 @@ with UpstreamEventHandler[ControllerUpstream[GenEncoding[HttpStream, E]]] {
     upstream.connection.forceDisconnect()
   }
 
-  def readin(): Unit = incoming.pullWhile (
-    item => {
-      item match {
-        case Head(head) =>  currentInputStream match {
-          case None => {
-            val (sink, msg) = builder.build(head)
-            currentInputStream = Some(sink)
-            downstream.incoming.push(msg) match {
-              case PushResult.Ok => PullAction.PullContinue
-              case PushResult.Full(signal) => PullAction.Wait(signal)
-              case PushResult.Closed => PullAction.Terminate(new PipeStateException("downstream link closed unexpectedly"))
-              case PushResult.Error(err) => PullAction.Terminate(err)
-            }
-          }
-          case Some(uhoh) => {
-            //we got a head before the last stream finished, not good
-            fatal("received head during unfinished stream")
-            PullAction.Stop
-          }
-        }
-        case b @ Data(_, _) => currentInputStream match {
-          case Some(sink) => sink.push(b) match {
-            case PushResult.Full(signal) => {
-              PullAction.Wait(signal)
-            }
-            case PushResult.Ok => PullAction.PullContinue
-            case other => {
-              // :(
-              fatal(s"failed to push message to stream with result $other")
-              PullAction.Stop
-            }
-          }
-          case None => {
-            fatal("Received body data but no input stream exists")
-            PullAction.Stop
-          }
-        }
-        case e @ End => currentInputStream match {
-          case Some(sink) => {
-            sink.complete()
-            currentInputStream = None
-            PullAction.PullContinue
-          }
-          case None => {
-            fatal("attempted to end non-existant input stream")
-            PullAction.Stop
-          }
-        }
-      } 
-    },
-    _ => fatal("upstream link unexpected terminated")
-  
-  )
-
-  // Members declared in colossus.controller.ControllerDownstream
   def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig
 
-  // Members declared in colossus.controller.ControllerUpstream
   def connection: colossus.core.ConnectionManager = upstream.connection
 
 }
@@ -189,7 +158,7 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
       new Controller[GenEncoding[HttpStream, Encoding.Server[StreamHeader]]](
         new StreamServiceController[Encoding.Server[StreamHeader]](
           new StreamingHttpServiceHandler(handler),
-          StreamRequestBuilder
+          StreamingHttpRequest.apply
         ),
         new StreamHttpServerCodec
       ), 
