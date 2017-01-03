@@ -8,20 +8,8 @@ import controller._
 import service._
 
 protected[server] class HttpServiceHandler(rh: RequestHandler) 
-extends DSLService[Http](rh) {
+extends ServiceServer[Http](rh) {
 
-  val defaults = new Http.ServerDefaults
-
-  override def tagDecorator = new ReturnCodeTagDecorator
-
-  override def processRequest(input: Http#Request): Callback[Http#Response] = {
-    val response = super.processRequest(input)
-    if(!input.head.persistConnection) connection.disconnect()
-    response
-  }
-  def unhandledError = {
-    case error => defaults.errorResponse(error)
-  }
 
 }
 
@@ -51,6 +39,19 @@ abstract class Initializer(ctx: InitContext) extends Generator(ctx) with Service
  */
 abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
   def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
+
+  val defaults = new Http.ServerDefaults
+
+  override def tagDecorator = new ReturnCodeTagDecorator
+
+  override def handleRequest(input: Http#Request): Callback[Http#Response] = {
+    val response = super.handleRequest(input)
+    if(!input.head.persistConnection) connection.disconnect()
+    response
+  }
+  def unhandledError = {
+    case error => defaults.errorResponse(error)
+  }
 }
 
 /**

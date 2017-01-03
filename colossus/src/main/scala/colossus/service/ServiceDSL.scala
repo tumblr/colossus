@@ -18,85 +18,6 @@ trait Protocol {
   type Response
 }
 
-object Protocol {
-
-  type PartialHandler[C <: Protocol] = PartialFunction[C#Request, Callback[C#Response]]
-
-  type Receive = PartialFunction[Any, Unit]
-
-  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Request], C#Response]
-
-  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Response]
-}
-
-import Protocol._
-
-class UnhandledRequestException(message: String) extends Exception(message)
-class ReceiveException(message: String) extends Exception(message)
-
-abstract class DSLService[C <: Protocol](val requestHandler: GenRequestHandler[C]) 
-extends ServiceServer[C](requestHandler.config) 
-with DownstreamEventHandler[GenRequestHandler[C]] { 
-
-  downstream.setUpstream(this)
-
-  override def onBind() {
-    requestHandler.setConnection(upstream.connection)
-  }
-
-  protected def unhandled: PartialHandler[C] = PartialFunction[C#Request,Callback[C#Response]]{
-    case other =>
-      Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
-  }
-
-  def serverContext = requestHandler.serverContext
-
-  protected def unhandledError: ErrorHandler[C] 
-  def downstream = requestHandler
-
-  private lazy val handler: PartialHandler[C] = requestHandler.handle orElse unhandled
-  private lazy val errorHandler: ErrorHandler[C] = requestHandler.onError orElse unhandledError
-
-  protected def processRequest(i: C#Request): Callback[C#Response] = handler(i)
-
-  protected def processFailure(error: ProcessingFailure[C#Request]): C#Response = errorHandler(error)
-
-}
-
-class RequestHandlerException(message: String) extends Exception(message)
-
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) 
-extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstream[P]] {
-
-  def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
-
-  val server = serverContext.server
-  def context = serverContext.context
-  implicit val worker = context.worker
-
-  private var _connectionManager: Option[ConnectionManager] = None
-
-  def connection = _connectionManager.getOrElse {
-    throw new RequestHandlerException("Cannot access connection before request handler is bound")
-  }
-
-  def setConnection(connection: ConnectionManager) {
-    _connectionManager = Some(connection)
-  }
-
-  implicit val executor   = context.worker.callbackExecutor
-
-  def handle: PartialHandler[P]
-
-  def onError: ErrorHandler[P] = Map()
-
-  def disconnect() {
-    connection.disconnect()
-  }
-
-}
-
-
 abstract class HandlerGenerator[T](ctx: InitContext) {
   implicit val worker = ctx.worker
   val server = ctx.server
@@ -149,12 +70,7 @@ trait BasicServiceDSL[P <: Protocol] {
 
   protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
 
-  protected class ServiceHandler(rh: RequestHandler) 
-  extends DSLService[P](rh) {
-
-    def unhandledError = {
-      case error => errorMessage(error)
-    }
+  protected class ServiceHandler(rh: RequestHandler) extends ServiceServer[P](rh) {
 
   }
 
@@ -168,6 +84,10 @@ trait BasicServiceDSL[P <: Protocol] {
 
   abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
     def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
+
+    def unhandledError = {
+      case error => errorMessage(error)
+    }
   }
 
   object Server extends ServiceDSL[RequestHandler, Initializer] {

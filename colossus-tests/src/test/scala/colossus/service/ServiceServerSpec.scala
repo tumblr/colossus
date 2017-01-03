@@ -24,28 +24,29 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
     maxRequestSize = 300.bytes
   )
 
-  class FakeService(handler: ByteString => Callback[ByteString], val serverContext: ServerContext) extends ServiceServer[Raw](config) with HandlerTail{
-    def context = serverContext.context
+  class FakeHandler(handler: ByteString => Callback[ByteString] = x => Callback.successful(x), context: ServerContext) extends GenRequestHandler[Raw](config, context) {
 
-    def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
-
-    def processRequest(input: ByteString) = handler(input)
-
+    def handle = { case req => handler(req) }
+    def unhandledError = {case _ => ByteString("ERROR")}
   }
 
   def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): TypedMockConnection[PipelineHandler] = {
-    val endpoint = MockConnection.server(ctx => Controller(new FakeService(handler, ctx), RawServerCodec))
+    val endpoint = MockConnection.server(ctx => {
+      val fh = new FakeHandler(handler, ctx)
+      new PipelineHandler(new Controller(new ServiceServer[Raw](fh), RawServerCodec), fh)
+    })
 
     endpoint.handler.connected(endpoint)
     endpoint
   }
 
-  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (FakeService, TestUpstream[Encoding.Server[Raw]])  = {
+  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (ServiceServer[Raw], TestUpstream[Encoding.Server[Raw]])  = {
     val upstream = new TestUpstream[Encoding.Server[Raw]]
-    val handler = new FakeService(fn, FakeIOSystem.fakeServerContext)
-    handler.setUpstream(upstream)
-    handler.connected()
-    (handler, upstream)
+    val fh = new FakeHandler(fn, FakeIOSystem.fakeServerContext)
+    val service = new ServiceServer(fh)
+    service.setUpstream(upstream)
+    service.connected()
+    (service, upstream)
   }
 
   "ServiceServer" must {
