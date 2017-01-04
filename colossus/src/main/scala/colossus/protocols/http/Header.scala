@@ -199,6 +199,15 @@ class ParsedHttpHeaders(
 
   override def transferEncoding = if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
 
+  override def encode(buffer: core.DataOutBuffer) {
+    transferEncodingOpt.foreach{_.header.encode(buffer)}
+    connection.foreach{_.header.encode(buffer)}
+    contentLength.foreach{c => 
+      HttpHeader.encodeContentLength(buffer, c)
+    }
+    super.encode(buffer)
+  }
+
 }
 
 
@@ -318,6 +327,8 @@ object Cookie {
 
 sealed trait TransferEncoding {
   def value : String
+
+  lazy val header: HttpHeader = HttpHeader("Transfer-Encoding", value)
 }
 
 object TransferEncoding {
@@ -366,6 +377,8 @@ object ContentEncoding {
 
 sealed trait Connection {
   def value: String
+
+  lazy val header: HttpHeader = HttpHeader("Connection", value)
 }
 object Connection {
   case object KeepAlive extends Connection {

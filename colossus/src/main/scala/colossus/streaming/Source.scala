@@ -194,6 +194,7 @@ object Source {
     def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any){
       import PullAction._
       var continue = true
+      println(this)
       while (continue) {
         continue = peek match {
           case PullResult.Empty(trig) => {
@@ -236,10 +237,7 @@ object Source {
 
   }
 
-  /**
-   * Create a source containing only one item
-   */
-  def one[T](data: T) = new Source[T] with BasicMethods[T] {
+  class OneSource[T](data: T) extends Source[T] with BasicMethods[T] {
     var item: PullResult[T] = PullResult.Item(data)
     def pull(): PullResult[T] = {
       val t = item
@@ -264,17 +262,56 @@ object Source {
   }
 
   /**
+   * Create a source containing only one item
+   */
+  def one[T](data: T) = {
+    new OneSource[T](data)
+  }
+
+  /**
    * Create a source containing items in the given array.  The source will be
    * closed after the last item in the array has been pulled
    */
-  def fromArray[T](arr: Array[T]): Source[T] = fromIterator(new Iterator[T] {
+  class ArraySource[T](arr: Array[T]) extends Source[T] {
     private var index = 0
     def hasNext = index < arr.length
     def next = {
       index += 1
       arr(index - 1)
     }
-  })
+
+    def pull(): PullResult[T] = if (index < arr.length) PullResult.Item(next) else PullResult.Closed
+
+    def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any){
+      import PullAction._
+      var continue = true
+      while (continue) {
+        if (hasNext) {
+          fn(arr(index)) match {
+            case PullContinue => {
+              index += 1
+            }
+            case Wait(signal) => {
+              signal.notify(pullWhile(fn, onComplete))
+              continue = false
+            }
+            case _ => {}
+          }
+        } else {
+          onComplete(PullResult.Closed)
+          continue = false
+        }
+      }
+    }
+
+    def peek = if (hasNext) PullResult.Item(arr(index)) else PullResult.Closed
+
+    def terminate(reason: Throwable) {}
+
+    def outputState = if (hasNext) TransportState.Open else TransportState.Closed
+
+  }
+  def fromArray[T](arr: Array[T]): Source[T] = new ArraySource(arr)
 
   /**
    * Create a Source backed by the given iterator.  The source will closed after
@@ -349,20 +386,12 @@ object Source {
         //ready for the next sub-source and can continue this pullWhile loop
         //println("pulled item")
         var callNext = false
-        var closed = false
         subsource.into(flattened, false, true) {
-          case TransportState.Closed => {closed = true; if (callNext) next()}
+          case TransportState.Closed => {if (callNext) next()}
           case TransportState.Terminated(err) => killall(err)
         }
 
-        //we have to use this variable and not just check the state of the
-        //subsource mainly due to the logic in Source.into that can result in a
-        //"hanging item", where the source is closed but there is still one item
-        //that is sitting in a callback function waiting to be pushed.  So we
-        //instead need to rely on the callback passed to into, whch will be
-        //triggered once that last item has been successfully pushed
-        //TODO - this weirdness can be fixed if we can figure out a way to avoid these hanging items
-        if (!closed) {
+        if (subsource.outputState != TransportState.Closed) {
           callNext = true
           PullAction.PullStop
         } else {
