@@ -10,6 +10,16 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   class InvalidRequestException(message: String) extends Exception(message)
 
+  trait BaseHttpMessage[H <: HttpMessageHead, B] {
+    def head: H
+    def body: B
+  }
+
+  type BaseHttp[B] = Protocol {
+    type Request <: BaseHttpMessage[HttpRequestHead, B]
+    type Response <: BaseHttpMessage[HttpResponseHead, B]
+  }
+
   trait Http extends Protocol {
     type Request = HttpRequest
     type Response = HttpResponse
@@ -44,10 +54,18 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     }
   }
 
-  trait HttpMessage[H <: HttpMessageHead] {
-    def head: H
-    def body: HttpBody
+  trait HttpMessage[H <: HttpMessageHead] extends BaseHttpMessage[H, HttpBody]
+
+  class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]] {
+    def build(head: H, body: B): M
+
+    def withHeader(message: M, header: HttpHeader): M = build(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)
   }
+
+  implicit object HttpRequestOps extends MessageOps[HttpRequestHead, HttpBody, HttpRequest] {
+    def build(head: HttpRequestHead, body: HttpBody) = HttpRequest(head, body)
+  }
+  
 
   /**
    * common methods of both request and response heads

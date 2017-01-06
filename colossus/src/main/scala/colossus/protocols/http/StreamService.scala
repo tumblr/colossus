@@ -11,10 +11,7 @@ import service._
 import scala.language.higherKinds
 import scala.util.{Try, Success, Failure}
 
-trait StreamingHttpMessage[T <: HttpMessageHead] {
-
-  def head: T
-  def body: Source[Data]
+trait StreamingHttpMessage[T <: HttpMessageHead] extends BaseHttpMessage[T, Source[Data]] {
 
   def collapse: Source[HttpStream[T]] = Source.one[HttpStream[T]](Head(head)) ++ body ++ Source.one[HttpStream[T]](End)
 }

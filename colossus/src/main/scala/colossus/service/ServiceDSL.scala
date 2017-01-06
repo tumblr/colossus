@@ -110,9 +110,9 @@ trait BasicServiceDSL[P <: Protocol] {
  *
  * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
  */
-trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
+trait ClientLifter[M[_], C <: Protocol, T[_[_]] <: Sender[C,M]] {
 
-  def lift[M[_]](baseClient: Sender[C, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) : T[M]
+  def lift(baseClient: Sender[C, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) : T[M]
 
 }
 
@@ -194,7 +194,7 @@ object ServiceClientFactory {
 
 }
 
-class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
 
   def defaultName = base.defaultName
   
@@ -202,8 +202,8 @@ class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends 
 
 }
 
-class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
-(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
+class CodecClientFactory[C <: Protocol, M[_], T[M[_]] <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,Sender[C,M],E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
 extends ClientFactory[C,M,T[M],E] {
 
   def defaultName = baseFactory.defaultName
@@ -230,9 +230,9 @@ abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit 
 
   implicit val futureFactory = new FutureClientFactory(clientFactory)
 
-  val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
+  val client = new CodecClientFactory[C, Callback, T, WorkerRef]
 
-  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
+  val futureClient = new CodecClientFactory[C, Future, T, IOSystem]
 
 }
 

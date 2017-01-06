@@ -158,7 +158,7 @@ class ServiceClient[P <: Protocol](
   val config: ClientConfig,
   val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
-extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Sender[P, Callback] with HandlerTail {
+extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Client[P, Callback] with HandlerTail {
 
   type Request = Encoding.Client[P]#Output
   type Response = Encoding.Client[P]#Input
