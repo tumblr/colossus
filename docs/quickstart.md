@@ -99,7 +99,7 @@ object Main extends App {
 This will start a basic http server on port 9000:
 
 {% highlight plaintext %}
-> curl localhost:9000
+> curl localhost:9000/hello
 Hello World! (200 OK)
 
 > curl localhost:9000/foo
