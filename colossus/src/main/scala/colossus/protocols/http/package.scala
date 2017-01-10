@@ -15,12 +15,12 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     def body: B
   }
 
-  type BaseHttp[B] = Protocol {
+  trait BaseHttp[B] extends Protocol {
     type Request <: BaseHttpMessage[HttpRequestHead, B]
     type Response <: BaseHttpMessage[HttpResponseHead, B]
   }
 
-  trait Http extends Protocol {
+  trait Http extends BaseHttp[HttpBody] {
     type Request = HttpRequest
     type Response = HttpResponse
   }
@@ -56,7 +56,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   trait HttpMessage[H <: HttpMessageHead] extends BaseHttpMessage[H, HttpBody]
 
-  class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]] {
+  abstract class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]] {
     def build(head: H, body: B): M
 
     def withHeader(message: M, header: HttpHeader): M = build(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)

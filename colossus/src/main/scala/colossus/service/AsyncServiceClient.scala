@@ -75,7 +75,8 @@ class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: FutureCli
         client.send(request).execute(promise.complete)
       }
       case FutureClient.GetConnectionStatus(promise) => {
-        promise.success(client.connectionStatus)
+        import scala.concurrent.ExecutionContext.Implicits.global
+        promise.completeWith(client.connectionStatus.toFuture)
       }
 
     }

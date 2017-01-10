@@ -227,11 +227,11 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
 
-  def connectionStatus: ConnectionStatus = clientState match {
+  def connectionStatus: Callback[ConnectionStatus] = Callback.successful(clientState match {
     case ClientState.Connected => ConnectionStatus.Connected
     case ClientState.Initializing | ClientState.Connecting => ConnectionStatus.Connecting
     case _ => ConnectionStatus.NotConnected
-  }
+  })
 
   /**
    * returns true if the client is potentially able to send.  This does not
