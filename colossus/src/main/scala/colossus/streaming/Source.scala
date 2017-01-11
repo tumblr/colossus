@@ -156,7 +156,7 @@ trait Source[+T] extends Transport {
    * @param linkClosed if true, the linked sink will be closed when this source is closed
    * @param linkTerminated if true, the linked sink will be terminated when this source is terminated
    */
-  def into[U >: T] (sink: Sink[U], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
+  def into[X >: T] (sink: Sink[X], linkClosed: Boolean, linkTerminated: Boolean)(onComplete: NonOpenTransportState => Any) {
     pullWhile (
       i => sink.push(i) match {
         case PushResult.Ok                  => PullAction.PullContinue
@@ -181,7 +181,7 @@ trait Source[+T] extends Transport {
   }
 
 
-  def into[U >: T] (sink: Sink[U]) {
+  def into[X >: T] (sink: Sink[X]) {
     into(sink, true, true)( _ => ())
   }
 

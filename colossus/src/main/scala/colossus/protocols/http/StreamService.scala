@@ -32,8 +32,8 @@ object StreamingHttpResponse {
 
 trait StreamingHttp extends BaseHttp[Source[Data]] {
   //type Request = StreamingHttpMessage[HttpRequestHead]
-  type Request = StreamingHttpRequest
   //type Response = StreamingHttpMessage[HttpResponseHead]
+  type Request = StreamingHttpRequest
   type Response = StreamingHttpResponse
 }
 
@@ -60,6 +60,8 @@ object GenEncoding {
     type Output = M[E#Output]
   }
 
+  type ZEncoding[I,O] = Encoding { type Input = I; type Output = O }
+
   type InputMessageBuilder[H <: HttpMessageHead, T <: StreamingHttpMessage[H]] = (H, Source[Data]) => T
 
   implicit def ms[T <: HttpMessageHead]: MultiStream[Unit, HttpStream[T]] = new MultiStream[Unit,HttpStream[T]] {
@@ -75,12 +77,24 @@ object GenEncoding {
 }
 import GenEncoding._
 
+trait Transcoder[U <: Encoding, D <: Encoding] {
+  def transcodeInput(source: Source[U#Input]): Source[D#Input]
+  def transcodeOutput(source: Source[D#Output]): Source[U#Output]
+}
 
-class StreamServiceController[E <: HeadEncoding, U <: ExEncoding[HttpStream, E], D <: GenEncoding[StreamingHttpMessage, E]](
+class HttpTranscoder[E <: HeadEncoding, A <: GenEncoding[HttpStream, E], B <: GenEncoding[StreamingHttpMessage, E]] extends Transcoder[A, B] {
+  //def transcodeInput(source: Source[U#Input]): Source[D#Input] = ???
+  //def transcodeOutput(source: Source[D#Output]): Source[U#Output] = ???
+  def transcodeInput(source: colossus.streaming.Source[A#Input]): colossus.streaming.Source[B#Input] = ???
+  def transcodeOutput(source: colossus.streaming.Source[B#Output]): colossus.streaming.Source[A#Output] = ???
+}
+
+class StreamServiceController[
+  U <: Encoding,
+  D <: Encoding
+] (
   val downstream: ControllerDownstream[D],
-  builder: InputMessageBuilder[E#Input, D#Input]
-)(
-  implicit ms: MultiStream[Unit, U#Input]
+  transcoder: Transcoder[U,D]
 )
 extends ControllerDownstream[U] 
 with DownstreamEventHandler[ControllerDownstream[D]] 
@@ -89,25 +103,29 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
   downstream.setUpstream(this)
 
-  //streamhttp HttpStream
-  type UOut = U#Output
-  type UIn  = U#Input
-
   private var currentInputStream: Option[Sink[Data]] = None
 
+  type UI = U#Input
+  type UO = U#Output
+  type DI = D#Input
+  type DO = D#Output
 
 
-
-  def outputStream: Pipe[D#Output, UOut] = {
-    val p = new BufferedPipe[D#Output](100).map{_.collapse}
-    new Channel[D#Output, UOut](p, Source.flatten(p))
+  def outputStream: Pipe[DO, UO] = {
+    /*
+    val p = new BufferedPipe[DO](100).map{_.collapse}
+    new Channel[DO, UO](p, Source.flatten(p))
+    */
+    val p = new BufferedPipe[DO](100)
+    new Channel[DO, UO](p, transcoder.transcodeOutput(p))
   }
 
-  val outgoing = new PipeCircuitBreaker[D#Output, UOut]
+  val outgoing = new PipeCircuitBreaker[DO, UO]
 
 
-  def inputStream : Pipe[UIn, D#Input] = {
-    val p = new BufferedPipe[UIn](100)
+  def inputStream : Pipe[UI, DI] = {
+    /*
+    val p = new BufferedPipe[UI](100)
     val demult = Multiplexing.demultiplex(p).map{ case SubSource(id, stream) =>
       val head = stream.pull match {
         case PullResult.Item(Head(head)) => head
@@ -120,9 +138,12 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
       builder(head, mapped)
     }
     new Channel(p, demult)
+    */
+    val p = new BufferedPipe[UI](100)
+    new Channel(p, transcoder.transcodeInput(p))
   }
 
-  val incoming = new PipeCircuitBreaker[U#Input, D#Input]
+  val incoming = new PipeCircuitBreaker[UI, DI]
 
     
 
@@ -132,7 +153,7 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
     outgoing.into(upstream.outgoing, true, true){e => fatal(e.toString)}
 
     incoming.set(inputStream)
-    incoming.into[D#Input](downstream.incoming)//, true, true){e => fatal(e.toString)}
+    incoming.into(downstream.incoming)//, true, true){e => fatal(e.toString)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
@@ -163,10 +184,10 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   
   def fullHandler = handler => {
     new PipelineHandler(
-      new Controller[GenEncoding[HttpStream, Encoding.Server[StreamHeader]]](
-        new StreamServiceController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](
+      new Controller[Encoding.Server[StreamHttp]](
+        new StreamServiceController[Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](
           new StreamingHttpServiceHandler(handler),
-          StreamingHttpRequest.apply
+          new HttpTranscoder[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]]
         ),
         new StreamHttpServerCodec
       ), 
