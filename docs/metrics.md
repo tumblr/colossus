@@ -10,14 +10,15 @@ Colossus uses the (currently nameless) metrics library.
 High-throughput Colossus services can serve hundreds of thousands of requests
 per second, which can easily translate to millions of recordable events per
 second.  The Metrics library provides a way to work with metrics with as little
-overhead as possible.
+overhead as possible. It is configurable via a [typesafe config](https://github.com/typesafehub/config).
+See [reference config](https://github.com/tumblr/colossus/blob/master/colossus-metrics/src/main/resources/reference.conf)
 
 ### Collection Intervals
 
 Collection intervals define how often the raw data from all event collectors
 are snapshotted and merged together into a single database of values.
 
-By default, a metric system is created with both 1 second and 1 minute
+The provided config creates a metric system with both 1 second and 1 minute
 collection intervals.  The 1 second interval is used to show
 real-time metrics where rates and histograms are all showing values reflective
 of the last second of activity, whereas the 1 minute intervals are used for
@@ -69,8 +70,8 @@ import metrics._
 
 implicit val actorSystem = ActorSystem()
 
-//create the metric system
-implicit val metricSystem = MetricSystem()
+//create the metric system from a typesafe config
+implicit val metricSystem = MetricSystem(MetricSystemConfig.load("application"))
 
 val rate = Rate("my-rate")
 
@@ -107,7 +108,7 @@ A counter simply allows you to set, increment, and decrement values:
 
 val counter = Counter("my-counter")
 
-counter.set(2, Map("foo" -> "bar"))
+counter.set(Map("foo" -> "bar"), 2)
 
 counter.increment(Map("foo" -> "bar"))
 
@@ -163,7 +164,7 @@ import scala.concurrent.duration._
 
 
 implicit val system = ActorSystem()
-implicit val metrics = MetricSystem()
+implicit val metrics = MetricSystem(MetricSystemConfig.load("application"))
 
 val reporterConfig = MetricReporterConfig(
   metricSenders = Seq(OpenTsdbSender("host", 123)),
