@@ -19,20 +19,19 @@ trait StreamingHttpMessage[T <: HttpMessageHead] extends BaseHttpMessage[T, Sour
 case class StreamingHttpRequest(head: HttpRequestHead, body: Source[Data]) extends StreamingHttpMessage[HttpRequestHead]
 
 
-case class StreamingHttpResponse(head: HttpResponseHead, body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
-object StreamingHttpResponse {
-  def apply(response: HttpResponse) = new StreamingHttpMessage[HttpResponseHead] {
-    def head = response.head
-    def body = Source.one(Data(response.body.asDataBlock))
+class StreamingHttpResponse(val head: HttpResponseHead, val body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
 
+object StreamingHttpResponse {
+
+  def apply(head: HttpResponseHead, body: Source[Data]): StreamingHttpResponse = new StreamingHttpResponse(head, body)
+
+  def apply(response: HttpResponse): StreamingHttpResponse = new StreamingHttpResponse(response.head, Source.one(Data(response.body.asDataBlock))) {
     override def collapse = Source.fromArray(Array(Head(head), Data(response.body.asDataBlock), End))
   }
 }
 
 
 trait StreamingHttp extends BaseHttp[Source[Data]] {
-  //type Request = StreamingHttpMessage[HttpRequestHead]
-  //type Response = StreamingHttpMessage[HttpResponseHead]
   type Request = StreamingHttpRequest
   type Response = StreamingHttpResponse
 }
@@ -60,8 +59,6 @@ object GenEncoding {
     type Output = M[E#Output]
   }
 
-  type ZEncoding[I,O] = Encoding { type Input = I; type Output = O }
-
   type InputMessageBuilder[H <: HttpMessageHead, T <: StreamingHttpMessage[H]] = (H, Source[Data]) => T
 
   implicit def ms[T <: HttpMessageHead]: MultiStream[Unit, HttpStream[T]] = new MultiStream[Unit,HttpStream[T]] {
@@ -75,18 +72,56 @@ object GenEncoding {
   }
 
 }
+
 import GenEncoding._
 
 trait Transcoder[U <: Encoding, D <: Encoding] {
-  def transcodeInput(source: Source[U#Input]): Source[D#Input]
-  def transcodeOutput(source: Source[D#Output]): Source[U#Output]
+
+  // this seems to be a bug in the compiler, but these type aliases are mandatory
+  // to make this code compile
+  type UI = U#Input
+  type UO = U#Output
+  type DI = D#Input
+  type DO = D#Output
+
+  def transcodeInput(source: Source[UI]): Source[DI]
+  def transcodeOutput(source: Source[DO]): Source[UO]
 }
 
-class HttpTranscoder[E <: HeadEncoding, A <: GenEncoding[HttpStream, E], B <: GenEncoding[StreamingHttpMessage, E]] extends Transcoder[A, B] {
-  //def transcodeInput(source: Source[U#Input]): Source[D#Input] = ???
-  //def transcodeOutput(source: Source[D#Output]): Source[U#Output] = ???
-  def transcodeInput(source: colossus.streaming.Source[A#Input]): colossus.streaming.Source[B#Input] = ???
-  def transcodeOutput(source: colossus.streaming.Source[B#Output]): colossus.streaming.Source[A#Output] = ???
+/**
+ * This converts a raw http stream into a stream of http messages.  The type
+ * parameters allow us to use this both for server streams and client streams
+ */
+abstract class HttpTranscoder[
+  E <: HeadEncoding, 
+  A <: ExEncoding[HttpStream, E], 
+  B <: GenEncoding[StreamingHttpMessage, E]
+] extends Transcoder[A, B] {
+
+  // this has to be a member and not a constructor parameter because this only
+  // compiles when using the type aliases, probably a compiler bug
+  val builder: (E#Input, Source[Data]) => DI
+
+  def transcodeInput(source: Source[UI]): Source[DI] = Multiplexing.demultiplex(source).map{ case SubSource(id, stream) =>
+    val head = stream.pull match {
+      case PullResult.Item(Head(head)) => head
+      case other => throw new Exception("not a head")
+    }
+    val mapped : Source[Data] = stream.filterMap{
+      case d @ Data(_,_) => Some(d)
+      case other => None
+    }
+    builder(head, mapped)
+  }
+  def transcodeOutput(source: Source[DO]): Source[UO] = Source.flatten(source.map{_.collapse})
+}
+
+class HttpServerTranscoder extends HttpTranscoder[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]]{ 
+  val builder = StreamingHttpRequest.apply _ 
+}
+
+class HttpClientTranscoder extends HttpTranscoder[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]]{
+  val builder = StreamingHttpResponse.apply _ : (HttpResponseHead, Source[Data]) => DI
 }
 
 class StreamServiceController[
@@ -112,10 +147,6 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
 
   def outputStream: Pipe[DO, UO] = {
-    /*
-    val p = new BufferedPipe[DO](100).map{_.collapse}
-    new Channel[DO, UO](p, Source.flatten(p))
-    */
     val p = new BufferedPipe[DO](100)
     new Channel[DO, UO](p, transcoder.transcodeOutput(p))
   }
@@ -124,21 +155,6 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
 
   def inputStream : Pipe[UI, DI] = {
-    /*
-    val p = new BufferedPipe[UI](100)
-    val demult = Multiplexing.demultiplex(p).map{ case SubSource(id, stream) =>
-      val head = stream.pull match {
-        case PullResult.Item(Head(head)) => head
-        case other => throw new Exception("not a head")
-      }
-      val mapped : Source[Data] = stream.filterMap{
-        case d @ Data(_,_) => Some(d)
-        case other => None
-      }
-      builder(head, mapped)
-    }
-    new Channel(p, demult)
-    */
     val p = new BufferedPipe[UI](100)
     new Channel(p, transcoder.transcodeInput(p))
   }
@@ -153,11 +169,11 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
     outgoing.into(upstream.outgoing, true, true){e => fatal(e.toString)}
 
     incoming.set(inputStream)
-    incoming.into(downstream.incoming)//, true, true){e => fatal(e.toString)}
+    incoming.into(downstream.incoming, true, true){e => fatal(e.toString)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
-    outgoing.unset()//.foreach{_.terminate(new ConnectionLostException("Closed"))}
+    outgoing.unset()
     incoming.unset()
   }
 
@@ -173,6 +189,21 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
 }
 
+class HttpStreamController[
+  E <: HeadEncoding, 
+  A <: ExEncoding[HttpStream, E], 
+  B <: GenEncoding[StreamingHttpMessage, E]
+](ds: ControllerDownstream[B], transcoder: HttpTranscoder[E,A,B]) extends StreamServiceController[A, B](ds, transcoder)
+
+class GenHttpServerController[M[P <: Protocol] <: Encoding](ds: ControllerDownstream[M[StreamingHttp]], transcoder: HttpTranscoder[M[StreamHeader], M[StreamHttp], M[StreamingHttp]])
+extends HttpStreamController[M[StreamHeader], M[StreamHttp], M[StreamingHttp]](ds, transcoder)
+
+class HttpStreamServerController(ds: ControllerDownstream[Encoding.Server[StreamingHttp]])
+extends HttpStreamController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder)
+
+class HttpStreamClientController(ds: ControllerDownstream[Encoding.Client[StreamingHttp]])
+extends HttpStreamController[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder)
+
 
 class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
 extends ServiceServer[StreamingHttp](rh) {
@@ -185,9 +216,8 @@ class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[G
   def fullHandler = handler => {
     new PipelineHandler(
       new Controller[Encoding.Server[StreamHttp]](
-        new StreamServiceController[Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](
-          new StreamingHttpServiceHandler(handler),
-          new HttpTranscoder[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]]
+        new HttpStreamServerController(
+          new StreamingHttpServiceHandler(handler)
         ),
         new StreamHttpServerCodec
       ), 
