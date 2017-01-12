@@ -100,7 +100,7 @@ class RateSpec extends MetricIntegrationSpec {
 
     }
 
-    "correctly handle hits from multiple threads" taggedAs(org.scalatest.Tag("test")) in {
+    "correctly handle hits from multiple threads" in {
       val r = rate()
       val f = Future.sequence{(1 to 10000).map{_ =>
         Future { 
