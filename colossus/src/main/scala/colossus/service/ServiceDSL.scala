@@ -173,6 +173,9 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Ser
   def codecProvider: Codec.Client[P]
 
   def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+    //TODO : binding a client needs to be split up from creating the connection handler
+    // we should make a method called "create" the abstract method, and have
+    // this apply call it, then move this to a more generic parent type
     val base = new ServiceClient[P](config, worker.generateContext())
     val handler = connectionHandler(base, codecProvider)
     worker.worker ! WorkerCommand.Bind(handler)
@@ -226,7 +229,7 @@ extends ClientFactory[C,M,T[M],E] {
  */
 abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
 
-  implicit def clientFactory: ServiceClientFactory[C]
+  implicit def clientFactory: FutureClient.BaseFactory[C]
 
   implicit val futureFactory = new FutureClientFactory[C](clientFactory)
 

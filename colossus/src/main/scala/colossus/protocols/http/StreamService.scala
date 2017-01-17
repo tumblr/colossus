@@ -2,7 +2,8 @@ package colossus
 package protocols.http
 package stream
 
-import streaming._
+import colossus.streaming._
+
 import controller._
 import service.Protocol
 import core._
@@ -49,6 +50,14 @@ object GenEncoding {
     type  Output <: HttpMessageHead
   }
 
+  //the difference between GenEncoding and ExEncoding is that Gen simply
+  //retricts the types while Ex requires them to be exactly the type.  We use
+  //Gen so that an encoding using StreamingHttpRequest can satisfy a requirement
+  //of StreamingHttpMessage[HttpRequestHead].  We use Ex for HttpStream because
+  //HttpStream[HttpRequest/ResponseHead] is the return type of the collapse
+  //method, and if we used GenEncoding we'd have to make that return type
+  //parameterized to match.
+
   type GenEncoding[M[T <: HttpMessageHead], E <: HeadEncoding] = Encoding {
     type Input <: M[E#Input]
     type Output <: M[E#Output]
@@ -75,18 +84,6 @@ object GenEncoding {
 
 import GenEncoding._
 
-trait Transcoder[U <: Encoding, D <: Encoding] {
-
-  // this seems to be a bug in the compiler, but these type aliases are mandatory
-  // to make this code compile
-  type UI = U#Input
-  type UO = U#Output
-  type DI = D#Input
-  type DO = D#Output
-
-  def transcodeInput(source: Source[UI]): Source[DI]
-  def transcodeOutput(source: Source[DO]): Source[UO]
-}
 
 /**
  * This converts a raw http stream into a stream of http messages.  The type
@@ -124,79 +121,13 @@ class HttpClientTranscoder extends HttpTranscoder[Encoding.Client[StreamHeader],
   val builder = StreamingHttpResponse.apply _ : (HttpResponseHead, Source[Data]) => DI
 }
 
-class StreamServiceController[
-  U <: Encoding,
-  D <: Encoding
-] (
-  val downstream: ControllerDownstream[D],
-  transcoder: Transcoder[U,D]
-)
-extends ControllerDownstream[U] 
-with DownstreamEventHandler[ControllerDownstream[D]] 
-with ControllerUpstream[D]
-with UpstreamEventHandler[ControllerUpstream[U]] {
-
-  downstream.setUpstream(this)
-
-  private var currentInputStream: Option[Sink[Data]] = None
-
-  type UI = U#Input
-  type UO = U#Output
-  type DI = D#Input
-  type DO = D#Output
-
-
-  def outputStream: Pipe[DO, UO] = {
-    val p = new BufferedPipe[DO](100)
-    new Channel[DO, UO](p, transcoder.transcodeOutput(p))
-  }
-
-  val outgoing = new PipeCircuitBreaker[DO, UO]
-
-
-  def inputStream : Pipe[UI, DI] = {
-    val p = new BufferedPipe[UI](100)
-    new Channel(p, transcoder.transcodeInput(p))
-  }
-
-  val incoming = new PipeCircuitBreaker[UI, DI]
-
-    
-
-  override def onConnected() {
-    
-    outgoing.set(outputStream)
-    outgoing.into(upstream.outgoing, true, true){e => fatal(e.toString)}
-
-    incoming.set(inputStream)
-    incoming.into(downstream.incoming, true, true){e => fatal(e.toString)}
-  }
-
-  override def onConnectionTerminated(reason: DisconnectCause) {
-    outgoing.unset()
-    incoming.unset()
-  }
-
-
-  protected def fatal(message: String) {
-    println(s"FATAL ERROR: $message")
-    upstream.connection.forceDisconnect()
-  }
-
-  def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig
-
-  def connection: colossus.core.ConnectionManager = upstream.connection
-
-}
 
 class HttpStreamController[
   E <: HeadEncoding, 
   A <: ExEncoding[HttpStream, E], 
   B <: GenEncoding[StreamingHttpMessage, E]
-](ds: ControllerDownstream[B], transcoder: HttpTranscoder[E,A,B]) extends StreamServiceController[A, B](ds, transcoder)
+](ds: ControllerDownstream[B], transcoder: HttpTranscoder[E,A,B]) extends StreamTranscodingController[A, B](ds, transcoder)
 
-class GenHttpServerController[M[P <: Protocol] <: Encoding](ds: ControllerDownstream[M[StreamingHttp]], transcoder: HttpTranscoder[M[StreamHeader], M[StreamHttp], M[StreamingHttp]])
-extends HttpStreamController[M[StreamHeader], M[StreamHttp], M[StreamingHttp]](ds, transcoder)
 
 class HttpStreamServerController(ds: ControllerDownstream[Encoding.Server[StreamingHttp]])
 extends HttpStreamController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder)

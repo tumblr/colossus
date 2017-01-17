@@ -3,6 +3,9 @@ package protocols
 
 import colossus.metrics.TagMap
 import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
+import streaming.Source
+import http.stream.{Data, StreamingHttpRequest}
+
 import service._
 
 
@@ -56,15 +59,13 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   trait HttpMessage[H <: HttpMessageHead] extends BaseHttpMessage[H, HttpBody]
 
-  abstract class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]] {
-    def build(head: H, body: B): M
-
-    def withHeader(message: M, header: HttpHeader): M = build(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)
+  abstract class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]](builder: (H,B) => M) {
+    def withHeader(message: M, header: HttpHeader): M = builder(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)
   }
 
-  implicit object HttpRequestOps extends MessageOps[HttpRequestHead, HttpBody, HttpRequest] {
-    def build(head: HttpRequestHead, body: HttpBody) = HttpRequest(head, body)
-  }
+  implicit object HttpRequestOps extends MessageOps[HttpRequestHead, HttpBody, HttpRequest](HttpRequest.apply _ )
+
+  implicit object StreamingHttpRequestOps extends MessageOps[HttpRequestHead, Source[Data], StreamingHttpRequest](StreamingHttpRequest.apply _)
   
 
   /**
