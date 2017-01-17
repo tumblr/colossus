@@ -55,7 +55,6 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
   val outgoing = new PipeCircuitBreaker[DO, UO]
 
-
   def inputStream : Pipe[UI, DI] = {
     val p = new BufferedPipe[UI](100)
     new Channel(p, transcoder.transcodeInput(p))
