@@ -3,12 +3,12 @@ package colossus.examples
 import colossus._
 
 import protocols.http._
+import protocols.http.streaming._
 import stream._
-import core.{DataBlock, ServerContext}
+import core.ServerContext
 import service._
-import streaming._
+import colossus.streaming._
 
-import scala.util.{Failure, Success, Try}
 
 object StreamServiceExample {
 
