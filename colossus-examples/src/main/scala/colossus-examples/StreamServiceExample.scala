@@ -3,9 +3,8 @@ package colossus.examples
 import colossus._
 
 import protocols.http._
-import protocols.http.streaming._
 import stream._
-import core.ServerContext
+import core.DataBlock
 import service._
 import colossus.streaming._
 
