@@ -194,7 +194,6 @@ object Source {
     def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any){
       import PullAction._
       var continue = true
-      println(this)
       while (continue) {
         continue = peek match {
           case PullResult.Empty(trig) => {
@@ -295,7 +294,9 @@ object Source {
               signal.notify(pullWhile(fn, onComplete))
               continue = false
             }
-            case _ => {}
+            case _ => {
+              continue = false
+            }
           }
         } else {
           onComplete(PullResult.Closed)

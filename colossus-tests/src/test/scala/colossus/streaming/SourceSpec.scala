@@ -144,8 +144,7 @@ class SourceSpec extends ColossusSpec {
       s.pullWhile(
         i => {
           sum += i
-          s.terminate(new Exception("BYE"))
-          PullAction.PullContinue
+          PullAction.Terminate(new Exception("BYE"))
         },
         _ => ()
       )

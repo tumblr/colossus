@@ -80,12 +80,14 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
   }
 
+  implicit val executor = FakeIOSystem.testExecutor
+
 
   "Service Client" must {
 
     "connect" in {
       val (endpoint, client, probe) = newClient()
-      client.connectionStatus must equal (ConnectionStatus.Connected)
+      CallbackAwait.result(client.connectionStatus, 1.second) must equal (ConnectionStatus.Connected)
     }
 
     "send a command" in {
