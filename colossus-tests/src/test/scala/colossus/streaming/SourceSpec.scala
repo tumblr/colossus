@@ -1,12 +1,8 @@
 
 package colossus
 package streaming
-import service.{Callback, UnmappedCallback}
 
 import colossus.testkit._
-
-import scala.util.{Success, Failure}
-
 import scala.concurrent.duration._
 
 class SourceSpec extends ColossusSpec {
@@ -263,6 +259,37 @@ class SourceSpec extends ColossusSpec {
       y.outputState mustBe a[TransportState.Terminated]
     }
 
+  }
+
+  "Source.filterMap" must {
+    "filter elements correctly" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      t.pull() mustBe PullResult.Item(10)
+      t.pull() mustBe PullResult.Item(30)
+      t.pull() mustBe PullResult.Closed
+    }
+
+    "peek at the next element correctly" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      t.pull() mustBe PullResult.Item(10)
+      t.peek mustBe PullResult.Item(30)
+      t.pull() mustBe PullResult.Item(30)
+    }
+
+    "pullWhile" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      var sum = 0
+      var complete = false
+      t.pullWhile( 
+        i =>{  sum += i; PullAction.PullContinue },
+        _ => complete = true 
+      )
+      sum mustBe 40
+      complete mustBe true
+    }
   }
       
 
