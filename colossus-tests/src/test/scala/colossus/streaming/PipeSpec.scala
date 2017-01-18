@@ -365,6 +365,16 @@ class PipeSpec extends ColossusSpec {
     }
   }
 
+  "Pipe.filterMap" must {
+    "filter and map correctly" in {
+      val p = new BufferedPipe[Int](10).filterMap{i => if (i > 3) Some(i.toString) else None}
+      p.push(4)
+      p.push(2)
+      p.pull() mustBe PullResult.Item("4")
+      p.pull() mustBe a[PullResult.Empty]
+    }
+  }
+
 
 
   "channel" must {
