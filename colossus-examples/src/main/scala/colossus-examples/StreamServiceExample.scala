@@ -3,7 +3,7 @@ package colossus.examples
 import colossus._
 
 import protocols.http._
-import stream._
+import protocols.http.streaming._
 import core.DataBlock
 import service._
 import colossus.streaming._
@@ -20,7 +20,7 @@ object StreamServiceExample {
       requestMetrics = false
     )
 
-    StreamHttpServiceServer.basic("stream-service", port, new GenRequestHandler[StreamingHttp](config, _) {
+    StreamingHttpServer.basic("stream-service", port, new GenRequestHandler[StreamingHttp](config, _) {
 
       def handle = {
         case StreamingHttpRequest(head, source) if (head.url == "/plaintext") => source.collected.map{_ =>

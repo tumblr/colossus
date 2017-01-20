@@ -2,9 +2,7 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import core.{InitContext, Server, ServerContext, ServerRef, WorkerRef}
 import streaming.Source
-import http.stream.{Data, StreamingHttpRequest}
 
 import service._
 
@@ -59,14 +57,6 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
   trait HttpMessage[H <: HttpMessageHead] extends BaseHttpMessage[H, HttpBody]
 
-  abstract class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]](builder: (H,B) => M) {
-    def withHeader(message: M, header: HttpHeader): M = builder(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)
-  }
-
-  implicit object HttpRequestOps extends MessageOps[HttpRequestHead, HttpBody, HttpRequest](HttpRequest.apply _ )
-
-  implicit object StreamingHttpRequestOps extends MessageOps[HttpRequestHead, Source[Data], StreamingHttpRequest](StreamingHttpRequest.apply _)
-  
 
   /**
    * common methods of both request and response heads
@@ -91,6 +81,11 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   }
 
 
+  abstract class MessageOps[H <: HttpMessageHead : HeadOps, B, M <: BaseHttpMessage[H,B]](builder: (H,B) => M) {
+    def withHeader(message: M, header: HttpHeader): M = builder(implicitly[HeadOps[H]].withHeader(message.head, header), message.body)
+  }
+
+  implicit object HttpRequestOps extends MessageOps[HttpRequestHead, HttpBody, HttpRequest](HttpRequest.apply _ )
 
   class ReturnCodeTagDecorator extends TagDecorator[Http] {
     override def tagsFor(request: HttpRequest, response: HttpResponse): TagMap = {

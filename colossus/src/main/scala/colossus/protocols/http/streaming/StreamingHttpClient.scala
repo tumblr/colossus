@@ -2,7 +2,6 @@ package colossus
 package protocols.http
 package streaming
 
-import stream._
 import controller._
 import core.{WorkerCommand, WorkerRef}
 

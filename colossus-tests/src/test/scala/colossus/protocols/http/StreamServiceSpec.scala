@@ -5,7 +5,6 @@ package streaming
 import core._
 import controller._
 import testkit._
-import stream._
 import colossus.streaming._
 import GenEncoding._
 import akka.util.ByteString

@@ -1,10 +1,10 @@
 package colossus
 package protocols.http
-package stream
+package streaming
 
 import colossus.metrics.MetricNamespace
 import controller._
-import service.{Protocol, HandlerGenerator, ServiceInitializer, ServiceDSL}
+import service.Protocol
 import core._
 import parsing.Combinators.Parser
 

@@ -3,7 +3,8 @@ package protocols.http
 
 import core._
 import testkit._
-import stream._
+import streaming._
+import colossus.streaming._
 
 import akka.util.ByteString
 import org.scalamock.scalatest.MockFactory
