@@ -69,6 +69,13 @@ class CoreHandlerSpec extends ColossusSpec {
       }
     }
 
+    "kill does nothing if the connection isn't connected" in {
+      val con = MockConnection.server(new TestHandler(_, true))
+      con.typedHandler.kill(new Exception("foo"))
+      con.workerProbe.expectNoMsg(100.milliseconds)
+    }
+
+
     "become" in {
       val con = setup()
       val f = new NoopHandler(con.typedHandler.context)

@@ -64,7 +64,7 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
   val incoming = new PipeCircuitBreaker[UI, DI]
 
   override def onConnected() {
-    
+
     outgoing.set(outputStream)
     outgoing.into(upstream.outgoing, true, true){e => fatal(e)}
 
