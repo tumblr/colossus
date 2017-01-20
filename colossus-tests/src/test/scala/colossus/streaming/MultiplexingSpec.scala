@@ -101,8 +101,6 @@ class MultiplexingSpec extends ColossusSpec {
   }
 
   "Pipe Multiplexer" must {
-    import StreamComponent._
-    import service.Callback
 
     case class FooFrame(id: Int, component: StreamComponent, value: Int)
     implicit object FooStream extends MultiStream[Int, FooFrame] {
@@ -230,7 +228,7 @@ class MultiplexingSpec extends ColossusSpec {
 
       (1 to 12).foreach{i =>
         val p = mplexed.pull() 
-        p mustBe a[PullResult.Item[FooFrame]]
+        p mustBe a[PullResult.Item[_]]
       }
     }
 

@@ -6,7 +6,6 @@ import colossus.streaming._
 
 import controller._
 import service.Protocol
-import core._
 import service._
 
 import scala.language.higherKinds

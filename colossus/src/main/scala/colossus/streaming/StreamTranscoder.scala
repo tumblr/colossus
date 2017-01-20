@@ -42,6 +42,7 @@ with ControllerUpstream[D]
 with UpstreamEventHandler[ControllerUpstream[U]] {
 
   downstream.setUpstream(this)
+  def namespace = downstream.namespace
 
   type UI = U#Input
   type UO = U#Output
@@ -65,10 +66,10 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
   override def onConnected() {
     
     outgoing.set(outputStream)
-    outgoing.into(upstream.outgoing, true, true){e => fatal(e.toString)}
+    outgoing.into(upstream.outgoing, true, true){e => fatal(e)}
 
     incoming.set(inputStream)
-    incoming.into(downstream.incoming, true, true){e => fatal(e.toString)}
+    incoming.into(downstream.incoming, true, true){e => fatal(e)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
@@ -76,9 +77,9 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
     incoming.unset()
   }
 
-  protected def fatal(message: String) {
-    println(s"FATAL ERROR: $message")
-    upstream.connection.forceDisconnect()
+  protected def fatal(state: NonOpenTransportState) : Unit = state match {
+    case TransportState.Closed => upstream.connection.kill(new Exception("Stream closed unexpectedly"))
+    case TransportState.Terminated(reason) =>  upstream.connection.kill(new Exception("Fatal Stream Error", reason))
   }
 
   def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig

@@ -1,6 +1,6 @@
 package colossus.service
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef

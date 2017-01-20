@@ -1,7 +1,6 @@
 package colossus.protocols.http
 
 import akka.util.ByteString
-import colossus.core.DataBuffer
 import colossus.testkit.{CallbackMatchers, ColossusSpec, FakeIOSystem}
 import org.scalatest.{OptionValues, TryValues}
 

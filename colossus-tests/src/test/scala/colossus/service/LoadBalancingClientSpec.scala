@@ -1,21 +1,13 @@
 package colossus
 package service
 
-import akka.util.ByteString
-import core.{ConnectionState, WorkerCommand}
 import colossus.testkit.{ColossusSpec, FakeIOSystem}
-import org.scalatest.{WordSpec, MustMatchers}
 import org.scalamock.scalatest.MockFactory
 
-
-
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import ExecutionContext.Implicits.global
 import scala.util.{Try, Success, Failure}
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
 
-import RawProtocol._
 import testkit._
 
 trait PR extends Protocol {

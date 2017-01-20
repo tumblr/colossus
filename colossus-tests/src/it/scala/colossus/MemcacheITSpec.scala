@@ -6,7 +6,6 @@ import akka.util.ByteString
 import colossus.metrics.MetricSystem
 import colossus.protocols.memcache._
 import colossus.protocols.memcache.MemcacheReply._
-import colossus.protocols.memcache.{MemcacheCommand, MemcacheReply}
 import colossus.service.{FutureClient, ClientConfig}
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.ScalaFutures
@@ -15,8 +14,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-
-import Memcache.defaults._
 
 /*
 Please be aware when running this test, that if you run it on a machine with a memcached server

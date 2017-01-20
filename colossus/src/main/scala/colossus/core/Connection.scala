@@ -1,8 +1,6 @@
 package colossus
 package core
 
-import akka.actor.ActorRef
-
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
 import java.net.InetSocketAddress

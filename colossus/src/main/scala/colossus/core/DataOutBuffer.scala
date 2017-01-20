@@ -1,7 +1,7 @@
 package colossus
 package core
 
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import java.nio.ByteBuffer
 
 /**

@@ -162,7 +162,7 @@ case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, 
    * @param sender
    * @return
    */
-  @deprecated("function has been deprecated, please use `initializerBroadcast` instead")
+  @deprecated("function has been deprecated, please use `initializerBroadcast` instead", "0.9.0")
   def delegatorBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
     initializerBroadcast(message)
   }

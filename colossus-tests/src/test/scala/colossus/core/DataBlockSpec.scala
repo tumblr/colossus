@@ -2,7 +2,6 @@ package colossus
 package core
 
 import testkit._
-import akka.util.{ByteString, ByteStringBuilder}
 
 class DataBlockSpec extends ColossusSpec {
 

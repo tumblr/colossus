@@ -4,7 +4,7 @@ package colossus.protocols.http
 import org.scalatest._
 import java.util.Date
 import java.text.SimpleDateFormat
-import scala.util.{Try, Success, Failure}
+import scala.util.{Success, Failure}
 import colossus.core.DynamicOutBuffer
 
 
@@ -112,8 +112,8 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
       req.head.parameters.getFirstAs[Int]("b") mustBe Success(3)
       req.head.parameters.getFirstAs[String]("a") mustBe Success("b")
       req.head.parameters.getFirstAs[Long]("b") mustBe Success(3L)
-      req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[Int]]
-      req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[Int]]
+      req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[_]]
+      req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[_]]
 
     }
   }

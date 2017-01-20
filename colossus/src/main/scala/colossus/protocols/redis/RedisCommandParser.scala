@@ -1,9 +1,8 @@
 package colossus
 package protocols.redis
 
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import parsing._
-import core.DataBuffer
 import Combinators._
 import DataSize._
 

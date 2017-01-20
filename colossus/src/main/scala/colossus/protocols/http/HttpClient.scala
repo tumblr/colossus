@@ -3,8 +3,6 @@ package protocols.http
 import scala.language.higherKinds
 
 import service._
-import scala.concurrent.{ExecutionContext, Future}
-import colossus.streaming.Source
 
 trait BaseHttpClient[M[_], B, P <: BaseHttp[B]] extends LiftedClient[P, M] {
 

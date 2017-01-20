@@ -1,14 +1,8 @@
 package colossus
 package streaming
 
-import core.DataBuffer
-import akka.util.ByteString
 import java.util.LinkedList
 import scala.util.{Try, Success, Failure}
-
-import service.{Callback, UnmappedCallback}
-import scala.language.higherKinds
-
 
 
 /**

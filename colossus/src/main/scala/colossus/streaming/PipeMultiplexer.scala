@@ -1,8 +1,6 @@
 package colossus
 package streaming
 
-import controller._
-
 trait MultiStream[K, T] extends Stream[T] {
   def streamId(t: T): K
 }

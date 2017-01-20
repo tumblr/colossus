@@ -474,7 +474,6 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
           connectRetry = BackoffPolicy(10.seconds, BackoffMultiplier.Constant)
         )
         val client = Raw.futureClient(config)
-        import io.actorSystem.dispatcher
         val f = client.send(ByteString("blah"))
         Thread.sleep(350)
         //beware, a java TimeoutException is NOT what we want, that is simply

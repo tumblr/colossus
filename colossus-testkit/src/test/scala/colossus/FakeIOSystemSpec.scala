@@ -2,7 +2,6 @@
 package colossus
 package testkit
 
-import akka.testkit.TestProbe
 import service._
 import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._

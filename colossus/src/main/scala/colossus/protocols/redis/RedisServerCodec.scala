@@ -3,7 +3,6 @@ package protocols.redis
 
 import controller.Codec
 import core._
-import service._
 
 class RedisServerCodec extends Codec.Server[Redis] {
   private var commandParser = RedisCommandParser.command

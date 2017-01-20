@@ -4,7 +4,6 @@ package service
 import com.typesafe.config.{Config, ConfigFactory}
 import core._
 
-import akka.actor.ActorRef
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.language.higherKinds

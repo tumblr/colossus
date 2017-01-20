@@ -1,7 +1,7 @@
 package colossus
 package service
 
-import core.{ProxyActor, Server}
+import core.ProxyActor
 import testkit._
 
 import akka.actor._

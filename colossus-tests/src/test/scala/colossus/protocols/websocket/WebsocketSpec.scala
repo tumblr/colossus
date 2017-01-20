@@ -1,15 +1,13 @@
 package colossus
 package protocols.websocket
 
-import controller.{ControllerUpstream, Encoding}
-import core.{ConnectionManager, DataBlock, DataBuffer, ServerContext}
+import controller.Encoding
+import core.{DataBlock, DataBuffer, ServerContext}
 import streaming.PullResult
 
-import service.Protocol
 import protocols.http._
 import java.util.Random
 
-import org.scalatest._
 import colossus.testkit._
 import colossus.controller.ControllerMocks
 
@@ -190,7 +188,6 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
   "WebsocketHttp" must {
     import subprotocols.rawstring._
-    import protocols.http.server.HttpServiceHandler
     val myinit = new WebsocketInitializer[RawString](FakeIOSystem.fakeWorker.worker) {
       def provideCodec = new RawStringCodec
       def onConnect = new WebsocketServerHandler[RawString](_) {

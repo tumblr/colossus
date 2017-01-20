@@ -5,7 +5,6 @@ import scala.concurrent.duration._
 
 import protocols.redis._
 import protocols.redis.server._
-import core.Server
 import service._
 
 import org.scalatest.exceptions.TestFailedException

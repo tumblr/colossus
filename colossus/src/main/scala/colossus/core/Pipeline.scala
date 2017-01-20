@@ -111,12 +111,45 @@ trait UpstreamEventHandler[T <: UpstreamEvents] extends UpstreamEvents with HasU
  * methods made available to all layers extending the core layer
  */
 trait ConnectionManager {
+  /**
+   * The current state of the underlying connection
+   */
   def connectionState: ConnectionState
+
+  /**
+   * Gracefully shutdown the connection.  This will allow the connection handler
+   * to go through its shutdown procedure.  Thus there is no guarantee of
+   * exactly when the connection actually closes.
+   */
   def disconnect()
+
+  /**
+   * Immediately shutdown the connection.  This skips any shutdown process.
+   * This disconnection is not considered an error and the connection handler
+   * will receive a [[DisconnectCause]] of `Disconnect`
+   */
   def forceDisconnect()
+
+  /**
+   * Immediately shutdown the connection.  The disconnection will be treated as
+   * an error and the ConnectionHandler will receive an `Error`
+   * [[DisconnectCause]]
+   */
+  def kill(reason: Exception)
+
+  /**
+   * Replace the ConnectionHandler for this connection with a new one.  The
+   * existing handler will go through its shutdown process before the switch is
+   * made.  Returns false if the connection is not connected or is already in
+   * the middle of another shutdown process, true otherwise
+   */
   def become(nh: () => ConnectionHandler): Boolean
 
   def isConnected: Boolean
+
+  /**
+   * The context for the connection
+   */
   def context: Context
 }
 

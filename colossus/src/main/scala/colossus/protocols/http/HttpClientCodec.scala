@@ -2,7 +2,6 @@ package colossus
 package protocols.http
 
 import colossus.core._
-import colossus.service._
 import parsing._
 import Combinators.Parser
 

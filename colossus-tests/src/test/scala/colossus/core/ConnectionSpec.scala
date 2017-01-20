@@ -2,10 +2,8 @@ package colossus
 package core
 
 import testkit._
-import java.nio.channels.SocketChannel
 import org.scalatest.mock.MockitoSugar
 
-import akka.testkit.TestProbe
 import akka.util.ByteString
 
 import scala.concurrent.duration._

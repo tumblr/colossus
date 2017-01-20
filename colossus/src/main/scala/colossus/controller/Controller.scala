@@ -7,8 +7,6 @@ import colossus.parsing.DataSize._
 import core._
 import colossus.streaming._
 
-import scala.concurrent.duration._
-
 /**
  * Configuration for the controller
  *
@@ -28,14 +26,17 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
 
   def incoming: Sink[E#Input]
 
+  /**
+   * This method can be overriden to send a message in the event of a fatal
+   * error before the connection is closed.  There is no guarantee though that
+   * the message is actually sent since the connection may have already closed.
+   */
   def onFatalError(reason: Throwable): Option[E#Output] = {
-    //TODO: Logging
-    println(s"Fatal Error: $reason, disconnecting")
-    reason.printStackTrace()
     None
   }
 
   def controllerConfig: ControllerConfig
+  def namespace: MetricNamespace
 }
 
 //these are the method that a controller layer itself must implement for its downstream neighbor
@@ -62,13 +63,11 @@ trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] w
 class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E]) 
 extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
-  //TODO : FIX - probably put this in controller config
-  implicit val namespace: MetricNamespace = context.worker.system.metrics
-  
   downstream.setUpstream(this)
   
   def connection = upstream
   def controllerConfig = downstream.controllerConfig
+  implicit val namespace = downstream.namespace
 
   override def onConnectionTerminated(cause: DisconnectCause) {
     cause match {
@@ -78,7 +77,6 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
   }
 
   def fatalError(reason: Throwable) {
-    //TODO: FIX
     downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
     upstream.disconnect()
   }

@@ -14,8 +14,6 @@ import org.scalatest.time._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import Redis.defaults._
-
 abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with ScaledTimeSpans {
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)

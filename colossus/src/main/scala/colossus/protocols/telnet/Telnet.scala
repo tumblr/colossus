@@ -10,7 +10,6 @@ import akka.util.ByteString
 import service._
 
 package object telnet {
-  import scala.language.higherKinds
 
   trait Telnet extends Protocol {
     type Request = TelnetCommand

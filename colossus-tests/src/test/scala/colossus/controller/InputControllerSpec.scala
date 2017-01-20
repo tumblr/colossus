@@ -6,9 +6,6 @@ import colossus.core._
 import colossus.parsing.DataSize._
 import colossus.testkit._
 import colossus.streaming._
-import org.scalamock.scalatest.MockFactory
-
-import scala.util.Success
 import SimpleProtocol._
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers with ControllerMocks {

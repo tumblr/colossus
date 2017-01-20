@@ -3,11 +3,11 @@ package colossus.examples
 import akka.actor._
 import akka.util.ByteString
 import colossus.IOSystem
-import colossus.core.{Server, ServerRef}
+import colossus.core.ServerRef
 import colossus.service._
 import colossus.protocols.redis._
 import colossus.protocols.redis.server._
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.Promise
 
 class KeyValDB extends Actor {
 
@@ -33,7 +33,6 @@ object KeyValExample {
   
 
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
-    import io.actorSystem.dispatcher
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 

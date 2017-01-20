@@ -2,11 +2,7 @@ package colossus
 package core
 
 import akka.actor._
-import akka.event.LoggingAdapter
 
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 import scala.concurrent.duration.FiniteDuration
 
 class WorkerItemException(message: String) extends Exception(message)

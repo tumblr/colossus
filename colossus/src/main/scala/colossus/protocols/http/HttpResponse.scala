@@ -1,12 +1,9 @@
 package colossus
 package protocols.http
 
-import akka.util.{ByteString, ByteStringBuilder}
-import colossus.core.DataBuffer
 import core._
-import service.Callback
 import HttpParse._
-import java.nio.ByteBuffer
+import akka.util.ByteString
 
 
 object HttpResponseHeader {

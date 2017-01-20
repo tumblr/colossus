@@ -1,18 +1,17 @@
 package colossus
 package protocols.websocket
 
+import colossus.metrics.MetricNamespace
 import core._
 import controller._
 import service._
 import streaming.{PushResult, Sink}
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteStringBuilder
 
-import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.Random
-import scala.concurrent.duration._
-import scala.util.{Try, Success, Failure}
-import sun.misc.{BASE64Encoder, BASE64Decoder}
+import scala.util.{Success, Failure}
+import sun.misc.BASE64Encoder
 
 object UpgradeRequest {
   import protocols.http._
@@ -179,6 +178,7 @@ with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
   val controllerConfig = ControllerConfig(50, metricsEnabled = true)
   downstream.setUpstream(this)
   def connection = upstream.connection
+  def namespace = downstream.namespace
 
   val incoming = Sink.open[Frame]{frame => 
     frame.header.opcode match {
@@ -226,6 +226,8 @@ trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with H
 
   def handleError(reason: Throwable)
 
+  def namespace: MetricNamespace
+
 }
 
 
@@ -238,7 +240,9 @@ extends WebsocketControllerDownstream[E] with UpstreamEventHandler[ControllerUps
 
 }
 
-abstract class WebsocketServerHandler[E <: Encoding](serverContext: ServerContext) extends WebsocketHandler[E](serverContext.context)
+abstract class WebsocketServerHandler[E <: Encoding](serverContext: ServerContext) extends WebsocketHandler[E](serverContext.context) {
+  val namespace = serverContext.server.namespace
+}
 
 
 abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {

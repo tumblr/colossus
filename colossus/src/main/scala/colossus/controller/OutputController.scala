@@ -35,7 +35,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     outgoing.peek match {
       case PullResult.Item(_) => signalWrite()
       case PullResult.Empty(signal) => signal.notify { signalWrite() }
-      case other => ???
+      case other => fatalError(new PipeStateException("Upstream in non-open state upon connection"))
     }
   }
 
@@ -88,8 +88,14 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
           sig.notify{ signalWrite() }
           false
         }
-        case Some(PullResult.Error(uhoh)) => ???
-        case Some(PullResult.Closed) => ???
+        case Some(PullResult.Error(uhoh)) => {
+          fatalError(new PipeStateException(s"Upstream unexpected terminated: $uhoh"))
+          false
+        }
+        case Some(PullResult.Closed) => {
+          fatalError(new PipeStateException("Upstream unepectedly closed"))
+          false
+        }
         case None => true //this would only occur if we returned false due to buffer overflowing
       }
       if (disconnecting || hasMore) {

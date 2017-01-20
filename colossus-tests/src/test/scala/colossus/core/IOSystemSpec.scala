@@ -9,7 +9,6 @@ import akka.testkit.TestProbe
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 
-import protocols.telnet._
 import service._
 import Callback.Implicits._
 

@@ -2,8 +2,7 @@ package colossus
 package core
 
 import java.net.InetAddress
-import java.nio.ByteBuffer
-import java.nio.channels.{CancelledKeyException, ClosedChannelException, SelectionKey, SocketChannel}
+import java.nio.channels.{CancelledKeyException, SelectionKey}
 
 sealed trait WriteStatus
 object WriteStatus {

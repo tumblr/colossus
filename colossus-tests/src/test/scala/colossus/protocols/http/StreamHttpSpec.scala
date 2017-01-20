@@ -4,9 +4,7 @@ package protocols.http
 import core._
 import testkit._
 import streaming._
-import colossus.streaming._
 
-import akka.util.ByteString
 import org.scalamock.scalatest.MockFactory
 
 class StreamHttpSpec extends ColossusSpec with MockFactory{

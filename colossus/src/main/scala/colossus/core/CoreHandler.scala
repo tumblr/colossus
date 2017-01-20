@@ -1,7 +1,5 @@
 package colossus.core
 
-import akka.actor.ActorRef
-
 sealed abstract class ShutdownAction(val rank: Int) {
 
   def >=(a: ShutdownAction): Boolean = rank >= a.rank
@@ -103,6 +101,14 @@ abstract class CoreHandler(val context: Context) extends ConnectionHandler {
       case a: AliveState => a.endpoint.disconnect()
       case _ => {}
     }
+  }
+
+  final def kill(reason: Exception) {
+    connectionState match {
+      case a: AliveState => context.worker ! WorkerCommand.Kill(context.id, DisconnectCause.Error(reason))
+      case _ => {}
+    }
+
   }
 
   final override def shutdownRequest() {

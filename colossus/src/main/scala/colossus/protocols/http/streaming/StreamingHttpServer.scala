@@ -3,7 +3,6 @@ package protocols.http
 package streaming
 
 import controller._
-import service.Protocol
 import core._
 import service._
 
