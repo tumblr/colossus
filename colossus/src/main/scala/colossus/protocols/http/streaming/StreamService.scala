@@ -1,6 +1,6 @@
 package colossus
 package protocols.http
-package stream
+package streaming
 
 import colossus.streaming._
 
@@ -10,33 +10,6 @@ import core._
 import service._
 
 import scala.language.higherKinds
-import scala.util.{Try, Success, Failure}
-
-trait StreamingHttpMessage[T <: HttpMessageHead] extends BaseHttpMessage[T, Source[Data]] {
-
-  def collapse: Source[HttpStream[T]] = Source.one[HttpStream[T]](Head(head)) ++ body ++ Source.one[HttpStream[T]](End)
-}
-
-case class StreamingHttpRequest(head: HttpRequestHead, body: Source[Data]) extends StreamingHttpMessage[HttpRequestHead]
-
-
-class StreamingHttpResponse(val head: HttpResponseHead, val body: Source[Data]) extends StreamingHttpMessage[HttpResponseHead]
-
-object StreamingHttpResponse {
-
-  def apply(head: HttpResponseHead, body: Source[Data]): StreamingHttpResponse = new StreamingHttpResponse(head, body)
-
-  def apply(response: HttpResponse): StreamingHttpResponse = new StreamingHttpResponse(response.head, Source.one(Data(response.body.asDataBlock))) {
-    override def collapse = Source.fromArray(Array(Head(head), Data(response.body.asDataBlock), End))
-  }
-}
-
-
-trait StreamingHttp extends BaseHttp[Source[Data]] {
-  type Request = StreamingHttpRequest
-  type Response = StreamingHttpResponse
-}
-
 
 object GenEncoding {
 
@@ -136,30 +109,4 @@ class HttpStreamClientController(ds: ControllerDownstream[Encoding.Client[Stream
 extends HttpStreamController[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder)
 
 
-class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) 
-extends ServiceServer[StreamingHttp](rh) {
-
-}
-
-
-class StreamServiceHandlerGenerator(ctx: InitContext) extends HandlerGenerator[GenRequestHandler[StreamingHttp]](ctx) {
-  
-  def fullHandler = handler => {
-    new PipelineHandler(
-      new Controller[Encoding.Server[StreamHttp]](
-        new HttpStreamServerController(
-          new StreamingHttpServiceHandler(handler)
-        ),
-        new StreamHttpServerCodec
-      ), 
-      handler
-    ) with ServerConnectionHandler
-  }
-}
-
-abstract class StreamServiceInitializer(ctx: InitContext) extends StreamServiceHandlerGenerator(ctx) with ServiceInitializer[GenRequestHandler[StreamingHttp]] 
-
-object StreamHttpServiceServer extends ServiceDSL[GenRequestHandler[StreamingHttp], StreamServiceInitializer] {
-  def basicInitializer = new StreamServiceHandlerGenerator(_)
-}
 
