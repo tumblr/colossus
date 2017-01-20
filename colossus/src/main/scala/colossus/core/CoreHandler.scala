@@ -103,7 +103,7 @@ abstract class CoreHandler(val context: Context) extends ConnectionHandler {
     }
   }
 
-  final def kill(reason: Exception) {
+  final def kill(reason: Throwable) {
     connectionState match {
       case a: AliveState => context.worker ! WorkerCommand.Kill(context.id, DisconnectCause.Error(reason))
       case _ => {}

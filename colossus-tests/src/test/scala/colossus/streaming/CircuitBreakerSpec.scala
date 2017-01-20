@@ -46,6 +46,31 @@ class CircuitBreakerSpec extends ColossusSpec {
       b.inputState mustBe a[TransportState.Terminated]
       p.push(1) mustBe a [PushResult.Full]
     }
+
+    "termination of inner pipe propagates across linked circuitbreakers" in {
+      val p = new PipeCircuitBreaker[Int, Int]
+      val b = new BufferedPipe[Int](1)
+      p.set(b)
+
+      val b2 = new BufferedPipe[Int](1)
+      val d = new PipeCircuitBreaker[Int, Int]
+      d.set(b2)
+
+      p into d
+      p.push(1) mustBe PushResult.Ok
+      d.pull() mustBe PullResult.Item(1)
+
+      b.terminate(new Exception("UH OH"))
+      d.isSet mustBe false
+
+      val n = new BufferedPipe[Int](1)
+      p.set(n)
+      d.set(new BufferedPipe[Int](1))
+      p.push(3) mustBe PushResult.Ok
+      //we expect the previous "into" to be broken now
+      d.pull() mustBe a[PullResult.Empty]
+    }
+
   }
 
 }

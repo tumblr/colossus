@@ -6,6 +6,8 @@ trait CircuitBreaker[T <: Transport] {
 
   protected var current: Option[T] = None
 
+  def isSet = current.isDefined
+
   protected var trigger = new Trigger()
 
   def set(item: T): Option[T] = {

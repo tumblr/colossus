@@ -88,16 +88,16 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
               pauseReads()
               (Source.one(msg) ++ Source.fromIterator( new CodecBufferIterator(codec, data.takeCopy) {
                 def onComplete() { resumeReads() }
-                def onError(reason: Throwable) { fatalError(reason) }
+                def onError(reason: Throwable) { fatalError(reason, false) }
               })).into(incoming, linkClosed = false, linkTerminated = false)(_ => {})
               false
             }
             case PushResult.Error(reason) => {
-              fatalError(reason)
+              fatalError(reason, false)
               false
             }
             case PushResult.Closed => {
-              fatalError(new Exception("attempted to push to closed pipe"))
+              fatalError(new Exception("attempted to push to closed pipe"), false)
               false
             }
           }
@@ -106,7 +106,7 @@ trait StaticInputController[E <: Encoding] extends BaseController[E] {
       ){}
     } catch {
       case reason: Throwable => {
-        fatalError(reason)
+        fatalError(reason, false)
       }
     }
   }

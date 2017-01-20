@@ -135,7 +135,7 @@ trait ConnectionManager {
    * an error and the ConnectionHandler will receive an `Error`
    * [[DisconnectCause]]
    */
-  def kill(reason: Exception)
+  def kill(reason: Throwable)
 
   /**
    * Replace the ConnectionHandler for this connection with a new one.  The

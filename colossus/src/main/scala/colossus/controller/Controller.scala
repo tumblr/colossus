@@ -49,7 +49,7 @@ trait ControllerUpstream[-E <: Encoding] extends UpstreamEvents {
  * methods that both input and output need but shouldn't be exposed in the above traits
  */
 trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { 
-  def fatalError(reason: Throwable) 
+  def fatalError(reason: Throwable, kill: Boolean) 
 
   def controllerConfig: ControllerConfig
   def codec: Codec[E]
@@ -76,9 +76,13 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
     }
   }
 
-  def fatalError(reason: Throwable) {
-    downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
-    upstream.disconnect()
+  def fatalError(reason: Throwable, kill: Boolean) {
+    if (kill) {
+      upstream.kill(reason)
+    } else {
+      downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
+      upstream.disconnect()
+    }
   }
 
   val incoming = downstream.incoming

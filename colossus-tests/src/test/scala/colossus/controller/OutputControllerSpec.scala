@@ -46,6 +46,20 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
 
     }
+
+    "react to terminated output buffer" taggedAs(org.scalatest.Tag("test")) in {
+      //the buffer has to be terminated in the middle of the call to
+      //readyForData, since otherwise the CircuitBreaker will hide it
+      val (u, con, d) = get()
+      con.connected()
+      var killnow = false
+      val upstream = Source
+        .fromArray((0 to 50).map{i => ByteString(i.toString)}.toArray)
+        .map{i => if (killnow) { con.outgoing.terminate(new Exception("ASDF")) }; i }
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
+    }
       
 
   }
