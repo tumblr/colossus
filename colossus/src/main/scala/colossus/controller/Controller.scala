@@ -39,7 +39,7 @@ trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream
 }
 
 //these are the method that a controller layer itself must implement for its downstream neighbor
-trait ControllerUpstream[E <: Encoding] extends UpstreamEvents {
+trait ControllerUpstream[-E <: Encoding] extends UpstreamEvents {
   def connection: ConnectionManager
   def outgoing: Sink[E#Output]
 }

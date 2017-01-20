@@ -8,7 +8,7 @@ import scala.util.{Try, Success, Failure}
  * the pipe is full, the Sink will return a mutable Trigger and you can
  * attach a callback to for when the pipe can receive more items
  */
-trait Sink[T] extends Transport {
+trait Sink[-T] extends Transport {
   def push(item: T): PushResult
 
   def pushPeek: PushResult

@@ -39,11 +39,13 @@ object FutureClient {
 
   sealed trait ClientCommand
 
+  type BaseFactory[P <: Protocol] = ClientFactory[P, Callback, Client[P,Callback], WorkerRef]
+
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: ServiceClientFactory[C]): FutureClient[C] = create(config)(io, base)
+  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = create(config)(io, base)
 
-  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: ServiceClientFactory[C]): FutureClient[C] = {
+  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = {
     val gen = new AsyncHandlerGenerator(config, base)
     gen.client
   }
@@ -57,7 +59,7 @@ object FutureClient {
  * without using reflection.  We can do that with some nifty path-dependant
  * types
  */
-class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: ServiceClientFactory[C])(implicit sys: IOSystem) {
+class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[C])(implicit sys: IOSystem) {
 
   type I = C#Request
   type O = C#Response
@@ -73,7 +75,8 @@ class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: ServiceCl
         client.send(request).execute(promise.complete)
       }
       case FutureClient.GetConnectionStatus(promise) => {
-        promise.success(client.connectionStatus)
+        import scala.concurrent.ExecutionContext.Implicits.global
+        promise.completeWith(client.connectionStatus.toFuture)
       }
 
     }

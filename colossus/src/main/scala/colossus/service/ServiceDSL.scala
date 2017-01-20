@@ -116,7 +116,7 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
 }
 
-trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
+trait ClientFactory[C <: Protocol, M[_], +T <: Sender[C,M], E] {
 
   def defaultName: String
 
@@ -173,6 +173,9 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Ser
   def codecProvider: Codec.Client[P]
 
   def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+    //TODO : binding a client needs to be split up from creating the connection handler
+    // we should make a method called "create" the abstract method, and have
+    // this apply call it, then move this to a more generic parent type
     val base = new ServiceClient[P](config, worker.generateContext())
     val handler = connectionHandler(base, codecProvider)
     worker.worker ! WorkerCommand.Bind(handler)
@@ -194,7 +197,7 @@ object ServiceClientFactory {
 
 }
 
-class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
 
   def defaultName = base.defaultName
   
@@ -202,8 +205,8 @@ class FutureClientFactory[P <: Protocol](base: ServiceClientFactory[P]) extends 
 
 }
 
-class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
-(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
+class CodecClientFactory[C <: Protocol, M[_], T[M[_]] <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,Sender[C,M],E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
 extends ClientFactory[C,M,T[M],E] {
 
   def defaultName = baseFactory.defaultName
@@ -226,13 +229,13 @@ extends ClientFactory[C,M,T[M],E] {
  */
 abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
 
-  implicit def clientFactory: ServiceClientFactory[C]
+  implicit def clientFactory: FutureClient.BaseFactory[C]
 
-  implicit val futureFactory = new FutureClientFactory(clientFactory)
+  implicit val futureFactory = new FutureClientFactory[C](clientFactory)
 
-  val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
+  val client = new CodecClientFactory[C, Callback, T, WorkerRef]
 
-  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
+  val futureClient = new CodecClientFactory[C, Future, T, IOSystem]
 
 }
 

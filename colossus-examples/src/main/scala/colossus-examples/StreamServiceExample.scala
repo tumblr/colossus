@@ -4,11 +4,10 @@ import colossus._
 
 import protocols.http._
 import stream._
-import core.{DataBlock, ServerContext}
+import core.DataBlock
 import service._
-import streaming._
+import colossus.streaming._
 
-import scala.util.{Failure, Success, Try}
 
 object StreamServiceExample {
 

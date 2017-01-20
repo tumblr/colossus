@@ -1,9 +1,7 @@
 package colossus
 package service
 
-import java.net.InetSocketAddress
 
-import akka.actor.ActorRef
 import akka.util.ByteString
 import colossus.RawProtocol._
 import colossus.core._
@@ -12,9 +10,7 @@ import colossus.parsing.DataSize._
 import colossus.testkit._
 import streaming._
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 import org.scalamock.scalatest.MockFactory
 
 class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMocks {

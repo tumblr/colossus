@@ -1,12 +1,14 @@
 package colossus
 package protocols.http
+package streaming
 
 import core._
 import controller._
 import testkit._
 import stream._
-import streaming._
+import colossus.streaming._
 import GenEncoding._
+import akka.util.ByteString
 
 import org.scalamock.scalatest.MockFactory
 class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMocks {
@@ -34,11 +36,11 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
     }
   }
 
-  type Con = StreamServiceController[Encoding.Server[StreamHeader]]
+  type Con = HttpStreamServerController
 
   def create(): (Con, TestUpstream[Encoding.Server[StreamHttp]])  = {
     val controllerstub = new TestUpstream[Encoding.Server[StreamHttp]]
-    val handler = new StreamServiceController[Encoding.Server[StreamHeader]](stub[ControllerDownstream[Encoding.Server[StreamingHttp]]], StreamRequestBuilder)
+    val handler = new HttpStreamServerController(stub[ControllerDownstream[Encoding.Server[StreamingHttp]]])
     handler.setUpstream(controllerstub)
     (handler, controllerstub)
   }
@@ -48,10 +50,10 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
     "flatten and push a response" in {
       val (ctrlr, stub) = create()
       val response = HttpResponse.ok("helllo")
-      val s : GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output = StreamingHttpResponse(response)
+      val s = StreamingHttpResponse(response)
       ctrlr.connected()
       //you can thank Scala 2.10 for this insanity
-      ctrlr.asInstanceOf[ControllerUpstream[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]]].outgoing.push(s.asInstanceOf[GenEncoding[StreamingHttpMessage,Encoding.Server[StreamHeader]]#Output])
+      ctrlr.outgoing.push(s)
       stub.pipe.pull() mustBe PullResult.Item(Head(response.head))
       stub.pipe.pull() mustBe PullResult.Item(Data(response.body.asDataBlock))
       stub.pipe.pull() mustBe PullResult.Item(End)
@@ -123,6 +125,43 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
     }
       
 
+  }
+
+  "StreamingHttpClient" must {
+    "correctly send a request" taggedAs(org.scalatest.Tag("test")) in {
+      val (con, client) = MockConnection.apiClient(implicit w => StreamingHttpClient.client("localhost", TEST_PORT))
+      con.handler.connected(con)
+      val req = StreamingHttpRequest(
+        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty), 
+        Source.fromArray(Array("foo", "bar", "baz")).map{s => Data(DataBlock(s))}
+      )
+      client.send(req).execute()
+      val expected = "GET /foo HTTP/1.1\r\nhost: localhost\r\n\r\nfoobarbaz"
+      con.iterate()
+      con.expectOneWrite(ByteString(expected))
+    }
+
+    "correctly receive a response" in {
+      val (con, client) = MockConnection.apiClient(implicit w => StreamingHttpClient.client("localhost", TEST_PORT))
+      con.handler.connected(con)
+      val req = StreamingHttpRequest(
+        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty), 
+        Source.fromArray(Array("foo", "bar", "baz")).map{s => Data(DataBlock(s))}
+      )
+      var resp: Option[StreamingHttpResponse] = None
+      client.send(req).map{r => resp = Some(r)}.execute()
+      con.iterate()
+      resp mustBe None
+      con.handler.receivedData(DataBuffer("HTTP/1.1 200 OK\r\nTransfer-encoding: chunked\r\n"))
+      resp mustBe None
+      con.handler.receivedData(DataBuffer("\r\n2\r\nhi\r\n"))
+      resp mustBe a[Some[StreamingHttpResponse]]
+      val r = resp.get
+      r.body.pull().asInstanceOf[PullResult.Item[Data]].item.data.utf8String mustBe "hi"
+      r.body.pull() mustBe a[PullResult.Empty]
+      con.handler.receivedData(DataBuffer("0\r\n\r\n"))
+      r.body.pull() mustBe PullResult.Closed
+    }
   }
 
 }

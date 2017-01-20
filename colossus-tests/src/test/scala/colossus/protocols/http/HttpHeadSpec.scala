@@ -5,9 +5,10 @@ import org.scalatest._
 import java.util.Date
 import java.text.SimpleDateFormat
 import scala.util.{Try, Success, Failure}
+import colossus.core.DynamicOutBuffer
 
 
-class HttpRequestHeadSuite extends WordSpec with MustMatchers{
+class HttpHeadSpec extends WordSpec with MustMatchers{
 
   import HttpHeader.Conversions._
 
@@ -114,6 +115,15 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[Int]]
       req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[Int]]
 
+    }
+  }
+
+  "ParsedHttpHeaders" must {
+    "encode separate headers" in {
+      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")), Some(TransferEncoding.Chunked), None, Some(Connection.KeepAlive))
+      val b = new DynamicOutBuffer(500)
+      p.encode(b)
+      b.data.asByteString.utf8String mustBe "Transfer-Encoding: chunked\r\nConnection: keep-alive\r\nfoo: bar\r\n"
     }
   }
 

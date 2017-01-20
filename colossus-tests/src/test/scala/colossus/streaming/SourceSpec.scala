@@ -1,12 +1,8 @@
 
 package colossus
 package streaming
-import service.{Callback, UnmappedCallback}
 
 import colossus.testkit._
-
-import scala.util.{Success, Failure}
-
 import scala.concurrent.duration._
 
 class SourceSpec extends ColossusSpec {
@@ -144,8 +140,7 @@ class SourceSpec extends ColossusSpec {
       s.pullWhile(
         i => {
           sum += i
-          s.terminate(new Exception("BYE"))
-          PullAction.PullContinue
+          PullAction.Terminate(new Exception("BYE"))
         },
         _ => ()
       )
@@ -215,12 +210,43 @@ class SourceSpec extends ColossusSpec {
       flat.outputState mustBe TransportState.Closed
     }
 
+    "handle forward pressure correctly" in {
+      val a = new BufferedPipe[Int](10)
+      val b = new BufferedPipe[Int](10)
+      val pipe = new BufferedPipe[Source[Int]](10)
+      pipe.push(a)
+      pipe.push(b)
+      val flat = Source.flatten(pipe)
+      a.push(3)
+      b.push(30)
+      flat.pull() mustBe PullResult.Item(3)
+      a.push(4)
+      flat.pull() mustBe PullResult.Item(4)
+      a.complete()
+      flat.pull() mustBe PullResult.Item(30)
+    }
+
 
     "fuck up everything if flattend source terminates" taggedAs(org.scalatest.Tag("test")) in {
       val (x,y,_,flat) = setup
       flat.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.outputState mustBe a[TransportState.Terminated]
+    }
+
+    "fuck up everything if a subsource terminates" in {
+      val x = new BufferedPipe[Int](10)
+      val b = new BufferedPipe[Int](10)
+      val pipe = new BufferedPipe[Source[Int]](10)
+      pipe.push(x)
+      pipe.push(b)
+      val flat = Source.flatten(pipe)
+      x.push(3)
+      x.terminate(new Exception("BYE"))
+      flat.outputState mustBe a[TransportState.Terminated]
+      x.outputState mustBe a[TransportState.Terminated]
+      b.outputState mustBe a[TransportState.Terminated]
+      pipe.outputState mustBe a[TransportState.Terminated]
     }
 
     "fuck up everything if the base source terminates" ignore {
@@ -233,6 +259,37 @@ class SourceSpec extends ColossusSpec {
       y.outputState mustBe a[TransportState.Terminated]
     }
 
+  }
+
+  "Source.filterMap" must {
+    "filter elements correctly" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      t.pull() mustBe PullResult.Item(10)
+      t.pull() mustBe PullResult.Item(30)
+      t.pull() mustBe PullResult.Closed
+    }
+
+    "peek at the next element correctly" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      t.pull() mustBe PullResult.Item(10)
+      t.peek mustBe PullResult.Item(30)
+      t.pull() mustBe PullResult.Item(30)
+    }
+
+    "pullWhile" in {
+      val s = Source.fromArray(Array(1, 2, 3, 4))
+      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      var sum = 0
+      var complete = false
+      t.pullWhile( 
+        i =>{  sum += i; PullAction.PullContinue },
+        _ => complete = true 
+      )
+      sum mustBe 40
+      complete mustBe true
+    }
   }
       
 
