@@ -88,15 +88,10 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
           sig.notify{ signalWrite() }
           false
         }
-        case Some(PullResult.Error(uhoh)) => {
-          fatalError(new PipeStateException(s"Upstream unexpected terminated: $uhoh"))
-          false
-        }
-        case Some(PullResult.Closed) => {
-          fatalError(new PipeStateException("Upstream unepectedly closed"))
-          false
-        }
         case None => true //this would only occur if we returned false due to buffer overflowing
+        //the Closed and Error states are actually not possible here since they are suppressed by the circuitbreaker
+        //TODO : determine if there's a better way to deal with this situation
+        case _ => false
       }
       if (disconnecting || hasMore) {
         //return incomplete only if we overflowed the buffer and have more in

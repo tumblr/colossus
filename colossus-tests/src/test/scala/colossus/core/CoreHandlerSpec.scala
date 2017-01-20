@@ -56,6 +56,19 @@ class CoreHandlerSpec extends ColossusSpec {
       con.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(con.id))
     }
 
+    "kill" in {
+      val con = setup()
+      con.typedHandler.kill(new Exception("foo"))
+      con.typedHandler.shutdownCalled must equal(false)
+      con.workerProbe.receiveOne(100.milliseconds) match {
+        case WorkerCommand.Kill(id, cause) => {
+          id mustBe con.id
+          cause mustBe a[DisconnectCause.Error]
+        }
+        case _ => throw new Exception("WRONG")
+      }
+    }
+
     "become" in {
       val con = setup()
       val f = new NoopHandler(con.typedHandler.context)
