@@ -8,7 +8,6 @@ import org.scalatest._
 
 import akka.util.ByteString
 
-import scala.util.Success
 import UnifiedProtocol._
 import parsing._
 import DataSize._

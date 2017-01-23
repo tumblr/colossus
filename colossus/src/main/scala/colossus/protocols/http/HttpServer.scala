@@ -2,7 +2,6 @@ package colossus
 package protocols.http
 package server
 
-import colossus.metrics.TagMap
 import core._
 import controller._
 import service._

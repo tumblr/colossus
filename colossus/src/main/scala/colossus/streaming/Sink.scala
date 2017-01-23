@@ -1,6 +1,6 @@
 package colossus.streaming
 
-import scala.util.{Try, Success, Failure}
+import scala.util.{Try, Success}
 
 /**
  * A Sink is the write side of a pipe.  It allows you to push items to it,

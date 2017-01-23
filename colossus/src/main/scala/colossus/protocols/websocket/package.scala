@@ -3,7 +3,6 @@ package protocols
 
 import core._
 import controller.Encoding
-import akka.util.{ByteString, ByteStringBuilder}
 import java.util.Random
 import controller.Codec
 

@@ -6,7 +6,6 @@ import akka.agent.Agent
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
-import com.typesafe.config.Config
 
 import java.net.InetSocketAddress
 

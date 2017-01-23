@@ -4,8 +4,7 @@ package service
 import core._
 
 import akka.actor._
-import akka.util.{ByteString, Timeout}
-import java.net.InetSocketAddress
+import akka.util.Timeout
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._

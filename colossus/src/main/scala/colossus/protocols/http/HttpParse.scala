@@ -1,7 +1,7 @@
 package colossus
 package protocols.http
 
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 
 import parsing._
 import Combinators._

@@ -4,11 +4,9 @@ package service
 import core._
 import testkit._
 
-import akka.pattern.ask
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 
 import Callback.Implicits._
 

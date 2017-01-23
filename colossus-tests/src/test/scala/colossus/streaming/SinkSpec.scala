@@ -3,11 +3,6 @@ package streaming
 
 import colossus.testkit._
 
-import scala.util.{Success, Failure}
-
-import scala.concurrent.duration._
-
-
 class SinkSpec extends ColossusSpec {
 
   implicit val cbe = FakeIOSystem.testExecutor

@@ -53,7 +53,7 @@ object WebsocketExample {
       def provideCodec() = new RawStringCodec
 
       
-      def onConnect = ctx => new WebsocketHandler[RawString](ctx.context) with ProxyActor {
+      def onConnect = ctx => new WebsocketServerHandler[RawString](ctx) with ProxyActor {
         private var sending = false
 
 

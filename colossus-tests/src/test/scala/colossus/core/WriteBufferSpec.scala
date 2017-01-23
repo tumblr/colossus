@@ -2,9 +2,6 @@ package colossus
 package core
 
 import testkit._
-import org.scalatest.mock.MockitoSugar
-
-import akka.testkit.TestProbe
 import akka.util.ByteString
 
 import WriteStatus._

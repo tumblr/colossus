@@ -1,14 +1,9 @@
 package colossus
 package protocols.memcache
 
-
 import org.scalatest._
-
 import akka.util.ByteString
-
 import core.DataBuffer
-
-import colossus.parsing.{DataSize, ParseException}
 
 class MemcacheParserSpec extends FlatSpec with ShouldMatchers{
   import MemcacheReply._

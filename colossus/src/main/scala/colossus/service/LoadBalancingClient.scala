@@ -3,7 +3,6 @@ package service
 
 import akka.actor.ActorRef
 import core.{WorkerItem, WorkerRef}
-import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
 import java.net.InetSocketAddress

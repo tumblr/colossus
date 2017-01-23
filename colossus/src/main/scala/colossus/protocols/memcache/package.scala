@@ -3,9 +3,6 @@ package protocols
 
 import service._
 
-import scala.language.higherKinds
-
-
 package object memcache {
 
   trait Memcache extends Protocol {

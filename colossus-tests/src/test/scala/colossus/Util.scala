@@ -2,13 +2,12 @@ package colossus
 
 import java.net.InetSocketAddress
 
-import akka.pattern.ask
 import akka.util.{ByteString, Timeout}
 import colossus.core._
 import controller.{Codec, Encoding}
 import colossus.service.{FutureClient, ClientConfig, Protocol}
 
-import scala.concurrent.{Await, Future, ExecutionContext}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.higherKinds
 

@@ -2,7 +2,6 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-import streaming.Source
 
 import service._
 

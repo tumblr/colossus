@@ -5,7 +5,6 @@ import core._
 import testkit._
 import akka.actor._
 import akka.util.ByteString
-import scala.concurrent.duration._
 import org.scalamock.scalatest.MockFactory
 import colossus.parsing.DataSize._
 import streaming._
@@ -25,6 +24,13 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
     def controllerConfig = config
 
     def context = FakeIOSystem.fakeContext
+
+    def namespace = colossus.metrics.MetricSystem.deadSystem
+
+    override def onFatalError(reason: Throwable): Option[E#Output] = {
+      println(s"FATAL : $reason")
+      None
+    }
   }
 
   class TestUpstream[E <: Encoding](val outgoing: Pipe[E#Output, E#Output] = new BufferedPipe[E#Output](2)) extends ControllerUpstream[E] {

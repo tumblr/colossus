@@ -2,7 +2,6 @@ package colossus
 package protocols.http
 package streaming
 
-import colossus.metrics.MetricNamespace
 import controller._
 import service.Protocol
 import core._

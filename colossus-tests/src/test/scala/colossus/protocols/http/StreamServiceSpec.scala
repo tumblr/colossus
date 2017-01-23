@@ -6,7 +6,6 @@ import core._
 import controller._
 import testkit._
 import colossus.streaming._
-import GenEncoding._
 import akka.util.ByteString
 
 import org.scalamock.scalatest.MockFactory
@@ -98,7 +97,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       (ctrlr.downstream.incoming _).when().returns(p)
       ctrlr.connected()
       f(ctrlr)
-      (stub.connection.forceDisconnect _).verify()
+      (stub.connection.kill _).verify(*)
     }
 
     "disconnect if head received before end" in expectDisconnect { ctrlr => 
@@ -154,7 +153,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       con.handler.receivedData(DataBuffer("HTTP/1.1 200 OK\r\nTransfer-encoding: chunked\r\n"))
       resp mustBe None
       con.handler.receivedData(DataBuffer("\r\n2\r\nhi\r\n"))
-      resp mustBe a[Some[StreamingHttpResponse]]
+      resp mustBe a[Some[_]]
       val r = resp.get
       r.body.pull().asInstanceOf[PullResult.Item[Data]].item.data.utf8String mustBe "hi"
       r.body.pull() mustBe a[PullResult.Empty]

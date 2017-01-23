@@ -10,7 +10,6 @@ import akka.testkit.TestProbe
 
 import java.net.InetSocketAddress
 import scala.concurrent.duration._
-import akka.util.ByteString
 
 import RawProtocol._
 

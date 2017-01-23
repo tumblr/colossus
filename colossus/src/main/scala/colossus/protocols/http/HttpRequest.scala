@@ -1,7 +1,6 @@
 package colossus
 package protocols.http
 
-import akka.util.ByteString
 import core.{DataOutBuffer, Encoder}
 
 trait FirstLine extends Encoder {

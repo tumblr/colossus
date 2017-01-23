@@ -6,9 +6,6 @@ import colossus.core._
 import colossus.parsing.DataSize._
 import colossus.testkit._
 import colossus.streaming._
-import org.scalamock.scalatest.MockFactory
-
-import scala.util.Success
 import SimpleProtocol._
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers with ControllerMocks {
@@ -63,6 +60,22 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
       d.pipe.pull() mustBe a[PullResult.Empty]
       (u.disconnect _).verify()
     }
+
+    "react to closed downstream input buffer" in {
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      d.incoming.complete()
+      con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
+      (u.disconnect _).verify()
+    }
+
+    "react to terminated downstream input buffer" in {
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      d.incoming.terminate(new Exception("ASDF"))
+      con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
+      (u.disconnect _).verify()
+
+    }
+
 
   }
 

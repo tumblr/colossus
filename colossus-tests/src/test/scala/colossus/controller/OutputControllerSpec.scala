@@ -6,10 +6,6 @@ import streaming._
 import testkit._
 import akka.util.ByteString
 
-import scala.concurrent.duration._
-
-
-
 class OutputControllerSpec extends ColossusSpec with ControllerMocks {
 
 
@@ -50,40 +46,32 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
 
     }
-      
 
-    /*
-
-    "don't call upstream shutdown on shutdown when there are messages to be sent" in {
+    "react to terminated output buffer" taggedAs(org.scalatest.Tag("test")) in {
+      //the buffer has to be terminated in the middle of the call to
+      //readyForData, since otherwise the CircuitBreaker will hide it
       val (u, con, d) = get()
-      con.pPush(ByteString("message"))
-      con.shutdown()
-      (u.shutdown _).verify().never
+      con.connected()
+      val upstream = Source
+        .fromArray((0 to 50).toArray)
+        .map{i => if (i > 10) { con.outgoing.terminate(new Exception("ASDF")) }; ByteString(i.toString) }
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
     }
 
-    "drain output buffer on disconnect" in {
+    "react to closed output buffer" in {
       val (u, con, d) = get()
-      val over = ByteString(List.fill(110)("a").mkString)
-      val next = ByteString("hey")
-      val p1 = con.pPush(over)
-      val p2 = con.pPush(next)
-      con.shutdown()
-      //(u.shutdown _).verify().never
-      con.readyForData(new DynamicOutBuffer(100))
-      p1.expectSuccess()
-      p2.expectNoSet
-      //(u.shutdown _).verify().never
-
-      con.readyForData(new DynamicOutBuffer(100))
-      p2.expectSuccess()
-      //(u.shutdown _).verify().never
-      //final iterate is needed to do the disconnect check
-      con.readyForData(new DynamicOutBuffer(100))
-      (u.shutdown _).verify()
+      con.connected()
+      //this pipe will close when the iterator is finished
+      val upstream = Source.fromIterator((0 to 5).map{i => ByteString(i.toString)}.toIterator)
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
     }
-    */
 
       
+
   }
     
 

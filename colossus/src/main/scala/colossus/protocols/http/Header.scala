@@ -2,12 +2,10 @@ package colossus
 package protocols.http
 
 import akka.util.ByteString
-import Connection.{Close, KeepAlive}
 import com.github.nscala_time.time.Imports._
 import core.{DataOutBuffer, Encoder}
 import java.util.{LinkedList, List => JList}
 
-import scala.collection.immutable.HashMap
 import scala.util.{Failure, Success, Try}
 import parsing.ParseException
 

@@ -4,7 +4,6 @@ package service
 
 import java.net.InetSocketAddress
 
-import akka.actor._
 import akka.event.Logging
 import com.typesafe.config.{ConfigFactory, Config}
 import colossus.parsing.DataSize
@@ -13,9 +12,7 @@ import controller._
 import core._
 import metrics._
 import util.ExceptionFormatter._
-import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 import streaming._
 

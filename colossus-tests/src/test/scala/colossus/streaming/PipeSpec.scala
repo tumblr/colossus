@@ -213,6 +213,7 @@ class PipeSpec extends ColossusSpec {
         _ => PA.PullContinue,
         {
           case PullResult.Closed => closed = true
+          case _ => {}
         }
       )
       p.push(1)
@@ -268,6 +269,7 @@ class PipeSpec extends ColossusSpec {
         i => PullAction.Terminate(new Exception("HEY")),
         {
           case PullResult.Error(reason) => terminated = true
+          case _ => {}
         }
       )
       terminated mustBe true
@@ -329,6 +331,13 @@ class PipeSpec extends ColossusSpec {
       lazy val p : BufferedPipe[Int] = setup(p.terminate(new Exception("ASDF")))
       p.pullUntilNull(_ => true).get mustBe a[PullResult.Error]
     }
+
+    "return Error if pipe is terminated while pulling" in {
+      val p = new BufferedPipe[Int](10)
+      (0 to 3).foreach(p.push)
+      p.pullUntilNull(i => {if (i > 1) p.terminate(new Exception("ADSF")) ; true}).get mustBe a[PullResult.Error]
+    }
+
       
   }
 
