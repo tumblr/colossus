@@ -61,6 +61,22 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
       (u.disconnect _).verify()
     }
 
+    "react to closed downstream input buffer" in {
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      d.incoming.complete()
+      con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
+      (u.disconnect _).verify()
+    }
+
+    "react to terminated downstream input buffer" in {
+      val (u, con, d) = get(new SimpleCodec, defaultConfig)
+      d.incoming.terminate(new Exception("ASDF"))
+      con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
+      (u.disconnect _).verify()
+
+    }
+
+
   }
 
 }
