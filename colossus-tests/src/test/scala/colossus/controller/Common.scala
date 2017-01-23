@@ -26,6 +26,11 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
     def context = FakeIOSystem.fakeContext
 
     def namespace = colossus.metrics.MetricSystem.deadSystem
+
+    override def onFatalError(reason: Throwable): Option[E#Output] = {
+      println(s"FATAL : $reason")
+      None
+    }
   }
 
   class TestUpstream[E <: Encoding](val outgoing: Pipe[E#Output, E#Output] = new BufferedPipe[E#Output](2)) extends ControllerUpstream[E] {

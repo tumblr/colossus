@@ -52,14 +52,24 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       //readyForData, since otherwise the CircuitBreaker will hide it
       val (u, con, d) = get()
       con.connected()
-      var killnow = false
       val upstream = Source
-        .fromArray((0 to 50).map{i => ByteString(i.toString)}.toArray)
-        .map{i => if (killnow) { con.outgoing.terminate(new Exception("ASDF")) }; i }
+        .fromArray((0 to 50).toArray)
+        .map{i => if (i > 10) { con.outgoing.terminate(new Exception("ASDF")) }; ByteString(i.toString) }
       upstream into con.outgoing
       con.readyForData(new DynamicOutBuffer(1000))
       (con.upstream.kill _).verify(*)
     }
+
+    "react to closed output buffer" in {
+      val (u, con, d) = get()
+      con.connected()
+      //this pipe will close when the iterator is finished
+      val upstream = Source.fromIterator((0 to 5).map{i => ByteString(i.toString)}.toIterator)
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
+    }
+
       
 
   }
