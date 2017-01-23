@@ -65,7 +65,7 @@ private[metrics] class CollectionMap[T] {
     Option(map.get(tags)) match {
       case Some(got) => op(got)(num)
       case None => {
-        map.putIfAbsent(tags, new AtomicLong(num))
+        Option(map.putIfAbsent(tags, new AtomicLong(num))).foreach{got => op(got)(num)}          
       }
     }
 

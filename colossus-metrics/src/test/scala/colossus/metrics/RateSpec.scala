@@ -1,6 +1,8 @@
 package colossus.metrics
 
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class RateSpec extends MetricIntegrationSpec {
 
@@ -96,6 +98,17 @@ class RateSpec extends MetricIntegrationSpec {
       val r = Rate("/baz")
       r.address must equal(MetricAddress("/foo/bar/baz"))
 
+    }
+
+    "correctly handle hits from multiple threads" in {
+      val r = rate()
+      val f = Future.sequence{(1 to 10000).map{_ =>
+        Future { 
+          (1 to 5).foreach(_ => r.hit()) 
+        }
+      }}
+      Await.result(f, 1.second)
+      r.tick(1.second)("/foo")(Map()) must equal(50000)
     }
   }
 }
