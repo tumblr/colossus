@@ -3,6 +3,7 @@ package service
 
 import com.typesafe.config.{Config, ConfigFactory}
 import core._
+import core.server._
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -35,7 +36,7 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
   def basicInitializer: InitContext => HandlerGenerator[T]
 
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, settings){i => new core.Initializer(i) {
+    Server.start(name, settings){i => new core.server.Initializer(i) {
       val rinit = init(i)
       def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
     }}
@@ -43,14 +44,14 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
   }
 
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){i => new core.Initializer(i) {
+    Server.start(name, port){i => new core.server.Initializer(i) {
       val rinit = init(i)
       def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
     }}
   }
 
   def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
-    Server.start(name, port){i => new core.Initializer(i) {
+    Server.start(name, port){i => new core.server.Initializer(i) {
       val rinit = basicInitializer(i)
       def onConnect = ctx => rinit.fullHandler(handler(ctx))
     }}
@@ -81,7 +82,7 @@ trait BasicServiceDSL[P <: Protocol] {
 
   abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[RequestHandler]
 
-  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
+  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](ctx, config){
     def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 
     def unhandledError = {

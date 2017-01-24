@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.util.{ByteString, Timeout}
 import colossus.core._
+import server._
 import controller.{Codec, Encoding}
 import colossus.service.{FutureClient, ClientConfig, Protocol}
 

@@ -1,5 +1,6 @@
 package colossus
 package core
+package server
 
 import colossus.metrics.MetricSystem
 import testkit._

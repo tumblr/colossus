@@ -1,4 +1,5 @@
 package colossus.core
+package server
 
 import colossus.EchoHandler
 import colossus.metrics.MetricAddress

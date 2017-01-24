@@ -20,7 +20,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
     maxRequestSize = 300.bytes
   )
 
-  class FakeHandler(handler: ByteString => Callback[ByteString] = x => Callback.successful(x), context: ServerContext) extends GenRequestHandler[Raw](config, context) {
+  class FakeHandler(handler: ByteString => Callback[ByteString] = x => Callback.successful(x), context: ServerContext) extends GenRequestHandler[Raw](context, config) {
 
     def handle = { case req => handler(req) }
     def unhandledError = {case _ => ByteString("ERROR")}
