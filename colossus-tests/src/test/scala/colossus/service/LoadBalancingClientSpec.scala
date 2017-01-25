@@ -164,6 +164,18 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory{
       (removed.disconnect _).verify()
 
     }
+
+    "work with client factories" in {
+      //if this compiles then the test passes
+      import protocols.http.Http
+      implicit val w = FakeIOSystem.fakeWorker.worker
+      val l = new LoadBalancingClient[Http](
+        List(new InetSocketAddress("127.0.0.1", 1)),
+        ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
+        Http.client,
+        4
+      )
+    }
       
   }
 
