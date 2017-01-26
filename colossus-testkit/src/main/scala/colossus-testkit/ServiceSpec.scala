@@ -11,7 +11,7 @@ import core.ServerRef
 import service._
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[C <: Protocol](implicit clientFactory: FutureClientFactory[C]) extends ColossusSpec {
+abstract class ServiceSpec[C <: Protocol](implicit clientFactory: GenFutureClientFactory[C]) extends ColossusSpec {
   
   type Request = C#Request
   type Response = C#Response

@@ -116,6 +116,17 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
 }
 
+/**
+ * A generic trait for creating clients.  There are several more specialized
+ * subtypes that make more sense of the type parameters, so this trait should
+ * generally not be used unless writing very generic code.
+ *
+ * Type Parameters:
+ * * C - the protocol used by the client
+ * * M[_] - the concurrency wrapper, either Callback or Future
+ * * T - the type of the returned client
+ * * E - an implciitly required environment type, WorkerRef for Callback and IOSystem for Future
+ */
 trait ClientFactory[C <: Protocol, M[_], +T <: Sender[C,M], E] {
 
   def defaultName: String
@@ -197,7 +208,11 @@ object ServiceClientFactory {
 
 }
 
-class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+trait CallbackClientFactory[P <: Protocol, T <: Sender[P, Callback]] extends ClientFactory[P, Callback, T, WorkerRef]
+
+trait FutureClientFactory[P <: Protocol, T <: Sender[P, Future]] extends ClientFactory[P, Future, T, IOSystem]
+
+class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends FutureClientFactory[P, FutureClient[P]]{
 
   def defaultName = base.defaultName
   
@@ -231,7 +246,7 @@ abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit 
 
   implicit def clientFactory: FutureClient.BaseFactory[C]
 
-  implicit val futureFactory = new FutureClientFactory[C](clientFactory)
+  implicit val futureFactory = new GenFutureClientFactory[C](clientFactory)
 
   val client = new CodecClientFactory[C, Callback, T, WorkerRef]
 
