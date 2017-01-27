@@ -29,25 +29,28 @@ abstract class HandlerGenerator[T](ctx: InitContext) {
 trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
   def onConnect: ServerContext => T
+
+  def receive: ServerDSL.Receive = Map()
+  def onShutdown(){}
 }
 
 trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
   def basicInitializer: InitContext => HandlerGenerator[T]
 
+  class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends core.server.Initializer(init) {
+    def onConnect = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
+    override def receive = serviceInitializer.receive
+    override def onShutdown(){ serviceInitializer.onShutdown() }
+  }
+
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, settings){i => new core.server.Initializer(i) {
-      val rinit = init(i)
-      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
-    }}
+    Server.start(name, settings){i => new BridgeInitializer(i, init(i)) }
 
   }
 
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){i => new core.server.Initializer(i) {
-      val rinit = init(i)
-      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
-    }}
+    Server.start(name, port){i => new BridgeInitializer(i, init(i)) }
   }
 
   def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
