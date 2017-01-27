@@ -3,6 +3,7 @@ package testkit
 
 import colossus.metrics.MetricSystem
 import core._
+import server._
 
 import org.scalatest._
 

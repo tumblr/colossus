@@ -83,6 +83,15 @@ class LoadBalancingClient[P <: Protocol] (
   initialClients: Seq[InetSocketAddress] = Nil
 ) extends WorkerItem with Sender[P, Callback]  {
 
+  def this(
+    addresses: Seq[InetSocketAddress],
+    baseConfig: ClientConfig,
+    factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef], 
+    maxTries: Int
+  )(implicit worker: WorkerRef) = {
+    this(worker, address => factory(baseConfig.copy(address = address)), maxTries, addresses)
+  }
+
   val context = worker.generateContext
 
   worker.bind(_ => this)

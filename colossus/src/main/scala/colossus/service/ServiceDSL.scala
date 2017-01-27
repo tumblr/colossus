@@ -3,6 +3,7 @@ package service
 
 import com.typesafe.config.{Config, ConfigFactory}
 import core._
+import core.server._
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -28,29 +29,32 @@ abstract class HandlerGenerator[T](ctx: InitContext) {
 trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
   def onConnect: ServerContext => T
+
+  def receive: ServerDSL.Receive = Map()
+  def onShutdown(){}
 }
 
 trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
   def basicInitializer: InitContext => HandlerGenerator[T]
 
+  class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends core.server.Initializer(init) {
+    def onConnect = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
+    override def receive = serviceInitializer.receive
+    override def onShutdown(){ serviceInitializer.onShutdown() }
+  }
+
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, settings){i => new core.Initializer(i) {
-      val rinit = init(i)
-      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
-    }}
+    Server.start(name, settings){i => new BridgeInitializer(i, init(i)) }
 
   }
 
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
-    Server.start(name, port){i => new core.Initializer(i) {
-      val rinit = init(i)
-      def onConnect = ctx => rinit.fullHandler(rinit.onConnect(ctx))
-    }}
+    Server.start(name, port){i => new BridgeInitializer(i, init(i)) }
   }
 
   def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
-    Server.start(name, port){i => new core.Initializer(i) {
+    Server.start(name, port){i => new core.server.Initializer(i) {
       val rinit = basicInitializer(i)
       def onConnect = ctx => rinit.fullHandler(handler(ctx))
     }}
@@ -81,7 +85,7 @@ trait BasicServiceDSL[P <: Protocol] {
 
   abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[RequestHandler]
 
-  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](config, ctx){
+  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](ctx, config){
     def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 
     def unhandledError = {
@@ -115,6 +119,17 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
 }
 
+/**
+ * A generic trait for creating clients.  There are several more specialized
+ * subtypes that make more sense of the type parameters, so this trait should
+ * generally not be used unless writing very generic code.
+ *
+ * Type Parameters:
+ * * C - the protocol used by the client
+ * * M[_] - the concurrency wrapper, either Callback or Future
+ * * T - the type of the returned client
+ * * E - an implciitly required environment type, WorkerRef for Callback and IOSystem for Future
+ */
 trait ClientFactory[C <: Protocol, M[_], +T <: Sender[C,M], E] {
 
   def defaultName: String
@@ -196,7 +211,11 @@ object ServiceClientFactory {
 
 }
 
-class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+trait CallbackClientFactory[P <: Protocol, T <: Sender[P, Callback]] extends ClientFactory[P, Callback, T, WorkerRef]
+
+trait FutureClientFactory[P <: Protocol, T <: Sender[P, Future]] extends ClientFactory[P, Future, T, IOSystem]
+
+class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends FutureClientFactory[P, FutureClient[P]]{
 
   def defaultName = base.defaultName
   
@@ -230,7 +249,7 @@ abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit 
 
   implicit def clientFactory: FutureClient.BaseFactory[C]
 
-  implicit val futureFactory = new FutureClientFactory[C](clientFactory)
+  implicit val futureFactory = new GenFutureClientFactory[C](clientFactory)
 
   val client = new CodecClientFactory[C, Callback, T, WorkerRef]
 

@@ -1,6 +1,8 @@
 package colossus
 package core
 
+import server._
+
 import akka.actor._
 import akka.event.LoggingAdapter
 import metrics._

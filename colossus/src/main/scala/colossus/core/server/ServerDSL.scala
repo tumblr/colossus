@@ -1,5 +1,6 @@
 package colossus
 package core
+package server
 
 object ServerDSL {
   type Receive = PartialFunction[Any, Unit]
@@ -7,17 +8,6 @@ object ServerDSL {
 import ServerDSL._
 import com.typesafe.config.{Config, ConfigFactory}
 
-/**
- * An instance of this is handed to every new server connection handler
- */
-case class ServerContext(server: ServerRef, context: Context) {
-  def name: String = server.name.idString
-}
-
-/**
- * An instance of this is handed to every new initializer for a server
- */
-case class InitContext(server: ServerRef, worker: WorkerRef)
 
 /**
  * An `Initializer` is used to perform any setup/coordination logic for a

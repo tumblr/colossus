@@ -269,7 +269,7 @@ abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {
 }
 
 class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext, websocketInit: WebsocketInitializer[E], upgradePath: String)
-extends protocols.http.server.RequestHandler(ServiceConfig.Default, ctx) {
+extends protocols.http.server.RequestHandler(ctx, ServiceConfig.Default) {
   def handle = {
     case request if (request.head.path == upgradePath) => {
       val response = UpgradeRequest.validate(request) match {

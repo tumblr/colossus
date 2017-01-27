@@ -2,6 +2,7 @@ package colossus
 package testkit
 
 import core.{InitContext, _}
+import core.server._
 import metrics._
 import service._
 import akka.agent.Agent

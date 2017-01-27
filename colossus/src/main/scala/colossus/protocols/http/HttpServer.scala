@@ -36,8 +36,8 @@ abstract class Initializer(ctx: InitContext) extends Generator(ctx) with Service
 /**
  * A RequestHandler contains the business logic for transforming [[HttpRequest]] into [[HttpResponse]] objects.  
  */
-abstract class RequestHandler(config: ServiceConfig, ctx: ServerContext) extends GenRequestHandler[Http](config, ctx) {
-  def this(ctx: ServerContext) = this(ServiceConfig.load(ctx.name), ctx)
+abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig) extends GenRequestHandler[Http](ctx, config) {
+  def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 
   val defaults = new Http.ServerDefaults
 

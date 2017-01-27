@@ -18,13 +18,13 @@ object GenRequestHandler {
 }
 import GenRequestHandler._
 
-abstract class GenRequestHandler[P <: Protocol](val config: ServiceConfig, val serverContext: ServerContext) 
+abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext, val config: ServiceConfig) 
 extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstream[P]] {
 
   type Request = P#Request
   type Response = P#Response
 
-  def this(context: ServerContext) = this(ServiceConfig.load(context.name), context)
+  def this(context: ServerContext) = this(context, ServiceConfig.load(context.name))
 
   protected val server = serverContext.server
   def context = serverContext.context
