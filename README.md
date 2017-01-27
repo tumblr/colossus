@@ -13,7 +13,7 @@ Full documentation can be found here : http://tumblr.github.io/colossus
 
 For general discussion and Q&A, check out the [Google Group](https://groups.google.com/forum/#!forum/colossus-users).
 
-Colosus takes part in the TechEmpower web framework benchmarks under the [JSON serialization](https://www.techempower.com/benchmarks/#test=json) and [Plaintext](https://www.techempower.com/benchmarks/#test=plaintext) tests.
+Colossus takes part in the TechEmpower web framework benchmarks under the [JSON serialization](https://www.techempower.com/benchmarks/#test=json) and [Plaintext](https://www.techempower.com/benchmarks/#test=plaintext) tests.
 
 Here's an overview of what you can find in this repo
 
