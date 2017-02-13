@@ -12,6 +12,7 @@ per second, which can easily translate to millions of recordable events per
 second.  The Metrics library provides a way to work with metrics with as little
 overhead as possible. It is configurable via a [typesafe config](https://github.com/typesafehub/config).
 See [reference config](https://github.com/tumblr/colossus/blob/master/colossus-metrics/src/main/resources/reference.conf)
+The Colossus server and clients define several metrics be default.
 
 ### Collection Intervals
 
@@ -24,6 +25,48 @@ real-time metrics where rates and histograms are all showing values reflective
 of the last second of activity, whereas the 1 minute intervals are used for
 reporting values to an external database in which case the values reported are
 all reflective of the last minute of activity.
+
+### Default Metrics
+
+Colossus makes several metrics available in a default service, they are:
+
+* *service name*/system/fd_count
+* *service name*/system/gc/cycles
+* *service name*/system/gc/msec
+* *service name*/system/memory
+* *service name*/requests
+* *service name*/concurrent_requests
+* *service name*/requests_per_connection
+* *service name*/errors
+* *service name*/dropped_requests
+* *service name*/connection_failures
+* *service name*/disconnects
+* *service name*/latency
+* *service name*/transit_time
+* *service name*/queue_time
+* *service name*/worker/event_loops
+* *service name*/worker/connections
+* *service name*/worker/rejected_connections
+* *service name*/connections
+* *service name*/refused_connections
+* *service name*/connects
+* *service name*/closed
+* *service name*/highwaters
+
+
+### Metric Types
+
+#### Counter - a value that you can add and subtract from, it's reset per interval
+example: buffer size
+
+#### Rate - a continually incrementing value, this value IS NOT reset per interval
+example: dropped requests, errors 
+
+#### Historgram - a value broken up and put into percentages, defaults can be overriden
+example: latency
+
+
+### Metric Filters
 
 ### Metric Addresses and Tags
 
@@ -95,6 +138,49 @@ val rate = Rate("baz")
 
 {% endhighlight %}
 
+### Metric Tick Complete example
+
+The example below illustrates creating a service with a url called badUrl and
+doing a metric tick when an endpoint is hit.
+
+{% highlight scala %}
+implicit val ac = ActorSystem("badearl")
+  val metricSystem = MetricSystem("badurl") //defaults in MetricSystemConfig
+  val reporterConfig = MetricReporterConfig(
+    metricSenders = OpenTsdbSender("myhost", 4242) :: Nil,
+    filters = MetricReporterFilter.All
+  )
+
+  metricSystem.collectionIntervals.get(1.minute).foreach{
+    _.report(reporterConfig)
+  }
+
+  implicit val io = IOSystem("badurl", None, metricSystem)
+  implicit val metricNamespace = io.metrics
+
+  val badUrl = Rate("badurl")
+
+  Server.start("hello-world", 9000){
+    worker => new Initializer(worker) {
+      def onConnect = context => new HttpService(context) {
+        def handle = {
+          case request @ Get on Root / "url" => {
+
+            //bad url, metric tick
+            if(!request.head.parameters.contains("myurl")) {
+              badUrl.hit()
+            }
+            Callback.successful(request.ok("received response"))
+          }
+        }
+      }
+    }
+  }
+  
+  //creates a stats url on 9001 that's visible to the client
+  serviceui.UIServer.start(9001)
+  
+{% endhighlight %}
 
 ## Available Collectors
 
@@ -133,8 +219,8 @@ rate.hit()
 ### Histogram
 
 Histograms can gather statistical data about values added to them.  By default,
-histograms are setup with log-scale buckets, best for recording latency, but
-this can be overridden.
+histograms are setup with various percentiles defined, the values are sorted
+and placed in the appropriate percentiles.
 
 
 {% highlight scala %}
@@ -161,7 +247,6 @@ for OpenTSDB.
 import akka.actor._
 import colossus.metrics._
 import scala.concurrent.duration._
-
 
 implicit val system = ActorSystem()
 implicit val metrics = MetricSystem(MetricSystemConfig.load("application"))
