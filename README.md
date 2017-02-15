@@ -12,6 +12,7 @@ You must have installed on your computer:
  * jekyll
  * sass (gem install sass)
  * rake
+ * bundler
 
 To start a localhost server, simply go to the root folder of this repo and run :
 
