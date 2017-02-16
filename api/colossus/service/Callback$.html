@@ -90,45 +90,7 @@
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="colossus.service.Callback.SequencedCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="SequencedCallback[A]extendsAnyRef"></a>
-      <a id="SequencedCallback[A]:SequencedCallback[A]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Callback$$SequencedCallback.html"><span class="name">SequencedCallback</span></a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback$@SequencedCallback[A]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">The class tag is only needed to construct the array
-</p>
-    </li><li name="colossus.service.Callback.TupledCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TupledCallback[A,B]extendsAnyRef"></a>
-      <a id="TupledCallback[A,B]:TupledCallback[A,B]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Callback$$TupledCallback.html"><span class="name">TupledCallback</span></a><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.Callback$@TupledCallback[A,B]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -219,7 +181,7 @@
       </a>
     </span>
       
-    </li><li name="colossus.service.Callback#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.Callback#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[I](f:(scala.util.Try[I]=&gt;Unit)=&gt;Unit):colossus.service.Callback[I]"></a>
       <a id="apply[I](((Try[I])⇒Unit)⇒Unit):Callback[I]"></a>
       <h4 class="signature">
@@ -235,7 +197,10 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Convert a function into a <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Convert a function into a <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>.  The function's parameter is a
+continuation that will be the fully built mappings on the result
+<code>Callback</code>.
+</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -532,7 +497,7 @@ the CallbackExecutor trait and compose handleCallback with your receives!!
       <p class="shortcomment cmt">Schedule a callback to be executed after a delay</p><div class="fullcomment"><div class="comment cmt"><p>Schedule a callback to be executed after a delay</p><p>This method requires an implicit executor actor, which must be able to
 handle CallbackExec messages
 </p></div><dl class="paramcmts block"><dt class="param">in</dt><dd class="cmt"><p>how long to wait before executing the callback</p></dd><dt class="param">cb</dt><dd class="cmt"><p>the callback to execute</p></dd></dl></div>
-    </li><li name="colossus.service.Callback#sequence" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.Callback#sequence" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="sequence[A](callbacks:Seq[colossus.service.Callback[A]])(implicitevidence$2:scala.reflect.ClassTag[A]):colossus.service.Callback[Seq[scala.util.Try[A]]]"></a>
       <a id="sequence[A](Seq[Callback[A]])(ClassTag[A]):Callback[Seq[Try[A]]]"></a>
       <h4 class="signature">
@@ -548,7 +513,11 @@ handle CallbackExec messages
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Convert a sequence of <a href="Callback.html" class="extype" name="colossus.service.Callback">Callbacks</a> into a single <code>Callback</code>
+contains a sequence of all the results.</p><div class="fullcomment"><div class="comment cmt"><p>Convert a sequence of <a href="Callback.html" class="extype" name="colossus.service.Callback">Callbacks</a> into a single <code>Callback</code>
+contains a sequence of all the results.  The result type is <code>Try[A]</code> so
+that the success/failure of each individual <code>Callback</code> can be determined.
+</p></div></div>
     </li><li name="colossus.service.Callback#successful" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="successful[I](value:I):colossus.service.Callback[I]"></a>
       <a id="successful[I](I):Callback[I]"></a>
@@ -687,7 +656,8 @@ handle CallbackExec messages
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Zip two <a href="Callback.html" class="extype" name="colossus.service.Callback">Callbacks</a> together into a single <code>Callback</code> containing
+a tuple of the results.</p>
     </li></ol>
             </div>
 

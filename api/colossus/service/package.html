@@ -179,40 +179,6 @@ the callback is executed) and throwing the exception is preferrable to
 suppressing it.</p><p>Any exception that is thrown in this block is however rethrown as a
 <code>CallbackExecutionException</code>.  Therefore, any &quot;trigger&quot; function you wrap
 inside a callback should properly catch this exception.</p></div></div>
-    </li><li name="colossus.service.CallbackExec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CallbackExecextendsProductwithSerializable"></a>
-      <a id="CallbackExec:CallbackExec"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="CallbackExec.html"><span class="name">CallbackExec</span></a><span class="params">(<span name="cb">cb: () ⇒ <span class="extype" name="scala.Unit">Unit</span></span>, <span name="in">in: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@CallbackExecextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.CallbackExecution" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="CallbackExecutionextendsActorwithActorLogging"></a>
-      <a id="CallbackExecution:CallbackExecution"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="CallbackExecution.html"><span class="name">CallbackExecution</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@CallbackExecutionextendsActorwithActorLogging" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.service.CallbackExecutionException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CallbackExecutionExceptionextendsException"></a>
       <a id="CallbackExecutionException:CallbackExecutionException"></a>
@@ -250,15 +216,13 @@ c.execute{
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
-to complete the execution of a [Callback] that has been converted from a
-<code>Future</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>CallbackExecutor</code> is an actor that mixes in the [CallbackExecution] trait
-to complete the execution of a [Callback] that has been converted from a
-<code>Future</code>.  In almost every case, the executor should be an actor running in
-a Pinned Dispatcher and shound be the same actor that created the original
-Callback, for example, a Colossus worker.</p><p>This type is generally only needed when converting a Future to a Callback,
-or scheduling a Callback for delayed execution.
-</p></div></div>
+      <p class="shortcomment cmt">A <code>CallbackExecutor</code> represents a scheduler and execution environment for
+<a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>s and is required when either converting a <code>Future</code> to a
+<code>Callback</code> or scheduling delayed execution of a <code>Callback</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>CallbackExecutor</code> represents a scheduler and execution environment for
+<a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>s and is required when either converting a <code>Future</code> to a
+<code>Callback</code> or scheduling delayed execution of a <code>Callback</code>.  Every
+<span class="extype" name="colossus.core.Worker">Worker</span> provides an <code>CallbackExecutor</code> that can be
+imported when doing such operations.</p></div></div>
     </li><li name="colossus.service.CallbackPromise" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CallbackPromise[T]extendsAnyRef"></a>
       <a id="CallbackPromise[T]:CallbackPromise[T]"></a>
@@ -480,7 +444,7 @@ codec is stateful and returns a Seq[O]
     </span>
       <p class="shortcomment cmt">Thrown when a request is lost in transit
 </p>
-    </li><li name="colossus.service.ConstantCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.ConstantCallback" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ConstantCallback[O]extendsCallback[O]withProductwithSerializable"></a>
       <a id="ConstantCallback[O]:ConstantCallback[O]"></a>
       <h4 class="signature">
@@ -496,7 +460,11 @@ codec is stateful and returns a Seq[O]
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">A Callback containing a constant value, usually created as the result of
+calling <code>Callback.success</code> or <code>Callback.failure</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A Callback containing a constant value, usually created as the result of
+calling <code>Callback.success</code> or <code>Callback.failure</code>.  See the docs for
+<a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a> for more information.
+</p></div></div>
     </li><li name="colossus.service.DataException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DataExceptionextendsServiceClientException"></a>
       <a id="DataException:DataException"></a>
@@ -549,30 +517,6 @@ codec is stateful and returns a Seq[O]
       </a>
     </span>
       
-    </li><li name="colossus.service.Delayer" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DelayerextendsActorwithActorLogging"></a>
-      <a id="Delayer:Delayer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Delayer.html"><span class="name">Delayer</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.package@DelayerextendsActorwithActorLogging" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">This little actor is needed because apparently actors that are running in a
-pinned dispatcher AND are sending messages to themselves (like workers)
-cannot use the scheduler...the messages never get sent.</p><div class="fullcomment"><div class="comment cmt"><p>This little actor is needed because apparently actors that are running in a
-pinned dispatcher AND are sending messages to themselves (like workers)
-cannot use the scheduler...the messages never get sent.  So we get around
-this by sending a message to this actor living in the default dispatcher
-which then does the proper scheduling
-</p></div></div>
     </li><li name="colossus.service.DroppedReplyException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DroppedReplyExceptionextendsServiceServerException"></a>
       <a id="DroppedReplyException:DroppedReplyException"></a>
@@ -733,7 +677,7 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
       </a>
     </span>
       
-    </li><li name="colossus.service.MappedCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.MappedCallback" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MappedCallback[I,O]extendsCallback[O]withProductwithSerializable"></a>
       <a id="MappedCallback[I,O]:MappedCallback[I,O]"></a>
       <h4 class="signature">
@@ -749,7 +693,8 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">A Callback that has been mapped on.</p><div class="fullcomment"><div class="comment cmt"><p>A Callback that has been mapped on.  See the docs for <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a> for more information
+</p></div></div>
     </li><li name="colossus.service.MessageDecoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="MessageDecoder[T]extendsAnyRef"></a>
       <a id="MessageDecoder[T]:MessageDecoder[T]"></a>
@@ -1239,7 +1184,7 @@ a new Client to reestablish a connection.
       </a>
     </span>
       
-    </li><li name="colossus.service.UnmappedCallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.service.UnmappedCallback" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UnmappedCallback[I]extendsCallback[I]withProductwithSerializable"></a>
       <a id="UnmappedCallback[I]:UnmappedCallback[I]"></a>
       <h4 class="signature">
@@ -1255,9 +1200,8 @@ a new Client to reestablish a connection.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">UnmappedCallback is essentially an optimization that avoids needing to
-create a MappedCallback with an identity function
-</p>
+      <p class="shortcomment cmt">A Callback that has not been mapped.</p><div class="fullcomment"><div class="comment cmt"><p>A Callback that has not been mapped.  See the docs for <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a> for more information
+</p></div></div>
     </li></ol>
             </div>
 

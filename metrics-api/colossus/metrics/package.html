@@ -1,0 +1,1170 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>metrics - colossus.metrics</title>
+          <meta name="description" content="metrics - colossus.metrics" />
+          <meta name="keywords" content="metrics colossus.metrics" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.metrics.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>metrics</h1><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">metrics</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.metrics"><span>metrics</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.metrics.BucketConfig" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BucketConfigextendsAnyRef"></a>
+      <a id="BucketConfig:BucketConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BucketConfig.html"><span class="name">BucketConfig</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@BucketConfigextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration object for how a histogram's buckets should be specified
+</p>
+    </li><li name="colossus.metrics.BucketList" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BucketListextendsAnyValwithProductwithSerializable"></a>
+      <a id="BucketList:BucketList"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BucketList.html"><span class="name">BucketList</span></a><span class="params">(<span name="buckets">buckets: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="scala.Int">Int</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@BucketListextendsAnyValwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A BucketList contains an ascending-sorted list of lower bounds to use as
+buckets for a histogram.</p><div class="fullcomment"><div class="comment cmt"><p>A BucketList contains an ascending-sorted list of lower bounds to use as
+buckets for a histogram.  A value added to a histogram will get added to the
+first bucket whose lower bound is less then the value.
+</p></div></div>
+    </li><li name="colossus.metrics.Collection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CollectionextendsAnyRef"></a>
+      <a id="Collection:Collection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Collection.html"><span class="name">Collection</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@CollectionextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.CollectionInterval" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CollectionIntervalextendsAnyRef"></a>
+      <a id="CollectionInterval:CollectionInterval"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="CollectionInterval.html"><span class="name">CollectionInterval</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@CollectionIntervalextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Collector" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CollectorextendsAnyRef"></a>
+      <a id="Collector:Collector"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Collector.html"><span class="name">Collector</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@CollectorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Base trait required by all metric types.</p>
+    </li><li name="colossus.metrics.CollectorConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CollectorConfigextendsProductwithSerializable"></a>
+      <a id="CollectorConfig:CollectorConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CollectorConfig.html"><span class="name">CollectorConfig</span></a><span class="params">(<span name="intervals">intervals: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>]</span>, <span name="baseConfig">baseConfig: <span class="extype" name="com.typesafe.config.Config">Config</span></span>, <span name="collectorDefaults">collectorDefaults: <span class="extype" name="com.typesafe.config.Config">Config</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@CollectorConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A config object passed to new event collectors in addition to their own config.</p><div class="fullcomment"><div class="comment cmt"><p>A config object passed to new event collectors in addition to their own config.
+</p></div><dl class="paramcmts block"><dt class="param">intervals</dt><dd class="cmt"><p>The aggregation intervals configured for the MetricSystem this collection belongs to</p></dd><dt class="param">collectorDefaults</dt><dd class="cmt"><p>a typesafe config object for collector defaults</p></dd></dl></div>
+    </li><li name="colossus.metrics.Counter" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="CounterextendsCollector"></a>
+      <a id="Counter:Counter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Counter.html"><span class="name">Counter</span></a><span class="result"> extends <a href="Collector.html" class="extype" name="colossus.metrics.Collector">Collector</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@CounterextendsCollector" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Metrics Collector which track Long values.</p><div class="fullcomment"><div class="comment cmt"><p>Metrics Collector which track Long values.
+A single Counter instance divides counter values up by tag maps and track each one independently.
+When they are collected and reported, all TagMaps will be reported under the same MetricAddress.
+</p></div></div>
+    </li><li name="colossus.metrics.DefaultHistogram" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DefaultHistogramextendsHistogram"></a>
+      <a id="DefaultHistogram:DefaultHistogram"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DefaultHistogram.html"><span class="name">DefaultHistogram</span></a><span class="result"> extends <a href="Histogram.html" class="extype" name="colossus.metrics.Histogram">Histogram</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@DefaultHistogramextendsHistogram" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.DuplicateMetricException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DuplicateMetricExceptionextendsException"></a>
+      <a id="DuplicateMetricException:DuplicateMetricException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DuplicateMetricException.html"><span class="name">DuplicateMetricException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@DuplicateMetricExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.FiniteDurationExpectedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FiniteDurationExpectedExceptionextendsException"></a>
+      <a id="FiniteDurationExpectedException:FiniteDurationExpectedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="FiniteDurationExpectedException.html"><span class="name">FiniteDurationExpectedException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@FiniteDurationExpectedExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Histogram" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="HistogramextendsCollector"></a>
+      <a id="Histogram:Histogram"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Histogram.html"><span class="name">Histogram</span></a><span class="result"> extends <a href="Collector.html" class="extype" name="colossus.metrics.Collector">Collector</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@HistogramextendsCollector" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Metrics Collector which measures the distribution of values.</p><div class="fullcomment"><div class="comment cmt"><p>Metrics Collector which measures the distribution of values.
+A single Histogram instance divides valuess up by TagMaps and track each one independently
+When they are collected and reported, all TagMaps will be reported under the same MetricAddress.
+</p></div></div>
+    </li><li name="colossus.metrics.IntervalAggregator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IntervalAggregatorextendsActorwithActorLogging"></a>
+      <a id="IntervalAggregator:IntervalAggregator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="IntervalAggregator.html"><span class="name">IntervalAggregator</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@IntervalAggregatorextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.InvalidHostAddressException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InvalidHostAddressExceptionextendsIllegalArgumentException"></a>
+      <a id="InvalidHostAddressException:InvalidHostAddressException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="InvalidHostAddressException.html"><span class="name">InvalidHostAddressException</span></a><span class="result"> extends <span class="extype" name="scala.IllegalArgumentException">IllegalArgumentException</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@InvalidHostAddressExceptionextendsIllegalArgumentException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.LoggerSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LoggerSenderextendsMetricSender"></a>
+      <a id="LoggerSender:LoggerSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="LoggerSender.html"><span class="name">LoggerSender</span></a><span class="result"> extends <a href="MetricSender.html" class="extype" name="colossus.metrics.MetricSender">MetricSender</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@LoggerSenderextendsMetricSender" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.LoggerSenderActor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LoggerSenderActorextendsActorwithActorLoggingwithMetricsLogger"></a>
+      <a id="LoggerSenderActor:LoggerSenderActor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="LoggerSenderActor.html"><span class="name">LoggerSenderActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span> with <a href="senders/package$$MetricsLogger.html" class="extype" name="colossus.metrics.senders.MetricsLogger">MetricsLogger</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@LoggerSenderActorextendsActorwithActorLoggingwithMetricsLogger" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Simple sender that just prints the stats to the log
+</p>
+    </li><li name="colossus.metrics.MetricAddress" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricAddressextendsProductwithSerializable"></a>
+      <a id="MetricAddress:MetricAddress"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricAddress.html"><span class="name">MetricAddress</span></a><span class="params">(<span name="components">components: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricAddressextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricContext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricContextextendsMetricNamespacewithProductwithSerializable"></a>
+      <a id="MetricContext:MetricContext"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricContext.html"><span class="name">MetricContext</span></a><span class="params">(<span name="namespace">namespace: <a href="MetricAddress.html" class="extype" name="colossus.metrics.MetricAddress">MetricAddress</a></span>, <span name="collection">collection: <a href="Collection.html" class="extype" name="colossus.metrics.Collection">Collection</a></span>, <span name="tags">tags: <a href="#TagMap=Map[String,String]" class="extmbr" name="colossus.metrics.TagMap">TagMap</a> = <span class="symbol"><span class="name"><a href="package$$TagMap$.html">TagMap.Empty</a></span></span></span>)</span><span class="result"> extends <a href="MetricNamespace.html" class="extype" name="colossus.metrics.MetricNamespace">MetricNamespace</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricContextextendsMetricNamespacewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricFormatter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MetricFormatter[T]extendsAnyRef"></a>
+      <a id="MetricFormatter[T]:MetricFormatter[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricFormatter.html"><span class="name">MetricFormatter</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricFormatter[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricFragment" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricFragmentextendsProductwithSerializable"></a>
+      <a id="MetricFragment:MetricFragment"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricFragment.html"><span class="name">MetricFragment</span></a><span class="params">(<span name="address">address: <a href="MetricAddress.html" class="extype" name="colossus.metrics.MetricAddress">MetricAddress</a></span>, <span name="tags">tags: <a href="#TagMap=Map[String,String]" class="extmbr" name="colossus.metrics.TagMap">TagMap</a></span>, <span name="value">value: <a href="#MetricValue=Long" class="extmbr" name="colossus.metrics.MetricValue">MetricValue</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricFragmentextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricMap=Map[colossus.metrics.MetricAddress,colossus.metrics.package.ValueMap]"></a>
+      <a id="MetricMap:MetricMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MetricMap</span><span class="result"> = <span class="extype" name="scala.collection.immutable.Map">Map</span>[<a href="MetricAddress.html" class="extype" name="colossus.metrics.MetricAddress">MetricAddress</a>, <a href="#ValueMap=Map[colossus.metrics.package.TagMap,colossus.metrics.package.MetricValue]" class="extmbr" name="colossus.metrics.ValueMap">ValueMap</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricMap=Map[colossus.metrics.MetricAddress,colossus.metrics.package.ValueMap]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricNamespace" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="MetricNamespaceextendsAnyRef"></a>
+      <a id="MetricNamespace:MetricNamespace"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricNamespace.html"><span class="name">MetricNamespace</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricNamespaceextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A MetricNamespace is essentially just an address prefix and set of tags.</p><div class="fullcomment"><div class="comment cmt"><p>A MetricNamespace is essentially just an address prefix and set of tags. It is needed when
+getting or creating collectors. The <code>namespace</code> address is prefixed onto the
+given address for the collector to create the full address. Tags are added to each collector under under this
+context.</p><pre><span class="kw">val</span> subnameSpace: MetricContext = namespace / <span class="lit">"foo"</span> * (<span class="lit">"a"</span> -&gt; <span class="lit">"b"</span>)</pre></div></div>
+    </li><li name="colossus.metrics.MetricReporter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricReporterextendsActorwithActorLogging"></a>
+      <a id="MetricReporter:MetricReporter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricReporter.html"><span class="name">MetricReporter</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricReporterextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricReporterConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MetricReporterConfigextendsProductwithSerializable"></a>
+      <a id="MetricReporterConfig:MetricReporterConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricReporterConfig.html"><span class="name">MetricReporterConfig</span></a><span class="params">(<span name="metricSenders">metricSenders: <span class="extype" name="scala.Seq">Seq</span>[<a href="MetricSender.html" class="extype" name="colossus.metrics.MetricSender">MetricSender</a>]</span>, <span name="globalTags">globalTags: <span class="extype" name="scala.Option">Option</span>[<a href="TagGenerator.html" class="extype" name="colossus.metrics.TagGenerator">TagGenerator</a>] = <span class="symbol">None</span></span>, <span name="filters">filters: <a href="MetricReporterFilter.html" class="extype" name="colossus.metrics.MetricReporterFilter">MetricReporterFilter</a> = <span class="symbol"><span class="name"><a href="MetricReporterFilter$.html">MetricReporterFilter.All</a></span></span></span>, <span name="includeHostInGlobalTags">includeHostInGlobalTags: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricReporterConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration class for the metric reporter</p><div class="fullcomment"><div class="comment cmt"><p>Configuration class for the metric reporter</p></div><dl class="paramcmts block"><dt class="param">metricSenders</dt><dd class="cmt"><p>A list of <a href="MetricSender.html" class="extype" name="colossus.metrics.MetricSender">MetricSender</a> instances that the reporter will use to send metrics</p></dd></dl></div>
+    </li><li name="colossus.metrics.MetricReporterFilter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MetricReporterFilterextendsAnyRef"></a>
+      <a id="MetricReporterFilter:MetricReporterFilter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricReporterFilter.html"><span class="name">MetricReporterFilter</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricReporterFilterextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Tells a MetricReporter how to filter its Metrics before handing off to a Sender.</p>
+    </li><li name="colossus.metrics.MetricSender" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MetricSenderextendsAnyRef"></a>
+      <a id="MetricSender:MetricSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSender.html"><span class="name">MetricSender</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSenderextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricSystem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricSystemextendsMetricNamespace"></a>
+      <a id="MetricSystem:MetricSystem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSystem.html"><span class="name">MetricSystem</span></a><span class="result"> extends <a href="MetricNamespace.html" class="extype" name="colossus.metrics.MetricNamespace">MetricNamespace</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSystemextendsMetricNamespace" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The MetricSystem provides the environment for creating metrics and is required to create collectors.</p>
+    </li><li name="colossus.metrics.MetricSystemConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MetricSystemConfigextendsProductwithSerializable"></a>
+      <a id="MetricSystemConfig:MetricSystemConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSystemConfig.html"><span class="name">MetricSystemConfig</span></a><span class="params">(<span name="enabled">enabled: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="systemMetrics">systemMetrics: <a href="SystemMetricsConfig.html" class="extype" name="colossus.metrics.SystemMetricsConfig">SystemMetricsConfig</a></span>, <span name="collectorConfig">collectorConfig: <a href="CollectorConfig.html" class="extype" name="colossus.metrics.CollectorConfig">CollectorConfig</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSystemConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration object for a <a href="MetricSystem.html" class="extype" name="colossus.metrics.MetricSystem">MetricSystem</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Configuration object for a <a href="MetricSystem.html" class="extype" name="colossus.metrics.MetricSystem">MetricSystem</a>
+</p></div><dl class="paramcmts block"><dt class="param">enabled</dt><dd class="cmt"><p>true to enable all functionality.  Setting to false will effectively create a dummy system that does nothing</p></dd><dt class="param">name</dt><dd class="cmt"><p>The name of the metric system.  Name is not used in the root path of a metric system.</p></dd></dl></div>
+    </li><li name="colossus.metrics.MetricValue" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricValue=Long"></a>
+      <a id="MetricValue:MetricValue"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MetricValue</span><span class="result"> = <span class="extype" name="scala.Long">Long</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricValue=Long" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.NopHistogram" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NopHistogramextendsHistogram"></a>
+      <a id="NopHistogram:NopHistogram"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="NopHistogram.html"><span class="name">NopHistogram</span></a><span class="result"> extends <a href="Histogram.html" class="extype" name="colossus.metrics.Histogram">Histogram</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@NopHistogramextendsHistogram" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.OpenTsdbSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpenTsdbSenderextendsMetricSenderwithProductwithSerializable"></a>
+      <a id="OpenTsdbSender:OpenTsdbSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OpenTsdbSender.html"><span class="name">OpenTsdbSender</span></a><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="MetricSender.html" class="extype" name="colossus.metrics.MetricSender">MetricSender</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@OpenTsdbSenderextendsMetricSenderwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.OpenTsdbSenderActor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpenTsdbSenderActorextendsActorwithActorLoggingwithMetricsLogger"></a>
+      <a id="OpenTsdbSenderActor:OpenTsdbSenderActor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="OpenTsdbSenderActor.html"><span class="name">OpenTsdbSenderActor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span> with <a href="senders/package$$MetricsLogger.html" class="extype" name="colossus.metrics.senders.MetricsLogger">MetricsLogger</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@OpenTsdbSenderActorextendsActorwithActorLoggingwithMetricsLogger" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.OpenTsdbWatchdog" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpenTsdbWatchdogextendsActorwithActorLogging"></a>
+      <a id="OpenTsdbWatchdog:OpenTsdbWatchdog"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="OpenTsdbWatchdog.html"><span class="name">OpenTsdbWatchdog</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="akka.actor.ActorLogging">ActorLogging</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@OpenTsdbWatchdogextendsActorwithActorLogging" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Rate" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RateextendsCollector"></a>
+      <a id="Rate:Rate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Rate.html"><span class="name">Rate</span></a><span class="result"> extends <a href="Collector.html" class="extype" name="colossus.metrics.Collector">Collector</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@RateextendsCollector" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Metrics Collector which increments a value and resets after collection.</p>
+    </li><li name="colossus.metrics.RichMetricMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RichMetricMapextendsAnyVal"></a>
+      <a id="RichMetricMap:RichMetricMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$RichMetricMap.html"><span class="name">RichMetricMap</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@RichMetricMapextendsAnyVal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.RichTagMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RichTagMapextendsAnyVal"></a>
+      <a id="RichTagMap:RichTagMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$RichTagMap.html"><span class="name">RichTagMap</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@RichTagMapextendsAnyVal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.SystemMetricsCollector" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SystemMetricsCollectorextendsAnyRef"></a>
+      <a id="SystemMetricsCollector:SystemMetricsCollector"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SystemMetricsCollector.html"><span class="name">SystemMetricsCollector</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@SystemMetricsCollectorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.SystemMetricsConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SystemMetricsConfigextendsProductwithSerializable"></a>
+      <a id="SystemMetricsConfig:SystemMetricsConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SystemMetricsConfig.html"><span class="name">SystemMetricsConfig</span></a><span class="params">(<span name="enabled">enabled: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="namespace">namespace: <a href="MetricAddress.html" class="extype" name="colossus.metrics.MetricAddress">MetricAddress</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@SystemMetricsConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.TagGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TagGeneratorextendsAnyRef"></a>
+      <a id="TagGenerator:TagGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TagGenerator.html"><span class="name">TagGenerator</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@TagGeneratorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.TagMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TagMap=Map[String,String]"></a>
+      <a id="TagMap:TagMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">TagMap</span><span class="result"> = <span class="extype" name="scala.collection.immutable.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@TagMap=Map[String,String]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.ValueMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ValueMap=Map[colossus.metrics.package.TagMap,colossus.metrics.package.MetricValue]"></a>
+      <a id="ValueMap:ValueMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ValueMap</span><span class="result"> = <span class="extype" name="scala.collection.immutable.Map">Map</span>[<a href="#TagMap=Map[String,String]" class="extmbr" name="colossus.metrics.TagMap">TagMap</a>, <a href="#MetricValue=Long" class="extmbr" name="colossus.metrics.MetricValue">MetricValue</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@ValueMap=Map[colossus.metrics.package.TagMap,colossus.metrics.package.MetricValue]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.metrics.BucketConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BucketConfig"></a>
+      <a id="BucketConfig:BucketConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BucketConfig$.html"><span class="name">BucketConfig</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@BucketConfig" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Collection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Collection"></a>
+      <a id="Collection:Collection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Collection$.html"><span class="name">Collection</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@Collection" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.ConfigHelpers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConfigHelpers"></a>
+      <a id="ConfigHelpers:ConfigHelpers"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConfigHelpers$.html"><span class="name">ConfigHelpers</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@ConfigHelpers" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Counter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Counter"></a>
+      <a id="Counter:Counter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Counter$.html"><span class="name">Counter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@Counter" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Histogram" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Histogram"></a>
+      <a id="Histogram:Histogram"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Histogram$.html"><span class="name">Histogram</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@Histogram" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Basic log-scale histogram, mainly designed to measure latency</p><div class="fullcomment"><div class="comment cmt"><p>A Basic log-scale histogram, mainly designed to measure latency</p><p>Each bucket handles an increasingly large range of values from 0 to MAX_INT.
+</p></div></div>
+    </li><li name="colossus.metrics.IntervalAggregator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IntervalAggregator"></a>
+      <a id="IntervalAggregator:IntervalAggregator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="IntervalAggregator$.html"><span class="name">IntervalAggregator</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@IntervalAggregator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.LoggerSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LoggerSender"></a>
+      <a id="LoggerSender:LoggerSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="LoggerSender$.html"><span class="name">LoggerSender</span></a><span class="result"> extends <a href="MetricSender.html" class="extype" name="colossus.metrics.MetricSender">MetricSender</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@LoggerSender" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricAddress" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricAddress"></a>
+      <a id="MetricAddress:MetricAddress"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricAddress$.html"><span class="name">MetricAddress</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricAddress" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricMap"></a>
+      <a id="MetricMap:MetricMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$MetricMap$.html"><span class="name">MetricMap</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricMap" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricReporter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricReporter"></a>
+      <a id="MetricReporter:MetricReporter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricReporter$.html"><span class="name">MetricReporter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricReporter" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricReporterFilter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricReporterFilter"></a>
+      <a id="MetricReporterFilter:MetricReporterFilter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricReporterFilter$.html"><span class="name">MetricReporterFilter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricReporterFilter" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricSender"></a>
+      <a id="MetricSender:MetricSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSender$.html"><span class="name">MetricSender</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSender" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.MetricSystem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricSystem"></a>
+      <a id="MetricSystem:MetricSystem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSystem$.html"><span class="name">MetricSystem</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSystem" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Factory for <a href="MetricSystem.html" class="extype" name="colossus.metrics.MetricSystem">colossus.metrics.MetricSystem</a> instances
+</p>
+    </li><li name="colossus.metrics.MetricSystemConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MetricSystemConfig"></a>
+      <a id="MetricSystemConfig:MetricSystemConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MetricSystemConfig$.html"><span class="name">MetricSystemConfig</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@MetricSystemConfig" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.OpenTsdbFormatter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpenTsdbFormatter"></a>
+      <a id="OpenTsdbFormatter:OpenTsdbFormatter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OpenTsdbFormatter$.html"><span class="name">OpenTsdbFormatter</span></a><span class="result"> extends <a href="MetricFormatter.html" class="extype" name="colossus.metrics.MetricFormatter">MetricFormatter</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@OpenTsdbFormatter" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.OpenTsdbWatchdog" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpenTsdbWatchdog"></a>
+      <a id="OpenTsdbWatchdog:OpenTsdbWatchdog"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OpenTsdbWatchdog$.html"><span class="name">OpenTsdbWatchdog</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@OpenTsdbWatchdog" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.Rate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Rate"></a>
+      <a id="Rate:Rate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Rate$.html"><span class="name">Rate</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@Rate" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.TagMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TagMap"></a>
+      <a id="TagMap:TagMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$TagMap$.html"><span class="name">TagMap</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@TagMap" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.ValueMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ValueMap"></a>
+      <a id="ValueMap:ValueMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$ValueMap$.html"><span class="name">ValueMap</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@ValueMap" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.metrics.senders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="senders"></a>
+      <a id="senders:senders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="senders/package.html"><span class="name">senders</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.metrics.package@senders" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

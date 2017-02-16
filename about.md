@@ -12,11 +12,6 @@ Colossus as clean and usable as possible without making significant performance
 sacrifices.
 
 
-
-### Releases
-* {{ site.latest_version }} - The latest release (this verison used in the docs), built against scala 2.10.4, 2.11.6, akka 2.3.9
-* 0.6.4-SNAPSHOT - Latest development snapshot
-
 ### Release Workflow
 
 Currently we're following an accelerated release workflow.  Currently there is

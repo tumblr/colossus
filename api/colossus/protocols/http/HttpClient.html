@@ -128,6 +128,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
+    </li><li name="colossus.service.LiftedClient#clientConfig" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="clientConfig:Option[colossus.service.ClientConfig]"></a>
+      <a id="clientConfig:Option[ClientConfig]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clientConfig</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpClient@clientConfig:Option[colossus.service.ClientConfig]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -219,18 +236,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a> → <a href="HttpRequestBuilder.html" class="extype" name="colossus.protocols.http.HttpRequestBuilder">HttpRequestBuilder</a></dd></dl></div>
     </li><li name="colossus.protocols.http.HttpClient#build" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="build(req:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.Http#Output]"></a>
-      <a id="build(HttpRequest):M[Output]"></a>
+      <a id="build(req:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.HttpResponse]"></a>
+      <a id="build(HttpRequest):M[HttpResponse]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">build</span><span class="params">(<span name="req">req: <a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>[<a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
+        <span class="name">build</span><span class="params">(<span name="req">req: <a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>[<a href="HttpResponse.html" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpClient@build(req:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.Http#Output]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpClient@build(req:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.HttpResponse]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -519,23 +536,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpRequestBuilder.html" class="extype" name="colossus.protocols.http.HttpRequestBuilder">HttpRequestBuilder</a></dd></dl></div>
-    </li><li name="colossus.service.LiftedClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="send(input:C#Input):M[C#Output]"></a>
-      <a id="send(Input):M[Output]"></a>
+    </li><li name="colossus.protocols.http.HttpClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="send(input:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.HttpResponse]"></a>
+      <a id="send(HttpRequest):M[HttpResponse]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">send</span><span class="params">(<span name="input">input: <a href="package$$Http.html#Input=colossus.protocols.http.HttpRequest" class="extmbr" name="colossus.protocols.http.Http.Input">Input</a></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>[<a href="package$$Http.html#Output=colossus.protocols.http.HttpResponse" class="extmbr" name="colossus.protocols.http.Http.Output">Output</a>]</span>
+        <span class="name">send</span><span class="params">(<span name="input">input: <a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>[<a href="HttpResponse.html" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#colossus.protocols.http.HttpClient@send(input:C#Input):M[C#Output]" title="Permalink" target="_top">
+      <a href="../../../index.html#colossus.protocols.http.HttpClient@send(input:colossus.protocols.http.HttpRequest):M[colossus.protocols.http.HttpResponse]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a> → <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a> → <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a> → <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
     </li><li name="colossus.protocols.http.HttpRequestBuilder#startMethod" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="startMethod(method:colossus.protocols.http.HttpMethod,path:String):T"></a>
       <a id="startMethod(HttpMethod,String):M[HttpResponse]"></a>

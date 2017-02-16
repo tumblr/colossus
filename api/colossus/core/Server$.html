@@ -49,14 +49,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and
-ConnectionHandlers which contain application logic.  Servers are the objects
-that are directly interface with the Workers and provide them with the
-Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers,
-and after a successful registration, it will then bind to the specified
-ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of
-these can cause actions, others are for when some internal event happens and
-the Server is notified.</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The entry point for starting a Server</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="ServerDSL.html" class="extype" name="colossus.core.ServerDSL">ServerDSL</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -114,41 +107,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       
-    </li><li name="colossus.core.Server.ConnectionRefused" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ConnectionRefusedextendsProductwithSerializable"></a>
-      <a id="ConnectionRefused:ConnectionRefused"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$ConnectionRefused.html"><span class="name">ConnectionRefused</span></a><span class="params">(<span name="channel">channel: <span class="extype" name="java.nio.channels.SocketChannel">SocketChannel</span></span>, <span name="attempt">attempt: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@ConnectionRefusedextendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Sent from a worker to the server when the server is not registered with the worker.</p><div class="fullcomment"><div class="comment cmt"><p>Sent from a worker to the server when the server is not registered with the worker.</p><p>This generally happens when a worker has just been killed and restarted.  See Server.MaxConnectionRegisterAttempts
-</p></div></div>
-    </li><li name="colossus.core.Server.DelegatorBroadcast" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DelegatorBroadcastextendsServer.ServerCommandwithProductwithSerializable"></a>
-      <a id="DelegatorBroadcast:DelegatorBroadcast"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$DelegatorBroadcast.html"><span class="name">DelegatorBroadcast</span></a><span class="params">(<span name="message">message: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@DelegatorBroadcastextendsServer.ServerCommandwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.core.Server.MaxConnectionRegisterException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MaxConnectionRegisterExceptionextendsException"></a>
       <a id="MaxConnectionRegisterException:MaxConnectionRegisterException"></a>
@@ -162,23 +120,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.Server$@MaxConnectionRegisterExceptionextendsException" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.Server.ServerCommand" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ServerCommandextendsAnyRef"></a>
-      <a id="ServerCommand:ServerCommand"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$ServerCommand.html"><span class="name">ServerCommand</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@ServerCommandextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -258,57 +199,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="colossus.core.Server.GetInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GetInfo"></a>
-      <a id="GetInfo:GetInfo"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$GetInfo$.html"><span class="name">GetInfo</span></a><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@GetInfo" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.Server#MaxConnectionRegisterAttempts" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MaxConnectionRegisterAttempts:Int"></a>
-      <a id="MaxConnectionRegisterAttempts:Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">MaxConnectionRegisterAttempts</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@MaxConnectionRegisterAttempts:Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.core.Server.Shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Shutdown"></a>
-      <a id="Shutdown:Shutdown"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Server$$Shutdown$.html"><span class="name">Shutdown</span></a><span class="result"> extends <a href="Server$$ServerCommand.html" class="extype" name="colossus.core.Server.ServerCommand">ServerCommand</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@Shutdown" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.core.Server#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(serverConfig:colossus.core.ServerConfig)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
       <a id="apply(ServerConfig)(IOSystem):ServerRef"></a>
@@ -581,23 +471,6 @@ the Server is notified.</p></div><div class="toggleContainer block">
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.Server#shutdownCheckFrequency" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="shutdownCheckFrequency:scala.concurrent.duration.FiniteDuration"></a>
-      <a id="shutdownCheckFrequency:FiniteDuration"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdownCheckFrequency</span><span class="result">: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.core.Server$@shutdownCheckFrequency:scala.concurrent.duration.FiniteDuration" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.core.ServerDSL#start" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="start(name:String,settings:colossus.core.ServerSettings)(initializer:colossus.core.WorkerRef=&gt;colossus.core.Initializer)(implicitio:colossus.IOSystem):colossus.core.ServerRef"></a>
       <a id="start(String,ServerSettings)((WorkerRef)⇒Initializer)(IOSystem):ServerRef"></a>

@@ -293,6 +293,49 @@ that a Worker captures in its SelectLoop.
       <p class="shortcomment cmt">A trait encapsulating live information about a connection.</p><div class="fullcomment"><div class="comment cmt"><p>A trait encapsulating live information about a connection.  This should only
 contain read-only fields
 </p></div></div>
+    </li><li name="colossus.core.ConnectionLimiter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionLimiterextendsAnyRef"></a>
+      <a id="ConnectionLimiter:ConnectionLimiter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionLimiter.html"><span class="name">ConnectionLimiter</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionLimiterextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Used to control slow start of servers, this will exponentially increase its
+limit over a period of time until max is reached.</p><div class="fullcomment"><div class="comment cmt"><p>Used to control slow start of servers, this will exponentially increase its
+limit over a period of time until max is reached.  Servers use this to gradually increase the
+number of allowable open connections during the first few seconds of startup,
+which can help alleviate thundering herd problems due to JVM warmup.</p><p>Initializing a limiter with <code>initial</code> equal to <code>max</code> will essentially disable any slow ramp
+</p></div></div>
+    </li><li name="colossus.core.ConnectionLimiterConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionLimiterConfigextendsProductwithSerializable"></a>
+      <a id="ConnectionLimiterConfig:ConnectionLimiterConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionLimiterConfig.html"><span class="name">ConnectionLimiterConfig</span></a><span class="params">(<span name="enabled">enabled: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="initial">initial: <span class="extype" name="scala.Int">Int</span></span>, <span name="duration">duration: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionLimiterConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration object for connection limiting, used as part of server
+settings.</p><div class="fullcomment"><div class="comment cmt"><p>Configuration object for connection limiting, used as part of server
+settings.  This does not contain the max value because that is already part
+of <a href="ServerSettings.html" class="extype" name="colossus.core.ServerSettings">ServerSettings</a>
+</p></div></div>
     </li><li name="colossus.core.ConnectionSnapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ConnectionSnapshotextendsProductwithSerializable"></a>
       <a id="ConnectionSnapshot:ConnectionSnapshot"></a>
@@ -667,7 +710,7 @@ called by the worker.  This can be used to do periodic checks
       </a>
     </span>
       
-    </li><li name="colossus.core.Initializer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.Initializer" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="InitializerextendsAnyRef"></a>
       <a id="Initializer:Initializer"></a>
       <h4 class="signature">
@@ -683,7 +726,14 @@ called by the worker.  This can be used to do periodic checks
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">An <code>Initializer</code> is used to perform any setup/coordination logic for a
+<span class="extype" name="Server!">Server!</span> inside a <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">Worker</a>.</p><div class="fullcomment"><div class="comment cmt"><p>An <code>Initializer</code> is used to perform any setup/coordination logic for a
+<span class="extype" name="Server!">Server!</span> inside a <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">Worker</a>.  Initializers are also used to provide new
+connections from the server with connection handlers.  An initializer is
+created per worker, so all actions on a single Initializer are
+single-threaded.  See <span class="extype" name="colossus.core.Server!">colossus.core.Server!</span> to see how <code>Initializer</code> is
+used when starting servers.
+</p></div></div>
     </li><li name="colossus.core.InvalidConnectionStateException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="InvalidConnectionStateExceptionextendsException"></a>
       <a id="InvalidConnectionStateException:InvalidConnectionStateException"></a>
@@ -956,8 +1006,9 @@ incident indicates to stop retrying.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">A ServerRef is the public interface of a Server.</p><div class="fullcomment"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
-an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+      <p class="shortcomment cmt">A <code>ServerRef</code> is a handle to a created server.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>ServerRef</code> is a handle to a created server.  It can be used to get basic
+information about the state of the server as well as send operational
+commands to it.
 </p></div></div>
     </li><li name="colossus.core.ServerSettings" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServerSettingsextendsProductwithSerializable"></a>
@@ -968,7 +1019,7 @@ an application design and from Akka idioms and best practices, passing around an
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServerSettings.html"><span class="name">ServerSettings</span></a><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingRetry">bindingRetry: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second))</a></span>'>...</span></span>, <span name="delegatorCreationPolicy">delegatorCreationPolicy: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant))</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="ServerSettings.html"><span class="name">ServerSettings</span></a><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>, <span name="slowStart">slowStart: <a href="ConnectionLimiterConfig.html" class="extype" name="colossus.core.ConnectionLimiterConfig">ConnectionLimiterConfig</a> = <span class="symbol"><span class="name"><a href="ConnectionLimiterConfig$.html">ConnectionLimiterConfig.NoLimiting</a></span></span></span>, <span name="maxConnections">maxConnections: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">1000</span></span>, <span name="maxIdleTime">maxIdleTime: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>, <span name="lowWatermarkPercentage">lowWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.75</span></span>, <span name="highWatermarkPercentage">highWatermarkPercentage: <span class="extype" name="scala.Double">Double</span> = <span class="symbol">0.85</span></span>, <span name="highWaterMaxIdleTime">highWaterMaxIdleTime: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>, <span name="tcpBacklogSize">tcpBacklogSize: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>] = <span class="symbol">None</span></span>, <span name="bindingRetry">bindingRetry: <a href="RetryPolicy.html" class="extype" name="colossus.core.RetryPolicy">RetryPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second))</a></span>'>...</span></span>, <span name="delegatorCreationPolicy">delegatorCreationPolicy: <a href="WaitPolicy.html" class="extype" name="colossus.core.WaitPolicy">WaitPolicy</a> = <span class="defval" name='<span class="name"><a href="BackoffMultiplier$.html">WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant))</a></span>'>...</span></span>, <span name="shutdownTimeout">shutdownTimeout: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span> = <span class="symbol">100.milliseconds</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.core.package@ServerSettingsextendsProductwithSerializable" title="Permalink" target="_top">
@@ -1028,13 +1079,7 @@ completes the shutdown.</p></dd></dl></div>
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Represents the startup status of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the startup status of the server.
-- <code>Initializing</code> : The server was just started and is registering with the IOSystem
-- <code>Binding</code> : The server is registered and in the process of binding to its port
-- <code>Bound</code> : The server is actively listening on the port and accepting connections
-- <code>ShuttingDown</code> : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close
-- <code>Dead</code> : The server is fully shutdown
-</p></div></div>
+      <p class="shortcomment cmt">Represents the startup status of the server.</p><div class="fullcomment"><div class="comment cmt"><p>Represents the startup status of the server.</p><ul><li><code>Initializing</code> : The server was just started and is registering with the IOSystem</li><li><code>Binding</code> : The server is registered and in the process of binding to its port</li><li><code>Bound</code> : The server is actively listening on the port and accepting connections</li><li><code>ShuttingDown</code> : The server is shutting down.  It is no longer accepting new connections and waiting for existing connections to close</li><li><code>Dead</code> : The server is fully shutdown</li></ul></div></div>
     </li><li name="colossus.core.ShutdownAction" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ShutdownActionextendsAnyRef"></a>
       <a id="ShutdownAction:ShutdownAction"></a>
@@ -1295,6 +1340,40 @@ connection.  Services wrap this
       </a>
     </span>
       
+    </li><li name="colossus.core.ConnectionLimiter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionLimiter"></a>
+      <a id="ConnectionLimiter:ConnectionLimiter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionLimiter$.html"><span class="name">ConnectionLimiter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionLimiter" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.core.ConnectionLimiterConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionLimiterConfig"></a>
+      <a id="ConnectionLimiterConfig:ConnectionLimiterConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionLimiterConfig$.html"><span class="name">ConnectionLimiterConfig</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.package@ConnectionLimiterConfig" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="colossus.core.ConnectionState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ConnectionState"></a>
       <a id="ConnectionState:ConnectionState"></a>
@@ -1500,7 +1579,7 @@ connection.  Services wrap this
       </a>
     </span>
       
-    </li><li name="colossus.core.Server" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="colossus.core.Server" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Server"></a>
       <a id="Server:Server"></a>
       <h4 class="signature">
@@ -1516,15 +1595,7 @@ connection.  Services wrap this
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Servers can be thought of as applications, as they provide Delegators and
-ConnectionHandlers which contain application logic.</p><div class="fullcomment"><div class="comment cmt"><p>Servers can be thought of as applications, as they provide Delegators and
-ConnectionHandlers which contain application logic.  Servers are the objects
-that are directly interface with the Workers and provide them with the
-Delegators and Handlers.  A Server will be &quot;registered&quot; with the Workers,
-and after a successful registration, it will then bind to the specified
-ports and be ready to accept incoming requests.</p><p>Also this includes all of the messages that Server will respond to.  Some of
-these can cause actions, others are for when some internal event happens and
-the Server is notified.</p></div></div>
+      <p class="shortcomment cmt">The entry point for starting a Server</p>
     </li><li name="colossus.core.ServerDSL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ServerDSL"></a>
       <a id="ServerDSL:ServerDSL"></a>

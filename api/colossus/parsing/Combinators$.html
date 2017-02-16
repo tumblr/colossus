@@ -134,8 +134,8 @@ parser.parse(DataBuffer(ByteString(<span class="lit">"defgh"</span>))) <span cla
       </a>
     </span>
       
-    </li><li name="colossus.parsing.Combinators.FastArrayBuilder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="FastArrayBuilderextendsAnyRef"></a>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FastArrayBuilderextendsCombinators.FastArrayBuilding"></a>
       <a id="FastArrayBuilder:FastArrayBuilder"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -143,10 +143,27 @@ parser.parse(DataBuffer(ByteString(<span class="lit">"defgh"</span>))) <span cla
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Combinators$$FastArrayBuilder.html"><span class="name">FastArrayBuilder</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a href="Combinators$$FastArrayBuilder.html"><span class="name">FastArrayBuilder</span></a><span class="result"> extends <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.Combinators$@FastArrayBuilderextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.parsing.Combinators$@FastArrayBuilderextendsCombinators.FastArrayBuilding" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="FastArrayBuildingextendsAnyRef"></a>
+      <a id="FastArrayBuilding:FastArrayBuilding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Combinators$$FastArrayBuilding.html"><span class="name">FastArrayBuilding</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@FastArrayBuildingextendsAnyRef" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -188,7 +205,7 @@ replace this with any out-of-the-box Java/Scala class.  This is faster.
     </span>
       
     </li><li name="colossus.parsing.Combinators.LineParser" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LineParser[T]extendsCombinators.Parser[T]"></a>
+      <a id="LineParser[T]extendsCombinators.Parser[T]withCombinators.FastArrayBuilding"></a>
       <a id="LineParser[T]:LineParser[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -196,10 +213,10 @@ replace this with any out-of-the-box Java/Scala class.  This is faster.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Combinators$$LineParser.html"><span class="name">LineParser</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>]</span>
+        <a href="Combinators$$LineParser.html"><span class="name">LineParser</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>] with <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.Combinators$@LineParser[T]extendsCombinators.Parser[T]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.parsing.Combinators$@LineParser[T]extendsCombinators.Parser[T]withCombinators.FastArrayBuilding" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -407,6 +424,40 @@ keep parsing lines of data until an empty line is encountered
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#colossus.parsing.Combinators$@bytes(num:colossus.parsing.Combinators.Parser[Int]):colossus.parsing.Combinators.Parser[Array[Byte]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators#bytes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="bytes(num:Int,maxSize:colossus.parsing.DataSize,maxInitBufferSize:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[Array[Byte]]"></a>
+      <a id="bytes(Int,DataSize,DataSize):Parser[Array[Byte]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bytes</span><span class="params">(<span name="num">num: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxSize">maxSize: <a href="DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>, <span name="maxInitBufferSize">maxInitBufferSize: <a href="DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@bytes(num:Int,maxSize:colossus.parsing.DataSize,maxInitBufferSize:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[Array[Byte]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.parsing.Combinators#bytes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="bytes(num:colossus.parsing.Combinators.Parser[Int],maxSize:colossus.parsing.DataSize,maxInitBufferSize:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[Array[Byte]]"></a>
+      <a id="bytes(Parser[Int],DataSize,DataSize):Parser[Array[Byte]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bytes</span><span class="params">(<span name="num">num: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Int">Int</span>]</span>, <span name="maxSize">maxSize: <a href="DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>, <span name="maxInitBufferSize">maxInitBufferSize: <a href="DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a></span>)</span><span class="result">: <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$@bytes(num:colossus.parsing.Combinators.Parser[Int],maxSize:colossus.parsing.DataSize,maxInitBufferSize:colossus.parsing.DataSize):colossus.parsing.Combinators.Parser[Array[Byte]]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

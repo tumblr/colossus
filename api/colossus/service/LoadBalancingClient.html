@@ -117,35 +117,18 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="colossus.service.LoadBalancingClient.Client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Client=colossus.service.Sender[P,colossus.service.Callback]"></a>
+      <a id="ClientextendsProductwithSerializable"></a>
       <a id="Client:Client"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Client</span><span class="result"> = <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@Client=colossus.service.Sender[P,colossus.service.Callback]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="colossus.service.LoadBalancingClient.Send" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="SendextendsProductwithSerializable"></a>
-      <a id="Send:Send"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="LoadBalancingClient$Send.html"><span class="name">Send</span></a><span class="params">(<span name="request">request: <span class="extype" name="colossus.service.Protocol.Input">P.Input</span></span>, <span name="promise">promise: <span class="extype" name="scala.concurrent.Promise">Promise</span>[<span class="extype" name="colossus.service.Protocol.Output">P.Output</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a href="LoadBalancingClient$Client.html"><span class="name">Client</span></a><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="client">client: <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@SendextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@ClientextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -209,18 +192,18 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#addClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addClient(address:java.net.InetSocketAddress):colossus.service.Sender[P,colossus.service.Callback]"></a>
-      <a id="addClient(InetSocketAddress):Sender[P,Callback]"></a>
+      <a id="addClient(address:java.net.InetSocketAddress):Unit"></a>
+      <a id="addClient(InetSocketAddress):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>]</span>
+        <span class="name">addClient</span><span class="params">(<span name="address">address: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(address:java.net.InetSocketAddress):colossus.service.Sender[P,colossus.service.Callback]" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@addClient(address:java.net.InetSocketAddress):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -282,23 +265,6 @@ be tried once</p><p>TODO: does this need to actually be a WorkerItem anymore?
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../core/WorkerItem.html" class="extype" name="colossus.core.WorkerItem">WorkerItem</a></dd></dl></div>
-    </li><li name="colossus.service.LoadBalancingClient#currentClients" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="currentClients:List[(java.net.InetSocketAddress,colossus.service.Sender[P,colossus.service.Callback])]"></a>
-      <a id="currentClients:List[(InetSocketAddress,Sender[P,Callback])]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">currentClients</span><span class="result">: <span class="extype" name="scala.List">List</span>[(<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>, <a href="Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<span class="extype" name="colossus.service.LoadBalancingClient.P">P</span>, <a href="Callback.html" class="extype" name="colossus.service.Callback">Callback</a>])]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@currentClients:List[(java.net.InetSocketAddress,colossus.service.Sender[P,colossus.service.Callback])]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="colossus.service.LoadBalancingClient#disconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="disconnect():Unit"></a>
       <a id="disconnect():Unit"></a>
@@ -656,18 +622,18 @@ shutting down.
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="colossus.service.LoadBalancingClient#update" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="update(addresses:Seq[java.net.InetSocketAddress]):Unit"></a>
-      <a id="update(Seq[InetSocketAddress]):Unit"></a>
+      <a id="update(addresses:Seq[java.net.InetSocketAddress],allowDuplicates:Boolean):Unit"></a>
+      <a id="update(Seq[InetSocketAddress],Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">update</span><span class="params">(<span name="addresses">addresses: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">update</span><span class="params">(<span name="addresses">addresses: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>, <span name="allowDuplicates">allowDuplicates: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.service.LoadBalancingClient@update(addresses:Seq[java.net.InetSocketAddress]):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.service.LoadBalancingClient@update(addresses:Seq[java.net.InetSocketAddress],allowDuplicates:Boolean):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -49,7 +49,13 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>An <code>Initializer</code> is used to perform any setup/coordination logic for a
+<span class="extype" name="Server!">Server!</span> inside a <a href="WorkerRef.html" class="extype" name="colossus.core.WorkerRef">Worker</a>.  Initializers are also used to provide new
+connections from the server with connection handlers.  An initializer is
+created per worker, so all actions on a single Initializer are
+single-threaded.  See <span class="extype" name="colossus.core.Server!">colossus.core.Server!</span> to see how <code>Initializer</code> is
+used when starting servers.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -128,7 +134,9 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Given a <a href="ServerContext.html" class="extype" name="colossus.core.ServerContext">ServerContext</a> for a new connection, provide a new connection
+handler for the connection
+</p>
     </li></ol>
             </div>
 
@@ -384,7 +392,25 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="colossus.core.Initializer#receive" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="colossus.core.Initializer#onShutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="onShutdown():Unit"></a>
+      <a id="onShutdown():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">onShutdown</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.Initializer@onShutdown():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Shutdown hook that is called when the server is shutting down
+</p>
+    </li><li name="colossus.core.Initializer#receive" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="receive:colossus.core.ServerDSL.Receive"></a>
       <a id="receive:Receive"></a>
       <h4 class="signature">
@@ -400,7 +426,9 @@
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Message receive hook.</p><div class="fullcomment"><div class="comment cmt"><p>Message receive hook.  This is used to handle any messages that are sent
+using <a href="ServerRef.html" class="extype" name="colossus.core.ServerRef">ServerRef</a> <code>delegatorBroadcast</code>.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

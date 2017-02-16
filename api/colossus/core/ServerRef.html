@@ -49,8 +49,9 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A ServerRef is the public interface of a Server.  Servers should ONLY be interfaced with through this class.  Both from
-an application design and from Akka idioms and best practices, passing around an actual Actor is strongly discouraged.
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A <code>ServerRef</code> is a handle to a created server.  It can be used to get basic
+information about the state of the server as well as send operational
+commands to it.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
@@ -220,7 +221,7 @@ an application design and from Akka idioms and best practices, passing around an
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Post a message to a <span class="extype" name="Server">Server</span>'s <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a></p>
+      <p class="shortcomment cmt">Broadcast a message to a all of the <a href="Delegator.html" class="extype" name="colossus.core.Delegator">Delegator</a>s of this server.</p>
     </li><li name="colossus.core.ServerRef#die" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="die():Unit"></a>
       <a id="die():Unit"></a>
@@ -295,6 +296,23 @@ an application design and from Akka idioms and best practices, passing around an
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.core.ServerRef#info" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="info():scala.concurrent.Future[colossus.core.Server.ServerInfo]"></a>
+      <a id="info():Future[ServerInfo]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">info</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="Server$$ServerInfo.html" class="extype" name="colossus.core.Server.ServerInfo">ServerInfo</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.core.ServerRef@info():scala.concurrent.Future[colossus.core.Server.ServerInfo]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>

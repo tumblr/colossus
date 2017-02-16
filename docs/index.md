@@ -19,4 +19,6 @@ categories: docs
 [Tasks](tasks)
 
 
-[API Docs]({{site.baseurl}}/api/index.html#colossus.package) ({{ site.latest_version }})
+[Colossus API Docs]({{site.baseurl}}/api/index.html#colossus.package) ({{ site.latest_version }})
+
+[Colossus-metrics API Docs]({{site.baseurl}}/metrics-api/index.html#colossus.package) ({{ site.latest_version }})

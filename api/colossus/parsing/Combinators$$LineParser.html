@@ -45,7 +45,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">LineParser</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>]</span>
+        <span class="name">LineParser</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>] with <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></span>
       </span>
       </h4>
       
@@ -59,7 +59,7 @@ faster.  I have made several attempts to get the bytesUntil parser as fast
 as this one to no avail.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a>, <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -77,7 +77,7 @@ as this one to no avail.
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="colossus.parsing.Combinators.LineParser"><span>LineParser</span></li><li class="in" name="colossus.parsing.Combinators.Parser"><span>Parser</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="colossus.parsing.Combinators.LineParser"><span>LineParser</span></li><li class="in" name="colossus.parsing.Combinators.FastArrayBuilding"><span>FastArrayBuilding</span></li><li class="in" name="colossus.parsing.Combinators.Parser"><span>Parser</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -264,23 +264,23 @@ as this one to no avail.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="colossus.parsing.Combinators.LineParser#complete" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="complete():T"></a>
-      <a id="complete():T"></a>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding#complete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="complete():Array[Byte]"></a>
+      <a id="complete():Array[Byte]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">complete</span><span class="params">()</span><span class="result">: <span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span></span>
+        <span class="name">complete</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@complete():T" title="Permalink" target="_top">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@complete():Array[Byte]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
     </li><li name="colossus.parsing.Combinators.Parser#endOfStream" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="endOfStream():Option[T]"></a>
       <a id="endOfStream():Option[T]"></a>
@@ -412,6 +412,23 @@ undefined if calling this resets a parser's state.  &quot;&gt;&gt;&quot; also us
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.LineParser#initSize" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="initSize:Int"></a>
+      <a id="initSize:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">initSize</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@initSize:Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.parsing.Combinators.LineParser">LineParser</a> → <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -531,6 +548,23 @@ undefined if calling this resets a parser's state.  &quot;&gt;&gt;&quot; also us
       </a>
     </span>
       
+    </li><li name="colossus.parsing.Combinators.LineParser#shrinkOnComplete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shrinkOnComplete:Boolean"></a>
+      <a id="shrinkOnComplete:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shrinkOnComplete</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@shrinkOnComplete:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="colossus.parsing.Combinators.LineParser">LineParser</a> → <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -634,6 +668,77 @@ undefined if calling this resets a parser's state.  &quot;&gt;&gt;&quot; also us
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding#write" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="write(bytes:Array[Byte]):Unit"></a>
+      <a id="write(Array[Byte]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@write(bytes:Array[Byte]):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding#write" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="write(buffer:colossus.core.DataBuffer,bytes:Int):Unit"></a>
+      <a id="write(DataBuffer,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="buffer">buffer: <a href="../core/DataBuffer.html" class="extype" name="colossus.core.DataBuffer">DataBuffer</a></span>, <span name="bytes">bytes: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@write(buffer:colossus.core.DataBuffer,bytes:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding#write" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="write(b:Byte):Unit"></a>
+      <a id="write(Byte):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">write</span><span class="params">(<span name="b">b: <span class="extype" name="scala.Byte">Byte</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@write(b:Byte):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@inline</span><span class="args">()</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.parsing.Combinators.FastArrayBuilding#written" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="written:Int"></a>
+      <a id="written:Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">written</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.parsing.Combinators$$LineParser@written:Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></dd></dl></div>
     </li><li name="colossus.parsing.Combinators.Parser#|&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="|&gt;[B](f:T=&gt;colossus.parsing.Combinators.Parser[B]):colossus.parsing.Combinators.Parser[B]"></a>
       <a id="|&gt;[B]((T)⇒Parser[B]):Parser[B]"></a>
@@ -694,7 +799,9 @@ undefined if calling this resets a parser's state.  &quot;&gt;&gt;&quot; also us
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="colossus.parsing.Combinators.Parser">
+        <div class="parent" name="colossus.parsing.Combinators.FastArrayBuilding">
+              <h3>Inherited from <a href="Combinators$$FastArrayBuilding.html" class="extype" name="colossus.parsing.Combinators.FastArrayBuilding">FastArrayBuilding</a></h3>
+            </div><div class="parent" name="colossus.parsing.Combinators.Parser">
               <h3>Inherited from <a href="Combinators$$Parser.html" class="extype" name="colossus.parsing.Combinators.Parser">Parser</a>[<span class="extype" name="colossus.parsing.Combinators.LineParser.T">T</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
