@@ -1,0 +1,464 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>websocket - colossus.protocols.websocket</title>
+          <meta name="description" content="websocket - colossus.protocols.websocket" />
+          <meta name="keywords" content="websocket colossus.protocols.websocket" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.websocket.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a></p>
+        <h1>websocket</h1><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">websocket</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>**This package is experimental and subject to breaking changes between
+versions**.  We currently don't support the complete Websocket spec but there
+is enough support for basic servers</p><p>The Websocket protocol defines an asynchronous application protocol.  Since
+unlike HTTP or other similar protocols there are no requests or responses,
+writing a Websocket server is slightly different from other service-protocol
+servers.  In particular, you should use the <a href="WebsocketServer$.html" class="extype" name="colossus.protocols.websocket.WebsocketServer">WebsocketServer</a> to start a
+server and the <a href="WebsocketServerHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketServerHandler">WebsocketServerHandler</a> to define a connection handler.</p><p>The <a href="subprotocols$.html" class="extype" name="colossus.protocols.websocket.subprotocols">subprotocols</a> package contains some basic sub-protocols, but these
+tend to be application specific so support is limited.</p><p>Websocket connection handlers are designed to behave like actors, and mixing
+in the <code>ProxyActor</code> trait can make Websocket connections behave like and
+interact with Akka actors.
+</p></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.websocket"><span>websocket</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.protocols.websocket.BaseWebsocketHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BaseWebsocketHandlerextendsController[colossus.protocols.websocket.Frame,colossus.protocols.websocket.Frame]"></a>
+      <a id="BaseWebsocketHandler:BaseWebsocketHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="BaseWebsocketHandler.html"><span class="name">BaseWebsocketHandler</span></a><span class="result"> extends <a href="../../controller/Controller.html" class="extype" name="colossus.controller.Controller">Controller</a>[<a href="Frame.html" class="extype" name="colossus.protocols.websocket.Frame">Frame</a>, <a href="Frame.html" class="extype" name="colossus.protocols.websocket.Frame">Frame</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@BaseWebsocketHandlerextendsController[colossus.protocols.websocket.Frame,colossus.protocols.websocket.Frame]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.Frame" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FrameextendsProductwithSerializable"></a>
+      <a id="Frame:Frame"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Frame.html"><span class="name">Frame</span></a><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="colossus.protocols.websocket.Header">Header</a></span>, <span name="payload">payload: <a href="../../core/DataBlock.html" class="extype" name="colossus.core.DataBlock">DataBlock</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@FrameextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Frame represents a single chunk of data sent by either the client or server.</p>
+    </li><li name="colossus.protocols.websocket.FrameCodec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FrameCodec[P&lt;:colossus.service.Protocol]extendsAnyRef"></a>
+      <a id="FrameCodec[P&lt;:Protocol]:FrameCodec[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FrameCodec.html"><span class="name">FrameCodec</span></a><span class="tparams">[<span name="P">P &lt;: <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@FrameCodec[P&lt;:colossus.service.Protocol]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.FrameCodecProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FrameCodecProvider[P&lt;:colossus.service.Protocol]extendsAnyRef"></a>
+      <a id="FrameCodecProvider[P&lt;:Protocol]:FrameCodecProvider[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FrameCodecProvider.html"><span class="name">FrameCodecProvider</span></a><span class="tparams">[<span name="P">P &lt;: <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@FrameCodecProvider[P&lt;:colossus.service.Protocol]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.Header" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeaderextendsProductwithSerializable"></a>
+      <a id="Header:Header"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Header.html"><span class="name">Header</span></a><span class="params">(<span name="opcode">opcode: <span class="extype" name="scala.Byte">Byte</span></span>, <span name="mask">mask: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@HeaderextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Parsed Frame Header
+</p>
+    </li><li name="colossus.protocols.websocket.Websocket" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebsocketextendsProtocol"></a>
+      <a id="Websocket:Websocket"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Websocket.html"><span class="name">Websocket</span></a><span class="result"> extends <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketextendsProtocol" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketCodec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebsocketCodecextendsCodec[colossus.protocols.websocket.Frame,colossus.protocols.websocket.Frame]"></a>
+      <a id="WebsocketCodec:WebsocketCodec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$WebsocketCodec.html"><span class="name">WebsocketCodec</span></a><span class="result"> extends <a href="../../service/Codec.html" class="extype" name="colossus.service.Codec">Codec</a>[<a href="Frame.html" class="extype" name="colossus.protocols.websocket.Frame">Frame</a>, <a href="Frame.html" class="extype" name="colossus.protocols.websocket.Frame">Frame</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketCodecextendsCodec[colossus.protocols.websocket.Frame,colossus.protocols.websocket.Frame]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebsocketHandler[P&lt;:colossus.service.Protocol]extendsBaseWebsocketHandler"></a>
+      <a id="WebsocketHandler[P&lt;:Protocol]:WebsocketHandler[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketHandler.html"><span class="name">WebsocketHandler</span></a><span class="tparams">[<span name="P">P &lt;: <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <a href="BaseWebsocketHandler.html" class="extype" name="colossus.protocols.websocket.BaseWebsocketHandler">BaseWebsocketHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketHandler[P&lt;:colossus.service.Protocol]extendsBaseWebsocketHandler" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A websocket server connection handler that uses a specified sub-protocol.</p>
+    </li><li name="colossus.protocols.websocket.WebsocketHttpHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebsocketHttpHandlerextendsHttpService"></a>
+      <a id="WebsocketHttpHandler:WebsocketHttpHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketHttpHandler.html"><span class="name">WebsocketHttpHandler</span></a><span class="result"> extends <a href="../http/package$$HttpService.html" class="extype" name="colossus.protocols.http.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketHttpHandlerextendsHttpService" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketInitializer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebsocketInitializerextendsAnyRef"></a>
+      <a id="WebsocketInitializer:WebsocketInitializer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketInitializer.html"><span class="name">WebsocketInitializer</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketInitializerextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketServerHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WebsocketServerHandler[P&lt;:colossus.service.Protocol]extendsWebsocketHandler[P]withServerConnectionHandler"></a>
+      <a id="WebsocketServerHandler[P&lt;:Protocol]:WebsocketServerHandler[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketServerHandler.html"><span class="name">WebsocketServerHandler</span></a><span class="tparams">[<span name="P">P &lt;: <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>]</span><span class="result"> extends <a href="WebsocketHandler.html" class="extype" name="colossus.protocols.websocket.WebsocketHandler">WebsocketHandler</a>[<span class="extype" name="colossus.protocols.websocket.WebsocketServerHandler.P">P</span>] with <a href="../../core/ServerConnectionHandler.html" class="extype" name="colossus.core.ServerConnectionHandler">ServerConnectionHandler</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketServerHandler[P&lt;:colossus.service.Protocol]extendsWebsocketHandler[P]withServerConnectionHandler" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.protocols.websocket.Frame" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Frame"></a>
+      <a id="Frame:Frame"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Frame$.html"><span class="name">Frame</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@Frame" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.FrameParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FrameParser"></a>
+      <a id="FrameParser:FrameParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="FrameParser$.html"><span class="name">FrameParser</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@FrameParser" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.OpCodes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OpCodes"></a>
+      <a id="OpCodes:OpCodes"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="OpCodes$.html"><span class="name">OpCodes</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@OpCodes" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.UpgradeRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UpgradeRequest"></a>
+      <a id="UpgradeRequest:UpgradeRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="UpgradeRequest$.html"><span class="name">UpgradeRequest</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@UpgradeRequest" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketCodecProvider" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebsocketCodecProvider"></a>
+      <a id="WebsocketCodecProvider:WebsocketCodecProvider"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$WebsocketCodecProvider$.html"><span class="name">WebsocketCodecProvider</span></a><span class="result"> extends <a href="../../service/CodecProvider.html" class="extype" name="colossus.service.CodecProvider">CodecProvider</a>[<a href="package$$Websocket.html" class="extype" name="colossus.protocols.websocket.Websocket">Websocket</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketCodecProvider" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebsocketHandler"></a>
+      <a id="WebsocketHandler:WebsocketHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketHandler$.html"><span class="name">WebsocketHandler</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketHandler" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.WebsocketServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebsocketServer"></a>
+      <a id="WebsocketServer:WebsocketServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="WebsocketServer$.html"><span class="name">WebsocketServer</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@WebsocketServer" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.websocket.subprotocols" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="subprotocols"></a>
+      <a id="subprotocols:subprotocols"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="subprotocols$.html"><span class="name">subprotocols</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.websocket.package@subprotocols" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
