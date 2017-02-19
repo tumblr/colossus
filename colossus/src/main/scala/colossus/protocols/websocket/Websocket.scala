@@ -31,7 +31,7 @@ object UpgradeRequest {
    * Validate a HttpRequest as a websocket upgrade request, returning the
    * properly formed response that should be sent back to confirm the upgrade
    */
-  def validate(request : HttpRequest): Option[HttpResponse] = {
+  def validate(request : HttpRequest, origins: List[String]): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
       cheader   <- headers.firstValue("connection")
@@ -45,6 +45,7 @@ object UpgradeRequest {
       if (secver == "13")
       if (uheader.toLowerCase == "websocket")
       if (cheader.toLowerCase.split(",").map{_.trim} contains "upgrade")
+      if (origins.isEmpty || headers.firstValue("origin").exists(origins.contains))
     } yield HttpResponse (
       HttpResponseHead(
         HttpVersion.`1.1`,
@@ -252,11 +253,11 @@ abstract class WebsocketInitializer(val worker: WorkerRef) {
 
 }
 
-class WebsocketHttpHandler(ctx: ServerContext, websocketInit: WebsocketInitializer, upgradePath: String)
+class WebsocketHttpHandler(ctx: ServerContext, websocketInit: WebsocketInitializer, upgradePath: String, origins: List[String])
 extends protocols.http.HttpService(ServiceConfig.Default, ctx) {
   def handle = {
-    case request if (request.head.path == upgradePath) => {
-      val response = UpgradeRequest.validate(request) match {
+    case request if (request.head.path == upgradePath)=> {
+      val response = UpgradeRequest.validate(request, origins) match {
         case Some(upgrade) => {
           become(() => websocketInit.onConnect(ctx))
           upgrade
@@ -279,12 +280,12 @@ object WebsocketServer {
    * HTTP server and react to Websocket upgrade requests on the path
    * `upgradePath`, all other paths will 404.
    */
-  def start(name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
+  def start(name: String, port: Int, upgradePath: String = "/", origins: List[String] = List.empty)(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
     Server.start(name, port){worker => new Initializer(worker) {
 
       val websockinit : WebsocketInitializer = init(worker)
 
-      def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath)
+      def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath, origins)
 
     }}
   }
