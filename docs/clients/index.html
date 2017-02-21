@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Clients</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/clients/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Clients</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Clients are used to open connections to external systems.  Colossus currently
+has built-in support for Http, Memcached, and Redis. Similar to servers, you
+can add support for any protocol by implementing the necessary traits and typeclasses.</p>
+
+<h2 id="client-behavior-in-a-nutshell">Client Behavior in a Nutshell</h2>
+
+<p>Clients are intended to be used for long-lived, pipelined connections.  While it
+is certainly possible to configure clients to only send one request at a time
+or to open a new connection per request, since Colossus is primarily intended to
+build long-running services, so too are clients designed for persistent
+connections to a single host.</p>
+
+<p>Clients are pipelined and will send multiple requests at once (up to the
+configured <code>inFlightConcurrency</code> limit, buffering once the limit is hit).</p>
+
+<h3 id="connection-management">Connection Management</h3>
+
+<p>A Client attempts to open a connection as soon as it is created.  Depending on
+how a client is configured, it will immediately accept requests to be sent and
+buffer them until the connection is established, so for the most part a Client’s
+connection management happens in the background.</p>
+
+<p>Similar to server connections, calling <code>disconnect</code> on a client will cause it to
+immediately reject any new requests, but allow currently in-flight requests to
+complete (assuming they don’t timeout).  Once a client has been manually
+disconnected, it cannot be reused.</p>
+
+<p>If a client unexpectedly loses its connection, it will automatically attempt to
+reconnect.  If/how a client reconnects can be controlled by its <code>connectRetry</code>
+configuration.  During the reconnection, the client will still accept and buffer
+new requests (though this can be disabled by setting <code>failFast</code> to true).</p>
+
+<h2 id="local-vs-future-clients">Local vs Future Clients</h2>
+
+<p>When creating a client, it is up to you to choose how the client handles
+concurrency.  In other words, you can choose whether a client uses Colossus
+Callbacks or standard Scala Futures.</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">request</span> <span class="k">=</span> <span class="nc">HttpRequest</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">"/foobar"</span><span class="o">).</span><span class="n">withHeader</span><span class="o">(</span><span class="s">"bar"</span><span class="o">,</span> <span class="s">"baz"</span><span class="o">)</span>
+
+<span class="c1">//creating this client requires an implicit WorkerRef
+</span><span class="k">val</span> <span class="n">callbackClient</span><span class="k">:</span> <span class="kt">HttpClient</span><span class="o">[</span><span class="kt">Callback</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Http</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">8080</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">response</span><span class="k">:</span> <span class="kt">Callback</span><span class="o">[</span><span class="kt">HttpResponse</span><span class="o">]</span> <span class="k">=</span> <span class="n">callbackClient</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="n">request</span><span class="o">)</span>
+
+<span class="c1">//creating this client requires an implicit IOSystem
+</span><span class="k">val</span> <span class="n">futureClient</span><span class="k">:</span> <span class="kt">HttpClient</span><span class="o">[</span><span class="kt">Future</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Http</span><span class="o">.</span><span class="n">futureClient</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">8080</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">response</span><span class="k">:</span> <span class="kt">Future</span><span class="o">[</span><span class="kt">HttpResponse</span><span class="o">]</span> <span class="k">=</span> <span class="n">futureClient</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="n">request</span><span class="o">)</span></code></pre></div>
+
+<p>Local clients can only be used in code that runs inside a Worker, in particular
+inside a Server or Task.  Local clients are single-threaded and not thread-safe,
+but are very fast.  On the other hand, Future clients can be created and used
+anywhere, and are thread-safe.  In reality, a future client is just an interface
+that sends requests as actor messages to a local client running inside a worker.
+But this means that future clients are inherently slower and more resource
+intensive, since every request must be sent as an actor message and jump threads
+at least twice.</p>
+
+<p>Therefore these two rules may help when choosing what to use:</p>
+
+<ul>
+  <li>When opening a client within a service, use local clients.  Usually you’ll want to open one client per worker.</li>
+  <li>When opening a client from outside a service, such as from inside an actor or some other general use case, use a future client.</li>
+</ul>
+
+<h2 id="failure-management">Failure Management</h2>
+
+<h3 id="client-behavior">Client Behavior</h3>
+
+<p>If any failure occurs (example: connection closed, external system isn’t 
+responding) the response is sent back as a failure and NOT retried.  The 
+default behavior is to continue trying subsequent requests.  If failfast is
+enabled then all queued requests in the ServiceClient are immediately failed
+and removed.  </p>
+
+<h3 id="retrying-requests">Retrying Requests</h3>
+
+<p>To enable retries, the LoadBalancingClient (LBC) should be used.  The LBC takes
+in a generator that builds a ServiceClient from an InetSocketAddress and a list
+of InetSocketAddresses.  The LBC defaults to using an unused host for a request
+or the max retry number, whichever is lower.  An example: if the retry count is
+set to four but there are only two hosts, it’ll only attempt a request twice.</p>
+
+<p>Any failure occurring before the client receives the response (example: 
+connection closed, host not responding) is treated as an attempt and is 
+retried on the next connection.  If the maximum number of tries are exhausted, 
+a SendFailedException is returned with the last exception.</p>
+
+<h3 id="example">Example</h3>
+
+<p>Below is an example of retrying three times to the same host</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">val</span> <span class="n">generator</span> <span class="k">=</span> <span class="o">(</span><span class="n">address</span><span class="k">:</span> <span class="kt">InetSocketAddress</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="o">{</span>
+  <span class="nc">Redis</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="n">address</span><span class="o">.</span><span class="n">toString</span><span class="o">,</span> <span class="mi">6379</span><span class="o">)</span>
+<span class="o">}</span>
+<span class="k">val</span> <span class="n">clients</span> <span class="k">=</span> <span class="nc">List</span><span class="o">.</span><span class="n">fill</span><span class="o">(</span><span class="mi">3</span><span class="o">)(</span><span class="s">"myredisserver"</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">lbc</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">LoadBalancingClient</span><span class="o">[</span><span class="kt">Redis</span><span class="o">](</span><span class="n">worker</span><span class="o">,</span> <span class="n">generator</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="n">clients</span><span class="o">)</span>
+
+<span class="nc">Redis</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="n">lbc</span><span class="o">).</span><span class="n">zadd</span><span class="o">(</span><span class="nc">ByteString</span><span class="o">(</span><span class="s">"key"</span><span class="o">),</span> <span class="nc">ByteString</span><span class="o">(</span><span class="s">"value"</span><span class="o">))</span></code></pre></div>
+
+<h2 id="using-clients-generically">Using clients generically</h2>
+
+<p>Notice that the concurrency type (Callback/Future) is encoded in the type of the
+client.  The clients abstract over these two types with the <code>Async</code> typeclass.
+If you wish to write generic code that works with a client regardless of which
+concurrency type is used, simply pull in an <code>Async</code> implicitly and you’re good
+to go:</p>
+
+<div class="highlight"><pre><code class="scala"><span class="k">def</span> <span class="n">doTheThing</span><span class="o">[</span><span class="kt">A</span><span class="o">](</span><span class="n">client</span><span class="k">:</span> <span class="kt">HttpClient</span><span class="o">[</span><span class="kt">A</span><span class="o">])(</span><span class="k">implicit</span> <span class="n">async</span><span class="k">:</span> <span class="kt">Async</span><span class="o">[</span><span class="kt">A</span><span class="o">])</span> <span class="k">:</span> <span class="kt">A</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="nc">HttpRequest</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="s">"/foo"</span><span class="o">)).</span><span class="n">map</span><span class="o">{</span><span class="n">response</span> <span class="k">=&gt;</span> 
+    <span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">bytes</span><span class="o">.</span><span class="n">utf8String</span><span class="o">.</span><span class="n">toInt</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">//now you can do
+</span><span class="n">doTheThing</span><span class="o">(</span><span class="nc">HttpClient</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span><span class="mi">8080</span><span class="o">))</span>
+<span class="n">doTheThing</span><span class="o">(</span><span class="nc">HttpClient</span><span class="o">.</span><span class="n">futureClient</span><span class="o">(</span><span class="s">"localhost"</span><span class="o">,</span> <span class="mi">8080</span><span class="o">))</span></code></pre></div>
+
+<p>To do things even more generically, all clients extends the <code>Sender[P,A]</code> trait.</p>
+
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#client-behavior-in-a-nutshell">Client Behavior in a Nutshell</a></li><li><a href="#local-vs-future-clients">Local vs Future Clients</a></li><li><a href="#failure-management">Failure Management</a></li><li><a href="#using-clients-generically">Using clients generically</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
