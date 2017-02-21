@@ -4,7 +4,7 @@ title: Clients
 ---
 
 Clients are used to open connections to external systems.  Colossus currently
-has built-in support for Http, Memcached, and Redis, but similar to servers, you
+has built-in support for Http, Memcached, and Redis. Similar to servers, you
 can add support for any protocol by implementing the necessary traits and typeclasses.
 
 ## Client Behavior in a Nutshell
@@ -68,6 +68,44 @@ Therefore these two rules may help when choosing what to use:
 
 * When opening a client within a service, use local clients.  Usually you'll want to open one client per worker.
 * When opening a client from outside a service, such as from inside an actor or some other general use case, use a future client.
+
+## Failure Management
+ 
+### Client Behavior 
+ 
+If any failure occurs (example: connection closed, external system isn't 
+responding) the response is sent back as a failure and NOT retried.  The 
+default behavior is to continue trying subsequent requests.  If failfast is
+enabled then all queued requests in the ServiceClient are immediately failed
+and removed.  
+
+### Retrying Requests
+
+To enable retries, the LoadBalancingClient (LBC) should be used.  The LBC takes
+in a generator that builds a ServiceClient from an InetSocketAddress and a list
+of InetSocketAddresses.  The LBC defaults to using an unused host for a request
+or the max retry number, whichever is lower.  An example: if the retry count is
+set to four but there are only two hosts, it'll only attempt a request twice.
+
+Any failure occurring before the client receives the response (example: 
+connection closed, host not responding) is treated as an attempt and is 
+retried on the next connection.  If the maximum number of tries are exhausted, 
+a SendFailedException is returned with the last exception.
+
+### Example
+
+
+Below is an example of retrying three times to the same host
+
+{% highlight scala %}
+val generator = (address: InetSocketAddress) => {
+  Redis.client(address.toString, 6379)
+}
+val clients = List.fill(3)("myredisserver")
+val lbc = new LoadBalancingClient[Redis](worker, generator, 3, clients)
+
+Redis.client(lbc).zadd(ByteString("key"), ByteString("value"))
+{% endhighlight %}
 
 ## Using clients generically
 
