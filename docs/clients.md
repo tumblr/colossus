@@ -72,12 +72,19 @@ Therefore these two rules may help when choosing what to use:
 ## Failure Management
  
 ### Client Behavior 
+
+Failures can be broken down into two categories: Connection Failures and 
+Request Failures.  Regardless of which type, if a failure occurs the response
+is sent back as a failure and NOT retried.  If failfast is enabled, then all
+queued requests in the ServiceClient are immediately failed and removed. 
  
-If any failure occurs (example: connection closed, external system isn't 
-responding) the response is sent back as a failure and NOT retried.  The 
-default behavior is to reconnect using the retry policy (more below) and 
-continue trying subsequent requests.  If failfast is enabled then all queued 
-requests in the ServiceClient are immediately failed and removed.  
+If a Request Failure occurs (example: service isn't responding) the response is
+sent back as a failure and no subsequent action is taken.
+
+If a Connection Failure occurs (example: connection is closed, host 
+unavailable) the response is sent back as a failure and the retry policy (more
+below) takes effect.
+
 
 ### Retrying Requests
 
@@ -109,9 +116,13 @@ Redis.client(lbc).zadd(ByteString("key"), ByteString("value"))
 
 ### Retry Policy
 
-Each service client takes in a retry policy. The client defaults to an 
-exponential backoff starting at 50 milliseconds and with a maximum of 5 
-seconds.  The policy type can be either None or Backoff.
+In the event of a Connection Failure, the service client uses a 
+[RetryPolicy](https://tumblr.github.io/colossus/api/index.html#colossus.core.RetryPolicy)
+for re-establishing connections.  Each service client takes in a RetryPolicy on
+creation.  The client defaults to an exponential backoff starting at 50 
+milliseconds and with a maximum of 5 seconds.  The policy type can be either 
+[NoRetry](https://tumblr.github.io/colossus/api/index.html#colossus.core.NoRetry) 
+or [BackoffPolicy](https://tumblr.github.io/colossus/api/index.html#colossus.core.BackoffPolicy).
 
 A Backoff retry policy contains a multiplier which can be:
  
