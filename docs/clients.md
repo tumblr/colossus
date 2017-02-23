@@ -75,9 +75,9 @@ Therefore these two rules may help when choosing what to use:
  
 If any failure occurs (example: connection closed, external system isn't 
 responding) the response is sent back as a failure and NOT retried.  The 
-default behavior is to continue trying subsequent requests.  If failfast is
-enabled then all queued requests in the ServiceClient are immediately failed
-and removed.  
+default behavior is to reconnect using the retry policy (more below) and 
+continue trying subsequent requests.  If failfast is enabled then all queued 
+requests in the ServiceClient are immediately failed and removed.  
 
 ### Retrying Requests
 
@@ -106,6 +106,18 @@ val lbc = new LoadBalancingClient[Redis](worker, generator, 3, clients)
 
 Redis.client(lbc).zadd(ByteString("key"), ByteString("value"))
 {% endhighlight %}
+
+### Retry Policy
+
+Each service client takes in a retry policy. The client defaults to an 
+exponential backoff starting at 50 milliseconds and with a maximum of 5 
+seconds.  The policy type can be either None or Backoff.
+
+A Backoff retry policy contains a multiplier which can be:
+ 
+ * Constant
+ * Linear
+ * Exponential
 
 ## Using clients generically
 
