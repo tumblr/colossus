@@ -124,5 +124,14 @@ class HistogramSpec extends MetricIntegrationSpec {
       h.percentile(1.second, 0.5) mustBe 0
     }
 
+    "max interval test" in {
+      implicit val col = MetricContext("/", Collection.withReferenceConf(Seq(1.second, 1.minute)))
+      val h = new BaseHistogram()
+      List(120, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100).foreach{
+        h.add
+      }
+      h.percentile(0.999) mustBe 120
+    }
+
   }
 }
