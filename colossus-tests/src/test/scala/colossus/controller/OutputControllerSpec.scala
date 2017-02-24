@@ -47,7 +47,10 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
 
     }
 
-    "react to terminated output buffer" taggedAs(org.scalatest.Tag("test")) in {
+    //IT IS NOW IMPOSSIBLE TO TEST THESE, since closed/terminated no longer leak
+    //outside of circuit-breakers, there is no way to cause this to happen
+
+    "react to terminated output buffer" ignore {
       //the buffer has to be terminated in the middle of the call to
       //readyForData, since otherwise the CircuitBreaker will hide it
       val (u, con, d) = get()
@@ -60,7 +63,7 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       (con.upstream.kill _).verify(*)
     }
 
-    "react to closed output buffer" in {
+    "react to closed output buffer" ignore {
       val (u, con, d) = get()
       con.connected()
       //this pipe will close when the iterator is finished

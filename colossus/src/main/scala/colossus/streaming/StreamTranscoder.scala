@@ -54,22 +54,22 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
     new Channel[DO, UO](p, transcoder.transcodeOutput(p))
   }
 
-  val outgoing = new PipeCircuitBreaker[DO, UO]
+  val outgoing = new PipeCircuitBreaker[DO, UO](fatalError)
 
   def inputStream : Pipe[UI, DI] = {
     val p = new BufferedPipe[UI](100)
     new Channel(p, transcoder.transcodeInput(p))
   }
 
-  val incoming = new PipeCircuitBreaker[UI, DI]
+  val incoming = new PipeCircuitBreaker[UI, DI](fatalError)
 
   override def onConnected() {
 
     outgoing.set(outputStream)
-    outgoing.into(upstream.outgoing, true, true){e => fatal(e)}
+    outgoing.into(upstream.outgoing)//, true, true){e => fatal(e)}
 
     incoming.set(inputStream)
-    incoming.into(downstream.incoming, true, true){e => fatal(e)}
+    incoming.into(downstream.incoming)//, true, true){e => fatal(e)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
@@ -80,6 +80,11 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
   protected def fatal(state: NonOpenTransportState) : Unit = state match {
     case TransportState.Closed => upstream.connection.kill(new Exception("Stream closed unexpectedly"))
     case TransportState.Terminated(reason) =>  upstream.connection.kill(new Exception("Fatal Stream Error", reason))
+  }
+
+  protected def fatalError(err: Throwable) {
+    upstream.connection.kill(new Exception("Fatal Stream Error", err))
+
   }
 
   def controllerConfig: colossus.controller.ControllerConfig = downstream.controllerConfig

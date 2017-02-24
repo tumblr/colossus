@@ -2,6 +2,9 @@ package colossus.streaming
 
 import scala.util.{Success, Try}
 
+
+class InternalTransportClosedException extends Exception("Internal Transport unexpectedly Closed")
+
 trait CircuitBreaker[T <: Transport] {
 
   protected var current: Option[T] = None
@@ -9,6 +12,9 @@ trait CircuitBreaker[T <: Transport] {
   def isSet = current.isDefined
 
   protected var trigger = new Trigger()
+  protected val onBreakTrigger = new Trigger()
+
+  def onBreak(f: Throwable){}
 
   def set(item: T): Option[T] = {
     val t = current
@@ -27,18 +33,23 @@ trait CircuitBreaker[T <: Transport] {
     unset().foreach{_.terminate(err)}
   }
 
+  protected def break(reason: Throwable) {
+    unset()
+    onBreak(reason)
+  }
+
 }
 
 trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { self: CircuitBreaker[T] => 
 
   private def redirectFailure(p: PullResult[A]): PullResult[A] = {
-    def emptyUnset = {
-      unset()
+    def emptyUnset(reason: Throwable) = {
+      break(reason)
       PullResult.Empty(trigger)
     }
     p match {
-      case PullResult.Closed => emptyUnset
-      case PullResult.Error(_) => emptyUnset
+      case PullResult.Closed => emptyUnset(new InternalTransportClosedException)
+      case PullResult.Error(err) => emptyUnset(err)
       case other => other
     }
   }
@@ -65,7 +76,10 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { 
     //circuit breakers suppress closed/terminated
     
     def myonc(r: TerminalPullResult): Any = {
-      unset()
+      break( r match {
+        case PullResult.Closed => new InternalTransportClosedException
+        case PullResult.Error(err) => err
+      })
       trigger.notify{pullWhile(fn, onc)}
     }
 
@@ -78,8 +92,12 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { 
   override def pullUntilNull(fn: A => Boolean): Option[NullPullResult] = current match {
     case Some(c)  => c.pullUntilNull(fn) match {
       case Some(PullResult.Empty(t)) => Some(PullResult.Empty(t))
-      case Some(_) => {
-        unset()
+      case Some(PullResult.Closed) => {
+        break(new InternalTransportClosedException)
+        Some(PullResult.Empty(trigger))
+      }
+      case Some(PullResult.Error(err)) => {
+        break(err)
         Some(PullResult.Empty(trigger))
       }
       case None => None
@@ -94,13 +112,13 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
   def inputState = TransportState.Open
 
   private def redirectFailure(res: PushResult) = {
-    def fullUnset = {
-      unset()
+    def fullUnset(reason: Throwable) = {
+      break(reason)
       PushResult.Full(trigger)
     }
     res match {
-      case PushResult.Error(err)  => fullUnset
-      case PushResult.Closed      => fullUnset
+      case PushResult.Error(err)  => fullUnset(err)
+      case PushResult.Closed      => fullUnset(new InternalTransportClosedException)
       case other                  => other
     }
   }
@@ -121,5 +139,12 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
 
 }
 
-class PipeCircuitBreaker[I, O] extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]]
+class PipeCircuitBreaker[I, O](onBreakHandler: Throwable => Any = _ => ()) 
+extends Pipe[I,O] with CircuitBreaker[Pipe[I,O]] with SourceCircuitBreaker[O, Pipe[I,O]] with SinkCircuitBreaker[I, Pipe[I,O]] {
+
+  override def onBreak(t: Throwable) {
+    onBreakHandler(t)
+  }
+}
+
 

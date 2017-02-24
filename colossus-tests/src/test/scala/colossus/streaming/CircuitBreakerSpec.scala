@@ -47,7 +47,7 @@ class CircuitBreakerSpec extends ColossusSpec {
       p.push(1) mustBe a [PushResult.Full]
     }
 
-    "termination of inner pipe propagates across linked circuitbreakers" in {
+    "termination of inner pipe is completely contained" in {
       val p = new PipeCircuitBreaker[Int, Int]
       val b = new BufferedPipe[Int](1)
       p.set(b)
@@ -61,14 +61,14 @@ class CircuitBreakerSpec extends ColossusSpec {
       d.pull() mustBe PullResult.Item(1)
 
       b.terminate(new Exception("UH OH"))
-      d.isSet mustBe false
+      d.isSet mustBe true
 
       val n = new BufferedPipe[Int](1)
       p.set(n)
       d.set(new BufferedPipe[Int](1))
       p.push(3) mustBe PushResult.Ok
       //we expect the previous "into" to be broken now
-      d.pull() mustBe a[PullResult.Empty]
+      d.pull() mustBe PullResult.Item(3)
     }
 
     "unsetting a circuitbreaker does not sever link" in {
