@@ -31,13 +31,25 @@ trait CircuitBreaker[T <: Transport] {
 
 trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { self: CircuitBreaker[T] => 
 
+  private def redirectFailure(p: PullResult[A]): PullResult[A] = {
+    def emptyUnset = {
+      unset()
+      PullResult.Empty(trigger)
+    }
+    p match {
+      case PullResult.Closed => emptyUnset
+      case PullResult.Error(_) => emptyUnset
+      case other => other
+    }
+  }
+
   def pull(): PullResult[A] = current match {
-    case Some(c) => c.pull
+    case Some(c) => redirectFailure(c.pull)
     case None => PullResult.Empty(trigger)
   }
 
   def peek: PullResult[A] = current match {
-    case Some(c) => c.peek
+    case Some(c) => redirectFailure(c.peek)
     case None => PullResult.Empty(trigger)
   }
 
@@ -48,14 +60,30 @@ trait SourceCircuitBreaker[A, T <: Source[A]] extends  Source.BasicMethods[A] { 
   //inside BufferedPipe
 
   override def pullWhile(fn: A => PullAction, onc: TerminalPullResult => Any) {
+
+    //so we're totally ignoring the passed-in terminal result handler, since
+    //circuit breakers suppress closed/terminated
+    
+    def myonc(r: TerminalPullResult): Any = {
+      unset()
+      trigger.notify{pullWhile(fn, onc)}
+    }
+
     current match {
-      case Some(c) => c.pullWhile(fn, onc)
-      case None    => super.pullWhile(fn, onc)
+      case Some(c) => c.pullWhile(fn, myonc)
+      case None    => super.pullWhile(fn, myonc)
     }
   }
 
   override def pullUntilNull(fn: A => Boolean): Option[NullPullResult] = current match {
-    case Some(c)  => c.pullUntilNull(fn)
+    case Some(c)  => c.pullUntilNull(fn) match {
+      case Some(PullResult.Empty(t)) => Some(PullResult.Empty(t))
+      case Some(_) => {
+        unset()
+        Some(PullResult.Empty(trigger))
+      }
+      case None => None
+    }
     case None     => Some(PullResult.Empty(trigger))
   }
 
@@ -65,13 +93,25 @@ trait SinkCircuitBreaker[A, T <: Sink[A]] extends Sink[A] { self: CircuitBreaker
 
   def inputState = TransportState.Open
 
+  private def redirectFailure(res: PushResult) = {
+    def fullUnset = {
+      unset()
+      PushResult.Full(trigger)
+    }
+    res match {
+      case PushResult.Error(err)  => fullUnset
+      case PushResult.Closed      => fullUnset
+      case other                  => other
+    }
+  }
+
   def push(item: A): PushResult = current match {
-    case Some(c) => c.push(item)
+    case Some(c) => redirectFailure(c.push(item))
     case None => PushResult.Full(trigger)
   }
 
   def pushPeek = current match {
-    case Some(c) => c.pushPeek
+    case Some(c) => redirectFailure(c.pushPeek)
     case None => PushResult.Full(trigger)
   }
 

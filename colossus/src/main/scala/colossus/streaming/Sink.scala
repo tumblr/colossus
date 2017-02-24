@@ -69,8 +69,8 @@ object Sink {
 
     def pushPeek = PushResult.Ok
   }
-
-  def valve[T](sink: Sink[T], valve: Sink[T]): Sink[T] = new Sink[T] {
+  
+  class ValveSink[T](sink: Sink[T], valve: Sink[T]) extends Sink[T] {
     
     def push(item: T): PushResult = pushPeek match {
       case PushResult.Ok => {
@@ -93,4 +93,6 @@ object Sink {
       valve.terminate(reason)
     }
   }
+
+  def valve[T](sink: Sink[T], valve: Sink[T]): Sink[T] = new ValveSink(sink, valve)
 }

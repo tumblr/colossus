@@ -186,6 +186,7 @@ class BufferedPipe[T](size: Int) extends Pipe[T, T] {
         i += 1
       }
     }
+    while (!bufferFull && pushTrigger.trigger()) {}
   }
 
 

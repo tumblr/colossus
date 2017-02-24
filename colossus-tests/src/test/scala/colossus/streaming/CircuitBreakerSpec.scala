@@ -71,6 +71,28 @@ class CircuitBreakerSpec extends ColossusSpec {
       d.pull() mustBe a[PullResult.Empty]
     }
 
+    "unsetting a circuitbreaker does not sever link" in {
+      val c = new PipeCircuitBreaker[Int, Int]
+      val b = new BufferedPipe[Int](1)
+      c.set(new BufferedPipe[Int](1))
+
+      b into c
+      b.push(1) mustBe PushResult.Ok
+      c.pull() mustBe PullResult.Item(1)
+
+      //because the termination happens after unsetting the circuit-breaker, the
+      //upstream pipe will have it's signal triggered, but on its next attempt
+      //will get a Full Result from the circuit-break instead of an Error from
+      //the terminated pipe
+      c.unset().get.terminate(new Exception("Uh Oh"))
+
+      b.push(2) mustBe PushResult.Ok
+      b.push(3) mustBe a[PushResult.Full]
+
+      c.set(new BufferedPipe[Int](5))
+      c.pull() mustBe PullResult.Item(2)
+    }
+
   }
 
 }
