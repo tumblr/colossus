@@ -302,7 +302,7 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
             p(num + mBuckets(index).get.toInt, index + 1, build, remain)
           } else {
             val weightedValue = if (index < ranges.size - 1) {
-              (ranges(index) + ranges(index + 1)) / 2
+              Math.min((ranges(index) + ranges(index + 1)) / 2, max.toInt)
             } else {
               infinity
             }
