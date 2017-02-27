@@ -4,6 +4,13 @@ import colossus.testkit._
 
 class CircuitBreakerSpec extends ColossusSpec {
 
+  def setup(bufferSize: Int = 1, onBreak: Throwable => Any = _ => ()): (PipeCircuitBreaker[Int, Int], Pipe[Int, Int]) = {
+    val p = new PipeCircuitBreaker[Int, Int](onBreak)
+    val b = new BufferedPipe[Int](bufferSize)
+    p.set(b)
+    (p, b)
+  }
+
   "CircuitBreaker" must {
     "return no-action results when no pipe" in {
       val p = new PipeCircuitBreaker[Int, Int]
@@ -28,9 +35,7 @@ class CircuitBreakerSpec extends ColossusSpec {
     }
 
     "close unsets" in {
-      val p = new PipeCircuitBreaker[Int, Int]
-      val b = new BufferedPipe[Int](1)
-      p.set(b)
+      val (p, b) = setup()
       p.complete()
       p.inputState mustBe TransportState.Open
       b.inputState mustBe TransportState.Closed
@@ -38,9 +43,7 @@ class CircuitBreakerSpec extends ColossusSpec {
     }
 
     "terminate unsets" in {
-      val p = new PipeCircuitBreaker[Int, Int]
-      val b = new BufferedPipe[Int](1)
-      p.set(b)
+      val (p,b) = setup()
       p.terminate(new Exception("WAT"))
       p.inputState mustBe TransportState.Open
       b.inputState mustBe a[TransportState.Terminated]
@@ -48,13 +51,9 @@ class CircuitBreakerSpec extends ColossusSpec {
     }
 
     "termination of inner pipe is completely contained" in {
-      val p = new PipeCircuitBreaker[Int, Int]
-      val b = new BufferedPipe[Int](1)
-      p.set(b)
+      val (p,b) = setup()
 
-      val b2 = new BufferedPipe[Int](1)
-      val d = new PipeCircuitBreaker[Int, Int]
-      d.set(b2)
+      val (d, b2) = setup()
 
       p into d
       p.push(1) mustBe PushResult.Ok
@@ -72,9 +71,8 @@ class CircuitBreakerSpec extends ColossusSpec {
     }
 
     "unsetting a circuitbreaker does not sever link" in {
-      val c = new PipeCircuitBreaker[Int, Int]
+      val (c,_) = setup()
       val b = new BufferedPipe[Int](1)
-      c.set(new BufferedPipe[Int](1))
 
       b into c
       b.push(1) mustBe PushResult.Ok
@@ -91,6 +89,67 @@ class CircuitBreakerSpec extends ColossusSpec {
 
       c.set(new BufferedPipe[Int](5))
       c.pull() mustBe PullResult.Item(2)
+    }
+
+    "redirect internal pipe Closed on Pull" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      pipe.complete()
+      error mustBe None
+      cb.pull() mustBe a[PullResult.Empty]
+      error.get mustBe a[InternalTransportClosedException]
+      cb.isSet mustBe false
+    }
+
+    "redirect internal pipe Closed on Push" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      pipe.complete()
+      error mustBe None
+      cb.push(1) mustBe a[PushResult.Full]
+      error.get mustBe a[InternalTransportClosedException]
+      cb.isSet mustBe false
+    }
+
+    "redirect internal terminated on Pull" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      val exception = new Exception("bah")
+      pipe.terminate(exception)
+      error mustBe None
+      cb.pull() mustBe a[PullResult.Empty]
+      error.get mustBe a[PipeTerminatedException]
+      cb.isSet mustBe false
+
+    }
+
+    "redirect internal terminated on Push" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      val exception = new Exception("bah")
+      pipe.terminate(exception)
+      error mustBe None
+      cb.push(1) mustBe a[PushResult.Full]
+      error.get mustBe a[PipeTerminatedException]
+      cb.isSet mustBe false
+
+    }
+
+    "properly redirect closed on pullWhile" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      var sum = 0
+      cb.pullWhile({
+        case n => { sum += n; PullAction.PullContinue }
+      }, _ => throw new Exception("should not be called"))
+      cb.push(2)
+      sum mustBe 2
+      pipe.complete
+      error.isDefined mustBe true
+      cb.isSet mustBe false
+      cb.set(new BufferedPipe[Int](1))
+      cb.push(3) mustBe PushResult.Ok
+      sum mustBe 5
     }
 
   }
