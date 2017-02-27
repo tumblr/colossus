@@ -152,6 +152,15 @@ class CircuitBreakerSpec extends ColossusSpec {
       sum mustBe 5
     }
 
+    "properly redirect closed on pullUntilNull" in {
+      var error: Option[Throwable] = None
+      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      var sum = 0
+      pipe.complete()
+      cb.pullUntilNull(_ => true).get mustBe a[PullResult.Empty]
+      cb.isSet mustBe false
+    }
+
   }
 
 }
