@@ -102,13 +102,13 @@ class RateSpec extends MetricIntegrationSpec {
 
     "correctly handle hits from multiple threads" in {
       val r = rate()
-      val f = Future.sequence{(1 to 10000).map{_ =>
+      val f = Future.sequence{(1 to 1000).map{_ =>
         Future { 
           (1 to 5).foreach(_ => r.hit()) 
         }
       }}
       Await.result(f, 1.second)
-      r.tick(1.second)("/foo")(Map()) must equal(50000)
+      r.tick(1.second)("/foo")(Map()) must equal(5000)
     }
   }
 }

@@ -351,15 +351,6 @@ class PipeSpec extends ColossusSpec {
       q.pull() mustBe PullResult.Item("4")
     }
 
-    "filterScan" in {
-      val p = new BufferedPipe[Int](10)
-      (1 to 4).foreach(p.push)
-      p.filterScan(_ % 2 == 0)
-      p.pull() mustBe PullResult.Item(1)
-      p.pull() mustBe PullResult.Item(3)
-      p.pull() mustBe a[PullResult.Empty]
-    }
-
   }
 
   "Pipe.fuse" must {
@@ -382,6 +373,36 @@ class PipeSpec extends ColossusSpec {
       p.pull() mustBe PullResult.Item("4")
       p.pull() mustBe a[PullResult.Empty]
     }
+  }
+
+  "Pipe.filterScan" must {
+    "remove buffered items" in {
+      val p = new BufferedPipe[Int](10)
+      (1 to 4).foreach(p.push)
+      p.filterScan(_ % 2 == 0)
+      p.pull() mustBe PullResult.Item(1)
+      p.pull() mustBe PullResult.Item(3)
+      p.pull() mustBe a[PullResult.Empty]
+
+    }
+
+    "correctly trigger push signals when at least one item is removed" in {
+      val p = new BufferedPipe[Int](2)
+      p.push(1)
+      p.push(2)
+      var notified = false
+      p.push(3) match {
+        case PushResult.Full(signal) => signal.notify{notified = true}
+        case _ => throw new Exception("WRONG RESULT")
+      }
+      p.filterScan(_ > 5)
+      notified mustBe false
+      p.filterScan(_ == 1)
+      notified mustBe true
+      p.pull() mustBe PullResult.Item(2)
+
+    }
+
   }
 
 

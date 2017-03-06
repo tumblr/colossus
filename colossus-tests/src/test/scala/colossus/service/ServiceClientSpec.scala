@@ -2,6 +2,8 @@ package colossus
 package service
 
 import colossus.core._
+import controller._
+import streaming._
 import testkit._
 import Callback.Implicits._
 
@@ -9,7 +11,7 @@ import akka.testkit.TestProbe
 
 import metrics.MetricAddress
 
-import scala.util.{Success, Failure}
+import scala.util.{Try, Success, Failure}
 import scala.concurrent.duration._
 import akka.util.ByteString
 import java.net.InetSocketAddress
@@ -261,6 +263,37 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       }
     }
 
+    "resume sending requests on reconnect" taggedAs(org.scalatest.Tag("test")) in {
+      val config = ClientConfig(new InetSocketAddress("localhost", 1), 1.second, "foo", sentBufferSize = 1)
+      val client = new ServiceClient[Raw](config, FakeIOSystem.fakeContext)
+      val fakeup = stub[ControllerUpstream[Encoding.Client[Raw]]]
+      val p = new BufferedPipe[ByteString](5)
+      (fakeup.outgoing _) when() returns(p)
+      client.setUpstream(fakeup)
+      client.bind()
+      client.connected()
+
+      var ares: Option[Try[ByteString]] = None
+      var bres: Option[Try[ByteString]] = None
+
+      client.send(ByteString("a")).execute{x => ares = Some(x) }
+      client.send(ByteString("bb")).execute{ x => bres = Some(x) }
+
+      p.pull() mustBe PullResult.Item(ByteString("a"))
+
+      client.connectionTerminated(DisconnectCause.Closed)
+
+      ares.get mustBe a[Failure[_]]
+
+      client.connected()
+
+      p.pull() mustBe PullResult.Item(ByteString("bb"))
+
+
+    }
+
+
+
     "graceful disconnect allows outstanding request to complete"  in {
       val cmd1 = Command(CMD_GET, "foo")
       val rep1 = StatusReply("foo")
@@ -464,7 +497,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     }
 
 
-    "timeout requests while waiting to reconnect" taggedAs(org.scalatest.Tag("test")) in {
+    "timeout requests while waiting to reconnect"  in {
       withIOSystem{ implicit io =>
         val config = ClientConfig(
           name = "/test",
