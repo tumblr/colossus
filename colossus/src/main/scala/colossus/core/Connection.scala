@@ -2,6 +2,7 @@ package colossus
 package core
 
 import akka.actor.ActorRef
+import colossus.parsing.ParseException
 
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
@@ -190,7 +191,14 @@ abstract class Connection(val id: Long, initialHandler: ConnectionHandler, val w
   def handleRead(data: DataBuffer)(implicit time: Long) = {
     _lastTimeDataReceived = time
     myBytesReceived += data.size
-    handler.receivedData(data)
+    try {
+      handler.receivedData(data)
+    }
+    catch {
+      case parsingException:ParseException => {
+        throw new ParseException(s"error in request $remoteAddress", parsingException)
+      }
+    }
   }
 
 

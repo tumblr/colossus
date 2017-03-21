@@ -13,7 +13,9 @@ sealed trait ParseStatus
 case object Incomplete extends ParseStatus
 case object Complete extends ParseStatus
 
-class ParseException(message: String) extends Exception(message)
+class ParseException(message: String, exception: Exception) extends Exception(message, exception) {
+  def this(message: String) = this(message, null)
+}
 
 case class DataSize(value: Long) extends AnyVal {
   def megabytes = MB
