@@ -1,6 +1,8 @@
 package colossus
 package protocols.redis
 
+import java.text.DecimalFormat
+
 import akka.util.ByteString
 import colossus.service._
 
@@ -46,8 +48,9 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   import Command.{c => cmd}
   import async._
 
+  private val DecimalFormat = new DecimalFormat("#.#")
   private implicit def bs(l : Long) : ByteString = ByteString(l.toString)
-  private implicit def bs(d : Double) : ByteString = ByteString(d.toString)
+  protected implicit def bs(d : Double) : ByteString = ByteString(DecimalFormat.format(d))
   private def seconds(fd : FiniteDuration) = ByteString(fd.toSeconds.toString)
   private def millis(fd : FiniteDuration) = ByteString(fd.toMillis.toString)
 
@@ -336,8 +339,8 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def zcard(key : ByteString) : M[Long] = integerReplyCommand(cmd(CMD_ZCARD, key), key)
 
   def zcount(key : ByteString, from : Option[Double] = None, to : Option[Double]) : M[Long] = {
-    val fromB = from.fold(ByteString("-inf")){x => ByteString(x.toString)}
-    val toB = to.fold(ByteString("+inf")){x => ByteString(x.toString)}
+    val fromB = from.fold(ByteString("-inf")){x => bs(x)}
+    val toB = to.fold(ByteString("+inf")){x => bs(x)}
     integerReplyCommand(cmd(CMD_ZCOUNT, key, fromB, toB), key)
   }
 
