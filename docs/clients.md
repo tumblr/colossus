@@ -114,6 +114,71 @@ val lbc = new LoadBalancingClient[Redis](worker, generator, 3, clients)
 Redis.client(lbc).zadd(ByteString("key"), ByteString("value"))
 {% endhighlight %}
 
+
+### HTTP Example
+
+Below is a simple Http Request example.  When using an Http Call,
+a implicit workerRef is required when using the Callback interface.
+An implicit ClientCodecProvider is required.
+
+{% highlight scala %}
+//only for callbacks, have an implicit executionContext for futures
+implicit val workerRef = context.context.worker
+
+import Http.defaults.httpClientDefaults
+val httpClient = Http.client("google.com", 80) //use Http.futureClient for Futures
+val asyncResult = httpClient.send(HttpRequest.get("/#q=mysearch"))
+asyncResult.flatMap { result => 
+  val idToUpdate = result.utf8String.toLong
+  //execute business logic from teh fetch here
+}
+{% endhighlight %}
+
+
+### Memcached Example
+
+Below is a simple memcached get example.  It can be tested locally
+by starting up a memcached server and setting a value for the key of 1.
+The equivalent command would be "get 1" from a telnet session on 11211.  
+When using the memcached client an implicit workerRef is required when using the Callback
+interface.  An implicit ClientCodeProvider is required.
+
+{% highlight scala %}
+//only for callbacks, have an implicit executionContext for futures
+implicit val workerRef = context.context.worker
+
+import colossus.protocols.memcache.Memcache.defaults.memcacheClientDefaults
+val myClient = Memcache.client("localhost", 11211) //use Memcache.futureClient for Futures
+val asyncResult = myClient.get(ByteString("1"))
+asyncResult.flatMap { result => 
+  val idToUpdate = result.utf8String.toLong
+  //execute business logic from teh fetch here
+}
+{% endhighlight %}
+
+
+### Redis Example
+
+Below is a simple redis get example.  It can be tested locally
+by starting up a redis server and setting a value for the key of 1.
+When using the Redis client an implicit workerRef is required when using the Callback
+interface.  An implicit ClientCodeProvider is required.
+
+
+{% highlight scala %}
+//only for callbacks, have an implicit executionContext for futures
+implicit val workerRef = context.context.worker
+
+import colossus.protocols.redis.Redis.defaults.redisClientDefaults
+val myClient = Redis.client("localhost", 6379) //use Redis.futureClient for Futures
+val asyncResult = myClient.get(ByteString("1"))
+asyncResult.flatMap { result => 
+  val idToUpdate = result.utf8String.toLong
+  //execute business logic from teh fetch here
+}
+{% endhighlight %}
+
+
 ### Retry Policy
 
 In the event of a Connection Failure, the service client uses a 
