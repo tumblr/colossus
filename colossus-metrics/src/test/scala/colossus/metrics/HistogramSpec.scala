@@ -15,7 +15,7 @@ class HistogramSpec extends MetricIntegrationSpec {
   }
 
   "BaseHistogram" must {
-    "simple collection" taggedAs(org.scalatest.Tag("test")) in {
+    "simple collection" in {
       val address = MetricAddress.Root / "latency"
       val tags = Map("route" -> "home")
       val h = new BaseHistogram(Histogram.generateBucketRanges(10, 10))
@@ -100,7 +100,6 @@ class HistogramSpec extends MetricIntegrationSpec {
       val adding = h.bucketList.buckets(30)
       h.add(adding)
       val p = h.percentile(0.5) 
-      println(s"Added $adding, got $p")
       p mustBe adding
     }
 
