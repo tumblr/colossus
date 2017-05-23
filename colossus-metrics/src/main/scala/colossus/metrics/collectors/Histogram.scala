@@ -289,30 +289,37 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   }
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
-    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
+    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double], lastNonZeroIndex: Int): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
         if (perc <= 0.0 || count == 0 || ranges.size == 0) {
-          p(num, index, build :+ 0, remain.tail)
+          p(num, index, build :+ 0, remain.tail, lastNonZeroIndex)
         } else if (perc >= 1.0) {
-          p(num, index, build :+ max.toInt, remain.tail)
+          p(num, index, build :+ max.toInt, remain.tail, lastNonZeroIndex)
         } else {
-          val bound = count * perc
-          if (index < ranges.size - 1 && num < bound) {
-            p(num + mBuckets(index).get.toInt, index + 1, build, remain)
-          } else {
-            val weightedValue = if (index < ranges.size - 1) {
-              Math.min((ranges(index) + ranges(index + 1)) / 2, max.toInt)
+          val percentileLimit: Int = ((count * perc) + 0.5).toInt //how many counts we need for this percentile
+          val bucketCount = mBuckets(index).get.toInt
+          val newNum = num + bucketCount
+          //this is only needed because of a race condition where a value is
+          //added while a percentile is calculated, this prevents accidentally
+          //setting a percentile to Int.MaxValue when `count` > actual number of
+          //values added
+          val newLastNonZeroIndex = if (bucketCount > 0) index else lastNonZeroIndex
+          if (newNum >= percentileLimit || index == ranges.size - 1) {
+            val weightedValue = if (newLastNonZeroIndex < ranges.size - 1) {
+              Math.min((ranges(newLastNonZeroIndex) + ranges(newLastNonZeroIndex + 1)) / 2, max.toInt)
             } else {
               infinity
             }
-            p(num, index, build :+ weightedValue, remain.tail)
-          }
+            p(num, index, build :+ weightedValue, remain.tail, newLastNonZeroIndex)
+          } else {
+            p(num + bucketCount, index + 1, build, remain, newLastNonZeroIndex)
+          } 
         }
       }
     }
     val sorted = percs.sortWith{_ < _}
-    sorted.zip(p(0, 0, Seq(), sorted)).toMap
+    sorted.zip(p(0, 0, Seq(), sorted, 0)).toMap
   }
 
   def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)
