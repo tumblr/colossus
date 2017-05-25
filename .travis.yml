@@ -9,20 +9,29 @@ services:
 - redis
 cache:
   directories:
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot/
-script: 
-  - if [ "$TRAVIS_SCALA_VERSION" = "2.10.6" ]; then sbt ++$TRAVIS_SCALA_VERSION testAll; else sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll && sbt coverageReport && sbt coverageAggregate; fi
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt/boot/
+script:
+- if [ "$TRAVIS_SCALA_VERSION" = "2.10.6" ]; then sbt ++$TRAVIS_SCALA_VERSION testAll;
+  else sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll && sbt coverageReport &&
+  sbt coverageAggregate; fi
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 env:
   global:
-  - secure: "guHisyOGUp5gIQvAFKJVIT4Z1+culpobzVApeEPyevx6pKqrRdlPV/TAAjwJH6a0nG+ejsqXVoF3+VX6u3kKX1w0jvTcKjvCJUmCTShZeToVN1f20A4NzF6S4YnftSrSNR7vzEiJAA64BO408mF5gJ8kFMRCC5+FheTBim9uok0="
-  - secure: "O41Wnu4KASFdQ87KZ3h8+/IEz8OlqvOhZIYNI04PpoZVLtqU7v2ccmQsnKCTnMeuyz0qxALhpkkjsX23ZhpxzIyDPo35t0LhyLK/UAy2jgFuNltd2E+LdUJgzp4HDpz4m114P3V1E7THKAyj9wzUVAeMfoCJtsWRYj58wHlyiIg="
-  - secure: "ajHcxM0oVCCKYquH6J6pUVo+Lnv6qmli95Cj+aiyENkIMRY/775jN2LRFjV+X2GdWAWOHJME1ylOQn2acIOshwFIDOz3ygOyZcb7MOLoaAYrDwCXZMgxLHWom4CVmKQOpJswjAjFioEuDWqeLUFK+TATefgQxamznqFQcx3nvpw="
+  - secure: XyR0p0arii92VSAjfhyLDBNZgeOR6eE1ROrha8JtR1z5LRyACNHcjx3yfsX31kEG0345H5MJ5MHqtWOOMYJkNLtmMjwHYl3kapYGx4dicMje0sNgDX/l2aNUFN/SxnXNUJbvKi3iHGBhvZjPCN3KkKHjzycWuE8rHWjeENS24fE=
+  - secure: LYstWpIEUVrUoVOrT6Lp6YC8pKOqAzbxSiw5WtUurFtyjlVLKc3xQI+Tn6Vf0Sn9IvUEZjIDTFPhfqx7GtEuiVH43cWdveFWDyiZ2s7ln2br1oFB5G+Jm73P4NPF+Y7hdlka1nthiTPda6J1LOfm3GQu0zbV63OS6F7urApX3jo=
+  - secure: i2l76kHVxv1ylCGlAOO5hpYdiis5lO33RPq6W/bOVMbNnTzrB+XW5sYuW7CCFeNDYiB3NFo26B31prZ3Lfvd5WzGTImEoIQmkd2xEUV1culPxHQ56FLSn3w8gxut7dM1om0uNyn3D5mg85GRhmkDP3D7vW914nPqaMcm/RVRMM4=
 before_install:
-- if [[ "$TRAVIS_TAG" =~ ^v.+$ || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" || "$TRAVIS_BRANCH" = "travis-test") && "$TRAVIS_PULL_REQUEST" = "false")  ]] ; then SHOULD_PUBLISH=0; fi
-- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_ffa7f5a14ad6_key -iv $encrypted_ffa7f5a14ad6_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf secrets.tar; fi
+- if [[ "$TRAVIS_TAG" =~ ^v.+$ || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH"
+  = "develop" || "$TRAVIS_BRANCH" = "travis-test") && "$TRAVIS_PULL_REQUEST" = "false")  ]]
+  ; then SHOULD_PUBLISH=0; fi
+- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_2e6278147cf7_iv 
+  -iv $encrypted_2e6278147cf7_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf
+  secrets.tar; fi
 after_success:
-- if (( $SHOULD_PUBLISH == 0)) ; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned; fi
-- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash <(curl -s https://codecov.io/bash); elif [[ "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" ]]; then bash <(curl -s https://codecov.io/bash); fi
+- if (( $SHOULD_PUBLISH == 0)) ; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned;
+  fi
+- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash <(curl -s https://codecov.io/bash);
+  elif [[ "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" ]]; then bash
+  <(curl -s https://codecov.io/bash); fi
