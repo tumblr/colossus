@@ -26,7 +26,7 @@ before_install:
 - if [[ "$TRAVIS_TAG" =~ ^v.+$ || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH"
   = "develop" || "$TRAVIS_BRANCH" = "travis-test") && "$TRAVIS_PULL_REQUEST" = "false")  ]]
   ; then SHOULD_PUBLISH=0; fi
-- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_2e6278147cf7_iv 
+- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_2e6278147cf7_key
   -iv $encrypted_2e6278147cf7_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf
   secrets.tar; fi
 after_success:
