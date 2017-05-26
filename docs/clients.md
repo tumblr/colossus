@@ -126,7 +126,7 @@ An implicit ClientCodecProvider is required.
 implicit val workerRef = context.context.worker
 
 import Http.defaults.httpClientDefaults
-val httpClient = Http.client("google.com", 80) //use Http.futureClient for Futures
+val httpClient = Http.client("google.com", 80) //Http.futureClient for Futures
 val asyncResult = httpClient.send(HttpRequest.get("/#q=mysearch"))
 asyncResult.flatMap { result => 
   val idToUpdate = result.utf8String.toLong
@@ -148,8 +148,10 @@ interface.  An implicit ClientCodeProvider is required.
 implicit val workerRef = context.context.worker
 
 import colossus.protocols.memcache.Memcache.defaults.memcacheClientDefaults
-val myClient = Memcache.client("localhost", 11211) //use Memcache.futureClient for Futures
-val asyncResult = myClient.get(ByteString("1"))
+
+//switch Memcache.futureClient for Futures
+val client = Memcache.client("localhost", 11211) 
+val asyncResult = client.get(ByteString("1"))
 asyncResult.flatMap { result => 
   val idToUpdate = result.utf8String.toLong
   //execute business logic from teh fetch here
@@ -170,7 +172,7 @@ interface.  An implicit ClientCodeProvider is required.
 implicit val workerRef = context.context.worker
 
 import colossus.protocols.redis.Redis.defaults.redisClientDefaults
-val myClient = Redis.client("localhost", 6379) //use Redis.futureClient for Futures
+val myClient = Redis.client("localhost", 6379) //Redis.futureClient for Futures
 val asyncResult = myClient.get(ByteString("1"))
 asyncResult.flatMap { result => 
   val idToUpdate = result.utf8String.toLong
