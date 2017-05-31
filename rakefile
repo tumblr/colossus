@@ -37,9 +37,9 @@ namespace :site do
       system "git fetch origin gh-pages"
       system "git checkout gh-pages"
       system "git checkout update"
-      system "git merge -s ours gh-pages"
+      system "git merge --allow-unrelated-histories -s ours gh-pages"
       system "git checkout gh-pages"
-      system "git merge update -m #{message.inspect}"
+      system "git merge --allow-unrelated-histories update -m #{message.inspect}"
       system "git push origin"
 
       Dir.chdir pwd
