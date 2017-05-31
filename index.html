@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Colossus</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+      <div class="wrapper col3">
+  <div id="intro">
+    <div id="intronav">
+      <ul>
+      
+        
+        
+        
+        
+          <li class=""><a href="about/">About</a></li>
+      
+        
+        
+        
+        
+          <li class=""><a href="docs/">Documentation</a></li>
+      
+        
+        
+        
+        
+          <li class=""><a href="https://groups.google.com/forum/#!forum/colossus-users">Community</a></li>
+      
+        
+        
+        
+        
+          <li class=""><a href="https://github.com/tumblr/colossus">Github</a></li>
+      
+      </ul>
+    </div>
+    <h1>Colossus</h1>
+    <h2>Service I/O Framework</h2>
+    <br class="clear" />
+
+      <p>
+      Colossus is a lightweight framework for building high-performance network
+      I/O applications in Scala.  In particular Colossus is focused on
+      low-latency <em>microservices</em>, single-feature stateless applications
+      with a RESTful API.  Colossus aims to maximize performance while keeping
+      the interface clean and concise.
+      </p>
+
+
+    <br class="clear" />
+    <div id="subintro">
+      <h2>See it in Action</h2>
+
+The obligatory 5 line Hello-world Service:
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">Main</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span>
+
+  <span class="nc">Server</span><span class="o">.</span><span class="n">basic</span><span class="o">(</span><span class="s">"example-server"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">){</span> <span class="k">new</span> <span class="nc">HttpService</span><span class="o">(</span><span class="k">_</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">def</span> <span class="n">handle</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"Hello world!"</span><span class="o">)</span>      
+      <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"echo"</span> <span class="o">/</span> <span class="n">str</span> <span class="k">=&gt;</span> <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="n">str</span><span class="o">)</span>
+    <span class="o">}</span>
+  <span class="o">}}</span>
+<span class="o">}</span></code></pre></figure>
+
+For a more substantial example, here's a simple http proxy using Memcached for caching:
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">Main</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+
+  <span class="k">implicit</span> <span class="k">val</span> <span class="n">system</span> <span class="k">=</span> <span class="nc">IOSystem</span><span class="o">()</span>
+
+  <span class="nc">Server</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">"proxy"</span><span class="o">,</span> <span class="mi">9000</span><span class="o">)</span> <span class="o">{</span> <span class="k">new</span> <span class="nc">Initializer</span><span class="o">(</span><span class="k">_</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="k">val</span> <span class="n">remoteHost</span>     <span class="k">=</span> <span class="nc">Http</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="s">"remote.host"</span><span class="o">,</span> <span class="mi">8080</span><span class="o">)</span>
+    <span class="k">val</span> <span class="n">memcacheClient</span> <span class="k">=</span> <span class="nc">Memcache</span><span class="o">.</span><span class="n">client</span><span class="o">(</span><span class="s">"memcache.host"</span><span class="o">,</span> <span class="mi">11211</span><span class="o">)</span>
+
+    <span class="k">def</span> <span class="n">onConnect</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpService</span><span class="o">(</span><span class="k">_</span><span class="o">)</span> <span class="o">{</span>
+
+      <span class="k">def</span> <span class="n">handle</span> <span class="k">=</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="n">request</span> <span class="k">=&gt;</span> <span class="n">memcacheClient</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">bytes</span><span class="o">).</span><span class="n">flatMap</span><span class="o">{</span>
+          <span class="k">case</span> <span class="nc">Some</span><span class="o">(</span><span class="n">responseBytes</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">HttpResponse</span><span class="o">.</span><span class="n">fromBytes</span><span class="o">(</span><span class="n">responseBytes</span><span class="o">)</span>
+          <span class="k">case</span> <span class="nc">None</span> <span class="k">=&gt;</span> <span class="k">for</span> <span class="o">{</span>
+            <span class="n">response</span>    <span class="k">&lt;-</span> <span class="n">remoteHost</span><span class="o">.</span><span class="n">send</span><span class="o">(</span><span class="n">request</span><span class="o">)</span>
+            <span class="n">memcacheSet</span> <span class="k">&lt;-</span> <span class="n">memcacheClient</span><span class="o">.</span><span class="n">set</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">bytes</span><span class="o">,</span> <span class="n">response</span><span class="o">.</span><span class="n">bytes</span><span class="o">)</span>
+          <span class="o">}</span> <span class="k">yield</span> <span class="n">response</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+<span class="o">}</span></code></pre></figure>
+
+<h2>How It Works</h2>
+
+Colossus is a low-level event-based framework.  In a nutshell, it spins up
+multiple event loops, generally one per CPU core.  TCP connections are bound to
+event loops and request handlers (written by you) are attached to connections to
+transform incoming requests into responses.  I/O operations (such as making
+requests to a remote cache or another service) can be done asynchronously and
+entirely within the event loop, eliminating the need for complex multi-threaded
+code and greatly reducing the overhead of asynchronous operations.
+
+
+
+
+    </div>
+
+    <div id="moar">
+      <ul id="moar">
+        <li> <a href="https://tumblr.github.io/colossus/docs/quickstart">Quickstart Guide</a> </li>
+        <li> <a href="https://tumblr.github.io/colossus/docs">Full Documentation</a> </li>
+        <li> <a href="https://github.com/tumblr/colossus/tree/master/colossus-examples/src/main/scala/colossus-examples">Examples Project</a> </li>
+      </ul>
+    </div>
+
+    <div class="clear"></div>
+    <div class="section">
+      <h2> Built at Tumblr</h2>
+      <p>
+        Colossus was built to address many of the challenges we've faced at
+        Tumblr when writing Scala services.  It has greatly simplified the
+        development process, allowing engineers to rapidly build services that
+        are production-ready with minimal effort.  Colossus is currently used
+        in several production systems throughout Tumblr's infrastructure.
+      </p>
+      <p>
+        <strong>We need your help!.</strong>  Colossus is still in the early
+        stages of development and while we've met many of the goals we set out
+        to achieve, there's still much to be done.  Features need to be
+        implemented, bugs needs to be fixed, optimizations need to be
+        optimized.  If you find a bug or have a cool idea, let us know and get
+        involved!
+      </p>
+    </div>
+  </div>
+</div>
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
