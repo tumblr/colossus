@@ -3,10 +3,12 @@ package controller
 
 import core._
 import java.util.LinkedList
+
+import akka.event.Logging
+
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
-
+import scala.util.{Failure, Success}
 import service.{NotConnectedException, RequestTimeoutException}
 
 /**
@@ -126,6 +128,8 @@ object OutputResult {
 trait OutputController[Input, Output] extends MasterController[Input, Output] {
   import OutputState._
 
+  lazy val log = Logging(worker.system.actorSystem, "client:outputcontroller")
+
   private[controller] var outputState: OutputState = Suspended
   private var msgq = new MessageQueue[Output](controllerConfig.outputBufferSize)
 
@@ -229,7 +233,10 @@ trait OutputController[Input, Output] extends MasterController[Input, Output] {
   protected def push(item: Output, createdMillis: Long = System.currentTimeMillis)(postWrite: QueuedItem.PostWrite): Boolean = {
     if (canPush) {
       if (msgq.size == 0 && outputState == Dequeueing) signalWrite()
-      msgq.enqueue(item, postWrite, createdMillis)
+      val isAdded = msgq.enqueue(item, postWrite, createdMillis)
+      if(!isAdded) {
+        log.warning(s"queue is full, adding item [$item] failed")
+      }
       true
     } else {
       false
