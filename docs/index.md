@@ -10,6 +10,8 @@ categories: docs
 
 [Workers](workers)
 
+[Services](services)
+
 [Configuration](configuration)
 
 [Testing Servers](testkit)
@@ -17,7 +19,6 @@ categories: docs
 [Metrics](metrics)
 
 [Tasks](tasks)
-
 
 [Colossus API Docs]({{site.baseurl}}/api/index.html#colossus.package) ({{ site.latest_version }})
 

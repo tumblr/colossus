@@ -7,20 +7,15 @@
 
 ### Editing the docs
 
-You must have installed on your computer:
- * ruby 2.0 or greater
- * jekyll
- * sass (gem install sass)
- * rake
- * bundler
+You must have ruby 2.0+ and bundler installed and then run bundler (`bundler` on the command line) to install the correct gems.
 
-To start a localhost server, simply go to the root folder of this repo and run :
+To start a localhost server:
 
 `jekyll serve --watch --baseurl=''`
 
-the browse to localhost:4000
+Then browse to localhost:4000
 
-### publishing
+### Publishing
 
 When publishing just run :
 
