@@ -26,7 +26,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
       val config = ControllerConfig(4, 2.bytes)
       val (u, con, d) = get(config)
       con.receivedData(DataBuffer(input))
-      (u.disconnect _).verify()
+      (u.kill _).verify(*)
     }
 
     "properly copy and buffer data when input buffer fills" in {
@@ -46,7 +46,7 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
       con.receivedData(input)
       d.pipe.pull() mustBe PullResult.Item(ByteString("a"))
       d.pipe.pull() mustBe a[PullResult.Empty]
-      (u.disconnect _).verify()
+      (u.kill _).verify(*)
     }
 
     "properly handle parse failure with buffeerd data" in {
@@ -58,21 +58,21 @@ class InputControllerSpec extends ColossusSpec with CallbackMatchers with Contro
         d.pipe.pull() mustBe PullResult.Item(ByteString(i.toString))
       }
       d.pipe.pull() mustBe a[PullResult.Empty]
-      (u.disconnect _).verify()
+      (u.kill _).verify(*)
     }
 
     "react to closed downstream input buffer" in {
       val (u, con, d) = get(new SimpleCodec, defaultConfig)
       d.incoming.complete()
       con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
-      (u.disconnect _).verify()
+      (u.kill _).verify(*)
     }
 
     "react to terminated downstream input buffer" in {
       val (u, con, d) = get(new SimpleCodec, defaultConfig)
       d.incoming.terminate(new Exception("ASDF"))
       con.receivedData(DataBuffer(ByteString("5;hello6;world!")))
-      (u.disconnect _).verify()
+      (u.kill _).verify(*)
 
     }
 

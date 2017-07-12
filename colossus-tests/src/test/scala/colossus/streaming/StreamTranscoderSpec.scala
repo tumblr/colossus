@@ -28,7 +28,9 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
         def transcodeOutput(source: colossus.streaming.Source[Int]): colossus.streaming.Source[Int] = source.map{_ * 10}
       }
 
-      val controller = new StreamTranscodingController(downstream, transcoder)
+      val controller = new StreamTranscodingController(downstream, transcoder) {
+        def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
+      }
       controller.setUpstream(upstream)
       controller.connected()
       controller.incoming.push(3) mustBe PushResult.Ok

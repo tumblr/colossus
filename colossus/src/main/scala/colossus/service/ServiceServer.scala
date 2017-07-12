@@ -276,11 +276,7 @@ with DownstreamEventHandler[GenRequestHandler[P]]
     )
   }
   
-  def processBadRequest(reason: Throwable) = {
-    Some(handleFailure(IrrecoverableError(reason)))
-  }
-
-  override def onFatalError(reason: Throwable) = processBadRequest(reason)
+  override def onFatalError(reason: Throwable) = FatalErrorAction.Disconnect(Some(handleFailure(IrrecoverableError(reason))))
 
   private def handleFailure(error: ProcessingFailure[Request]): Response = {
     addError(error)

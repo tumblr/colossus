@@ -21,19 +21,30 @@ case class ControllerConfig(
   metricsEnabled: Boolean = true
 )
 
+/**
+ * Response type of controller fatal error handler.  This essentially instructs
+ * the controller how to handle an unexpected error.
+ */
+sealed trait FatalErrorAction[+T]
+object FatalErrorAction {
+  /**
+   * gracefully close the connection (generally used for server connections),
+   * possibly sending a final message before closing.
+   */
+  case class Disconnect[T](lastMessage: Option[T]) extends FatalErrorAction[T]
+
+  /**
+   * Immediately terminate the connection (treated as a connection-level error)
+   */
+  case object Terminate extends FatalErrorAction[Nothing]
+}
+
 //these are the methods that the controller layer requires to be implemented by it's downstream neighbor
 trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
   def incoming: Sink[E#Input]
 
-  /**
-   * This method can be overriden to send a message in the event of a fatal
-   * error before the connection is closed.  There is no guarantee though that
-   * the message is actually sent since the connection may have already closed.
-   */
-  def onFatalError(reason: Throwable): Option[E#Output] = {
-    None
-  }
+  def onFatalError(reason: Throwable): FatalErrorAction[E#Output] 
 
   def controllerConfig: ControllerConfig
   def namespace: MetricNamespace
@@ -76,12 +87,29 @@ extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputCon
     }
   }
 
-  def fatalError(reason: Throwable, kill: Boolean) {
-    if (kill) {
+  /**
+   * Terminate the connection with an error.  If `forceKill` is true, the connection
+   * will be immediately force-disconnected and treated as an error, otherwise
+   * the downstream handler will have a chance to push a final message and
+   * control through the returned [[FatalErrorAction]] how to close the
+   * connection.
+   *
+   * (generally `forceKill` should be true when we know it's impossible to send
+   * a message, such as when an error occurs in OutputController)
+   * */
+  def fatalError(reason: Throwable, forceKill: Boolean) {
+    if (forceKill) {
       upstream.kill(reason)
     } else {
-      downstream.onFatalError(reason).foreach{o => outgoing.push(o)}
-      upstream.disconnect()
+      downstream.onFatalError(reason) match {
+        case FatalErrorAction.Disconnect(msgOpt) => {
+          msgOpt.foreach{o => outgoing.push(o)}
+          upstream.disconnect()
+        }
+        case FatalErrorAction.Terminate => {
+          upstream.kill(reason)
+        }
+      }
     }
   }
 

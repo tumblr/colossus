@@ -214,6 +214,8 @@ with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
     upstream.outgoing.push(frame)
   }
 
+  def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
+
   def send(message: E#Output) {
     send(frameCodec.encode(message))
   }
