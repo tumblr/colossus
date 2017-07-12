@@ -29,7 +29,7 @@ trait Transcoder[U <: Encoding, D <: Encoding] {
  * This controller interface can be used to transcode from one encoding to
  * another in a connection handler pipeline
  */
-class StreamTranscodingController[
+abstract class StreamTranscodingController[
   U <: Encoding,
   D <: Encoding
 ] (

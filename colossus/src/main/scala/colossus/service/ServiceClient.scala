@@ -392,12 +392,8 @@ extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpst
     }
   }
 
-  override def onFatalError(reason: Throwable) = {
-    worker ! Kill(id, DisconnectCause.Error(reason))
-    None
-  }
-
-
+  override def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
+  
   override protected def onIdleCheck(period: FiniteDuration) {
     val now = System.currentTimeMillis
     if (sentBuffer.length > 0 && sentBuffer.head.isTimedOut(now)) {

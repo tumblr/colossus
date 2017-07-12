@@ -94,7 +94,7 @@ class HttpClientTranscoder extends HttpTranscoder[Encoding.Client[StreamHeader],
 }
 
 
-class HttpStreamController[
+abstract class HttpStreamController[
   E <: HeadEncoding, 
   A <: ExEncoding[HttpStream, E], 
   B <: GenEncoding[StreamingHttpMessage, E]
@@ -102,10 +102,17 @@ class HttpStreamController[
 
 
 class HttpStreamServerController(ds: ControllerDownstream[Encoding.Server[StreamingHttp]])
-extends HttpStreamController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder)
+extends HttpStreamController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder) {
+
+  def onFatalError(reason: Throwable) = FatalErrorAction.Disconnect(None)
+}
 
 class HttpStreamClientController(ds: ControllerDownstream[Encoding.Client[StreamingHttp]])
-extends HttpStreamController[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder)
+extends HttpStreamController[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder) {
+  
+  def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
+
+}
 
 
 

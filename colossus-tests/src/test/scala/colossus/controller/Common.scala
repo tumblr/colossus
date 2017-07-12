@@ -27,9 +27,9 @@ trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFac
 
     def namespace = colossus.metrics.MetricSystem.deadSystem
 
-    override def onFatalError(reason: Throwable): Option[E#Output] = {
+    override def onFatalError(reason: Throwable) = {
       println(s"FATAL : $reason")
-      None
+      FatalErrorAction.Terminate
     }
   }
 
