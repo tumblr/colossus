@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Services</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/services/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Services</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>A service receives requests and returns responses. Colossus has built in support for http, memcache, redis and telnet.</p>
+
+<h2 id="http">Http</h2>
+
+<p>A http service will take the following form:</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">import</span> <span class="nn">colossus.IOSystem</span>
+<span class="k">import</span> <span class="nn">colossus.core.</span><span class="o">{</span><span class="nc">Initializer</span><span class="o">,</span> <span class="nc">Server</span><span class="o">,</span> <span class="nc">ServerRef</span><span class="o">}</span>
+<span class="k">import</span> <span class="nn">colossus.protocols.http.HttpMethod._</span>
+<span class="k">import</span> <span class="nn">colossus.protocols.http.UrlParsing._</span>
+<span class="k">import</span> <span class="nn">colossus.protocols.http._</span>
+<span class="k">import</span> <span class="nn">colossus.service.ServiceConfig</span>
+<span class="k">import</span> <span class="nn">colossus.service.Callback.Implicits._</span>
+
+<span class="k">object</span> <span class="nc">HttpExample</span> <span class="o">{</span>
+
+  <span class="k">def</span> <span class="n">start</span><span class="o">(</span><span class="n">port</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)(</span><span class="k">implicit</span> <span class="n">system</span><span class="k">:</span> <span class="kt">IOSystem</span><span class="o">)</span><span class="k">:</span> <span class="kt">ServerRef</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="nc">Server</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">"http-example"</span><span class="o">,</span> <span class="n">port</span><span class="o">){</span><span class="k">implicit</span> <span class="n">worker</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">Initializer</span><span class="o">(</span><span class="n">worker</span><span class="o">)</span> <span class="o">{</span>
+
+      <span class="k">def</span> <span class="n">onConnect</span> <span class="k">=</span> <span class="n">context</span> <span class="k">=&gt;</span> <span class="k">new</span> <span class="nc">HttpService</span><span class="o">(</span><span class="nc">ServiceConfig</span><span class="o">.</span><span class="nc">Default</span><span class="o">,</span> <span class="n">context</span><span class="o">){</span>
+        <span class="k">def</span> <span class="n">handle</span> <span class="k">=</span> <span class="o">{</span>
+          <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"hello"</span> <span class="k">=&gt;</span> <span class="o">{</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"hello"</span><span class="o">)</span>
+          <span class="o">}</span>
+        <span class="o">}</span>
+      <span class="o">}</span>
+    <span class="o">}}</span>
+  <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">ok</code> is a helper method on <code class="highlighter-rouge">HttpRequest</code> that returns a <code class="highlighter-rouge">HttpResponse</code>. The implicit 
+<code class="highlighter-rouge">colossus.service.Callback.Implicits.objectToSuccessfulCallback</code> then turns the response into a <code class="highlighter-rouge">Callback[HttpResponse]</code>.</p>
+
+<p>The following helper method are available, which will default the content type to text and return the corresponding 
+http code.</p>
+
+<ul>
+  <li>ok</li>
+  <li>notFound</li>
+  <li>error</li>
+  <li>badRequest</li>
+  <li>unauthorized</li>
+  <li>forbidden</li>
+</ul>
+
+<p>There are several different ways to set headers on the response.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"hello"</span><span class="o">).</span><span class="n">withHeader</span><span class="o">(</span><span class="s">"header-name"</span><span class="o">,</span> <span class="s">"header-value"</span><span class="o">)</span>
+<span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"hello"</span><span class="o">,</span> <span class="nc">HttpHeaders</span><span class="o">(</span><span class="nc">HttpHeader</span><span class="o">(</span><span class="s">"header-name"</span><span class="o">,</span> <span class="s">"header-value"</span><span class="o">)))</span>
+<span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="s">"hello"</span><span class="o">,</span> <span class="nc">HttpHeaders</span><span class="o">(</span><span class="nc">HttpHeader</span><span class="o">(</span><span class="nc">HttpHeaders</span><span class="o">.</span><span class="nc">CookieHeader</span><span class="o">,</span> <span class="s">"header-value"</span><span class="o">)))</span></code></pre></figure>
+
+<p>Setting the content type or using a different http code involves a bit more work as the above helper methods can’t be 
+used. Instead use the <code class="highlighter-rouge">respond</code> method.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">request</span><span class="o">.</span><span class="n">respond</span><span class="o">(</span><span class="nc">HttpCodes</span><span class="o">.</span><span class="nc">CONFLICT</span><span class="o">,</span> <span class="nc">HttpBody</span><span class="o">(</span><span class="s">"""{"name":"value"}"""</span><span class="o">).</span><span class="n">withContentType</span><span class="o">(</span><span class="nc">ContentType</span><span class="o">.</span><span class="nc">ApplicationJson</span><span class="o">))</span></code></pre></figure>
+
+<p>On the incoming request, body and content type are on the <code class="highlighter-rouge">HttpBody</code> and headers and parameters are on the 
+<code class="highlighter-rouge">HttpHead</code>.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">bytes</span><span class="o">.</span><span class="n">utf8String</span>
+<span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">contentType</span>
+<span class="n">request</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">headers</span>
+<span class="n">request</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">getFirst</span><span class="o">(</span><span class="s">"key"</span><span class="o">)</span></code></pre></figure>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"><li><a href="#http">Http</a></li></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
