@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Workers</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="Colossus IO Framework: Built at Tumblr">
+    <link rel="canonical" href="https://github.com/tumblr/colossushttps://tumblr.github.io/colossus/docs/workers/">
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="imagetoolbar" content="no" />
+    <link rel="stylesheet" href="https://tumblr.github.io/colossus/css/layout.css" type="text/css" />
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.js"></script>
+    <script type="text/javascript" src="https://tumblr.github.io/colossus/js/jquery.innerfade.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+
+</head>
+
+</head>
+
+
+    <body>
+
+    <div class="wrapper col1">
+  <div id="header">
+    <div id="logo">
+      <h1><a href="https://tumblr.github.io/colossus/">Colossus</a></h1>
+    </div>
+    <div id="topnav">
+      <ul>
+        <li><a href="https://tumblr.github.io/colossus/about">About</a></li>
+        <li><a href="https://tumblr.github.io/colossus/">Community</a></li>
+        <li><a href="https://tumblr.github.io/colossus/docs">Documentation</a></li>
+        <li><a href="https://github.com/tumblr/colossus">Github</a></li>
+      </ul>
+    </div>
+    <br class="clear" />
+  <p class="breaking-news"><b>Notice</b>: These docs are a work in progress.  If you see an error, <a href="https://github.com/tumblr/colossus/tree/gh-pages-source">fix it</a>!</p>
+  </div>
+</div>
+
+
+
+        <div class="wrapper col3">
+    <div id="container">
+      <header class="post-header">
+        <h1>Workers</h1>
+      </header>
+      <div id="content">
+        <article class="post-content">
+        <p>Workers are the reactive event-loops that handle the service business logic and consist of an Initializer and Request Handler. Initializers are created for each worker and provide a place to share resources among all connections handled by the worker. It also provides access for updating data for the request handler and clients.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="nc">Server</span><span class="o">.</span><span class="n">start</span><span class="o">(</span><span class="s">"http-server"</span><span class="o">,</span> <span class="mi">8888</span><span class="o">)</span> <span class="o">{</span> <span class="n">workerRef</span> <span class="k">=&gt;</span>
+  <span class="k">new</span> <span class="nc">Initializer</span><span class="o">(</span><span class="n">workerRef</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">var</span> <span class="n">currentName</span> <span class="k">=</span> <span class="s">"Jones"</span>
+
+    <span class="k">override</span> <span class="k">def</span> <span class="n">receive</span> <span class="k">=</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">NameChange</span><span class="o">(</span><span class="n">name</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">currentName</span> <span class="k">=</span> <span class="n">name</span>
+    <span class="o">}</span>
+
+    <span class="k">override</span> <span class="k">def</span> <span class="n">onConnect</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">HttpService</span><span class="o">(</span><span class="k">_</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">override</span> <span class="k">def</span> <span class="n">handle</span><span class="k">:</span> <span class="kt">PartialHandler</span><span class="o">[</span><span class="kt">Http</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+        <span class="k">case</span> <span class="n">request</span> <span class="k">@</span> <span class="nc">Get</span> <span class="n">on</span> <span class="nc">Root</span> <span class="k">=&gt;</span> 
+          <span class="nc">Callback</span><span class="o">.</span><span class="n">successful</span><span class="o">(</span><span class="n">request</span><span class="o">.</span><span class="n">ok</span><span class="o">(</span><span class="n">s</span><span class="s">"My name is $currentName"</span><span class="o">))</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+  </code></pre></figure>
+
+<p>Actor messages can then be broadcast to all workers using the <code class="highlighter-rouge">delegatorBroadcast</code> method on <code class="highlighter-rouge">ServerRef</code>.</p>
+
+<figure class="highlight"><pre><code class="language-scala" data-lang="scala"><span class="n">server</span><span class="o">.</span><span class="n">delegatorBroadcast</span><span class="o">(</span><span class="nc">NameChange</span><span class="o">(</span><span class="s">"Smith"</span><span class="o">))</span></code></pre></figure>
+
+        </article>
+      </div>
+      <div id="column">
+        <div class="subnav">
+          <ol class="toc"></ol>
+        </div>
+      </div>
+      <br class="clear" />
+    </div>
+  </div>
+  <br class="clear" />
+
+
+
+    <footer id = "footer" class="site-footer">
+
+<div class="wrapper col5">
+  <div id="copyright">
+    <p class="fl_left">Copyright &copy; 2016 Tumblr - All Rights Reserved <a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/3.0/80x15.png" /></a></p>
+    <p class="fl_right">Based on a template by <a href="http://www.os-templates.com/" title="Free Website Templates">OS Templates</a></p>
+    <br class="clear" />
+  </div>
+</div>
+
+</footer>
+
+
+    </body>
+</html>
