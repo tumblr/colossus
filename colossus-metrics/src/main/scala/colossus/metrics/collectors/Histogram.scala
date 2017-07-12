@@ -289,6 +289,16 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   }
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
+    // NOTE: Very rarely, a race condition can occur that will cause calculated tail percentiles of a histogram (> 99th percentile) 
+    // to report Int.MaxValue. The bug is due to a race condition that can happen when a value is added to the histogram at the same 
+    // time the percentiles are being calculated in another thread. What ends up happening is that the calculated number of added 
+    // values is 1 higher than the actual number of added values in the histogram's buckets. At high percentiles, it ends up 
+    // searching through all the buckets for the missing value, and stops at the end, resulting in the "infinity" value of Int.MaxValue.
+    // The percentile calculation function keeps track of the last bucket with a non-zero count, and use that bucket instead of the 
+    // last one when such a situation occurs. This also ends up slightly changing how percentiles are calculated, but this change is 
+    // only apparent when relatively few values have been added to the histogram. This does not resolve the fact that the count is 
+    // still one off from the actual total count, but generally that will have little to no effect, especially when hundreds to 
+    // thousands of values are added per second.
     def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double], lastNonZeroIndex: Int): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
