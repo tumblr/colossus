@@ -131,7 +131,11 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
   }
   def map[U](f: O => U): Callback[U] = MappedCallback(trigger, {i: Try[I] => handler(i).flatMap(v => Try(f(v)))})
 
-  def mapTry[U](f: Try[O] => Try[U]): Callback[U] = MappedCallback(trigger, {i: Try[I] => f(handler(i))})
+  def mapTry[U](f: Try[O] => Try[U]): Callback[U] = MappedCallback(trigger, {i: Try[I] => try {
+    f(handler(i))
+  } catch {
+    case t: Throwable => Failure(t)
+  }})
 
   def recover[U >: O](p: PartialFunction[Throwable, U]): Callback[U] = MappedCallback(trigger, {i: Try[I] =>
     handler(i) match {
@@ -174,7 +178,7 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
     UnmappedCallback(newTrigger)
   }
 
-  def mapTry[O](f: Try[I] => Try[O]): Callback[O] = MappedCallback(trigger, f)
+  def mapTry[O](f: Try[I] => Try[O]): Callback[O] = MappedCallback(trigger, (i: Try[I]) => try {f(i)} catch {case t: Throwable => Failure(t)})
 
   def execute(onComplete: Try[I] => Unit = _ => ()) {
     try {

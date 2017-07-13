@@ -17,3 +17,7 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 .idea/
+
+.sass-cache/
+Gemfile.lock
+_site/
