@@ -19,15 +19,15 @@ script:
 - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 env:
   global:
-  - secure: XyR0p0arii92VSAjfhyLDBNZgeOR6eE1ROrha8JtR1z5LRyACNHcjx3yfsX31kEG0345H5MJ5MHqtWOOMYJkNLtmMjwHYl3kapYGx4dicMje0sNgDX/l2aNUFN/SxnXNUJbvKi3iHGBhvZjPCN3KkKHjzycWuE8rHWjeENS24fE=
-  - secure: LYstWpIEUVrUoVOrT6Lp6YC8pKOqAzbxSiw5WtUurFtyjlVLKc3xQI+Tn6Vf0Sn9IvUEZjIDTFPhfqx7GtEuiVH43cWdveFWDyiZ2s7ln2br1oFB5G+Jm73P4NPF+Y7hdlka1nthiTPda6J1LOfm3GQu0zbV63OS6F7urApX3jo=
-  - secure: i2l76kHVxv1ylCGlAOO5hpYdiis5lO33RPq6W/bOVMbNnTzrB+XW5sYuW7CCFeNDYiB3NFo26B31prZ3Lfvd5WzGTImEoIQmkd2xEUV1culPxHQ56FLSn3w8gxut7dM1om0uNyn3D5mg85GRhmkDP3D7vW914nPqaMcm/RVRMM4=
+  - secure: IV1pPmnkaBj2iqeHSoLkhEjAXVFkJgEghhe7SFJ/bL2lEzoqIHcudw1I1WHMEW9ANzo1pEZRCj0GFfNn5/HWD931wMOlXbEdX/B4vLw8KcHZQzWFEDUMYzGiV5xzDjSYTX8DwUDxy1UDNmOOkS3DYjY3FBWpw8qyuLaLmYGpC84=
+  - secure: EZRC7oP4UQXUVBkTIiviCHPoNRw1ur9rhFFqCV6qVpyNpg7uGtM4l882S598KKXW0C3oemXHEEdrF5t5cGozV2nIRYkuEb9K5Kb+1TIRMPZ3KTKGhKTE/5oObTnuIyggSp0ZQLoB7s5eRUup7O74UGkSYY8oJBqixDDhS5g9mwc=
+  - secure: XSIdWCu0lX25akXyl8gRc5C7YhASFwkaYWxk7GImBGoZ1apXou9zUGQtxLuOwWcG1HkRldGmwBZz6OqV135jxOcl6IO+brvd0WGPuWXqPDTWWU63K4GgA5oNh+Pbbd/MxGceYbQKkRAgGxeiB8WhOuoxbfHHsjBordp/tco5hX4=
 before_install:
 - if [[ "$TRAVIS_TAG" =~ ^v.+$ || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH"
   = "develop" || "$TRAVIS_BRANCH" = "travis-test") && "$TRAVIS_PULL_REQUEST" = "false")  ]]
   ; then SHOULD_PUBLISH=0; fi
-- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_2e6278147cf7_key
-  -iv $encrypted_2e6278147cf7_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf
+- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_9df8dc1a95a3_key
+  -iv $encrypted_9df8dc1a95a3_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf
   secrets.tar; fi
 after_success:
 - if (( $SHOULD_PUBLISH == 0)) ; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned;
