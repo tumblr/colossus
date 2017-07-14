@@ -32,7 +32,7 @@ object UpgradeRequest {
    * Validate a HttpRequest as a websocket upgrade request, returning the
    * properly formed response that should be sent back to confirm the upgrade
    */
-  def validate(request : HttpRequest): Option[HttpResponse] = {
+  def validate(request : HttpRequest, origins: List[String]): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
       cheader   <- headers.firstValue("connection") 
@@ -46,6 +46,7 @@ object UpgradeRequest {
       if (secver == "13")
       if (uheader.toLowerCase == "websocket")
       if (cheader.toLowerCase.split(",").map{_.trim} contains "upgrade")
+      if (origins.isEmpty || headers.firstValue("origin").exists(origins.contains))
     } yield HttpResponse (
       HttpResponseHead(
         HttpVersion.`1.1`,
@@ -270,11 +271,11 @@ abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {
 
 }
 
-class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext, websocketInit: WebsocketInitializer[E], upgradePath: String)
+class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext, websocketInit: WebsocketInitializer[E], upgradePath: String, origins: List[String])
 extends protocols.http.server.RequestHandler(ctx, ServiceConfig.Default) {
   def handle = {
     case request if (request.head.path == upgradePath) => {
-      val response = UpgradeRequest.validate(request) match {
+      val response = UpgradeRequest.validate(request, origins) match {
         case Some(upgrade) => {
           connection.become(() => websocketInit.fullHandler(websocketInit.onConnect(ctx)))
           upgrade
@@ -293,14 +294,18 @@ object WebsocketServer {
   import protocols.http._
   import server._
 
-
-
-  def start[E <: Encoding](name: String, port: Int, upgradePath: String = "/")(init: WorkerRef => WebsocketInitializer[E])(implicit io: IOSystem) = {
+  /**
+   * Start a Websocket server on the specified port.  Since Websocket
+   * connections are upgraded from HTTP connections, this will actually start an
+   * HTTP server and react to Websocket upgrade requests on the path
+   * `upgradePath`, all other paths will 404.
+   */
+  def start[E <: Encoding](name: String, port: Int, upgradePath: String = "/", origins: List[String] = List.empty)(init: WorkerRef => WebsocketInitializer[E])(implicit io: IOSystem) = {
     HttpServer.start(name, port){context => new Initializer(context) {
-    
+
       val websockinit : WebsocketInitializer[E] = init(context.worker)
 
-      def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath)
+      def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath, origins)
       
     }}
   }

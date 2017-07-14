@@ -52,11 +52,19 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     }
 
     "accept a properly crafted upgrade request" in {
-      UpgradeRequest.validate(valid).isEmpty must equal(false)
+      UpgradeRequest.validate(valid, List.empty).isEmpty must equal(false)
+    }
+
+    "accept a properly crafted upgrade request with origins" in {
+      UpgradeRequest.validate(valid, List("http://foo.bar", "https://foo.bar")).isEmpty must equal(false)
+    }
+
+    "decline upgrade request by origins" in {
+      UpgradeRequest.validate(valid, List("http://another.foo.bar")).isEmpty must equal(true)
     }
 
     "produce a correctly formatted response" in {
-      UpgradeRequest.validate(valid).get must equal(validResponse)
+      UpgradeRequest.validate(valid, List.empty).get must equal(validResponse)
 
     }
   }
@@ -204,7 +212,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
     def createHandler = {
       val init = new protocols.http.server.Initializer(FakeIOSystem.fakeInitContext) {
-        def onConnect = new WebsocketHttpHandler(_, myinit, "/foo")
+        def onConnect = new WebsocketHttpHandler(_, myinit, "/foo", List.empty)
       }
       MockConnection.server(ctx => init.fullHandler(init.onConnect(ctx)))
     }
