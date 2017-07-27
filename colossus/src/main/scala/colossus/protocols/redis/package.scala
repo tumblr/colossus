@@ -8,22 +8,25 @@ import colossus.service._
 package object redis {
 
   trait Redis extends Protocol {
-    type Input = Command
-    type Output = Reply
+    type Request = Command
+    type Response = Reply
   }
 
   object Redis extends ClientFactories[Redis, RedisClient]{
+
+    implicit def clientFactory = ServiceClientFactory.basic("redis", () => new RedisClientCodec)
+    
+
     object defaults {
+
+      /*
 
       implicit val redisServerDefaults = new ServiceCodecProvider[Redis] {
         def provideCodec() = new RedisServerCodec
         def errorResponse(error: ProcessingFailure[Command]) = ErrorReply(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
       }
+      */
 
-      implicit val redisClientDefaults = new ClientCodecProvider[Redis] {
-        def clientCodec() = new RedisClientCodec
-        val name = "redis"
-      }
     }
 
   }

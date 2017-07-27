@@ -1,7 +1,6 @@
 package colossus
 package core
 
-import colossus.metrics.MetricSystem
 import testkit._
 
 import scala.concurrent.duration._

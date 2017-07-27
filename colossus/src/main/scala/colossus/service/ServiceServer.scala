@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import util.ConfigCache
 import util.ExceptionFormatter._
-import Codec._
+import streaming._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -96,6 +96,8 @@ class FatalServiceServerException(message: String) extends ServiceServerExceptio
 
 class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
+trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
+
 
 /**
  * The ServiceServer provides an interface and basic functionality to create a server that processes
@@ -110,22 +112,30 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
  * in the order that they are received.
  *
  */
-abstract class ServiceServer[I,O]
-  (codec: ServerCodec[I,O], config: ServiceConfig, serverContext: ServerContext)
-extends Controller[I,O](codec,
-  ControllerConfig(config.requestBufferSize, Duration.Inf, config.maxRequestSize,true, config.requestMetrics),
-  serverContext.context)
-with ServerConnectionHandler {
+class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
+extends ControllerDownstream[Encoding.Server[P]] 
+with ServiceUpstream[P] 
+with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]] 
+with DownstreamEventHandler[GenRequestHandler[P]]
+{
   import ServiceServer._
-  import config._
-  implicit val namespace = serverContext.server.namespace
-  def name = serverContext.server.config.name
+
+  type Request = P#Request
+  type Response = P#Response
+
+  def downstream = requestHandler
+  downstream.setUpstream(this)
+
+  val incoming = new BufferedPipe[Request](50)
+
+  def config = requestHandler.config
+  implicit val namespace = requestHandler.serverContext.server.namespace
+  def name = requestHandler.serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
-  def tagDecorator: TagDecorator[I,O] = TagDecorator.default[I,O]
-  def requestLogFormat : Option[RequestFormatter[I]] = None
+  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = config.maxRequestSize)
 
-
+  
   private val requests  = Rate("requests", "connection-handler-requests")
   private val latency   = Histogram("latency", "connection-handler-latency")
   private val errors    = Rate("errors", "connection-handler-errors")
@@ -139,34 +149,28 @@ with ServerConnectionHandler {
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  private def addError(error: ProcessingFailure[I], extraTags: TagMap = TagMap.Empty) {
+  private def addError(error: ProcessingFailure[Request], extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> error.reason.metricsName)
     errors.hit(tags = tags)
-    if (logErrors) {
-      logError(error).foreach{message =>
-        log.error(error.reason, message )
+    if (config.logErrors) {
+      val formattedRequest = error match {
+        case RecoverableError(request, reason) => requestHandler.requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+        case IrrecoverableError(reason) => "Invalid Request"
       }
+      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}" )
     }
   }
 
-  protected def logError(error: ProcessingFailure[I]): Option[String] = {
-    val formattedRequest = error match {
-      case RecoverableError(request, reason) => requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
-      case IrrecoverableError(reason) => "Invalid Request"
-    }
-    Some(s"Error processing request: $formattedRequest: ${error.reason}")
-  }
-
-  private case class SyncPromise(request: I) {
+  private case class SyncPromise(request: Request) {
     val creationTime = System.currentTimeMillis
 
-    def isTimedOut(time: Long) = !isComplete && requestTimeout.isFinite && (time - creationTime) > requestTimeout.toMillis
+    def isTimedOut(time: Long) = !isComplete && config.requestTimeout.isFinite && (time - creationTime) > config.requestTimeout.toMillis
 
-    private var _response: Option[O] = None
+    private var _response: Option[Response] = None
     def isComplete = _response.isDefined
-    def response = _response.getOrElse(throw new Exception("Attempt to use incomplete response"))
+    def response = if (_response.isDefined) _response.get else throw new Exception("Attempt to use incomplete response")
 
-    def complete(response: O) {
+    def complete(response: Response) {
       _response = Some(response)
       checkBuffer()
     }
@@ -178,39 +182,57 @@ with ServerConnectionHandler {
   def currentRequestBufferSize = requestBuffer.size
   private var numRequests = 0
 
-  override def idleCheck(period: FiniteDuration) {
-    super.idleCheck(period)
-
+  override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
     while (requestBuffer.size > 0 && requestBuffer.peek.isTimedOut(time)) {
       //notice - completing the response will call checkBuffer which will write the error immediately
       requestBuffer.peek.complete(handleFailure(RecoverableError(requestBuffer.peek.request, new TimeoutError)))
-
     }
   }
-
+    
   /**
    * Pushes the completed responses down to the controller so they can be returned to the client.
    */
   private def checkBuffer() {
-    while (isConnected && requestBuffer.size > 0 && requestBuffer.peek.isComplete && canPush) {
+    var continue = true
+    while (continue && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
       val done = requestBuffer.remove()
-      val comp = done.response
-      if (requestMetrics) concurrentRequests.decrement()
-      pushResponse(done.request, comp, done.creationTime)
-    }
-    if (!canPush) {
-      //this means the output buffer cannot accept any more messages, so we have
-      //to pause dequeuing responses and wait for the next message in the output
-      //buffer to be written
-      dequeuePaused = true
+      upstream.outgoing.push(done.response) match {
+        case PushResult.Ok => {
+          if (config.requestMetrics) {
+            concurrentRequests.decrement()
+            val tags = requestHandler.tagDecorator.tagsFor(done.request, done.response)
+            requests.hit(tags = tags)
+            latency.add(tags = tags, value = (System.currentTimeMillis - done.creationTime).toInt)
+          }
+        }
+        case PushResult.Full(signal) => {
+          //this might seem odd to remove the head and then add it back, but
+          //it's faster than peeking since we have to do less operations on the
+          //linkedlist on average
+          requestBuffer.addFirst(done)
+          signal.notify{ checkBuffer() }
+          continue = false
+        }
+        case other => {
+          log.error(s"invalid state on incoming stream $other")
+          upstream.connection.forceDisconnect()
+        }
+      }
     }
     checkGracefulDisconnect()
   }
 
-  override def connectionClosed(cause : DisconnectCause) {
-    super.connectionClosed(cause)
-    if (requestMetrics) {
+  override def onBind() {
+    requestHandler.setConnection(upstream.connection)
+  }
+
+  override def onConnected() {
+    processMessages()
+  }
+
+  override def onConnectionTerminated(cause : DisconnectCause) {
+    if (config.requestMetrics) {
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(amount = requestBuffer.size)
     }
@@ -220,92 +242,59 @@ with ServerConnectionHandler {
     }
   }
 
-  override def connectionLost(cause : DisconnectError) {
-    connectionClosed(cause)
-  }
-
-  private def pushResponse(request: I, response: O, startTime: Long) {
-    if (requestMetrics) {
-      val tags = tagDecorator.tagsFor(request, response)
-      requests.hit(tags = tags)
-      latency.add(tags = tags, value = (System.currentTimeMillis - startTime).toInt)
-    }
-    val pushed = push(response, startTime) {
-      case OutputResult.Success => {
-        if (dequeuePaused) {
-          dequeuePaused = false
-          checkBuffer()
+  def processMessages() {
+    incoming.pullWhile (
+      request => {
+        numRequests += 1
+        val promise = new SyncPromise(request)
+        requestBuffer.add(promise)
+        /**
+         * Notice, if the request buffer is full we're still adding to it, but by skipping
+         * processing of requests we can hope to alleviate overloading
+         */
+        val response: Callback[Response] = if (requestBuffer.size <= config.requestBufferSize) {
+          try {
+            requestHandler.handleRequest(request)
+          } catch {
+            case t: ParseException =>
+              Callback.successful(handleFailure(IrrecoverableError(t)))
+            case t: Throwable => {
+              Callback.successful(handleFailure(RecoverableError(request, t)))
+            }
+          }
+        } else {
+          Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
         }
-      }
-      case f: OutputError => {
-        addError(RecoverableError(request, f.reason))
-      }
-    }
-
-    //this should never happen because we are always checking if the outputqueue
-    //is full before calling this
-    if (!pushed) {
-      throw new FatalServiceServerException("Attempted to push response to a full output buffer")
-    }
-  }
-
-  protected def processMessage(request: I) {
-    numRequests += 1
-    val promise = new SyncPromise(request)
-    requestBuffer.add(promise)
-    /**
-     * Notice, if the request buffer is full we're still adding to it, but by skipping
-     * processing of requests we can hope to alleviate overloading
-     */
-    val response: Callback[O] = if (requestBuffer.size <= requestBufferSize) {
-      try {
-        processRequest(request)
-      } catch {
-        case t: ParseException =>
-          Callback.successful(handleFailure(IrrecoverableError(t)))
-        case t: Throwable => {
-          Callback.successful(handleFailure(RecoverableError(request, t)))
+        if (config.requestMetrics) concurrentRequests.increment()
+        response.execute{
+          case Success(res) => promise.complete(res)
+          case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
         }
-      }
-    } else {
-      Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
-    }
-    if (requestMetrics) concurrentRequests.increment()
-    response.execute{
-      case Success(res) => promise.complete(res)
-      case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
-    }
+        PullAction.PullContinue
+      },
+      _ => ()
+    )
   }
+  
+  override def onFatalError(reason: Throwable) = FatalErrorAction.Disconnect(Some(handleFailure(IrrecoverableError(reason))))
 
-  override def processBadRequest(reason: Throwable) = {
-    Some(handleFailure(IrrecoverableError(reason)))
-  }
-
-  private def handleFailure(error: ProcessingFailure[I]): O = {
+  private def handleFailure(error: ProcessingFailure[Request]): Response = {
     addError(error)
-    processFailure(error)
+    requestHandler.handleFailure(error)
   }
 
   private def checkGracefulDisconnect() {
     if (disconnecting && requestBuffer.size == 0) {
-      super.shutdown()
+      upstream.shutdown()
     }
   }
 
   override def shutdown() {
-    pauseReads()
     disconnecting = true
     checkGracefulDisconnect()
   }
 
-  // ABSTRACT MEMBERS
-
-  protected def processRequest(request: I): Callback[O]
-
-  //DO NOT CALL THIS METHOD INTERNALLY, use handleFailure!!
-
-  protected def processFailure(error: ProcessingFailure[I]): O
-
+  
 }
 
 sealed trait ProcessingFailure[C] {

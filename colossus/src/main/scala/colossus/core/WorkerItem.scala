@@ -2,38 +2,38 @@ package colossus
 package core
 
 import akka.actor._
-import akka.event.LoggingAdapter
 
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 import scala.concurrent.duration.FiniteDuration
 
 class WorkerItemException(message: String) extends Exception(message)
 
+
 /**
- * Represents the binding of an item to a worker
- *
- * @param id the id used to reference the worker item
- * @param worker the worker the item is bound to
+ * This trait contains event handler methods for when a worker item is
+ * bound and unbound to/from a worker.  This is used both by [[WorkerItem]]
+ * itself as well as components of connection handler pipelines like
+ * [[DownstreamEvents]].
  */
-class Context(val id: Long, val worker: WorkerRef) {
+trait WorkerItemEvents {
 
-  def !(message: Any)(implicit sender: ActorRef) {
-    worker.worker ! WorkerCommand.Message(id, message)
-  }
+  /**
+   * Called when the item is bound to a worker.
+   */
+  protected def onBind(){}
 
-  def unbind() {
-    worker.worker ! WorkerCommand.UnbindWorkerItem(id)
-  }
+  /**
+   * Called when the item has been unbound from a worker
+   */
+  protected def onUnbind(){}
 
-  private[colossus] lazy val proxy : ActorRef = {
-    _proxyExists = true
-    worker.system.actorSystem.actorOf(Props(classOf[WorkerItemProxy], id, worker))
-  }
+  /**
+   * Provides a way to send this WorkerItem a message from an Actor by way of
+   * WorkerCommand.Message.
+   * @param message  The message that was sent
+   * @param sender The sender who sent the message
+   */
+  def receivedMessage(message: Any, sender: ActorRef){}
 
-  private var _proxyExists = false
-  private[colossus] def proxyExists = _proxyExists
 }
 
 
@@ -53,9 +53,9 @@ class Context(val id: Long, val worker: WorkerRef) {
  * in some cases we want one WorkerItem to replace another, in which case the
  * context must be transferred
  */
-abstract class WorkerItem(val context: Context) {
+trait WorkerItem extends WorkerItemEvents {
 
-  def this(worker: WorkerRef) = this(worker.generateContext())
+  def context: Context
 
   def id = context.id
   def worker = context.worker
@@ -95,25 +95,6 @@ abstract class WorkerItem(val context: Context) {
   }
 
   /**
-   * Provides a way to send this WorkerItem a message from an Actor by way of
-   * WorkerCommand.Message.
-   * @param message  The message that was sent
-   * @param sender The sender who sent the message
-   */
-  def receivedMessage(message: Any, sender: ActorRef)
-
-  /**
-   * Called when the item is bound to a worker.
-   */
-  protected def onBind(){}
-
-  /**
-   * Called when the item has been unbound from a worker
-   */
-  protected def onUnbind(){}
-
-
-  /**
    * A Request has been made to shutdown this WorkerItem.  By default this will
    * simply unbind the item from its Worker, but this can be overriden to add in
    * custom shutdown behaviors.  Be aware that in some cases this method may not
@@ -149,25 +130,26 @@ trait IdleCheck extends WorkerItem {
 }
 
 /**
- * This is a mixin for [[WorkerItem]] that gives it actor-like capabilities.  A
+ * This is a mixin for [[WorkerItemEvents]] that gives it actor-like capabilities.  A
  * "proxy" Akka actor is spun up, such that any message sent to the proxy will
- * be relayed to the WorkerItem.
+ * be relayed to the WorkerItem.  
  *
- * The proxy actors lifecycle will be linked to the lifecycle of this
+ * The proxy actors lifecycle will be linked to the lifecycle of the bound WorkerItem.
  * workeritem, so if the actor is kill, the `shutdownRequest` method will be
  * invoked, and likewise if this item is unbound the proxy actor will be killed.
+ *
+ * This is intended to be mixed in both to worker items as well as Pipeline Componenents.
  */
-trait ProxyActor extends WorkerItem {
+trait ProxyActor extends WorkerItemEvents {
+
+  //TODO: figure out how to not need to define this here separately from WorkerItem
+  def shutdownRequest()
+  def context: Context
+
 
   import ProxyActor._
-
   implicit val self : ActorRef = context.proxy
-
-  private var currentReceiver : Receive = receive
-
-  def becomeReceive(receive: Receive) {
-    currentReceiver = receive
-  }
+  private var killedByProxy = false
 
   override def onBind() {
     super.onBind()
@@ -183,20 +165,31 @@ trait ProxyActor extends WorkerItem {
       self ! WorkerItemProxy.Unbound
     }
   }
+  
 
+  private var currentReceiver : Receive = receive
+    
+  def becomeReceive(receive: Receive) {
+    currentReceiver = receive
+  }
+
+    
   private var lastSender = ActorRef.noSender
-  private var killedByProxy = false
   def sender() : ActorRef = lastSender
 
-  def receivedMessage(message: Any, sender: ActorRef) {
+  override def receivedMessage(message: Any, sender: ActorRef) {
     lastSender = sender
     message match {
       case WorkerItemProxy.Shutdown => {
         killedByProxy = true
         shutdownRequest()
       }
-      case other => currentReceiver.applyOrElse(message, (_: Any) => ())
+      case other => handleReceive(message, currentReceiver)
     }
+  }
+
+  protected def handleReceive(message: Any, receiver: Receive) {
+    receiver.applyOrElse(message, (_: Any) => ())
   }
 
   def receive : Receive

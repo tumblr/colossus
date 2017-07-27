@@ -4,9 +4,11 @@ package colossus.protocols.http
 import org.scalatest._
 import java.util.Date
 import java.text.SimpleDateFormat
+import scala.util.{Success, Failure}
+import colossus.core.DynamicOutBuffer
 
 
-class HttpRequestHeadSuite extends WordSpec with MustMatchers{
+class HttpHeadSpec extends WordSpec with MustMatchers{
 
   import HttpHeader.Conversions._
 
@@ -101,6 +103,27 @@ class HttpRequestHeadSuite extends WordSpec with MustMatchers{
       d.bytes(time).utf8String must equal(date(time))
       d.bytes(time + 999).utf8String must equal(date(time))
       d.bytes(time + 1000).utf8String must equal(date(time + 1000))
+    }
+  }
+
+  "Query Parameter Parsing" must {
+    "parse some parameters" in {
+      val req = HttpRequest.get("/foo?a=b&b=3")
+      req.head.parameters.getFirstAs[Int]("b") mustBe Success(3)
+      req.head.parameters.getFirstAs[String]("a") mustBe Success("b")
+      req.head.parameters.getFirstAs[Long]("b") mustBe Success(3L)
+      req.head.parameters.getFirstAs[Int]("a") mustBe a[Failure[_]]
+      req.head.parameters.getFirstAs[Int]("c") mustBe a[Failure[_]]
+
+    }
+  }
+
+  "ParsedHttpHeaders" must {
+    "encode separate headers" in {
+      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")), Some(TransferEncoding.Chunked), None, Some(Connection.KeepAlive))
+      val b = new DynamicOutBuffer(500)
+      p.encode(b)
+      b.data.asByteString.utf8String mustBe "Transfer-Encoding: chunked\r\nConnection: keep-alive\r\nfoo: bar\r\n"
     }
   }
 

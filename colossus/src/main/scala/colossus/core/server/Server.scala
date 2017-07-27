@@ -1,111 +1,15 @@
 package colossus
 package core
+package server
 
 import akka.actor._
 import akka.agent.Agent
-import akka.pattern.ask
-import akka.util.Timeout
-import com.typesafe.config.{Config, ConfigFactory}
 import java.net.{InetSocketAddress, ServerSocket}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
 import metrics._
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
-import scala.concurrent.Future
 
-
-
-
-
-/** Contains values for configuring how a Server operates
- *
- * These are all lower-level configuration settings that are for the most part
- * not concerned with a server's application behavior
- *
- * The low/high watermark percentages are used to help mitigate connection
- * overload.  When a server hits the high watermark percentage of live
- * connections, it will change the idle timeout from `maxIdleTime` to
- * `highWaterMaxIdleTime` in an attempt to more aggressively close idle
- * connections.  This will continue until the percentage drops below
- * `lowWatermarkPercentage`.  This can be totally disabled by just setting both
- * watermarks to 1.
- *
- * @param port Port on which this Server will accept connections
- * @param maxConnections Max number of simultaneous live connections
- * @param lowWatermarkPercentage Percentage of live/max connections which represent a normal state
- * @param highWatermarkPercentage Percentage of live/max connections which represent a high water state.
- * @param maxIdleTime Maximum idle time for connections when in non high water conditions
- * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.
- * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
- *
- * @param bindingRetry A [[colossus.core.RetryPolicy]] describing how to retry
- * binding to the port if the first attempt fails.  By default it will keep
- * retrying forever.
- *
- * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
- * to handle delegator startup.  Since a Server waits for a signal from the
- * [[colossus.IOSystem]] that every worker has properly initialized a
- * [[colossus.core.Delegator]], this determines how long to wait before the
- * initialization is considered a failure and whether to retry the
- * initialization.
- *
- * @param shutdownTimeout Once a Server begins to shutdown, it will signal a
- * request to every open connection.  This determines how long it will wait for
- * every connection to self-terminate before it forcibly closes them and
- * completes the shutdown.
- */
-case class ServerSettings(
-  port: Int,
-  slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
-  maxConnections: Int = 1000,
-  maxIdleTime: Duration = Duration.Inf,
-  lowWatermarkPercentage: Double = 0.75,
-  highWatermarkPercentage: Double = 0.85,
-  highWaterMaxIdleTime : FiniteDuration = 100.milliseconds,
-  tcpBacklogSize: Option[Int] = None,
-  bindingRetry : RetryPolicy = BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second)),
-  delegatorCreationPolicy : WaitPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant)),
-  shutdownTimeout: FiniteDuration = 100.milliseconds
-) {
-  def lowWatermark = lowWatermarkPercentage * maxConnections
-  def highWatermark = highWatermarkPercentage * maxConnections
-}
-
-object ServerSettings {
-  val ConfigRoot = "colossus.server"
-
-  def extract(config : Config) : ServerSettings = {
-    import colossus.metrics.ConfigHelpers._
-
-    val bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
-    val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
-
-    ServerSettings (
-      port                    = config.getInt("port"),
-      maxConnections          = config.getInt("max-connections"),
-      slowStart               = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
-      maxIdleTime             = config.getScalaDuration("max-idle-time"),
-      lowWatermarkPercentage  = config.getDouble("low-watermark-percentage"),
-      highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
-      highWaterMaxIdleTime    = config.getFiniteDuration("highwater-max-idle-time"),
-      tcpBacklogSize          = config.getIntOption("tcp-backlog-size"),
-      bindingRetry            = bindingRetry,
-      delegatorCreationPolicy = delegatorCreationPolicy,
-      shutdownTimeout         = config.getFiniteDuration("shutdown-timeout")
-    )
-  }
-
-  def load(name: String, config: Config = ConfigFactory.load()): ServerSettings = {
-    val nameRoot = ConfigRoot + "." + name
-    val resolved = if (config.hasPath(nameRoot)) {
-      config.getConfig(nameRoot).withFallback(config.getConfig(ConfigRoot))
-    } else {
-      config.getConfig(ConfigRoot)
-    }
-    extract(resolved)
-
-  }
-}
 
 /** Configuration used to specify a Server's application-level behavior
  *
@@ -116,76 +20,15 @@ object ServerSettings {
  *  and the name and settings by the user.
  *
  * @param name Name of the Server, all reported metrics are prefixed using this name
- * @param delegatorFactory Factory to generate [[colossus.core.Delegator]]s for each Worker
+ * @param initializerFactory Factory to generate [[colossus.core.Initializer]]s for each Worker
  * @param settings lower-level server configuration settings
  */
 case class ServerConfig(
   name: MetricAddress, //possibly move this into settings as well, needs more experimentation
-  delegatorFactory: Delegator.Factory,
+  initializerFactory: Initializer.Factory,
   settings : ServerSettings
 )
 
-/**
- * A `ServerRef` is a handle to a created server.  It can be used to get basic
- * information about the state of the server as well as send operational
- * commands to it.
- *
- * @param config The ServerConfig used to create this Server
- * @param server The ActorRef of the Server
- * @param system The IOSystem to which this Server belongs
- * @param serverStateAgent The current state of the Server.
- */
-case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateAgent : Agent[ServerState]) {
-  def name = config.name
-
-  def serverState = serverStateAgent.get()
-
-  val namespace : MetricNamespace = system.namespace / name
-
-  def maxIdleTime = {
-    if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
-      config.settings.highWaterMaxIdleTime
-    } else {
-      config.settings.maxIdleTime
-    }
-  }
-
-  def info(): Future[Server.ServerInfo] = {
-    implicit val timeout = Timeout(1.second)
-    (server ? Server.GetInfo).mapTo[Server.ServerInfo]
-  }
-
-  /**
-   * Broadcast a message to a all of the [[Delegator]]s of this server.
-   *
-   * @param message
-   * @param sender
-   * @return
-   */
-  def delegatorBroadcast(message: Any)(implicit sender: ActorRef = ActorRef.noSender) {
-    server.!(Server.DelegatorBroadcast(message))(sender)
-  }
-
-  /**
-   * Gracefully shutdown this server.  This will cause the server to
-   * immediately begin refusing connections, but attempt to allow existing
-   * connections to close on their own.  The `shutdownRequest` method will be
-   * called on every `ServerConnectionHandler` associated with this server.
-   * `shutdownTimeout` in `ServerSettings` controls how long the server will
-   * wait before it force-closes all connections and shuts down.  The server
-   * actor will remain alive until it is fully shutdown.
-   */
-  def shutdown() {
-    server ! Server.Shutdown
-  }
-
-  /**
-   * Immediately kill the server and all corresponding open connections.
-   */
-  def die() {
-    server ! PoisonPill
-  }
-}
 
 /**
  * Represents the current state of a Server.
@@ -291,7 +134,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
       log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
       self ! PoisonPill
     }
-    case d: DelegatorBroadcast => stash()
+    case d: InitializerBroadcast => stash()
     case Shutdown => {
       self ! PoisonPill
     }
@@ -299,7 +142,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
 
 
   def binding(router: ActorRef): Receive = alwaysHandle orElse {
-    case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
+    case InitializerBroadcast(message) => router ! akka.routing.Broadcast(Worker.InitializerMessage(me, message))
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
@@ -343,7 +186,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
     } else {
       router ! Worker.NewConnection(sc, attempt + 1)
     }
-    case DelegatorBroadcast(message) => router ! akka.routing.Broadcast(Worker.DelegatorMessage(me, message))
+    case InitializerBroadcast(message) => router ! akka.routing.Broadcast(Worker.InitializerMessage(me, message))
     case Shutdown => {
       //initiate the shutdown sequence.  We broadcast a shutdown request to all
       //of our open connections, and then wait for them to close or timeout and
@@ -503,7 +346,7 @@ object Server extends ServerDSL {
 
   private[core] sealed trait ServerCommand
   private[core] case object Shutdown extends ServerCommand
-  private[core] case class DelegatorBroadcast(message: Any) extends ServerCommand
+  private[core] case class InitializerBroadcast(message: Any) extends ServerCommand
   private[core] case object GetInfo extends ServerCommand
 
   case class ServerInfo(openConnections: Int, status: ServerStatus)

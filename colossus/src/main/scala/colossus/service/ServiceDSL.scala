@@ -3,139 +3,110 @@ package service
 
 import com.typesafe.config.{Config, ConfigFactory}
 import core._
+import core.server._
 
-import akka.actor.ActorRef
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.language.higherKinds
 
 import java.net.InetSocketAddress
 import metrics.MetricAddress
+import controller.{Encoding, Codec, Controller}
 
-import Codec._
-
-trait Protocol {self =>
-  type Input
-  type Output
-
+trait Protocol {
+  type Request
+  type Response
 }
 
-object Protocol {
+abstract class HandlerGenerator[T](ctx: InitContext) {
+  implicit val worker = ctx.worker
+  val server = ctx.server
 
-  type PartialHandler[C <: Protocol] = PartialFunction[C#Input, Callback[C#Output]]
 
-  type Receive = PartialFunction[Any, Unit]
-
-  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Input], C#Output]
-
-  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Output]
+  def fullHandler: T => ServerConnectionHandler
 }
 
-import Protocol._
+trait ServiceInitializer[T] extends HandlerGenerator[T] {
+
+  def onConnect: ServerContext => T
+
+  def receive: ServerDSL.Receive = Map()
+  def onShutdown(){}
+}
+
+trait ServiceDSL[T, I <: ServiceInitializer[T]] {
+
+  def basicInitializer: InitContext => HandlerGenerator[T]
+
+  class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends core.server.Initializer(init) {
+    def onConnect = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
+    override def receive = serviceInitializer.receive
+    override def onShutdown(){ serviceInitializer.onShutdown() }
+  }
+
+  def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name, settings){i => new BridgeInitializer(i, init(i)) }
+
+  }
+
+  def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name, port){i => new BridgeInitializer(i, init(i)) }
+  }
+
+  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
+    Server.start(name, port){i => new core.server.Initializer(i) {
+      val rinit = basicInitializer(i)
+      def onConnect = ctx => rinit.fullHandler(handler(ctx))
+    }}
+  }
+
+}
 
 /**
- * Provide a Codec as well as some convenience functions for usage within in a Service.
-  *
-  * @tparam C the type of codec this provider will supply
+ * A one stop shop for a fully working Server DSL without any custom
+ * functionality.  Just provide a codec and you're good to go
  */
-trait CodecProvider[C <: Protocol] {
-  /**
-    * The Codec which will be used.
-    *
-    * @return
-    */
-  def provideCodec: ServerCodec[C#Input, C#Output]
-}
+trait BasicServiceDSL[P <: Protocol] {
+  import controller.Controller
 
-trait ServiceCodecProvider[C <: Protocol] extends CodecProvider[C] {
-  /**
-   * Basic error response
-    *
-    * @param error Request that caused the error
-   * @return A response which represents the failure encoded with the Codec
-   */
-  def errorResponse(error: ProcessingFailure[C#Input]): C#Output
+  protected def provideCodec(): Codec.Server[P]
 
-}
+  protected def errorMessage(reason: ProcessingFailure[P#Request]): P#Response
 
-trait ClientCodecProvider[C <: Protocol] {
-  def name: String
-  def clientCodec(): ClientCodec[C#Input, C#Output]
-}
+  protected class ServiceHandler(rh: RequestHandler) extends ServiceServer[P](rh) {
 
-
-class UnhandledRequestException(message: String) extends Exception(message)
-class ReceiveException(message: String) extends Exception(message)
-
-abstract class Service[C <: Protocol]
-(config: ServiceConfig, srv: ServerContext)(implicit provider: ServiceCodecProvider[C])
-extends ServiceServer[C#Input, C#Output](provider.provideCodec, config, srv) {
-
-  implicit val executor   = context.worker.callbackExecutor
-
-  def this(context: ServerContext)(implicit provider: ServiceCodecProvider[C]) = this(ServiceConfig.load(context.server.config.name.idString), context)(provider)
-
-  protected def unhandled: PartialHandler[C] = PartialFunction[C#Input,Callback[C#Output]]{
-    case other =>
-      Callback.successful(processFailure(RecoverableError(other, new UnhandledRequestException(s"Unhandled Request $other"))))
   }
 
-  protected def unhandledReceive: Receive = {
-    case _ => {}
+  protected class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
+
+    def fullHandler = rh => new PipelineHandler(new Controller(new ServiceHandler(rh), provideCodec()), rh)
+
   }
 
-  protected def unhandledError: ErrorHandler[C] = {
-    case (error) => provider.errorResponse(error)
-  }
+  abstract class Initializer(context: InitContext) extends Generator(context) with ServiceInitializer[RequestHandler]
 
-  private var currentSender: Option[ActorRef] = None
+  abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig ) extends GenRequestHandler[P](ctx, config){
+    def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 
-  def sender(): ActorRef = currentSender.getOrElse {
-    throw new ReceiveException("No sender")
-  }
-
-  private lazy val handler: PartialHandler[C] = handle orElse unhandled
-  private lazy val errorHandler: ErrorHandler[C] = onError orElse unhandledError
-
-  def receivedMessage(message: Any, sender: ActorRef) {
-    currentSender = Some(sender)
-    receive(message)
-    currentSender = None
-  }
-
-  protected def processRequest(i: C#Input): Callback[C#Output] = handler(i)
-
-  protected def processFailure(error: ProcessingFailure[C#Input]): C#Output = errorHandler(error)
-
-
-  def handle: PartialHandler[C]
-
-  def onError: ErrorHandler[C] = Map()
-
-  def receive: Receive = Map()
-
-}
-
-
-
-object Service {
-
-  /** Quick-start a service, using default settings
-   *
-   * @param name The name of the service
-   * @param port The port to bind the server to
-   */
-  def basic[T <: Protocol]
-  (name: String, port: Int, config : ServiceConfig = ServiceConfig.Default)(userHandler: PartialHandler[T])
-  (implicit system: IOSystem, provider: ServiceCodecProvider[T]): ServerRef = {
-    class BasicService(context: ServerContext) extends Service(config, context) {
-      def handle = userHandler
+    def unhandledError = {
+      case error => errorMessage(error)
     }
-    Server.basic(name, port)(context => new BasicService(context))
+  }
+
+  object Server extends ServiceDSL[RequestHandler, Initializer] {
+
+    def basicInitializer = new Generator(_)
+
+    def basic(name: String, port: Int)(handler: PartialFunction[P#Request, Callback[P#Response]])(implicit io: IOSystem) = start(name, port){new Initializer(_) {
+      def onConnect = new RequestHandler(_) { def handle = handler }
+    }}
+
   }
 
 }
 
+
+  
 
 /**
  * This has to be implemented per codec in order to lift generic Sender traits to a type-specific trait
@@ -148,7 +119,20 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
 
 }
 
-trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
+/**
+ * A generic trait for creating clients.  There are several more specialized
+ * subtypes that make more sense of the type parameters, so this trait should
+ * generally not be used unless writing very generic code.
+ *
+ * Type Parameters:
+ * * C - the protocol used by the client
+ * * M[_] - the concurrency wrapper, either Callback or Future
+ * * T - the type of the returned client
+ * * E - an implciitly required environment type, WorkerRef for Callback and IOSystem for Future
+ */
+trait ClientFactory[C <: Protocol, M[_], +T <: Sender[C,M], E] {
+
+  def defaultName: String
 
 
   protected lazy val configDefaults = ConfigFactory.load()
@@ -160,7 +144,7 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
     * @return
     */
-  def apply(clientName : String, config : Config = configDefaults)(implicit provider: ClientCodecProvider[C], env: E) : T = {
+  def apply(clientName : String, config : Config = configDefaults)(implicit env: E) : T = {
     apply(ClientConfig.load(clientName, config))
   }
 
@@ -170,52 +154,82 @@ trait ClientFactory[C <: Protocol, M[_], T <: Sender[C,M], E] {
     * @param config A Config object in the shape of `colossus.client-defaults`.  It is also expected to have the `address` and `name` fields.
     * @return
     */
-  def apply(config : Config)(implicit provider: ClientCodecProvider[C], env: E) : T = {
+  def apply(config : Config)(implicit  env: E) : T = {
     apply(ClientConfig.load(config))
   }
 
-  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T
+  def apply(config: ClientConfig)(implicit env: E): T
 
-  def apply(host: String, port : Int)(implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply(host: String, port : Int)(implicit env: E): T = {
     apply(host, port, 1.second)
   }
 
-  def apply(host: String, port: Int, requestTimeout: Duration)(implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply(host: String, port: Int, requestTimeout: Duration)(implicit env: E): T = {
     apply(new InetSocketAddress(host, port), requestTimeout)
   }
 
-  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit provider: ClientCodecProvider[C], env: E): T = {
+  def apply (address: InetSocketAddress, requestTimeout: Duration) (implicit env: E): T = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,
-      name = MetricAddress.Root / provider.name
+      name = MetricAddress.Root / defaultName
     )
     apply(config)
   }
 }
 
-object ClientFactory {
+trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef] {
 
-  implicit def serviceClientFactory[C <: Protocol] = new ClientFactory[C, Callback, ServiceClient[C], WorkerRef] {
-
-    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], worker: WorkerRef): ServiceClient[C] = {
-      new ServiceClient(provider.clientCodec(), config, worker)
-    }
+  def connectionHandler(base: ServiceClient[P], codec: Codec[Encoding.Client[P]]) : ClientConnectionHandler = {
+    new UnbindHandler(new Controller[Encoding.Client[P]](base, codec), base)
   }
 
-  implicit def futureClientFactory[C <: Protocol] = new ClientFactory[C, Future, FutureClient[C], IOSystem] {
+  def codecProvider: Codec.Client[P]
 
-    def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], io: IOSystem) = {
-      FutureClient.create(config)(io, provider)
-    }
+  def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+    //TODO : binding a client needs to be split up from creating the connection handler
+    // we should make a method called "create" the abstract method, and have
+    // this apply call it, then move this to a more generic parent type
+    val base = new ServiceClient[P](config, worker.generateContext())
+    val handler = connectionHandler(base, codecProvider)
+    worker.worker ! WorkerCommand.Bind(handler)
+    base
   }
+
 }
 
-class CodecClientFactory[C <: Protocol, M[_], B <: Sender[C, M], T[M[_]] <: Sender[C,M], E]
-(implicit baseFactory: ClientFactory[C, M,B,E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
+
+object ServiceClientFactory {
+  
+  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P]) = new ServiceClientFactory[P] {
+
+    def defaultName = name
+
+    def codecProvider = provider()
+
+  }
+
+}
+
+trait CallbackClientFactory[P <: Protocol, T <: Sender[P, Callback]] extends ClientFactory[P, Callback, T, WorkerRef]
+
+trait FutureClientFactory[P <: Protocol, T <: Sender[P, Future]] extends ClientFactory[P, Future, T, IOSystem]
+
+class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) extends FutureClientFactory[P, FutureClient[P]]{
+
+  def defaultName = base.defaultName
+  
+  def apply(config: ClientConfig)(implicit io: IOSystem) = FutureClient.create(config)(io, base)
+
+}
+
+class CodecClientFactory[C <: Protocol, M[_], T[M[_]] <: Sender[C,M], E]
+(implicit baseFactory: ClientFactory[C, M,Sender[C,M],E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
 extends ClientFactory[C,M,T[M],E] {
 
-  def apply(config: ClientConfig)(implicit provider: ClientCodecProvider[C], env: E): T[M] =  {
+  def defaultName = baseFactory.defaultName
+
+  def apply(config: ClientConfig)(implicit env: E): T[M] = {
     apply(baseFactory(config), config)
   }
 
@@ -231,11 +245,15 @@ extends ClientFactory[C,M,T[M],E] {
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C, T]){
+abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
 
-  val client = new CodecClientFactory[C, Callback, ServiceClient[C], T, WorkerRef]
+  implicit def clientFactory: FutureClient.BaseFactory[C]
 
-  val futureClient = new CodecClientFactory[C, Future, FutureClient[C], T, IOSystem]
+  implicit val futureFactory = new GenFutureClientFactory[C](clientFactory)
+
+  val client = new CodecClientFactory[C, Callback, T, WorkerRef]
+
+  val futureClient = new CodecClientFactory[C, Future, T, IOSystem]
 
 }
 
@@ -245,9 +263,9 @@ trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
   def client: Sender[C,M]
   implicit val async: Async[M]
 
-  def send(input: C#Input): M[C#Output] = client.send(input)
+  def send(input: C#Request): M[C#Response] = client.send(input)
 
-  protected def executeAndMap[T](i : C#Input)(f : C#Output => M[T]) = async.flatMap(send(i))(f)
+  protected def executeAndMap[T](i : C#Request)(f : C#Response => M[T]) = async.flatMap(send(i))(f)
 
   def disconnect() {
     client.disconnect()

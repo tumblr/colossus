@@ -1,8 +1,8 @@
 package colossus
 package protocols.memcache
 
+import controller.Codec
 import core._
-import service._
 
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.zip.{Deflater, Inflater}
@@ -361,12 +361,15 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
 
 }
 
-class MemcacheClientCodec() extends Codec.ClientCodec[MemcacheCommand, MemcacheReply] {
-  private var parser = new MemcacheReplyParser()//(NoCompressor) //config
+class MemcacheClientCodec() extends Codec.Client[Memcache] {
+  private var parser = new MemcacheReplyParser()
 
-  def encode(cmd: MemcacheCommand): DataReader = DataBuffer(cmd.bytes(NoCompressor))
-  def decode(data: DataBuffer): Option[DecodedResult[MemcacheReply]] = DecodedResult.static(parser.parse(data))
-  def reset(){
-    parser = new MemcacheReplyParser()//(NoCompressor)
+  def encode(cmd: MemcacheCommand, buffer: DataOutBuffer) {
+    buffer.write(cmd.bytes(NoCompressor))
   }
+  def decode(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
+  def reset(){
+    parser = new MemcacheReplyParser()
+  }
+  def endOfStream() = None
 }

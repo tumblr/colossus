@@ -1,6 +1,6 @@
 package colossus.service
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef
@@ -12,7 +12,7 @@ import colossus.core.WorkerRef
  */
 trait Sender[C <: Protocol, M[_]] {
 
-  def send(input: C#Input): M[C#Output]
+  def send(input: C#Request): M[C#Response]
 
   def disconnect()
 

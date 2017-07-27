@@ -3,6 +3,7 @@ package protocols.http
 
 import akka.util.ByteString
 import scala.util.Try
+import core.DataBlock
 
 class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeader] = None)  {
 
@@ -13,6 +14,7 @@ class HttpBody(private val body: Array[Byte], val contentType : Option[HttpHeade
   }
 
   def bytes: ByteString = ByteString(body)
+  def asDataBlock: DataBlock = DataBlock(body)
 
   def as[T](implicit decoder: HttpBodyDecoder[T]): Try[T] = decoder.decode(body)
 

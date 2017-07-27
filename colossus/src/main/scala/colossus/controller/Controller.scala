@@ -1,12 +1,11 @@
 package colossus
 package controller
 
+import colossus.metrics.MetricNamespace
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import core._
-import service.Codec
-
-import scala.concurrent.duration.Duration
+import colossus.streaming._
 
 /**
  * Configuration for the controller
@@ -18,110 +17,112 @@ import scala.concurrent.duration.Duration
  */
 case class ControllerConfig(
   outputBufferSize: Int,
-  sendTimeout: Duration,
   inputMaxSize: DataSize = 1.MB,
-  flushBufferOnClose: Boolean = true,
   metricsEnabled: Boolean = true
 )
 
-//used to terminate input streams when a connection is closing
-class DisconnectingException(message: String) extends Exception(message)
-
-
-
-
-
 /**
- * The base trait inherited by both InputController and OutputController and
- * ultimately implemented by Controller.  This merely contains methods needed
- * by both input and output controller
+ * Response type of controller fatal error handler.  This essentially instructs
+ * the controller how to handle an unexpected error.
  */
-trait MasterController[Input, Output] extends ConnectionHandler with IdleCheck {
-  protected def connectionState: ConnectionState
-  protected def codec: Codec[Output, Input]
-  protected def controllerConfig: ControllerConfig
+sealed trait FatalErrorAction[+T]
+object FatalErrorAction {
+  /**
+   * gracefully close the connection (generally used for server connections),
+   * possibly sending a final message before closing.
+   */
+  case class Disconnect[T](lastMessage: Option[T]) extends FatalErrorAction[T]
 
-  implicit def namespace : metrics.MetricNamespace
-
-  //needs to be called after various actions complete to check if it's ok to disconnect
-  private[controller] def checkControllerGracefulDisconnect()
-
-  //Right now in some cases the Input or Outut Controller decide to kill the
-  //whole connection.  We should eventually make this configurable such that we
-  //can kill one half of the controller without automatically killing the whole
-  //thing
-  def disconnect()
+  /**
+   * Immediately terminate the connection (treated as a connection-level error)
+   */
+  case object Terminate extends FatalErrorAction[Nothing]
 }
 
+//these are the methods that the controller layer requires to be implemented by it's downstream neighbor
+trait ControllerDownstream[E <: Encoding] extends HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
 
+  def incoming: Sink[E#Input]
+
+  def onFatalError(reason: Throwable): FatalErrorAction[E#Output] 
+
+  def controllerConfig: ControllerConfig
+  def namespace: MetricNamespace
+}
+
+//these are the method that a controller layer itself must implement for its downstream neighbor
+trait ControllerUpstream[-E <: Encoding] extends UpstreamEvents {
+  def connection: ConnectionManager
+  def outgoing: Sink[E#Output]
+}
 
 /**
- * A Controller is a Connection handler that is designed to work with
- * connections involving decoding raw bytes into input messages and encoding
- * output messages into bytes.
- *
- * Unlike a service, which pairs an input "request" message with an output
- * "response" message, the controller make no such pairing.  Thus a controller
- * can be thought of as a duplex stream of messages.
+ * methods that both input and output need but shouldn't be exposed in the above traits
  */
-abstract class Controller[Input, Output](val codec: Codec[Output, Input], val controllerConfig: ControllerConfig, context: Context)
-extends CoreHandler(context) with InputController[Input, Output] with OutputController[Input, Output] {
-  import ConnectionState._
+trait BaseController[E <: Encoding] extends UpstreamEventHandler[CoreUpstream] with DownstreamEventHandler[ControllerDownstream[E]] { 
+  def fatalError(reason: Throwable, kill: Boolean) 
 
+  def controllerConfig: ControllerConfig
+  def codec: Codec[E]
+  def context: Context
 
-  override def connected(endpt: WriteEndpoint) {
-    super.connected(endpt)
-    codec.reset()
-    outputOnConnected()
-    inputOnConnected()
-  }
+  def incoming: Sink[E#Input]
 
+  implicit val namespace: MetricNamespace
+}
 
-  private def onClosed() {
-    inputOnClosed()
-    outputOnClosed()
-  }
+class Controller[E <: Encoding](val downstream: ControllerDownstream[E], val codec: Codec[E]) 
+extends ControllerUpstream[E] with StaticInputController[E] with StaticOutputController[E] with CoreDownstream {
 
-  protected def connectionClosed(cause : DisconnectCause) {
-    onClosed()
-  }
+  downstream.setUpstream(this)
+  
+  def connection = upstream
+  def controllerConfig = downstream.controllerConfig
+  implicit val namespace = downstream.namespace
 
-  protected def connectionLost(cause : DisconnectError) {
-    onClosed()
-  }
-
-  override def shutdown() {
-    inputGracefulDisconnect()
-    outputGracefulDisconnect()
-    checkControllerGracefulDisconnect()
-  }
-
-  def fatalInputError(reason: Throwable) = {
-
-    processBadRequest(reason).foreach { output =>
-      push(output) { _ => {} }
+  override def onConnectionTerminated(cause: DisconnectCause) {
+    cause match {
+      case error: DisconnectError => connectionLost(error)
+      case other => connectionClosed(other)
     }
-    disconnect()
-    //throw reason
   }
 
   /**
-   * Checks the status of the shutdown procedure.  Only when both the input and
-   * output sides are terminated do we call shutdownRequest on the parent
-   */
-  private[controller] def checkControllerGracefulDisconnect() {
-    (connectionState, inputState, outputState) match {
-      case (ShuttingDown(endpoint), InputState.Terminated, OutputState.Terminated) => {
-        super.shutdown()
+   * Terminate the connection with an error.  If `forceKill` is true, the connection
+   * will be immediately force-disconnected and treated as an error, otherwise
+   * the downstream handler will have a chance to push a final message and
+   * control through the returned [[FatalErrorAction]] how to close the
+   * connection.
+   *
+   * (generally `forceKill` should be true when we know it's impossible to send
+   * a message, such as when an error occurs in OutputController)
+   * */
+  def fatalError(reason: Throwable, forceKill: Boolean) {
+    if (forceKill) {
+      upstream.kill(reason)
+    } else {
+      downstream.onFatalError(reason) match {
+        case FatalErrorAction.Disconnect(msgOpt) => {
+          msgOpt.foreach{o => outgoing.push(o)}
+          upstream.disconnect()
+        }
+        case FatalErrorAction.Terminate => {
+          upstream.kill(reason)
+        }
       }
-      case (NotConnected, _, _) => {
-        //can happen when disconnect is called before being connected
-        super.shutdown()
-      }
-      case _ => {}
     }
   }
 
+  val incoming = downstream.incoming
+  
+
+}
+
+object Controller {
+
+  def apply[E <: Encoding](downstream: ControllerDownstream[E] with HandlerTail, codec: Codec[E]): PipelineHandler = {
+    new PipelineHandler(new Controller(downstream, codec), downstream)
+  }
 }
 
 

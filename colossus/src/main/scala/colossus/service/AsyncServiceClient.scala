@@ -4,11 +4,11 @@ package service
 import core._
 
 import akka.actor._
-import akka.util.{ByteString, Timeout}
-import java.net.InetSocketAddress
+import akka.util.Timeout
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
+import scala.language.higherKinds
 
 
 class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
@@ -25,30 +25,31 @@ class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
   }
 }
 
-trait FutureClient[C <: Protocol] extends Sender[C, Future] {
-  def connectionStatus: Future[ConnectionStatus]
+trait Client[P <: Protocol, M[_]] extends Sender[P, M] {
+  def connectionStatus: M[ConnectionStatus]
   def disconnect()
-  def clientConfig : ClientConfig
+
 }
 
-trait FutureClientOps {
+trait CallbackClient[P <: Protocol] extends Client[P, Callback]
+trait FutureClient[C <: Protocol] extends Client[C, Future]
+
+object FutureClient {
 
   sealed trait ClientCommand
 
+  type BaseFactory[P <: Protocol] = ClientFactory[P, Callback, Client[P,Callback], WorkerRef]
+
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, provider: ClientCodecProvider[C]): FutureClient[C] = {
-    val gen = new AsyncHandlerGenerator(config, provider.clientCodec())
+  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = create(config)(io, base)
+
+  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = {
+    val gen = new AsyncHandlerGenerator(config, base)
     gen.client
   }
 
-  def apply[C <: Protocol] = ClientFactory.futureClientFactory[C]
 }
-object FutureClient extends FutureClientOps
-
-//TODO: remove in 0.9.x
-@deprecated("Use FutureClient Instead", "0.8.1")
-object AsyncServiceClient extends FutureClientOps
 
 /**
  * So we need to take a type-parameterized request object, package it into a
@@ -57,23 +58,24 @@ object AsyncServiceClient extends FutureClientOps
  * without using reflection.  We can do that with some nifty path-dependant
  * types
  */
-class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, codec: Codec[C#Input,C#Output])(implicit sys: IOSystem) {
+class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[C])(implicit sys: IOSystem) {
 
-  type I = C#Input
-  type O = C#Output
+  type I = C#Request
+  type O = C#Response
 
   case class PackagedRequest(request: I, response: Promise[O])
 
-  class ClientWrapper(context: Context) extends WorkerItem(context) with ProxyActor {
+  class ClientWrapper(val context: Context) extends WorkerItem with ProxyActor {
 
-    val client = new ServiceClient[C](codec, config, worker)
+    val client = base(config)(worker)
 
     def receive = {
       case PackagedRequest(request, promise) => {
         client.send(request).execute(promise.complete)
       }
       case FutureClient.GetConnectionStatus(promise) => {
-        promise.success(client.connectionStatus)
+        import scala.concurrent.ExecutionContext.Implicits.global
+        promise.completeWith(client.connectionStatus.toFuture)
       }
 
     }

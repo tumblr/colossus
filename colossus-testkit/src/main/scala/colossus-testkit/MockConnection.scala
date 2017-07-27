@@ -108,4 +108,20 @@ object MockConnection {
     handler.setBind()
     client(handler, fakeworker, _maxWriteSize)
   }
+
+  /**
+   * This is intended to be used when creating protocol clients.  The underlying
+   * handler and the user-facing client API are returned
+   */
+  def apiClient[T](handlerF: WorkerRef => T, _maxWriteSize: Int = 1024 )(implicit sys: ActorSystem): (ClientConnection with MockConnection, T) = {
+    val fakeworker = FakeIOSystem.fakeWorker
+    val clnt = handlerF(fakeworker.worker)
+    val handler = fakeworker.probe.receiveOne(1.second) match {
+      case WorkerCommand.Bind(c: ClientConnectionHandler) => c
+      case other => throw new Exception("Invalid worker command received by probe")
+    }
+    handler.setBind()
+    (client(handler, fakeworker, _maxWriteSize), clnt)
+  }
+
 }

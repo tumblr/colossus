@@ -2,12 +2,11 @@ package colossus
 package protocols.http
 
 import akka.util.ByteString
-import Connection.{Close, KeepAlive}
 import com.github.nscala_time.time.Imports._
 import core.{DataOutBuffer, Encoder}
 import java.util.{LinkedList, List => JList}
 
-import scala.collection.immutable.HashMap
+import scala.util.{Failure, Success, Try}
 import parsing.ParseException
 
 
@@ -189,7 +188,23 @@ class ParsedHttpHeaders(
   override val connection: Option[Connection]
 ) extends HttpHeaders(headers) {
 
-  override def transferEncoding = transferEncodingOpt.getOrElse(TransferEncoding.Identity)
+  def this(
+    headers: HttpHeaders, 
+    transferEncodingOpt: Option[TransferEncoding],
+    contentLength: Option[Int],
+    connection: Option[Connection]
+  ) = this(headers.headers, transferEncodingOpt, contentLength, connection)
+
+  override def transferEncoding = if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
+
+  override def encode(buffer: core.DataOutBuffer) {
+    transferEncodingOpt.foreach{_.header.encode(buffer)}
+    connection.foreach{_.header.encode(buffer)}
+    contentLength.foreach{c => 
+      HttpHeader.encodeContentLength(buffer, c)
+    }
+    super.encode(buffer)
+  }
 
 }
 
@@ -198,7 +213,7 @@ class ParsedHttpHeaders(
 /**
  * A Wrapper class for a set of Http headers, for a request or response.
  */
-class HttpHeaders(private val headers: JList[HttpHeader]) {
+class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   // NOTE - the headers value should contain ALL headers, even ones like
   // content-length that we track separately
@@ -245,6 +260,14 @@ class HttpHeaders(private val headers: JList[HttpHeader]) {
 
   }
 
+  /**
+   * Mutably add a new header to this set of headers.  Be aware that this method
+   * is not thread safe, though considerably faster than using `+`.
+   */
+  def unsafeAppend(header: HttpHeader) {
+    headers.add(header)
+  }
+
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
     case other => false
@@ -267,6 +290,7 @@ object HttpHeaders {
   val TransferEncoding  = "transfer-encoding"
 
   def apply(hdrs: HttpHeader*) : HttpHeaders = HttpHeaders.fromSeq(hdrs)
+  def fromString(hdrs: (String, String)*): HttpHeaders = HttpHeaders.fromSeq(hdrs.map{case (k,v)  => HttpHeader(k,v)})
 
   def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = {
     val l = new LinkedList[HttpHeader]
@@ -301,6 +325,8 @@ object Cookie {
 
 sealed trait TransferEncoding {
   def value : String
+
+  lazy val header: HttpHeader = HttpHeader("Transfer-Encoding", value)
 }
 
 object TransferEncoding {
@@ -349,6 +375,8 @@ object ContentEncoding {
 
 sealed trait Connection {
   def value: String
+
+  lazy val header: HttpHeader = HttpHeader("Connection", value)
 }
 object Connection {
   case object KeepAlive extends Connection {
@@ -376,6 +404,27 @@ object ContentType {
 }
 
 
+trait ParameterParser[T] {
+  def parse(value: String): Try[T]
+}
+
+object ParameterParser {
+  implicit object StringNoopParser extends ParameterParser[String] {
+    def parse(value: String) = Success(value)
+  }
+  implicit object LongParser extends ParameterParser[Long] {
+    def parse(value: String) = Try {
+      java.lang.Long.parseLong(value)
+    }
+  }
+  implicit object IntParser extends ParameterParser[Int] {
+    def parse(value: String) = Try {
+      Integer.parseInt(value)
+    }
+  }
+}
+
+case class NoParameterException(name: String) extends Exception(s"No value for parameter $name")
 
 case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
 
@@ -387,6 +436,14 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
    * value of the first is returned
    **/
   def getFirst(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
+
+  /**
+   * Get the value of a query string parameter and attempt to cast it to the given type
+   */
+  def getFirstAs[T](key: String)(implicit parser: ParameterParser[T]): Try[T] = getFirst(key) match {
+    case Some(v) => parser.parse(v)
+    case None => Failure(NoParameterException(key))
+  }
 
   /**
    * Get the values of all instances of key
@@ -436,8 +493,7 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
 
 object DateHeader {
 
-  val DATE_FORMAT = "EEE, MMM d yyyy HH:MM:ss z"
+  val DATE_FORMAT = "EEE, MMM d yyyy HH:mm:ss z"
 
 }
-
 

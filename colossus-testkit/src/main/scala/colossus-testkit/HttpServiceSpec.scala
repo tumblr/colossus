@@ -2,10 +2,8 @@ package colossus
 package testkit
 
 import scala.concurrent.Await
-import akka.util.ByteString
 
 import protocols.http._
-import Http.defaults._
 
 abstract class HttpServiceSpec extends ServiceSpec[Http] {
 

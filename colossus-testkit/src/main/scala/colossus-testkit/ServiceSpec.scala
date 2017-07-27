@@ -11,14 +11,14 @@ import core.ServerRef
 import service._
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[C <: Protocol](implicit provider: ServiceCodecProvider[C], clientProvider: ClientCodecProvider[C]) extends ColossusSpec {
-
-  type Request = C#Input
-  type Response = C#Output
+abstract class ServiceSpec[C <: Protocol](implicit clientFactory: GenFutureClientFactory[C]) extends ColossusSpec {
+  
+  type Request = C#Request
+  type Response = C#Response
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-
+  
   def service: ServerRef
   def requestTimeout: FiniteDuration
 
@@ -35,7 +35,7 @@ abstract class ServiceSpec[C <: Protocol](implicit provider: ServiceCodecProvide
     requestTimeout = timeout
   )
 
-  def client(timeout: FiniteDuration = requestTimeout) = FutureClient[C](clientConfig(timeout))
+  def client(timeout: FiniteDuration = requestTimeout) = clientFactory(clientConfig(timeout))
 
   def withClient(f: FutureClient[C] => Unit) {
     val c = client()

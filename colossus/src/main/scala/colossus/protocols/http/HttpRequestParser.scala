@@ -8,10 +8,9 @@ import DataSize._
 
 object HttpRequestParser {
   import HttpParse._
-
+  
   def apply() = httpRequest
 
-  //TODO : don't parse body as a bytestring
   protected def httpRequest: Parser[HttpRequest] = httpHead |> {head =>
     head.headers.transferEncoding match {
       case TransferEncoding.Identity => head.headers.contentLength match {
@@ -22,12 +21,12 @@ object HttpRequestParser {
     }
   }
 
-  protected def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
-    ParsedHead(fl, headersBuilder.buildHeaders)
+  def httpHead = firstLine ~ headers >> {case fl ~ headersBuilder =>
+    ParsedHead(fl, headersBuilder.buildHeaders) 
   }
 
   def firstLine = line(ParsedFL.apply, true)
-
+  
 }
 
 

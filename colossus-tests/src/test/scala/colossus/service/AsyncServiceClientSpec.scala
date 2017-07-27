@@ -4,11 +4,9 @@ package service
 import core._
 import testkit._
 
-import akka.pattern.ask
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import java.net.InetSocketAddress
 
 import Callback.Implicits._
 
@@ -18,7 +16,7 @@ import RawProtocol._
 class FutureClientSpec extends ColossusSpec {
 
   def makeServer()(implicit sys: IOSystem): ServerRef = {
-    Service.basic[Raw]("future-client-test", TEST_PORT){case x => x}
+    RawServer.basic("future-client-test", TEST_PORT){case x => x}
   }
 
   "FutureClient" must {

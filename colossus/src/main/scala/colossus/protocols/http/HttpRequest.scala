@@ -1,7 +1,6 @@
 package colossus
 package protocols.http
 
-import akka.util.ByteString
 import core.{DataOutBuffer, Encoder}
 
 trait FirstLine extends Encoder {
@@ -36,7 +35,7 @@ case class BuiltHead(firstLine: BuildFL, headers: HttpHeaders) extends HttpReque
 
 case class ParsedHead(firstLine: ParsedFL, headers: HttpHeaders) extends HttpRequestHead
 
-trait HttpRequestHead extends Encoder {
+trait HttpRequestHead extends Encoder with HttpMessageHead {
   def firstLine: FirstLine
   def headers: HttpHeaders
 
@@ -80,8 +79,8 @@ trait HttpRequestHead extends Encoder {
     QueryParameters(build)
   } getOrElse QueryParameters(Vector())
 
-  def withHeader(header: String, value: String): HttpRequestHead = {
-    copy(headers = headers + (header -> value))
+  def withHeader(header: HttpHeader): HttpRequestHead = {
+    copy(headers = headers + header)
   }
 
   lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap{Cookie.parseHeader}
@@ -110,24 +109,14 @@ object HttpRequestHead {
 
 }
 
-case class HttpRequest(head: HttpRequestHead, body: HttpBody) extends Encoder with HttpRequestBuilding[HttpRequest] {
-  import head._
-  import HttpCodes._
+case class HttpRequest(head: HttpRequestHead, body: HttpBody) 
+extends Encoder with HttpRequestBuilding[HttpRequest] with HttpMessage[HttpRequestHead] with HttpResponseBuilding {
 
   protected def current = this
 
   protected def next(req: HttpRequest) = req
 
-  def respond[T : HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
-    HttpResponse(HttpResponseHead(version, code, headers), HttpBody(data))
-  }
-
-  def ok[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)              = respond(OK, data, headers)
-  def notFound[T : HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(NOT_FOUND, data, headers)
-  def error[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)        = respond(INTERNAL_SERVER_ERROR, message, headers)
-  def badRequest[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)   = respond(BAD_REQUEST, message, headers)
-  def unauthorized[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(UNAUTHORIZED, message, headers)
-  def forbidden[T : HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty)    = respond(FORBIDDEN, message, headers)
+  def initialVersion = head.version
 
   def encode(buffer: core.DataOutBuffer) {
     head encode buffer

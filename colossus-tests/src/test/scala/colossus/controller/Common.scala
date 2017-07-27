@@ -2,111 +2,60 @@ package colossus
 package controller
 
 import core._
-import colossus.service.{DecodedResult, Codec}
 import testkit._
 import akka.actor._
-import scala.concurrent.duration._
+import akka.util.ByteString
+import org.scalamock.scalatest.MockFactory
+import colossus.parsing.DataSize._
+import streaming._
 
-trait TestInput {
-  def source: Source[DataBuffer]
-}
+import RawProtocol._
 
-case class TestInputImpl(data: FiniteBytePipe) extends TestInput{
-  def source = data
-  def sink = data
-}
+trait ControllerMocks extends MockFactory {self: org.scalamock.scalatest.MockFactory with org.scalatest.Suite =>
 
-case class TestOutput(data: Source[DataBuffer])
+  val defaultConfig = ControllerConfig(4, 2000.bytes)
 
+  class TestDownstream[E <: Encoding](config: ControllerConfig)(implicit actorsystem: ActorSystem) extends ControllerDownstream[E] {
 
-class TestCodec(pipeSize: Int = 3) extends Codec[TestOutput, TestInput]{
-  import parsing.Combinators._
-  val parser: Parser[TestInputImpl] = intUntil('\r') <~ byte >> {num => TestInputImpl(new FiniteBytePipe(num))}
+    val pipe = new BufferedPipe[E#Input](3)
 
-  def decode(data: DataBuffer): Option[DecodedResult[TestInput]] = {
-    val res = parser.parse(data)
-    res.map { x =>
-      DecodedResult.Stream(x, x.source)
+    def incoming = pipe
+
+    def controllerConfig = config
+
+    def context = FakeIOSystem.fakeContext
+
+    def namespace = colossus.metrics.MetricSystem.deadSystem
+
+    override def onFatalError(reason: Throwable) = {
+      println(s"FATAL : $reason")
+      FatalErrorAction.Terminate
     }
   }
 
-  //TODO: need to add support for pipe combinators, eg A ++ B
-  def encode(out: TestOutput) = DataStream(out.data)
+  class TestUpstream[E <: Encoding](val outgoing: Pipe[E#Output, E#Output] = new BufferedPipe[E#Output](2)) extends ControllerUpstream[E] {
+    val connection = stub[ConnectionManager]
+    (connection.isConnected _).when().returns(true)
 
-  def reset(){}
-}
+    val pipe = outgoing
 
-//simple helper class for testing push results, just stores the value so we can
-//check if it gets set at all and to the right value
-class PushPromise {
-
-  private var _result: Option[OutputResult] = None
-  var pushed = false
-
-  def result = _result
-
-  val func: OutputResult => Unit = r => _result = Some(r)
-
-  def isSet = result.isDefined
-  def isSuccess = result == Some(OutputResult.Success)
-  def isCancelled = result.isDefined && result.get.isInstanceOf[OutputResult.Cancelled]
-  def isFailure = result.isDefined && result.get.isInstanceOf[OutputResult.Failure]
-
-  def expectNoSet() { assert(isSet == false) }
-  def expectSuccess() { assert(isSuccess == true) }
-  def expectFailure() {  assert(isFailure == true)}
-  def expectCancelled() {  assert(isCancelled == true)}
-}
-
-trait TestController[I,O] { self: Controller[I,O] with ServerConnectionHandler =>
-
-  implicit val namespace = {
-    import metrics._
-    MetricContext("/", Collection.withReferenceConf(Seq()))
   }
 
-  var _received : Seq[I] = Seq()
-  def received = _received
-
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit = {}
-
-  def processMessage(message: I) {
-    _received = received :+ message
+  def get(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[Encoding.Server[Raw]], TestDownstream[Encoding.Server[Raw]]) = {
+    get(RawServerCodec, config)
   }
 
-
-  def testPause() { pauseWrites() }
-  def testResume() { resumeWrites() }
-
-  //these methods just expose protected versions
-  def testPush(message: O)(onPush: OutputResult => Unit) {
-    push(message)(onPush)
+  def get[E <: Encoding](codec: Codec[E], config: ControllerConfig)(implicit sys: ActorSystem): (CoreUpstream, Controller[E], TestDownstream[E]) = {
+    val upstream = stub[CoreUpstream]
+    val downstream = new TestDownstream[E](config)
+    val controller = new Controller(downstream, codec)
+    controller.setUpstream(upstream)
+    (upstream, controller, downstream)
   }
 
-  def pPush(message: O): PushPromise = {
-    val p = new PushPromise
-    p.pushed = push(message)(p.func)
-    p
+  def expectWrite(c: CoreDownstream, expected: ByteString, bufferSize: Int = 100) {
+    val d = new DynamicOutBuffer(bufferSize)
+    c.readyForData(d)
+    assert(ByteString(d.data.takeAll) == expected)
   }
-}
-
-object TestController {
-  import RawProtocol.RawCodec
-
-  val defaultConfig = ControllerConfig(4, 50.milliseconds)
-
-  type T[I,O] = Controller[I,O] with TestController[I,O] with ServerConnectionHandler
-
-  def controller[I,O](codec: Codec[O,I], config: ControllerConfig)(implicit sys: ActorSystem): TypedMockConnection[T[I,O]] = {
-    val con =MockConnection.server(
-      c => new Controller[I,O](codec, config, c.context) with TestController[I, O] with ServerConnectionHandler,
-      500
-    )
-    con.handler.connected(con)
-    con
-  }
-
-  def static(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(RawCodec, config)
-  def stream(config: ControllerConfig = defaultConfig)(implicit sys: ActorSystem) = controller(new TestCodec, config)
-
 }

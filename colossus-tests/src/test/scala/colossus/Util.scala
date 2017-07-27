@@ -2,44 +2,98 @@ package colossus
 
 import java.net.InetSocketAddress
 
-import akka.pattern.ask
 import akka.util.{ByteString, Timeout}
 import colossus.core._
+import server._
+import controller.{Codec, Encoding}
 import colossus.service.{FutureClient, ClientConfig, Protocol}
 
-import scala.concurrent.{Await, Future, ExecutionContext}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
-class EchoHandler(c: ServerContext) extends BasicSyncHandler(c.context) with ServerConnectionHandler {
+class NoopHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler with ClientConnectionHandler {
+  def this(s: ServerContext) = this(s.context)
+
+  def receivedData(data: DataBuffer){}
+  def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
+
+   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
+   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
+   def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
+
+}
+
+class EchoHandler(c: ServerContext) extends NoopHandler(c){
 
   val buffer = new collection.mutable.Queue[ByteString]
-  def receivedData(data: DataBuffer){
+  override def receivedData(data: DataBuffer){
     //endpoint.write(data)
     buffer.enqueue(ByteString(data.takeAll))
-    endpoint.requestWrite
+    connectionState match {
+      case a: AliveState => a.endpoint.requestWrite()
+      case _ => {}
+    }
   }
 
   override def readyForData(out: DataOutBuffer) = {
     out.write(buffer.dequeue)
     if (buffer.isEmpty) MoreDataResult.Complete else MoreDataResult.Incomplete
   }
+  
+  def connectionFailed(){}
       
 
+}
+
+object SimpleProtocol {
+  //this differs from the raw protocol in that messages have a length, so we can encode multiple messages into a single bytestring
+
+  trait SimpleEncoding extends Encoding {
+    type Input = ByteString
+    type Output = ByteString
+  }
+
+  class SimpleCodec extends Codec[SimpleEncoding] {
+    import parsing.Combinators._
+    def newparser = bytes(intUntil(';') >> {_.toInt}) >> {bytes => ByteString(bytes)}
+    var parser = newparser
+
+    def decode(data: DataBuffer) = parser.parse(data)
+    def encode(bytes: ByteString, buffer: DataOutBuffer) { 
+      buffer write ByteString(bytes.length.toString)
+      buffer write ';'
+      buffer write bytes
+    }
+
+    def reset() {
+      parser = newparser
+    }
+    def endOfStream() = None
+  }
+
+  trait Simple extends Protocol {
+    type Request = ByteString
+    type Response = ByteString
+  }
 }
 
 object RawProtocol {
   import colossus.service._
 
-  object RawCodec extends Codec[ByteString, ByteString] {
-    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(DecodedResult.Static(ByteString(data.takeAll))) else None
-    def encode(raw: ByteString) = DataBuffer(raw)
+  trait BaseRawCodec  {
+    def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
+    def encode(raw: ByteString, buffer: DataOutBuffer) { buffer write raw }
     def reset(){}
+    def endOfStream() = None
   }
 
+  object RawServerCodec extends BaseRawCodec with Codec.Server[Raw]
+  object RawClientCodec extends BaseRawCodec with Codec.Client[Raw]
+
   trait Raw extends Protocol {
-    type Input = ByteString
-    type Output = ByteString
+    type Request = ByteString
+    type Response = ByteString
   }
 
   implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
@@ -50,6 +104,7 @@ object RawProtocol {
   }
 
   object Raw extends ClientFactories[Raw, RawClient]{
+    implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
     
   }
 
@@ -58,17 +113,15 @@ object RawProtocol {
   object RawClient {
   }
 
-  
+  val RawServer = server.Server
 
-  implicit object RawCodecProvider extends ServiceCodecProvider[Raw] {
-    def provideCodec() = RawCodec
+  object server extends BasicServiceDSL[Raw] {
 
-    def errorResponse(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-  }
+    def provideCodec() = RawServerCodec
 
-  implicit object RawClientCodecProvider extends ClientCodecProvider[Raw] {
-    def clientCodec() = RawCodec
-    val name = "raw"
+    def errorMessage(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
+
+
   }
 
 }
@@ -90,7 +143,7 @@ object TestClient {
       failFast = true,
       connectRetry = connectRetry
     )
-    val client = FutureClient[Raw](config)(RawClientCodecProvider, io)
+    val client = FutureClient[Raw](config)(io, Raw.clientFactory)
     if (waitForConnected) {
       TestClient.waitForConnected(client)
     }

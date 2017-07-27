@@ -6,8 +6,6 @@ import akka.util.ByteString
 
 import org.scalatest.{MustMatchers, WordSpec}
 
-import scala.util.Try
-
 class MockWriteBufferSpec extends WordSpec with MustMatchers{
 
   "MockWriteBuffer" must {

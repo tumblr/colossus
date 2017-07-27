@@ -17,20 +17,22 @@ object ColossusBuild extends Build {
     compile <<= (compile in Compile) dependsOn (compile in Test) dependsOn (compile in IntegrationTest),
     (testAll) <<= (test in Test) dependsOn (test in IntegrationTest),
     organization := "com.tumblr",
-    scalaVersion  := "2.11.7",
-    crossScalaVersions := Seq("2.10.6", "2.11.7"),
-    version                   := "0.8.4-SNAPSHOT",
+    scalaVersion  := "2.11.8",
+    crossScalaVersions := Seq("2.10.6", "2.11.8"),
+    version                   := "0.9.0-SNAPSHOT",
     parallelExecution in Test := false,
     scalacOptions <<= scalaVersion map { v: String =>
       val default = List(
-        "-feature",
-        "-language:implicitConversions",
-        "-language:postfixOps",
-        "-unchecked",
-        "-deprecation"
+        "-feature", 
+        "-language:implicitConversions", 
+        "-language:postfixOps", 
+        "-unchecked", 
+        "-deprecation",
+        "-target:jvm-1.7"
       )
       if (v.startsWith("2.10.")) default else "-Ywarn-unused-import" :: default
     },
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7", "-Xlint"),
     scalacOptions in (Compile, console) := Seq(),
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
@@ -45,17 +47,17 @@ object ColossusBuild extends Build {
   ) ++ Defaults.itSettings
 
   val ColossusSettings = GeneralSettings ++ Publish.settings
-
+  
   val noPubSettings = GeneralSettings ++ Seq(
     publishArtifact := false,
-    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))) 
     )
 
   val testkitDependencies = libraryDependencies ++= Seq(
     "org.scalatest"     %% "scalatest" % SCALATEST_VERSION
   )
 
-  val MetricSettings = ColossusSettings
+  val MetricSettings = ColossusSettings 
 
   val ExamplesSettings = Seq (
     libraryDependencies ++= Seq(
@@ -94,7 +96,7 @@ object ColossusBuild extends Build {
       .dependsOn(ColossusProject)
 
   lazy val ColossusTestsProject = Project(
-    id="colossus-tests",
+    id="colossus-tests", 
     base = file("colossus-tests"),
     dependencies = Seq(ColossusTestkitProject % "compile;test->test")
   ).settings(noPubSettings:_*).configs(IntegrationTest)

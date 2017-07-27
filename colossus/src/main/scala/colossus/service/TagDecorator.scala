@@ -3,16 +3,16 @@ package service
 
 import metrics.TagMap
 
-trait TagDecorator[I,O] {
-  def tagsFor(request: I, response: O): TagMap
+trait TagDecorator[P <: Protocol] {
+  def tagsFor(request: P#Request, response: P#Response): TagMap
 }
 
-class DefaultTagDecorator[I,O] extends TagDecorator[I,O] {
-  def tagsFor(request: I, response: O): TagMap = Map()
+class DefaultTagDecorator[P <: Protocol] extends TagDecorator[P] {
+  def tagsFor(request: P#Request, response: P#Response): TagMap = Map()
 }
 
 object TagDecorator {
-
-  def default[I, O] = new DefaultTagDecorator[I,O]
+  
+  def default[P <: Protocol] = new DefaultTagDecorator[P]
 }
 

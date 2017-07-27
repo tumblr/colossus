@@ -2,30 +2,25 @@ package colossus
 package protocols.http
 
 import colossus.core._
-import colossus.service._
-import Codec.ClientCodec
 import parsing._
 import Combinators.Parser
 
-class BaseHttpClientCodec[T <: BaseHttpResponse](parserFactory: () => Parser[DecodedResult[T]]) extends ClientCodec[HttpRequest, T] {
+import controller.{Codec, Encoding}
 
-  private var parser : Parser[DecodedResult[T]] = parserFactory()
+class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
+
+  private var parser : Parser[HttpResponse] = HttpResponseParser.static()
 
 
-  override def encode(out: HttpRequest): DataReader = out
+  override def encode(out: HttpRequest, buffer: DataOutBuffer) { out.encode(buffer) }
 
-  override def decode(data: DataBuffer): Option[DecodedResult[T]] = parser.parse(data)
+  override def decode(data: DataBuffer): Option[HttpResponse] = parser.parse(data) 
 
   override def reset(): Unit = {
-    parser = parserFactory()
+    parser = HttpResponseParser.static()
   }
 
-  override def endOfStream() = parser.endOfStream()
+  override def endOfStream() = parser.endOfStream() 
 
 }
-
-class HttpClientCodec() extends BaseHttpClientCodec[HttpResponse](() => HttpResponseParser.static())
-
-class StreamingHttpClientCodec(dechunk: Boolean = false)
-  extends BaseHttpClientCodec[StreamingHttpResponse](() => HttpResponseParser.stream(dechunk))
 

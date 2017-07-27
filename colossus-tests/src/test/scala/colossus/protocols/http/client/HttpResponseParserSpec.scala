@@ -1,7 +1,6 @@
 package colossus
 package protocols.http
 
-import colossus.service.DecodedResult
 import core.{DataBuffer, DynamicOutBuffer}
 
 import akka.util.ByteString
@@ -11,8 +10,6 @@ import org.scalatest.{WordSpec, MustMatchers}
 
 class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
-  import DecodedResult.Static
-
   import HttpHeader.Conversions._
 
   "HttpResponseParser" must {
@@ -21,7 +18,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val res = ByteString("HTTP/1.1 204 NO_CONTENT\r\n\r\n")
       val parser = HttpResponseParser.static()
       val data = DataBuffer(res)
-      parser.parse(data) must equal(Some(Static(HttpResponse(HttpVersion.`1.1`, HttpCodes.NO_CONTENT, HttpHeaders()))))
+      parser.parse(data) must equal(Some(HttpResponse(HttpVersion.`1.1`, HttpCodes.NO_CONTENT, HttpHeaders())))
       data.remaining must equal(0)
     }
 
@@ -36,10 +33,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         HttpCodes.OK,
         Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate", "content-length"->"0")
       )
-      val actual = parser.parse(DataBuffer(ByteString(res))).get.value
-      println(actual.head.headers.toSeq.toSet.toString)
-      println(expected.head.headers.toSeq.toSet.toString)
-      println("ISECT " + actual.head.headers.toSeq.toSet.intersect(expected.head.headers.toSeq.toSet).toString)
+      val actual = parser.parse(DataBuffer(ByteString(res))).get
       actual.head.headers must equal(expected.head.headers)
       actual must equal(expected)
 
@@ -51,14 +45,14 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val res = s"HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\n\r\n${body}"
       val parser = HttpResponseParser.static()
 
-      val expected = Static(HttpResponse(
+      val expected = HttpResponse(
         HttpResponseHead(
           HttpVersion.`1.1`,
           HttpCodes.OK,
           Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate")
         ),
         HttpBody(body)
-      ))
+      )
       parser.parse(DataBuffer(ByteString(res))) must equal(None)
       parser.endOfStream() must equal(Some(expected))
     }
@@ -69,11 +63,11 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val res = s"HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\nContent-Length: $size\r\n\r\n{some : json}"
       val parser = HttpResponseParser.static()
 
-      val expected = Static(HttpResponse(HttpVersion.`1.1`,
+      val expected = HttpResponse(HttpVersion.`1.1`,
         HttpCodes.OK,
         Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate", "content-length"->size.toString),
         ByteString("{some : json}")
-      ))
+      )
       val data = DataBuffer(ByteString(res))
       parser.parse(data).toList must equal(List(expected))
       data.remaining must equal(0)
@@ -87,10 +81,10 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate")
       )
 
-      val expected = Some(DecodedResult.Static(sent.withHeader("content-length", "0")))
+      val expected = Some(sent.withHeader("content-length", "0"))
 
-      val serverProtocol = new HttpServerCodec
-      val clientProtocol = new HttpClientCodec
+      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty)
+      val clientProtocol = new StaticHttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
       sent.encode(buf)
@@ -112,10 +106,10 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         ByteString("{some : json}")
       )
 
-      val expected = Some(DecodedResult.Static(sent.withHeader("content-length", size.toString)))
+      val expected = Some(sent.withHeader("content-length", size.toString))
 
-      val serverProtocol = new HttpServerCodec
-      val clientProtocol = new HttpClientCodec
+      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty)
+      val clientProtocol = new StaticHttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
       sent.encode(buf)
@@ -131,7 +125,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       val parser = HttpResponseParser.static()
 
       val parsed = parser.parse(DataBuffer(ByteString(res))).get
-      parsed.value.body.bytes must equal (ByteString("foo123456789abcde"))
+      parsed.body.bytes must equal (ByteString("foo123456789abcde"))
     }
 
 

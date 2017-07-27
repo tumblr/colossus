@@ -1,6 +1,5 @@
 package colossus.metrics
 
-import com.typesafe.config.ConfigFactory
 import org.scalatest._
 
 import akka.actor._

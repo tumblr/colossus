@@ -3,7 +3,6 @@ package service
 
 import akka.actor.ActorRef
 import core.{WorkerItem, WorkerRef}
-import scala.concurrent.Promise
 import scala.reflect.ClassTag
 
 import java.net.InetSocketAddress
@@ -82,7 +81,18 @@ class LoadBalancingClient[P <: Protocol] (
   generator: InetSocketAddress => Sender[P, Callback],
   maxTries: Int = Int.MaxValue,
   initialClients: Seq[InetSocketAddress] = Nil
-) extends WorkerItem(worker.generateContext) with Sender[P, Callback]  {
+) extends WorkerItem with Sender[P, Callback]  {
+
+  def this(
+    addresses: Seq[InetSocketAddress],
+    baseConfig: ClientConfig,
+    factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef], 
+    maxTries: Int
+  )(implicit worker: WorkerRef) = {
+    this(worker, address => factory(baseConfig.copy(address = address)), maxTries, addresses)
+  }
+
+  val context = worker.generateContext
 
   worker.bind(_ => this)
 
@@ -145,9 +155,9 @@ class LoadBalancingClient[P <: Protocol] (
   }
 
 
-  def send(request: P#Input): Callback[P#Output] = {
+  def send(request: P#Request): Callback[P#Response] = {
     val retryList =  permutations.next().take(maxTries)
-    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Output] = next.send(request).recoverWith{
+    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Response] = next.send(request).recoverWith{
       case err => list match {
         case head :: tail => go(head, tail)
         case Nil => Callback.failed(new SendFailedException(retryList.size, err))

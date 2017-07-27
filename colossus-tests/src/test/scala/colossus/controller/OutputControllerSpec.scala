@@ -2,139 +2,81 @@ package colossus
 package controller
 
 import core._
+import streaming._
 import testkit._
 import akka.util.ByteString
 
-import scala.concurrent.duration._
+class OutputControllerSpec extends ColossusSpec with ControllerMocks {
 
-
-
-class OutputControllerSpec extends ColossusSpec {
-
-  import TestController._
 
   "OutputController" must {
     "push a message" in {
-      val endpoint = static()
+      val (u, con, d) = get()
       val message = ByteString("Hello World!")
-      val p = endpoint.typedHandler.pPush(message)
-      p.isSet must equal(false)
-      endpoint.iterate()
-      endpoint.expectOneWrite(message)
-      p.isSuccess must equal(true)
-
+      con.connected()
+      con.outgoing.push(message)
+      expectWrite(con, message)
     }
     "push multiple messages" in {
-      val endpoint = static()
+      val (u, con, d) = get()
       val data = ByteString("Hello World!")
-      val p1 = endpoint.typedHandler.pPush(data)
-      val p2 = endpoint.typedHandler.pPush(data)
-      endpoint.iterate()
-      endpoint.expectOneWrite(data ++ data)
-      p1.expectSuccess()
-      p2.expectSuccess()
-
+      con.connected()
+      con.outgoing.push(data)
+      con.outgoing.push(data)
+      expectWrite(con, data ++ data)
     }
-
-    "push a streaming message" in {
-      val endpoint = stream()
-      val pieces = List("a", "b", "c").map{s => ByteString(s)}
-      val gen = new IteratorGenerator(pieces.map{DataBuffer(_)}.toIterator)
-      val message = TestOutput(gen)
-      val p = endpoint.typedHandler.pPush(message)
-      p.expectNoSet
-      endpoint.iterate() //this first iteration simply encodes the message and starts the pull
-      p.expectNoSet
-      endpoint.iterate() //this one should do the writes
-      endpoint.expectOneWrite(ByteString("abc"))
-      p.expectSuccess
-    }
-
 
     "respect buffer soft overflow" in {
-      val endpoint = static()
-      val over = ByteString(List.fill(110)("a").mkString)
+      val (u, con, d) = get()
+      val over = ByteString("abc")
       val next = ByteString("hey")
-      val p1 = endpoint.typedHandler.pPush(over)
-      val p2 = endpoint.typedHandler.pPush(next)
-      endpoint.iterate()
-      p1.expectSuccess()
-      p2.expectNoSet
-      endpoint.iterate()
-      p2.expectSuccess()
+      con.connected()
+      con.outgoing.push(over)
+      con.outgoing.push(next)
+      expectWrite(con, ByteString("abc"), 2)
+      expectWrite(con, ByteString("hey"), 2)
     }
 
-    "respect pausing writes while writing" in {
-      val endpoint = static()
-      val data = ByteString("hello")
-      endpoint.typedHandler.testPush(data){ case _ => endpoint.typedHandler.testPause() }
-      val p = endpoint.typedHandler.pPush(data)
-      endpoint.iterate()
-      endpoint.expectOneWrite(data)
-      p.expectNoSet()
-      endpoint.typedHandler.testResume()
-      endpoint.iterate()
-      p.expectSuccess()
+    "don't allow messages when not connected" in {
+      val (u, con, d) = get()
+      con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
+      con.connected()
+      con.outgoing.push(ByteString("asdf")) mustBe PushResult.Ok
+      con.connectionTerminated(DisconnectCause.Disconnect)
+      con.outgoing.push(ByteString("asdf")) mustBe a[PushResult.Full]
+
     }
 
-    "not request a write when writes are paused" in {
-      val endpoint = static()
-      val data = ByteString("hello")
-      endpoint.writeReadyEnabled must equal(false)
-      endpoint.typedHandler.testPause()
-      val p = endpoint.typedHandler.pPush(data)
-      endpoint.writeReadyEnabled must equal(false)
+    //IT IS NOW IMPOSSIBLE TO TEST THESE, since closed/terminated no longer leak
+    //outside of circuit-breakers, there is no way to cause this to happen
+
+    "react to terminated output buffer" ignore {
+      //the buffer has to be terminated in the middle of the call to
+      //readyForData, since otherwise the CircuitBreaker will hide it
+      val (u, con, d) = get()
+      con.connected()
+      val upstream = Source
+        .fromArray((0 to 50).toArray)
+        .map{i => if (i > 10) { con.outgoing.terminate(new Exception("ASDF")) }; ByteString(i.toString) }
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
     }
 
-
-
-    "drain output buffer on disconnect" in {
-      val endpoint = static()
-      val over = ByteString(List.fill(110)("a").mkString)
-      val next = ByteString("hey")
-      val p1 = endpoint.typedHandler.pPush(over)
-      val p2 = endpoint.typedHandler.pPush(next)
-      endpoint.typedHandler.disconnect()
-      endpoint.workerProbe.expectNoMsg(100.milliseconds)
-      endpoint.iterate()
-      p1.expectSuccess()
-      p2.expectNoSet
-      endpoint.iterate()
-      p2.expectSuccess()
-      //final iterate is needed to do the disconnect check
-      endpoint.iterate()
-      endpoint.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(endpoint.id))
+    "react to closed output buffer" ignore {
+      val (u, con, d) = get()
+      con.connected()
+      //this pipe will close when the iterator is finished
+      val upstream = Source.fromIterator((0 to 5).map{i => ByteString(i.toString)}.toIterator)
+      upstream into con.outgoing
+      con.readyForData(new DynamicOutBuffer(1000))
+      (con.upstream.kill _).verify(*)
     }
 
-    "timeout queued messages that haven't been sent" in {
-      val endpoint = static()
-      val p = endpoint.typedHandler.pPush(ByteString("wat"))
-      Thread.sleep(300)
-      endpoint.typedHandler.idleCheck(1.millisecond)
-      p.expectCancelled()
-    }
-
-
-    "fail pending messages on connectionClosed while gracefully disconnecting"  in {
-      val endpoint = static()
-      val p = endpoint.typedHandler.pPush(ByteString("hello"))
-      endpoint.typedHandler.disconnect()
-      endpoint.disconnectCalled must equal(false)
-      p.expectNoSet()
-      endpoint.disrupt()
-      p.expectCancelled()
-    }
-
-    "not fail pending messages when connection disrupted" in {
-      val endpoint = static()
-      val p = endpoint.typedHandler.pPush(ByteString("hello"))
-      endpoint.disrupt()
-      p.expectNoSet()
-    }
-
-
+      
 
   }
+    
 
 
 

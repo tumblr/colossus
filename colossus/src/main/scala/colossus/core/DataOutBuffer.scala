@@ -1,7 +1,7 @@
 package colossus
 package core
 
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import java.nio.ByteBuffer
 
 /**
@@ -43,6 +43,10 @@ trait DataOutBuffer {
 
   def write(char: Char) {
     write(char.toByte)
+  }
+
+  def write(block: DataBlock) {
+    write(block.data)
   }
 
 }

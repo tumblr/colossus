@@ -262,7 +262,7 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   }
 
   def add(value: Int) {
-    require(value >= 0, "value cannot be negative")
+    require(value >= 0, s"value $value cannot be negative")
     mCount.incrementAndGet
     def compAndSet(l: AtomicLong, newVal: Long, c: (Long, Long) => Boolean) {
       val old = l.get
@@ -289,30 +289,47 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   }
 
   def percentiles(percs: Seq[Double]): Map[Double, Int] =  {
-    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double]): Seq[Int] = remain.headOption match {
+    // NOTE: Very rarely, a race condition can occur that will cause calculated tail percentiles of a histogram (> 99th percentile) 
+    // to report Int.MaxValue. The bug is due to a race condition that can happen when a value is added to the histogram at the same 
+    // time the percentiles are being calculated in another thread. What ends up happening is that the calculated number of added 
+    // values is 1 higher than the actual number of added values in the histogram's buckets. At high percentiles, it ends up 
+    // searching through all the buckets for the missing value, and stops at the end, resulting in the "infinity" value of Int.MaxValue.
+    // The percentile calculation function keeps track of the last bucket with a non-zero count, and use that bucket instead of the 
+    // last one when such a situation occurs. This also ends up slightly changing how percentiles are calculated, but this change is 
+    // only apparent when relatively few values have been added to the histogram. This does not resolve the fact that the count is 
+    // still one off from the actual total count, but generally that will have little to no effect, especially when hundreds to 
+    // thousands of values are added per second.
+    def p(num: Int, index: Int, build: Seq[Int], remain: Seq[Double], lastNonZeroIndex: Int): Seq[Int] = remain.headOption match {
       case None => build
       case Some(perc) => {
         if (perc <= 0.0 || count == 0 || ranges.size == 0) {
-          p(num, index, build :+ 0, remain.tail)
+          p(num, index, build :+ 0, remain.tail, lastNonZeroIndex)
         } else if (perc >= 1.0) {
-          p(num, index, build :+ max.toInt, remain.tail)
+          p(num, index, build :+ max.toInt, remain.tail, lastNonZeroIndex)
         } else {
-          val bound = count * perc
-          if (index < ranges.size - 1 && num < bound) {
-            p(num + mBuckets(index).get.toInt, index + 1, build, remain)
-          } else {
-            val weightedValue = if (index < ranges.size - 1) {
-              (ranges(index) + ranges(index + 1)) / 2
+          val percentileLimit: Int = ((count * perc) + 0.5).toInt //how many counts we need for this percentile
+          val bucketCount = mBuckets(index).get.toInt
+          val newNum = num + bucketCount
+          //this is only needed because of a race condition where a value is
+          //added while a percentile is calculated, this prevents accidentally
+          //setting a percentile to Int.MaxValue when `count` > actual number of
+          //values added
+          val newLastNonZeroIndex = if (bucketCount > 0) index else lastNonZeroIndex
+          if (newNum >= percentileLimit || index == ranges.size - 1) {
+            val weightedValue = if (newLastNonZeroIndex < ranges.size - 1) {
+              Math.min((ranges(newLastNonZeroIndex) + ranges(newLastNonZeroIndex + 1)) / 2, max.toInt)
             } else {
               infinity
             }
-            p(num, index, build :+ weightedValue, remain.tail)
-          }
+            p(num, index, build :+ weightedValue, remain.tail, newLastNonZeroIndex)
+          } else {
+            p(num + bucketCount, index + 1, build, remain, newLastNonZeroIndex)
+          } 
         }
       }
     }
     val sorted = percs.sortWith{_ < _}
-    sorted.zip(p(0, 0, Seq(), sorted)).toMap
+    sorted.zip(p(0, 0, Seq(), sorted, 0)).toMap
   }
 
   def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)

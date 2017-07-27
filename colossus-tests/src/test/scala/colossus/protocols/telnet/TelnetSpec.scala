@@ -7,8 +7,6 @@ import org.scalatest._
 
 import akka.util.ByteString
 
-import scala.util.Success
-
 class TelnetSpec extends WordSpec with MustMatchers{
 
   def testCmdParser(input: String, expected: TelnetCommand) {

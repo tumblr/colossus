@@ -1,11 +1,10 @@
 package colossus
 package core
 
-import akka.actor.ActorRef
-
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}
 import java.net.InetSocketAddress
+import server._
 
 /**
  * Represent the connection state.  NotConnected, Connected or Connecting.

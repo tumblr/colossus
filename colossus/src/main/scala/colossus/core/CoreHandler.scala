@@ -24,6 +24,7 @@ object ConnectionState {
 }
 class InvalidConnectionStateException(state: ConnectionState) extends Exception(s"Invalid connection State: $state")
 
+
 /**
  * This is the connection handler on which the controller and service layers are
  * built.  It contains some common functionality that is ultimately exposed to
@@ -32,15 +33,15 @@ class InvalidConnectionStateException(state: ConnectionState) extends Exception(
  * handlers on top of this one, it is recommended instead of directly
  * implementing the ConnectionHandler trait
  */
-abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with ConnectionHandler {
+abstract class CoreHandler(val context: Context) extends ConnectionHandler {
   import ConnectionState._
 
   private var shutdownAction: ShutdownAction = ShutdownAction.DefaultDisconnect
   private var _connectionState: ConnectionState = NotConnected
 
   def connectionState = _connectionState
+  def isConnected: Boolean = connectionState != ConnectionState.NotConnected
 
-  def isConnected = connectionState != NotConnected
 
   private def setShutdownAction(action: ShutdownAction): Boolean = if (action >= shutdownAction) {
     shutdownAction = action
@@ -102,18 +103,34 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
     }
   }
 
+  final def kill(reason: Throwable) {
+    connectionState match {
+      case a: AliveState => context.worker ! WorkerCommand.Kill(context.id, DisconnectCause.Error(reason))
+      case _ => {}
+    }
+
+  }
+
   final override def shutdownRequest() {
     connectionState match {
       case Connected(endpoint) => {
         _connectionState = ShuttingDown(endpoint)
-        shutdown()
+        onShutdown()
       }
-      case NotConnected => shutdown()
+      case NotConnected => onShutdown()
       case _ => {}
     }
   }
 
-  protected def shutdown() {
+  def shutdown() {
+    onShutdown()
+  }
+
+  protected def onShutdown() {
+    completeShutdown()
+  }
+
+  final protected def completeShutdown() {
     shutdownAction match {
       case ShutdownAction.DefaultDisconnect | ShutdownAction.Disconnect => forceDisconnect()
       case ShutdownAction.Become(newHandlerFactory) => {
@@ -123,15 +140,6 @@ abstract class CoreHandler(ctx: Context) extends WorkerItem(ctx) with Connection
   }
 
 
-}
-
-class BasicCoreHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler {
-
-  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
-  protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
-  def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
-  def readyForData(buffer: DataOutBuffer): colossus.core.MoreDataResult = MoreDataResult.Complete
-  def receivedData(data: colossus.core.DataBuffer): Unit = {}
-  def receivedMessage(message: Any, sender: akka.actor.ActorRef){}
 
 }
+

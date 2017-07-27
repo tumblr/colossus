@@ -2,9 +2,9 @@ package colossus
 package protocols
 
 import core._
-import service._
-import akka.util.{ByteString, ByteStringBuilder}
+import controller.Encoding
 import java.util.Random
+import controller.Codec
 
 /**
  * **This package is experimental and subject to breaking changes between
@@ -26,29 +26,24 @@ import java.util.Random
  */
 package object websocket {
 
-  class WebsocketCodec extends Codec[Frame, Frame]{
-
+  class WebsocketCodec extends Codec[WebsocketEncoding]{
+    
     private val random = new Random
     private val parser = FrameParser.frame
 
     def decode(data: DataBuffer) = parser.parse(data)
 
-    def encode(f: Frame) = f.encode(random)
+    def encode(f: Frame, buffer: DataOutBuffer) { buffer write f.encode(random) }
+
+    def endOfStream = None
 
     def reset(){}
   }
 
-  trait Websocket extends Protocol {
+  trait WebsocketEncoding extends Encoding {
     type Input = Frame
     type Output = Frame
   }
-
-  implicit object WebsocketCodecProvider extends CodecProvider[Websocket] {
-
-    def provideCodec() = new WebsocketCodec
-
-  }
-
 
 }
 

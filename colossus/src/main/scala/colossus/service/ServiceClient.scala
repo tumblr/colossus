@@ -4,7 +4,6 @@ package service
 
 import java.net.InetSocketAddress
 
-import akka.actor._
 import akka.event.Logging
 import com.typesafe.config.{ConfigFactory, Config}
 import colossus.parsing.DataSize
@@ -13,10 +12,9 @@ import controller._
 import core._
 import metrics._
 import util.ExceptionFormatter._
-import scala.collection.mutable
 import scala.concurrent.duration._
-import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
+import streaming._
 
 /**
  * Configuration used to specify a Client's parameters
@@ -37,7 +35,7 @@ case class ClientConfig(
   address: InetSocketAddress,
   requestTimeout: Duration,
   name: MetricAddress,
-  pendingBufferSize: Int = 100,
+  pendingBufferSize: Int = 500,
   sentBufferSize: Int = 100,
   failFast: Boolean = false,
   connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
@@ -136,6 +134,12 @@ object ClientState {
   case object Terminated    extends ClientState
 
 }
+
+
+//this is needed because trying to mix in any trait to CoreHandler when constructing causes the compiler to crash.
+
+class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandler(ds, tail) with ManualUnbindHandler
+
 /**
  * A ServiceClient is a non-blocking, synchronous interface that handles
  * sending atomic commands on a connection and parsing their replies
@@ -148,28 +152,53 @@ object ClientState {
  * TODO: make underlying output controller data size configurable
  */
 class ServiceClient[P <: Protocol](
-  codec: Codec[P#Input,P#Output],
   val config: ClientConfig,
-  context: Context
-)(implicit tagDecorator: TagDecorator[P#Input,P#Output] = TagDecorator.default[P#Input,P#Output])
-extends Controller[P#Output,P#Input](codec, ControllerConfig(config.pendingBufferSize, config.requestTimeout, config.maxResponseSize), context)
-with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
+  val context: Context
+)(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
+extends ControllerDownstream[Encoding.Client[P]] with HasUpstream[ControllerUpstream[Encoding.Client[P]]] with Client[P, Callback] with HandlerTail {
 
-  type I = P#Input
-  type O = P#Output
+  type Request = Encoding.Client[P]#Output
+  type Response = Encoding.Client[P]#Input
 
-  def this(codec: Codec[P#Input,P#Output], config: ClientConfig, worker: WorkerRef) {
-    this(codec, config, worker.generateContext())
-    worker.worker ! WorkerCommand.Bind(this)
+  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
+
+  class SourcedRequest(val message: Request, handler: ResponseHandler) {
+    private var handled = false
+    val queueTime = System.currentTimeMillis
+    private var _sendTime = 0L
+    def sendTime = _sendTime
+
+    def markSent() {
+      _sendTime = System.currentTimeMillis
+    }
+
+    def complete(result: Try[Response]) {
+      if (!handled) {
+        handled = true
+        handler(result)
+      }
+    }
+    
+
+
+    def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
   }
+
+
+  val controllerConfig = ControllerConfig(config.pendingBufferSize, metricsEnabled = true, inputMaxSize = config.maxResponseSize)
 
   import colossus.core.WorkerCommand._
   import config._
   implicit val namespace = context.worker.system.namespace / config.name
+  private def worker = context.worker
+  private def connection = upstream.connection
+  def id = context.id
 
-  type ResponseHandler = Try[O] => Unit
+  def connectionState = connection.connectionState
 
-  override val maxIdleTime = config.idleTimeout
+  type ResponseHandler = Try[Response] => Unit
+
+  //override val maxIdleTime = config.idleTimeout
 
   private val requests            = Rate("requests", "client-requests")
   private val errors              = Rate("errors", "client-errors")
@@ -182,25 +211,24 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
 
   lazy val log = Logging(worker.system.actorSystem, s"client:$address")
 
-  private val responseTimeoutMillis: Long = config.requestTimeout.toMillis
-
-  case class SourcedRequest(message: I, handler: ResponseHandler, queueTime: Long, sendTime: Long) {
-    def isTimedOut(now: Long) = now > (queueTime + responseTimeoutMillis)
-  }
-
   private var clientState: ClientState = ClientState.Initializing
 
+  val incoming = new BufferedPipe[Response](config.sentBufferSize)
+
+  private val pending = new BufferedPipe[SourcedRequest](config.pendingBufferSize)
+  private val sentBuffer    = new BufferedPipe[SourcedRequest](config.sentBufferSize)
+
+
   private var retryIncident: Option[RetryIncident] = None
-  private val sentBuffer    = mutable.Queue[SourcedRequest]()
 
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
 
-  def connectionStatus: ConnectionStatus = clientState match {
+  def connectionStatus: Callback[ConnectionStatus] = Callback.successful(clientState match {
     case ClientState.Connected => ConnectionStatus.Connected
     case ClientState.Initializing | ClientState.Connecting => ConnectionStatus.Connecting
     case _ => ConnectionStatus.NotConnected
-  }
+  })
 
   /**
    * returns true if the client is potentially able to send.  This does not
@@ -216,8 +244,9 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   override def onBind(){
-    super.onBind()
     if(clientState == ClientState.Initializing){
+      //use the sent buffer as a valve, which will control the number of in-flight messages
+      pending into Sink.valve(upstream.outgoing.mapIn[SourcedRequest]{sourced => sourced.markSent;sourced.message}, sentBuffer)
       log.info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
@@ -230,26 +259,18 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   /**
    * Sent a request to the service, along with a handler for processing the response.
    */
-  private def sendNow(request: I)(handler: ResponseHandler){
+  private def sendNow(request: Request)(handler: ResponseHandler){
+    val sourced = new SourcedRequest(request, handler)
     if (canSend) {
-      val queueTime = System.currentTimeMillis
-      val pushed = push(request, queueTime){
-        case OutputResult.Success         => {
-          val s = SourcedRequest(request, handler, queueTime, System.currentTimeMillis)
-          sentBuffer.enqueue(s)
-          if (sentBuffer.size >= config.sentBufferSize) {
-            pauseWrites() //writes resumed in processMessage
-          }
-        }
-        case OutputResult.Failure(err)    => failRequest(handler, err)
-        case OutputResult.Cancelled(err)  => failRequest(handler, err)
-      }
-      if (!pushed) {
-        failRequest(handler, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
+      pending.push(sourced) match {
+        case PushResult.Ok => {}
+        case PushResult.Error(reason) => failRequest(sourced, reason)
+        case PushResult.Full(trig) => failRequest(sourced, new ClientOverloadedException(s"Error sending ${request}: Client is overloaded"))
+        case PushResult.Closed => failRequest(sourced, new Exception("WAT"))
       }
     } else {
       droppedRequests.hit(tags = hpTags)
-      failRequest(handler, new NotConnectedException("Not Connected"))
+      failRequest(sourced, new NotConnectedException("Not Connected"))
     }
   }
 
@@ -257,53 +278,54 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
    * Create a callback for sending a request.  this allows you to do something like
    * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
    */
-  def send(request: I): Callback[O] = UnmappedCallback[O](sendNow(request))
+  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
 
-  def processMessage(response: O) {
-    val now = System.currentTimeMillis
-    try {
-      val source: SourcedRequest = sentBuffer.dequeue()
-      val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
-      latency.add(tags = tags, value = (now - source.queueTime).toInt)
-      transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
-      queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
-      source.handler(Success(response))
-      requests.hit(tags = tags)
-    } catch {
-      case e: java.util.NoSuchElementException => {
-        throw new DataException(s"No Request for response ${response.toString}!")
+  def processMessages(): Unit = incoming.pullWhile (
+    response => {
+      val now = System.currentTimeMillis
+      sentBuffer.pull match {
+        case PullResult.Item(source) => {
+          val tags = hpTags ++ tagDecorator.tagsFor(source.message, response)
+          latency.add(tags = tags, value = (now - source.queueTime).toInt)
+          transitTime.add(tags = tags, value = (now - source.sendTime).toInt)
+          queueTime.add(tags = tags, value = (source.sendTime - source.queueTime).toInt)
+          source.complete(Success(response))
+          requests.hit(tags = tags)
+        }
+        case PullResult.Empty(_) => {
+          throw new DataException(s"No Request for response ${response.toString}!")
+        }
+        case other => {
+          throw new DataException(s"Invalid state on sent buffer $other")
+        }
       }
-    }
-    checkGracefulDisconnect()
-    if (!writesEnabled) resumeWrites()
-  }
+      checkGracefulDisconnect()
+      PullAction.PullContinue
+    },
+    _ => ()
+  )
 
-  def receivedMessage(message: Any, sender: ActorRef) {}
-
-  override def connected(endpoint: WriteEndpoint) {
-    super.connected(endpoint)
+  override def connected() {
     log.info(s"$id Connected to $address")
     clientState = ClientState.Connected
     retryIncident = None
+    processMessages()
   }
 
   private def purgeBuffers(reason : Throwable) {
-    sentBuffer.foreach { s => failRequest(s.handler, reason) }
-    sentBuffer.clear()
+    sentBuffer.filterScan { s => failRequest(s, reason); true }
     if (failFast) {
-      purgePending(reason)
+      pending.filterScan{ s => failRequest(s, reason); true }
     }
   }
 
-  override protected def connectionClosed(cause: DisconnectCause): Unit = {
-    super.connectionClosed(cause)
+  protected def connectionClosed(cause: DisconnectCause): Unit = {
     clientState = ClientState.Terminated
     disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
     purgeBuffers(new NotConnectedException(s"${cause.logString}"))
   }
 
-  override protected def connectionLost(cause : DisconnectError) {
-    super.connectionLost(cause)
+  protected def connectionLost(cause : DisconnectError) {
     cause match {
       case DisconnectCause.ConnectFailed(error) => {
         log.warning(s"$id failed to connect to ${address.toString}: ${error.getMessage}")
@@ -317,6 +339,13 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
       }
     }
     attemptReconnect()
+  }
+
+  override protected def onConnectionTerminated(reason: DisconnectCause) {
+    reason match {
+      case error: DisconnectError => connectionLost(error)
+      case _ => connectionClosed(reason)
+    }
   }
 
 
@@ -358,37 +387,36 @@ with ClientConnectionHandler with Sender[P, Callback] with ManualUnbindHandler {
   }
 
   private def checkGracefulDisconnect() {
-    if (clientState == ClientState.ShuttingDown && sentBuffer.size == 0 && pendingBufferSize == 0) {
-      super.shutdown()
+    if (clientState == ClientState.ShuttingDown && sentBuffer.length == 0 && pending.length == 0) {
+      upstream.shutdown()
     }
   }
 
-  override def fatalInputError(reason: Throwable) = {
-    worker ! Kill(id, DisconnectCause.Error(reason))
-    None
-  }
-
-
-  override def idleCheck(period: FiniteDuration) {
-    super.idleCheck(period)
-
-    if (sentBuffer.size > 0 && sentBuffer.front.isTimedOut(System.currentTimeMillis)) {
+  override def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
+  
+  override protected def onIdleCheck(period: FiniteDuration) {
+    val now = System.currentTimeMillis
+    if (sentBuffer.length > 0 && sentBuffer.head.isTimedOut(now)) {
       // the oldest sent message has expired with no response - kill the connection
       // sending the Kill message instead of disconnecting will trigger the reconnection logic
+      //TODO : We can probably just fail the request but keep the item buffered and not have to kill the connection
       worker ! Kill(id, DisconnectCause.TimedOut)
+    }
+    //remove any pending messages that have timed out.
+    pending.filterScan{ pending =>
+      if (pending.isTimedOut(now)) {
+        failRequest(pending, new RequestTimeoutException)
+        true
+      } else false
     }
   }
 
-  private def failRequest(handler: ResponseHandler, exception: Throwable): Unit = {
-    // TODO clean up duplicate code https://github.com/tumblr/colossus/issues/274
+  private def failRequest(request: SourcedRequest, exception: Throwable): Unit = {
     errors.hit(tags = hpTags + ("type" -> exception.metricsName))
-    handler(Failure(exception))
+    request.complete(Failure(exception))
+  }
+
+  def disconnect() {
+    connection.disconnect()
   }
 }
-
-object ServiceClient {
-
-  def apply[C <: Protocol] = ClientFactory.serviceClientFactory[C]
-
-}
-

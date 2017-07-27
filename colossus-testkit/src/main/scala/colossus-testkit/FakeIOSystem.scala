@@ -1,10 +1,10 @@
 package colossus
 package testkit
 
-import core._
+import core.{InitContext, _}
+import core.server._
 import metrics._
 import service._
-
 import akka.agent.Agent
 import akka.actor._
 import akka.testkit.TestProbe
@@ -36,6 +36,19 @@ object FakeIOSystem {
     FakeWorker(p, w)
   }
 
+  def fakeContext(implicit system: ActorSystem) = fakeWorker.worker.generateContext()
+
+  def fakeServerContext(implicit system: ActorSystem) = {
+    val (_serverProbe, server) = FakeIOSystem.fakeServerRef
+    ServerContext(server, fakeContext)
+  }
+
+  def fakeInitContext(implicit system: ActorSystem) = {
+    val (_, s) = fakeServerRef
+    val (_, w) = fakeWorkerRef
+    InitContext(s, w)
+  }
+
   /**
    * Returns a ServerRef representing a server in the Bound state
    */
@@ -44,7 +57,7 @@ object FakeIOSystem {
     val probe = TestProbe()
     val config = ServerConfig(
       "/foo",
-      (s,w) => ???,
+      (initContext) => ???,
       ServerSettings(987)
     )
     val ref = ServerRef(config, probe.ref, apply(), Agent(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
@@ -100,11 +113,11 @@ class GenericExecutor extends Actor with CallbackExecution {
 object CallbackAwait {
 
   /**
-   * Await the result of a Callback.  This *must* be used whenever Callback.fromFuture is used.  Going forward this may be the only way to
-   * extract the value from a Callback
+   * Await the result of a Callback.  The Callback is properly executed inside
+   * an Actor running in a PinnedDispatcher.  The calling thread blocks until
+   * the Callback finishes execution or the timeout is reached
    *
-   * The Callback is properly executed inside an Actor running in a PinnedDispatcher.  The calling thread blocks until the Callback finishes
-   * execution or the timeout is reached
+   * Use [[colossus.testkit.FakeIOSystem]]`.testExecutor` to get an implicit `CallbackExecutor`
    */
   def result[T](cb: Callback[T], in: Duration)(implicit ex: CallbackExecutor): T = {
     val p = Promise[T]()

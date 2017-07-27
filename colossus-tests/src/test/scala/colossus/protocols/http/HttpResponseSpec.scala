@@ -1,8 +1,6 @@
 package colossus.protocols.http
 
 import akka.util.ByteString
-import colossus.controller.Source
-import colossus.core.DataBuffer
 import colossus.testkit.{CallbackMatchers, ColossusSpec, FakeIOSystem}
 import org.scalatest.{OptionValues, TryValues}
 
@@ -27,37 +25,27 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
     }
   }
 
-  "StreamingHttpResponse" must {
-
-    "be constructable from a StaticHttpResponse" in {
-
-      val payload = "look ma, no hands!"
-      val res = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), ByteString(payload))
-
-      val streamed = StreamingHttpResponse.fromStatic(res)
-
-      streamed.body.get.pullCB() must evaluateTo{x : Option[DataBuffer] =>
-        ByteString(x.value.takeAll) must equal(res.body.bytes)
-      }
+  "HttpResponseBuilding" must {
+  
+    def expectCode(response: HttpResponse, code: HttpCode) {
+      val expected = HttpResponse(HttpVersion.`1.1`, code, HttpHeaders.Empty, HttpBody("hello"))
+      response mustBe expected
     }
 
-    "be constuctable from a ByteStringLike" in {
-
-      val payload = "look ma, no hands!"
-
-      val expected = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(HttpHeader("content-length", "18"))),
-        Some(Source.one(DataBuffer(ByteString("test conversion"))))
-      )
-
-      val response = StreamingHttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), payload)
-
-      response.head must equal(expected.head)
-
-      response.body.get.pullCB() must evaluateTo{x : Option[DataBuffer] =>
-        ByteString(x.value.takeAll) must equal(ByteString(payload))
-      }
-
+    "ok" in {
+      expectCode(HttpResponse.ok("hello"), HttpCodes.OK)
+    }
+    "not found" in {
+      expectCode(HttpResponse.notFound("hello"), HttpCodes.NOT_FOUND)
+    }
+    "bad request" in {
+      expectCode(HttpResponse.badRequest("hello"), HttpCodes.BAD_REQUEST)
+    }
+    "error" in {
+      expectCode(HttpResponse.error("hello"), HttpCodes.INTERNAL_SERVER_ERROR)
+    }
+    "forbidden" in {
+      expectCode(HttpResponse.forbidden("hello"), HttpCodes.FORBIDDEN)
     }
   }
 

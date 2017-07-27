@@ -1,86 +1,78 @@
 package colossus
 package service
 
-import java.net.InetSocketAddress
 
-import akka.actor.ActorRef
 import akka.util.ByteString
 import colossus.RawProtocol._
 import colossus.core._
+import controller._
 import colossus.parsing.DataSize._
-import colossus.protocols.redis.Redis.defaults._
-import colossus.protocols.redis._
 import colossus.testkit._
+import streaming._
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import org.scalamock.scalatest.MockFactory
 
-class ServiceServerSpec extends ColossusSpec {
+class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMocks {
+  val config = ServiceConfig.Default.copy(
+    requestBufferSize = 2,
+    requestTimeout = 50.milliseconds,
+    maxRequestSize = 300.bytes
+  )
 
-  class FakeService(handler: ByteString => Callback[ByteString], srv: ServerContext) extends ServiceServer[ByteString, ByteString](
-      config = ServiceConfig.Default.copy(
-        requestBufferSize = 2,
-        requestTimeout = 50.milliseconds,
-        maxRequestSize = 300.bytes
-      ),
-      codec = RawCodec,
-      serverContext = srv
-  ) {
+  class FakeHandler(handler: ByteString => Callback[ByteString] = x => Callback.successful(x), context: ServerContext) extends GenRequestHandler[Raw](context, config) {
 
-    def processFailure(error: ProcessingFailure[ByteString]) = ByteString("ERROR")
-
-    def processRequest(input: ByteString) = handler(input)
-
-    def receivedMessage(x: Any, s: ActorRef){}
-
-    def testCanPush = canPush //expose protected method
+    def handle = { case req => handler(req) }
+    def unhandledError = {case _ => ByteString("ERROR")}
   }
 
-  def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): TypedMockConnection[FakeService] = {
-    val endpoint = MockConnection.server(new FakeService(handler, _))
+  def fakeService(handler: ByteString => Callback[ByteString] = x => Callback.successful(x)): TypedMockConnection[PipelineHandler] = {
+    val endpoint = MockConnection.server(ctx => {
+      val fh = new FakeHandler(handler, ctx)
+      new PipelineHandler(new Controller(new ServiceServer[Raw](fh), RawServerCodec), fh)
+    })
 
     endpoint.handler.connected(endpoint)
     endpoint
   }
 
+  def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x)): (ServiceServer[Raw], TestUpstream[Encoding.Server[Raw]])  = {
+    val upstream = new TestUpstream[Encoding.Server[Raw]]
+    val fh = new FakeHandler(fn, FakeIOSystem.fakeServerContext)
+    val service = new ServiceServer(fh)
+    service.setUpstream(upstream)
+    service.connected()
+    (service, upstream)
+  }
+
   "ServiceServer" must {
 
     "process a request" in {
-      val t = fakeService()
-      t.handler.receivedData(DataBuffer(ByteString("hello")))
-      t.iterate()
-      t.expectOneWrite(ByteString("hello"))
+      val (handler,upstream) = fs()
+      handler.incoming.push(ByteString("hello")) mustBe PushResult.Ok
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("hello"))
     }
 
     "return an error response for failed callback" in{
-      val t = fakeService(x => Callback.failed(new Exception("FAIL")))
-      t.handler.receivedData(DataBuffer(ByteString("hello")))
-      t.iterate()
-      t.expectOneWrite(ByteString("ERROR"))
-
+      val (handler,upstream) = fs(x => Callback.failed(new Exception("FAIL")))
+      handler.incoming.push(ByteString("hello"))
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("ERROR"))
     }
 
     "send responses back in the right order" in {
       var promises = Vector[CallbackPromise[ByteString]]()
-      val t = fakeService(x => {
+      val (handler,upstream) = fs(x => {
         val p = new CallbackPromise[ByteString]()
         promises = promises :+ p
         p.callback
       })
-      val r1 = ByteString("AAAA")
-      val r2 = ByteString("BBBB")
-      t.typedHandler.receivedData(DataBuffer(r1))
-      t.typedHandler.receivedData(DataBuffer(r2))
+      handler.incoming.push(ByteString("AAAA"))
+      handler.incoming.push(ByteString("BBBB"))
       promises.size must equal(2)
-      t.iterate()
-      t.expectNoWrite()
-      promises(1).success(ByteString("B"))
-      t.iterate()
-      t.expectNoWrite()
+      promises(1).success(ByteString("B"))      
       promises(0).success(ByteString("A"))
-      t.iterate()
-      t.expectOneWrite(ByteString("AB"))
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("A"))
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("B"))
     }
 
     "graceful disconnect allows pending requests to complete" taggedAs(org.scalatest.Tag("test")) in {
@@ -93,7 +85,6 @@ class ServiceServerSpec extends ColossusSpec {
       val r1 = ByteString("AAAA")
       t.typedHandler.receivedData(DataBuffer(r1))
       t.typedHandler.disconnect()
-      t.readsEnabled must equal(false)
       t.status must equal(ConnectionStatus.Connected)
       t.workerProbe.expectNoMsg(100.milliseconds)
       promises(0).success(ByteString("B"))
@@ -103,69 +94,15 @@ class ServiceServerSpec extends ColossusSpec {
       t.workerProbe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(t.id))
     }
 
-    "handle backpressure from output controller" in {
-      var promises = Vector[CallbackPromise[ByteString]]()
-      val s = fakeService(x => {
-        val p = new CallbackPromise[ByteString]()
-        promises = promises :+ p
-        p.callback
-      })
 
-      //these next two fill up the output controller's message queue (set to 2 in fakeService())
-      s.typedHandler.receivedData(DataBuffer(ByteString("G")))
-      s.typedHandler.receivedData(DataBuffer(ByteString("H")))
-      promises(0).success(ByteString("A"))
-      promises(1).success(ByteString("B"))
-      s.typedHandler.testCanPush must equal(false)
-      s.typedHandler.currentRequestBufferSize must equal(0)
-
-      //this last one should not even attempt to write and instead keep the
-      //response waiting in the request buffer
-      s.typedHandler.receivedData(DataBuffer(ByteString("I")))
-      promises(2).success(ByteString("C"))
-      s.typedHandler.currentRequestBufferSize must equal(1)
-      s.typedHandler.testCanPush must equal(false)
-
-      //now as we begin draining the write buffer, both the controller and
-      //service layers should begin clearing their buffers
-      s.iterateAndClear()
-
-      s.typedHandler.testCanPush must equal(true)
-      s.typedHandler.currentRequestBufferSize must equal(0)
-    }
-
-
-    "timeout request that takes too long" in {
+    "timeout request that takes too long" ignore {
       val serverSettings = ServerSettings (
         port = TEST_PORT,
         maxIdleTime = Duration.Inf
       )
 
-      withIOSystem{implicit io =>
-        val server = Server.basic("test", serverSettings) { new Service[Redis](_){
-          def handle = {
-              case req => Callback.schedule(500.milliseconds)(Callback.successful(StatusReply("HEllo")))
-          }
-        }}
-        withServer(server) {
-          val clientConfig = ClientConfig(
-            name = "/test-client",
-            address = new InetSocketAddress("localhost", TEST_PORT),
-            requestTimeout = 800.milliseconds,
-            connectRetry = NoRetry
-          )
-          val client = Redis.futureClient(clientConfig)
-          val t = Try {
-            Await.result(client.get(ByteString("foo")), 1.second)
-          }
-          t match {
-            case Success(x) => throw new Exception(s"Non-error reply: $x")
-            case Failure(ex) =>{}
-          }
-        }
-      }
     }
-
+    
     "gracefully handle bad input" in {
       val t = fakeService()
       // this is above  max request size
@@ -173,5 +110,20 @@ class ServiceServerSpec extends ColossusSpec {
       t.iterate()
       t.expectOneWrite(ByteString("ERROR"))
     }
+
+    "properly react to full output buffer" in {
+      //the output buffer is set to 2 (see common.scala) so this will force
+      //items to stay buffered in the request buffer , but since the request
+      //buffer only has size 2, the last item should generate an error
+      val (handler,upstream) = fs()
+      (1 to 5).foreach{i => 
+        handler.incoming.push(ByteString(i.toString))
+      }
+      (1 to 4).foreach{i => 
+        upstream.pipe.pull() mustBe PullResult.Item(ByteString(i.toString))
+      }
+      upstream.pipe.pull() mustBe PullResult.Item(ByteString("ERROR"))
+    }
+
   }
 }

@@ -1,5 +1,6 @@
 package colossus
 package core
+package server
 
 object ServerDSL {
   type Receive = PartialFunction[Any, Unit]
@@ -7,10 +8,6 @@ object ServerDSL {
 import ServerDSL._
 import com.typesafe.config.{Config, ConfigFactory}
 
-/**
- * An instance of this is handed to every new server connection handler
- */
-case class ServerContext(server: ServerRef, context: Context)
 
 /**
  * An `Initializer` is used to perform any setup/coordination logic for a
@@ -20,9 +17,11 @@ case class ServerContext(server: ServerRef, context: Context)
  * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
  * used when starting servers.
  */
-abstract class Initializer(_worker: WorkerRef) {
+abstract class Initializer(context: InitContext) {
 
-  implicit val worker = _worker
+  implicit val worker = context.worker
+
+  val server = context.server
 
   /**
    * Given a [[ServerContext]] for a new connection, provide a new connection
@@ -32,7 +31,7 @@ abstract class Initializer(_worker: WorkerRef) {
 
   /**
    * Message receive hook.  This is used to handle any messages that are sent
-   * using [[ServerRef]] `delegatorBroadcast`.
+   * using [[ServerRef]] `initializerBroadcast`.
    */
   def receive: Receive = Map() //empty receive
 
@@ -43,21 +42,10 @@ abstract class Initializer(_worker: WorkerRef) {
 
 }
 
-//almost seems like we don't need delegator anymore
-class DSLDelegator(server : ServerRef, _worker : WorkerRef, initializer: Initializer) extends Delegator(server, _worker) {
-
-
-  def acceptNewConnection: Option[ServerConnectionHandler] = {
-    Some(initializer.onConnect(ServerContext(server, worker.generateContext)))
-  }
-
-  override def handleMessage: Receive = initializer.receive
-
-  override def onShutdown() {
-    initializer.onShutdown()
-  }
-
+object Initializer {
+  type Factory = InitContext => Initializer
 }
+
 
 //this is mixed in by Server
 trait ServerDSL {
@@ -74,7 +62,7 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
 
     start(name, ServerSettings.load(name, serverConfig))(initializer)
   }
@@ -89,7 +77,7 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, port: Int)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, port: Int)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverSettings = ServerSettings.load(name).copy(port = port)
     start(name, serverSettings)(initializer)
   }
@@ -103,10 +91,10 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, settings: ServerSettings)(initializer: WorkerRef => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
-      settings = settings, delegatorFactory = (s, w) => new DSLDelegator(s, w, initializer(w))
+      settings = settings, initializerFactory = (ic) => initializer(ic)
     )
     Server(serverConfig)
 

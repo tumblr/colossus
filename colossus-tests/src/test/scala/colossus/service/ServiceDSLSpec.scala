@@ -1,7 +1,7 @@
 package colossus
 package service
 
-import core.Server
+import core.ProxyActor
 import testkit._
 
 import akka.actor._
@@ -13,17 +13,8 @@ import scala.concurrent.{Await, Future}
 
 import Callback.Implicits._
 
-import RawProtocol.{RawCodec, Raw}
-
-class ErrorTestDSL(probe: ActorRef) extends ServiceCodecProvider[Raw] {
-
-    def provideCodec() = RawCodec
-
-    def errorResponse(error: ProcessingFailure[ByteString]) = {
-      probe ! error.reason
-      ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-    }
-}
+import RawProtocol._
+import server._
 
 class ServiceDSLSpec extends ColossusSpec {
 
@@ -42,18 +33,21 @@ class ServiceDSLSpec extends ColossusSpec {
             case _ => TelnetReply("meeh")
           }}
         }
-        server.delegatorBroadcast("PING")
+        server.initializerBroadcast("PING")
         probe.expectMsg(250.milliseconds, "PONG")
         probe.expectMsg(250.milliseconds, "PONG")
       }
     }
     */
 
+    /*
+     * TODO: rewrite this to test DSLhandler instead
+
     "throw UnhandledRequestException on unhandled request" in {
       val probe = TestProbe()
       implicit val provider = new ErrorTestDSL(probe.ref)
       withIOSystem{ implicit system =>
-        val server = Service.basic[Raw]("test", TEST_PORT) {
+        val server = Server.basic[Raw]("test", TEST_PORT) {
           case any if (false) => ByteString("WAT")
         }
         withServer(server) {
@@ -63,11 +57,17 @@ class ServiceDSLSpec extends ColossusSpec {
         }
       }
     }
+    */
+
 
     "receive connection messages" in {
       val probe = TestProbe()
       withIOSystem{ implicit system =>
-        val server = Server.basic("test", TEST_PORT)(new Service[Raw](_) {
+        val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) with ProxyActor {
+            def shutdownRequest() {
+              shutdown()
+            }
+
             override def receive = {
               case "PING" => {
                 probe.ref ! "PONG"
@@ -75,9 +75,7 @@ class ServiceDSLSpec extends ColossusSpec {
             }
             def handle = {
               case x if (x == ByteString("PING")) => {
-                connectionHandle.foreach{ h =>
-                  h.worker.worker ! core.WorkerCommand.Message(h.id, "PING")
-                }
+                self ! "PING"
                 Callback.successful(ByteString("WHATEVER"))
               }
             }
@@ -93,7 +91,7 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "override error handler" in {
       withIOSystem{ implicit system =>
-        val server = Server.basic("test", TEST_PORT)( new Service[Raw](_) {
+        val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) {
             override def onError = {
               case error => ByteString("OVERRIDE")
             }
@@ -113,8 +111,6 @@ class ServiceDSLSpec extends ColossusSpec {
       withIOSystem{ implicit sys =>
         import protocols.http._
         import protocols.memcache._
-        import Http.defaults._
-        import Memcache.defaults._
         //this test passes if it compiles
         val s = Http.futureClient("localhost", TEST_PORT, 1.second)
         val t = Memcache.futureClient("localhost", TEST_PORT, 1.second)
@@ -124,9 +120,8 @@ class ServiceDSLSpec extends ColossusSpec {
     "be able to lift a sender to a type-specific client" in {
       withIOSystem{ implicit sys =>
         import protocols.http._
-        import Http.defaults._
 
-        val s = FutureClient[Http]("localhost", TEST_PORT, 1.second)
+        val s = Http.futureFactory("localhost", TEST_PORT, 1.second)
         val t = Http.futureClient(s)
         val q : HttpClient[Future] = t
       }

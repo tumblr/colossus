@@ -1,22 +1,23 @@
 package colossus
 package protocols.websocket
 
+import colossus.metrics.MetricNamespace
 import core._
 import controller._
 import service._
-import akka.util.{ByteString, ByteStringBuilder}
+import streaming.{PushResult, Sink}
+import akka.util.ByteStringBuilder
 
-import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.Random
-import scala.util.{Try, Success, Failure}
-import sun.misc.{BASE64Encoder, BASE64Decoder}
+import scala.util.{Success, Failure}
+import sun.misc.BASE64Encoder
 
 object UpgradeRequest {
   import protocols.http._
 
   val salt = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" //GUID for websocket
-
+  
   val b64 = new BASE64Encoder
 
   def processKey(key: String): String = {
@@ -25,7 +26,7 @@ object UpgradeRequest {
     digest.update((key + salt).getBytes("UTF-8"))
     new String(b64.encode(digest.digest()))
   }
-
+  
 
   /**
    * Validate a HttpRequest as a websocket upgrade request, returning the
@@ -34,12 +35,12 @@ object UpgradeRequest {
   def validate(request : HttpRequest, origins: List[String]): Option[HttpResponse] = {
     val headers = request.head.headers
     for {
-      cheader   <- headers.firstValue("connection")
-      uheader   <- headers.firstValue("upgrade")
+      cheader   <- headers.firstValue("connection") 
+      uheader   <- headers.firstValue("upgrade") 
       host      <- headers.firstValue("host")
       origin    <- headers.firstValue("origin")
       seckey    <- headers.firstValue("sec-websocket-key")
-      secver    <- headers.firstValue("sec-websocket-version")
+      secver    <- headers.firstValue("sec-websocket-version") 
       if (request.head.version  == HttpVersion.`1.1`)
       if (request.head.method   == HttpMethod.Get)
       if (secver == "13")
@@ -57,7 +58,7 @@ object UpgradeRequest {
         )
       ),
       HttpBody.NoBody
-    )
+    )      
   }
 }
 
@@ -73,7 +74,7 @@ object OpCodes {
   val Pong      = 0x0A.toByte
 
   def fromHeaderByte(b: Byte) = b & 0x0F
-
+  
   implicit val byteOrder = java.nio.ByteOrder.BIG_ENDIAN
 
 }
@@ -150,9 +151,9 @@ object FrameParser {
     val payload = data.drop(4)
     Frame.mask(mask, payload)
   }
+  
 
-
-
+  
   //see https://tools.ietf.org/html/rfc6455#section-5.2
   def frame = bytes(2) |> {head =>
     val opcode = head(0) & 0x0F
@@ -166,100 +167,117 @@ object FrameParser {
     } else {
       bytes(payloadLen + maskKeyBytes)
     }
-    p >> {data => DecodedResult.Static(Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data))))}
+    p >> {data => Frame(Header(opcode.toByte, mask), unmask(mask,DataBlock(data)))}
   }
 }
 
-abstract class BaseWebsocketHandler(context: Context, config: ControllerConfig)
-  extends Controller(new WebsocketCodec, config, context) {
+class WebsocketController[E <: Encoding] (val downstream: WebsocketControllerDownstream[E], val frameCodec: FrameCodec[E]) 
+extends ControllerDownstream[WebsocketEncoding] with ControllerUpstream[E]
+with DownstreamEventHandler[WebsocketControllerDownstream[E]]
+with UpstreamEventHandler[ControllerUpstream[WebsocketEncoding]] {
 
-  def send(bytes: DataBlock)(postWrite: OutputResult => Unit): Boolean = {
+  val controllerConfig = ControllerConfig(50, metricsEnabled = true)
+  downstream.setUpstream(this)
+  def connection = upstream.connection
+  def namespace = downstream.namespace
+
+  val incoming = Sink.open[Frame]{frame => 
+    frame.header.opcode match {
+      case OpCodes.Binary | OpCodes.Text => frameCodec.decode(frame.payload) match {
+        case Success(obj) => {
+          downstream.handle(obj)
+          PushResult.Ok
+        }
+        case Failure(err) => {
+          downstream.handleError(err)
+          PushResult.Ok
+        }
+      }
+      case OpCodes.Ping => {
+        upstream.outgoing.push(Frame(Header(OpCodes.Pong, false), frame.payload))
+      }
+      case OpCodes.Close => {
+        upstream.connection.disconnect()
+        PushResult.Ok
+      }
+      case _ => PushResult.Ok
+    }
+  }
+
+  lazy val outgoing = upstream.outgoing.mapIn[E#Output]{ message => 
+    val data = frameCodec.encode(message)
+    Frame(Header(OpCodes.Text, false), data)
+  }
+
+  private def send(bytes: DataBlock): PushResult = {
     //note - as per the spec, server frames are never masked
-    push(Frame(Header(OpCodes.Text, false), bytes))(postWrite)
+    val frame = Frame(Header(OpCodes.Text, false), bytes)
+    upstream.outgoing.push(frame)
   }
 
-  def processMessage(message: Frame)
+  def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
 
-  def preStart(){}
-
-  def postStop(){}
-
-  override def connected(e: WriteEndpoint) {
-    super.connected(e)
-    preStart()
-  }
-
-  override def connectionTerminated(cause: DisconnectCause) {
-    super.connectionTerminated(cause)
-    postStop()
+  def send(message: E#Output) {
+    send(frameCodec.encode(message))
   }
 
 }
 
-
-
-/**
- * A websocket server connection handler that uses a specified sub-protocol.
- */
-abstract class WebsocketHandler[P <: Protocol](context: Context, config: ControllerConfig)
-(implicit provider: FrameCodecProvider[P]) extends BaseWebsocketHandler(context, config) {
-
-  val wscodec = provider.provideCodec()
-
-  def handle: PartialFunction[P#Input, Unit]
+trait WebsocketControllerDownstream[E <: Encoding] extends UpstreamEvents with HasUpstream[ControllerUpstream[E]] with DownstreamEvents {
+ 
+  def handle: PartialFunction[E#Input, Unit]
 
   def handleError(reason: Throwable)
 
-  def sendMessage(message: P#Output)(implicit postWrite: OutputResult => Unit = WebsocketHandler.NoopPostWrite): Boolean =  {
-    send(wscodec.encode(message))(postWrite)
+  def namespace: MetricNamespace
+
+}
+
+
+abstract class WebsocketHandler[E <: Encoding](val context: Context)
+extends WebsocketControllerDownstream[E] with UpstreamEventHandler[ControllerUpstream[E]] with HandlerTail {
+
+  def send(message: E#Output): PushResult = {
+    upstream.outgoing.push(message)
   }
 
-  def processMessage(frame: Frame) {
-    frame.header.opcode match {
-      case OpCodes.Binary | OpCodes.Text => wscodec.decode(frame.payload) match {
-        case Success(obj) => handle(obj)
-        case Failure(err) => handleError(err)
-      }
-      case OpCodes.Ping => {
-        push(Frame(Header(OpCodes.Pong, false), frame.payload))(WebsocketHandler.NoopPostWrite)
-      }
-      case OpCodes.Close => {
-        disconnect()
-      }
-      case _ => {}
-    }
+}
+
+abstract class WebsocketServerHandler[E <: Encoding](serverContext: ServerContext) extends WebsocketHandler[E](serverContext.context) {
+  val namespace = serverContext.server.namespace
+}
+
+
+abstract class WebsocketInitializer[E <: Encoding](val worker: WorkerRef) {
+
+  def provideCodec(): FrameCodec[E]
+  
+  def onConnect: ServerContext => WebsocketHandler[E]
+
+
+  def fullHandler(w: WebsocketHandler[E]): ServerConnectionHandler = {
+    new PipelineHandler(
+      new Controller(
+        new WebsocketController(
+          w,
+          provideCodec()
+        ),
+        new WebsocketCodec
+      ),
+      w
+    )
   }
-}
-
-object WebsocketHandler {
-  val DefaultConfig = ControllerConfig(1024, scala.concurrent.duration.Duration.Inf)
-
-  val NoopPostWrite: OutputResult => Unit = _ => ()
-}
-
-
-abstract class WebsocketServerHandler[P <: Protocol](serverContext: ServerContext, config: ControllerConfig)(implicit provider: FrameCodecProvider[P])
-extends WebsocketHandler[P](serverContext.context, config)(provider) with ServerConnectionHandler {
-
-  def this(serverContext: ServerContext) (implicit provider: FrameCodecProvider[P]) = this(serverContext, WebsocketHandler.DefaultConfig)
-
-  implicit val namespace = serverContext.server.namespace
+        
 
 }
 
-abstract class WebsocketInitializer(val worker: WorkerRef) {
-
-  def onConnect: ServerContext => BaseWebsocketHandler
-
-}
-
-class WebsocketHttpHandler(ctx: ServerContext, websocketInit: WebsocketInitializer, upgradePath: String, origins: List[String])
-extends protocols.http.HttpService(ServiceConfig.Default, ctx) {
+class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext, websocketInit: WebsocketInitializer[E], upgradePath: String, origins: List[String])
+extends protocols.http.server.RequestHandler(ctx, ServiceConfig.Default) {
   def handle = {
-    case request if (request.head.path == upgradePath)=> {
+    case request if (request.head.path == upgradePath) => {
       val response = UpgradeRequest.validate(request, origins) match {
         case Some(upgrade) => {
-          become(() => websocketInit.onConnect(ctx))
+          connection.become(() => websocketInit.fullHandler(websocketInit.onConnect(ctx)))
           upgrade
         }
         case None => {
@@ -271,8 +289,10 @@ extends protocols.http.HttpService(ServiceConfig.Default, ctx) {
   }
 }
 
+
 object WebsocketServer {
   import protocols.http._
+  import server._
 
   /**
    * Start a Websocket server on the specified port.  Since Websocket
@@ -280,13 +300,13 @@ object WebsocketServer {
    * HTTP server and react to Websocket upgrade requests on the path
    * `upgradePath`, all other paths will 404.
    */
-  def start(name: String, port: Int, upgradePath: String = "/", origins: List[String] = List.empty)(init: WorkerRef => WebsocketInitializer)(implicit io: IOSystem) = {
-    Server.start(name, port){worker => new Initializer(worker) {
+  def start[E <: Encoding](name: String, port: Int, upgradePath: String = "/", origins: List[String] = List.empty)(init: WorkerRef => WebsocketInitializer[E])(implicit io: IOSystem) = {
+    HttpServer.start(name, port){context => new Initializer(context) {
 
-      val websockinit : WebsocketInitializer = init(worker)
+      val websockinit : WebsocketInitializer[E] = init(context.worker)
 
       def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath, origins)
-
+      
     }}
   }
 

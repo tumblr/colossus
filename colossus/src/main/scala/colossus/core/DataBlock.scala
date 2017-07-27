@@ -61,5 +61,7 @@ case class DataBlock(data: Array[Byte]) {
 
 object DataBlock {
 
+  val Empty = DataBlock(Array[Byte]())
+
   def apply(str: String): DataBlock = DataBlock(ByteString(str).toArray)
 }

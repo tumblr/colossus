@@ -3,22 +3,20 @@ package protocols.http
 
 
 import core._
-import service._
+import controller.Codec
 
-class BaseHttpServerCodec[T <: BaseHttpResponse]() extends Codec.ServerCodec[HttpRequest, T] {
-
+class StaticHttpServerCodec(headers: HttpHeaders) extends Codec.Server[Http] {
   private var parser = HttpRequestParser()
 
-  def encode(response: T): DataReader = response.toReader
+  def encode(response: HttpResponse, buffer: DataOutBuffer){ response.encode(buffer, headers) }
 
-  def decode(data: DataBuffer): Option[DecodedResult[HttpRequest]] = DecodedResult.static(parser.parse(data))
+  def decode(data: DataBuffer): Option[HttpRequest] = parser.parse(data)
 
   def reset(){
     parser = HttpRequestParser()
   }
+
+  def endOfStream() = parser.endOfStream()
+
 }
-
-class HttpServerCodec() extends BaseHttpServerCodec[HttpResponse]
-
-class StreamingHttpServerCodec() extends BaseHttpServerCodec[StreamingHttpResponse]
 
