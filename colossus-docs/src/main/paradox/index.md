@@ -23,3 +23,9 @@ core. TCP connections are bound to event loops and request handlers (written by 
 transform incoming requests into responses.  I/O operations (such as making requests to a remote cache or another 
 service) can be done asynchronously and entirely within the event loop, eliminating the need for complex multi-threaded
 code and greatly reducing the overhead of asynchronous operations.
+
+## Scala docs
+
+* [Colossus API](colossus-api/index.html#colossus.package)
+* [Colossus Metrics API](colossus-metrics-api/index.html#colossus.package)
+* [Colossus Teskit API](colossus-testkit-api/index.html#colossus.package)
