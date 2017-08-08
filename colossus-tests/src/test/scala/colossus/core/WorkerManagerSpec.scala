@@ -35,7 +35,7 @@ class WorkerManagerSpec extends ColossusSpec with Eventually{
         }
 
         val agent = new AtomicReference(Seq[WorkerRef]())
-        val manager: ActorRef = system.actorOf(Props(new WorkerManager(agent, io, workerFact)), name = s"idle-check-manager")
+        val manager: ActorRef = system.actorOf(WorkerManager.props(agent, io, workerFact), name = s"idle-check-manager")
 
         //give the WorkerManager some time to create the Workers
         eventually{

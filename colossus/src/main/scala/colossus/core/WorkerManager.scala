@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
  * @param workerAgent WorkerRefs that this WorkerManager manages
  * @param ioSystem Containing IOSystem
  */
-private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory : WorkerFactory )
+private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory: WorkerFactory)
 extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -233,6 +233,11 @@ private[colossus] object DefaultWorkerFactory extends WorkerFactory{
 }
 
 private[colossus] object WorkerManager {
+
+  def props(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory: WorkerFactory): Props = {
+    Props(new WorkerManager(workerAgent, ioSystem, workerFactory))
+  }
+
   case class WorkersReady(workerRouter: ActorRef)
   case object WorkersNotReady
 

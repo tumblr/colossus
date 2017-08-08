@@ -77,7 +77,7 @@ object IOSystem {
 
   private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
     sys.actorSystem.actorOf(
-      Props(new WorkerManager(agent, sys, DefaultWorkerFactory)), name = s"${actorFriendlyName(sys.name)}-manager"
+      WorkerManager.props(agent, sys, DefaultWorkerFactory), name = s"${actorFriendlyName(sys.name)}-manager"
     )
   }
 }
