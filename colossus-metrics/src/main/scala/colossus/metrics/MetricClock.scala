@@ -10,7 +10,6 @@ class IntervalAggregator(interval: FiniteDuration, snapshot: Agent[MetricMap], s
 
   import context.dispatcher
   import IntervalAggregator._
-  import java.util.{HashSet=>JHashSet}
   import scala.collection.JavaConversions._
 
   val systemMetrics = sysMetricsNamespace.map{ns => new SystemMetricsCollector(ns)}

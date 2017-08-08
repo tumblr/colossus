@@ -1,17 +1,13 @@
 package colossus
 
 import akka.util.Timeout
-import akka.agent.Agent
 import colossus.core.Worker.ConnectionSummary
-import com.typesafe.config.{ConfigFactory, Config}
-
+import com.typesafe.config.{Config, ConfigFactory}
 import core._
-
 import akka.actor._
 import metrics._
-
 import java.net.InetSocketAddress
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,14 +19,12 @@ object IOSystem {
     * Create a new IOSystem, using only the defaults provided by the corresponding `colossus.iosystem` config path.
     * A Config object will be created via {{{ConfigFactory.load()}}}
     *
-    * @param sys
+    * @param sys ActorSystem used to execute on
     * @return
     */
   def apply()(implicit sys : ActorSystem) : IOSystem = {
     apply("iosystem")
   }
-
-
 
   /**
     * Create a new IOSystem.
@@ -39,14 +33,14 @@ object IOSystem {
     *
     * @param name  Name of the IOSystem to create.
     * @param ioConfig The Config source in the shape of `colossus.iosystem`
-    * @param sys
+    * @param sys ActorSystem used to execute on
     * @return
     */
   def apply(
     name : String,
     ioConfig : Config = ConfigFactory.load().getConfig(ConfigRoot),
     metrics: Option[MetricSystem] = None
-  )(implicit sys : ActorSystem) : IOSystem = {
+  )(implicit sys: ActorSystem) : IOSystem = {
 
     import colossus.metrics.ConfigHelpers._
 
@@ -62,7 +56,7 @@ object IOSystem {
     * @param name Name of this IOSystem.
     * @param workerCount Number of workers to create
     * @param metrics The MetricSystem used to report metrics
-    * @param system
+    * @param system ActorSystem used to execute on
     * @return
     */
   def apply(name : String, workerCount : Option[Int],
@@ -79,17 +73,13 @@ object IOSystem {
     }
   }
 
-  type WorkerAgent = Agent[IndexedSeq[WorkerRef]]
+  type WorkerAgent = AtomicReference[Seq[WorkerRef]]
 
   private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
-    sys.actorSystem.actorOf(Props(
-      classOf[WorkerManager],
-      agent,
-      sys,
-      DefaultWorkerFactory
-    ), name = s"${actorFriendlyName(sys.name)}-manager")
+    sys.actorSystem.actorOf(
+      Props(new WorkerManager(agent, sys, DefaultWorkerFactory)), name = s"${actorFriendlyName(sys.name)}-manager"
+    )
   }
-
 }
 
 /**
@@ -106,20 +96,19 @@ class IOSystem private[colossus](
   val numWorkers : Int,
   val  metrics: MetricSystem,
   val actorSystem: ActorSystem,
-  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef
-) {
+  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef) {
+
   import IOCommand._
 
   import akka.pattern.ask
   import colossus.core.WorkerManager.RegisteredServers
-  import actorSystem.dispatcher
 
   //TODO : there's a race condition here that could occur if you try to bind a
   //item from here just after starting the IOSystem.
-  private val workers: Agent[IndexedSeq[WorkerRef]] = Agent(Vector())
+  private val workers = new AtomicReference(Seq.empty[WorkerRef])
   private var workerMod = 0
   private def nextWorker = {
-    val w = workers()
+    val w = workers.get()
     workerMod += 1
     w(workerMod % w.size)
   }
@@ -147,7 +136,7 @@ class IOSystem private[colossus](
   private[colossus] val workerManager : ActorRef = managerFactory(workers, this)
 
   // >[*]< SUPER HACK ALERT >[*]<
-  while (numWorkers > 0 && workers().isEmpty) {
+  while (numWorkers > 0 && workers.get().isEmpty) {
     Thread.sleep(25)
   }
 
@@ -158,7 +147,7 @@ class IOSystem private[colossus](
    * @param sender The sender of the message, defaults to ActorRef.noSender
    * @return
    */
-  def ! (msg: Any)(implicit sender: ActorRef = ActorRef.noSender) = workerManager ! msg
+  def !(msg: Any)(implicit sender: ActorRef = ActorRef.noSender): Unit = workerManager ! msg
 
   /**
    * Shuts down the IO System
@@ -228,7 +217,7 @@ object IOCommand {
 
   /**
    * Bind a [WorkerItem] to a Worker.  Multiple Bind messages are round
-   * robined across workers in an IOSystem
+   * robbined across workers in an IOSystem
    */
   case class BindWorkerItem(item: Context => WorkerItem) extends IOCommand
 

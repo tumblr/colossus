@@ -2,7 +2,6 @@ package colossus.metrics
 
 import akka.actor._
 import akka.agent.Agent
-import colossus.metrics.MetricAddress.Root
 import com.typesafe.config.{ConfigFactory, Config}
 
 import scala.concurrent.duration._

@@ -1,7 +1,8 @@
 package colossus.core
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor.{ActorContext, ActorRef, Props}
-import akka.agent.Agent
 import akka.testkit.TestProbe
 import colossus.IOSystem
 import colossus.testkit.ColossusSpec
@@ -33,8 +34,8 @@ class WorkerManagerSpec extends ColossusSpec with Eventually{
           }
         }
 
-        val agent = Agent(Seq[WorkerRef]())
-        val manager: ActorRef = system.actorOf(Props(classOf[WorkerManager], agent, io, workerFact), name = s"idle-check-manager")
+        val agent = new AtomicReference(Seq[WorkerRef]())
+        val manager: ActorRef = system.actorOf(Props(new WorkerManager(agent, io, workerFact)), name = s"idle-check-manager")
 
         //give the WorkerManager some time to create the Workers
         eventually{
