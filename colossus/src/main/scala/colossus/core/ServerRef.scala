@@ -1,15 +1,15 @@
 package colossus
 package core
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor.{ActorRef, PoisonPill}
-import akka.agent.Agent
 import akka.pattern.ask
 import akka.util.Timeout
+
 import scala.concurrent.duration._
 import scala.concurrent.Future
-
 import metrics._
-
 import server._
 
 /**
@@ -20,17 +20,17 @@ import server._
  * @param config The ServerConfig used to create this Server
  * @param server The ActorRef of the Server
  * @param system The IOSystem to which this Server belongs
- * @param serverStateAgent The current state of the Server.
+ * @param serverStateRef The current state of the Server.
  */
-case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateAgent : Agent[ServerState]) {
+case class ServerRef private[colossus] (config: ServerConfig, server: ActorRef, system: IOSystem, private val serverStateRef : AtomicReference[ServerState]) {
   def name = config.name
 
-  def serverState = serverStateAgent.get()
+  def serverState = serverStateRef.get()
 
   val namespace : MetricNamespace = system.namespace / name
 
   def maxIdleTime = {
-    if(serverStateAgent().connectionVolumeState == ConnectionVolumeState.HighWater) {
+    if(serverStateRef.get().connectionVolumeState == ConnectionVolumeState.HighWater) {
       config.settings.highWaterMaxIdleTime
     } else {
       config.settings.maxIdleTime

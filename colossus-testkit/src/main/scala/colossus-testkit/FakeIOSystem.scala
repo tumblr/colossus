@@ -1,11 +1,11 @@
 package colossus
 package testkit
 
+import java.util.concurrent.atomic.AtomicReference
 import core.{InitContext, _}
 import core.server._
 import metrics._
 import service._
-import akka.agent.Agent
 import akka.actor._
 import akka.testkit.TestProbe
 
@@ -60,7 +60,7 @@ object FakeIOSystem {
       (initContext) => ???,
       ServerSettings(987)
     )
-    val ref = ServerRef(config, probe.ref, apply(), Agent(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
+    val ref = ServerRef(config, probe.ref, apply(), new AtomicReference(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
     (probe, ref)
   }
 
