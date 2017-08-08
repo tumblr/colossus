@@ -1,7 +1,8 @@
 import sbt._
 import Keys._
+import com.lightbend.paradox.sbt.ParadoxPlugin
+import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import spray.revolver.RevolverPlugin._
-import com.typesafe.sbt.pgp.PgpKeys._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 object ColossusBuild extends Build {
@@ -69,7 +70,7 @@ object ColossusBuild extends Build {
       .settings(noPubSettings:_*)
       .configs(IntegrationTest)
       .dependsOn(ColossusProject)
-      .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject)
+      .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject, ColossusDocs)
 
   lazy val ColossusProject: Project = Project(id="colossus", base=file("colossus"))
       .settings(ColossusSettings:_*)
@@ -94,6 +95,16 @@ object ColossusBuild extends Build {
       .settings(testkitDependencies)
       .configs(IntegrationTest)
       .dependsOn(ColossusProject)
+
+  lazy val ColossusDocs = Project(id="colossus-docs", base = file("colossus-docs"))
+      .settings(ColossusSettings:_*)
+      .enablePlugins(ParadoxPlugin)
+      .settings(
+        paradoxTheme := Some(builtinParadoxTheme("generic"))
+      )
+      .configs(IntegrationTest)
+      .dependsOn(ColossusProject, ColossusTestkitProject)
+
 
   lazy val ColossusTestsProject = Project(
     id="colossus-tests", 
