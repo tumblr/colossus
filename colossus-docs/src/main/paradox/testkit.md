@@ -22,6 +22,8 @@ You can use `MockConnection` to create a fake `ServerContext` and create an inst
 
 @@snip [TestkitExample.scala](../scala/TestkitExample.scala) { #example }
 
+Todo, fix the spec!
+
 @@snip [TestkitExampleSpec.scala](../../test/scala/TestkitExampleSpec.scala) { #example }
 
 ## Integration Testing
