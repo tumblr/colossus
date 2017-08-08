@@ -2,11 +2,9 @@ package colossus
 package core
 
 import akka.actor._
-import akka.agent.Agent
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
-
 import java.net.InetSocketAddress
 
 import scala.concurrent.Future
@@ -23,7 +21,7 @@ import scala.util.{Failure, Success}
  * @param workerAgent WorkerRefs that this WorkerManager manages
  * @param ioSystem Containing IOSystem
  */
-private[colossus] class WorkerManager(workerAgent: Agent[IndexedSeq[WorkerRef]], ioSystem: IOSystem, workerFactory : WorkerFactory )
+private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory: WorkerFactory)
 extends Actor with ActorLogging with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -66,7 +64,7 @@ extends Actor with ActorLogging with Stash {
       val nowReady = ready :+ worker
       if (nowReady.size == numWorkers) {
         log.info("All Workers reports ready, lets do this")
-        workerAgent alter{_ => nowReady}
+        workerAgent.set(nowReady)
         context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
         unstashAll()
         context.become(running)
@@ -235,6 +233,11 @@ private[colossus] object DefaultWorkerFactory extends WorkerFactory{
 }
 
 private[colossus] object WorkerManager {
+
+  def props(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory: WorkerFactory): Props = {
+    Props(new WorkerManager(workerAgent, ioSystem, workerFactory))
+  }
+
   case class WorkersReady(workerRouter: ActorRef)
   case object WorkersNotReady
 
