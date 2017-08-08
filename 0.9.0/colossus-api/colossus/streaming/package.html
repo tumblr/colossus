@@ -1,0 +1,1007 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>streaming - colossus.streaming</title>
+          <meta name="description" content="streaming - colossus.streaming" />
+          <meta name="keywords" content="streaming colossus.streaming" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.streaming.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>streaming</h1><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">streaming</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.streaming"><span>streaming</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.streaming.BufferedPipe" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BufferedPipe[T]extendsPipe[T,T]"></a>
+      <a id="BufferedPipe[T]:BufferedPipe[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="BufferedPipe.html"><span class="name">BufferedPipe</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.BufferedPipe.T">T</span>, <span class="extype" name="colossus.streaming.BufferedPipe.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@BufferedPipe[T]extendsPipe[T,T]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A pipe backed by a fixed-length buffer.</p><div class="fullcomment"><div class="comment cmt"><p>A pipe backed by a fixed-length buffer.  Items can be pushed into the buffer
+until it fills, at which point the <code>Full</code> <a href="PushResult.html" class="extype" name="colossus.streaming.PushResult">PushResult</a> is returned.  When
+items are pulled out of the pipe the signal return in the Full result is
+fired.</p><p>The most efficient way to use a <code>BufferedPipe</code> is with the <code>pullWhile</code>
+method.  This allows the pipe to completely bypass buffering and items pushed
+to the pipe are fast-tracked directly into the provided processing function.
+</p></div></div>
+    </li><li name="colossus.streaming.Channel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Channel[I,O]extendsPipe[I,O]"></a>
+      <a id="Channel[I,O]:Channel[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Channel.html"><span class="name">Channel</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.Channel.I">I</span>, <span class="extype" name="colossus.streaming.Channel.O">O</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Channel[I,O]extendsPipe[I,O]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.CircuitBreaker" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CircuitBreaker[T&lt;:colossus.streaming.Transport]extendsAnyRef"></a>
+      <a id="CircuitBreaker[T&lt;:Transport]:CircuitBreaker[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CircuitBreaker.html"><span class="name">CircuitBreaker</span></a><span class="tparams">[<span name="T">T &lt;: <a href="Transport.html" class="extype" name="colossus.streaming.Transport">Transport</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@CircuitBreaker[T&lt;:colossus.streaming.Transport]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.DualSource" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DualSource[T]extendsSource[T]withSource.BasicMethods[T]"></a>
+      <a id="DualSource[T]:DualSource[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DualSource.html"><span class="name">DualSource</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<span class="extype" name="colossus.streaming.DualSource.T">T</span>] with <a href="Source$$BasicMethods.html" class="extype" name="colossus.streaming.Source.BasicMethods">BasicMethods</a>[<span class="extype" name="colossus.streaming.DualSource.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@DualSource[T]extendsSource[T]withSource.BasicMethods[T]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Wraps 2 sinks and will automatically begin reading from the second only when
+the first is empty.</p><div class="fullcomment"><div class="comment cmt"><p>Wraps 2 sinks and will automatically begin reading from the second only when
+the first is empty.  The <code>None</code> from the first sink is never exposed.  The
+first error reported from either sink is propagated.
+</p></div></div>
+    </li><li name="colossus.streaming.Functor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Functor[F[_]]extendsAnyRef"></a>
+      <a id="Functor[F[_]]:Functor[F]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Functor.html"><span class="name">Functor</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Functor[F[_]]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.FunctorOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FunctorOps[F[_],A]extendsAnyVal"></a>
+      <a id="FunctorOps[F[_],A]:FunctorOps[F,A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$FunctorOps.html"><span class="name">FunctorOps</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@FunctorOps[F[_],A]extendsAnyVal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.InternalTransportClosedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InternalTransportClosedExceptionextendsException"></a>
+      <a id="InternalTransportClosedException:InternalTransportClosedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="InternalTransportClosedException.html"><span class="name">InternalTransportClosedException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@InternalTransportClosedExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.MultiStream" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MultiStream[K,T]extendsStream[T]"></a>
+      <a id="MultiStream[K,T]:MultiStream[K,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MultiStream.html"><span class="name">MultiStream</span></a><span class="tparams">[<span name="K">K</span>, <span name="T">T</span>]</span><span class="result"> extends <a href="Stream.html" class="extype" name="colossus.streaming.Stream">Stream</a>[<span class="extype" name="colossus.streaming.MultiStream.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@MultiStream[K,T]extendsStream[T]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.NEPullResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="NEPullResult[+T]extendsPullResult[T]"></a>
+      <a id="NEPullResult[+T]:NEPullResult[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="NEPullResult.html"><span class="name">NEPullResult</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="PullResult.html" class="extype" name="colossus.streaming.PullResult">PullResult</a>[<span class="extype" name="colossus.streaming.NEPullResult.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@NEPullResult[+T]extendsPullResult[T]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.NonOpenTransportState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="NonOpenTransportStateextendsTransportState"></a>
+      <a id="NonOpenTransportState:NonOpenTransportState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="NonOpenTransportState.html"><span class="name">NonOpenTransportState</span></a><span class="result"> extends <a href="TransportState.html" class="extype" name="colossus.streaming.TransportState">TransportState</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@NonOpenTransportStateextendsTransportState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.NullPullResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="NullPullResultextendsPullResult[Nothing]"></a>
+      <a id="NullPullResult:NullPullResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="NullPullResult.html"><span class="name">NullPullResult</span></a><span class="result"> extends <a href="PullResult.html" class="extype" name="colossus.streaming.PullResult">PullResult</a>[<span class="extype" name="scala.Nothing">Nothing</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@NullPullResultextendsPullResult[Nothing]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Pipe" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Pipe[I,O]extendsSink[I]withSource[O]"></a>
+      <a id="Pipe[I,O]:Pipe[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Pipe.html"><span class="name">Pipe</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a>[<span class="extype" name="colossus.streaming.Pipe.I">I</span>] with <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<span class="extype" name="colossus.streaming.Pipe.O">O</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Pipe[I,O]extendsSink[I]withSource[O]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Pipe is an abstraction that mediates interactions between producers and
+consumers of a stream of data.</p><div class="fullcomment"><div class="comment cmt"><p>A Pipe is an abstraction that mediates interactions between producers and
+consumers of a stream of data.  It can be thought of as a mutable buffer that
+has built-in features for addressing both back-pressure (when the pipe
+&quot;fills&quot;) and forward-pressure (when the pipe &quot;empties&quot;).  Items are &quot;pushed&quot;
+into the pipe and &quot;pulled&quot; out of it.</p><p>A Pipe is the combination of the <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a> and <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a> traits, representing
+the producer and consumer interfaces, respectively.  It should be noted that
+a Pipe does not contain additional state beyond that provided by the Source
+and Sink interfaces.  In other words, it may be possible for the producer
+<code>Sink</code> side of a pipe to be Closed or Terminated, while the consumer <code>Source</code>
+side is in a different state.</p><p>The canonical implementation is the <a href="BufferedPipe.html" class="extype" name="colossus.streaming.BufferedPipe">BufferedPipe</a>, backed by a
+fixed-length buffer.  However pipes have many monadic and combinatorial
+capabilities, allowing them to be mapped, linked together, flattened, and
+multiplexed.</p><p>As opposed to other libraries/frameworks that have a concept of streams,
+sources, and sinks, these pipes are intended for low-level stream management.
+They support several features that allow interation with pipes to be very
+fast and efficient.  They form the backbone of all connection handlers and as
+well as streaming protocols like http/2.  Pipes are *not* thread-safe.
+</p></div></div>
+    </li><li name="colossus.streaming.PipeCircuitBreaker" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PipeCircuitBreaker[I,O]extendsPipe[I,O]withCircuitBreaker[colossus.streaming.Pipe[I,O]]withSourceCircuitBreaker[O,colossus.streaming.Pipe[I,O]]withSinkCircuitBreaker[I,colossus.streaming.Pipe[I,O]]"></a>
+      <a id="PipeCircuitBreaker[I,O]:PipeCircuitBreaker[I,O]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeCircuitBreaker.html"><span class="name">PipeCircuitBreaker</span></a><span class="tparams">[<span name="I">I</span>, <span name="O">O</span>]</span><span class="result"> extends <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.I">I</span>, <span class="extype" name="colossus.streaming.PipeCircuitBreaker.O">O</span>] with <a href="CircuitBreaker.html" class="extype" name="colossus.streaming.CircuitBreaker">CircuitBreaker</a>[<a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.I">I</span>, <span class="extype" name="colossus.streaming.PipeCircuitBreaker.O">O</span>]] with <a href="SourceCircuitBreaker.html" class="extype" name="colossus.streaming.SourceCircuitBreaker">SourceCircuitBreaker</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.O">O</span>, <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.I">I</span>, <span class="extype" name="colossus.streaming.PipeCircuitBreaker.O">O</span>]] with <a href="SinkCircuitBreaker.html" class="extype" name="colossus.streaming.SinkCircuitBreaker">SinkCircuitBreaker</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.I">I</span>, <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>[<span class="extype" name="colossus.streaming.PipeCircuitBreaker.I">I</span>, <span class="extype" name="colossus.streaming.PipeCircuitBreaker.O">O</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PipeCircuitBreaker[I,O]extendsPipe[I,O]withCircuitBreaker[colossus.streaming.Pipe[I,O]]withSourceCircuitBreaker[O,colossus.streaming.Pipe[I,O]]withSinkCircuitBreaker[I,colossus.streaming.Pipe[I,O]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PipeException" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PipeExceptionextendsThrowable"></a>
+      <a id="PipeException:PipeException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeException.html"><span class="name">PipeException</span></a><span class="result"> extends <span class="extype" name="scala.Throwable">Throwable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PipeExceptionextendsThrowable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PipeOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PipeOps[A,B]extendsAnyVal"></a>
+      <a id="PipeOps[A,B]:PipeOps[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$PipeOps.html"><span class="name">PipeOps</span></a><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PipeOps[A,B]extendsAnyVal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PipeStateException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PipeStateExceptionextendsExceptionwithPipeException"></a>
+      <a id="PipeStateException:PipeStateException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeStateException.html"><span class="name">PipeStateException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <a href="PipeException.html" class="extype" name="colossus.streaming.PipeException">PipeException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PipeStateExceptionextendsExceptionwithPipeException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PipeTerminatedException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PipeTerminatedExceptionextendsExceptionwithPipeException"></a>
+      <a id="PipeTerminatedException:PipeTerminatedException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeTerminatedException.html"><span class="name">PipeTerminatedException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <a href="PipeException.html" class="extype" name="colossus.streaming.PipeException">PipeException</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PipeTerminatedExceptionextendsExceptionwithPipeException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PullAction" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PullActionextendsAnyRef"></a>
+      <a id="PullAction:PullAction"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PullAction.html"><span class="name">PullAction</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PullActionextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PullResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PullResult[+T]extendsAnyRef"></a>
+      <a id="PullResult[+T]:PullResult[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PullResult.html"><span class="name">PullResult</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PullResult[+T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PushResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PushResultextendsAnyRef"></a>
+      <a id="PushResult:PushResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PushResult.html"><span class="name">PushResult</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PushResultextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Signal" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="SignalextendsAnyRef"></a>
+      <a id="Signal:Signal"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Signal.html"><span class="name">Signal</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SignalextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <code>Signal</code> is a callback mechanism used by both <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a> and <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a> to manage forward/back-pressure.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>Signal</code> is a callback mechanism used by both <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a> and <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a> to manage forward/back-pressure.  In both cases it is returned when a requested operation cannot immediately complete, but can at a later point in time.  For example, when pulling from a <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>, if no item is immediately available, a signal is returned that will be triggered when an item is available to pull.</p><pre><span class="kw">val</span> stream: Source[<span class="std">Int</span>] = <span class="cmt">//...</span>
+stream.pull() <span class="kw">match</span> {
+ <span class="kw">case</span> PullResult.Item(num) <span class="kw">=&gt;</span> <span class="cmt">//...</span>
+ <span class="kw">case</span> PullResult.Full(signal) <span class="kw">=&gt;</span> signal.notify {
+   <span class="cmt">//when this callback function is called, it is guaranteed that an item is now available</span>
+   stream.pull()<span class="cmt">//...</span>
+ }
+}</pre><p>Signals are multi-listener, so that multiple consumers can attach callbacks
+to a single listener.  Callbacks are fired in the order they are queued, and
+generally conditions for triggering a signal are re-checked for each listener
+(so that, for example, if one item is pushed to an empty Source, only one
+listener is signaled).
+</p></div></div>
+    </li><li name="colossus.streaming.Sink" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Sink[-T]extendsTransport"></a>
+      <a id="Sink[-T]:Sink[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Sink.html"><span class="name">Sink</span></a><span class="tparams">[<span name="T">-T</span>]</span><span class="result"> extends <a href="Transport.html" class="extype" name="colossus.streaming.Transport">Transport</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Sink[-T]extendsTransport" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Sink is the write side of a pipe.</p><div class="fullcomment"><div class="comment cmt"><p>A Sink is the write side of a pipe.  It allows you to push items to it,
+and will return whether or not it can accept more data.  In the case where
+the pipe is full, the Sink will return a mutable Trigger and you can
+attach a callback to for when the pipe can receive more items
+</p></div></div>
+    </li><li name="colossus.streaming.SinkCircuitBreaker" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SinkCircuitBreaker[A,T&lt;:colossus.streaming.Sink[A]]extendsSink[A]"></a>
+      <a id="SinkCircuitBreaker[A,T&lt;:Sink[A]]:SinkCircuitBreaker[A,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="SinkCircuitBreaker.html"><span class="name">SinkCircuitBreaker</span></a><span class="tparams">[<span name="A">A</span>, <span name="T">T &lt;: <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a>[<span class="extype" name="colossus.streaming.SinkCircuitBreaker.A">A</span>]</span>]</span><span class="result"> extends <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a>[<span class="extype" name="colossus.streaming.SinkCircuitBreaker.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SinkCircuitBreaker[A,T&lt;:colossus.streaming.Sink[A]]extendsSink[A]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Source" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Source[+T]extendsTransport"></a>
+      <a id="Source[+T]:Source[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Source.html"><span class="name">Source</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <a href="Transport.html" class="extype" name="colossus.streaming.Transport">Transport</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Source[+T]extendsTransport" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <code>Source</code> is the read interface for a <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <code>Source</code> is the read interface for a <a href="Pipe.html" class="extype" name="colossus.streaming.Pipe">Pipe</a>.  Items can be pulled out of
+the source if available.  When no item is available, a returned <a href="Signal.html" class="extype" name="colossus.streaming.Signal">Signal</a>
+can be used to be notified when items are available.</p><p>Sources can be mapped using the functionality provided in the
+<a href="package$$SourceMapper$.html" class="extype" name="colossus.streaming.SourceMapper">SourceMapper</a> typeclass
+</p></div></div>
+    </li><li name="colossus.streaming.SourceCircuitBreaker" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SourceCircuitBreaker[A,T&lt;:colossus.streaming.Source[A]]extendsSource.BasicMethods[A]"></a>
+      <a id="SourceCircuitBreaker[A,T&lt;:Source[A]]:SourceCircuitBreaker[A,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="SourceCircuitBreaker.html"><span class="name">SourceCircuitBreaker</span></a><span class="tparams">[<span name="A">A</span>, <span name="T">T &lt;: <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<span class="extype" name="colossus.streaming.SourceCircuitBreaker.A">A</span>]</span>]</span><span class="result"> extends <a href="Source$$BasicMethods.html" class="extype" name="colossus.streaming.Source.BasicMethods">BasicMethods</a>[<span class="extype" name="colossus.streaming.SourceCircuitBreaker.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SourceCircuitBreaker[A,T&lt;:colossus.streaming.Source[A]]extendsSource.BasicMethods[A]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.SourceOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SourceOps[A]extendsAnyVal"></a>
+      <a id="SourceOps[A]:SourceOps[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$SourceOps.html"><span class="name">SourceOps</span></a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SourceOps[A]extendsAnyVal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Stream" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Stream[T]extendsAnyRef"></a>
+      <a id="Stream[T]:Stream[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Stream.html"><span class="name">Stream</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Stream[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.StreamComponent" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamComponentextendsAnyRef"></a>
+      <a id="StreamComponent:StreamComponent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamComponent.html"><span class="name">StreamComponent</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@StreamComponentextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.StreamTranscodingController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamTranscodingController[U&lt;:colossus.controller.Encoding,D&lt;:colossus.controller.Encoding]extendsControllerDownstream[U]withDownstreamEventHandler[colossus.controller.ControllerDownstream[D]]withControllerUpstream[D]withUpstreamEventHandler[colossus.controller.ControllerUpstream[U]]"></a>
+      <a id="StreamTranscodingController[U&lt;:Encoding,D&lt;:Encoding]:StreamTranscodingController[U,D]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamTranscodingController.html"><span class="name">StreamTranscodingController</span></a><span class="tparams">[<span name="U">U &lt;: <a href="../controller/Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>, <span name="D">D &lt;: <a href="../controller/Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="../controller/ControllerDownstream.html" class="extype" name="colossus.controller.ControllerDownstream">ControllerDownstream</a>[<span class="extype" name="colossus.streaming.StreamTranscodingController.U">U</span>] with <a href="../core/DownstreamEventHandler.html" class="extype" name="colossus.core.DownstreamEventHandler">DownstreamEventHandler</a>[<a href="../controller/ControllerDownstream.html" class="extype" name="colossus.controller.ControllerDownstream">ControllerDownstream</a>[<span class="extype" name="colossus.streaming.StreamTranscodingController.D">D</span>]] with <a href="../controller/ControllerUpstream.html" class="extype" name="colossus.controller.ControllerUpstream">ControllerUpstream</a>[<span class="extype" name="colossus.streaming.StreamTranscodingController.D">D</span>] with <a href="../core/UpstreamEventHandler.html" class="extype" name="colossus.core.UpstreamEventHandler">UpstreamEventHandler</a>[<a href="../controller/ControllerUpstream.html" class="extype" name="colossus.controller.ControllerUpstream">ControllerUpstream</a>[<span class="extype" name="colossus.streaming.StreamTranscodingController.U">U</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@StreamTranscodingController[U&lt;:colossus.controller.Encoding,D&lt;:colossus.controller.Encoding]extendsControllerDownstream[U]withDownstreamEventHandler[colossus.controller.ControllerDownstream[D]]withControllerUpstream[D]withUpstreamEventHandler[colossus.controller.ControllerUpstream[U]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This controller interface can be used to transcode from one encoding to
+another in a connection handler pipeline
+</p>
+    </li><li name="colossus.streaming.SubSink" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SubSink[K,T]extendsProductwithSerializable"></a>
+      <a id="SubSink[K,T]:SubSink[K,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SubSink.html"><span class="name">SubSink</span></a><span class="tparams">[<span name="K">K</span>, <span name="T">T</span>]</span><span class="params">(<span name="id">id: <span class="extype" name="colossus.streaming.SubSink.K">K</span></span>, <span name="stream">stream: <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a>[<span class="extype" name="colossus.streaming.SubSink.T">T</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SubSink[K,T]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.SubSource" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SubSource[K,T]extendsProductwithSerializable"></a>
+      <a id="SubSource[K,T]:SubSource[K,T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SubSource.html"><span class="name">SubSource</span></a><span class="tparams">[<span name="K">K</span>, <span name="T">T</span>]</span><span class="params">(<span name="id">id: <span class="extype" name="colossus.streaming.SubSource.K">K</span></span>, <span name="stream">stream: <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<span class="extype" name="colossus.streaming.SubSource.T">T</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SubSource[K,T]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.TerminalPullResult" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TerminalPullResultextendsNullPullResult"></a>
+      <a id="TerminalPullResult:TerminalPullResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TerminalPullResult.html"><span class="name">TerminalPullResult</span></a><span class="result"> extends <a href="NullPullResult.html" class="extype" name="colossus.streaming.NullPullResult">NullPullResult</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@TerminalPullResultextendsNullPullResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Transcoder" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="Transcoder[U&lt;:colossus.controller.Encoding,D&lt;:colossus.controller.Encoding]extendsAnyRef"></a>
+      <a id="Transcoder[U&lt;:Encoding,D&lt;:Encoding]:Transcoder[U,D]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Transcoder.html"><span class="name">Transcoder</span></a><span class="tparams">[<span name="U">U &lt;: <a href="../controller/Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>, <span name="D">D &lt;: <a href="../controller/Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Transcoder[U&lt;:colossus.controller.Encoding,D&lt;:colossus.controller.Encoding]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Transcoder is used to convert streams of one encoding to streams of
+another.</p><div class="fullcomment"><div class="comment cmt"><p>A Transcoder is used to convert streams of one encoding to streams of
+another.  The two streams are intended to be part of a duplex pipeline, so
+input is transcoded from A to B, and output is transcoded the other way B to
+A
+</p></div></div>
+    </li><li name="colossus.streaming.Transport" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TransportextendsAnyRef"></a>
+      <a id="Transport:Transport"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Transport.html"><span class="name">Transport</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@TransportextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is the base type of both <a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a> and <a href="Sink.html" class="extype" name="colossus.streaming.Sink">Sink</a>
+</p>
+    </li><li name="colossus.streaming.TransportState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TransportStateextendsAnyRef"></a>
+      <a id="TransportState:TransportState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TransportState.html"><span class="name">TransportState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@TransportStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Trigger" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="TriggerextendsSignal"></a>
+      <a id="Trigger:Trigger"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Trigger.html"><span class="name">Trigger</span></a><span class="result"> extends <a href="Signal.html" class="extype" name="colossus.streaming.Signal">Signal</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@TriggerextendsSignal" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">When a user attempts to push a value into a pipe, and the pipe either fills
+or was already full, a Trigger is returned in the PushResult.</p><div class="fullcomment"><div class="comment cmt"><p>When a user attempts to push a value into a pipe, and the pipe either fills
+or was already full, a Trigger is returned in the PushResult.  This is
+essentially just a fillable callback function that is called when the pipe
+either becomes empty or is closed or terminated</p><p>Notice that when the trigger is executed we don't include any information
+about the state of the pipe.  The handler can just try pushing again to
+determine if the pipe is dead or not.
+</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.streaming.Channel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Channel"></a>
+      <a id="Channel:Channel"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Channel$.html"><span class="name">Channel</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Channel" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Multiplexing" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Multiplexing"></a>
+      <a id="Multiplexing:Multiplexing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Multiplexing$.html"><span class="name">Multiplexing</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Multiplexing" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Multiplexing is the process of combining multiple independant streams into
+a single stream.</p><div class="fullcomment"><div class="comment cmt"><p>Multiplexing is the process of combining multiple independant streams into
+a single stream.  Each message in the multiplexed stream carries
+information about which sub-stream it originated from, so that eventually
+the stream can be demultiplexed back into the constituent sub-streams.</p><p>By multiplexing a &quot;base&quot; <code>Sink[T]</code>, a new <code>Sink[SubSource[K,T]]</code> is
+created, with each <a href="SubSource.html" class="extype" name="colossus.streaming.SubSource">SubSource</a> containing a <code>Source[T]</code>.  When a
+<a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a> is pushed into the multiplexing sink, all messages pushed to
+that source are routed into the base sink.</p><p>Likewise, demultiplexing a multiplexed <code>Source[T]</code> will create a
+<code>Source[SubSource[K,T]]</code>, with each <span class="extype" name="Subsource">Subsource</span> being one of the
+sub-streams being fed into the multiplexed source.
+</p></div></div>
+    </li><li name="colossus.streaming.PullAction" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PullAction"></a>
+      <a id="PullAction:PullAction"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PullAction$.html"><span class="name">PullAction</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PullAction" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A PullAction is the return type of a processing function passed to
+<a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>.<code>pullWhile</code> method.</p><div class="fullcomment"><div class="comment cmt"><p>A PullAction is the return type of a processing function passed to
+<a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>.<code>pullWhile</code> method.  It signals to the source what action should
+be taken after the processing function has processed the next item from the
+source.
+</p></div></div>
+    </li><li name="colossus.streaming.PullResult" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PullResult"></a>
+      <a id="PullResult:PullResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PullResult$.html"><span class="name">PullResult</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PullResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.PushResult" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PushResult"></a>
+      <a id="PushResult:PushResult"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PushResult$.html"><span class="name">PushResult</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@PushResult" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Sink" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Sink"></a>
+      <a id="Sink:Sink"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Sink$.html"><span class="name">Sink</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Sink" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.Source" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Source"></a>
+      <a id="Source:Source"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Source$.html"><span class="name">Source</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@Source" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.SourceFilterMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SourceFilterMapper"></a>
+      <a id="SourceFilterMapper:SourceFilterMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$SourceFilterMapper$.html"><span class="name">SourceFilterMapper</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SourceFilterMapper" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.SourceMapper" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SourceMapper"></a>
+      <a id="SourceMapper:SourceMapper"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$SourceMapper$.html"><span class="name">SourceMapper</span></a><span class="result"> extends <a href="package$$Functor.html" class="extype" name="colossus.streaming.Functor">Functor</a>[<a href="Source.html" class="extype" name="colossus.streaming.Source">Source</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@SourceMapper" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.StreamComponent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamComponent"></a>
+      <a id="StreamComponent:StreamComponent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamComponent$.html"><span class="name">StreamComponent</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@StreamComponent" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.streaming.TransportState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TransportState"></a>
+      <a id="TransportState:TransportState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="TransportState$.html"><span class="name">TransportState</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.streaming.package@TransportState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

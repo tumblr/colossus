@@ -1,0 +1,190 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>server - colossus.protocols.http.server</title>
+          <meta name="description" content="server - colossus.protocols.http.server" />
+          <meta name="keywords" content="server colossus.protocols.http.server" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'colossus.protocols.http.server.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="colossus">colossus</a>.<a href="../../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="../package.html" class="extype" name="colossus.protocols.http">http</a></p>
+        <h1>server</h1><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">server</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.protocols.http.server.Generator" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="GeneratorextendsHandlerGenerator[colossus.protocols.http.server.RequestHandler]"></a>
+      <a id="Generator:Generator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Generator.html"><span class="name">Generator</span></a><span class="result"> extends <a href="../../../service/HandlerGenerator.html" class="extype" name="colossus.service.HandlerGenerator">HandlerGenerator</a>[<a href="RequestHandler.html" class="extype" name="colossus.protocols.http.server.RequestHandler">RequestHandler</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package@GeneratorextendsHandlerGenerator[colossus.protocols.http.server.RequestHandler]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.http.server.HttpServiceHandler" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpServiceHandlerextendsServiceServer[colossus.protocols.http.Http]"></a>
+      <a id="HttpServiceHandler:HttpServiceHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpServiceHandler.html"><span class="name">HttpServiceHandler</span></a><span class="result"> extends <a href="../../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="../package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package@HttpServiceHandlerextendsServiceServer[colossus.protocols.http.Http]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.http.server.Initializer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="InitializerextendsGeneratorwithServiceInitializer[colossus.protocols.http.server.RequestHandler]"></a>
+      <a id="Initializer:Initializer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Initializer.html"><span class="name">Initializer</span></a><span class="result"> extends <a href="Generator.html" class="extype" name="colossus.protocols.http.server.Generator">Generator</a> with <a href="../../../service/ServiceInitializer.html" class="extype" name="colossus.service.ServiceInitializer">ServiceInitializer</a>[<a href="RequestHandler.html" class="extype" name="colossus.protocols.http.server.RequestHandler">RequestHandler</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package@InitializerextendsGeneratorwithServiceInitializer[colossus.protocols.http.server.RequestHandler]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.server.RequestHandler" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RequestHandlerextendsGenRequestHandler[colossus.protocols.http.Http]"></a>
+      <a id="RequestHandler:RequestHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestHandler.html"><span class="name">RequestHandler</span></a><span class="result"> extends <a href="../../../service/GenRequestHandler.html" class="extype" name="colossus.service.GenRequestHandler">GenRequestHandler</a>[<a href="../package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package@RequestHandlerextendsGenRequestHandler[colossus.protocols.http.Http]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A RequestHandler contains the business logic for transforming <a href="../HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a> into <a href="../HttpResponse.html" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a> objects.</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.protocols.http.server.HttpServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpServer"></a>
+      <a id="HttpServer:HttpServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpServer$.html"><span class="name">HttpServer</span></a><span class="result"> extends <a href="../../../service/ServiceDSL.html" class="extype" name="colossus.service.ServiceDSL">ServiceDSL</a>[<a href="RequestHandler.html" class="extype" name="colossus.protocols.http.server.RequestHandler">RequestHandler</a>, <a href="Initializer.html" class="extype" name="colossus.protocols.http.server.Initializer">Initializer</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.server.package@HttpServer" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Entry point for starting a Http server
+</p>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
