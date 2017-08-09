@@ -6,7 +6,6 @@ import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
-import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 
 object RedisClientExample extends App {
@@ -25,8 +24,8 @@ object RedisClientExample extends App {
 
           case request@Get on Root / "get" / key => {
             val asyncResult = redisClient.get(ByteString("1"))
-            asyncResult.flatMap {
-              case bytes => Callback.successful(request.ok(bytes.utf8String))
+            asyncResult.map {
+              case bytes => request.ok(bytes.utf8String)
             }
           }
         }
