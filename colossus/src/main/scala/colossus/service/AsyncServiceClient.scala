@@ -32,7 +32,7 @@ trait Client[P <: Protocol, M[_]] extends Sender[P, M] {
 }
 
 trait CallbackClient[P <: Protocol] extends Client[P, Callback]
-trait FutureClient[C <: Protocol] extends Client[C, Future]
+trait FutureClient[P <: Protocol] extends Client[P, Future]
 
 object FutureClient {
 
@@ -42,9 +42,9 @@ object FutureClient {
 
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = create(config)(io, base)
+  def apply[P <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[P]): FutureClient[P] = create(config)(io, base)
 
-  def create[C <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[C]): FutureClient[C] = {
+  def create[P <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[P]): FutureClient[P] = {
     val gen = new AsyncHandlerGenerator(config, base)
     gen.client
   }
@@ -58,10 +58,10 @@ object FutureClient {
  * without using reflection.  We can do that with some nifty path-dependant
  * types
  */
-class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[C])(implicit sys: IOSystem) {
+class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[P])(implicit sys: IOSystem) {
 
-  type I = C#Request
-  type O = C#Response
+  type I = P#Request
+  type O = P#Response
 
   case class PackagedRequest(request: I, response: Promise[O])
 
@@ -100,7 +100,7 @@ class AsyncHandlerGenerator[C <: Protocol](config: ClientConfig, base: FutureCli
 
   protected val watchdog = sys.actorSystem.actorOf(Props(classOf[ProxyWatchdog], proxy, canary))
 
-  val client = new FutureClient[C]{
+  val client = new FutureClient[P]{
     def send(request: I): Future[O] = {
       if (canary.get()) {
         Future.failed(new NotConnectedException("Connection Closed"))

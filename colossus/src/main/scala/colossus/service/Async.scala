@@ -10,9 +10,9 @@ import colossus.core.WorkerRef
  * A Sender is anything that is able to asynchronously send a request and
  * receive a corresponding response
  */
-trait Sender[C <: Protocol, M[_]] {
+trait Sender[P <: Protocol, M[_]] {
 
-  def send(input: C#Request): M[C#Response]
+  def send(input: P#Request): M[P#Response]
 
   def disconnect()
 

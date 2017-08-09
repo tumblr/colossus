@@ -20,7 +20,7 @@ import scala.concurrent.duration._
  *  and the name and settings by the user.
  *
  * @param name Name of the Server, all reported metrics are prefixed using this name
- * @param initializerFactory Factory to generate [[colossus.core.Initializer]]s for each Worker
+ * @param initializerFactory Factory to generate [[colossus.core.server.Initializer]]s for each Worker
  * @param settings lower-level server configuration settings
  */
 case class ServerConfig(
@@ -361,11 +361,12 @@ object Server extends ServerDSL {
    * @return ServerRef which encapsulates the created Server
    */
   def apply(serverConfig: ServerConfig)(implicit io: IOSystem): ServerRef = {
-    import io.actorSystem.dispatcher
-    import ServerStatus._
-    val serverStateAgent = new AtomicReference(ServerState(ConnectionVolumeState.Normal, Initializing))
+
+    val serverStateAgent = new AtomicReference(ServerState(ConnectionVolumeState.Normal, ServerStatus.Initializing))
+
     val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, serverStateAgent)
                               .withDispatcher("server-dispatcher"), name = s"server-${serverConfig.name.idString}")
+
     ServerRef(serverConfig, actor, io, serverStateAgent)
   }
 

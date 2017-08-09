@@ -53,7 +53,6 @@ object FakeIOSystem {
    * Returns a ServerRef representing a server in the Bound state
    */
   def fakeServerRef(implicit system: ActorSystem): (TestProbe, ServerRef) = {
-    import system.dispatcher
     val probe = TestProbe()
     val config = ServerConfig(
       "/foo",

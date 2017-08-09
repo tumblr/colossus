@@ -113,12 +113,12 @@ import scala.language.higherKinds
       }
     }
   }
-  object MemcacheClient {
 
+  object MemcacheClient {
   
     implicit object MemcacheClientLifter extends ClientLifter[Memcache, MemcacheClient] {
       
-      def lift[M[_]](client: Sender[Memcache,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) = {
+      override def lift[M[_]](client: Sender[Memcache,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): MemcacheClient[M] = {
         new BasicLiftedClient(client, clientConfig) with MemcacheClient[M]
       }
     }
