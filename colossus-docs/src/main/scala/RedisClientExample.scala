@@ -6,7 +6,6 @@ import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
-import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 
 object RedisClientExample extends App {
