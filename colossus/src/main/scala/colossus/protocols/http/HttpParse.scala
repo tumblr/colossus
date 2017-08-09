@@ -27,26 +27,26 @@ object HttpParse {
 
   class HeadersBuilder {
 
-    private var cl: Option[Int]     = None
-    private var te: Option[TransferEncoding]  = None
-    private var co: Option[Connection]  = None
-
-    def contentLength = cl
-    def transferEncoding = te
-    def connection = co
+    private var contentLength: Option[Int] = None
+    private var contentType: Option[String] = None
+    private var transferEncoding: Option[TransferEncoding] = None
+    private var connection: Option[Connection] = None
 
     private val build = new java.util.LinkedList[EncodedHttpHeader]()
 
     def add(header: EncodedHttpHeader): HeadersBuilder = {
       build.add(header)
-      if (cl.isEmpty && header.matches(HttpHeaders.ContentLength)) {
-        cl = Some(header.value.toInt)
+      if (contentLength.isEmpty && header.matches(HttpHeaders.ContentLength)) {
+        contentLength = Some(header.value.toInt)
       }
-      if (te.isEmpty && header.matches(HttpHeaders.TransferEncoding)) {
-        te = Some(TransferEncoding(header.value))
+      if (contentType.isEmpty && header.matches(HttpHeaders.ContentType)) {
+        contentType = Some(header.value)
       }
-      if (co.isEmpty && header.matches(HttpHeaders.Connection)) {
-        co = Some(Connection(header.value))
+      if (transferEncoding.isEmpty && header.matches(HttpHeaders.TransferEncoding)) {
+        transferEncoding = Some(TransferEncoding(header.value))
+      }
+      if (connection.isEmpty && header.matches(HttpHeaders.Connection)) {
+        connection = Some(Connection(header.value))
       }
 
       this
@@ -54,7 +54,13 @@ object HttpParse {
 
 
     def buildHeaders: ParsedHttpHeaders = {
-      new ParsedHttpHeaders(build.asInstanceOf[java.util.List[HttpHeader]], te, cl, co) //silly invariant java collections :/
+      new ParsedHttpHeaders(
+        build.asInstanceOf[java.util.List[HttpHeader]],//silly invariant java collections :/
+        transferEncoding,
+        contentType,
+        contentLength,
+        connection
+      )
     }
 
   }

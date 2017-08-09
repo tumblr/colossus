@@ -74,11 +74,12 @@ object HttpResponseHead{
     version: HttpVersion,
     code: HttpCode,
     transferEncoding: Option[TransferEncoding],
+    contentType: Option[String],
     contentLength: Option[Int],
     connection: Option[Connection],
     extraHeaders: HttpHeaders
   ): HttpResponseHead = {
-    apply(version, code, new ParsedHttpHeaders(extraHeaders, transferEncoding, contentLength, connection))
+    apply(version, code, new ParsedHttpHeaders(extraHeaders, transferEncoding, contentType, contentLength, connection))
   }
 }
   
