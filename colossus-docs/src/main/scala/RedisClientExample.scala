@@ -25,8 +25,8 @@ object RedisClientExample extends App {
 
           case request@Get on Root / "get" / key => {
             val asyncResult = redisClient.get(ByteString("1"))
-            asyncResult.flatMap {
-              case bytes => Callback.successful(request.ok(bytes.utf8String))
+            asyncResult.map {
+              case bytes => request.ok(bytes.utf8String)
             }
           }
         }

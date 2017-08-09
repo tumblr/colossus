@@ -103,7 +103,7 @@ Below is a simple Http Request example.  When using an Http Call,
 a implicit workerRef is required when using the Callback interface.
 An implicit ClientCodecProvider is required.
 
-@@snip [HttpClient.scala](../scala/HttpClient.scala) { #example }
+@@snip [HttpClientExample.scala](../scala/HttpClientExample.scala) { #example }
 
 
 ### Memcached Example
@@ -143,3 +143,15 @@ A Backoff retry policy contains a multiplier which can be:
  * Constant
  * Linear
  * Exponential
+
+# Generic clients
+
+Notice that the concurrency type (Callback/Future) is encoded in the type of the
+client.  The clients abstract over these two types with the `Async` typeclass.
+If you wish to write generic code that works with a client regardless of which
+concurrency type is used, simply pull in an `Async` implicitly and you're good
+to go:
+
+@@snip [GenericClient.scala](../scala/GenericClient.scala) { #example }
+
+To do things even more generically, all clients extends the `Sender[P,A]` trait.
