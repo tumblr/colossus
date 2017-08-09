@@ -3,9 +3,9 @@ package core
 package server
 
 import akka.actor._
-import akka.agent.Agent
 import java.net.{InetSocketAddress, ServerSocket}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
+import java.util.concurrent.atomic.AtomicReference
 import metrics._
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -62,7 +62,7 @@ object ConnectionVolumeState {
 }
 
 private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
-                               stateAgent : Agent[ServerState]) extends Actor with ActorLogging with Stash {
+                               stateRef : AtomicReference[ServerState]) extends Actor with ActorLogging with Stash {
   import Server._
   import context.dispatcher
   import serverConfig._
@@ -77,7 +77,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
   val address = new InetSocketAddress(settings.port)
   ssc.register( selector, SelectionKey.OP_ACCEPT )
 
-  val me = ServerRef(serverConfig, self, io, stateAgent)
+  val me = ServerRef(serverConfig, self, io, stateRef)
 
   val connectionLimiter = ConnectionLimiter(settings.maxConnections, settings.slowStart)
 
@@ -277,18 +277,18 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig,
   }
 
   private def updateServerConnectionState() {
-    val connectionState = determineConnectionStateChange(openConnections, settings.lowWatermark, settings.highWatermark, stateAgent().connectionVolumeState)
+    val connectionState = determineConnectionStateChange(openConnections, settings.lowWatermark, settings.highWatermark, stateRef.get.connectionVolumeState)
     connectionState.foreach {
-      x => stateAgent.send(stateAgent().copy(connectionVolumeState = x))
+      x => stateRef.set(stateRef.get.copy(connectionVolumeState = x))
         highwaters.hit()
     }
   }
 
   private def updateServerStatus(serverStatus : ServerStatus) {
-    stateAgent.send(stateAgent().copy(serverStatus = serverStatus))
+    stateRef.set(stateRef.get.copy(serverStatus = serverStatus))
   }
 
-  private def serverStatus: ServerStatus = stateAgent().serverStatus
+  private def serverStatus: ServerStatus = stateRef.get.serverStatus
 
   private def determineConnectionStateChange(currentCount : Int, lowCount : Double, highCount : Double, previousState : ConnectionVolumeState) : Option[ConnectionVolumeState] = {
 
@@ -363,7 +363,7 @@ object Server extends ServerDSL {
   def apply(serverConfig: ServerConfig)(implicit io: IOSystem): ServerRef = {
     import io.actorSystem.dispatcher
     import ServerStatus._
-    val serverStateAgent = Agent(ServerState(ConnectionVolumeState.Normal, Initializing))
+    val serverStateAgent = new AtomicReference(ServerState(ConnectionVolumeState.Normal, Initializing))
     val actor = io.actorSystem.actorOf(Props(classOf[Server], io, serverConfig, serverStateAgent)
                               .withDispatcher("server-dispatcher"), name = s"server-${serverConfig.name.idString}")
     ServerRef(serverConfig, actor, io, serverStateAgent)
