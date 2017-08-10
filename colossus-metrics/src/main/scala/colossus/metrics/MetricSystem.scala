@@ -1,8 +1,9 @@
 package colossus.metrics
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor._
-import akka.agent.Agent
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
@@ -11,7 +12,7 @@ class CollectionInterval private[metrics](
   name : String,
   interval : FiniteDuration,
   private[colossus] val intervalAggregator : ActorRef,
-  snapshot : Agent[MetricMap]
+  snapshot: AtomicReference[MetricMap]
 ){
 
   /**
@@ -167,9 +168,8 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
   } else {
     None
   }
-  val collectionIntervals : Map[FiniteDuration, CollectionInterval] = config.collectorConfig.intervals.map{ interval =>
-    import system.dispatcher
-    val snap = Agent[MetricMap](Map())
+  val collectionIntervals: Map[FiniteDuration, CollectionInterval] = config.collectorConfig.intervals.map { interval =>
+    val snap = new AtomicReference(Map.empty[MetricAddress, ValueMap])
     val aggregator : ActorRef = system.actorOf(Props(classOf[IntervalAggregator], interval, snap, intervalNamespace))
     val i = new CollectionInterval(config.name, interval, aggregator, snap)
     interval -> i
@@ -216,7 +216,11 @@ object MetricSystem {
       enabled = false,
       name = "DEAD",
       systemMetrics = SystemMetricsConfig(false, "/"),
-      collectorConfig = CollectorConfig(Nil, ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot), ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + ".system.collector-defaults"))
+      collectorConfig = CollectorConfig(
+        Nil,
+        ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot),
+        ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + ".system.collector-defaults")
+      )
     )
     new MetricSystem(deadconfig)
   }
