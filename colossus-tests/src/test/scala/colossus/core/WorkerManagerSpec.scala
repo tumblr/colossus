@@ -2,7 +2,7 @@ package colossus.core
 
 import java.util.concurrent.atomic.AtomicReference
 
-import akka.actor.{ActorContext, ActorRef, Props}
+import akka.actor.{ActorContext, ActorRef}
 import akka.testkit.TestProbe
 import colossus.IOSystem
 import colossus.testkit.ColossusSpec

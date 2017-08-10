@@ -498,8 +498,8 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 object RedisClient {
 
   implicit object RedisClientLifter extends ClientLifter[Redis, RedisClient] {
-    
-    def lift[M[_]](client: Sender[Redis,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) = {
+
+    override def lift[M[_]](client: Sender[Redis, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): RedisClient[M] = {
       new BasicLiftedClient(client, clientConfig) with RedisClient[M]
     }
   }

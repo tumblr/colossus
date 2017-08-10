@@ -113,9 +113,9 @@ trait BasicServiceDSL[P <: Protocol] {
  *
  * For example this is how we go from ServiceClient[HttpRequest, HttpResponse] to HttpClient[Callback]
  */
-trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
+trait ClientLifter[P <: Protocol, T[M[_]] <: Sender[P, M]] {
 
-  def lift[M[_]](baseClient: Sender[C, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) : T[M]
+  def lift[M[_]](baseClient: Sender[P, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): T[M]
 
 }
 
@@ -125,12 +125,12 @@ trait ClientLifter[C <: Protocol, T[M[_]] <: Sender[C,M]] {
  * generally not be used unless writing very generic code.
  *
  * Type Parameters:
- * * C - the protocol used by the client
+ * * P - the protocol used by the client
  * * M[_] - the concurrency wrapper, either Callback or Future
  * * T - the type of the returned client
- * * E - an implciitly required environment type, WorkerRef for Callback and IOSystem for Future
+ * * E - an implicitly required environment type, WorkerRef for Callback and IOSystem for Future
  */
-trait ClientFactory[C <: Protocol, M[_], +T <: Sender[C,M], E] {
+trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P,M], E] {
 
   def defaultName: String
 
@@ -223,9 +223,9 @@ class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) e
 
 }
 
-class CodecClientFactory[C <: Protocol, M[_], T[M[_]] <: Sender[C,M], E]
-(implicit baseFactory: ClientFactory[C, M,Sender[C,M],E], lifter: ClientLifter[C,T], builder: AsyncBuilder[M,E])
-extends ClientFactory[C,M,T[M],E] {
+class CodecClientFactory[P <: Protocol, M[_], T[M[_]] <: Sender[P,M], E]
+(implicit baseFactory: ClientFactory[P, M, Sender[P, M], E], lifter: ClientLifter[P, T], builder: AsyncBuilder[M, E])
+extends ClientFactory[P, M, T[M], E] {
 
   def defaultName = baseFactory.defaultName
 
@@ -233,11 +233,11 @@ extends ClientFactory[C,M,T[M],E] {
     apply(baseFactory(config), config)
   }
 
-  def apply(sender: Sender[C,M], clientConfig: ClientConfig)(implicit env: E): T[M] = {
+  def apply(sender: Sender[P,M], clientConfig: ClientConfig)(implicit env: E): T[M] = {
     lifter.lift(sender, Some(clientConfig))(builder.build(env))
   }
 
-  def apply(sender: Sender[C,M])(implicit env: E): T[M] = {
+  def apply(sender: Sender[P,M])(implicit env: E): T[M] = {
     lifter.lift(sender, None)(builder.build(env))
   }
 }
@@ -245,27 +245,27 @@ extends ClientFactory[C,M,T[M],E] {
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-abstract class ClientFactories[C <: Protocol, T[M[_]] <: Sender[C, M]](implicit lifter: ClientLifter[C,T]) {
+abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](implicit lifter: ClientLifter[P, T]) {
 
-  implicit def clientFactory: FutureClient.BaseFactory[C]
+  implicit def clientFactory: FutureClient.BaseFactory[P]
 
-  implicit val futureFactory = new GenFutureClientFactory[C](clientFactory)
+  implicit val futureFactory = new GenFutureClientFactory[P](clientFactory)
 
-  val client = new CodecClientFactory[C, Callback, T, WorkerRef]
+  val client = new CodecClientFactory[P, Callback, T, WorkerRef]
 
-  val futureClient = new CodecClientFactory[C, Future, T, IOSystem]
+  val futureClient = new CodecClientFactory[P, Future, T, IOSystem]
 
 }
 
-trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
+trait LiftedClient[P <: Protocol, M[_] ] extends Sender[P,M] {
 
   def clientConfig: Option[ClientConfig]
-  def client: Sender[C,M]
+  def client: Sender[P, M]
   implicit val async: Async[M]
 
-  def send(input: C#Request): M[C#Response] = client.send(input)
+  def send(input: P#Request): M[P#Response] = client.send(input)
 
-  protected def executeAndMap[T](i : C#Request)(f : C#Response => M[T]) = async.flatMap(send(i))(f)
+  protected def executeAndMap[T](i : P#Request)(f : P#Response => M[T]) = async.flatMap(send(i))(f)
 
   def disconnect() {
     client.disconnect()
@@ -273,7 +273,7 @@ trait LiftedClient[C <: Protocol, M[_] ] extends Sender[C,M] {
 
 }
 
-class BasicLiftedClient[C <: Protocol, M[_] ](val client: Sender[C,M], val clientConfig: Option[ClientConfig])
-                                             (implicit val async: Async[M]) extends LiftedClient[C,M] {
+class BasicLiftedClient[P <: Protocol, M[_] ](val client: Sender[P, M], val clientConfig: Option[ClientConfig])
+                                             (implicit val async: Async[M]) extends LiftedClient[P, M] {
 
 }

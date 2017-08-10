@@ -43,7 +43,7 @@ object HttpClient {
 
   implicit object HttpClientLifter extends ClientLifter[Http, HttpClient] {
     
-    def lift[M[_]](client: Sender[Http,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]) = {
+    override def lift[M[_]](client: Sender[Http, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): HttpClient[M] = {
       new BasicLiftedClient(client, clientConfig) with HttpClient[M]
     }
   }

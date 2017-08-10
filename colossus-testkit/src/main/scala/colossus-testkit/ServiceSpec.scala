@@ -11,10 +11,10 @@ import core.ServerRef
 import service._
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[C <: Protocol](implicit clientFactory: GenFutureClientFactory[C]) extends ColossusSpec {
+abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClientFactory[P]) extends ColossusSpec {
   
-  type Request = C#Request
-  type Response = C#Response
+  type Request = P#Request
+  type Response = P#Response
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
@@ -37,7 +37,7 @@ abstract class ServiceSpec[C <: Protocol](implicit clientFactory: GenFutureClien
 
   def client(timeout: FiniteDuration = requestTimeout) = clientFactory(clientConfig(timeout))
 
-  def withClient(f: FutureClient[C] => Unit) {
+  def withClient(f: FutureClient[P] => Unit) {
     val c = client()
     f(c)
     c.disconnect()

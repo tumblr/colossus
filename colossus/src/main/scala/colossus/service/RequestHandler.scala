@@ -8,13 +8,13 @@ class RequestHandlerException(message: String) extends Exception(message)
 
 object GenRequestHandler {
 
-  type PartialHandler[C <: Protocol] = PartialFunction[C#Request, Callback[C#Response]]
+  type PartialHandler[P <: Protocol] = PartialFunction[P#Request, Callback[P#Response]]
 
   type Receive = PartialFunction[Any, Unit]
 
-  type ErrorHandler[C <: Protocol] = PartialFunction[ProcessingFailure[C#Request], C#Response]
+  type ErrorHandler[P <: Protocol] = PartialFunction[ProcessingFailure[P#Request], P#Response]
 
-  type ParseErrorHandler[C <: Protocol] = PartialFunction[Throwable, C#Response]
+  type ParseErrorHandler[P <: Protocol] = PartialFunction[Throwable, P#Response]
 }
 import GenRequestHandler._
 
