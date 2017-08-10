@@ -22,6 +22,27 @@ Here's an overview of what you can find in this repo
 * `colossus-examples` : A few simple examples that can be run
 * `colossus-testkit` : Small library containing a few useful tools for testing
 * `colossus-tests` : The unit and integration tests for colossus
+* `colossus-docs` : Markdown documentation
+
+### Benchmarking
+
+1. Start the main app in examples project:
+
+    ```sbtshell
+    sbt colossus-examples/run
+    ```
+    
+2. Run `wrk` with 50 connections, across 2 threads, a pipeline size of 16, for 10 seconds:
+
+    ```bash
+    wrk -c 50 -t 2 -d 10 --latency -s pipeline.lua http://localhost:9007/plaintext -- 16
+    ```
+
+**Note**: You definitely want to run it several times to make sure you get a good average. First time is always slower. 
+Throughput is the best metric here, since it's a single number and in this benchmark correlates very well with latency.
+Performance takes a hit if you are constantly compiling, running, and shutting down. Best to compile, kill SBT, restart, 
+then run. Very tedious, but the most accurate. Also when running on your mac be very aware of running other apps and it
+is usually best to kill CPU heavy apps.
 
 ### License
 
