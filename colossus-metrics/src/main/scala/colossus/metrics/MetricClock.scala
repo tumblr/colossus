@@ -14,9 +14,9 @@ class IntervalAggregator(interval: FiniteDuration,
   import IntervalAggregator._
   import scala.collection.JavaConversions._
 
-  val systemMetrics = sysMetricsNamespace.map{ns => new SystemMetricsCollector(ns)}
+  val systemMetrics = sysMetricsNamespace.map { ns => new SystemMetricsCollector(ns) }
 
-  def blankMap(): MetricMap = systemMetrics.map{_.metrics}.getOrElse( Map())
+  def blankMap(): MetricMap = systemMetrics.map{ _.metrics }.getOrElse(Map())
 
   var collections = Set[Collection]()
   var reporters = Set[ActorRef]()
@@ -26,7 +26,7 @@ class IntervalAggregator(interval: FiniteDuration,
     case Tick => {
       context.system.scheduler.scheduleOnce(interval, self, Tick)
       var build = blankMap()
-      collections.foreach{ collection =>
+      collections.foreach { collection =>
         build = build ++ collection.tick(interval)
       }
 
@@ -46,10 +46,10 @@ class IntervalAggregator(interval: FiniteDuration,
     }
 
     case Terminated(child) => {
-      if(reporters.contains(child)){
+      if (reporters.contains(child)) {
         log.debug(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
         reporters.remove(child)
-      }else{
+      } else {
         log.warning(s"someone: $child died..for which there is no reporter registered")
       }
     }
@@ -66,9 +66,9 @@ class IntervalAggregator(interval: FiniteDuration,
 
 object IntervalAggregator {
 
-  case class RegisterReporter(ref : ActorRef)
+  case class RegisterReporter(ref: ActorRef)
   case class RegisterCollection(collection: Collection)
-  case class ReportMetrics(m : MetricMap)
+  case class ReportMetrics(m: MetricMap)
   private[metrics] case object ListReporters
   private[metrics] case object Tick
 
