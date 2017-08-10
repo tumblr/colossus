@@ -114,15 +114,4 @@ import scala.language.higherKinds
     }
   }
 
-  object MemcacheClient {
-  
-    implicit object MemcacheClientLifter extends ClientLifter[Memcache, MemcacheClient] {
-      
-      override def lift[M[_]](client: Sender[Memcache,M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): MemcacheClient[M] = {
-        new BasicLiftedClient(client, clientConfig) with MemcacheClient[M]
-      }
-    }
-
-  }
-
   case class UnexpectedMemcacheReplyException(message : String) extends Exception

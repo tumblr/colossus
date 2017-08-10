@@ -81,7 +81,7 @@ class FutureAsync(implicit val environment: IOSystem) extends Async[Future] {
 
   type E = IOSystem
 
-  import environment.actorSystem.dispatcher
+  private implicit val executionContext = environment.actorSystem.dispatcher
 
   def map[T, U](t: Future[T])(f: (T) => U): Future[U] = t.map(f)
 

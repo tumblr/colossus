@@ -39,8 +39,6 @@ abstract class Initializer(ctx: InitContext) extends Generator(ctx) with Service
 abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig) extends GenRequestHandler[Http](ctx, config) {
   def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
 
-  val defaults = new Http.ServerDefaults
-
   override def tagDecorator = new ReturnCodeTagDecorator
 
   override def handleRequest(input: Http#Request): Callback[Http#Response] = {
@@ -48,8 +46,15 @@ abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig) extends
     if(!input.head.persistConnection) connection.disconnect()
     response
   }
+
   def unhandledError = {
-    case error => defaults.errorResponse(error)
+    case RecoverableError(request, reason) => reason match {
+      case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+      case other => request.error(reason.toString)
+    }
+    case IrrecoverableError(reason) => {
+      HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST,  HttpHeaders.Empty), HttpBody("Bad Request"))
+    }
   }
 }
 
