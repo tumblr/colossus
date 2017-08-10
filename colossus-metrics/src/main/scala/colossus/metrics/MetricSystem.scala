@@ -9,9 +9,9 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 class CollectionInterval private[metrics](
-  name : String,
-  interval : FiniteDuration,
-  private[colossus] val intervalAggregator : ActorRef,
+  name: String,
+  interval: FiniteDuration,
+  private[colossus] val intervalAggregator: ActorRef,
   snapshot: AtomicReference[MetricMap]
 ){
 
@@ -20,7 +20,7 @@ class CollectionInterval private[metrics](
     *
     * @return
    */
-  def last : MetricMap = snapshot.get()
+  def last: MetricMap = snapshot.get()
 
   /**
    * Attach a reporter to this MetricPeriod.
@@ -28,7 +28,7 @@ class CollectionInterval private[metrics](
     * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
    * @return
    */
-  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator, name)
+  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config, intervalAggregator, name)
 }
 
 
@@ -56,7 +56,7 @@ trait MetricNamespace {
     */
   def tags: TagMap
 
-  protected def collection : Collection
+  protected def collection: Collection
 
   /**
     * Add tags to context
@@ -76,7 +76,7 @@ trait MetricNamespace {
     * @tparam T
     * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
     */
-  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T) : T = {
+  def getOrAdd[T <: Collector : ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
     val fullAddress =  namespace / address
     collection.getOrAdd(fullAddress, tags)(f)
   }
