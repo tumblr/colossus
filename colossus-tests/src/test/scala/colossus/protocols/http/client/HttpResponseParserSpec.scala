@@ -54,22 +54,42 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         HttpBody(body)
       )
       parser.parse(DataBuffer(ByteString(res))) must equal(None)
-      parser.endOfStream() must equal(Some(expected))
+      val parsed = parser.endOfStream()
+      // currently there's no easy way to pass the contentType into HttpResponse.apply()
+      parsed.map(response => response.copy(body = response.body.withContentType("text/plain"))) must equal(Some(expected))
     }
 
     "parse a response with a body" in {
       val content = "{some : json}"
       val size = content.getBytes.size
-      val res = s"HTTP/1.1 200 OK\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nAuthorization: Basic XXX\r\nAccept-Encoding: gzip, deflate\r\nContent-Length: $size\r\n\r\n{some : json}"
+      val res = s"HTTP/1.1 200 OK" +
+        s"\r\nHost: api.foo.bar:444" +
+        s"\r\nAccept: */*" +
+        s"\r\nAuthorization: Basic XXX" +
+        s"\r\nAccept-Encoding: gzip, deflate" +
+        s"\r\nContent-Type: application/json" +
+        s"\r\nContent-Length: $size" +
+        s"\r\n\r\n{some : json}"
       val parser = HttpResponseParser.static()
 
       val expected = HttpResponse(HttpVersion.`1.1`,
         HttpCodes.OK,
-        Seq("host"->"api.foo.bar:444", "accept"->"*/*", "authorization"->"Basic XXX", "accept-encoding"->"gzip, deflate", "content-length"->size.toString),
+        Seq(
+          "host"->"api.foo.bar:444",
+          "accept"->"*/*",
+          "authorization"->"Basic XXX",
+          "accept-encoding"->"gzip, deflate",
+          "content-type" -> "application/json",
+          "content-length"->size.toString),
         ByteString("{some : json}")
       )
       val data = DataBuffer(ByteString(res))
-      parser.parse(data).toList must equal(List(expected))
+      val parsed = parser.parse(data)
+
+      parsed.get.body.contentType must equal(Some(HttpHeader("Content-Type", "application/json")))
+      // expected body was constructed with a ByteString so its contentType is None. We will just compare the head and bytes instead.
+      parsed.get.body.bytes must equal(expected.body.bytes)
+      parsed.get.head must equal(expected.head)
       data.remaining must equal(0)
     }
 

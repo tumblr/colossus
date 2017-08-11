@@ -34,7 +34,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
         )
       ), HttpBody.NoBody)
 
-      parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
+      parser.parse(DataBuffer(ByteString(req))) must equal(Some(expected))
     }
 
     "correctly handle fragments" in {
@@ -57,8 +57,8 @@ class HttpParserSuite extends WordSpec with MustMatchers{
         val p1 = req.take(splitIndex)
         val p2 = req.drop(splitIndex)
         try {
-          parser.parse(DataBuffer(ByteString(p1))).toList must equal(Nil)
-          parser.parse(DataBuffer(ByteString(p2))).toList must equal(List(expected))
+          parser.parse(DataBuffer(ByteString(p1))) must equal(None)
+          parser.parse(DataBuffer(ByteString(p2))) must equal(Some(expected))
         } catch {
           case t: Throwable => throw new Exception(s"Failed with splitIndex $splitIndex: '$p1' : '$p2' : $t", t)
         }
@@ -76,7 +76,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "parse request with content" in {
       val body = ByteString("HELLO I AM A BODY")
       val len = body.size
-      val req = s"POST /hello/world HTTP/1.1\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nContent-Length: $len\r\n\r\n${body.utf8String}"
+      val req = s"POST /hello/world HTTP/1.1\r\nHost: api.foo.bar:444\r\nAccept: */*\r\nContent-Type: text/plain\r\nContent-Length: $len\r\n\r\n${body.utf8String}"
       val expected = HttpRequest(HttpRequestHead(
         method = HttpMethod.Post,
         url = "/hello/world",
@@ -84,13 +84,16 @@ class HttpParserSuite extends WordSpec with MustMatchers{
         headers = List(
           "host" -> "api.foo.bar:444",
           "accept" ->  "*/*",
+          "content-type" -> "text/plain",
           "content-length" -> len.toString
         )
-      ), HttpBody(body))
+      ), HttpBody(body, "text/plain"))
 
       val parser = requestParser
+      val parsed = parser.parse(DataBuffer(ByteString(req)))
 
-      parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
+      parsed must equal(Some(expected))
+      parsed.get.body.contentType must equal(Some(HttpHeader("Content-Type", "text/plain")))
     }
 
     "handle request with content-length set to 0" in {
@@ -108,7 +111,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
 
       val parser = requestParser
 
-      parser.parse(DataBuffer(ByteString(req))).toList must equal(List(expected))
+      parser.parse(DataBuffer(ByteString(req))) must equal(Some(expected))
 
     }
 
@@ -126,7 +129,15 @@ class HttpParserSuite extends WordSpec with MustMatchers{
     "parse request with authorization header" taggedAs(Broke) in {
       val auth_info = "Basic YmI6Y29vbHBhc3N3b3JkYnJvNDI="// + Base64.encodeBase64String(StringUtils.getBytesUtf8("bb:coolpasswordbro42"))
       val url = "/foo"
-      val request = HttpRequest(HttpRequestHead(version = HttpVersion.`1.1`, method = HttpMethod.Get, url = url, headers = List("authorization" -> auth_info)), HttpBody.NoBody)
+      val request = HttpRequest(
+        HttpRequestHead(
+          version = HttpVersion.`1.1`,
+          method = HttpMethod.Get,
+          url = url,
+          headers = List("authorization" -> auth_info)
+        ),
+        HttpBody.NoBody
+      )
       val d = new DynamicOutBuffer(100, false)
       request.encode(d)
       val parser = requestParser

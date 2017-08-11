@@ -120,7 +120,7 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
 
   "ParsedHttpHeaders" must {
     "encode separate headers" in {
-      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")), Some(TransferEncoding.Chunked), None, Some(Connection.KeepAlive))
+      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")), Some(TransferEncoding.Chunked), None, None, Some(Connection.KeepAlive))
       val b = new DynamicOutBuffer(500)
       p.encode(b)
       b.data.asByteString.utf8String mustBe "Transfer-Encoding: chunked\r\nConnection: keep-alive\r\nfoo: bar\r\n"

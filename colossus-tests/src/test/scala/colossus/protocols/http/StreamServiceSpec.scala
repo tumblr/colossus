@@ -23,7 +23,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
     "build and collapse a streaming response" in {
       val response = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, HttpHeaders.Empty), 
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
         Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
       )
       val collapsed = response.collapse
@@ -60,7 +60,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
     "push a chunked response" taggedAs(org.scalatest.Tag("test")) in {
       val (ctrlr, stub) = create()
       val response = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, HttpHeaders.Empty), 
+        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
         Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
       )
       ctrlr.connected()

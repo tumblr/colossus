@@ -184,23 +184,25 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
 class ParsedHttpHeaders(
   headers: JList[HttpHeader],
   val transferEncodingOpt: Option[TransferEncoding],
+  override val contentType: Option[String],
   override val contentLength: Option[Int],
   override val connection: Option[Connection]
 ) extends HttpHeaders(headers) {
 
   def this(
-    headers: HttpHeaders, 
+    headers: HttpHeaders,
     transferEncodingOpt: Option[TransferEncoding],
+    contentType: Option[String],
     contentLength: Option[Int],
     connection: Option[Connection]
-  ) = this(headers.headers, transferEncodingOpt, contentLength, connection)
+  ) = this(headers.headers, transferEncodingOpt, contentType, contentLength, connection)
 
   override def transferEncoding = if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
 
   override def encode(buffer: core.DataOutBuffer) {
     transferEncodingOpt.foreach{_.header.encode(buffer)}
     connection.foreach{_.header.encode(buffer)}
-    contentLength.foreach{c => 
+    contentLength.foreach { c =>
       HttpHeader.encodeContentLength(buffer, c)
     }
     super.encode(buffer)
@@ -238,6 +240,8 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
   def transferEncoding : TransferEncoding = firstValue(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
 
   def connection: Option[Connection] = firstValue(HttpHeaders.Connection).map(Connection(_))
+
+  def contentType: Option[String] = firstValue(HttpHeaders.ContentType)
 
   def + (kv: (String, String)): HttpHeaders = {
     val n = HttpHeader(kv._1, kv._2)
