@@ -1,17 +1,18 @@
 package colossus.metrics
 
+import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor._
-import akka.agent.Agent
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 class CollectionInterval private[metrics](
-  name : String,
-  interval : FiniteDuration,
-  private[colossus] val intervalAggregator : ActorRef,
-  snapshot : Agent[MetricMap]
+  name: String,
+  interval: FiniteDuration,
+  private[colossus] val intervalAggregator: ActorRef,
+  snapshot: AtomicReference[MetricMap]
 ){
 
   /**
@@ -19,7 +20,7 @@ class CollectionInterval private[metrics](
     *
     * @return
    */
-  def last : MetricMap = snapshot.get()
+  def last: MetricMap = snapshot.get()
 
   /**
    * Attach a reporter to this MetricPeriod.
@@ -27,7 +28,7 @@ class CollectionInterval private[metrics](
     * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
    * @return
    */
-  def report(config : MetricReporterConfig)(implicit fact: ActorRefFactory) : ActorRef = MetricReporter(config, intervalAggregator, name)
+  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config, intervalAggregator, name)
 }
 
 
@@ -55,7 +56,7 @@ trait MetricNamespace {
     */
   def tags: TagMap
 
-  protected def collection : Collection
+  protected def collection: Collection
 
   /**
     * Add tags to context
@@ -75,7 +76,7 @@ trait MetricNamespace {
     * @tparam T
     * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
     */
-  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress)(f : (MetricAddress, CollectorConfig) => T) : T = {
+  def getOrAdd[T <: Collector : ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
     val fullAddress =  namespace / address
     collection.getOrAdd(fullAddress, tags)(f)
   }
@@ -167,9 +168,8 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
   } else {
     None
   }
-  val collectionIntervals : Map[FiniteDuration, CollectionInterval] = config.collectorConfig.intervals.map{ interval =>
-    import system.dispatcher
-    val snap = Agent[MetricMap](Map())
+  val collectionIntervals: Map[FiniteDuration, CollectionInterval] = config.collectorConfig.intervals.map { interval =>
+    val snap = new AtomicReference(Map.empty[MetricAddress, ValueMap])
     val aggregator : ActorRef = system.actorOf(Props(classOf[IntervalAggregator], interval, snap, intervalNamespace))
     val i = new CollectionInterval(config.name, interval, aggregator, snap)
     interval -> i
@@ -216,7 +216,11 @@ object MetricSystem {
       enabled = false,
       name = "DEAD",
       systemMetrics = SystemMetricsConfig(false, "/"),
-      collectorConfig = CollectorConfig(Nil, ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot), ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + ".system.collector-defaults"))
+      collectorConfig = CollectorConfig(
+        Nil,
+        ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot),
+        ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot + ".system.collector-defaults")
+      )
     )
     new MetricSystem(deadconfig)
   }

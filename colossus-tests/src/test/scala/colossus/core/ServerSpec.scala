@@ -2,10 +2,11 @@ package colossus
 package core
 package server
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import colossus.metrics.MetricSystem
 import testkit._
 import akka.actor._
-import akka.agent._
 import akka.testkit.TestProbe
 
 import scala.concurrent.Await
@@ -318,24 +319,23 @@ class ServerSpec extends ColossusSpec {
       }
 
       "initializer onShutdown is called when a worker shuts down" in {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val alive = Agent(0)
+        val alive = new AtomicInteger(0)
         class WhineyInitializer(initContext: InitContext) extends Initializer(initContext) {
-          alive send {_ + 1}
+          alive.incrementAndGet()
           def acceptNewConnection = None // >:(
 
           override def onConnect: (ServerContext) => ServerConnectionHandler = ???
 
           override def onShutdown() {
-            alive send {_ - 1}
+            alive.decrementAndGet()
           }
         }
 
         withIOSystemAndServer((initContext) => new WhineyInitializer(initContext), waitTime = 10.seconds){(io, server)=>{
-          alive() must equal(server.system.numWorkers)
+          alive.get() must equal(server.system.numWorkers)
         }}
 
-        alive() must equal(0)
+        alive.get() must equal(0)
 
       }
 
