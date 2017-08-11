@@ -37,7 +37,6 @@ object ColossusBuild extends Build {
     scalacOptions in (Compile, console) := Seq(),
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
-      "com.typesafe.akka" %% "akka-agent"   % AKKA_VERSION,
       "com.typesafe.akka" %% "akka-testkit" % AKKA_VERSION,
       "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test, it",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
