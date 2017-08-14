@@ -28,7 +28,7 @@ object Main extends App {
   val httpServer = HttpExample.start(9001, new InetSocketAddress("localhost", 9002))
 
   //and here's the key/value store itself
-  //val keyvalServer = KeyValExample.start(9002)
+  val keyvalServer = KeyValExample.start(9002)
 
   /*
   //an echo server built only on the core layer
@@ -38,11 +38,10 @@ object Main extends App {
   val chatServer = ChatExample.start(9005)
   */
 
-  /*val benchmarkServer = BenchmarkService.start(9007)
+  val benchmarkServer = BenchmarkService.start(9007)
 
   val websocketServer = WebsocketExample.start(9008)
 
   val streamServiceServer = StreamServiceExample.start(9010)
 
-*/
 }

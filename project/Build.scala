@@ -2,7 +2,6 @@ import sbt._
 import Keys._
 import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
-import spray.revolver.RevolverPlugin._
 import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
 object ColossusBuild extends Build {
@@ -79,14 +78,12 @@ object ColossusBuild extends Build {
 
   lazy val ColossusExamplesProject = Project(id="colossus-examples", base=file("colossus-examples"))
       .settings(noPubSettings:_*)
-      .settings(Revolver.settings:_*)
       .configs(IntegrationTest)
       .settings(ExamplesSettings:_*)
       .dependsOn(ColossusProject)
 
   lazy val ColossusMetricsProject = Project(id="colossus-metrics", base=file("colossus-metrics"))
       .settings(MetricSettings:_*)
-      .settings(Revolver.settings:_*)
       .configs(IntegrationTest)
 
   lazy val ColossusTestkitProject = Project(id="colossus-testkit", base = file("colossus-testkit"))
