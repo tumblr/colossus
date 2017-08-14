@@ -4,6 +4,7 @@ package protocols
 import akka.util.{ByteString, ByteStringBuilder}
 import colossus.service._
 
+import scala.language.higherKinds
 
 package object redis {
 
@@ -12,22 +13,15 @@ package object redis {
     type Response = Reply
   }
 
-  object Redis extends ClientFactories[Redis, RedisClient]{
+  object RedisClientLifter extends ClientLifter[Redis, RedisClient] {
+    override def lift[M[_]](client: Sender[Redis, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): RedisClient[M] = {
+      new BasicLiftedClient(client, clientConfig) with RedisClient[M]
+    }
+  }
+
+  object Redis extends ClientFactories[Redis, RedisClient](RedisClientLifter) {
 
     implicit def clientFactory = ServiceClientFactory.basic("redis", () => new RedisClientCodec)
-    
-
-    object defaults {
-
-      /*
-
-      implicit val redisServerDefaults = new ServiceCodecProvider[Redis] {
-        def provideCodec() = new RedisServerCodec
-        def errorResponse(error: ProcessingFailure[Command]) = ErrorReply(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-      }
-      */
-
-    }
 
   }
 

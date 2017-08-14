@@ -34,18 +34,3 @@ trait HttpClient[M[_]]  extends LiftedClient[Http, M] with BaseHttpClient[M, Htt
   val base = HttpRequest.base
 
 }
-
-
-
-
-
-object HttpClient {
-
-  implicit object HttpClientLifter extends ClientLifter[Http, HttpClient] {
-    
-    override def lift[M[_]](client: Sender[Http, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): HttpClient[M] = {
-      new BasicLiftedClient(client, clientConfig) with HttpClient[M]
-    }
-  }
-
-}

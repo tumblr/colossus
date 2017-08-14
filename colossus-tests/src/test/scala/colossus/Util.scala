@@ -96,14 +96,13 @@ object RawProtocol {
     type Response = ByteString
   }
 
-  implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
-    
+  object RawClientLifter extends ClientLifter[Raw, RawClient] {
     override def lift[M[_]](client: Sender[Raw, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): RawClient[M] = {
       new BasicLiftedClient(client, clientConfig) with RawClient[M]
     }
   }
 
-  object Raw extends ClientFactories[Raw, RawClient]{
+  object Raw extends ClientFactories[Raw, RawClient](RawClientLifter) {
     implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
     
   }
