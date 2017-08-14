@@ -324,7 +324,7 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
             p(num, index, build :+ weightedValue, remain.tail, newLastNonZeroIndex)
           } else {
             p(num + bucketCount, index + 1, build, remain, newLastNonZeroIndex)
-          } 
+          }
         }
       }
     }
@@ -356,9 +356,9 @@ class DefaultHistogram private[metrics](
   val pruneEmpty: Boolean = false,
   val buckets : BucketList = Histogram.defaultBucketRanges,
   intervals : Seq[FiniteDuration]
-)extends Histogram {
+) extends Histogram {
 
-  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = intervals.map{i =>
+  val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = intervals.map { i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
     (i -> m)
   }.toMap

@@ -47,15 +47,19 @@ trait Rate extends Collector{
 //working implementation of a Rate
 private[metrics] class DefaultRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean, intervals : Seq[FiniteDuration])extends Rate {
 
-  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = intervals.map{ i => (i, new CollectionMap[TagMap])}.toMap
+  private val maps: Map[FiniteDuration, CollectionMap[TagMap]] = intervals.map { i =>
+    val collectionMap = new CollectionMap[TagMap]
+    collectionMap.set(TagMap.Empty, 0L)
+    (i, collectionMap)
+  }.toMap
 
   //note - the totals are shared amongst all intervals, and we use the smallest
   //interval to update them
   private val totals = new CollectionMap[TagMap]
-  private val minInterval = if (intervals.size > 0) intervals.min else Duration.Inf
+  private val minInterval = if (intervals.nonEmpty) intervals.min else Duration.Inf
 
   def hit(tags: TagMap = TagMap.Empty, amount: Long = 1) {
-    maps.foreach{ case (_, map) => map.increment(tags, amount) }
+    maps.foreach { case (_, map) => map.increment(tags, amount) }
   }
 
   def tick(interval: FiniteDuration): MetricMap  = {
@@ -82,7 +86,7 @@ private[metrics] class DefaultRate private[metrics](val address: MetricAddress, 
 }
 
 //Dummy implementation of a Rate, used when "enabled=false" is specified at creation
-private[metrics] class NopRate private[metrics](val address : MetricAddress, val pruneEmpty : Boolean)extends Rate {
+private[metrics] class NopRate private[metrics](val address: MetricAddress, val pruneEmpty: Boolean) extends Rate {
 
   private val empty : MetricMap = Map()
 

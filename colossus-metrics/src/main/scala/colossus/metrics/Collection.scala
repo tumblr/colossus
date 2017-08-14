@@ -65,18 +65,18 @@ private[metrics] class CollectionMap[T] {
     Option(map.get(tags)) match {
       case Some(got) => op(got)(num)
       case None => {
-        Option(map.putIfAbsent(tags, new AtomicLong(num))).foreach{got => op(got)(num)}          
+        Option(map.putIfAbsent(tags, new AtomicLong(num))).foreach { got => op(got)(num) }
       }
     }
 
   }
 
   def increment(tags: T, num: Long = 1) {
-    update(tags, num, _.addAndGet _)
+    update(tags, num, al => l => al.addAndGet(l))
   }
 
   def set(tags: T, num: Long) {
-    update(tags, num, _.set _)
+    update(tags, num, al => l => al.set(l))
   }
 
   def get(tags: T): Option[Long] = Option(map.get(tags)).map{_.get}
