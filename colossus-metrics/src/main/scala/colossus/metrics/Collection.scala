@@ -72,11 +72,11 @@ private[metrics] class CollectionMap[T] {
   }
 
   def increment(tags: T, num: Long = 1) {
-    update(tags, num, al => l => al.addAndGet(l))
+    update(tags, num, (atomicLong: AtomicLong) => (long: Long) => atomicLong.addAndGet(long))
   }
 
   def set(tags: T, num: Long) {
-    update(tags, num, al => l => al.set(l))
+    update(tags, num, (atomicLong: AtomicLong) => (long: Long) => atomicLong.set(long))
   }
 
   def get(tags: T): Option[Long] = Option(map.get(tags)).map{_.get}
