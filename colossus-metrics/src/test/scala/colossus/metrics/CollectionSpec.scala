@@ -47,10 +47,10 @@ class CollectionSpec extends WordSpec with MustMatchers{
       val bar = MetricAddress("baz")
       val rate = Rate(bar, false, true)(subNamespace)
       rate.hit()
-      collection.tick(1.minute) mustBe Map(
-        MetricAddress("/foo/baz") -> Map(Map("a" -> "b") -> 1),
-        MetricAddress("/foo/baz/count") -> Map()
-      )
+      val ticked = collection.tick(1.minute)
+      // Due to initializing with zero, the MetricMap will include empty maps from previous tests/MetricAddresses, which we don't care about.
+      ticked(MetricAddress("/foo/baz")) mustBe Map(Map("a" -> "b") -> 1)
+      ticked(MetricAddress("/foo/baz/count")) mustBe Map()
     }
   }
 

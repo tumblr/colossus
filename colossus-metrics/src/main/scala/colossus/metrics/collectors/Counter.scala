@@ -47,6 +47,8 @@ private[metrics] class DefaultCounter private[metrics](val address: MetricAddres
 
   private val counters = new CollectionMap[TagMap]
 
+  set(value = 0L)
+
   def increment(tags: TagMap = TagMap.Empty, amount: Long = 1) {
     counters.increment(tags, amount)
   }

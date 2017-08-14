@@ -73,8 +73,10 @@ class RateSpec extends MetricIntegrationSpec {
       r.tick(1.second)("/foo/count")(Map()) must equal(2)
     }
 
-    "not return any metrics when never hit" in {
-      rate().tick(1.second) must equal(Map())
+    "return empty metrics when never hit" in {
+      val ticked = rate().tick(1.second)
+      ticked("/foo") must equal(Map(Map() -> 0))
+      ticked("/foo/count") must equal(Map(Map() -> 0))
     }
 
     "prune empty values" in {
