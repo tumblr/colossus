@@ -19,7 +19,7 @@ object HttpRequestParser {
       case TransferEncoding.Identity => head.headers.contentLength match {
         case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
         case Some(n) => {
-          bytes(n, serviceConfig.maxRequestSize, serviceConfig.requestBufferSize) >> { body =>
+          bytes(n, serviceConfig.maxRequestSize, 1.KB) >> { body =>
             HttpRequest(head, new HttpBody(body, contentTypeHeader))
           }
         }

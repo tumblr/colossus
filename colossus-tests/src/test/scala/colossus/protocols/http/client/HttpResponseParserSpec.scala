@@ -15,7 +15,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
   val serviceConfig = ServiceConfig(
     requestTimeout = Duration.Inf,
-    requestBufferSize = 1000,
+    requestBufferSize = 100,
     logErrors = false,
     requestMetrics = false,
     maxRequestSize = 10.MB

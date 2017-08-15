@@ -17,7 +17,7 @@ class HttpParserSuite extends WordSpec with MustMatchers{
   def requestParser = HttpRequestParser(
     ServiceConfig(
       requestTimeout = Duration.Inf,
-      requestBufferSize = 1000,
+      requestBufferSize = 100,
       logErrors = false,
       requestMetrics = false,
       maxRequestSize = 10.MB
