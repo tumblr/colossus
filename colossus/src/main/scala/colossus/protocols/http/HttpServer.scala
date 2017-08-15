@@ -23,7 +23,7 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
   def fullHandler = requestHandler => new PipelineHandler(
     new Controller(
       new HttpServiceHandler(requestHandler),
-      new StaticHttpServerCodec(defaultHeaders)
+      new StaticHttpServerCodec(defaultHeaders, requestHandler.config)
     ),
     requestHandler
   )

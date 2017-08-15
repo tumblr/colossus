@@ -2,18 +2,28 @@ package colossus
 package protocols.http
 
 import core._
-
 import org.scalatest._
-
 import akka.util.ByteString
-
 import parsing._
+import DataSize._
+import service.ServiceConfig
+
+import scala.concurrent.duration._
 
 object Broke extends Tag("broke")
 
 class HttpParserSuite extends WordSpec with MustMatchers{
 
-  def requestParser = HttpRequestParser()
+  def requestParser = HttpRequestParser(
+    ServiceConfig(
+      requestTimeout = Duration.Inf,
+      requestBufferSize = 1000,
+      logErrors = false,
+      requestMetrics = false,
+      maxRequestSize = 10.MB
+    )
+  )
+
   import HttpHeader.Conversions._
   import HttpBody._
 

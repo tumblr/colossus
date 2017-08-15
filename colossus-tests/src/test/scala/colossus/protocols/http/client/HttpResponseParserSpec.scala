@@ -2,14 +2,24 @@ package colossus
 package protocols.http
 
 import core.{DataBuffer, DynamicOutBuffer}
-
 import akka.util.ByteString
-import org.scalatest.{WordSpec, MustMatchers}
+import service.ServiceConfig
+import org.scalatest.{MustMatchers, WordSpec}
+import parsing.DataSize._
+
+import scala.concurrent.duration.Duration
 
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
 class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
+  val serviceConfig = ServiceConfig(
+    requestTimeout = Duration.Inf,
+    requestBufferSize = 1000,
+    logErrors = false,
+    requestMetrics = false,
+    maxRequestSize = 10.MB
+  )
   import HttpHeader.Conversions._
 
   "HttpResponseParser" must {
@@ -103,7 +113,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val expected = Some(sent.withHeader("content-length", "0"))
 
-      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty)
+      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty, serviceConfig)
       val clientProtocol = new StaticHttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
@@ -128,7 +138,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val expected = Some(sent.withHeader("content-length", size.toString))
 
-      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty)
+      val serverProtocol = new StaticHttpServerCodec(HttpHeaders.Empty, serviceConfig)
       val clientProtocol = new StaticHttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
