@@ -11,7 +11,7 @@ class ServiceConfigLoadingSpec extends WordSpec with MustMatchers{
     "load defaults" in {
       val config = ServiceConfig.Default
       config.logErrors mustBe true
-      config.maxRequestSize mustBe 1.MB
+      config.maxRequestSize mustBe 1000.MB
       config.requestBufferSize mustBe 100
       config.requestMetrics mustBe true
       config.requestTimeout mustBe Duration.Inf
