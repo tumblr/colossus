@@ -34,3 +34,8 @@ On the incoming request, body and content type are on the `HttpBody` and headers
 `HttpHead`.
 
 @@snip [HttpService2.scala](../scala/HttpService2.scala) { #example3 }
+
+Services can be configured by specifying values in `application.conf` for the `ServiceConfig` object.
+The values are `request-timeout`, `request-buffer-size`, `log-errors`, `request-metrics`, and `max-request-size`.
+
+@@snip [application.conf](../resources/application.conf) { #example4 }
