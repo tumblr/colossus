@@ -4,10 +4,10 @@ package protocols.http
 
 import core._
 import controller.Codec
-import service.ServiceConfig
+import parsing.DataSize
 
-class StaticHttpServerCodec(headers: HttpHeaders, serviceConfig: ServiceConfig) extends Codec.Server[Http] {
-  private var parser = HttpRequestParser(serviceConfig)
+class StaticHttpServerCodec(headers: HttpHeaders, maxRequestSize: DataSize) extends Codec.Server[Http] {
+  private var parser = HttpRequestParser(maxRequestSize)
 
   def encode(response: HttpResponse, buffer: DataOutBuffer): Unit = {
     response.encode(buffer, headers)
@@ -16,7 +16,7 @@ class StaticHttpServerCodec(headers: HttpHeaders, serviceConfig: ServiceConfig) 
   def decode(data: DataBuffer): Option[HttpRequest] = parser.parse(data)
 
   def reset(): Unit = {
-    parser = HttpRequestParser(serviceConfig)
+    parser = HttpRequestParser(maxRequestSize)
   }
 
   def endOfStream() = parser.endOfStream()

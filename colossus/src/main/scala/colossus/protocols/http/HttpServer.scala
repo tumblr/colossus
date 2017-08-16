@@ -6,12 +6,7 @@ import core._
 import controller._
 import service._
 
-protected[server] class HttpServiceHandler(rh: RequestHandler) 
-extends ServiceServer[Http](rh) {
-
-
-}
-
+protected[server] class HttpServiceHandler(rh: RequestHandler) extends ServiceServer[Http](rh) { }
 
 protected[server] class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
   
@@ -23,7 +18,7 @@ protected[server] class Generator(context: InitContext) extends HandlerGenerator
   def fullHandler = requestHandler => new PipelineHandler(
     new Controller(
       new HttpServiceHandler(requestHandler),
-      new StaticHttpServerCodec(defaultHeaders, requestHandler.config)
+      new StaticHttpServerCodec(defaultHeaders, requestHandler.config.maxRequestSize)
     ),
     requestHandler
   )
