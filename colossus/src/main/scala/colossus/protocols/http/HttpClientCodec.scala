@@ -14,7 +14,7 @@ class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
 
   override def encode(out: HttpRequest, buffer: DataOutBuffer) { out.encode(buffer) }
 
-  override def decode(data: DataBuffer): Option[HttpResponse] = parser.parse(data) 
+  override def decode(data: DataBuffer): Option[HttpResponse] = parser.parse(data)
 
   override def reset(): Unit = {
     parser = HttpResponseParser.static()

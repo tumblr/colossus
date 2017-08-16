@@ -9,15 +9,19 @@ import DataSize._
 object HttpRequestParser {
   import HttpParse._
   
-  def apply() = httpRequest
+  def apply(maxRequestSize: DataSize) = httpRequest(maxRequestSize)
 
-  protected def httpRequest: Parser[HttpRequest] = httpHead |> { head =>
+  protected def httpRequest(maxRequestSize: DataSize): Parser[HttpRequest] = httpHead |> { head =>
     val contentType = head.headers.contentType
     val contentTypeHeader = contentType.map(ct => HttpHeader(HttpHeaders.ContentType, ct))
     head.headers.transferEncoding match {
       case TransferEncoding.Identity => head.headers.contentLength match {
         case Some(0) | None => const(HttpRequest(head, HttpBody.NoBody))
-        case Some(n) => bytes(n, 1000.MB, 1.KB) >> { body => HttpRequest(head, new HttpBody(body, contentTypeHeader)) }
+        case Some(n) => {
+          bytes(n, maxRequestSize, 1.KB) >> { body =>
+            HttpRequest(head, new HttpBody(body, contentTypeHeader))
+          }
+        }
       }
       case _  => chunkedBody >> { body =>
         val httpBody = contentTypeHeader.fold(HttpBody(body)) { header => HttpBody(body, header) }
