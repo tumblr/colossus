@@ -160,7 +160,6 @@ class ServiceClient[P <: Protocol](
     val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
     extends ControllerDownstream[Encoding.Client[P]]
-    with HasUpstream[ControllerUpstream[Encoding.Client[P]]]
     with Client[P, Callback]
     with HandlerTail {
 

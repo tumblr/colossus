@@ -85,9 +85,6 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
 
   def encode(buffer: DataOutBuffer, extraHeaders: HttpHeaders) {
     head.encode(buffer)
-    body.contentType.foreach { ctype =>
-      ctype.encode(buffer)
-    }
     extraHeaders.encode(buffer)
     //unlike requests, we always encode content-length, even if it's 0
     HttpHeader.encodeContentLength(buffer, body.size)
@@ -96,6 +93,8 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
   }
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(HttpHeader(key, value)))
+
+  def withContentType(contentType: String) = withHeader("Content-Type", contentType)
 
   def code = head.code
 
@@ -115,7 +114,9 @@ object HttpResponse extends HttpResponseBuilding {
   def initialVersion = HttpVersion.`1.1`
 
   def apply[T: HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
-    HttpResponse(head, HttpBody(implicitly[HttpBodyEncoder[T]].encode(body)))
+    val encoder = implicitly[HttpBodyEncoder[T]]
+    val response = HttpResponse(head, HttpBody(encoder.encode(body)))
+    encoder.contentType.fold(response) { ct => response.withContentType(ct) }
   }
 
   def apply[T: HttpBodyEncoder](version: HttpVersion, code: HttpCode, headers: HttpHeaders, data: T): HttpResponse = {

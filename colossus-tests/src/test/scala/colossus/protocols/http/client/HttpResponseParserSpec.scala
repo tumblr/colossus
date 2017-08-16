@@ -65,8 +65,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
       parser.parse(DataBuffer(ByteString(res))) must equal(None)
       val parsed = parser.endOfStream()
       // currently there's no easy way to pass the contentType into HttpResponse.apply()
-      parsed.map(response => response.copy(body = response.body.withContentType("text/plain"))) must equal(
-        Some(expected))
+      parsed must equal(Some(expected))
     }
 
     "parse a response with a body" in {
@@ -96,12 +95,9 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         ByteString("{some : json}")
       )
       val data   = DataBuffer(ByteString(res))
-      val parsed = parser.parse(data)
-
-      parsed.get.body.contentType must equal(Some(HttpHeader("Content-Type", "application/json")))
+      val parsed: Option[HttpResponse] = parser.parse(data)
       // expected body was constructed with a ByteString so its contentType is None. We will just compare the head and bytes instead.
-      parsed.get.body.bytes must equal(expected.body.bytes)
-      parsed.get.head must equal(expected.head)
+      parsed must equal(Some(expected))
       data.remaining must equal(0)
     }
 

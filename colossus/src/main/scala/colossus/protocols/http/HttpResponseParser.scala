@@ -11,31 +11,23 @@ object HttpResponseParser {
   def static(): Parser[HttpResponse] = staticBody(true)
 
   protected def staticBody(dechunk: Boolean): Parser[HttpResponse] = head |> { parsedHead =>
-    val contentType       = parsedHead.headers.contentType
-    val contentTypeHeader = contentType.map(ct => HttpHeader(HttpHeaders.ContentType, ct))
     parsedHead.headers.transferEncoding match {
       case TransferEncoding.Identity =>
         parsedHead.headers.contentLength match {
           case Some(0) => const(HttpResponse(parsedHead, HttpBody.NoBody))
           case Some(n) =>
             bytes(n) >> { body =>
-              HttpResponse(parsedHead, new HttpBody(body, contentTypeHeader))
+              HttpResponse(parsedHead, new HttpBody(body))
             }
           case None if (parsedHead.code.isInstanceOf[NoBodyCode]) => const(HttpResponse(parsedHead, HttpBody.NoBody))
           case None =>
             bytesUntilEOS >> { body =>
-              val httpBody = contentTypeHeader.fold(HttpBody(body)) { header =>
-                HttpBody(body, header)
-              }
-              HttpResponse(parsedHead, httpBody)
+              HttpResponse(parsedHead, HttpBody(body))
             }
         }
       case _ =>
         chunkedBody >> { body =>
-          val httpBody = contentTypeHeader.fold(HttpBody(body)) { header =>
-            HttpBody(body, header)
-          }
-          HttpResponse(parsedHead, httpBody)
+          HttpResponse(parsedHead, HttpBody(body))
         }
     }
   }
