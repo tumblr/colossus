@@ -109,7 +109,7 @@ object HttpRequestHead {
 
 }
 
-case class HttpRequest(head: HttpRequestHead, body: HttpBody) 
+case class HttpRequest(head: HttpRequestHead, body: HttpBody)
 extends Encoder with HttpRequestBuilding[HttpRequest] with HttpMessage[HttpRequestHead] with HttpResponseBuilding {
 
   protected def current = this

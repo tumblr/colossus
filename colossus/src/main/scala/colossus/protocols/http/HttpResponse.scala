@@ -104,6 +104,15 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
 
   def withHeader(key: String, value: String) = copy(head = head.withHeader(HttpHeader(key,value)))
 
+  def withContentType(contentType: String) = {
+    val newBody = body.withContentType(contentType)
+    val header = newBody.contentType.getOrElse(HttpHeader(HttpHeaders.ContentType, contentType))
+    copy(
+      head = head.withHeader(header),
+      body = newBody
+    )
+  }
+
   def code = head.code
 
 }
