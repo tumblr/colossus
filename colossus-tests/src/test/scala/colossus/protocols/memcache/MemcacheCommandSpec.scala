@@ -1,14 +1,12 @@
 package colossus
 
 import org.scalatest._
-
 import akka.util.ByteString
-
 import protocols.memcache.MemcacheCommand._
 import colossus.protocols.memcache.NoCompressor
 
 
-class MemcacheCommandSuite extends FlatSpec with ShouldMatchers{
+class MemcacheCommandSuite extends FlatSpec with Matchers {
   "MemcacheCommand" should "format a GET correctly" in {
     val experimental = Get(ByteString("test"))
     experimental.toString() should equal("get test\r\n")

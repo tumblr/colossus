@@ -2,10 +2,9 @@ import sbt._
 import Keys._
 import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
-import scoverage.ScoverageSbtPlugin.ScoverageKeys._
 
-val AKKA_VERSION      = "2.3.9"
-val SCALATEST_VERSION = "2.2.0"
+val AKKA_VERSION      = "2.5.4"
+val SCALATEST_VERSION = "3.0.1"
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -13,8 +12,8 @@ val GeneralSettings = Seq[Setting[_]](
   compile := (compile in Compile).dependsOn(compile in Test).dependsOn(compile in IntegrationTest).value,
   testAll := (test in Test).dependsOn(test in IntegrationTest).value,
   organization := "com.tumblr",
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.10.6", "2.11.8"),
+  scalaVersion := "2.12.2",
+  crossScalaVersions := Seq("2.11.8", "2.12.2"),
   parallelExecution in Test := false,
   scalacOptions := scalaVersion.map { v: String =>
     val default = List(
@@ -23,7 +22,7 @@ val GeneralSettings = Seq[Setting[_]](
       "-language:postfixOps",
       "-unchecked",
       "-deprecation",
-      "-target:jvm-1.7"
+      "-target:jvm-1.8"
     )
     if (v.startsWith("2.10.")) {
       default
@@ -31,15 +30,15 @@ val GeneralSettings = Seq[Setting[_]](
       "-Ywarn-unused-import" :: default
     }
   }.value,
-  javacOptions ++= Seq("-source", "1.7", "-target", "1.7", "-Xlint"),
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
   scalacOptions in (Compile, console) := Seq(),
   libraryDependencies ++= Seq(
     "com.typesafe.akka"      %% "akka-actor"                  % AKKA_VERSION,
     "com.typesafe.akka"      %% "akka-testkit"                % AKKA_VERSION,
     "org.scalatest"          %% "scalatest"                   % SCALATEST_VERSION % "test, it",
-    "org.scalamock"          %% "scalamock-scalatest-support" % "3.2.2" % "test",
+    "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
     "org.mockito"            % "mockito-all"                  % "1.9.5" % "test",
-    "com.github.nscala-time" %% "nscala-time"                 % "1.2.0"
+    "com.github.nscala-time" %% "nscala-time"                 % "2.16.0"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*"
 ) ++ Defaults.itSettings
@@ -90,7 +89,7 @@ val MetricSettings = ColossusSettings
 
 val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s" %% "json4s-jackson" % "3.3.0"
+    "org.json4s" %% "json4s-jackson" % "3.5.3"
   )
 )
 

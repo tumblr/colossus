@@ -5,7 +5,7 @@ import org.scalatest._
 import akka.util.ByteString
 import core.DataBuffer
 
-class MemcacheParserSpec extends FlatSpec with ShouldMatchers{
+class MemcacheParserSpec extends FlatSpec with Matchers {
   import MemcacheReply._
 
   "MemcacheParser" should "parse a value reply" in {

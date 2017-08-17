@@ -25,7 +25,7 @@ object HttpExample {
       case req @ Get on Root => req.ok("Hello World!")
 
       case req @ Get on Root / "shutdown" => {
-        server.system.actorSystem.shutdown
+        server.system.actorSystem.terminate()
         req.ok("bye")
       }
 
