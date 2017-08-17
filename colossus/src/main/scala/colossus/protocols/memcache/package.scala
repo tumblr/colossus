@@ -1,7 +1,9 @@
 package colossus
 package protocols
 
-import service._
+import colossus.protocols.memcache.MemcacheClient.MemcacheClientLifter
+import colossus.service.{ClientFactories, Protocol, ServiceClientFactory}
+
 
 package object memcache {
 
@@ -10,13 +12,9 @@ package object memcache {
     type Response = MemcacheReply
   }
 
-  object Memcache extends ClientFactories[Memcache, MemcacheClient] {
+  object Memcache extends ClientFactories[Memcache, MemcacheClient](MemcacheClientLifter) {
 
     implicit lazy val clientFactory = ServiceClientFactory.basic("memcache", () => new MemcacheClientCodec)
-
-    object defaults {
-      //???
-    }
 
   }
 

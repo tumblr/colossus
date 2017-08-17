@@ -103,7 +103,7 @@ object RawProtocol {
     }
   }
 
-  object Raw extends ClientFactories[Raw, RawClient]{
+  object Raw extends ClientFactories[Raw, RawClient](RawClientLifter) {
     implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
     
   }

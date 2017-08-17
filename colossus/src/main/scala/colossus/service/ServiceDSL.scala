@@ -224,10 +224,10 @@ class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P]) e
 }
 
 class CodecClientFactory[P <: Protocol, M[_], T[M[_]] <: Sender[P,M], E]
-(implicit baseFactory: ClientFactory[P, M, Sender[P, M], E], lifter: ClientLifter[P, T], builder: AsyncBuilder[M, E])
+(baseFactory: ClientFactory[P, M, Sender[P, M], E], lifter: ClientLifter[P, T], builder: AsyncBuilder[M, E])
 extends ClientFactory[P, M, T[M], E] {
 
-  def defaultName = baseFactory.defaultName
+  def defaultName: String = baseFactory.defaultName
 
   def apply(config: ClientConfig)(implicit env: E): T[M] = {
     apply(baseFactory(config), config)
@@ -245,15 +245,23 @@ extends ClientFactory[P, M, T[M], E] {
 /**
  * Mixed into protocols to provide simple methods for creating clients.
  */
-abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](implicit lifter: ClientLifter[P, T]) {
+abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](lifter: ClientLifter[P, T]) {
 
   implicit def clientFactory: FutureClient.BaseFactory[P]
 
   implicit val futureFactory = new GenFutureClientFactory[P](clientFactory)
 
-  val client = new CodecClientFactory[P, Callback, T, WorkerRef]
+  val client = new CodecClientFactory[P, Callback, T, WorkerRef](
+    clientFactory,
+    lifter,
+    AsyncBuilder.CallbackAsyncBuilder
+  )
 
-  val futureClient = new CodecClientFactory[P, Future, T, IOSystem]
+  val futureClient = new CodecClientFactory[P, Future, T, IOSystem](
+    futureFactory,
+    lifter,
+    AsyncBuilder.FutureAsyncBuilder
+  )
 
 }
 

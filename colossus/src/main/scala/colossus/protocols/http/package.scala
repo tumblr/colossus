@@ -2,9 +2,8 @@ package colossus
 package protocols
 
 import colossus.metrics.TagMap
-
-import service._
-
+import colossus.protocols.http.HttpClient.HttpClientLifter
+import colossus.service.{ClientFactories, IrrecoverableError, ProcessingFailure, Protocol, RecoverableError, ServiceClientFactory, TagDecorator, UnhandledRequestException}
 
 package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
@@ -25,7 +24,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
     type Response = HttpResponse
   }
 
-  object Http extends ClientFactories[Http, HttpClient] {
+  object Http extends ClientFactories[Http, HttpClient](HttpClientLifter) {
 
     implicit lazy val clientFactory = ServiceClientFactory.basic("http", () => new StaticHttpClientCodec)
 
