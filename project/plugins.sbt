@@ -6,7 +6,7 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.6.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-pgp" % "0.8.3")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.2.0")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 
 addSbtPlugin("com.lightbend.paradox" % "sbt-paradox" % "0.2.13")
 

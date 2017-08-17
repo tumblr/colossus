@@ -125,7 +125,7 @@ extends Actor with ActorLogging with Stash {
       case Shutdown => self ! PoisonPill
       case Apocalypse => {
         log.info("SHUT DOWN EVERYTHING")
-        context.system.shutdown()
+        context.system.terminate()
       }
       case c: IOCommand => nextWorker ! c
       case WorkerReady(worker) => {
