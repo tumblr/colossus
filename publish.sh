@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ CI != 'true' ]]; then
+if [[ $CI != 'true' ]]; then
     echo "Not running on Travis-ci"
     exit 0
 fi
