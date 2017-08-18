@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Testkit · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="active page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="active page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Testkit</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#testkit" name="testkit" class="anchor"><span class="anchor-link"></span></a>Testkit</h1>
+<p>Colossus has a test kit that includes some classes for simplifying tests for servers. Testkit is built on <a href="http://scalatest.org">ScalaTest</a>.</p>
+<h2><a href="#setup" name="setup" class="anchor"><span class="anchor-link"></span></a>Setup</h2>
+<p>Make sure you add <code>colossus-testkit</code> to your dependcies, using the same version as colossus itself. For example:</p>
+<pre class="prettyprint"><code class="language-sbtshell">libraryDependencies += &quot;com.tumblr&quot; %% &quot;colossus-testkit&quot; % &quot;LATEST_VERSION&quot; % &quot;test
+</code></pre>
+<h2><a href="#unit-testing" name="unit-testing" class="anchor"><span class="anchor-link"></span></a>Unit Testing</h2>
+<h3><a href="#testing-callbacks" name="testing-callbacks" class="anchor"><span class="anchor-link"></span></a>Testing Callbacks</h3>
+<p><code>colossus.testkit.CallbackAwait</code> works similarly to Scala&rsquo;s <code>Await</code> for futures. </p>
+<h3><a href="#testing-request-handlers" name="testing-request-handlers" class="anchor"><span class="anchor-link"></span></a>Testing Request Handlers</h3>
+<p>You can use <code>MockConnection</code> to create a fake <code>ServerContext</code> and create an instance of a request handler:</p>
+<pre class="prettyprint"><code class="language-scala">object TestkitExample extends App {
+  implicit val actorSystem = ActorSystem()
+  implicit val ioSystem = IOSystem()
+
+  HttpServer.start(&quot;example-server&quot;, 9000) {
+    new Initializer(_) {
+      override def onConnect = new MyHandler(_)
+    }
+  }
+}
+
+class MyHandler(context: ServerContext) extends RequestHandler(context) {
+  override def handle: PartialHandler[Http] = {
+    case request @ Get on Root / &quot;foo&quot; =&gt; request.ok(&quot;bar&quot;)
+  }
+}</code></pre>
+<p>Todo, fix the spec!</p>
+<pre class="prettyprint"><code class="language-scala">/*class TestkitExampleSpec extends WordSpec with MustMatchers {
+  &quot;request handler&quot; must {
+    &quot;generate a response&quot; in {
+      val connection = MockConnection.server(new MyHandler(_))
+      val response = connection.typedHandler.handle(HttpRequest.get(&quot;/foo&quot;))
+      CallbackAwait.result(response, 1.second).body.bytes.utf8String mustBe &quot;hello&quot;
+    }
+  }
+}*/</code></pre>
+<h2><a href="#integration-testing" name="integration-testing" class="anchor"><span class="anchor-link"></span></a>Integration Testing</h2>
+<p><code>ColossusSpec</code> is a scalatest-based integration testing suite that contains a bunch of useful functions that help with spinning up instances of a service for testing</p>
+<p><code>withIOSystem(f: IOSystem =&gt; Unit)</code> will spin up a new <code>IOSystem</code> for the duration of a test and shut it down at the end.</p>
+<p><code>withServer(server: ServerRef)(f: =&gt; Unit)</code> will shutdown the given server after the test completes</p>
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="metrics.html">Metrics</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="testkit.html#testkit" class="header">Testkit</a>
+  <ul>
+    <li><a href="testkit.html#setup" class="header">Setup</a></li>
+    <li><a href="testkit.html#unit-testing" class="header">Unit Testing</a></li>
+    <li><a href="testkit.html#integration-testing" class="header">Integration Testing</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

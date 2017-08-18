@@ -1,0 +1,1639 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>http - colossus.protocols.http</title>
+          <meta name="description" content="http - colossus.protocols.http" />
+          <meta name="keywords" content="http colossus.protocols.http" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.http.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a></p>
+        <h1>http</h1><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="HttpBodyDecoders.html" class="extype" name="colossus.protocols.http.HttpBodyDecoders">HttpBodyDecoders</a>, <a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.http"><span>http</span></li><li class="in" name="colossus.protocols.http.HttpBodyDecoders"><span>HttpBodyDecoders</span></li><li class="in" name="colossus.protocols.http.HttpBodyEncoders"><span>HttpBodyEncoders</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.protocols.http.BaseHttp" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BaseHttp[B]extendsProtocol"></a>
+      <a id="BaseHttp[B]:BaseHttp[B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$BaseHttp.html"><span class="name">BaseHttp</span></a><span class="tparams">[<span name="B">B</span>]</span><span class="result"> extends <a href="../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BaseHttp[B]extendsProtocol" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.BaseHttpClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BaseHttpClient[M[_],B,P&lt;:colossus.protocols.http.BaseHttp[B]]extendsLiftedClient[P,M]"></a>
+      <a id="BaseHttpClient[M[_],B,P&lt;:BaseHttp[B]]:BaseHttpClient[M,B,P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BaseHttpClient.html"><span class="name">BaseHttpClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="B">B</span>, <span name="P">P &lt;: <a href="package$$BaseHttp.html" class="extype" name="colossus.protocols.http.BaseHttp">BaseHttp</a>[<span class="extype" name="colossus.protocols.http.BaseHttpClient.B">B</span>]</span>]</span><span class="result"> extends <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<span class="extype" name="colossus.protocols.http.BaseHttpClient.P">P</span>, <span class="extype" name="colossus.protocols.http.BaseHttpClient.M">M</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BaseHttpClient[M[_],B,P&lt;:colossus.protocols.http.BaseHttp[B]]extendsLiftedClient[P,M]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.BaseHttpMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BaseHttpMessage[H&lt;:colossus.protocols.http.package.HttpMessageHead,B]extendsAnyRef"></a>
+      <a id="BaseHttpMessage[H&lt;:HttpMessageHead,B]:BaseHttpMessage[H,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$BaseHttpMessage.html"><span class="name">BaseHttpMessage</span></a><span class="tparams">[<span name="H">H &lt;: <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>, <span name="B">B</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BaseHttpMessage[H&lt;:colossus.protocols.http.package.HttpMessageHead,B]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.BasicResponseFL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicResponseFLextendsResponseFLwithProductwithSerializable"></a>
+      <a id="BasicResponseFL:BasicResponseFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicResponseFL.html"><span class="name">BasicResponseFL</span></a><span class="params">(<span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>, <span name="code">code: <a href="HttpCode.html" class="extype" name="colossus.protocols.http.HttpCode">HttpCode</a></span>)</span><span class="result"> extends <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BasicResponseFLextendsResponseFLwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.BuildFL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BuildFLextendsFirstLinewithProductwithSerializable"></a>
+      <a id="BuildFL:BuildFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BuildFL.html"><span class="name">BuildFL</span></a><span class="params">(<span name="method">method: <a href="HttpMethod.html" class="extype" name="colossus.protocols.http.HttpMethod">HttpMethod</a></span>, <span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="version">version: <a href="HttpVersion.html" class="extype" name="colossus.protocols.http.HttpVersion">HttpVersion</a></span>)</span><span class="result"> extends <a href="FirstLine.html" class="extype" name="colossus.protocols.http.FirstLine">FirstLine</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BuildFLextendsFirstLinewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.BuiltHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BuiltHeadextendsHttpRequestHeadwithProductwithSerializable"></a>
+      <a id="BuiltHead:BuiltHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BuiltHead.html"><span class="name">BuiltHead</span></a><span class="params">(<span name="firstLine">firstLine: <a href="BuildFL.html" class="extype" name="colossus.protocols.http.BuildFL">BuildFL</a></span>, <span name="headers">headers: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>)</span><span class="result"> extends <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@BuiltHeadextendsHttpRequestHeadwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ByteStringLike" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ByteStringLike[T]extendsAnyRef"></a>
+      <a id="ByteStringLike[T]:ByteStringLike[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ByteStringLike.html"><span class="name">ByteStringLike</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ByteStringLike[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Converter typeclass for bytestrings.</p><div class="fullcomment"><div class="comment cmt"><p>Converter typeclass for bytestrings.  Default implementations are in package.scala
+</p></div></div>
+    </li><li name="colossus.protocols.http.Connection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ConnectionextendsAnyRef"></a>
+      <a id="Connection:Connection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Connection.html"><span class="name">Connection</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ConnectionextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ContentEncoding" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ContentEncodingextendsAnyRef"></a>
+      <a id="ContentEncoding:ContentEncoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ContentEncoding.html"><span class="name">ContentEncoding</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ContentEncodingextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.Cookie" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CookieextendsProductwithSerializable"></a>
+      <a id="Cookie:Cookie"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Cookie.html"><span class="name">Cookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expiration">expiration: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="com.github.nscala_time.time.TypeImports.DateTime">com.github.nscala_time.time.Imports.DateTime</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@CookieextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.DateHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DateHeaderextendsHttpHeader"></a>
+      <a id="DateHeader:DateHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DateHeader.html"><span class="name">DateHeader</span></a><span class="result"> extends <a href="HttpHeader.html" class="extype" name="colossus.protocols.http.HttpHeader">HttpHeader</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@DateHeaderextendsHttpHeader" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.EncodedHttpHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EncodedHttpHeaderextendsHttpHeaderwithLazyParsing"></a>
+      <a id="EncodedHttpHeader:EncodedHttpHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="EncodedHttpHeader.html"><span class="name">EncodedHttpHeader</span></a><span class="result"> extends <a href="HttpHeader.html" class="extype" name="colossus.protocols.http.HttpHeader">HttpHeader</a> with <a href="LazyParsing.html" class="extype" name="colossus.protocols.http.LazyParsing">LazyParsing</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@EncodedHttpHeaderextendsHttpHeaderwithLazyParsing" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.FirstLine" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FirstLineextendsEncoder"></a>
+      <a id="FirstLine:FirstLine"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FirstLine.html"><span class="name">FirstLine</span></a><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@FirstLineextendsEncoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HeadOps" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HeadOps[H&lt;:colossus.protocols.http.package.HttpMessageHead]extendsAnyRef"></a>
+      <a id="HeadOps[H&lt;:HttpMessageHead]:HeadOps[H]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$HeadOps.html"><span class="name">HeadOps</span></a><span class="tparams">[<span name="H">H &lt;: <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HeadOps[H&lt;:colossus.protocols.http.package.HttpMessageHead]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.Http" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Httpextendspackage.BaseHttp[colossus.protocols.http.HttpBody]"></a>
+      <a id="Http:Http"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Http.html"><span class="name">Http</span></a><span class="result"> extends <a href="package$$BaseHttp.html" class="extype" name="colossus.protocols.http.BaseHttp">BaseHttp</a>[<a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@Httpextendspackage.BaseHttp[colossus.protocols.http.HttpBody]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpBodyextendsAnyRef"></a>
+      <a id="HttpBody:HttpBody"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBody.html"><span class="name">HttpBody</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBodyextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBodyDecoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpBodyDecoder[T]extendsAnyRef"></a>
+      <a id="HttpBodyDecoder[T]:HttpBodyDecoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyDecoder.html"><span class="name">HttpBodyDecoder</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBodyDecoder[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Typeclass to decode a raw http body into some specific type
+</p>
+    </li><li name="colossus.protocols.http.HttpBodyDecoders" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpBodyDecodersextendsAnyRef"></a>
+      <a id="HttpBodyDecoders:HttpBodyDecoders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyDecoders.html"><span class="name">HttpBodyDecoders</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBodyDecodersextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBodyEncoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpBodyEncoder[T]extendsAnyRef"></a>
+      <a id="HttpBodyEncoder[T]:HttpBodyEncoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyEncoder.html"><span class="name">HttpBodyEncoder</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBodyEncoder[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBodyEncoders" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpBodyEncodersextendsAnyRef"></a>
+      <a id="HttpBodyEncoders:HttpBodyEncoders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyEncoders.html"><span class="name">HttpBodyEncoders</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBodyEncodersextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpClient[M[_]]extendsLiftedClient[colossus.protocols.http.Http,M]withBaseHttpClient[M,colossus.protocols.http.HttpBody,colossus.protocols.http.Http]withHttpRequestBuilder[M[colossus.protocols.http.HttpResponse]]"></a>
+      <a id="HttpClient[M[_]]:HttpClient[M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpClient.html"><span class="name">HttpClient</span></a><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>, <span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>] with <a href="BaseHttpClient.html" class="extype" name="colossus.protocols.http.BaseHttpClient">BaseHttpClient</a>[<span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>, <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a>, <a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>] with <a href="HttpRequestBuilder.html" class="extype" name="colossus.protocols.http.HttpRequestBuilder">HttpRequestBuilder</a>[<span class="extype" name="colossus.protocols.http.HttpClient.M">M</span>[<a href="HttpResponse.html" class="extype" name="colossus.protocols.http.HttpResponse">HttpResponse</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpClient[M[_]]extendsLiftedClient[colossus.protocols.http.Http,M]withBaseHttpClient[M,colossus.protocols.http.HttpBody,colossus.protocols.http.Http]withHttpRequestBuilder[M[colossus.protocols.http.HttpResponse]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpCodeextendsProductwithSerializable"></a>
+      <a id="HttpCode:HttpCode"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpCode.html"><span class="name">HttpCode</span></a><span class="params">(<span name="code">code: <span class="extype" name="scala.Int">Int</span></span>, <span name="description">description: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpCodeextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpHeaderextendsEncoder"></a>
+      <a id="HttpHeader:HttpHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpHeader.html"><span class="name">HttpHeader</span></a><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpHeaderextendsEncoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpHeadersextendsAnyRef"></a>
+      <a id="HttpHeaders:HttpHeaders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpHeaders.html"><span class="name">HttpHeaders</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpHeadersextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Wrapper class for a set of Http headers, for a request or response.</p>
+    </li><li name="colossus.protocols.http.HttpMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpMessage[H&lt;:colossus.protocols.http.package.HttpMessageHead]extendspackage.BaseHttpMessage[H,colossus.protocols.http.HttpBody]"></a>
+      <a id="HttpMessage[H&lt;:HttpMessageHead]:HttpMessage[H]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$HttpMessage.html"><span class="name">HttpMessage</span></a><span class="tparams">[<span name="H">H &lt;: <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <a href="package$$BaseHttpMessage.html" class="extype" name="colossus.protocols.http.BaseHttpMessage">BaseHttpMessage</a>[<span class="extype" name="colossus.protocols.http.HttpMessage.H">H</span>, <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpMessage[H&lt;:colossus.protocols.http.package.HttpMessageHead]extendspackage.BaseHttpMessage[H,colossus.protocols.http.HttpBody]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpMessageHead" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpMessageHeadextendsAnyRef"></a>
+      <a id="HttpMessageHead:HttpMessageHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$HttpMessageHead.html"><span class="name">HttpMessageHead</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpMessageHeadextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">common methods of both request and response heads
+</p>
+    </li><li name="colossus.protocols.http.HttpMethod" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpMethodextendsAnyRef"></a>
+      <a id="HttpMethod:HttpMethod"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpMethod.html"><span class="name">HttpMethod</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpMethodextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestextendsEncoderwithHttpRequestBuilding[colossus.protocols.http.HttpRequest]withHttpMessage[colossus.protocols.http.HttpRequestHead]withHttpResponseBuildingwithProductwithSerializable"></a>
+      <a id="HttpRequest:HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequest.html"><span class="name">HttpRequest</span></a><span class="params">(<span name="head">head: <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a></span>, <span name="body">body: <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a></span>)</span><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a> with <a href="HttpRequestBuilding.html" class="extype" name="colossus.protocols.http.HttpRequestBuilding">HttpRequestBuilding</a>[<a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>] with <a href="package$$HttpMessage.html" class="extype" name="colossus.protocols.http.HttpMessage">HttpMessage</a>[<a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>] with <a href="HttpResponseBuilding.html" class="extype" name="colossus.protocols.http.HttpResponseBuilding">HttpResponseBuilding</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestextendsEncoderwithHttpRequestBuilding[colossus.protocols.http.HttpRequest]withHttpMessage[colossus.protocols.http.HttpRequestHead]withHttpResponseBuildingwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestBuilder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestBuilder[T]extendsAnyRef"></a>
+      <a id="HttpRequestBuilder[T]:HttpRequestBuilder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequestBuilder.html"><span class="name">HttpRequestBuilder</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestBuilder[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestBuilding" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestBuilding[T]extendsAnyRef"></a>
+      <a id="HttpRequestBuilding[T]:HttpRequestBuilding[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequestBuilding.html"><span class="name">HttpRequestBuilding</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestBuilding[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestHead" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestHeadextendsEncoderwithHttpMessageHead"></a>
+      <a id="HttpRequestHead:HttpRequestHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequestHead.html"><span class="name">HttpRequestHead</span></a><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a> with <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestHeadextendsEncoderwithHttpMessageHead" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseextendsEncoderwithHttpMessage[colossus.protocols.http.HttpResponseHead]withProductwithSerializable"></a>
+      <a id="HttpResponse:HttpResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponse.html"><span class="name">HttpResponse</span></a><span class="params">(<span name="head">head: <a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a></span>, <span name="body">body: <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a></span>)</span><span class="result"> extends <a href="../../core/Encoder.html" class="extype" name="colossus.core.Encoder">Encoder</a> with <a href="package$$HttpMessage.html" class="extype" name="colossus.protocols.http.HttpMessage">HttpMessage</a>[<a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseextendsEncoderwithHttpMessage[colossus.protocols.http.HttpResponseHead]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponseBuilding" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseBuildingextendsAnyRef"></a>
+      <a id="HttpResponseBuilding:HttpResponseBuilding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponseBuilding.html"><span class="name">HttpResponseBuilding</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseBuildingextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponseHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseHeadextendsHttpMessageHeadwithProductwithSerializable"></a>
+      <a id="HttpResponseHead:HttpResponseHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponseHead.html"><span class="name">HttpResponseHead</span></a><span class="params">(<span name="fl">fl: <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a></span>, <span name="headers">headers: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>)</span><span class="result"> extends <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseHeadextendsHttpMessageHeadwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpVersion" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpVersionextendsAnyRef"></a>
+      <a id="HttpVersion:HttpVersion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpVersion.html"><span class="name">HttpVersion</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpVersionextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.InvalidRequestException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InvalidRequestExceptionextendsException"></a>
+      <a id="InvalidRequestException:InvalidRequestException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$InvalidRequestException.html"><span class="name">InvalidRequestException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@InvalidRequestExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.LazyParsing" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="LazyParsingextendsAnyRef"></a>
+      <a id="LazyParsing:LazyParsing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="LazyParsing.html"><span class="name">LazyParsing</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@LazyParsingextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.MessageOps" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageOps[H&lt;:colossus.protocols.http.package.HttpMessageHead,B,M&lt;:colossus.protocols.http.package.BaseHttpMessage[H,B]]extendsAnyRef"></a>
+      <a id="MessageOps[H&lt;:HttpMessageHead,B,M&lt;:BaseHttpMessage[H,B]]:MessageOps[H,B,M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$MessageOps.html"><span class="name">MessageOps</span></a><span class="tparams">[<span name="H">H &lt;: <a href="package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>, <span name="B">B</span>, <span name="M">M &lt;: <a href="package$$BaseHttpMessage.html" class="extype" name="colossus.protocols.http.BaseHttpMessage">BaseHttpMessage</a>[<span class="extype" name="colossus.protocols.http.MessageOps.H">H</span>, <span class="extype" name="colossus.protocols.http.MessageOps.B">B</span>]</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@MessageOps[H&lt;:colossus.protocols.http.package.HttpMessageHead,B,M&lt;:colossus.protocols.http.package.BaseHttpMessage[H,B]]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.NoBodyCode" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="NoBodyCodeextendsAnyRef"></a>
+      <a id="NoBodyCode:NoBodyCode"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="NoBodyCode.html"><span class="name">NoBodyCode</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@NoBodyCodeextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This trait mixed in to any codes that do not allow a body in the response
+</p>
+    </li><li name="colossus.protocols.http.NoParameterException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NoParameterExceptionextendsExceptionwithProductwithSerializable"></a>
+      <a id="NoParameterException:NoParameterException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="NoParameterException.html"><span class="name">NoParameterException</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@NoParameterExceptionextendsExceptionwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ParameterParser" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ParameterParser[T]extendsAnyRef"></a>
+      <a id="ParameterParser[T]:ParameterParser[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ParameterParser.html"><span class="name">ParameterParser</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParameterParser[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ParsedFL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParsedFLextendsFirstLinewithLazyParsingwithProductwithSerializable"></a>
+      <a id="ParsedFL:ParsedFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParsedFL.html"><span class="name">ParsedFL</span></a><span class="params">(<span name="data">data: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result"> extends <a href="FirstLine.html" class="extype" name="colossus.protocols.http.FirstLine">FirstLine</a> with <a href="LazyParsing.html" class="extype" name="colossus.protocols.http.LazyParsing">LazyParsing</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParsedFLextendsFirstLinewithLazyParsingwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ParsedHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParsedHeadextendsHttpRequestHeadwithProductwithSerializable"></a>
+      <a id="ParsedHead:ParsedHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParsedHead.html"><span class="name">ParsedHead</span></a><span class="params">(<span name="firstLine">firstLine: <a href="ParsedFL.html" class="extype" name="colossus.protocols.http.ParsedFL">ParsedFL</a></span>, <span name="headers">headers: <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>)</span><span class="result"> extends <a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParsedHeadextendsHttpRequestHeadwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ParsedHttpHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParsedHttpHeadersextendsHttpHeaders"></a>
+      <a id="ParsedHttpHeaders:ParsedHttpHeaders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParsedHttpHeaders.html"><span class="name">ParsedHttpHeaders</span></a><span class="result"> extends <a href="HttpHeaders.html" class="extype" name="colossus.protocols.http.HttpHeaders">HttpHeaders</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParsedHttpHeadersextendsHttpHeaders" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is the set of headers that are parsed into more structured forms and
+used internally by colossus
+</p>
+    </li><li name="colossus.protocols.http.ParsedResponseFL" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParsedResponseFLextendsResponseFLwithLazyParsingwithProductwithSerializable"></a>
+      <a id="ParsedResponseFL:ParsedResponseFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParsedResponseFL.html"><span class="name">ParsedResponseFL</span></a><span class="params">(<span name="data">data: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>)</span><span class="result"> extends <a href="ResponseFL.html" class="extype" name="colossus.protocols.http.ResponseFL">ResponseFL</a> with <a href="LazyParsing.html" class="extype" name="colossus.protocols.http.LazyParsing">LazyParsing</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParsedResponseFLextendsResponseFLwithLazyParsingwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.QueryParameters" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueryParametersextendsAnyValwithProductwithSerializable"></a>
+      <a id="QueryParameters:QueryParameters"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="QueryParameters.html"><span class="name">QueryParameters</span></a><span class="params">(<span name="parameters">parameters: <span class="extype" name="scala.Seq">Seq</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>)</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@QueryParametersextendsAnyValwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ResponseFL" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ResponseFLextendsAnyRef"></a>
+      <a id="ResponseFL:ResponseFL"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseFL.html"><span class="name">ResponseFL</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ResponseFLextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ReturnCodeTagDecorator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReturnCodeTagDecoratorextendsTagDecorator[colossus.protocols.http.package.Http]"></a>
+      <a id="ReturnCodeTagDecorator:ReturnCodeTagDecorator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$ReturnCodeTagDecorator.html"><span class="name">ReturnCodeTagDecorator</span></a><span class="result"> extends <a href="../../service/TagDecorator.html" class="extype" name="colossus.service.TagDecorator">TagDecorator</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ReturnCodeTagDecoratorextendsTagDecorator[colossus.protocols.http.package.Http]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.StaticHttpClientCodec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StaticHttpClientCodecextendsCodec[colossus.controller.Encoding.Client[colossus.protocols.http.Http]]"></a>
+      <a id="StaticHttpClientCodec:StaticHttpClientCodec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticHttpClientCodec.html"><span class="name">StaticHttpClientCodec</span></a><span class="result"> extends <a href="../../controller/Codec.html" class="extype" name="colossus.controller.Codec">Codec</a>[<a href="../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@StaticHttpClientCodecextendsCodec[colossus.controller.Encoding.Client[colossus.protocols.http.Http]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.StaticHttpServerCodec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StaticHttpServerCodecextendsCodec.Server[colossus.protocols.http.Http]"></a>
+      <a id="StaticHttpServerCodec:StaticHttpServerCodec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticHttpServerCodec.html"><span class="name">StaticHttpServerCodec</span></a><span class="result"> extends <a href="../../controller/Codec$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Codec[colossus.controller.Encoding.Server[P]]" class="extmbr" name="colossus.controller.Codec.Server">Server</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@StaticHttpServerCodecextendsCodec.Server[colossus.protocols.http.Http]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.TransferEncoding" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TransferEncodingextendsAnyRef"></a>
+      <a id="TransferEncoding:TransferEncoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TransferEncoding.html"><span class="name">TransferEncoding</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@TransferEncodingextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.protocols.http.HttpBodyDecoders.ArrayDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ArrayDecoder"></a>
+      <a id="ArrayDecoder:ArrayDecoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyDecoders$ArrayDecoder$.html"><span class="name">ArrayDecoder</span></a><span class="result"> extends <a href="HttpBodyDecoder.html" class="extype" name="colossus.protocols.http.HttpBodyDecoder">HttpBodyDecoder</a>[<span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Byte">Byte</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyDecoders@ArrayDecoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyDecoders.html" class="extype" name="colossus.protocols.http.HttpBodyDecoders">HttpBodyDecoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpBodyDecoders.ByteStringDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ByteStringDecoder"></a>
+      <a id="ByteStringDecoder:ByteStringDecoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyDecoders$ByteStringDecoder$.html"><span class="name">ByteStringDecoder</span></a><span class="result"> extends <a href="HttpBodyDecoder.html" class="extype" name="colossus.protocols.http.HttpBodyDecoder">HttpBodyDecoder</a>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyDecoders@ByteStringDecoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyDecoders.html" class="extype" name="colossus.protocols.http.HttpBodyDecoders">HttpBodyDecoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpBodyEncoders.ByteStringEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ByteStringEncoder"></a>
+      <a id="ByteStringEncoder:ByteStringEncoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyEncoders$ByteStringEncoder$.html"><span class="name">ByteStringEncoder</span></a><span class="result"> extends <a href="HttpBodyEncoder.html" class="extype" name="colossus.protocols.http.HttpBodyEncoder">HttpBodyEncoder</a>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyEncoders@ByteStringEncoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.Connection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Connection"></a>
+      <a id="Connection:Connection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Connection$.html"><span class="name">Connection</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@Connection" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ContentEncoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContentEncoding"></a>
+      <a id="ContentEncoding:ContentEncoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ContentEncoding$.html"><span class="name">ContentEncoding</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ContentEncoding" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ContentType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContentType"></a>
+      <a id="ContentType:ContentType"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ContentType$.html"><span class="name">ContentType</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ContentType" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.Cookie" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Cookie"></a>
+      <a id="Cookie:Cookie"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Cookie$.html"><span class="name">Cookie</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@Cookie" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.DateHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DateHeader"></a>
+      <a id="DateHeader:DateHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DateHeader$.html"><span class="name">DateHeader</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@DateHeader" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.Http" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http"></a>
+      <a id="Http:Http"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$Http$.html"><span class="name">Http</span></a><span class="result"> extends <a href="../../service/ClientFactories.html" class="extype" name="colossus.service.ClientFactories">ClientFactories</a>[<a href="package$$Http.html" class="extype" name="colossus.protocols.http.Http">Http</a>, <a href="HttpClient.html" class="extype" name="colossus.protocols.http.HttpClient">HttpClient</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@Http" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpBody"></a>
+      <a id="HttpBody:HttpBody"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBody$.html"><span class="name">HttpBody</span></a><span class="result"> extends <a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpBody" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpChunk"></a>
+      <a id="HttpChunk:HttpChunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpChunk$.html"><span class="name">HttpChunk</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpChunk" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpClient"></a>
+      <a id="HttpClient:HttpClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpClient$.html"><span class="name">HttpClient</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpCode"></a>
+      <a id="HttpCode:HttpCode"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpCode$.html"><span class="name">HttpCode</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpCode" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpCodes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpCodes"></a>
+      <a id="HttpCodes:HttpCodes"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpCodes$.html"><span class="name">HttpCodes</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpCodes" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpHeader"></a>
+      <a id="HttpHeader:HttpHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpHeader$.html"><span class="name">HttpHeader</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpHeader" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpHeaders"></a>
+      <a id="HttpHeaders:HttpHeaders"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpHeaders$.html"><span class="name">HttpHeaders</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpHeaders" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpMethod" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpMethod"></a>
+      <a id="HttpMethod:HttpMethod"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpMethod$.html"><span class="name">HttpMethod</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpMethod" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpParse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpParse"></a>
+      <a id="HttpParse:HttpParse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpParse$.html"><span class="name">HttpParse</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpParse" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRequest"></a>
+      <a id="HttpRequest:HttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequest$.html"><span class="name">HttpRequest</span></a><span class="result"> extends <a href="HttpRequestBuilder.html" class="extype" name="colossus.protocols.http.HttpRequestBuilder">HttpRequestBuilder</a>[<a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>] with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequest" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestHead"></a>
+      <a id="HttpRequestHead:HttpRequestHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequestHead$.html"><span class="name">HttpRequestHead</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestHead" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestOps"></a>
+      <a id="HttpRequestOps:HttpRequestOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$HttpRequestOps$.html"><span class="name">HttpRequestOps</span></a><span class="result"> extends <a href="package$$MessageOps.html" class="extype" name="colossus.protocols.http.MessageOps">MessageOps</a>[<a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>, <a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a>, <a href="HttpRequest.html" class="extype" name="colossus.protocols.http.HttpRequest">HttpRequest</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestOps" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpRequestParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRequestParser"></a>
+      <a id="HttpRequestParser:HttpRequestParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpRequestParser$.html"><span class="name">HttpRequestParser</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpRequestParser" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponse"></a>
+      <a id="HttpResponse:HttpResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponse$.html"><span class="name">HttpResponse</span></a><span class="result"> extends <a href="HttpResponseBuilding.html" class="extype" name="colossus.protocols.http.HttpResponseBuilding">HttpResponseBuilding</a> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponse" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponseHead" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseHead"></a>
+      <a id="HttpResponseHead:HttpResponseHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponseHead$.html"><span class="name">HttpResponseHead</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseHead" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponseHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseHeader"></a>
+      <a id="HttpResponseHeader:HttpResponseHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponseHeader$.html"><span class="name">HttpResponseHeader</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseHeader" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpResponseParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpResponseParser"></a>
+      <a id="HttpResponseParser:HttpResponseParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpResponseParser$.html"><span class="name">HttpResponseParser</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpResponseParser" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpVersion" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpVersion"></a>
+      <a id="HttpVersion:HttpVersion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpVersion$.html"><span class="name">HttpVersion</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@HttpVersion" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBodyEncoders.IdentityEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IdentityEncoder"></a>
+      <a id="IdentityEncoder:IdentityEncoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyEncoders$IdentityEncoder$.html"><span class="name">IdentityEncoder</span></a><span class="result"> extends <a href="HttpBodyEncoder.html" class="extype" name="colossus.protocols.http.HttpBodyEncoder">HttpBodyEncoder</a>[<a href="HttpBody.html" class="extype" name="colossus.protocols.http.HttpBody">HttpBody</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyEncoders@IdentityEncoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.ParameterParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParameterParser"></a>
+      <a id="ParameterParser:ParameterParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParameterParser$.html"><span class="name">ParameterParser</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ParameterParser" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.RequestHeadOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestHeadOps"></a>
+      <a id="RequestHeadOps:RequestHeadOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$RequestHeadOps$.html"><span class="name">RequestHeadOps</span></a><span class="result"> extends <a href="package$$HeadOps.html" class="extype" name="colossus.protocols.http.HeadOps">HeadOps</a>[<a href="HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@RequestHeadOps" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.ResponseHeadOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponseHeadOps"></a>
+      <a id="ResponseHeadOps:ResponseHeadOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$ResponseHeadOps$.html"><span class="name">ResponseHeadOps</span></a><span class="result"> extends <a href="package$$HeadOps.html" class="extype" name="colossus.protocols.http.HeadOps">HeadOps</a>[<a href="HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@ResponseHeadOps" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.HttpBodyDecoders.StringDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="StringDecoder"></a>
+      <a id="StringDecoder:StringDecoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyDecoders$StringDecoder$.html"><span class="name">StringDecoder</span></a><span class="result"> extends <a href="HttpBodyDecoder.html" class="extype" name="colossus.protocols.http.HttpBodyDecoder">HttpBodyDecoder</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyDecoders@StringDecoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyDecoders.html" class="extype" name="colossus.protocols.http.HttpBodyDecoders">HttpBodyDecoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.HttpBodyEncoders.StringEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="StringEncoder"></a>
+      <a id="StringEncoder:StringEncoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpBodyEncoders$StringEncoder$.html"><span class="name">StringEncoder</span></a><span class="result"> extends <a href="HttpBodyEncoder.html" class="extype" name="colossus.protocols.http.HttpBodyEncoder">HttpBodyEncoder</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.HttpBodyEncoders@StringEncoder" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a></dd></dl></div>
+    </li><li name="colossus.protocols.http.TransferEncoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TransferEncoding"></a>
+      <a id="TransferEncoding:TransferEncoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="TransferEncoding$.html"><span class="name">TransferEncoding</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@TransferEncoding" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.UrlParsing" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="UrlParsing"></a>
+      <a id="UrlParsing:UrlParsing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="UrlParsing$.html"><span class="name">UrlParsing</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@UrlParsing" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">URL parsing can be done using one of two paths.</p><div class="fullcomment"><div class="comment cmt"><p>URL parsing can be done using one of two paths. The first uses an object based decomposition with a minimal number
+of string operations. This parses using the 'on' keyword and the left associative '/' operator.</p><p>The second method uses string operations in a right associative manner. Because all values are strings, it is less type
+safe than the object method. This is used with the 'in' keyword and the right associative '/:' operator. In this method,
+the final variable in the pattern will consume all remaining levels.</p><p>To use either language, import the UrlParsing._ object</p></div></div>
+    </li><li name="colossus.protocols.http.server" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="server"></a>
+      <a id="server:server"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="server/package.html"><span class="name">server</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@server" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="streaming"></a>
+      <a id="streaming:streaming"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="streaming/package.html"><span class="name">streaming</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.http.package@streaming" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="colossus.protocols.http.HttpBodyDecoders">
+              <h3>Inherited from <a href="HttpBodyDecoders.html" class="extype" name="colossus.protocols.http.HttpBodyDecoders">HttpBodyDecoders</a></h3>
+            </div><div class="parent" name="colossus.protocols.http.HttpBodyEncoders">
+              <h3>Inherited from <a href="HttpBodyEncoders.html" class="extype" name="colossus.protocols.http.HttpBodyEncoders">HttpBodyEncoders</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>streaming - colossus.protocols.http.streaming</title>
+          <meta name="description" content="streaming - colossus.protocols.http.streaming" />
+          <meta name="keywords" content="streaming colossus.protocols.http.streaming" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'colossus.protocols.http.streaming.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="colossus">colossus</a>.<a href="../../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="../package.html" class="extype" name="colossus.protocols.http">http</a></p>
+        <h1>streaming</h1><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">streaming</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.http.streaming"><span>streaming</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.protocols.http.streaming.Data" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DataextendsStreamBodyMessagewithProductwithSerializable"></a>
+      <a id="Data:Data"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Data.html"><span class="name">Data</span></a><span class="params">(<span name="data">data: <a href="../../../core/DataBlock.html" class="extype" name="colossus.core.DataBlock">DataBlock</a></span>, <span name="chunkEncoded">chunkEncoded: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="result"> extends <a href="StreamBodyMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamBodyMessage">StreamBodyMessage</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@DataextendsStreamBodyMessagewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Piece of data for a http message body.</p><div class="fullcomment"><div class="comment cmt"><p>A Piece of data for a http message body.  <code>chunkEncoded</code> declares whether the data
+is raw data(false) or a properly encoded http chunk (true).  In most cases
+this should be false unless the data is being proxied verbatim.
+</p></div></div>
+    </li><li name="colossus.protocols.http.streaming.Head" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Head[T&lt;:colossus.protocols.http.HttpMessageHead]extendsHttpStream[T]withProductwithSerializable"></a>
+      <a id="Head[T&lt;:HttpMessageHead]:Head[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Head.html"><span class="name">Head</span></a><span class="tparams">[<span name="T">T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="params">(<span name="head">head: <span class="extype" name="colossus.protocols.http.streaming.Head.T">T</span></span>)</span><span class="result"> extends <a href="HttpStream.html" class="extype" name="colossus.protocols.http.streaming.HttpStream">HttpStream</a>[<span class="extype" name="colossus.protocols.http.streaming.Head.T">T</span>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@Head[T&lt;:colossus.protocols.http.HttpMessageHead]extendsHttpStream[T]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HeadParserProvider" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HeadParserProvider[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef"></a>
+      <a id="HeadParserProvider[T&lt;:HttpMessageHead]:HeadParserProvider[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HeadParserProvider.html"><span class="name">HeadParserProvider</span></a><span class="tparams">[<span name="T">T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HeadParserProvider[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpClientTranscoder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpClientTranscoderextendsHttpTranscoder[colossus.controller.Encoding.Client[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="HttpClientTranscoder:HttpClientTranscoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpClientTranscoder.html"><span class="name">HttpClientTranscoder</span></a><span class="result"> extends <a href="HttpTranscoder.html" class="extype" name="colossus.protocols.http.streaming.HttpTranscoder">HttpTranscoder</a>[<a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="GenEncoding$.html#StreamHeader=colossus.service.Protocol{typeRequest=colossus.protocols.http.HttpRequestHead;typeResponse=colossus.protocols.http.HttpResponseHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.StreamHeader">StreamHeader</a>], <a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>], <a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpClientTranscoderextendsHttpTranscoder[colossus.controller.Encoding.Client[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpServerTranscoder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpServerTranscoderextendsHttpTranscoder[colossus.controller.Encoding.Server[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="HttpServerTranscoder:HttpServerTranscoder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpServerTranscoder.html"><span class="name">HttpServerTranscoder</span></a><span class="result"> extends <a href="HttpTranscoder.html" class="extype" name="colossus.protocols.http.streaming.HttpTranscoder">HttpTranscoder</a>[<a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="GenEncoding$.html#StreamHeader=colossus.service.Protocol{typeRequest=colossus.protocols.http.HttpRequestHead;typeResponse=colossus.protocols.http.HttpResponseHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.StreamHeader">StreamHeader</a>], <a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>], <a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpServerTranscoderextendsHttpTranscoder[colossus.controller.Encoding.Server[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpStream" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpStream[+T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef"></a>
+      <a id="HttpStream[+T&lt;:HttpMessageHead]:HttpStream[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpStream.html"><span class="name">HttpStream</span></a><span class="tparams">[<span name="T">+T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpStream[+T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpStreamClientController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpStreamClientControllerextendsHttpStreamController[colossus.controller.Encoding.Client[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="HttpStreamClientController:HttpStreamClientController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpStreamClientController.html"><span class="name">HttpStreamClientController</span></a><span class="result"> extends <a href="HttpStreamController.html" class="extype" name="colossus.protocols.http.streaming.HttpStreamController">HttpStreamController</a>[<a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="GenEncoding$.html#StreamHeader=colossus.service.Protocol{typeRequest=colossus.protocols.http.HttpRequestHead;typeResponse=colossus.protocols.http.HttpResponseHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.StreamHeader">StreamHeader</a>], <a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>], <a href="../../../controller/Encoding$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Response;typeOutput=P#Request}" class="extmbr" name="colossus.controller.Encoding.Client">Client</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpStreamClientControllerextendsHttpStreamController[colossus.controller.Encoding.Client[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Client[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpStreamController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpStreamController[E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding,A&lt;:colossus.protocols.http.streaming.GenEncoding.ExEncoding[colossus.protocols.http.streaming.HttpStream,E],B&lt;:colossus.protocols.http.streaming.GenEncoding.GenEncoding[colossus.protocols.http.streaming.StreamingHttpMessage,E]]extendsStreamTranscodingController[A,B]"></a>
+      <a id="HttpStreamController[E&lt;:HeadEncoding,A&lt;:ExEncoding[HttpStream,E],B&lt;:GenEncoding[StreamingHttpMessage,E]]:HttpStreamController[E,A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpStreamController.html"><span class="name">HttpStreamController</span></a><span class="tparams">[<span name="E">E &lt;: <a href="GenEncoding$.html#HeadEncoding=colossus.controller.Encoding{typeInput&lt;:colossus.protocols.http.HttpMessageHead;typeOutput&lt;:colossus.protocols.http.HttpMessageHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.HeadEncoding">HeadEncoding</a></span>, <span name="A">A &lt;: <a href="GenEncoding$.html#ExEncoding[M[T&lt;:colossus.protocols.http.HttpMessageHead],E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding]=colossus.controller.Encoding{typeInput=M[E#Input];typeOutput=M[E#Output]}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.ExEncoding">ExEncoding</a>[<a href="HttpStream.html" class="extype" name="colossus.protocols.http.streaming.HttpStream">HttpStream</a>, <span class="extype" name="colossus.protocols.http.streaming.HttpStreamController.E">E</span>]</span>, <span name="B">B &lt;: <a href="GenEncoding$.html#GenEncoding[M[T&lt;:colossus.protocols.http.HttpMessageHead],E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding]=colossus.controller.Encoding{typeInput&lt;:M[E#Input];typeOutput&lt;:M[E#Output]}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.GenEncoding">GenEncoding</a>[<a href="StreamingHttpMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttpMessage">StreamingHttpMessage</a>, <span class="extype" name="colossus.protocols.http.streaming.HttpStreamController.E">E</span>]</span>]</span><span class="result"> extends <a href="../../../streaming/StreamTranscodingController.html" class="extype" name="colossus.streaming.StreamTranscodingController">StreamTranscodingController</a>[<span class="extype" name="colossus.protocols.http.streaming.HttpStreamController.A">A</span>, <span class="extype" name="colossus.protocols.http.streaming.HttpStreamController.B">B</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpStreamController[E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding,A&lt;:colossus.protocols.http.streaming.GenEncoding.ExEncoding[colossus.protocols.http.streaming.HttpStream,E],B&lt;:colossus.protocols.http.streaming.GenEncoding.GenEncoding[colossus.protocols.http.streaming.StreamingHttpMessage,E]]extendsStreamTranscodingController[A,B]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpStreamServerController" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpStreamServerControllerextendsHttpStreamController[colossus.controller.Encoding.Server[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="HttpStreamServerController:HttpStreamServerController"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpStreamServerController.html"><span class="name">HttpStreamServerController</span></a><span class="result"> extends <a href="HttpStreamController.html" class="extype" name="colossus.protocols.http.streaming.HttpStreamController">HttpStreamController</a>[<a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="GenEncoding$.html#StreamHeader=colossus.service.Protocol{typeRequest=colossus.protocols.http.HttpRequestHead;typeResponse=colossus.protocols.http.HttpResponseHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.StreamHeader">StreamHeader</a>], <a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>], <a href="../../../controller/Encoding$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Encoding{typeInput=P#Request;typeOutput=P#Response}" class="extmbr" name="colossus.controller.Encoding.Server">Server</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpStreamServerControllerextendsHttpStreamController[colossus.controller.Encoding.Server[colossus.protocols.http.streaming.GenEncoding.StreamHeader],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamHttp],colossus.controller.Encoding.Server[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HttpTranscoder" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="HttpTranscoder[E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding,A&lt;:colossus.protocols.http.streaming.GenEncoding.ExEncoding[colossus.protocols.http.streaming.HttpStream,E],B&lt;:colossus.protocols.http.streaming.GenEncoding.GenEncoding[colossus.protocols.http.streaming.StreamingHttpMessage,E]]extendsTranscoder[A,B]"></a>
+      <a id="HttpTranscoder[E&lt;:HeadEncoding,A&lt;:ExEncoding[HttpStream,E],B&lt;:GenEncoding[StreamingHttpMessage,E]]:HttpTranscoder[E,A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpTranscoder.html"><span class="name">HttpTranscoder</span></a><span class="tparams">[<span name="E">E &lt;: <a href="GenEncoding$.html#HeadEncoding=colossus.controller.Encoding{typeInput&lt;:colossus.protocols.http.HttpMessageHead;typeOutput&lt;:colossus.protocols.http.HttpMessageHead}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.HeadEncoding">HeadEncoding</a></span>, <span name="A">A &lt;: <a href="GenEncoding$.html#ExEncoding[M[T&lt;:colossus.protocols.http.HttpMessageHead],E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding]=colossus.controller.Encoding{typeInput=M[E#Input];typeOutput=M[E#Output]}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.ExEncoding">ExEncoding</a>[<a href="HttpStream.html" class="extype" name="colossus.protocols.http.streaming.HttpStream">HttpStream</a>, <span class="extype" name="colossus.protocols.http.streaming.HttpTranscoder.E">E</span>]</span>, <span name="B">B &lt;: <a href="GenEncoding$.html#GenEncoding[M[T&lt;:colossus.protocols.http.HttpMessageHead],E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding]=colossus.controller.Encoding{typeInput&lt;:M[E#Input];typeOutput&lt;:M[E#Output]}" class="extmbr" name="colossus.protocols.http.streaming.GenEncoding.GenEncoding">GenEncoding</a>[<a href="StreamingHttpMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttpMessage">StreamingHttpMessage</a>, <span class="extype" name="colossus.protocols.http.streaming.HttpTranscoder.E">E</span>]</span>]</span><span class="result"> extends <a href="../../../streaming/Transcoder.html" class="extype" name="colossus.streaming.Transcoder">Transcoder</a>[<span class="extype" name="colossus.protocols.http.streaming.HttpTranscoder.A">A</span>, <span class="extype" name="colossus.protocols.http.streaming.HttpTranscoder.B">B</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HttpTranscoder[E&lt;:colossus.protocols.http.streaming.GenEncoding.HeadEncoding,A&lt;:colossus.protocols.http.streaming.GenEncoding.ExEncoding[colossus.protocols.http.streaming.HttpStream,E],B&lt;:colossus.protocols.http.streaming.GenEncoding.GenEncoding[colossus.protocols.http.streaming.StreamingHttpMessage,E]]extendsTranscoder[A,B]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This converts a raw http stream into a stream of http messages.</p><div class="fullcomment"><div class="comment cmt"><p>This converts a raw http stream into a stream of http messages.  The type
+parameters allow us to use this both for server streams and client streams
+</p></div></div>
+    </li><li name="colossus.protocols.http.streaming.StreamBodyMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamBodyMessageextendsHttpStream[Nothing]"></a>
+      <a id="StreamBodyMessage:StreamBodyMessage"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamBodyMessage.html"><span class="name">StreamBodyMessage</span></a><span class="result"> extends <a href="HttpStream.html" class="extype" name="colossus.protocols.http.streaming.HttpStream">HttpStream</a>[<span class="extype" name="scala.Nothing">Nothing</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamBodyMessageextendsHttpStream[Nothing]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamDecoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamDecoder[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef"></a>
+      <a id="StreamDecoder[T&lt;:HttpMessageHead]:StreamDecoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamDecoder.html"><span class="name">StreamDecoder</span></a><span class="tparams">[<span name="T">T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamDecoder[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamEncoder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamEncoder[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef"></a>
+      <a id="StreamEncoder[T&lt;:HttpMessageHead]:StreamEncoder[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamEncoder.html"><span class="name">StreamEncoder</span></a><span class="tparams">[<span name="T">T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamEncoder[T&lt;:colossus.protocols.http.HttpMessageHead]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamHttp" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamHttpextendsProtocol"></a>
+      <a id="StreamHttp:StreamHttp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamHttp.html"><span class="name">StreamHttp</span></a><span class="result"> extends <a href="../../../service/Protocol.html" class="extype" name="colossus.service.Protocol">Protocol</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamHttpextendsProtocol" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamHttpClientCodec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamHttpClientCodecextendsCodec.Client[colossus.protocols.http.streaming.StreamHttp]withStreamDecoder[colossus.protocols.http.HttpResponseHead]withStreamEncoder[colossus.protocols.http.HttpRequestHead]"></a>
+      <a id="StreamHttpClientCodec:StreamHttpClientCodec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamHttpClientCodec.html"><span class="name">StreamHttpClientCodec</span></a><span class="result"> extends <a href="../../../controller/Codec$.html#Client[P&lt;:colossus.service.Protocol]=colossus.controller.Codec[colossus.controller.Encoding.Client[P]]" class="extmbr" name="colossus.controller.Codec.Client">Client</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>] with <a href="StreamDecoder.html" class="extype" name="colossus.protocols.http.streaming.StreamDecoder">StreamDecoder</a>[<a href="../HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a>] with <a href="StreamEncoder.html" class="extype" name="colossus.protocols.http.streaming.StreamEncoder">StreamEncoder</a>[<a href="../HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamHttpClientCodecextendsCodec.Client[colossus.protocols.http.streaming.StreamHttp]withStreamDecoder[colossus.protocols.http.HttpResponseHead]withStreamEncoder[colossus.protocols.http.HttpRequestHead]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamHttpException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamHttpExceptionextendsException"></a>
+      <a id="StreamHttpException:StreamHttpException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamHttpException.html"><span class="name">StreamHttpException</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamHttpExceptionextendsException" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamHttpServerCodec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamHttpServerCodecextendsCodec.Server[colossus.protocols.http.streaming.StreamHttp]withStreamDecoder[colossus.protocols.http.HttpRequestHead]withStreamEncoder[colossus.protocols.http.HttpResponseHead]"></a>
+      <a id="StreamHttpServerCodec:StreamHttpServerCodec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamHttpServerCodec.html"><span class="name">StreamHttpServerCodec</span></a><span class="result"> extends <a href="../../../controller/Codec$.html#Server[P&lt;:colossus.service.Protocol]=colossus.controller.Codec[colossus.controller.Encoding.Server[P]]" class="extmbr" name="colossus.controller.Codec.Server">Server</a>[<a href="StreamHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamHttp">StreamHttp</a>] with <a href="StreamDecoder.html" class="extype" name="colossus.protocols.http.streaming.StreamDecoder">StreamDecoder</a>[<a href="../HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>] with <a href="StreamEncoder.html" class="extype" name="colossus.protocols.http.streaming.StreamEncoder">StreamEncoder</a>[<a href="../HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamHttpServerCodecextendsCodec.Server[colossus.protocols.http.streaming.StreamHttp]withStreamDecoder[colossus.protocols.http.HttpRequestHead]withStreamEncoder[colossus.protocols.http.HttpResponseHead]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamServiceHandlerGenerator" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamServiceHandlerGeneratorextendsHandlerGenerator[colossus.service.GenRequestHandler[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="StreamServiceHandlerGenerator:StreamServiceHandlerGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamServiceHandlerGenerator.html"><span class="name">StreamServiceHandlerGenerator</span></a><span class="result"> extends <a href="../../../service/HandlerGenerator.html" class="extype" name="colossus.service.HandlerGenerator">HandlerGenerator</a>[<a href="../../../service/GenRequestHandler.html" class="extype" name="colossus.service.GenRequestHandler">GenRequestHandler</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamServiceHandlerGeneratorextendsHandlerGenerator[colossus.service.GenRequestHandler[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamServiceInitializer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamServiceInitializerextendsStreamServiceHandlerGeneratorwithServiceInitializer[colossus.service.GenRequestHandler[colossus.protocols.http.streaming.StreamingHttp]]"></a>
+      <a id="StreamServiceInitializer:StreamServiceInitializer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamServiceInitializer.html"><span class="name">StreamServiceInitializer</span></a><span class="result"> extends <a href="StreamServiceHandlerGenerator.html" class="extype" name="colossus.protocols.http.streaming.StreamServiceHandlerGenerator">StreamServiceHandlerGenerator</a> with <a href="../../../service/ServiceInitializer.html" class="extype" name="colossus.service.ServiceInitializer">ServiceInitializer</a>[<a href="../../../service/GenRequestHandler.html" class="extype" name="colossus.service.GenRequestHandler">GenRequestHandler</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamServiceInitializerextendsStreamServiceHandlerGeneratorwithServiceInitializer[colossus.service.GenRequestHandler[colossus.protocols.http.streaming.StreamingHttp]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttp" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpextendsBaseHttp[colossus.streaming.Source[colossus.protocols.http.streaming.Data]]"></a>
+      <a id="StreamingHttp:StreamingHttp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttp.html"><span class="name">StreamingHttp</span></a><span class="result"> extends <a href="../package$$BaseHttp.html" class="extype" name="colossus.protocols.http.BaseHttp">BaseHttp</a>[<a href="../../../streaming/Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<a href="Data.html" class="extype" name="colossus.protocols.http.streaming.Data">Data</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpextendsBaseHttp[colossus.streaming.Source[colossus.protocols.http.streaming.Data]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpClientextendsLiftedClient[colossus.protocols.http.streaming.StreamingHttp,colossus.service.Callback]withBaseHttpClient[colossus.service.Callback,colossus.streaming.Source[colossus.protocols.http.streaming.Data],colossus.protocols.http.streaming.StreamingHttp]"></a>
+      <a id="StreamingHttpClient:StreamingHttpClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpClient.html"><span class="name">StreamingHttpClient</span></a><span class="result"> extends <a href="../../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>, <a href="../../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>] with <a href="../BaseHttpClient.html" class="extype" name="colossus.protocols.http.BaseHttpClient">BaseHttpClient</a>[<a href="../../../service/Callback.html" class="extype" name="colossus.service.Callback">Callback</a>, <a href="../../../streaming/Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<a href="Data.html" class="extype" name="colossus.protocols.http.streaming.Data">Data</a>], <a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpClientextendsLiftedClient[colossus.protocols.http.streaming.StreamingHttp,colossus.service.Callback]withBaseHttpClient[colossus.service.Callback,colossus.streaming.Source[colossus.protocols.http.streaming.Data],colossus.protocols.http.streaming.StreamingHttp]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpMessage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpMessage[T&lt;:colossus.protocols.http.HttpMessageHead]extendsBaseHttpMessage[T,colossus.streaming.Source[colossus.protocols.http.streaming.Data]]"></a>
+      <a id="StreamingHttpMessage[T&lt;:HttpMessageHead]:StreamingHttpMessage[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpMessage.html"><span class="name">StreamingHttpMessage</span></a><span class="tparams">[<span name="T">T &lt;: <a href="../package$$HttpMessageHead.html" class="extype" name="colossus.protocols.http.HttpMessageHead">HttpMessageHead</a></span>]</span><span class="result"> extends <a href="../package$$BaseHttpMessage.html" class="extype" name="colossus.protocols.http.BaseHttpMessage">BaseHttpMessage</a>[<span class="extype" name="colossus.protocols.http.streaming.StreamingHttpMessage.T">T</span>, <a href="../../../streaming/Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<a href="Data.html" class="extype" name="colossus.protocols.http.streaming.Data">Data</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpMessage[T&lt;:colossus.protocols.http.HttpMessageHead]extendsBaseHttpMessage[T,colossus.streaming.Source[colossus.protocols.http.streaming.Data]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpRequestextendsStreamingHttpMessage[colossus.protocols.http.HttpRequestHead]withProductwithSerializable"></a>
+      <a id="StreamingHttpRequest:StreamingHttpRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpRequest.html"><span class="name">StreamingHttpRequest</span></a><span class="params">(<span name="head">head: <a href="../HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a></span>, <span name="body">body: <a href="../../../streaming/Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<a href="Data.html" class="extype" name="colossus.protocols.http.streaming.Data">Data</a>]</span>)</span><span class="result"> extends <a href="StreamingHttpMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttpMessage">StreamingHttpMessage</a>[<a href="../HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpRequestextendsStreamingHttpMessage[colossus.protocols.http.HttpRequestHead]withProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpResponseextendsStreamingHttpMessage[colossus.protocols.http.HttpResponseHead]"></a>
+      <a id="StreamingHttpResponse:StreamingHttpResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpResponse.html"><span class="name">StreamingHttpResponse</span></a><span class="result"> extends <a href="StreamingHttpMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttpMessage">StreamingHttpMessage</a>[<a href="../HttpResponseHead.html" class="extype" name="colossus.protocols.http.HttpResponseHead">HttpResponseHead</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpResponseextendsStreamingHttpMessage[colossus.protocols.http.HttpResponseHead]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpServiceHandler" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpServiceHandlerextendsServiceServer[colossus.protocols.http.streaming.StreamingHttp]"></a>
+      <a id="StreamingHttpServiceHandler:StreamingHttpServiceHandler"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpServiceHandler.html"><span class="name">StreamingHttpServiceHandler</span></a><span class="result"> extends <a href="../../../service/ServiceServer.html" class="extype" name="colossus.service.ServiceServer">ServiceServer</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpServiceHandlerextendsServiceServer[colossus.protocols.http.streaming.StreamingHttp]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.protocols.http.streaming.End" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="End"></a>
+      <a id="End:End"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="End$.html"><span class="name">End</span></a><span class="result"> extends <a href="StreamBodyMessage.html" class="extype" name="colossus.protocols.http.streaming.StreamBodyMessage">StreamBodyMessage</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@End" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.GenEncoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GenEncoding"></a>
+      <a id="GenEncoding:GenEncoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="GenEncoding$.html"><span class="name">GenEncoding</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@GenEncoding" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.HeadParserProvider" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeadParserProvider"></a>
+      <a id="HeadParserProvider:HeadParserProvider"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HeadParserProvider$.html"><span class="name">HeadParserProvider</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@HeadParserProvider" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpClient"></a>
+      <a id="StreamingHttpClient:StreamingHttpClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpClient$.html"><span class="name">StreamingHttpClient</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpClient" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpRequestOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpRequestOps"></a>
+      <a id="StreamingHttpRequestOps:StreamingHttpRequestOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$StreamingHttpRequestOps$.html"><span class="name">StreamingHttpRequestOps</span></a><span class="result"> extends <a href="../package$$MessageOps.html" class="extype" name="colossus.protocols.http.MessageOps">MessageOps</a>[<a href="../HttpRequestHead.html" class="extype" name="colossus.protocols.http.HttpRequestHead">HttpRequestHead</a>, <a href="../../../streaming/Source.html" class="extype" name="colossus.streaming.Source">Source</a>[<a href="Data.html" class="extype" name="colossus.protocols.http.streaming.Data">Data</a>], <a href="StreamingHttpRequest.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttpRequest">StreamingHttpRequest</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpRequestOps" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpResponse"></a>
+      <a id="StreamingHttpResponse:StreamingHttpResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpResponse$.html"><span class="name">StreamingHttpResponse</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpResponse" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.http.streaming.StreamingHttpServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StreamingHttpServer"></a>
+      <a id="StreamingHttpServer:StreamingHttpServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="StreamingHttpServer$.html"><span class="name">StreamingHttpServer</span></a><span class="result"> extends <a href="../../../service/ServiceDSL.html" class="extype" name="colossus.service.ServiceDSL">ServiceDSL</a>[<a href="../../../service/GenRequestHandler.html" class="extype" name="colossus.service.GenRequestHandler">GenRequestHandler</a>[<a href="StreamingHttp.html" class="extype" name="colossus.protocols.http.streaming.StreamingHttp">StreamingHttp</a>], <a href="StreamServiceInitializer.html" class="extype" name="colossus.protocols.http.streaming.StreamServiceInitializer">StreamServiceInitializer</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#colossus.protocols.http.streaming.package@StreamingHttpServer" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

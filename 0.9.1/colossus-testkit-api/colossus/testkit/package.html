@@ -1,0 +1,451 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>testkit - colossus.testkit</title>
+          <meta name="description" content="testkit - colossus.testkit" />
+          <meta name="keywords" content="testkit colossus.testkit" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.testkit.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>testkit</h1><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">testkit</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.testkit.CallbackMatchers" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CallbackMatchersextendsAnyRef"></a>
+      <a id="CallbackMatchers:CallbackMatchers"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackMatchers.html"><span class="name">CallbackMatchers</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@CallbackMatchersextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.CallbackMessage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CallbackMessage[T]extendsGenericCallbackwithProductwithSerializable"></a>
+      <a id="CallbackMessage[T]:CallbackMessage[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackMessage.html"><span class="name">CallbackMessage</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="cb">cb: <span class="extype" name="colossus.service.Callback">Callback</span>[<span class="extype" name="colossus.testkit.CallbackMessage.T">T</span>]</span>)</span><span class="result"> extends <a href="GenericCallback.html" class="extype" name="colossus.testkit.GenericCallback">GenericCallback</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@CallbackMessage[T]extendsGenericCallbackwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.ColossusSpec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ColossusSpecextendsTestKitwithImplicitSenderwithWordSpecLikewithMustMatcherswithBeforeAndAfterAll"></a>
+      <a id="ColossusSpec:ColossusSpec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ColossusSpec.html"><span class="name">ColossusSpec</span></a><span class="result"> extends <span class="extype" name="akka.testkit.TestKit">TestKit</span> with <span class="extype" name="akka.testkit.ImplicitSender">ImplicitSender</span> with <span class="extype" name="org.scalatest.WordSpecLike">WordSpecLike</span> with <span class="extype" name="org.scalatest.MustMatchers">MustMatchers</span> with <span class="extype" name="org.scalatest.BeforeAndAfterAll">BeforeAndAfterAll</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@ColossusSpecextendsTestKitwithImplicitSenderwithWordSpecLikewithMustMatcherswithBeforeAndAfterAll" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.FakeWorker" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FakeWorkerextendsProductwithSerializable"></a>
+      <a id="FakeWorker:FakeWorker"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="FakeWorker.html"><span class="name">FakeWorker</span></a><span class="params">(<span name="probe">probe: <span class="extype" name="akka.testkit.TestProbe">TestProbe</span></span>, <span name="worker">worker: <span class="extype" name="colossus.core.WorkerRef">WorkerRef</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@FakeWorkerextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.GenericCallback" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="GenericCallbackextendsAnyRef"></a>
+      <a id="GenericCallback:GenericCallback"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="GenericCallback.html"><span class="name">GenericCallback</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@GenericCallbackextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.GenericExecutor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GenericExecutorextendsActorwithCallbackExecution"></a>
+      <a id="GenericExecutor:GenericExecutor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="GenericExecutor.html"><span class="name">GenericExecutor</span></a><span class="result"> extends <span class="extype" name="akka.actor.Actor">Actor</span> with <span class="extype" name="colossus.service.CallbackExecution">CallbackExecution</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@GenericExecutorextendsActorwithCallbackExecution" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.HttpServiceSpec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpServiceSpecextendsServiceSpec[colossus.protocols.http.Http]"></a>
+      <a id="HttpServiceSpec:HttpServiceSpec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpServiceSpec.html"><span class="name">HttpServiceSpec</span></a><span class="result"> extends <a href="ServiceSpec.html" class="extype" name="colossus.testkit.ServiceSpec">ServiceSpec</a>[<span class="extype" name="colossus.protocols.http.Http">Http</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@HttpServiceSpecextendsServiceSpec[colossus.protocols.http.Http]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.MockChannelActions" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MockChannelActionsextendsChannelActions"></a>
+      <a id="MockChannelActions:MockChannelActions"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MockChannelActions.html"><span class="name">MockChannelActions</span></a><span class="result"> extends <span class="extype" name="colossus.core.ChannelActions">ChannelActions</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockChannelActionsextendsChannelActions" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
+</p>
+    </li><li name="colossus.testkit.MockConnection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MockConnectionextendsConnectionwithMockChannelActions"></a>
+      <a id="MockConnection:MockConnection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MockConnection.html"><span class="name">MockConnection</span></a><span class="result"> extends <span class="extype" name="colossus.core.Connection">Connection</span> with <a href="MockChannelActions.html" class="extype" name="colossus.testkit.MockChannelActions">MockChannelActions</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockConnectionextendsConnectionwithMockChannelActions" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.MockWriteBuffer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockWriteBufferextendsWriteBufferwithMockChannelActions"></a>
+      <a id="MockWriteBuffer:MockWriteBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MockWriteBuffer.html"><span class="name">MockWriteBuffer</span></a><span class="result"> extends <span class="extype" name="colossus.core.WriteBuffer">WriteBuffer</span> with <a href="MockChannelActions.html" class="extype" name="colossus.testkit.MockChannelActions">MockChannelActions</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockWriteBufferextendsWriteBufferwithMockChannelActions" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.PipeFoldTester" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PipeFoldTester[T]extendsAnyRef"></a>
+      <a id="PipeFoldTester[T]:PipeFoldTester[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeFoldTester.html"><span class="name">PipeFoldTester</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@PipeFoldTester[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This can be used to test folding on pipes.</p><div class="fullcomment"><div class="comment cmt"><p>This can be used to test folding on pipes. </p><pre><span class="kw">val</span> pipe = <span class="kw">new</span> InfinitePipe[<span class="std">Int</span>, <span class="std">Int</span>]
+<span class="kw">val</span> foldDB = pipe.fold(<span class="num">0</span>){(a, b) <span class="kw">=&gt;</span> a + b}
+<span class="kw">val</span> tester = <span class="kw">new</span> FoldTester(foldCB)
+pipe.push(<span class="num">3</span>)
+pipe.push(<span class="num">4</span>)
+pipe.complete()
+tester.expect(<span class="num">7</span>)</pre></div></div>
+    </li><li name="colossus.testkit.ServiceSpec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ServiceSpec[P&lt;:colossus.service.Protocol]extendsColossusSpec"></a>
+      <a id="ServiceSpec[P&lt;:Protocol]:ServiceSpec[P]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServiceSpec.html"><span class="name">ServiceSpec</span></a><span class="tparams">[<span name="P">P &lt;: <span class="extype" name="colossus.service.Protocol">Protocol</span></span>]</span><span class="result"> extends <a href="ColossusSpec.html" class="extype" name="colossus.testkit.ColossusSpec">ColossusSpec</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@ServiceSpec[P&lt;:colossus.service.Protocol]extendsColossusSpec" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.TypedMockConnection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="TypedMockConnection[T&lt;:colossus.core.ConnectionHandler]extendsConnectionwithMockConnection"></a>
+      <a id="TypedMockConnection[T&lt;:ConnectionHandler]:TypedMockConnection[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="TypedMockConnection.html"><span class="name">TypedMockConnection</span></a><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="colossus.core.ConnectionHandler">ConnectionHandler</span></span>]</span><span class="result"> extends <span class="extype" name="colossus.core.Connection">Connection</span> with <a href="MockConnection.html" class="extype" name="colossus.testkit.MockConnection">MockConnection</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@TypedMockConnection[T&lt;:colossus.core.ConnectionHandler]extendsConnectionwithMockConnection" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.testkit.CallbackAwait" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CallbackAwait"></a>
+      <a id="CallbackAwait:CallbackAwait"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackAwait$.html"><span class="name">CallbackAwait</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@CallbackAwait" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.CallbackMatchers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CallbackMatchers"></a>
+      <a id="CallbackMatchers:CallbackMatchers"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CallbackMatchers$.html"><span class="name">CallbackMatchers</span></a><span class="result"> extends <a href="CallbackMatchers.html" class="extype" name="colossus.testkit.CallbackMatchers">CallbackMatchers</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@CallbackMatchers" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.FakeIOSystem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FakeIOSystem"></a>
+      <a id="FakeIOSystem:FakeIOSystem"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="FakeIOSystem$.html"><span class="name">FakeIOSystem</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@FakeIOSystem" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.MockClientFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockClientFactory"></a>
+      <a id="MockClientFactory:MockClientFactory"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MockClientFactory$.html"><span class="name">MockClientFactory</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockClientFactory" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.MockConnection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockConnection"></a>
+      <a id="MockConnection:MockConnection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MockConnection$.html"><span class="name">MockConnection</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockConnection" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.MockSender" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockSender"></a>
+      <a id="MockSender:MockSender"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MockSender$.html"><span class="name">MockSender</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@MockSender" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.testkit.PipeFoldTester" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PipeFoldTester"></a>
+      <a id="PipeFoldTester:PipeFoldTester"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PipeFoldTester$.html"><span class="name">PipeFoldTester</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.testkit.package@PipeFoldTester" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
