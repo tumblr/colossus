@@ -61,7 +61,7 @@ namespace :site do
 
       system "git checkout tags/v#{tag}"
 
-      system "sbt \";clean; project colossus-docs; paradox; doc\""
+      system "sbt \";clean; doc; project colossus-docs; paradox\""
 
       version_dir = "#{tmp_dir}/#{tag}"
       colossus_api_dir = "#{version_dir}/colossus-api"
