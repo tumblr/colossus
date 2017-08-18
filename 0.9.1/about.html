@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>About · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.0">0.9.0</option><option value="0.9.1">0.9.1</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="active page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.0">0.9.0</option><option value="0.9.1">0.9.1</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="active page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>About</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#about" name="about" class="anchor"><span class="anchor-link"></span></a>About</h1>
+<h3><a href="#in-a-nutshell-what-does-colossus-do-" name="in-a-nutshell-what-does-colossus-do-" class="anchor"><span class="anchor-link"></span></a>In a nutshell, what does Colossus do?</h3>
+<p>Colossus provides a lightweight framework for doing high-performance network I/O on the JVM. It handles things like setting up servers, managing connections, and handling many of the low-level tasks required by applications.</p>
+<h3><a href="#should-i-use-colossus-" name="should-i-use-colossus-" class="anchor"><span class="anchor-link"></span></a>Should I use Colossus?</h3>
+<p>Colossus has been built primarily around the use case of creating stateless, low-latency backend services. While you can certainly build any kind of system you want using it, if you&rsquo;re looking to build a web application or something that is more likely to be CPU bound than IO bound, then Colossus will probably not give you any major advantage over frameworks like Play! or Spray.</p>
+<p>Colossus is ideal for I/O heavy applications that do a lot of &ldquo;bit pushing&rdquo;. Proxies, load balancers, databases, and data streams are all examples of applications Colossus is well-suited for.</p>
+<h3><a href="#how-is-colossus-different-from-netty-" name="how-is-colossus-different-from-netty-" class="anchor"><span class="anchor-link"></span></a>How is Colossus different from Netty?</h3>
+<p>At a high level Colossus is similar to Netty. Both frameworks use a pool of worker threads, each with their own NIO event loop. Colossus is different in that it is tightly coupled to Akka, allowing near-seamless communication between event-loops and actors.</p>
+<p>Every component you can attach to an event-loop is also capable of hooking into the worker actor&rsquo;s <code>receive</code> method, which opens the doors to mixed sync/async code.</p>
+<h3><a href="#how-is-colossus-different-from-akka-i-o-" name="how-is-colossus-different-from-akka-i-o-" class="anchor"><span class="anchor-link"></span></a>How is Colossus different from Akka I/O?</h3>
+<p>The biggest difference is your code sits <em>much</em> closer to the event loop than with Akka I/O, which requires all your connection handling code to reside in actors. Being able to keep user-level code in-thread can result in significantly less overhead for low-level operations. With Akka I/O, simply getting data from the wire to your code means sending it through several actors. With colossus, your code is literally only a couple function calls away from NIO, which at very high loads makes a major difference in performance.</p>
+<p>Akka is generally very fast; the fact that Colossus is entirely built on Akka speaks for that. But in many cases the actor model is not the most ideal when it comes to performance, and the small overhead of sending actor messages can add up very quickly when millions of messages are in transit. Therefore Colossus is built on the premise than inter-actor communication is a non-trivial operation and should be avoided unless it&rsquo;s actually necessary for concurrency.</p>
+<h3><a href="#current-state-of-things" name="current-state-of-things" class="anchor"><span class="anchor-link"></span></a>Current State of Things</h3>
+<p>Colossus is currently in it&rsquo;s &ldquo;pre-1.0&rdquo; phase, meaning things are working, but the framework in under very heavy development. We&rsquo;re working very hard to make Colossus as clean and usable as possible without making significant performance sacrifices.</p>
+<h3><a href="#release-workflow" name="release-workflow" class="anchor"><span class="anchor-link"></span></a>Release Workflow</h3>
+<p>Currently we&rsquo;re following an accelerated release workflow. Currently there is no backwards compatibility between versions, but we have somewhat formalized the release schedule to help everyone manage upgrading. Releases are versioned with the scheme :</p>
+<pre><code>[MAJOR].[MINOR].[BUILD]
+</code></pre>
+<p>Right now the major version is fixed, minor versions introduce breaking changes, and build versions aim to be backwards compatible (but may have small breaking changes if there&rsquo;s a pressing need). Eventually we&rsquo;ll move to a more solid semantic versioning scheme where only major releases introduce breaking changes</p>
+<h3><a href="#license" name="license" class="anchor"><span class="anchor-link"></span></a>License</h3>
+<p>Colossus is released under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License version 2.0</a>.</p>
+<p>This documentation is released under the <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported</a> License. </p>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="about.html#about" class="header">About</a>
+  <ul>
+    <li><a href="about.html#in-a-nutshell-what-does-colossus-do-" class="header">In a nutshell, what does Colossus do?</a></li>
+    <li><a href="about.html#should-i-use-colossus-" class="header">Should I use Colossus?</a></li>
+    <li><a href="about.html#how-is-colossus-different-from-netty-" class="header">How is Colossus different from Netty?</a></li>
+    <li><a href="about.html#how-is-colossus-different-from-akka-i-o-" class="header">How is Colossus different from Akka I/O?</a></li>
+    <li><a href="about.html#current-state-of-things" class="header">Current State of Things</a></li>
+    <li><a href="about.html#release-workflow" class="header">Release Workflow</a></li>
+    <li><a href="about.html#license" class="header">License</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

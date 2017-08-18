@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Clients · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.0">0.9.0</option><option value="0.9.1">0.9.1</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="active page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.9.0">0.9.0</option><option value="0.9.1">0.9.1</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="active page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Clients</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#clients" name="clients" class="anchor"><span class="anchor-link"></span></a>Clients</h1>
+<p>Clients are used to open connections to external systems. Colossus currently has built-in support for Http, Memcached, and Redis. Similar to servers, you can add support for any protocol by implementing the necessary traits and typeclasses.</p>
+<h2><a href="#client-behavior-in-a-nutshell" name="client-behavior-in-a-nutshell" class="anchor"><span class="anchor-link"></span></a>Client Behavior in a Nutshell</h2>
+<p>Clients are intended to be used for long-lived, pipelined connections. While it is certainly possible to configure clients to only send one request at a time or to open a new connection per request, since Colossus is primarily intended to build long-running services, so too are clients designed for persistent connections to a single host.</p>
+<p>Clients are pipelined and will send multiple requests at once (up to the configured <code>inFlightConcurrency</code> limit, buffering once the limit is hit).</p>
+<h3><a href="#connection-management" name="connection-management" class="anchor"><span class="anchor-link"></span></a>Connection Management</h3>
+<p>A Client attempts to open a connection as soon as it is created. Depending on how a client is configured, it will immediately accept requests to be sent and buffer them until the connection is established, so for the most part a Client&rsquo;s connection management happens in the background.</p>
+<p>Similar to server connections, calling <code>disconnect</code> on a client will cause it to immediately reject any new requests, but allow currently in-flight requests to complete (assuming they don&rsquo;t timeout). Once a client has been manually disconnected, it cannot be reused.</p>
+<p>If a client unexpectedly loses its connection, it will automatically attempt to reconnect. If/how a client reconnects can be controlled by its <code>connectRetry</code> configuration. During the reconnection, the client will still accept and buffer new requests (though this can be disabled by setting <code>failFast</code> to true).</p>
+<h2><a href="#local-vs-future-clients" name="local-vs-future-clients" class="anchor"><span class="anchor-link"></span></a>Local vs Future Clients</h2>
+<p>When creating a client, it is up to you to choose how the client handles concurrency. In other words, you can choose whether a client uses Colossus Callbacks or standard Scala Futures, although the decision will usually depend on where you are trying to use the client.</p>
+<p>Local clients can only be used in code that runs inside a Worker, in particular inside a Server or Task. Local clients are single-threaded and not thread-safe, but are very fast.</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+implicit val ioSystem = IOSystem()
+
+HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val callbackClient = Http.client(&quot;example.org&quot;, 80)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+        case request@Get on Root =&gt;
+          val request = HttpRequest.get(&quot;/&quot;)
+          callbackClient.send(request)
+      }
+    }
+  }
+}</code></pre>
+<p>On the other hand, Future clients can be created and used anywhere, and are thread-safe. In reality, a future client is just an interface that sends requests as actor messages to a local client running inside a worker. But this means that future clients are inherently slower and more resource intensive, since every request must be sent as an actor message and jump threads at least twice.</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+implicit val executionContext = actorSystem.dispatcher
+implicit val ioSystem = IOSystem()
+
+val futureClient = Http.futureClient(&quot;example.org&quot;, 80)
+
+val request = HttpRequest.get(&quot;/&quot;)
+
+val futureResponse = futureClient.send(request)</code></pre>
+<p>Therefore these two rules may help when choosing what to use:</p>
+<ul>
+  <li>When opening a client within a service, use local clients. Usually you&rsquo;ll want to open one client per worker.</li>
+  <li>When opening a client from outside a service, such as from inside an actor or some other general use case, use a future client.</li>
+</ul>
+<h2><a href="#failure-management" name="failure-management" class="anchor"><span class="anchor-link"></span></a>Failure Management</h2>
+<h3><a href="#client-behavior" name="client-behavior" class="anchor"><span class="anchor-link"></span></a>Client Behavior</h3>
+<p>Failures can be broken down into two categories: Connection Failures and Request Failures. Regardless of which type, if a failure occurs the response is sent back as a failure and NOT retried. If failfast is enabled, then all queued requests in the ServiceClient are immediately failed and removed. </p>
+<p>If a Request Failure occurs (example: service isn&rsquo;t responding) the response is sent back as a failure and no subsequent action is taken.</p>
+<p>If a Connection Failure occurs (example: connection is closed, host unavailable) the response is sent back as a failure and the retry policy (more below) takes effect.</p>
+<h3><a href="#retrying-requests" name="retrying-requests" class="anchor"><span class="anchor-link"></span></a>Retrying Requests</h3>
+<p>To enable retries, the LoadBalancingClient (LBC) should be used. The LBC takes in a generator that builds a ServiceClient from an InetSocketAddress and a list of InetSocketAddresses. The LBC defaults to using an unused host for a request or the max retry number, whichever is lower. An example: if the retry count is set to four but there are only two hosts, it&rsquo;ll only attempt a request twice.</p>
+<p>Any failure occurring before the client receives the response (example: connection closed, host not responding) is treated as an attempt and is retried on the next connection. If the maximum number of tries are exhausted, a SendFailedException is returned with the last exception.</p>
+<h3><a href="#example" name="example" class="anchor"><span class="anchor-link"></span></a>Example</h3>
+<p>Below is an example of retrying three times to the same host</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val generator = (address: InetSocketAddress) =&gt; {
+      Redis.client(address.getHostName, address.getPort)
+    }
+
+    val addresses = List.fill(3)(new InetSocketAddress(&quot;localhost&quot;, 6379))
+    val loadBalancingRedisClients = new LoadBalancingClient[Redis](worker, generator, 3, addresses)
+    val redisClient = Redis.client(loadBalancingRedisClients)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+        case request@Get on Root =&gt;
+          redisClient.append(ByteString(&quot;key&quot;), ByteString(&quot;VALUE&quot;)).map {
+            result =&gt; request.ok(s&quot;Length of key is $result&quot;)
+          }
+      }
+    }
+  }
+}</code></pre>
+<h3><a href="#http-example" name="http-example" class="anchor"><span class="anchor-link"></span></a>HTTP Example</h3>
+<p>Below is a simple Http Request example. When using an Http Call, a implicit workerRef is required when using the Callback interface. An implicit ClientCodecProvider is required.</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val httpClient = Http.client(&quot;google.com&quot;, 80)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+        case request@Get on Root =&gt;
+          val asyncResult = httpClient.send(HttpRequest.get(&quot;/#q=mysearch&quot;))
+          asyncResult.flatMap { response =&gt;
+            val body = response.body.bytes.utf8String
+            Callback.successful(request.ok(body))
+          }
+      }
+    }
+  }
+}</code></pre>
+<h3><a href="#memcached-example" name="memcached-example" class="anchor"><span class="anchor-link"></span></a>Memcached Example</h3>
+<p>Below is a simple memcached get example. It can be tested locally by starting up a memcached server and setting a value for the key of 1. The equivalent command would be &ldquo;get 1&rdquo; from a telnet session on 11211.<br/>When using the memcached client an implicit workerRef is required when using the Callback interface. An implicit ClientCodeProvider is required.</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val memcacheClient = Memcache.client(&quot;localhost&quot;, 11211)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+        case request@Get on Root =&gt;
+          val asyncResult = memcacheClient.get(ByteString(&quot;1&quot;))
+          asyncResult.flatMap {
+            case Some(reply) =&gt; Callback.successful(request.ok(reply.data.utf8String))
+            case None =&gt; Callback.successful(request.notFound(&quot;&quot;))
+          }
+      }
+    }
+  }
+}</code></pre>
+<h3><a href="#redis-example" name="redis-example" class="anchor"><span class="anchor-link"></span></a>Redis Example</h3>
+<p>Below is a simple redis get example. It can be tested locally by starting up a redis server and setting a value for the key of 1. When using the Redis client an implicit workerRef is required when using the Callback interface. An implicit ClientCodeProvider is required.</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val redisClient = Redis.client(&quot;localhost&quot;, 6379)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+
+        case request@Get on Root / &quot;get&quot; / key =&gt; {
+          val asyncResult = redisClient.get(ByteString(&quot;1&quot;))
+          asyncResult.flatMap {
+            case bytes =&gt; Callback.successful(request.ok(bytes.utf8String))
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+<h3><a href="#retry-policy" name="retry-policy" class="anchor"><span class="anchor-link"></span></a>Retry Policy</h3>
+<p>In the event of a Connection Failure, the service client uses a <a href="https://tumblr.github.io/colossus/api/index.html#colossus.core.RetryPolicy">RetryPolicy</a> for re-establishing connections. Each service client takes in a RetryPolicy on creation. The client defaults to an exponential backoff starting at 50 milliseconds and with a maximum of 5 seconds. The policy type can be either <a href="https://tumblr.github.io/colossus/api/index.html#colossus.core.NoRetry">NoRetry</a> or <a href="https://tumblr.github.io/colossus/api/index.html#colossus.core.BackoffPolicy">BackoffPolicy</a>.</p>
+<p>A Backoff retry policy contains a multiplier which can be:</p>
+<ul>
+  <li>Constant</li>
+  <li>Linear</li>
+  <li>Exponential</li>
+</ul>
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="workers.html">Workers</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="clients.html#clients" class="header">Clients</a>
+  <ul>
+    <li><a href="clients.html#client-behavior-in-a-nutshell" class="header">Client Behavior in a Nutshell</a></li>
+    <li><a href="clients.html#local-vs-future-clients" class="header">Local vs Future Clients</a></li>
+    <li><a href="clients.html#failure-management" class="header">Failure Management</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

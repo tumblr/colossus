@@ -1,0 +1,398 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>controller - colossus.controller</title>
+          <meta name="description" content="controller - colossus.controller" />
+          <meta name="keywords" content="controller colossus.controller" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'colossus.controller.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="colossus">colossus</a></p>
+        <h1>controller</h1><span class="permalink">
+      <a href="../../index.html#colossus.controller.package" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">controller</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="colossus.controller.BaseController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BaseController[E&lt;:colossus.controller.Encoding]extendsUpstreamEventHandler[colossus.core.CoreUpstream]withDownstreamEventHandler[colossus.controller.ControllerDownstream[E]]"></a>
+      <a id="BaseController[E&lt;:Encoding]:BaseController[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BaseController.html"><span class="name">BaseController</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="../core/UpstreamEventHandler.html" class="extype" name="colossus.core.UpstreamEventHandler">UpstreamEventHandler</a>[<a href="../core/CoreUpstream.html" class="extype" name="colossus.core.CoreUpstream">CoreUpstream</a>] with <a href="../core/DownstreamEventHandler.html" class="extype" name="colossus.core.DownstreamEventHandler">DownstreamEventHandler</a>[<a href="ControllerDownstream.html" class="extype" name="colossus.controller.ControllerDownstream">ControllerDownstream</a>[<span class="extype" name="colossus.controller.BaseController.E">E</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@BaseController[E&lt;:colossus.controller.Encoding]extendsUpstreamEventHandler[colossus.core.CoreUpstream]withDownstreamEventHandler[colossus.controller.ControllerDownstream[E]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">methods that both input and output need but shouldn't be exposed in the above traits
+</p>
+    </li><li name="colossus.controller.Codec" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Codec[E&lt;:colossus.controller.Encoding]extendsAnyRef"></a>
+      <a id="Codec[E&lt;:Encoding]:Codec[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Codec.html"><span class="name">Codec</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@Codec[E&lt;:colossus.controller.Encoding]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.CodecBufferIterator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CodecBufferIterator[E&lt;:colossus.controller.Encoding]extendsIterator[E#Input]"></a>
+      <a id="CodecBufferIterator[E&lt;:Encoding]:CodecBufferIterator[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="CodecBufferIterator.html"><span class="name">CodecBufferIterator</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <span class="extype" name="scala.Iterator">Iterator</span>[<span class="extype" name="colossus.controller.Encoding.Input">controller.CodecBufferIterator.E.Input</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@CodecBufferIterator[E&lt;:colossus.controller.Encoding]extendsIterator[E#Input]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.Controller" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Controller[E&lt;:colossus.controller.Encoding]extendsControllerUpstream[E]withStaticInputController[E]withStaticOutputController[E]withCoreDownstream"></a>
+      <a id="Controller[E&lt;:Encoding]:Controller[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Controller.html"><span class="name">Controller</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="ControllerUpstream.html" class="extype" name="colossus.controller.ControllerUpstream">ControllerUpstream</a>[<span class="extype" name="colossus.controller.Controller.E">E</span>] with <a href="StaticInputController.html" class="extype" name="colossus.controller.StaticInputController">StaticInputController</a>[<span class="extype" name="colossus.controller.Controller.E">E</span>] with <a href="StaticOutputController.html" class="extype" name="colossus.controller.StaticOutputController">StaticOutputController</a>[<span class="extype" name="colossus.controller.Controller.E">E</span>] with <a href="../core/CoreDownstream.html" class="extype" name="colossus.core.CoreDownstream">CoreDownstream</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@Controller[E&lt;:colossus.controller.Encoding]extendsControllerUpstream[E]withStaticInputController[E]withStaticOutputController[E]withCoreDownstream" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.ControllerConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ControllerConfigextendsProductwithSerializable"></a>
+      <a id="ControllerConfig:ControllerConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ControllerConfig.html"><span class="name">ControllerConfig</span></a><span class="params">(<span name="outputBufferSize">outputBufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="inputMaxSize">inputMaxSize: <a href="../parsing/DataSize.html" class="extype" name="colossus.parsing.DataSize">DataSize</a> = <span class="symbol"><span class="name"><a href="../package.html">1.MB</a></span></span></span>, <span name="metricsEnabled">metricsEnabled: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@ControllerConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configuration for the controller
+</p><div class="fullcomment"><div class="comment cmt"><p>Configuration for the controller
+</p></div><dl class="paramcmts block"><dt class="param">outputBufferSize</dt><dd class="cmt"><p>the maximum number of outbound messages that can be queued for sending at once</p></dd><dt class="param">inputMaxSize</dt><dd class="cmt"><p>maximum allowed input size (in bytes)</p></dd></dl></div>
+    </li><li name="colossus.controller.ControllerDownstream" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ControllerDownstream[E&lt;:colossus.controller.Encoding]extendsHasUpstream[colossus.controller.ControllerUpstream[E]]withDownstreamEvents"></a>
+      <a id="ControllerDownstream[E&lt;:Encoding]:ControllerDownstream[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ControllerDownstream.html"><span class="name">ControllerDownstream</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="../core/HasUpstream.html" class="extype" name="colossus.core.HasUpstream">HasUpstream</a>[<a href="ControllerUpstream.html" class="extype" name="colossus.controller.ControllerUpstream">ControllerUpstream</a>[<span class="extype" name="colossus.controller.ControllerDownstream.E">E</span>]] with <a href="../core/DownstreamEvents.html" class="extype" name="colossus.core.DownstreamEvents">DownstreamEvents</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@ControllerDownstream[E&lt;:colossus.controller.Encoding]extendsHasUpstream[colossus.controller.ControllerUpstream[E]]withDownstreamEvents" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.ControllerUpstream" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ControllerUpstream[-E&lt;:colossus.controller.Encoding]extendsUpstreamEvents"></a>
+      <a id="ControllerUpstream[-E&lt;:Encoding]:ControllerUpstream[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ControllerUpstream.html"><span class="name">ControllerUpstream</span></a><span class="tparams">[<span name="E">-E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="../core/UpstreamEvents.html" class="extype" name="colossus.core.UpstreamEvents">UpstreamEvents</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@ControllerUpstream[-E&lt;:colossus.controller.Encoding]extendsUpstreamEvents" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.Encoding" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="EncodingextendsAnyRef"></a>
+      <a id="Encoding:Encoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Encoding.html"><span class="name">Encoding</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@EncodingextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.FatalErrorAction" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="FatalErrorAction[+T]extendsAnyRef"></a>
+      <a id="FatalErrorAction[+T]:FatalErrorAction[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FatalErrorAction.html"><span class="name">FatalErrorAction</span></a><span class="tparams">[<span name="T">+T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@FatalErrorAction[+T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Response type of controller fatal error handler.</p><div class="fullcomment"><div class="comment cmt"><p>Response type of controller fatal error handler.  This essentially instructs
+the controller how to handle an unexpected error.
+</p></div></div>
+    </li><li name="colossus.controller.StaticInputController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StaticInputController[E&lt;:colossus.controller.Encoding]extendsBaseController[E]"></a>
+      <a id="StaticInputController[E&lt;:Encoding]:StaticInputController[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticInputController.html"><span class="name">StaticInputController</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="BaseController.html" class="extype" name="colossus.controller.BaseController">BaseController</a>[<span class="extype" name="colossus.controller.StaticInputController.E">E</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@StaticInputController[E&lt;:colossus.controller.Encoding]extendsBaseController[E]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.StaticOutState" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StaticOutStateextendsAnyRef"></a>
+      <a id="StaticOutState:StaticOutState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticOutState.html"><span class="name">StaticOutState</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@StaticOutStateextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.StaticOutputController" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StaticOutputController[E&lt;:colossus.controller.Encoding]extendsBaseController[E]"></a>
+      <a id="StaticOutputController[E&lt;:Encoding]:StaticOutputController[E]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticOutputController.html"><span class="name">StaticOutputController</span></a><span class="tparams">[<span name="E">E &lt;: <a href="Encoding.html" class="extype" name="colossus.controller.Encoding">Encoding</a></span>]</span><span class="result"> extends <a href="BaseController.html" class="extype" name="colossus.controller.BaseController">BaseController</a>[<span class="extype" name="colossus.controller.StaticOutputController.E">E</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@StaticOutputController[E&lt;:colossus.controller.Encoding]extendsBaseController[E]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="colossus.controller.Codec" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Codec"></a>
+      <a id="Codec:Codec"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Codec$.html"><span class="name">Codec</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@Codec" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.Controller" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Controller"></a>
+      <a id="Controller:Controller"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Controller$.html"><span class="name">Controller</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@Controller" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.Encoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Encoding"></a>
+      <a id="Encoding:Encoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Encoding$.html"><span class="name">Encoding</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@Encoding" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.FatalErrorAction" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FatalErrorAction"></a>
+      <a id="FatalErrorAction:FatalErrorAction"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="FatalErrorAction$.html"><span class="name">FatalErrorAction</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@FatalErrorAction" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.controller.StaticOutState" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StaticOutState"></a>
+      <a id="StaticOutState:StaticOutState"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="StaticOutState$.html"><span class="name">StaticOutState</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#colossus.controller.package@StaticOutState" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>

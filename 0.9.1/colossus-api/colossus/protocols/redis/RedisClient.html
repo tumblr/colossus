@@ -1,0 +1,2606 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>RedisClient - colossus.protocols.redis.RedisClient</title>
+          <meta name="description" content="RedisClient - colossus.protocols.redis.RedisClient" />
+          <meta name="keywords" content="RedisClient colossus.protocols.redis.RedisClient" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'colossus.protocols.redis.RedisClient';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <a href="RedisClient$.html" title="See companion object"><img alt="Trait/Object" src="../../../lib/trait_to_object_big.png" /></a>
+        <p id="owner"><a href="../../package.html" class="extype" name="colossus">colossus</a>.<a href="../package.html" class="extype" name="colossus.protocols">protocols</a>.<a href="package.html" class="extype" name="colossus.protocols.redis">redis</a></p>
+        <h1><a href="RedisClient$.html" title="See companion object">RedisClient</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="RedisClient$.html" title="See companion object">object RedisClient</a>
+            | <a href="package.html" class="extype" name="colossus.protocols.redis">package redis</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RedisClient</span><span class="tparams">[<span name="M">M<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This trait houses the Redis API.  It contains implementations for most(not all) commands.
+In particular, this trait makes a best attempt at providing all implementations for:
+- Key commands
+- String commands
+- Hash commands
+- List commands
+- Set commands
+- Zset commands</p><p>Commands not implemented yet are</p><ul><li>scan commands</li><li>'admin' commands, ie commands which aren't directly related to a data type.</li></ul><p> Just because these commands are not implemented, doesn't mean they cannot be used.  The implementors of this trait
+ provide a generic 'execute' command, which allows for the execution of arbitrary <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">colossus.protocols.redis.Command</a>objects.
+ The calling code is responsible for handling the raw <a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">colossus.protocols.redis.Reply</a>.</p><p>In some cases if a command can return an optional response(ie: a bulk reply or nil reply, like 'get'), 2 variants are provided.  One which
+will return the data directly, and fail if its not there, and another which returns an Option.  This is done to provide the user with some flexibility
+in how they query data.  The point being, if you want to query and fail on non existence, you don't have to deal w/ an intermediate Option.</p><p>No camelcase?  Yea..camelcasing redis commands looked and felt weird. MGet? mGet? mget? mSetNx? msetNX? etc.  So, since all redis commands are uppercased(at least in the docs),
+I went with all lower case for the API.  I just wanted something consistent looking.  The only camelcasing is for the functions which return options ie: getOption.</p><p> This trait tries its best to be redis version agonstic.  It doesn't know anything about the version of redis you are communicating
+ with, so, for example, if an 'hstrlen' command is issued to a redis server that's &lt; 3.2, you will get an Exception.</p><p> Some commands(mainly zset commands) have additional arguments which alter its behavior. Instead of trying to capture all the argument combinations
+ the function provides a varargs ByteString so that the user can provide whatever trailing flags or options they want.  Each command which has this
+ behavior is noted in its docs.</p></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>], <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="colossus.protocols.redis.RedisClient"><span>RedisClient</span></li><li class="in" name="colossus.service.LiftedClient"><span>LiftedClient</span></li><li class="in" name="colossus.service.Sender"><span>Sender</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="colossus.service.LiftedClient#async" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="async:colossus.service.Async[M]"></a>
+      <a id="async:Async[M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit abstract </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">async</span><span class="result">: <a href="../../service/Async.html" class="extype" name="colossus.service.Async">Async</a>[<span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@async:colossus.service.Async[M]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
+    </li><li name="colossus.service.LiftedClient#client" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="client:colossus.service.Sender[P,M]"></a>
+      <a id="client:Sender[Redis,M]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">client</span><span class="result">: <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@client:colossus.service.Sender[P,M]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
+    </li><li name="colossus.service.LiftedClient#clientConfig" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="clientConfig:Option[colossus.service.ClientConfig]"></a>
+      <a id="clientConfig:Option[ClientConfig]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clientConfig</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../service/ClientConfig.html" class="extype" name="colossus.service.ClientConfig">ClientConfig</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@clientConfig:Option[colossus.service.ClientConfig]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@##():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#append" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="append(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="append(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">append</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@append(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#bulkReplyAsDoubleCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bulkReplyAsDoubleCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Double]"></a>
+      <a id="bulkReplyAsDoubleCommand(Command,ByteString):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bulkReplyAsDoubleCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@bulkReplyAsDoubleCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#bulkReplyAsDoubleOptionCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bulkReplyAsDoubleOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[Double]]"></a>
+      <a id="bulkReplyAsDoubleOptionCommand(Command,ByteString):M[Option[Double]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bulkReplyAsDoubleOptionCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Double">Double</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@bulkReplyAsDoubleOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[Double]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#bulkReplyCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bulkReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="bulkReplyCommand(Command,ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bulkReplyCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@bulkReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#bulkReplyOptionCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bulkReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="bulkReplyOptionCommand(Command,ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bulkReplyOptionCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@bulkReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@clone():Object" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#decr" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="decr(key:akka.util.ByteString):M[Long]"></a>
+      <a id="decr(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decr</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@decr(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#decrBy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="decrBy(key:akka.util.ByteString,amount:Long):M[Long]"></a>
+      <a id="decrBy(ByteString,Long):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decrBy</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@decrBy(key:akka.util.ByteString,amount:Long):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#del" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="del(keys:akka.util.ByteString*):M[Long]"></a>
+      <a id="del(ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">del</span><span class="params">(<span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@del(keys:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.LiftedClient#disconnect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="disconnect():Unit"></a>
+      <a id="disconnect():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">disconnect</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@disconnect():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a> → <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.service.LiftedClient#executeAndMap" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="executeAndMap[T](i:P#Request)(f:P#Response=&gt;M[T]):M[T]"></a>
+      <a id="executeAndMap[T](Request)((Response)⇒M[T]):M[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">executeAndMap</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="i">i: <a href="package$$Redis.html#Request=colossus.protocols.redis.Command" class="extmbr" name="colossus.protocols.redis.Redis.Request">Request</a></span>)</span><span class="params">(<span name="f">f: (<a href="package$$Redis.html#Response=colossus.protocols.redis.Reply" class="extmbr" name="colossus.protocols.redis.Redis.Response">Response</a>) ⇒ <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="colossus.service.LiftedClient.executeAndMap.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="colossus.service.LiftedClient.executeAndMap.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@executeAndMap[T](i:P#Request)(f:P#Response=&gt;M[T]):M[T]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a></dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#executeCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="executeCommand[T](c:colossus.protocols.redis.Command,key:akka.util.ByteString)(goodCase:PartialFunction[colossus.protocols.redis.Reply,M[T]]):M[T]"></a>
+      <a id="executeCommand[T](Command,ByteString)(PartialFunction[Reply,M[T]]):M[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">executeCommand</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="params">(<span name="goodCase">goodCase: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<a href="Reply.html" class="extype" name="colossus.protocols.redis.Reply">Reply</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="colossus.protocols.redis.RedisClient.executeCommand.T">T</span>]]</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="colossus.protocols.redis.RedisClient.executeCommand.T">T</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@executeCommand[T](c:colossus.protocols.redis.Command,key:akka.util.ByteString)(goodCase:PartialFunction[colossus.protocols.redis.Reply,M[T]]):M[T]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#exists" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="exists(key:akka.util.ByteString):M[Boolean]"></a>
+      <a id="exists(ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">exists</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@exists(key:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#expire" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="expire(key:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]"></a>
+      <a id="expire(ByteString,FiniteDuration):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expire</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@expire(key:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#expireat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="expireat(key:akka.util.ByteString,unixTimeInSeconds:Long):M[Boolean]"></a>
+      <a id="expireat(ByteString,Long):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expireat</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="unixTimeInSeconds">unixTimeInSeconds: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@expireat(key:akka.util.ByteString,unixTimeInSeconds:Long):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#get" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="get(key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="get(ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@get(key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#getOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="getOption(ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@getOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#getrange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getrange(key:akka.util.ByteString,from:Long,to:Long):M[akka.util.ByteString]"></a>
+      <a id="getrange(ByteString,Long,Long):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getrange</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="from">from: <span class="extype" name="scala.Long">Long</span></span>, <span name="to">to: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@getrange(key:akka.util.ByteString,from:Long,to:Long):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#getset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getset(key:akka.util.ByteString,value:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="getset(ByteString,ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getset</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@getset(key:akka.util.ByteString,value:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#getsetOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getsetOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="getsetOption(ByteString,ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getsetOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@getsetOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#hdel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hdel(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Long]"></a>
+      <a id="hdel(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hdel</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="fields">fields: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hdel(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hexists" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hexists(key:akka.util.ByteString,field:akka.util.ByteString):M[Boolean]"></a>
+      <a id="hexists(ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hexists</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hexists(key:akka.util.ByteString,field:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hget" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hget(key:akka.util.ByteString,field:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="hget(ByteString,ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hget</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hget(key:akka.util.ByteString,field:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hgetOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hgetOption(key:akka.util.ByteString,field:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="hgetOption(ByteString,ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hgetOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hgetOption(key:akka.util.ByteString,field:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hgetall" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hgetall(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]"></a>
+      <a id="hgetall(ByteString):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hgetall</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hgetall(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hincrby" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hincrby(key:akka.util.ByteString,field:akka.util.ByteString,amount:Long):M[Long]"></a>
+      <a id="hincrby(ByteString,ByteString,Long):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hincrby</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hincrby(key:akka.util.ByteString,field:akka.util.ByteString,amount:Long):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hincrbyfloat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hincrbyfloat(key:akka.util.ByteString,field:akka.util.ByteString,amount:Double):M[Double]"></a>
+      <a id="hincrbyfloat(ByteString,ByteString,Double):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hincrbyfloat</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Double">Double</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hincrbyfloat(key:akka.util.ByteString,field:akka.util.ByteString,amount:Double):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hkeys" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hkeys(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]"></a>
+      <a id="hkeys(ByteString):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hkeys</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hkeys(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hlen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hlen(key:akka.util.ByteString):M[Long]"></a>
+      <a id="hlen(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hlen</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hlen(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hmget" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hmget(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Seq[Option[akka.util.ByteString]]]"></a>
+      <a id="hmget(ByteString,ByteString*):M[Seq[Option[ByteString]]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hmget</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="fields">fields: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hmget(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Seq[Option[akka.util.ByteString]]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hmset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hmset(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Boolean]"></a>
+      <a id="hmset(ByteString,ByteString*):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hmset</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="fields">fields: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hmset(key:akka.util.ByteString,fields:akka.util.ByteString*):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hset(key:akka.util.ByteString,field:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="hset(ByteString,ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hset</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hset(key:akka.util.ByteString,field:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hsetnx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hsetnx(key:akka.util.ByteString,field:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="hsetnx(ByteString,ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hsetnx</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hsetnx(key:akka.util.ByteString,field:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hstrlen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hstrlen(key:akka.util.ByteString,field:akka.util.ByteString):M[Long]"></a>
+      <a id="hstrlen(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hstrlen</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="field">field: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hstrlen(key:akka.util.ByteString,field:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#hvals" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="hvals(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]"></a>
+      <a id="hvals(ByteString):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hvals</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@hvals(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#incr" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="incr(key:akka.util.ByteString):M[Long]"></a>
+      <a id="incr(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">incr</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@incr(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#incrby" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="incrby(key:akka.util.ByteString,amount:Long):M[Long]"></a>
+      <a id="incrby(ByteString,Long):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">incrby</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@incrby(key:akka.util.ByteString,amount:Long):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#incrbyfloat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="incrbyfloat(key:akka.util.ByteString,amount:Double):M[Double]"></a>
+      <a id="incrbyfloat(ByteString,Double):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">incrbyfloat</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Double">Double</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@incrbyfloat(key:akka.util.ByteString,amount:Double):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#integerReplyBoolCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="integerReplyBoolCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Boolean]"></a>
+      <a id="integerReplyBoolCommand(Command,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">integerReplyBoolCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@integerReplyBoolCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#integerReplyCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="integerReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Long]"></a>
+      <a id="integerReplyCommand(Command,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">integerReplyCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@integerReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#integerReplyOptionCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="integerReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[Long]]"></a>
+      <a id="integerReplyOptionCommand(Command,ByteString):M[Option[Long]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">integerReplyOptionCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@integerReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Option[Long]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#keys" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="keys(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]"></a>
+      <a id="keys(ByteString):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">keys</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@keys(key:akka.util.ByteString):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lindex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lindex(key:akka.util.ByteString,index:Long):M[akka.util.ByteString]"></a>
+      <a id="lindex(ByteString,Long):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lindex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="index">index: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lindex(key:akka.util.ByteString,index:Long):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lindexOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lindexOption(key:akka.util.ByteString,index:Long):M[Option[akka.util.ByteString]]"></a>
+      <a id="lindexOption(ByteString,Long):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lindexOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="index">index: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lindexOption(key:akka.util.ByteString,index:Long):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#linsertAfter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="linsertAfter(key:akka.util.ByteString,pivotValue:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="linsertAfter(ByteString,ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">linsertAfter</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="pivotValue">pivotValue: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@linsertAfter(key:akka.util.ByteString,pivotValue:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#linsertBefore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="linsertBefore(key:akka.util.ByteString,pivotValue:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="linsertBefore(ByteString,ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">linsertBefore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="pivotValue">pivotValue: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@linsertBefore(key:akka.util.ByteString,pivotValue:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#llen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="llen(key:akka.util.ByteString):M[Long]"></a>
+      <a id="llen(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">llen</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@llen(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lpop" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lpop(key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="lpop(ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lpop</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lpop(key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lpopOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lpopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="lpopOption(ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lpopOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lpopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lpush" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lpush(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]"></a>
+      <a id="lpush(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lpush</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="values">values: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lpush(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lpushx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lpushx(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="lpushx(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lpushx</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lpushx(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lrange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lrange(key:akka.util.ByteString,start:Long,end:Long):M[Seq[akka.util.ByteString]]"></a>
+      <a id="lrange(ByteString,Long,Long):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lrange</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="end">end: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lrange(key:akka.util.ByteString,start:Long,end:Long):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lrem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lrem(key:akka.util.ByteString,count:Long,value:akka.util.ByteString):M[Long]"></a>
+      <a id="lrem(ByteString,Long,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lrem</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="count">count: <span class="extype" name="scala.Long">Long</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lrem(key:akka.util.ByteString,count:Long,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#lset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="lset(key:akka.util.ByteString,index:Long,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="lset(ByteString,Long,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lset</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="index">index: <span class="extype" name="scala.Long">Long</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@lset(key:akka.util.ByteString,index:Long,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#ltrim" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ltrim(key:akka.util.ByteString,start:Long,end:Long):M[Boolean]"></a>
+      <a id="ltrim(ByteString,Long,Long):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ltrim</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="end">end: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@ltrim(key:akka.util.ByteString,start:Long,end:Long):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#mBulkReplyCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mBulkReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Seq[akka.util.ByteString]]"></a>
+      <a id="mBulkReplyCommand(Command,ByteString):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mBulkReplyCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@mBulkReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#mBulkReplyOptionCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mBulkReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Seq[Option[akka.util.ByteString]]]"></a>
+      <a id="mBulkReplyOptionCommand(Command,ByteString):M[Seq[Option[ByteString]]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mBulkReplyOptionCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@mBulkReplyOptionCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Seq[Option[akka.util.ByteString]]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#mget" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="mget(keys:akka.util.ByteString*):M[Seq[Option[akka.util.ByteString]]]"></a>
+      <a id="mget(ByteString*):M[Seq[Option[ByteString]]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mget</span><span class="params">(<span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@mget(keys:akka.util.ByteString*):M[Seq[Option[akka.util.ByteString]]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#mset" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="mset(keysAndValues:akka.util.ByteString*):M[Boolean]"></a>
+      <a id="mset(ByteString*):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mset</span><span class="params">(<span name="keysAndValues">keysAndValues: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@mset(keysAndValues:akka.util.ByteString*):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#msetnx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="msetnx(keysAndValues:akka.util.ByteString*):M[Boolean]"></a>
+      <a id="msetnx(ByteString*):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">msetnx</span><span class="params">(<span name="keysAndValues">keysAndValues: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@msetnx(keysAndValues:akka.util.ByteString*):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#persist" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="persist(key:akka.util.ByteString):M[Boolean]"></a>
+      <a id="persist(ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">persist</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@persist(key:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#pexpire" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="pexpire(key:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]"></a>
+      <a id="pexpire(ByteString,FiniteDuration):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pexpire</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@pexpire(key:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#pexpireat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="pexpireat(key:akka.util.ByteString,unixTimeInMillis:Long):M[Boolean]"></a>
+      <a id="pexpireat(ByteString,Long):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pexpireat</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="unixTimeInMillis">unixTimeInMillis: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@pexpireat(key:akka.util.ByteString,unixTimeInMillis:Long):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#psetex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="psetex(key:akka.util.ByteString,value:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]"></a>
+      <a id="psetex(ByteString,ByteString,FiniteDuration):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">psetex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@psetex(key:akka.util.ByteString,value:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#pttl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="pttl(key:akka.util.ByteString):M[Long]"></a>
+      <a id="pttl(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pttl</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@pttl(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#randomkey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="randomkey():M[Option[akka.util.ByteString]]"></a>
+      <a id="randomkey():M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">randomkey</span><span class="params">()</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@randomkey():M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rename" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rename(source:akka.util.ByteString,destination:akka.util.ByteString):M[Boolean]"></a>
+      <a id="rename(ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rename</span><span class="params">(<span name="source">source: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rename(source:akka.util.ByteString,destination:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#renamenx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="renamenx(source:akka.util.ByteString,destination:akka.util.ByteString):M[Boolean]"></a>
+      <a id="renamenx(ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">renamenx</span><span class="params">(<span name="source">source: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@renamenx(source:akka.util.ByteString,destination:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpop" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpop(key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="rpop(ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpop</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpop(key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpopOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="rpopOption(ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpopOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpoplpush" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpoplpush(key:akka.util.ByteString,destination:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="rpoplpush(ByteString,ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpoplpush</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpoplpush(key:akka.util.ByteString,destination:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpoplpushOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpoplpushOption(key:akka.util.ByteString,destination:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="rpoplpushOption(ByteString,ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpoplpushOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpoplpushOption(key:akka.util.ByteString,destination:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpush" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpush(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]"></a>
+      <a id="rpush(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpush</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="values">values: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpush(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#rpushx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="rpushx(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="rpushx(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rpushx</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@rpushx(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sadd" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sadd(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]"></a>
+      <a id="sadd(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sadd</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="values">values: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sadd(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#scard" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="scard(key:akka.util.ByteString):M[Long]"></a>
+      <a id="scard(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">scard</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@scard(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sdiff" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sdiff(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]"></a>
+      <a id="sdiff(ByteString,ByteString*):M[Set[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sdiff</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sdiff(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sdiffstore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sdiffstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]"></a>
+      <a id="sdiffstore(ByteString,ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sdiffstore</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sdiffstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.service.LiftedClient#send" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="send(input:P#Request):M[P#Response]"></a>
+      <a id="send(Request):M[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">send</span><span class="params">(<span name="input">input: <a href="package$$Redis.html#Request=colossus.protocols.redis.Command" class="extmbr" name="colossus.protocols.redis.Redis.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<a href="package$$Redis.html#Response=colossus.protocols.redis.Reply" class="extmbr" name="colossus.protocols.redis.Redis.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@send(input:P#Request):M[P#Response]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a> → <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a></dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#set" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="set(key:akka.util.ByteString,value:akka.util.ByteString,notExists:Boolean,exists:Boolean,ttl:scala.concurrent.duration.Duration):M[Boolean]"></a>
+      <a id="set(ByteString,ByteString,Boolean,Boolean,Duration):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">set</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="notExists">notExists: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="exists">exists: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span> = <span class="symbol">Duration.Inf</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@set(key:akka.util.ByteString,value:akka.util.ByteString,notExists:Boolean,exists:Boolean,ttl:scala.concurrent.duration.Duration):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#setex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="setex(key:akka.util.ByteString,value:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]"></a>
+      <a id="setex(ByteString,ByteString,FiniteDuration):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="ttl">ttl: <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@setex(key:akka.util.ByteString,value:akka.util.ByteString,ttl:scala.concurrent.duration.FiniteDuration):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#setnx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="setnx(key:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="setnx(ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setnx</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@setnx(key:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sinter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sinter(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]"></a>
+      <a id="sinter(ByteString,ByteString*):M[Set[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sinter</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sinter(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sinterstore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sinterstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]"></a>
+      <a id="sinterstore(ByteString,ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sinterstore</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sinterstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sismember" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sismember(key:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="sismember(ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sismember</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sismember(key:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#smembers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="smembers(key:akka.util.ByteString):M[Set[akka.util.ByteString]]"></a>
+      <a id="smembers(ByteString):M[Set[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">smembers</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@smembers(key:akka.util.ByteString):M[Set[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#smove" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="smove(source:akka.util.ByteString,destination:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]"></a>
+      <a id="smove(ByteString,ByteString,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">smove</span><span class="params">(<span name="source">source: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@smove(source:akka.util.ByteString,destination:akka.util.ByteString,value:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#spop" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="spop(key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="spop(ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">spop</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@spop(key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#spopOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="spopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="spopOption(ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">spopOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@spopOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#srandmember" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="srandmember(key:akka.util.ByteString,count:Long):M[Seq[akka.util.ByteString]]"></a>
+      <a id="srandmember(ByteString,Long):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">srandmember</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="count">count: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@srandmember(key:akka.util.ByteString,count:Long):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#srandmember" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="srandmember(key:akka.util.ByteString):M[akka.util.ByteString]"></a>
+      <a id="srandmember(ByteString):M[ByteString]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">srandmember</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@srandmember(key:akka.util.ByteString):M[akka.util.ByteString]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#srandmemberOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="srandmemberOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]"></a>
+      <a id="srandmemberOption(ByteString):M[Option[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">srandmemberOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@srandmemberOption(key:akka.util.ByteString):M[Option[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#srem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="srem(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]"></a>
+      <a id="srem(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">srem</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="values">values: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@srem(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#stringReplyCommand" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stringReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Boolean]"></a>
+      <a id="stringReplyCommand(Command,ByteString):M[Boolean]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">stringReplyCommand</span><span class="params">(<span name="c">c: <a href="Command.html" class="extype" name="colossus.protocols.redis.Command">Command</a></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@stringReplyCommand(c:colossus.protocols.redis.Command,key:akka.util.ByteString):M[Boolean]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#strlen" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="strlen(key:akka.util.ByteString):M[Long]"></a>
+      <a id="strlen(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">strlen</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@strlen(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sunion" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sunion(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]"></a>
+      <a id="sunion(ByteString,ByteString*):M[Set[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sunion</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sunion(key:akka.util.ByteString,keys:akka.util.ByteString*):M[Set[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#sunionstore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sunionstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]"></a>
+      <a id="sunionstore(ByteString,ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sunionstore</span><span class="params">(<span name="destination">destination: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="keys">keys: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@sunionstore(destination:akka.util.ByteString,key:akka.util.ByteString,keys:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@toString():String" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#ttl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ttl(key:akka.util.ByteString):M[Long]"></a>
+      <a id="ttl(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ttl</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@ttl(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zadd" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zadd(key:akka.util.ByteString,valuesAndArguments:akka.util.ByteString*):M[Double]"></a>
+      <a id="zadd(ByteString,ByteString*):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zadd</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="valuesAndArguments">valuesAndArguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zadd(key:akka.util.ByteString,valuesAndArguments:akka.util.ByteString*):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This is one of the aforementioned special commands.</p><div class="fullcomment"><div class="comment cmt"><p>This is one of the aforementioned special commands. Zadd takes a host of arguments versions &gt;= 3.0.2, as noted in
+http://redis.io/commands/zadd
+Since this API *tries* to be redis version agnostic, it doesn't have them formally in its function definition, but they
+can be passed in at the beginning of the valuesAndArguments varargs parameter:</p><pre>client.zadd(<span class="lit">"key"</span>, <span class="lit">"XX"</span>, <span class="lit">"CH"</span> <span class="lit">"1"</span>, <span class="lit">"a"</span>....</pre><p>Also, since these flags can change the return type, can be a Long in some cases and a Double in others, a Double is returned to capture both cases.</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zcard" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zcard(key:akka.util.ByteString):M[Long]"></a>
+      <a id="zcard(ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zcard</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zcard(key:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zcount" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zcount(key:akka.util.ByteString,from:Option[Double],to:Option[Double]):M[Long]"></a>
+      <a id="zcount(ByteString,Option[Double],Option[Double]):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zcount</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="from">from: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Double">Double</span>] = <span class="symbol">None</span></span>, <span name="to">to: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Double">Double</span>]</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zcount(key:akka.util.ByteString,from:Option[Double],to:Option[Double]):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zincrby" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zincrby(key:akka.util.ByteString,amount:Double,value:akka.util.ByteString):M[Double]"></a>
+      <a id="zincrby(ByteString,Double,ByteString):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zincrby</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="amount">amount: <span class="extype" name="scala.Double">Double</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zincrby(key:akka.util.ByteString,amount:Double,value:akka.util.ByteString):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zinterstore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zinterstore(key:akka.util.ByteString,numKeys:Long,keysAndArguments:akka.util.ByteString*):M[Long]"></a>
+      <a id="zinterstore(ByteString,Long,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zinterstore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="numKeys">numKeys: <span class="extype" name="scala.Long">Long</span></span>, <span name="keysAndArguments">keysAndArguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zinterstore(key:akka.util.ByteString,numKeys:Long,keysAndArguments:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Another command which takes optional arguments.</p><div class="fullcomment"><div class="comment cmt"><p>Another command which takes optional arguments.  Tack on additional arguments into the keysAndArguments varargs.
+http://redis.io/commands/zinterstore</p><pre>client.zinterstore(key, <span class="num">2</span>, keyA, keyB, <span class="lit">"WEIGHTS"</span>, <span class="lit">"1"</span>, <span class="lit">"2"</span>, <span class="lit">"AGGREGATE"</span> <span class="lit">"SUM"</span>)</pre></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zlexcount" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zlexcount(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]"></a>
+      <a id="zlexcount(ByteString,ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zlexcount</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span> = <span class="symbol"><span class="name"><a href="../../../akka/package.html">ByteString(&quot;-&quot;)</a></span></span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span> = <span class="symbol"><span class="name"><a href="../../../akka/package.html">ByteString(&quot;+&quot;)</a></span></span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zlexcount(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zrange" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrange(key:akka.util.ByteString,start:Long,stop:Long,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrange(ByteString,Long,Long,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrange</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="stop">stop: <span class="extype" name="scala.Long">Long</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrange(key:akka.util.ByteString,start:Long,stop:Long,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This command can take a 'withscores' additional argument at the end.</p><div class="fullcomment"><div class="comment cmt"><p>This command can take a 'withscores' additional argument at the end.  It changes what is included in the the results.</p><p>http://redis.io/commands/zrange</p><p>For now, this function is a bit raw, and a future change will have 2 versions of this function.</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrangebylex" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrangebylex(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrangebylex(ByteString,ByteString,ByteString,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrangebylex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrangebylex(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Additional arguments for this function are the limit/offset/count options.</p><div class="fullcomment"><div class="comment cmt"><p>Additional arguments for this function are the limit/offset/count options.</p><p>http://redis.io/commands/zrangebylex
+</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrangebyscore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrangebyscore(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrangebyscore(ByteString,ByteString,ByteString,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrangebyscore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrangebyscore(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Additional arguments for this function are the limit/offset/count options.</p><div class="fullcomment"><div class="comment cmt"><p>Additional arguments for this function are the limit/offset/count options.</p><p>http://redis.io/commands/zrangebyscore
+</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrank" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zrank(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="zrank(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrank</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrank(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zrankOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zrankOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Long]]"></a>
+      <a id="zrankOption(ByteString,ByteString):M[Option[Long]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrankOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrankOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Long]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zrem" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zrem(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]"></a>
+      <a id="zrem(ByteString,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrem</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="values">values: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrem(key:akka.util.ByteString,values:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zremrangebylex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zremrangebylex(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]"></a>
+      <a id="zremrangebylex(ByteString,ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zremrangebylex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zremrangebylex(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zremrangebyrank" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zremrangebyrank(key:akka.util.ByteString,start:Long,stop:Long):M[Long]"></a>
+      <a id="zremrangebyrank(ByteString,Long,Long):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zremrangebyrank</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="stop">stop: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zremrangebyrank(key:akka.util.ByteString,start:Long,stop:Long):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zremrangebyscore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zremrangebyscore(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]"></a>
+      <a id="zremrangebyscore(ByteString,ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zremrangebyscore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zremrangebyscore(key:akka.util.ByteString,min:akka.util.ByteString,max:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zrevrange" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrevrange(key:akka.util.ByteString,start:Long,stop:Long,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrevrange(ByteString,Long,Long,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrevrange</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="stop">stop: <span class="extype" name="scala.Long">Long</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrevrange(key:akka.util.ByteString,start:Long,stop:Long,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">This command can take a 'withscores' additional argument at the end.</p><div class="fullcomment"><div class="comment cmt"><p>This command can take a 'withscores' additional argument at the end.  It changes what is included in the the results.</p><p>http://redis.io/commands/zrevrange</p><p>For now, this function is a bit raw, and a future change will have 2 versions of this function.</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrevrangebylex" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrevrangebylex(key:akka.util.ByteString,max:akka.util.ByteString,min:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrevrangebylex(ByteString,ByteString,ByteString,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrevrangebylex</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrevrangebylex(key:akka.util.ByteString,max:akka.util.ByteString,min:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Additional arguments for this function are the limit/offset/count options.</p><div class="fullcomment"><div class="comment cmt"><p>Additional arguments for this function are the limit/offset/count options.</p><p>http://redis.io/commands/zrevrangebylex
+</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrevrangebyscore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zrevrangebyscore(key:akka.util.ByteString,max:akka.util.ByteString,min:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]"></a>
+      <a id="zrevrangebyscore(ByteString,ByteString,ByteString,ByteString*):M[Seq[ByteString]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrevrangebyscore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="max">max: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="min">min: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="arguments">arguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="akka.util.ByteString">ByteString</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrevrangebyscore(key:akka.util.ByteString,max:akka.util.ByteString,min:akka.util.ByteString,arguments:akka.util.ByteString*):M[Seq[akka.util.ByteString]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Additional arguments for this function are the limit/offset/count options.</p><div class="fullcomment"><div class="comment cmt"><p>Additional arguments for this function are the limit/offset/count options.</p><p>http://redis.io/commands/zrevrangebyscore
+</p></div></div>
+    </li><li name="colossus.protocols.redis.RedisClient#zrevrank" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zrevrank(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]"></a>
+      <a id="zrevrank(ByteString,ByteString):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrevrank</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrevrank(key:akka.util.ByteString,value:akka.util.ByteString):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zrevrankOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zrevrankOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Long]]"></a>
+      <a id="zrevrankOption(ByteString,ByteString):M[Option[Long]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zrevrankOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zrevrankOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Long]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zscore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zscore(key:akka.util.ByteString,value:akka.util.ByteString):M[Double]"></a>
+      <a id="zscore(ByteString,ByteString):M[Double]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zscore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Double">Double</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zscore(key:akka.util.ByteString,value:akka.util.ByteString):M[Double]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zscoreOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="zscoreOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Double]]"></a>
+      <a id="zscoreOption(ByteString,ByteString):M[Option[Double]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zscoreOption</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="value">value: <span class="extype" name="akka.util.ByteString">ByteString</span></span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Double">Double</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zscoreOption(key:akka.util.ByteString,value:akka.util.ByteString):M[Option[Double]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="colossus.protocols.redis.RedisClient#zunionstore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zunionstore(key:akka.util.ByteString,numKeys:Long,keysAndArguments:akka.util.ByteString*):M[Long]"></a>
+      <a id="zunionstore(ByteString,Long,ByteString*):M[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zunionstore</span><span class="params">(<span name="key">key: <span class="extype" name="akka.util.ByteString">ByteString</span></span>, <span name="numKeys">numKeys: <span class="extype" name="scala.Long">Long</span></span>, <span name="keysAndArguments">keysAndArguments: <span class="extype" name="akka.util.ByteString">ByteString</span>*</span>)</span><span class="result">: <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#colossus.protocols.redis.RedisClient@zunionstore(key:akka.util.ByteString,numKeys:Long,keysAndArguments:akka.util.ByteString*):M[Long]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Another command which takes optional arguments.</p><div class="fullcomment"><div class="comment cmt"><p>Another command which takes optional arguments.  Tack on additional arguments into the keysAndArguments varargs.
+http://redis.io/commands/zunionstore</p><pre>client.zunionstore(key, <span class="num">2</span>, keyA, keyB, <span class="lit">"WEIGHTS"</span>, <span class="lit">"1"</span>, <span class="lit">"2"</span>, <span class="lit">"AGGREGATE"</span> <span class="lit">"SUM"</span>)</pre></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="colossus.service.LiftedClient">
+              <h3>Inherited from <a href="../../service/LiftedClient.html" class="extype" name="colossus.service.LiftedClient">LiftedClient</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</h3>
+            </div><div class="parent" name="colossus.service.Sender">
+              <h3>Inherited from <a href="../../service/Sender.html" class="extype" name="colossus.service.Sender">Sender</a>[<a href="package$$Redis.html" class="extype" name="colossus.protocols.redis.Redis">Redis</a>, <span class="extype" name="colossus.protocols.redis.RedisClient.M">M</span>]</h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
