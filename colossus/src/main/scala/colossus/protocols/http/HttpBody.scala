@@ -5,8 +5,9 @@ import akka.util.ByteString
 import scala.util.Try
 import core.DataBlock
 
-//TODO: this constructor should take an Option[String] for the contentType and create the header internally
-class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader] = None) {
+class HttpBody(private val body: Array[Byte], val contentTypeString: Option[String] = None) {
+
+  val contentType = contentTypeString.map(ct => HttpHeader(HttpHeaders.ContentType, ct))
 
   def size = body.length
 
@@ -20,7 +21,7 @@ class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader
   def as[T](implicit decoder: HttpBodyDecoder[T]): Try[T] = decoder.decode(body)
 
   override def equals(that: Any) = that match {
-    case that: HttpBody => (that.bytes == this.bytes) && (that.contentType == this.contentType)
+    case that: HttpBody => (that.bytes == this.bytes) && (that.contentTypeString == this.contentTypeString)
     case _              => false
   }
 
@@ -28,10 +29,7 @@ class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader
 
   override def toString = bytes.utf8String
 
-  def withContentType(contentType: String) = withContentTypeHeader(HttpHeader(HttpHeaders.ContentType, contentType))
-
-  // TODO: remove?
-  def withContentTypeHeader(header: HttpHeader) = new HttpBody(body, Some(header))
+  def withContentType(contentType: String) = new HttpBody(body, Some(contentType))
 
 }
 
@@ -80,8 +78,7 @@ trait HttpBodyEncoders {
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val contentTypeHeader = HttpHeader(HttpHeaders.ContentType, "text/plain")
-    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"), Some(contentTypeHeader))
+    def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"), Some("text/plain"))
   }
 
   implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
@@ -91,17 +88,12 @@ trait HttpBodyEncoders {
 
 object HttpBody extends HttpBodyEncoders {
 
-  val NoBody = new HttpBody(Array.emptyByteArray, Option.empty[HttpHeader])
+  val NoBody = new HttpBody(Array.emptyByteArray, Option.empty[String])
 
   def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
 
   def apply[T](data: T, contentType: String)(implicit encoder: HttpBodyEncoder[T]): HttpBody = {
     encoder.encode(data).withContentType(contentType)
-  }
-
-  // TODO: remove?
-  def apply[T](data: T, contentTypeHeader: HttpHeader)(implicit encoder: HttpBodyEncoder[T]) = {
-    encoder.encode(data).withContentTypeHeader(contentTypeHeader)
   }
 
 }
