@@ -12,13 +12,12 @@ import service._
 import scala.reflect.ClassTag
 
 abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClientFactory[P]) extends ColossusSpec {
-  
-  type Request = P#Request
+
+  type Request  = P#Request
   type Response = P#Response
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-  
   def service: ServerRef
   def requestTimeout: FiniteDuration
 
@@ -29,7 +28,7 @@ abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClien
     s
   }
 
-  def clientConfig(timeout: FiniteDuration) = ClientConfig (
+  def clientConfig(timeout: FiniteDuration) = ClientConfig(
     name = "/test-client",
     address = new InetSocketAddress("localhost", runningService.config.settings.port),
     requestTimeout = timeout
@@ -44,19 +43,20 @@ abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClien
   }
 
   def expectResponse(request: Request, response: Response) {
-    withClient{client =>
+    withClient { client =>
       try {
         Await.result(client.send(request), requestTimeout) must equal(response)
       } catch {
-        case timeout: java.util.concurrent.TimeoutException => fail(s"timed out waiting for a response after $requestTimeout")
+        case timeout: java.util.concurrent.TimeoutException =>
+          fail(s"timed out waiting for a response after $requestTimeout")
       }
     }
   }
 
-  def expectResponseType[T <: Response : ClassTag](request: Request) {
-    withClient{client =>
+  def expectResponseType[T <: Response: ClassTag](request: Request) {
+    withClient { client =>
       Await.result(client.send(request), requestTimeout) match {
-        case t: T => {}
+        case t: T  => {}
         case other => fail("Wrong type for response ${other}")
       }
     }

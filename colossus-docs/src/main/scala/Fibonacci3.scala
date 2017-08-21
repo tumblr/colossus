@@ -16,12 +16,12 @@ object Fibonacci3 extends App {
 
   def fibonacci(i: Long): Long = i match {
     case 1 | 2 => 1
-    case n => fibonacci(n - 1) + fibonacci(n - 2)
+    case n     => fibonacci(n - 1) + fibonacci(n - 2)
   }
 
-  implicit val actorSystem = ActorSystem()
+  implicit val actorSystem      = ActorSystem()
   implicit val executionContext = actorSystem.dispatcher
-  implicit val io = IOSystem("io-system", workerCount = Some(1), MetricSystem("io-system"))
+  implicit val io               = IOSystem("io-system", workerCount = Some(1), MetricSystem("io-system"))
 
   // #fibonacci3
   HttpServer.start("example-server", 9000) {
@@ -32,18 +32,19 @@ object Fibonacci3 extends App {
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
 
-          case req@Get on Root / "hello" =>
+          case req @ Get on Root / "hello" =>
             Callback.successful(req.ok("Hello World!"))
 
-          case req@Get on Root / "fib" / Long(n) =>
+          case req @ Get on Root / "fib" / Long(n) =>
             if (n > 0) {
               val key = ByteString(s"fib_$n")
               cache.get(key).flatMap {
                 case Some(value) => Callback.successful(req.ok(value.data.utf8String))
-                case None => for {
-                  result <- Callback.fromFuture(Future(fibonacci(n)))
-                  cacheSet <- cache.set(key, ByteString(result.toString))
-                } yield req.ok(result.toString)
+                case None =>
+                  for {
+                    result   <- Callback.fromFuture(Future(fibonacci(n)))
+                    cacheSet <- cache.set(key, ByteString(result.toString))
+                  } yield req.ok(result.toString)
               }
             } else {
               Callback.successful(req.badRequest("number must be positive"))

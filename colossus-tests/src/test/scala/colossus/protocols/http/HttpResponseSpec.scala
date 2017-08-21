@@ -26,7 +26,7 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
   }
 
   "HttpResponseBuilding" must {
-  
+
     def expectCode(response: HttpResponse, code: HttpCode) {
       val expected = HttpResponse(HttpVersion.`1.1`, code, HttpHeaders.Empty, HttpBody("hello"))
       response mustBe expected

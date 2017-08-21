@@ -5,21 +5,24 @@ import akka.actor._
 
 import scala.concurrent.duration._
 
-
 class IntervalAggregator(interval: FiniteDuration,
                          snapshot: AtomicReference[MetricMap],
-                         sysMetricsNamespace: Option[MetricNamespace]) extends Actor with ActorLogging {
+                         sysMetricsNamespace: Option[MetricNamespace])
+    extends Actor
+    with ActorLogging {
 
   import context.dispatcher
   import IntervalAggregator._
   import scala.collection.JavaConversions._
 
-  val systemMetrics = sysMetricsNamespace.map { ns => new SystemMetricsCollector(ns) }
+  val systemMetrics = sysMetricsNamespace.map { ns =>
+    new SystemMetricsCollector(ns)
+  }
 
-  def blankMap(): MetricMap = systemMetrics.map{ _.metrics }.getOrElse(Map())
+  def blankMap(): MetricMap = systemMetrics.map { _.metrics }.getOrElse(Map())
 
   var collections = Set[Collection]()
-  var reporters = Set[ActorRef]()
+  var reporters   = Set[ActorRef]()
 
   def receive = {
 
@@ -31,7 +34,7 @@ class IntervalAggregator(interval: FiniteDuration,
       }
 
       snapshot.set(build)
-      reporters.foreach{ reporter =>
+      reporters.foreach { reporter =>
         reporter ! ReportMetrics(build)
       }
     }
@@ -74,16 +77,15 @@ object IntervalAggregator {
 
 }
 
-
 class SystemMetricsCollector(namespace: MetricNamespace) {
 
   import management._
 
   def metrics: MetricMap = {
-    val runtime = Runtime.getRuntime
-    val maxMemory = runtime.maxMemory
+    val runtime         = Runtime.getRuntime
+    val maxMemory       = runtime.maxMemory
     val allocatedMemory = runtime.totalMemory
-    val freeMemory = runtime.freeMemory
+    val freeMemory      = runtime.freeMemory
     val memoryInfo: MetricMap = Map(
       (namespace.namespace / "system" / "memory") -> Map(
         Map("type" -> "max")       -> maxMemory,
@@ -93,20 +95,23 @@ class SystemMetricsCollector(namespace: MetricNamespace) {
     )
     val gcInfo: MetricMap = {
       val beans = ManagementFactory.getGarbageCollectorMXBeans().toArray
-      val (cycles, msec) = beans.foldLeft((ValueMap.Empty, ValueMap.Empty)){case ((cycles, msec), tastyBean: management.GarbageCollectorMXBean) =>
-        val tags = Map("type" -> tastyBean.getName.replace(' ', '_'))
-        (cycles + (tags -> tastyBean.getCollectionCount), msec + (tags -> tastyBean.getCollectionTime))
+      val (cycles, msec) = beans.foldLeft((ValueMap.Empty, ValueMap.Empty)) {
+        case ((cycles, msec), tastyBean: management.GarbageCollectorMXBean) =>
+          val tags = Map("type" -> tastyBean.getName.replace(' ', '_'))
+          (cycles + (tags -> tastyBean.getCollectionCount), msec + (tags -> tastyBean.getCollectionTime))
       }
-      Map (
+      Map(
         (namespace.namespace / "system" / "gc" / "cycles") -> cycles,
-        (namespace.namespace / "system" / "gc" / "msec") -> msec
+        (namespace.namespace / "system" / "gc" / "msec")   -> msec
       )
     }
 
     val fdInfo: MetricMap = ManagementFactory.getOperatingSystemMXBean match {
-      case u: com.sun.management.UnixOperatingSystemMXBean => Map(
-        (namespace.namespace / "system" / "fd_count") -> Map(Map.empty[String, String] -> u.getOpenFileDescriptorCount)
-      )
+      case u: com.sun.management.UnixOperatingSystemMXBean =>
+        Map(
+          (namespace.namespace / "system" / "fd_count") -> Map(
+            Map.empty[String, String] -> u.getOpenFileDescriptorCount)
+        )
       case _ => MetricMap.Empty //for those poor souls using non-*nix
     }
 

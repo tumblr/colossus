@@ -1,8 +1,6 @@
 package colossus
 package util
 
-
-
 object ExceptionFormatter {
 
   implicit class ExceptionFormatterOps(val exception: Throwable) extends AnyVal {

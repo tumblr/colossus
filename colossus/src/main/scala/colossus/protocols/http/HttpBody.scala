@@ -14,7 +14,7 @@ class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader
     if (size > 0) buffer.write(body)
   }
 
-  def bytes: ByteString = ByteString(body)
+  def bytes: ByteString      = ByteString(body)
   def asDataBlock: DataBlock = DataBlock(body)
 
   def as[T](implicit decoder: HttpBodyDecoder[T]): Try[T] = decoder.decode(body)
@@ -36,8 +36,8 @@ class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader
 }
 
 /**
- * A Typeclass to decode a raw http body into some specific type
- */
+  * A Typeclass to decode a raw http body into some specific type
+  */
 trait HttpBodyDecoder[T] {
 
   //maybe somehow incorporate checking the content-type header?
@@ -80,8 +80,8 @@ trait HttpBodyEncoders {
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val contentTypeHeader = HttpHeader(HttpHeaders.ContentType, "text/plain")
-    def encode(data: String) : HttpBody = new HttpBody(data.getBytes("UTF-8"), Some(contentTypeHeader))
+    val contentTypeHeader              = HttpHeader(HttpHeaders.ContentType, "text/plain")
+    def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"), Some(contentTypeHeader))
   }
 
   implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {

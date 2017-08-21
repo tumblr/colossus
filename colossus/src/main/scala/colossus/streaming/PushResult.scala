@@ -1,7 +1,6 @@
 package colossus.streaming
 
-
-sealed trait PushResult 
+sealed trait PushResult
 object PushResult {
 
   //the item was successfully pushed

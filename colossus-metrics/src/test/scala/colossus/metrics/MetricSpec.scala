@@ -5,8 +5,7 @@ import org.scalatest._
 import akka.actor._
 import MetricAddress._
 
-
-class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) with OptionValues {
+class MetricSpec(_system: ActorSystem) extends MetricIntegrationSpec(_system) with OptionValues {
 
   def this() = this(ActorSystem("MetricSpec"))
 
@@ -14,11 +13,11 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
 
   "MetricAddress" must {
     "startsWith" in {
-      val big = Root / "foo" / "bar" / "baz"
+      val big   = Root / "foo" / "bar" / "baz"
       val small = Root / "foo" / "bar"
-      val nope = Root / "bar" / "baz"
-      big.startsWith(small) must equal (true)
-      big.startsWith(nope) must equal (false)
+      val nope  = Root / "bar" / "baz"
+      big.startsWith(small) must equal(true)
+      big.startsWith(nope) must equal(false)
     }
   }
 
@@ -35,8 +34,8 @@ class MetricSpec(_system : ActorSystem) extends MetricIntegrationSpec(_system) w
   "SystemMetricsCollector" must {
     "generate system metrics" in {
       implicit val ns = TestNamespace() / "foo" * ("a" -> "b")
-      val s = new SystemMetricsCollector(ns)
-      val m = s.metrics
+      val s           = new SystemMetricsCollector(ns)
+      val m           = s.metrics
 
       m contains "/foo/system/gc/msec" mustBe true
       m contains "/foo/system/gc/cycles" mustBe true

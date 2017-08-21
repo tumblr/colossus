@@ -4,6 +4,7 @@ import colossus.streaming.Source
 
 package object streaming {
 
-  implicit object StreamingHttpRequestOps extends MessageOps[HttpRequestHead, Source[Data], StreamingHttpRequest](StreamingHttpRequest.apply _)
+  implicit object StreamingHttpRequestOps
+      extends MessageOps[HttpRequestHead, Source[Data], StreamingHttpRequest](StreamingHttpRequest.apply _)
 
 }

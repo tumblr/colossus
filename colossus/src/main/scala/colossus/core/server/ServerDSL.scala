@@ -8,15 +8,14 @@ object ServerDSL {
 import ServerDSL._
 import com.typesafe.config.{Config, ConfigFactory}
 
-
 /**
- * An `Initializer` is used to perform any setup/coordination logic for a
- * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
- * connections from the server with connection handlers.  An initializer is
- * created per worker, so all actions on a single Initializer are
- * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
- * used when starting servers.
- */
+  * An `Initializer` is used to perform any setup/coordination logic for a
+  * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
+  * connections from the server with connection handlers.  An initializer is
+  * created per worker, so all actions on a single Initializer are
+  * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
+  * used when starting servers.
+  */
 abstract class Initializer(context: InitContext) {
 
   implicit val worker = context.worker
@@ -24,21 +23,21 @@ abstract class Initializer(context: InitContext) {
   val server = context.server
 
   /**
-   * Given a [[ServerContext]] for a new connection, provide a new connection
-   * handler for the connection
-   */
+    * Given a [[ServerContext]] for a new connection, provide a new connection
+    * handler for the connection
+    */
   def onConnect: ServerContext => ServerConnectionHandler
 
   /**
-   * Message receive hook.  This is used to handle any messages that are sent
-   * using [[ServerRef]] `initializerBroadcast`.
-   */
+    * Message receive hook.  This is used to handle any messages that are sent
+    * using [[ServerRef]] `initializerBroadcast`.
+    */
   def receive: Receive = Map() //empty receive
 
   /**
-   * Shutdown hook that is called when the server is shutting down
-   */
-  def onShutdown(){}
+    * Shutdown hook that is called when the server is shutting down
+    */
+  def onShutdown() {}
 
 }
 
@@ -46,10 +45,8 @@ object Initializer {
   type Factory = InitContext => Initializer
 }
 
-
 //this is mixed in by Server
 trait ServerDSL {
-
 
   /**
     * Create a new Server
@@ -62,7 +59,8 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: InitContext => Initializer)(
+      implicit io: IOSystem): ServerRef = {
 
     start(name, ServerSettings.load(name, serverConfig))(initializer)
   }
@@ -91,10 +89,12 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
+  def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(
+      implicit io: IOSystem): ServerRef = {
     val serverConfig = ServerConfig(
       name = name,
-      settings = settings, initializerFactory = (ic) => initializer(ic)
+      settings = settings,
+      initializerFactory = (ic) => initializer(ic)
     )
     Server(serverConfig)
 
@@ -111,8 +111,8 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def basic(name: String, serverConfig: Config = ConfigFactory.load())
-           (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
+  def basic(name: String, serverConfig: Config = ConfigFactory.load())(
+      handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
 
     basic(name, ServerSettings.load(name, serverConfig))(handlerFactory)
   }
@@ -127,10 +127,13 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def basic(name: String, port: Int)(handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, port) { worker => new Initializer(worker) {
-      def onConnect = handlerFactory
-    }}
+  def basic(name: String, port: Int)(handlerFactory: ServerContext => ServerConnectionHandler)(
+      implicit io: IOSystem): ServerRef = {
+    start(name, port) { worker =>
+      new Initializer(worker) {
+        def onConnect = handlerFactory
+      }
+    }
   }
 
   /**
@@ -142,10 +145,11 @@ trait ServerDSL {
     * @param io
     * @return
     */
-  def basic(name: String, settings: ServerSettings)
-           (handlerFactory: ServerContext => ServerConnectionHandler)(implicit io: IOSystem): ServerRef = {
-    start(name, settings)(worker => new Initializer(worker) {
-      def onConnect = handlerFactory
+  def basic(name: String, settings: ServerSettings)(handlerFactory: ServerContext => ServerConnectionHandler)(
+      implicit io: IOSystem): ServerRef = {
+    start(name, settings)(worker =>
+      new Initializer(worker) {
+        def onConnect = handlerFactory
     })
   }
 

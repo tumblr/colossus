@@ -12,12 +12,11 @@ class NoopWorkerItem(c: Context) extends WorkerItem {
   val context = c
 }
 
-
 class WorkerItemSpec extends ColossusSpec {
 
   "A WorkerItem" must {
     "bind to a worker" in {
-      withIOSystem{io =>
+      withIOSystem { io =>
         val probe = TestProbe()
         class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
@@ -30,7 +29,7 @@ class WorkerItemSpec extends ColossusSpec {
     }
 
     "not bind more than once" in {
-      withIOSystem{io =>
+      withIOSystem { io =>
         val probe = TestProbe()
         class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
@@ -46,13 +45,13 @@ class WorkerItemSpec extends ColossusSpec {
     }
 
     "receive messages after binding" in {
-      withIOSystem{io =>
+      withIOSystem { io =>
         val probe = TestProbe()
         class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             worker.worker ! WorkerCommand.Message(id, "PING")
           }
-          override def receivedMessage(message: Any, sender: ActorRef){
+          override def receivedMessage(message: Any, sender: ActorRef) {
             message match {
               case "PING" => probe.ref ! "PONG"
             }
@@ -64,14 +63,14 @@ class WorkerItemSpec extends ColossusSpec {
     }
 
     "not receive messages after unbinding" in {
-      withIOSystem{io =>
+      withIOSystem { io =>
         val probe = TestProbe()
         class MyItem(c: Context) extends NoopWorkerItem(c) {
           override def onBind() {
             worker.worker ! WorkerCommand.UnbindWorkerItem(id)
             worker.worker ! WorkerCommand.Message(id, "PING")
           }
-          override def receivedMessage(message: Any, sender: ActorRef){
+          override def receivedMessage(message: Any, sender: ActorRef) {
             message match {
               case "PING" => probe.ref ! "PONG"
             }
@@ -82,8 +81,5 @@ class WorkerItemSpec extends ColossusSpec {
       }
     }
 
-
-
   }
 }
-

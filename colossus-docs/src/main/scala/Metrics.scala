@@ -1,12 +1,20 @@
 import akka.actor.ActorSystem
-import colossus.metrics.{Counter, Histogram, MetricReporterConfig, MetricReporterFilter, MetricSystem, OpenTsdbSender, Rate}
+import colossus.metrics.{
+  Counter,
+  Histogram,
+  MetricReporterConfig,
+  MetricReporterFilter,
+  MetricSystem,
+  OpenTsdbSender,
+  Rate
+}
 
 import scala.concurrent.duration._
 
 object Metrics extends App {
 
   def example1: Unit = {
-    implicit val actorSystem = ActorSystem()
+    implicit val actorSystem  = ActorSystem()
     implicit val metricSystem = MetricSystem("name")
 
     // #example1
@@ -16,12 +24,11 @@ object Metrics extends App {
     rate.hit(Map("endpoint" -> "bar"))
     // #example1
 
-
   }
 
   def example2: Unit = {
     // #example2
-    implicit val actorSystem = ActorSystem()
+    implicit val actorSystem  = ActorSystem()
     implicit val metricSystem = MetricSystem("name")
 
     val rate = Rate("my-rate")
@@ -32,7 +39,7 @@ object Metrics extends App {
   def example3: Unit = {
     // #example3
     implicit val actorSystem = ActorSystem()
-    val metricSystem = MetricSystem("name")
+    val metricSystem         = MetricSystem("name")
 
     implicit val namespace = metricSystem / "foo" / "bar"
 
@@ -42,13 +49,12 @@ object Metrics extends App {
   }
 
   def example4: Unit = {
-    implicit val actorSystem = ActorSystem()
+    implicit val actorSystem  = ActorSystem()
     implicit val metricSystem = MetricSystem("name")
-
 
     // #example4
     val counter = Counter("my-counter")
-    counter.set(Map("foo" -> "bar"), 2)
+    counter.set(Map("foo"       -> "bar"), 2)
     counter.increment(Map("foo" -> "bar"))
     // #example4
 
@@ -67,7 +73,7 @@ object Metrics extends App {
 
   def example7: Unit = {
     // #example7
-    implicit val actorSystem = ActorSystem()
+    implicit val actorSystem  = ActorSystem()
     implicit val metricSystem = MetricSystem("name")
 
     val reporterConfig = MetricReporterConfig(
