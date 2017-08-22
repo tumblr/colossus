@@ -1,20 +1,17 @@
-package colossus
-package service
+package colossus.service
 
-import core.ProxyActor
-import testkit._
-
+import colossus.core.ProxyActor
+import colossus.testkit.ColossusSpec
 import akka.actor._
 import akka.testkit.TestProbe
 import akka.util.ByteString
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-
 import Callback.Implicits._
-
-import RawProtocol._
-import server._
+import colossus.RawProtocol._
+import colossus.RawProtocol.server._
+import colossus.TestClient
 
 class ServiceDSLSpec extends ColossusSpec {
 
@@ -109,8 +106,8 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "be able to create two clients of differing codecs" in {
       withIOSystem { implicit sys =>
-        import protocols.http._
-        import protocols.memcache._
+        import colossus.protocols.http._
+        import colossus.protocols.memcache._
         //this test passes if it compiles
         val s = Http.futureClient("localhost", TEST_PORT, 1.second)
         val t = Memcache.futureClient("localhost", TEST_PORT, 1.second)
@@ -119,7 +116,7 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "be able to lift a sender to a type-specific client" in {
       withIOSystem { implicit sys =>
-        import protocols.http._
+        import colossus.protocols.http._
 
         val s                     = Http.futureFactory("localhost", TEST_PORT, 1.second)
         val t                     = Http.futureClient(s)

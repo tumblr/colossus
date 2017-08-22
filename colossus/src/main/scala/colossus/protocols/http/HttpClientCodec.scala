@@ -1,11 +1,8 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
+import colossus.controller.{Codec, Encoding}
 import colossus.core._
-import parsing._
-import Combinators.Parser
-
-import controller.{Codec, Encoding}
+import colossus.parsing.Combinators.Parser
 
 class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
 

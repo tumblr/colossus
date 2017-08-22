@@ -1,10 +1,8 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
-import controller._
-import core._
-import service._
+import colossus.controller.{Controller, Encoding}
+import colossus.core.{InitContext, PipelineHandler, ServerConnectionHandler}
+import colossus.service._
 
 class StreamingHttpServiceHandler(rh: GenRequestHandler[StreamingHttp]) extends ServiceServer[StreamingHttp](rh)
 

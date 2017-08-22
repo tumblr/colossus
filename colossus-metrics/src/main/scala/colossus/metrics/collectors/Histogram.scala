@@ -1,8 +1,10 @@
-package colossus.metrics
+package colossus.metrics.collectors
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ThreadLocalRandom
+
+import colossus.metrics.{Collector, MetricAddress, MetricMap, MetricNamespace, TagMap, ValueMap}
 
 import scala.concurrent.duration._
 import com.typesafe.config.Config

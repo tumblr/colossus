@@ -1,17 +1,17 @@
-package colossus
-package service
+package colossus.service
 
 import com.typesafe.config.{Config, ConfigFactory}
-import core._
-import core.server._
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.language.higherKinds
-
 import java.net.InetSocketAddress
-import metrics.MetricAddress
-import controller.{Encoding, Codec, Controller}
+
+import colossus.IOSystem
+import colossus.controller.{Codec, Controller, Encoding}
+import colossus.core.server.{Initializer, Server, ServerDSL}
+import colossus.core._
+import colossus.metrics.MetricAddress
 
 trait Protocol {
   type Request
@@ -37,7 +37,7 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
   def basicInitializer: InitContext => HandlerGenerator[T]
 
-  class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends core.server.Initializer(init) {
+  class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends Initializer(init) {
     def onConnect        = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
     override def receive = serviceInitializer.receive
     override def onShutdown() { serviceInitializer.onShutdown() }
@@ -58,7 +58,7 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
 
   def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
     Server.start(name, port) { i =>
-      new core.server.Initializer(i) {
+      new Initializer(i) {
         val rinit     = basicInitializer(i)
         def onConnect = ctx => rinit.fullHandler(handler(ctx))
       }
@@ -72,7 +72,6 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
   * functionality.  Just provide a codec and you're good to go
   */
 trait BasicServiceDSL[P <: Protocol] {
-  import controller.Controller
 
   protected def provideCodec(): Codec.Server[P]
 

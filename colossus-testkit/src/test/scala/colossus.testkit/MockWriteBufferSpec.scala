@@ -1,7 +1,6 @@
-package colossus
-package testkit
+package colossus.testkit
 
-import core.{DataBuffer, WriteStatus}
+import colossus.core.{DataBuffer, WriteStatus}
 import akka.util.ByteString
 
 import org.scalatest.{MustMatchers, WordSpec}

@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{DefaultRate, Rate}
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global

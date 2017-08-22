@@ -1,13 +1,13 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
-import core.{DataOutBuffer, Encoder}
 import java.util.{LinkedList, List => JList}
 
+import colossus.core.{DataOutBuffer, Encoder}
+import colossus.parsing.{ParseException, Zero}
+
 import scala.util.{Failure, Success, Try}
-import parsing.ParseException
 
 sealed abstract class HttpMethod(val name: String) {
   val bytes: Array[Byte] = name.getBytes("UTF-8")
@@ -136,7 +136,7 @@ object HttpHeader {
   def apply(key: String, value: String): HttpHeader =
     new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
 
-  implicit object FPHZero extends parsing.Zero[EncodedHttpHeader] {
+  implicit object FPHZero extends Zero[EncodedHttpHeader] {
     def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n
   }
 
@@ -199,7 +199,7 @@ class ParsedHttpHeaders(
   override def transferEncoding =
     if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
 
-  override def encode(buffer: core.DataOutBuffer) {
+  override def encode(buffer: DataOutBuffer) {
     transferEncodingOpt.foreach { _.header.encode(buffer) }
     connection.foreach { _.header.encode(buffer) }
     contentLength.foreach { c =>
@@ -255,7 +255,7 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   def toSeq: Seq[HttpHeader] = headers.toArray(Array[HttpHeader]())
 
-  def encode(buffer: core.DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     val it = headers.iterator
     while (it.hasNext) {
       it.next.encode(buffer)

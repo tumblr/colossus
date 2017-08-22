@@ -1,5 +1,4 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import akka.util.ByteString
 

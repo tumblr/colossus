@@ -1,9 +1,8 @@
-package colossus
-package streaming
+package colossus.streaming
 
-import core._
-import controller._
-import testkit._
+import colossus.core._
+import colossus.controller._
+import colossus.testkit._
 
 import org.scalamock.scalatest.MockFactory
 class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMocks {

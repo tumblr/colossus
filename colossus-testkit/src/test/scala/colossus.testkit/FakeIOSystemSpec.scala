@@ -1,8 +1,8 @@
-package colossus
-package testkit
+package colossus.testkit
 
-import service._
-import scala.concurrent.{Future, ExecutionContext}
+import colossus.service.Callback
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 

@@ -1,14 +1,11 @@
-package colossus
-package service
+package colossus.service
 
-import colossus.testkit.{ColossusSpec, FakeIOSystem}
+import colossus.testkit.{CallbackAwait, ColossusSpec, FakeIOSystem}
 import org.scalamock.scalatest.MockFactory
-
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 import java.net.InetSocketAddress
+import colossus.protocols.http.Http
 import scala.concurrent.duration._
-
-import testkit._
 
 trait PR extends Protocol {
   type Request  = String
@@ -183,7 +180,6 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
 
     "work with client factories" in {
       //if this compiles then the test passes
-      import protocols.http.Http
       implicit val w = FakeIOSystem.fakeWorker.worker
       val l = new LoadBalancingClient[Http](
         List(new InetSocketAddress("127.0.0.1", 1)),

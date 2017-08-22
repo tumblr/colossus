@@ -1,10 +1,9 @@
-package colossus
-package controller
+package colossus.controller
 
-import core._
-import streaming._
-import testkit._
 import akka.util.ByteString
+import colossus.core.{DisconnectCause, DynamicOutBuffer}
+import colossus.streaming.{PushResult, Source}
+import colossus.testkit.ColossusSpec
 
 class OutputControllerSpec extends ColossusSpec with ControllerMocks {
 

@@ -1,14 +1,13 @@
-package colossus
-package protocols.http
-package server
+package colossus.protocols.http
 
-import core._
-import controller._
-import service._
+import colossus.IOSystem
+import colossus.controller.Controller
+import colossus.core.{InitContext, PipelineHandler, ServerContext}
+import colossus.service._
 
-protected[server] class HttpServiceHandler(rh: RequestHandler) extends ServiceServer[Http](rh) {}
+class HttpServiceHandler(rh: RequestHandler) extends ServiceServer[Http](rh) {}
 
-protected[server] class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
+class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](context) {
 
   val DateHeader   = new DateHeader
   val ServerHeader = HttpHeader("Server", context.server.name.idString)

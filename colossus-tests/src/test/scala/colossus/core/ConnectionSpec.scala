@@ -1,10 +1,9 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
-import org.scalatest.mock.MockitoSugar
-
+import org.scalatest.mockito.MockitoSugar
 import akka.util.ByteString
+import colossus.NoopHandler
+import colossus.testkit.{ColossusSpec, MockConnection}
 
 import scala.concurrent.duration._
 

@@ -1,7 +1,6 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 import scala.concurrent.duration._
 

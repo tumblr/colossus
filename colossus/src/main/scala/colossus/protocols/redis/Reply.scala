@@ -1,7 +1,6 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
-import core.DataBuffer
+import colossus.core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 

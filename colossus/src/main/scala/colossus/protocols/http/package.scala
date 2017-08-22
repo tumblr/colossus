@@ -1,18 +1,9 @@
-package colossus
-package protocols
+package colossus.protocols
 
+import colossus.core.DataOutBuffer
 import colossus.metrics.TagMap
 import colossus.protocols.http.HttpClient.HttpClientLifter
-import colossus.service.{
-  ClientFactories,
-  IrrecoverableError,
-  ProcessingFailure,
-  Protocol,
-  RecoverableError,
-  ServiceClientFactory,
-  TagDecorator,
-  UnhandledRequestException
-}
+import colossus.service.{ClientFactories, IrrecoverableError, ProcessingFailure, Protocol, RecoverableError, ServiceClientFactory, TagDecorator, UnhandledRequestException}
 
 package object http extends HttpBodyEncoders with HttpBodyDecoders {
 
@@ -72,7 +63,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
   trait HttpMessageHead {
     def headers: HttpHeaders
     def version: HttpVersion
-    def encode(out: core.DataOutBuffer)
+    def encode(out: DataOutBuffer)
   }
 
   trait HeadOps[H <: HttpMessageHead] {

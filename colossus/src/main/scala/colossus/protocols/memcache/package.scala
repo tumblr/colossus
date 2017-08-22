@@ -1,5 +1,4 @@
-package colossus
-package protocols
+package colossus.protocols
 
 import colossus.protocols.memcache.MemcacheClient.MemcacheClientLifter
 import colossus.service.{ClientFactories, Protocol, ServiceClientFactory}

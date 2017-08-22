@@ -1,16 +1,11 @@
-package colossus
-
-package protocols.redis
-
-import core.DataBuffer
+package colossus.protocols.redis
 
 import org.scalatest._
-
 import akka.util.ByteString
-
 import UnifiedProtocol._
-import parsing._
-import DataSize._
+import colossus.core.DataBuffer
+import colossus.parsing.ParseException
+import colossus.parsing.DataSize._
 
 class FastCommandSuite extends FlatSpec with Matchers {
 

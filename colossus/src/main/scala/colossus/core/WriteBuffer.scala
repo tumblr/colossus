@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import java.net.InetAddress
 import java.nio.channels.{CancelledKeyException, SelectionKey}

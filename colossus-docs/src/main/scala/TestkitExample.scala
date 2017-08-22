@@ -4,7 +4,7 @@ import colossus.core.ServerContext
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.UrlParsing._
-import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
+import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.service.Callback.Implicits._
 

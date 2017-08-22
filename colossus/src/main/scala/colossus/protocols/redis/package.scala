@@ -1,5 +1,4 @@
-package colossus
-package protocols
+package colossus.protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
 import colossus.protocols.redis.RedisClient.RedisClientLifter

@@ -1,9 +1,8 @@
-package colossus
-package service
-
-import core.WorkerRef
+package colossus.service
 
 import java.net.InetSocketAddress
+
+import colossus.core.WorkerRef
 
 /**
   * A ClientPool is a simple container of open connections.  It can receive

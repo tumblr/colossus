@@ -1,9 +1,7 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
+import colossus.testkit.{ColossusSpec, MockWriteBuffer}
 import akka.util.ByteString
-
 import WriteStatus._
 
 class WriteBufferSpec extends ColossusSpec {

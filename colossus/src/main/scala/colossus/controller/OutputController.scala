@@ -1,8 +1,7 @@
-package colossus
-package controller
+package colossus.controller
 
-import core._
-import streaming._
+import colossus.core.{DataOutBuffer, DisconnectCause, DisconnectError, MoreDataResult}
+import colossus.streaming.{BufferedPipe, PipeCircuitBreaker, PipeStateException, PullResult}
 
 abstract class StaticOutState(val canPush: Boolean) {
   def disconnecting = !canPush

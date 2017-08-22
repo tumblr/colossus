@@ -1,8 +1,7 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core._
-import testkit._
+import colossus.core._
+import colossus.testkit.ColossusSpec
 import streaming._
 
 import org.scalamock.scalatest.MockFactory

@@ -1,16 +1,16 @@
-package colossus
-package protocols.http
+package colossus.protocols.http.client
 
-import core.{DataBuffer, DynamicOutBuffer}
+import colossus.core.{DataBuffer, DynamicOutBuffer}
 import akka.util.ByteString
 import org.scalatest.{MustMatchers, WordSpec}
-import parsing.DataSize._
+import colossus.parsing.DataSize._
+import colossus.protocols.http.{HttpBody, HttpCodes, HttpHeader, HttpHeaders, HttpResponse, HttpResponseHead, HttpResponseParser, HttpVersion, StaticHttpClientCodec, StaticHttpServerCodec}
 
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
 class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
-  import HttpHeader.Conversions._
+  import colossus.protocols.http.HttpHeader.Conversions._
   val maxRequestSize = 10.MB
 
   "HttpResponseParser" must {

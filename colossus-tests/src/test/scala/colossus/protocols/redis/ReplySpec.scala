@@ -1,5 +1,4 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
 import org.scalatest._
 

@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import akka.util.ByteString
 import java.nio.ByteBuffer

@@ -1,8 +1,7 @@
-package colossus
-package parsing
+package colossus.parsing
 
-import colossus.metrics.Histogram
-import core.DataBuffer
+import colossus.metrics.collectors.Histogram
+import colossus.core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 

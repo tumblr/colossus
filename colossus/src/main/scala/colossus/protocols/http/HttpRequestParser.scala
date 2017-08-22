@@ -1,10 +1,9 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core.DataOutBuffer
-import parsing._
-import Combinators._
-import DataSize._
+import colossus.core.DataOutBuffer
+import colossus.parsing.Combinators._
+import colossus.parsing.DataSize
+import colossus.parsing.DataSize._
 
 object HttpRequestParser {
   import HttpParse._

@@ -1,5 +1,4 @@
-package colossus
-package streaming
+package colossus.streaming
 
 import java.util.LinkedList
 import scala.util.{Try, Success, Failure}

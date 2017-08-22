@@ -1,12 +1,7 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import colossus.metrics.MetricSystem
-import core._
-import server._
-
 import org.scalatest._
-
 import akka.actor._
 import akka.event.Logging
 import akka.testkit._
@@ -15,6 +10,9 @@ import akka.testkit.TestProbe
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.Timeout
+import colossus.IOSystem
+import colossus.core.{ServerConnectionHandler, ServerContext, ServerRef, ServerSettings}
+import colossus.core.server.{Initializer, Server, ServerConfig, ServerStatus}
 
 abstract class ColossusSpec(_system: ActorSystem)
     extends TestKit(_system)

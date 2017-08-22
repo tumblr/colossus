@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{Counter, DefaultCounter}
+
 import scala.concurrent.duration._
 
 class CounterSpec extends MetricIntegrationSpec {

@@ -1,5 +1,6 @@
 package colossus.metrics
 
+import colossus.metrics.collectors._
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._

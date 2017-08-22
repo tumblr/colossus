@@ -1,9 +1,8 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core._
-import controller.Codec
-import parsing.DataSize
+import colossus.controller.Codec
+import colossus.core.{DataBuffer, DataOutBuffer}
+import colossus.parsing.DataSize
 
 class StaticHttpServerCodec(headers: HttpHeaders, maxRequestSize: DataSize) extends Codec.Server[Http] {
   private var parser = HttpRequestParser(maxRequestSize)

@@ -1,16 +1,15 @@
-package colossus
-package service
+package colossus.service
 
-import core._
-import testkit._
+import colossus.testkit.ColossusSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import Callback.Implicits._
-
 import akka.util.ByteString
-import RawProtocol._
+import colossus.{IOSystem, TestClient, TestUtil}
+import colossus.core.{ConnectionStatus, NoRetry, ServerRef}
+import colossus.RawProtocol.{Raw, RawServer}
+
 
 class FutureClientSpec extends ColossusSpec {
 

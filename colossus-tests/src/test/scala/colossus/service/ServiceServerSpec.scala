@@ -1,13 +1,12 @@
-package colossus
-package service
+package colossus.service
 
 import akka.util.ByteString
 import colossus.RawProtocol._
 import colossus.core._
-import controller._
+import colossus.controller._
 import colossus.parsing.DataSize._
 import colossus.testkit._
-import streaming._
+import colossus.streaming._
 
 import scala.concurrent.duration._
 import org.scalamock.scalatest.MockFactory

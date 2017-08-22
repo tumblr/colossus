@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import akka.actor.ActorRef
 import scala.concurrent.duration._

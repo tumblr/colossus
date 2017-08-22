@@ -1,10 +1,8 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import akka.util.ByteString
-
-import parsing._
-import Combinators._
+import colossus.parsing.Combinators._
+import colossus.parsing.{ParseException, Zero}
 
 object HttpParse {
 

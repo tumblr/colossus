@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import colossus.metrics.MetricAddress
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{MustMatchers, WordSpec}
+
 import scala.concurrent.duration._
 
 class ClientConfigLoadingSpec extends WordSpec with MustMatchers {

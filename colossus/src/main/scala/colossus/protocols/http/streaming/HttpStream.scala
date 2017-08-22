@@ -1,11 +1,10 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
-import controller._
-import service.Protocol
-import core._
-import parsing.Combinators.Parser
+import colossus.controller.Codec
+import colossus.core.{DataBlock, DataBuffer, DataOutBuffer}
+import colossus.parsing.Combinators.Parser
+import colossus.protocols.http.{HttpMessageHead, HttpParse, HttpRequestHead, HttpRequestParser, HttpResponseHead, HttpResponseParser, TransferEncoding}
+import colossus.service.Protocol
 
 class StreamHttpException(message: String) extends Exception(message)
 
@@ -75,7 +74,7 @@ trait StreamDecoder[T <: HttpMessageHead] {
       }
   }
   private class ChunkedBodyState extends BodyState {
-    import parsing.Combinators._
+    import colossus.parsing.Combinators._
     val parser: Parser[StreamBodyMessage] = intUntil('\r', 16) <~ byte |> {
       case 0 =>
         bytes(2) >> { _ =>

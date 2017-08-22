@@ -1,15 +1,15 @@
-package colossus
-package core
+package colossus.core
 
 import server._
-
 import akka.actor._
 import akka.event.LoggingAdapter
-import metrics._
-import service.CallbackExecution
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
+
+import colossus.metrics.collectors.{Counter, Rate}
+import colossus.{IOCommand, IOSystem}
+import colossus.service.{CallbackExecution, CallbackExecutor}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -70,7 +70,7 @@ case class WorkerRef private[colossus] (id: Int, worker: ActorRef, system: IOSys
     * into scope to easily convert Futures into Callbacks.  This uses the
     * default dispatcher of the worker's underlying ActorSystem.
     */
-  implicit val callbackExecutor = service.CallbackExecutor(system.actorSystem.dispatcher, worker)
+  implicit val callbackExecutor = CallbackExecutor(system.actorSystem.dispatcher, worker)
 
 }
 

@@ -1,8 +1,7 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
 import akka.util.ByteString
-import parsing._
+import colossus.parsing._
 import Combinators._
 import DataSize._
 

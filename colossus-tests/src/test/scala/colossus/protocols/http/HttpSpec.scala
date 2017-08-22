@@ -1,7 +1,6 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core._
+import colossus.core._
 import org.scalatest._
 
 import akka.util.ByteString

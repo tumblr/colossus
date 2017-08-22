@@ -1,7 +1,6 @@
-package colossus
-package protocols.telnet
+package colossus.protocols.telnet
 
-import core.DataBuffer
+import colossus.core.DataBuffer
 
 import org.scalatest._
 

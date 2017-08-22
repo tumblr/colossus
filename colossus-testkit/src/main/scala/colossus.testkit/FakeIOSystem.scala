@@ -1,13 +1,14 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import java.util.concurrent.atomic.AtomicReference
-import core.{InitContext, _}
-import core.server._
-import metrics._
-import service._
+
 import akka.actor._
 import akka.testkit.TestProbe
+import colossus.IOSystem
+import colossus.core.server.{ConnectionVolumeState, ServerConfig, ServerState, ServerStatus}
+import colossus.core._
+import colossus.metrics.MetricSystem
+import colossus.service.{Callback, CallbackExecution, CallbackExecutor}
 
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._

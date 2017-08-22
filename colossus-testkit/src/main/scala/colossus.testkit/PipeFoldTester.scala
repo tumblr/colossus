@@ -1,10 +1,10 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import akka.util.ByteString
-import core.DataBuffer
-import service.Callback
-import scala.util.{Try, Success, Failure}
+import colossus.core.DataBuffer
+import colossus.service.Callback
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * This can be used to test folding on pipes. {{{

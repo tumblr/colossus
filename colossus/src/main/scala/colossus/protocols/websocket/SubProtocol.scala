@@ -1,11 +1,9 @@
-package colossus
-package protocols.websocket
+package colossus.protocols.websocket
 
-import controller.Encoding
+import colossus.controller.Encoding
+import colossus.core.DataBlock
 
 import scala.util.Try
-
-import core.DataBlock
 
 trait FrameCodec[E <: Encoding] {
 

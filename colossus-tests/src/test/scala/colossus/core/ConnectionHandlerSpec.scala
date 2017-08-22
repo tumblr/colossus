@@ -1,6 +1,6 @@
 package colossus
 
-import testkit._
+import colossus.testkit.ColossusSpec
 import core._
 import service.Callback
 import Callback.Implicits._

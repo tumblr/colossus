@@ -1,11 +1,9 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core._
+import colossus.core._
 import org.scalatest._
 import akka.util.ByteString
-import parsing._
-import DataSize._
+import colossus.parsing._, DataSize._
 
 object Broke extends Tag("broke")
 

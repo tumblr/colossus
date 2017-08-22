@@ -1,15 +1,15 @@
-package colossus
-package core
+package colossus.core
 
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor.{ActorRef, PoisonPill}
 import akka.pattern.ask
 import akka.util.Timeout
+import colossus.IOSystem
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import metrics._
+import colossus.metrics._
 import server._
 
 /**

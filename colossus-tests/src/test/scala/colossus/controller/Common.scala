@@ -1,15 +1,13 @@
-package colossus
-package controller
+package colossus.controller
 
-import core._
-import testkit._
 import akka.actor._
 import akka.util.ByteString
+import colossus.RawProtocol.{Raw, RawServerCodec}
+import colossus.core.{ConnectionManager, CoreDownstream, CoreUpstream, DynamicOutBuffer}
 import org.scalamock.scalatest.MockFactory
 import colossus.parsing.DataSize._
-import streaming._
-
-import RawProtocol._
+import colossus.streaming.{BufferedPipe, Pipe}
+import colossus.testkit.FakeIOSystem
 
 trait ControllerMocks extends MockFactory { self: org.scalamock.scalatest.MockFactory with org.scalatest.Suite =>
 

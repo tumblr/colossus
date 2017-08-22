@@ -1,12 +1,11 @@
-package colossus.metrics
+package colossus.metrics.senders
 
 import akka.actor._
-import colossus.metrics.senders.MetricsLogger
 import scala.concurrent.duration._
-
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import java.net._
+
+import colossus.metrics.{MetricFragment, MetricSender, OpenTsdbFormatter}
 
 class OpenTsdbWatchdog(socket: Socket, timeout: FiniteDuration) extends Actor with ActorLogging {
 

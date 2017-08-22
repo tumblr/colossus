@@ -1,13 +1,7 @@
 import akka.actor.ActorSystem
-import colossus.metrics.{
-  Counter,
-  Histogram,
-  MetricReporterConfig,
-  MetricReporterFilter,
-  MetricSystem,
-  OpenTsdbSender,
-  Rate
-}
+import colossus.metrics.collectors.{Counter, Histogram, Rate}
+import colossus.metrics.senders.OpenTsdbSender
+import colossus.metrics.{MetricReporterConfig, MetricReporterFilter, MetricSystem}
 
 import scala.concurrent.duration._
 

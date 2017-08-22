@@ -1,5 +1,4 @@
-package colossus
-package streaming
+package colossus.streaming
 
 sealed trait StreamComponent
 object StreamComponent {

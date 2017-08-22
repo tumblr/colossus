@@ -1,20 +1,20 @@
-package colossus
-package protocols.websocket
+package colossus.protocols.websocket
 
 import colossus.metrics.MetricNamespace
-import core._
-import controller._
-import service._
-import streaming.{PushResult, Sink}
 import akka.util.ByteStringBuilder
-
 import java.security.MessageDigest
 import java.util.Random
-import scala.util.{Success, Failure}
+
+import colossus.IOSystem
+import colossus.controller._
+import colossus.core._
+import colossus.service._
+import colossus.streaming.{PushResult, Sink}
+import scala.util.{Failure, Success}
 import sun.misc.BASE64Encoder
 
 object UpgradeRequest {
-  import protocols.http._
+  import colossus.protocols.http._
 
   val salt = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" //GUID for websocket
 
@@ -138,7 +138,7 @@ object Frame {
 }
 
 object FrameParser {
-  import parsing._
+  import colossus.parsing._
   import Combinators._
 
   /**
@@ -281,7 +281,7 @@ class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext,
                                           websocketInit: WebsocketInitializer[E],
                                           upgradePath: String,
                                           origins: List[String])
-    extends protocols.http.server.RequestHandler(ctx, ServiceConfig.Default) {
+    extends colossus.protocols.http.RequestHandler(ctx, ServiceConfig.Default) {
   def handle = {
     case request if (request.head.path == upgradePath) => {
       val response = UpgradeRequest.validate(request, origins) match {
@@ -299,8 +299,8 @@ class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext,
 }
 
 object WebsocketServer {
-  import protocols.http._
-  import server._
+  import colossus.protocols.http._
+  
 
   /**
     * Start a Websocket server on the specified port.  Since Websocket
