@@ -7,7 +7,6 @@ import testkit._
 
 class HttpRequestSpec extends ColossusSpec {
 
-
   "HttpRequestBuilder" must {
     "build a request" in {
 
@@ -17,6 +16,5 @@ class HttpRequestSpec extends ColossusSpec {
       HttpRequest.delete("/foo") must equal(HttpRequest.base.withMethod(Delete).withPath("/foo"))
     }
   }
-
 
 }

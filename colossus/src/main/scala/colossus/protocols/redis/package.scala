@@ -5,11 +5,10 @@ import akka.util.{ByteString, ByteStringBuilder}
 import colossus.protocols.redis.RedisClient.RedisClientLifter
 import colossus.service.{ClientFactories, Protocol, ServiceClientFactory}
 
-
 package object redis {
 
   trait Redis extends Protocol {
-    type Request = Command
+    type Request  = Command
     type Response = Reply
   }
 
@@ -32,4 +31,3 @@ package object redis {
     }
   }
 }
-

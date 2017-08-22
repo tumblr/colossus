@@ -13,8 +13,8 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
   "Streaming Http Response" must {
     "build from regular response" in {
-      val r = HttpResponse.ok("Hello")
-      val s = StreamingHttpResponse(r)
+      val r    = HttpResponse.ok("Hello")
+      val s    = StreamingHttpResponse(r)
       val data = s.collapse
       data.pull() mustBe PullResult.Item(Head(r.head))
       data.pull() mustBe PullResult.Item(Data(r.body.asDataBlock))
@@ -23,8 +23,16 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
     "build and collapse a streaming response" in {
       val response = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
-        Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
+        HttpResponseHead(HttpVersion.`1.1`,
+                         HttpCodes.OK,
+                         Some(TransferEncoding.Chunked),
+                         None,
+                         None,
+                         None,
+                         HttpHeaders.Empty),
+        Source.fromIterator(List("hello", "world").toIterator.map { s =>
+          Data(DataBlock(s))
+        })
       )
       val collapsed = response.collapse
       collapsed.pull() mustBe PullResult.Item(Head(response.head))
@@ -36,19 +44,18 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
   type Con = HttpStreamServerController
 
-  def create(): (Con, TestUpstream[Encoding.Server[StreamHttp]])  = {
+  def create(): (Con, TestUpstream[Encoding.Server[StreamHttp]]) = {
     val controllerstub = new TestUpstream[Encoding.Server[StreamHttp]]
-    val handler = new HttpStreamServerController(stub[ControllerDownstream[Encoding.Server[StreamingHttp]]])
+    val handler        = new HttpStreamServerController(stub[ControllerDownstream[Encoding.Server[StreamingHttp]]])
     handler.setUpstream(controllerstub)
     (handler, controllerstub)
   }
 
-
   "StreamServiceController" must {
     "flatten and push a response" in {
       val (ctrlr, stub) = create()
-      val response = HttpResponse.ok("helllo")
-      val s = StreamingHttpResponse(response)
+      val response      = HttpResponse.ok("helllo")
+      val s             = StreamingHttpResponse(response)
       ctrlr.connected()
       //you can thank Scala 2.10 for this insanity
       ctrlr.outgoing.push(s)
@@ -57,11 +64,19 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       stub.pipe.pull() mustBe PullResult.Item(End)
     }
 
-    "push a chunked response" taggedAs(org.scalatest.Tag("test")) in {
+    "push a chunked response" taggedAs (org.scalatest.Tag("test")) in {
       val (ctrlr, stub) = create()
       val response = StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.OK,  Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
-        Source.fromIterator(List("hello", "world").toIterator.map{s => Data(DataBlock(s))})
+        HttpResponseHead(HttpVersion.`1.1`,
+                         HttpCodes.OK,
+                         Some(TransferEncoding.Chunked),
+                         None,
+                         None,
+                         None,
+                         HttpHeaders.Empty),
+        Source.fromIterator(List("hello", "world").toIterator.map { s =>
+          Data(DataBlock(s))
+        })
       )
       ctrlr.connected()
       ctrlr.outgoing.push(response) mustBe PushResult.Ok
@@ -73,7 +88,7 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
     "correctly assemble an http request" in {
       val (ctrlr, stub) = create()
-      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
+      val p             = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
       (ctrlr.downstream.incoming _).when().returns(p)
       val expected = HttpRequest.get("/foo").withHeader("key", "value").withBody(HttpBody("hello there"))
       ctrlr.connected()
@@ -93,19 +108,19 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
 
     def expectDisconnect(f: Con => Any) {
       val (ctrlr, stub) = create()
-      val p = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
+      val p             = new BufferedPipe[StreamingHttpMessage[HttpRequestHead]](1)
       (ctrlr.downstream.incoming _).when().returns(p)
       ctrlr.connected()
       f(ctrlr)
       (stub.connection.kill _).verify(*)
     }
 
-    "disconnect if head received before end" in expectDisconnect { ctrlr => 
+    "disconnect if head received before end" in expectDisconnect { ctrlr =>
       ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
       ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
     }
 
-    "disconnect if end received before head" in expectDisconnect { ctrlr => 
+    "disconnect if end received before head" in expectDisconnect { ctrlr =>
       ctrlr.incoming.push(End)
     }
 
@@ -121,17 +136,18 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       ctrlr.downstream.incoming.complete()
       ctrlr.incoming.push(Head(HttpRequest.get("/foo").head))
     }
-      
 
   }
 
   "StreamingHttpClient" must {
-    "correctly send a request" taggedAs(org.scalatest.Tag("test")) in {
+    "correctly send a request" taggedAs (org.scalatest.Tag("test")) in {
       val (con, client) = MockConnection.apiClient(implicit w => StreamingHttpClient.client("localhost", TEST_PORT))
       con.handler.connected(con)
       val req = StreamingHttpRequest(
-        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty), 
-        Source.fromArray(Array("foo", "bar", "baz")).map{s => Data(DataBlock(s))}
+        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty),
+        Source.fromArray(Array("foo", "bar", "baz")).map { s =>
+          Data(DataBlock(s))
+        }
       )
       client.send(req).execute()
       val expected = "GET /foo HTTP/1.1\r\nhost: localhost\r\n\r\nfoobarbaz"
@@ -143,11 +159,18 @@ class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMoc
       val (con, client) = MockConnection.apiClient(implicit w => StreamingHttpClient.client("localhost", TEST_PORT))
       con.handler.connected(con)
       val req = StreamingHttpRequest(
-        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty), 
-        Source.fromArray(Array("foo", "bar", "baz")).map{s => Data(DataBlock(s))}
+        HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, HttpHeaders.Empty),
+        Source.fromArray(Array("foo", "bar", "baz")).map { s =>
+          Data(DataBlock(s))
+        }
       )
       var resp: Option[StreamingHttpResponse] = None
-      client.send(req).map{r => resp = Some(r)}.execute()
+      client
+        .send(req)
+        .map { r =>
+          resp = Some(r)
+        }
+        .execute()
       con.iterate()
       resp mustBe None
       con.handler.receivedData(DataBuffer("HTTP/1.1 200 OK\r\nTransfer-encoding: chunked\r\n"))

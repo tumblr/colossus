@@ -25,6 +25,3 @@ class DataBlockSpec extends ColossusSpec {
 
   }
 }
-
-
-

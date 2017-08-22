@@ -10,7 +10,6 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
-
 class ProxyWatchdog(proxy: ActorRef, signal: AtomicBoolean) extends Actor {
 
   override def preStart() {
@@ -32,17 +31,18 @@ trait Client[P <: Protocol, M[_]] extends Sender[P, M] {
 }
 
 trait CallbackClient[P <: Protocol] extends Client[P, Callback]
-trait FutureClient[P <: Protocol] extends Client[P, Future]
+trait FutureClient[P <: Protocol]   extends Client[P, Future]
 
 object FutureClient {
 
   sealed trait ClientCommand
 
-  type BaseFactory[P <: Protocol] = ClientFactory[P, Callback, Client[P,Callback], WorkerRef]
+  type BaseFactory[P <: Protocol] = ClientFactory[P, Callback, Client[P, Callback], WorkerRef]
 
   case class GetConnectionStatus(promise: Promise[ConnectionStatus] = Promise()) extends ClientCommand
 
-  def apply[P <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[P]): FutureClient[P] = create(config)(io, base)
+  def apply[P <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[P]): FutureClient[P] =
+    create(config)(io, base)
 
   def create[P <: Protocol](config: ClientConfig)(implicit io: IOSystem, base: BaseFactory[P]): FutureClient[P] = {
     val gen = new AsyncHandlerGenerator(config, base)
@@ -52,13 +52,14 @@ object FutureClient {
 }
 
 /**
- * So we need to take a type-parameterized request object, package it into a
- * monomorphic case class to send to the worker, and have the handler that
- * receives that object able to pattern match out the parameterized object, all
- * without using reflection.  We can do that with some nifty path-dependant
- * types
- */
-class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[P])(implicit sys: IOSystem) {
+  * So we need to take a type-parameterized request object, package it into a
+  * monomorphic case class to send to the worker, and have the handler that
+  * receives that object able to pattern match out the parameterized object, all
+  * without using reflection.  We can do that with some nifty path-dependant
+  * types
+  */
+class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureClient.BaseFactory[P])(
+    implicit sys: IOSystem) {
 
   type I = P#Request
   type O = P#Response
@@ -100,7 +101,7 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
 
   protected val watchdog = sys.actorSystem.actorOf(Props(classOf[ProxyWatchdog], proxy, canary))
 
-  val client = new FutureClient[P]{
+  val client = new FutureClient[P] {
     def send(request: I): Future[O] = {
       if (canary.get()) {
         Future.failed(new NotConnectedException("Connection Closed"))

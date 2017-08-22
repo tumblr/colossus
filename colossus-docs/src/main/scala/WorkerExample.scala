@@ -9,7 +9,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 
 object WorkerExample extends App {
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
   case class NameChange(name: String)
@@ -34,4 +34,3 @@ object WorkerExample extends App {
   serverRef.initializerBroadcast(NameChange("Smith"))
   // #example
 }
-

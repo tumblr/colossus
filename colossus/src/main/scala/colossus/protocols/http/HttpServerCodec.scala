@@ -1,7 +1,6 @@
 package colossus
 package protocols.http
 
-
 import core._
 import controller.Codec
 import parsing.DataSize
@@ -22,4 +21,3 @@ class StaticHttpServerCodec(headers: HttpHeaders, maxRequestSize: DataSize) exte
   def endOfStream() = parser.endOfStream()
 
 }
-

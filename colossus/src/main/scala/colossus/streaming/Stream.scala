@@ -1,7 +1,6 @@
 package colossus
 package streaming
 
-
 sealed trait StreamComponent
 object StreamComponent {
   case object Head extends StreamComponent
@@ -11,8 +10,6 @@ object StreamComponent {
 
 trait Stream[T] {
 
-  def component(t: T) : StreamComponent
+  def component(t: T): StreamComponent
 
 }
-
-

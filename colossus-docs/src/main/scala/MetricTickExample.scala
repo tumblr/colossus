@@ -27,7 +27,7 @@ object MetricTickExample extends App {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root / "url" =>
             //bad url, metric tick
-            if(!request.head.parameters.contains("myurl")) {
+            if (!request.head.parameters.contains("myurl")) {
               badUrl.hit()
             }
             Callback.successful(request.ok("received response"))

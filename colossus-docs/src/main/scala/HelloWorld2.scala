@@ -9,16 +9,17 @@ import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 
-
 object HelloWorld2 extends App {
 
   // #hello_world_part3
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
   // #hello_world_part3
 
   // #hello_world_part4
-  HttpServer.start("hello-world", 9000){ context => new HelloInitializer(context) }
+  HttpServer.start("hello-world", 9000) { context =>
+    new HelloInitializer(context)
+  }
   // #hello_world_part4
 
 }

@@ -13,7 +13,7 @@ import scala.util.{Failure, Success}
 object RedisClient extends App {
 
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #redis-client
   HttpServer.start("example-server", 9000) {
@@ -24,16 +24,16 @@ object RedisClient extends App {
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
 
-          case req@Get on Root / "get" / key => {
+          case req @ Get on Root / "get" / key => {
             redisClient.get(ByteString(key)).mapTry {
               case Success(data) => Success(req.ok(data.utf8String))
-              case Failure(_) => Success(req.notFound(s"Key $key was not found"))
+              case Failure(_)    => Success(req.notFound(s"Key $key was not found"))
             }
           }
 
-          case req@Get on Root / "set" / key / value => {
-            redisClient.set(ByteString(key), ByteString(value)).map {
-              _ => req.ok("OK")
+          case req @ Get on Root / "set" / key / value => {
+            redisClient.set(ByteString(key), ByteString(value)).map { _ =>
+              req.ok("OK")
             }
           }
         }

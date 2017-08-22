@@ -7,17 +7,18 @@ object Tasks extends App {
 
   // #example
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
-  Task.start(context => new Task(context) {
+  Task.start(context =>
+    new Task(context) {
 
-    override def run() {
-      //do your stuff here
-    }
+      override def run() {
+        //do your stuff here
+      }
 
-    override def receive: Receive = {
-      case _ => // receive messages here
-    }
+      override def receive: Receive = {
+        case _ => // receive messages here
+      }
   })
   // #example
 

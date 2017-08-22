@@ -6,7 +6,7 @@ import akka.util.ByteString
 
 import org.scalatest.{MustMatchers, WordSpec}
 
-class MockWriteBufferSpec extends WordSpec with MustMatchers{
+class MockWriteBufferSpec extends WordSpec with MustMatchers {
 
   "MockWriteBuffer" must {
 
@@ -41,8 +41,5 @@ class MockWriteBufferSpec extends WordSpec with MustMatchers{
       m.expectOneWrite(ByteString("cd"))
     }
 
-
   }
 }
-
-

@@ -5,7 +5,7 @@ import org.scalatest.{WordSpec, MustMatchers}
 
 import scala.concurrent.duration.Duration
 
-class ServiceConfigLoadingSpec extends WordSpec with MustMatchers{
+class ServiceConfigLoadingSpec extends WordSpec with MustMatchers {
 
   "Service configuration loading" should {
     "load defaults" in {
@@ -28,7 +28,6 @@ class ServiceConfigLoadingSpec extends WordSpec with MustMatchers{
         ServiceConfig.load("bad-config")
       }
     }
-
 
   }
 

@@ -18,16 +18,16 @@ class CircuitBreakerSpec extends ColossusSpec {
       p.pull mustBe a[PullResult.Empty]
     }
     "trigger both push and pull signals when set" in {
-      val p = new PipeCircuitBreaker[Int, Int]
+      val p            = new PipeCircuitBreaker[Int, Int]
       var pushsignaled = false
       var pullsignaled = true
       p.push(1) match {
-        case PushResult.Full(signal) => signal.notify{pushsignaled = true}
-        case _ => throw new Exception("WRONG PUSH RESULT")
+        case PushResult.Full(signal) => signal.notify { pushsignaled = true }
+        case _                       => throw new Exception("WRONG PUSH RESULT")
       }
       p.pull() match {
-        case PullResult.Empty(signal) => signal.notify{pullsignaled = true}
-        case _ => throw new Exception("WRONG PULL RESULT")
+        case PullResult.Empty(signal) => signal.notify { pullsignaled = true }
+        case _                        => throw new Exception("WRONG PULL RESULT")
       }
       p.set(new BufferedPipe[Int](3))
       pushsignaled mustBe true
@@ -39,19 +39,19 @@ class CircuitBreakerSpec extends ColossusSpec {
       p.complete()
       p.inputState mustBe TransportState.Open
       b.inputState mustBe TransportState.Closed
-      p.push(1) mustBe a [PushResult.Full]
+      p.push(1) mustBe a[PushResult.Full]
     }
 
     "terminate unsets" in {
-      val (p,b) = setup()
+      val (p, b) = setup()
       p.terminate(new Exception("WAT"))
       p.inputState mustBe TransportState.Open
       b.inputState mustBe a[TransportState.Terminated]
-      p.push(1) mustBe a [PushResult.Full]
+      p.push(1) mustBe a[PushResult.Full]
     }
 
     "termination of inner pipe is completely contained" in {
-      val (p,b) = setup()
+      val (p, b) = setup()
 
       val (d, b2) = setup()
 
@@ -71,8 +71,8 @@ class CircuitBreakerSpec extends ColossusSpec {
     }
 
     "unsetting a circuitbreaker does not sever link" in {
-      val (c,_) = setup()
-      val b = new BufferedPipe[Int](1)
+      val (c, _) = setup()
+      val b      = new BufferedPipe[Int](1)
 
       b into c
       b.push(1) mustBe PushResult.Ok
@@ -93,7 +93,7 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "redirect internal pipe Closed on Pull" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
       pipe.complete()
       error mustBe None
       cb.pull() mustBe a[PullResult.Empty]
@@ -103,7 +103,7 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "redirect internal pipe Closed on Push" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
       pipe.complete()
       error mustBe None
       cb.push(1) mustBe a[PushResult.Full]
@@ -113,8 +113,8 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "redirect internal terminated on Pull" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
-      val exception = new Exception("bah")
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
+      val exception                = new Exception("bah")
       pipe.terminate(exception)
       error mustBe None
       cb.pull() mustBe a[PullResult.Empty]
@@ -125,8 +125,8 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "redirect internal terminated on Push" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
-      val exception = new Exception("bah")
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
+      val exception                = new Exception("bah")
       pipe.terminate(exception)
       error mustBe None
       cb.push(1) mustBe a[PushResult.Full]
@@ -137,8 +137,8 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "properly redirect closed on pullWhile" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
-      var sum = 0
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
+      var sum                      = 0
       cb.pullWhile({
         case n => { sum += n; PullAction.PullContinue }
       }, _ => throw new Exception("should not be called"))
@@ -154,8 +154,8 @@ class CircuitBreakerSpec extends ColossusSpec {
 
     "properly redirect closed on pullUntilNull" in {
       var error: Option[Throwable] = None
-      val (cb, pipe) = setup(onBreak = err => error = Some(err))
-      var sum = 0
+      val (cb, pipe)               = setup(onBreak = err => error = Some(err))
+      var sum                      = 0
       pipe.complete()
       cb.pullUntilNull(_ => true).get mustBe a[PullResult.Empty]
       cb.isSet mustBe false
@@ -164,4 +164,3 @@ class CircuitBreakerSpec extends ColossusSpec {
   }
 
 }
-

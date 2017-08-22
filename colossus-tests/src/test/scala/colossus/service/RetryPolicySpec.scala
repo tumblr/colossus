@@ -24,7 +24,6 @@ class RetryPolicySpec extends ColossusSpec {
       b.value(1.millisecond, 51) must equal(50.millisecond)
     }
 
-
     "exponential" in {
       val b = Exponential(50.milliseconds)
       b.value(1.millisecond, 1) must equal(1.millisecond)
@@ -35,7 +34,6 @@ class RetryPolicySpec extends ColossusSpec {
     }
 
   }
-
 
   "BackoffPolicy" must {
 
@@ -49,7 +47,10 @@ class RetryPolicySpec extends ColossusSpec {
     }
 
     "respect max time" in {
-      val p = BackoffPolicy(20.milliseconds, Exponential(1.second), maxTime = Some(50.milliseconds), immediateFirstAttempt = false)
+      val p = BackoffPolicy(20.milliseconds,
+                            Exponential(1.second),
+                            maxTime = Some(50.milliseconds),
+                            immediateFirstAttempt = false)
       val i = p.start()
       i.nextAttempt() must equal(RetryIn(20.milliseconds))
       i.nextAttempt() must equal(RetryIn(40.milliseconds))
@@ -62,15 +63,16 @@ class RetryPolicySpec extends ColossusSpec {
     }
 
     "not cause overlow after enough attempts" in {
-      val p = BackoffPolicy(20.milliseconds, Exponential(1.second), maxTime = Some(50.milliseconds), immediateFirstAttempt = false)
+      val p = BackoffPolicy(20.milliseconds,
+                            Exponential(1.second),
+                            maxTime = Some(50.milliseconds),
+                            immediateFirstAttempt = false)
       val i = p.start()
-      (1 to 50).foreach{_ =>
+      (1 to 50).foreach { _ =>
         i.nextAttempt()
       }
       i.nextAttempt() must equal(RetryIn(1.second))
     }
-
-
 
   }
 

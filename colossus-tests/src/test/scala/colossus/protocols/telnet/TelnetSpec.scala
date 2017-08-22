@@ -7,11 +7,11 @@ import org.scalatest._
 
 import akka.util.ByteString
 
-class TelnetSpec extends WordSpec with MustMatchers{
+class TelnetSpec extends WordSpec with MustMatchers {
 
   def testCmdParser(input: String, expected: TelnetCommand) {
     val p = new TelnetCommandParser
-    p.parse(DataBuffer(ByteString(input))) must equal (Some(expected))
+    p.parse(DataBuffer(ByteString(input))) must equal(Some(expected))
   }
 
   "Telnet Command Parser" must {
@@ -44,8 +44,4 @@ class TelnetSpec extends WordSpec with MustMatchers{
     }
   }
 
-
-
-
 }
-

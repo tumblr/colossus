@@ -55,10 +55,9 @@ lazy val publishSettings: Seq[Setting[_]] = Seq(
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
   credentials += Credentials("Sonatype Nexus Repository Manager",
-    "oss.sonatype.org",
-    sys.env.getOrElse("SONATYPE_USERNAME", ""),
-    sys.env.getOrElse("SONATYPE_PASSWORD", "")
-  ),
+                             "oss.sonatype.org",
+                             sys.env.getOrElse("SONATYPE_USERNAME", ""),
+                             sys.env.getOrElse("SONATYPE_PASSWORD", "")),
   useGpg := false,
   pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray),
   pgpSecretRing := file("secring.gpg"),

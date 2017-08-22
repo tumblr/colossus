@@ -4,11 +4,10 @@ package protocols
 import colossus.protocols.memcache.MemcacheClient.MemcacheClientLifter
 import colossus.service.{ClientFactories, Protocol, ServiceClientFactory}
 
-
 package object memcache {
 
   trait Memcache extends Protocol {
-    type Request = MemcacheCommand
+    type Request  = MemcacheCommand
     type Response = MemcacheReply
   }
 
@@ -19,4 +18,3 @@ package object memcache {
   }
 
 }
-

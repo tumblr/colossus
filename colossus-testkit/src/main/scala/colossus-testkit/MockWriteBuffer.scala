@@ -6,15 +6,14 @@ import core._
 import akka.util.{ByteString, ByteStringBuilder}
 
 /**
- * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
- */
+  * if a handler is passed, the buffer will call the handler's readyForData, and it will call it's own handleWrite if interestRW is true
+  */
 trait MockChannelActions extends ChannelActions {
 
   def maxWriteSize: Int
 
-
-  protected var bytesAvailable = maxWriteSize
-  private var writeCalls = collection.mutable.Queue[ByteString]()
+  protected var bytesAvailable                      = maxWriteSize
+  private var writeCalls                            = collection.mutable.Queue[ByteString]()
   protected var connection_status: ConnectionStatus = ConnectionStatus.Connected
 
   def status = connection_status
@@ -37,8 +36,7 @@ trait MockChannelActions extends ChannelActions {
 
   }
 
-
-  def finishConnect(){}
+  def finishConnect() {}
 
   def keyInterestOps(ops: Int) {}
 
@@ -52,8 +50,7 @@ trait MockChannelActions extends ChannelActions {
   def completeDisconnect() {
     connection_status = ConnectionStatus.NotConnected
   }
-  */
-
+   */
 
   //legacy method
   def disconnectCalled = status == ConnectionStatus.NotConnected
@@ -78,15 +75,17 @@ trait MockChannelActions extends ChannelActions {
   }
 
   /**
-   * Expect exactly `num` writes
-   */
+    * Expect exactly `num` writes
+    */
   def expectNumWrites(num: Int, debug: Boolean = false) {
-    assert(writeCalls.size == num, s"""expected exactly $num writes, but ${writeCalls.size} writes occurred ${debugDump(debug)} """)
+    assert(writeCalls.size == num,
+           s"""expected exactly $num writes, but ${writeCalls.size} writes occurred ${debugDump(debug)} """)
     writeCalls.clear()
   }
 
   def expectOneWrite(data: ByteString, debug: Boolean = false) {
-    assert(writeCalls.size == 1, s"expected exactly one write, but ${writeCalls.size} writes occurred ${debugDump(debug)}")
+    assert(writeCalls.size == 1,
+           s"expected exactly one write, but ${writeCalls.size} writes occurred ${debugDump(debug)}")
     expectWrite(data)
   }
 
@@ -100,12 +99,10 @@ trait MockChannelActions extends ChannelActions {
     f(call)
   }
 
-
-
 }
 
 class MockWriteBuffer(val maxWriteSize: Int) extends WriteBuffer with MockChannelActions {
-  def completeDisconnect(){channelClose()}
+  def completeDisconnect() { channelClose() }
 
   def testWrite(d: DataBuffer): WriteStatus = write(d)
 }

@@ -22,14 +22,19 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
   import HttpHeader.Conversions._
 
   val valid = HttpRequest(
-    HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, Vector(
-      ("connection", "Upgrade"),
-      ("upgrade", "Websocket"),
-      ("sec-websocket-version", "13"),
-      ("sec-websocket-key", "rrBE1CeTUMlALwoQxfmTfg=="),
-      ("host" , "foo.bar"),
-      ("origin", "http://foo.bar")
-    )),
+    HttpRequestHead(
+      HttpMethod.Get,
+      "/foo",
+      HttpVersion.`1.1`,
+      Vector(
+        ("connection", "Upgrade"),
+        ("upgrade", "Websocket"),
+        ("sec-websocket-version", "13"),
+        ("sec-websocket-key", "rrBE1CeTUMlALwoQxfmTfg=="),
+        ("host", "foo.bar"),
+        ("origin", "http://foo.bar")
+      )
+    ),
     HttpBody.NoBody
   )
 
@@ -40,7 +45,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
       HttpHeaders(
         HttpHeader("Upgrade", "websocket"),
         HttpHeader("Connection", "Upgrade"),
-        HttpHeader("Sec-Websocket-Accept","MeFiDAjivCOffr7Pn3T2DM7eJHo=")
+        HttpHeader("Sec-Websocket-Accept", "MeFiDAjivCOffr7Pn3T2DM7eJHo=")
       )
     ),
     HttpBody.NoBody
@@ -75,11 +80,11 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
       val masked = DataBlock("abcd") ++ DataBlock(ByteString(41, 7, 15, 8, 14, 66, 52, 11, 19, 14, 7, 69).toArray)
       FrameParser.unmask(true, masked).byteString must equal(ByteString("Hello World!"))
     }
-    
+
     "parse a frame" in {
-      val data = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87).toArray
+      val data     = ByteString(-119, -116, 115, 46, 27, -120, 59, 75, 119, -28, 28, 14, 76, -25, 1, 66, 127, -87).toArray
       val expected = Frame(Header(OpCodes.Ping, true), DataBlock("Hello World!"))
-      val parsed = FrameParser.frame.parse(DataBuffer(data)) must equal(Some(expected))
+      val parsed   = FrameParser.frame.parse(DataBuffer(data)) must equal(Some(expected))
     }
 
     "parse its own encoding" in {
@@ -87,11 +92,11 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
       FrameParser.frame.parse(expected.encode(new Random)) must equal(Some(expected))
     }
 
-
   }
 
   "frame encoding" must {
-    def sized(len: Int) = Frame(Header(OpCodes.Text, false), DataBlock(List.fill(len)("x").mkString)).encode(new Random).bytes
+    def sized(len: Int) =
+      Frame(Header(OpCodes.Text, false), DataBlock(List.fill(len)("x").mkString)).encode(new Random).bytes
 
     "handle small payload sizes" in {
       val bytes = sized(125)
@@ -112,23 +117,22 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     }
   }
 
-
   "WebsocketController" must {
-    //a simple codec to test decoding errors 
+    //a simple codec to test decoding errors
     trait CString extends Encoding {
-      type Input = String
+      type Input  = String
       type Output = String
     }
 
     class CStringCodec extends FrameCodec[CString] {
       def encode(str: String): DataBlock = DataBlock(":" + str)
-      def decode(block: DataBlock): Try[String] = { 
-        val x = block.utf8String 
+      def decode(block: DataBlock): Try[String] = {
+        val x = block.utf8String
         if (x.startsWith(":")) {
           Success(x.drop(1))
         } else {
           Failure(new Exception("Bad formatting!"))
-        }      
+        }
       }
     }
 
@@ -150,9 +154,9 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     val random = new java.util.Random
 
     def mock(): (TestUpstream[WebsocketEncoding], WebsocketController[CString]) = {
-      
-      val cstub = new TestUpstream[WebsocketEncoding]
-      val handler = new MyHandler(FakeIOSystem.fakeServerContext)
+
+      val cstub      = new TestUpstream[WebsocketEncoding]
+      val handler    = new MyHandler(FakeIOSystem.fakeServerContext)
       val controller = new WebsocketController(handler, new CStringCodec)
       controller.setUpstream(cstub)
       controller.connected()
@@ -166,32 +170,30 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     }
 
     "properly handle a frame" in {
-      val frame = Frame(Header(OpCodes.Text, true), DataBlock(":A"))
+      val frame         = Frame(Header(OpCodes.Text, true), DataBlock(":A"))
       val expectedFrame = Frame(Header(OpCodes.Text, false), DataBlock(":B"))
       sendReceive(frame, expectedFrame)
     }
 
     "react to malformed data" in {
-      val frame = Frame(Header(OpCodes.Text, true), DataBlock("A"))
+      val frame         = Frame(Header(OpCodes.Text, true), DataBlock("A"))
       val expectedFrame = Frame(Header(OpCodes.Text, false), DataBlock(":E"))
       sendReceive(frame, expectedFrame)
     }
 
     "ping/pong" in {
-      val frame = Frame(Header(OpCodes.Ping, true), DataBlock(""))
+      val frame         = Frame(Header(OpCodes.Ping, true), DataBlock(""))
       val expectedFrame = Frame(Header(OpCodes.Pong, false), DataBlock(""))
       sendReceive(frame, expectedFrame)
     }
 
     "close" in {
       val (cstub, controller) = mock()
-      val send = Frame(Header(OpCodes.Close, true), DataBlock(""))
+      val send                = Frame(Header(OpCodes.Close, true), DataBlock(""))
       controller.incoming.push(send)
       (cstub.connection.disconnect _).verify()
     }
 
-      
-    
   }
 
   "WebsocketHttp" must {

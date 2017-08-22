@@ -7,7 +7,7 @@ import core._
 class RedisClientCodec() extends Codec.Client[Redis] {
   private var replyParser = RedisReplyParser()
 
-  def reset(){
+  def reset() {
     replyParser = RedisReplyParser()
   }
 

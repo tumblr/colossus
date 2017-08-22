@@ -8,14 +8,17 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 
-class ServerConfigLoadingSpec  extends ColossusSpec {
+class ServerConfigLoadingSpec extends ColossusSpec {
 
-  val refBindingRetry =  BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second), immediateFirstAttempt = false)
-  val refDelegatorCreationPolicy = WaitPolicy(500.milliseconds, BackoffPolicy(100.milliseconds, BackoffMultiplier.Constant, immediateFirstAttempt = false))
+  val refBindingRetry =
+    BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second), immediateFirstAttempt = false)
+  val refDelegatorCreationPolicy = WaitPolicy(
+    500.milliseconds,
+    BackoffPolicy(100.milliseconds, BackoffMultiplier.Constant, immediateFirstAttempt = false))
 
   "Server configuration loading" should {
     "load defaults" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         val s = Server.basic("my-server")(context => new EchoHandler(context))
         waitForServer(s)
         s.name mustBe MetricAddress("my-server")
@@ -47,7 +50,7 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
           |}
         """.stripMargin
       val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         val s = Server.basic("my-server", c)(context => new EchoHandler(context))
         waitForServer(s)
         s.name mustBe MetricAddress("my-server")
@@ -66,7 +69,7 @@ class ServerConfigLoadingSpec  extends ColossusSpec {
     }
 
     "quick config" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         val s = Server.basic("quick-server", 8989)(context => new EchoHandler(context))
         waitForServer(s)
         s.name mustBe MetricAddress("quick-server")
