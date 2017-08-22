@@ -39,3 +39,14 @@ Services can be configured by specifying values in `application.conf` for the `S
 The values are `request-timeout`, `request-buffer-size`, `log-errors`, `request-metrics`, and `max-request-size`.
 
 @@snip [application.conf](../resources/application.conf) { #example4 }
+
+
+
+There is no built in middleware, but the same effect can be achieved by wrapping routes in functions. For example,
+if you wanted easy access to the request body you might write:
+
+@@snip [MiddlewareAsFunctions.scala](../scala/MiddlewareAsFunctions.scala) { #example }
+
+And then use it like so:
+
+@@snip [MiddlewareAsFunctions.scala](../scala/MiddlewareAsFunctions.scala) { #example1 }
