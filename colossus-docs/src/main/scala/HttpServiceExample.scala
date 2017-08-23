@@ -5,10 +5,10 @@ import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
-import colossus.service.Callback.Implicits._
+import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 
-object HttpService extends App {
+object HttpServiceExample extends App {
 
   implicit val actorSystem = ActorSystem()
   implicit val ioSystem    = IOSystem()
@@ -18,7 +18,7 @@ object HttpService extends App {
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root / "hello" =>
-            request.ok("Hello world!")
+            Callback.successful(request.ok("Hello world!"))
         }
       }
     }
