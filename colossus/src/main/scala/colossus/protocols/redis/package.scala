@@ -2,8 +2,9 @@ package colossus
 package protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
+import colossus.metrics.TagMap
 import colossus.protocols.redis.RedisClient.RedisClientLifter
-import colossus.service.{ClientFactories, Protocol, ServiceClientFactory}
+import colossus.service.{ClientFactories, Protocol, ServiceClientFactory, TagDecorator}
 
 package object redis {
 
@@ -13,8 +14,14 @@ package object redis {
   }
 
   object Redis extends ClientFactories[Redis, RedisClient](RedisClientLifter) {
-
-    implicit def clientFactory = ServiceClientFactory.basic("redis", () => new RedisClientCodec)
+    lazy val tagDecorator: TagDecorator[Redis] = new TagDecorator[Redis] {
+      override def tagsFor(request: Command, response: Reply): TagMap = Map(
+        "op" -> request.command
+      )
+    }
+    
+    implicit def clientFactory = 
+      ServiceClientFactory.basic("redis", () => new RedisClientCodec, tagDecorator)
 
   }
 

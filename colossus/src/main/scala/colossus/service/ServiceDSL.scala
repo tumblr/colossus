@@ -182,6 +182,8 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
 
 trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef] {
 
+  implicit def clientTagDecorator: TagDecorator[P]
+  
   def connectionHandler(base: ServiceClient[P], codec: Codec[Encoding.Client[P]]): ClientConnectionHandler = {
     new UnbindHandler(new Controller[Encoding.Client[P]](base, codec), base)
   }
@@ -202,12 +204,14 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Ser
 
 object ServiceClientFactory {
 
-  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P]) = new ServiceClientFactory[P] {
+  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P],
+                           tagDecorator: TagDecorator[P] = TagDecorator.default[P]) = new ServiceClientFactory[P] {
 
     def defaultName = name
 
     def codecProvider = provider()
 
+    override def clientTagDecorator: TagDecorator[P] = tagDecorator
   }
 
 }
