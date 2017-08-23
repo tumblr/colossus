@@ -9,8 +9,7 @@ import controller.{Codec, Encoding}
 
 class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
 
-  private var parser : Parser[HttpResponse] = HttpResponseParser.static()
-
+  private var parser: Parser[HttpResponse] = HttpResponseParser.static()
 
   override def encode(out: HttpRequest, buffer: DataOutBuffer) { out.encode(buffer) }
 
@@ -20,7 +19,6 @@ class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
     parser = HttpResponseParser.static()
   }
 
-  override def endOfStream() = parser.endOfStream() 
+  override def endOfStream() = parser.endOfStream()
 
 }
-

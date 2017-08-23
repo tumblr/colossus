@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 
 import scala.util.Try
 
-class CallbackMatchersSpec extends ColossusSpec{
+class CallbackMatchersSpec extends ColossusSpec {
 
   import CallbackMatchers._
 
@@ -20,13 +20,11 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "fail to match if a Callback never executes" in {
 
-      def cbFunc(f : Try[Int] => Unit) {
-
-      }
+      def cbFunc(f: Try[Int] => Unit) {}
 
       val unmapped = UnmappedCallback(cbFunc)
 
-      var execd = false
+      var execd  = false
       val result = new CallbackEvaluateTo[Int](duration, a => execd = true).apply(unmapped)
       result.matches must equal(false)
       execd must equal(false)
@@ -35,8 +33,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "fail to match if the 'evaluate' function throws" in {
       var execd = false
-      val cb = Callback.successful("success!")
-      val eval = (a : String) => {
+      val cb    = Callback.successful("success!")
+      val eval = (a: String) => {
         execd = true
         a must equal("awesome!")
       }
@@ -46,8 +44,8 @@ class CallbackMatchersSpec extends ColossusSpec{
     }
 
     "fail to match if a Callback reports a failure" in {
-      val cb = Callback.failed(new Exception("bam"))
-      var execd = false
+      val cb     = Callback.failed(new Exception("bam"))
+      var execd  = false
       val result = new CallbackEvaluateTo[Any](duration, a => execd = true).apply(cb)
       result.matches must equal(false)
       execd must equal(false)
@@ -55,8 +53,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "success if the callback successfully executes the evaluate function" in {
       var execd = false
-      val cb = Callback.successful("success!")
-      val eval = (a : String) => {
+      val cb    = Callback.successful("success!")
+      val eval = (a: String) => {
         execd = true
         a must equal("success!")
       }
@@ -66,7 +64,9 @@ class CallbackMatchersSpec extends ColossusSpec{
     }
 
     "report the error for a failed callback" in {
-      val cb = Callback.successful("YAY").map{t => throw new Exception("NAY")}
+      val cb = Callback.successful("YAY").map { t =>
+        throw new Exception("NAY")
+      }
       var execd = false
       val eval = (a: String) => {
         execd = true
@@ -83,8 +83,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "fail to match if the 'evaluate' function throws" in {
       var execd = false
-      val cb = Callback.failed(new Exception("D'OH!"))
-      val eval = (a : Throwable) => {
+      val cb    = Callback.failed(new Exception("D'OH!"))
+      val eval = (a: Throwable) => {
         execd = true
         a must equal("awesome!")
       }
@@ -95,8 +95,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "fail to match if the Callback executes successfully" in {
       var execd = false
-      val cb = Callback.successful("success!")
-      val eval = (a : Throwable) => {
+      val cb    = Callback.successful("success!")
+      val eval = (a: Throwable) => {
         execd = true
         a must not be null
       }
@@ -107,8 +107,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "fail to match if a Callback throws the wrong exception" in {
       var execd = false
-      val cb = Callback.failed(new IllegalArgumentException("D'OH!"))
-      val eval = (a : UnsupportedFlavorException) => {
+      val cb    = Callback.failed(new IllegalArgumentException("D'OH!"))
+      val eval = (a: UnsupportedFlavorException) => {
         execd = true
       }
 
@@ -119,8 +119,8 @@ class CallbackMatchersSpec extends ColossusSpec{
 
     "match if a Callback fails" in {
       var execd = false
-      val cb = Callback.failed(new Exception("D'OH!"))
-      val eval = (a : Throwable) => {
+      val cb    = Callback.failed(new Exception("D'OH!"))
+      val eval = (a: Throwable) => {
         execd = true
       }
 

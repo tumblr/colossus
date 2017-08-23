@@ -12,4 +12,3 @@ object server extends BasicServiceDSL[colossus.protocols.redis.Redis] {
   val RedisServer = Server
 
 }
-

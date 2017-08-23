@@ -11,15 +11,16 @@ trait Codec[E <: Encoding] {
 
   def reset()
 
-  def decodeAll(data: DataBuffer)(onDecode : E#Input => Unit) { if (data.hasUnreadData){
-    var done: Option[E#Input] = None
-    do {
-      done = decode(data)
-      done.foreach{onDecode}
-    } while (done.isDefined && data.hasUnreadData)
-  }}
+  def decodeAll(data: DataBuffer)(onDecode: E#Input => Unit) {
+    if (data.hasUnreadData) {
+      var done: Option[E#Input] = None
+      do {
+        done = decode(data)
+        done.foreach { onDecode }
+      } while (done.isDefined && data.hasUnreadData)
+    }
+  }
 }
-
 
 object Codec {
 
@@ -29,4 +30,3 @@ object Codec {
   type Client[P <: Protocol] = Codec[Encoding.Client[P]]
 
 }
-

@@ -10,7 +10,6 @@ class WriteBufferSpec extends ColossusSpec {
 
   def data(s: String) = DataBuffer(ByteString(s))
 
-
   "WriteBuffer" must {
     "buffer some data and clear it" in {
       val b = new MockWriteBuffer(20)
@@ -33,20 +32,20 @@ class WriteBufferSpec extends ColossusSpec {
     "immediately call disconnect callback when no data buffered" in {
       val b = new MockWriteBuffer(4)
       b.testWrite(data("hell"))
-      b.status must equal (ConnectionStatus.Connected)
+      b.status must equal(ConnectionStatus.Connected)
       b.gracefulDisconnect()
       println(b.isDataBuffered)
-      b.status must equal (ConnectionStatus.NotConnected)
+      b.status must equal(ConnectionStatus.NotConnected)
     }
 
     "call disconnect callback only when all data is written" in {
       val b = new MockWriteBuffer(4)
       b.testWrite(data("12345678"))
       b.gracefulDisconnect()
-      b.status must equal (ConnectionStatus.Connected)
+      b.status must equal(ConnectionStatus.Connected)
       b.clearBuffer()
       b.continueWrite() must equal(true)
-      b.status must equal (ConnectionStatus.NotConnected)
+      b.status must equal(ConnectionStatus.NotConnected)
     }
 
     "disallow more writes after disconnect callback has been set" in {
@@ -57,4 +56,3 @@ class WriteBufferSpec extends ColossusSpec {
 
   }
 }
-

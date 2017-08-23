@@ -11,7 +11,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 object RedisClientExample extends App {
 
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
   HttpServer.start("example-server", 9000) {
@@ -22,7 +22,7 @@ object RedisClientExample extends App {
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
 
-          case request@Get on Root / "get" / key => {
+          case request @ Get on Root / "get" / key => {
             val asyncResult = redisClient.get(ByteString("1"))
             asyncResult.map {
               case bytes => request.ok(bytes.utf8String)

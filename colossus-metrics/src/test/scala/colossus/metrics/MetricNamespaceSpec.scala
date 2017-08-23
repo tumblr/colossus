@@ -3,7 +3,7 @@ package colossus.metrics
 import org.scalatest.{MustMatchers, WordSpec}
 import scala.concurrent.duration._
 
-class MetricNamespaceSpec extends WordSpec with MustMatchers{
+class MetricNamespaceSpec extends WordSpec with MustMatchers {
 
   "MetricNamespace" must {
     "allow for subspaces to create Metrics with the same name" in {
@@ -11,7 +11,7 @@ class MetricNamespaceSpec extends WordSpec with MustMatchers{
       import scala.collection.JavaConversions._
       //not using implicits here, just to illustrate the point.
       val namespace = MetricContext("/", Collection.withReferenceConf(Seq(1.minute, 1.second)))
-      val subName = namespace / "bar"
+      val subName   = namespace / "bar"
 
       //create 2 rates in the parent namespace
       Rate("bar", false, true)(namespace)
@@ -27,8 +27,8 @@ class MetricNamespaceSpec extends WordSpec with MustMatchers{
       Rate("bar", false, true)(namespace)
       namespace.collection.collectors must have size 4
 
-      val bar = MetricAddress("/bar")
-      val baz = MetricAddress("/baz")
+      val bar    = MetricAddress("/bar")
+      val baz    = MetricAddress("/baz")
       val barBaz = MetricAddress("/bar/baz")
       val barBar = MetricAddress("/bar/bar")
 
@@ -44,7 +44,7 @@ class MetricNamespaceSpec extends WordSpec with MustMatchers{
     }
 
     "add tags" in {
-      val namespace = MetricContext("/", Collection.withReferenceConf(Seq(1.minute, 1.second)))
+      val namespace                   = MetricContext("/", Collection.withReferenceConf(Seq(1.minute, 1.second)))
       val subnameSpace: MetricContext = namespace / "foo" * ("a" -> "b") / "bar"
 
       subnameSpace.tags mustBe Map("a" -> "b")

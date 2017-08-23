@@ -8,10 +8,9 @@ import akka.util.ByteString
 
 import scala.concurrent.duration._
 
-class ConnectionSpec extends ColossusSpec with MockitoSugar{
+class ConnectionSpec extends ColossusSpec with MockitoSugar {
 
   "Connection" must {
-
 
     "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
       val con = MockConnection.client(new NoopHandler(_) {
@@ -32,7 +31,6 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
     }
 
   }
-
 
   "ClientConnection" must {
     "timeout idle connection" in {
@@ -56,4 +54,3 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
   }
 
 }
-

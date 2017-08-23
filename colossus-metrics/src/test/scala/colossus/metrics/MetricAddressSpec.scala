@@ -2,7 +2,7 @@ package colossus.metrics
 
 import org.scalatest.{MustMatchers, WordSpec}
 
-class MetricAddressSpec extends WordSpec with MustMatchers{
+class MetricAddressSpec extends WordSpec with MustMatchers {
 
   "MetricAddress" must {
 

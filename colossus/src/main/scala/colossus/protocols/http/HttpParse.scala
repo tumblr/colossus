@@ -8,29 +8,34 @@ import Combinators._
 
 object HttpParse {
 
-  val NEWLINE = ByteString("\r\n")
+  val NEWLINE       = ByteString("\r\n")
   val NEWLINE_ARRAY = NEWLINE.toArray
-  val N2 = (NEWLINE ++ NEWLINE).toArray
+  val N2            = (NEWLINE ++ NEWLINE).toArray
 
   def chunkedBody: Parser[HttpBody] = chunkedBodyBuilder(new FastArrayBuilder(100, false))
 
-  implicit val z: Zero[EncodedHttpHeader] = HttpHeader.FPHZero
-  def header: Parser[EncodedHttpHeader] = line(HttpHeader.apply, true)
+  implicit val z: Zero[EncodedHttpHeader]                                        = HttpHeader.FPHZero
+  def header: Parser[EncodedHttpHeader]                                          = line(HttpHeader.apply, true)
   def folder(header: EncodedHttpHeader, builder: HeadersBuilder): HeadersBuilder = builder.add(header)
-  def headers: Parser[HeadersBuilder] = foldZero(header, new HeadersBuilder)(folder)
+  def headers: Parser[HeadersBuilder]                                            = foldZero(header, new HeadersBuilder)(folder)
 
   private def chunkedBodyBuilder(builder: FastArrayBuilder): Parser[HttpBody] = intUntil('\r', 16) <~ byte |> {
-    case 0 => bytes(2) >> {_ => new HttpBody(builder.complete())}
-    case n => bytes(n.toInt) <~ bytes(2) |> {bytes => builder.write(bytes);chunkedBodyBuilder(builder)}
+    case 0 =>
+      bytes(2) >> { _ =>
+        new HttpBody(builder.complete())
+      }
+    case n =>
+      bytes(n.toInt) <~ bytes(2) |> { bytes =>
+        builder.write(bytes); chunkedBodyBuilder(builder)
+      }
   }
-
 
   class HeadersBuilder {
 
-    private var contentLength: Option[Int] = None
-    private var contentType: Option[String] = None
+    private var contentLength: Option[Int]                 = None
+    private var contentType: Option[String]                = None
     private var transferEncoding: Option[TransferEncoding] = None
-    private var connection: Option[Connection] = None
+    private var connection: Option[Connection]             = None
 
     private val build = new java.util.LinkedList[EncodedHttpHeader]()
 
@@ -52,10 +57,9 @@ object HttpParse {
       this
     }
 
-
     def buildHeaders: ParsedHttpHeaders = {
       new ParsedHttpHeaders(
-        build.asInstanceOf[java.util.List[HttpHeader]],//silly invariant java collections :/
+        build.asInstanceOf[java.util.List[HttpHeader]], //silly invariant java collections :/
         transferEncoding,
         contentType,
         contentLength,
@@ -66,17 +70,17 @@ object HttpParse {
   }
 }
 
-
 trait LazyParsing {
 
   protected def parseErrorMessage: String
 
-  def parsed[T](op: => T): T = try {
-    op
-  } catch {
-    case p: ParseException => throw p
-    case other : Throwable => throw new ParseException(parseErrorMessage + s": $other")
-  }
+  def parsed[T](op: => T): T =
+    try {
+      op
+    } catch {
+      case p: ParseException => throw p
+      case other: Throwable  => throw new ParseException(parseErrorMessage + s": $other")
+    }
 
   def fastIndex(data: Array[Byte], byte: Byte, start: Int = 0) = {
     var pos = start
@@ -85,4 +89,3 @@ trait LazyParsing {
   }
 
 }
-

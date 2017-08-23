@@ -4,13 +4,12 @@ package streaming
 import controller._
 import core._
 
-
 /**
- * A Transcoder is used to convert streams of one encoding to streams of
- * another.  The two streams are intended to be part of a duplex pipeline, so
- * input is transcoded from A to B, and output is transcoded the other way B to
- * A
- */
+  * A Transcoder is used to convert streams of one encoding to streams of
+  * another.  The two streams are intended to be part of a duplex pipeline, so
+  * input is transcoded from A to B, and output is transcoded the other way B to
+  * A
+  */
 trait Transcoder[U <: Encoding, D <: Encoding] {
 
   // this seems to be a bug in the compiler, but these type aliases are mandatory
@@ -24,22 +23,20 @@ trait Transcoder[U <: Encoding, D <: Encoding] {
   def transcodeOutput(source: Source[DO]): Source[UO]
 }
 
-
 /**
- * This controller interface can be used to transcode from one encoding to
- * another in a connection handler pipeline
- */
+  * This controller interface can be used to transcode from one encoding to
+  * another in a connection handler pipeline
+  */
 abstract class StreamTranscodingController[
-  U <: Encoding,
-  D <: Encoding
-] (
-  val downstream: ControllerDownstream[D],
-  transcoder: Transcoder[U,D]
-)
-extends ControllerDownstream[U] 
-with DownstreamEventHandler[ControllerDownstream[D]] 
-with ControllerUpstream[D]
-with UpstreamEventHandler[ControllerUpstream[U]] {
+    U <: Encoding,
+    D <: Encoding
+](
+    val downstream: ControllerDownstream[D],
+    transcoder: Transcoder[U, D]
+) extends ControllerDownstream[U]
+    with DownstreamEventHandler[ControllerDownstream[D]]
+    with ControllerUpstream[D]
+    with UpstreamEventHandler[ControllerUpstream[U]] {
 
   downstream.setUpstream(this)
   def namespace = downstream.namespace
@@ -56,7 +53,7 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
 
   val outgoing = new PipeCircuitBreaker[DO, UO](fatalError)
 
-  def inputStream : Pipe[UI, DI] = {
+  def inputStream: Pipe[UI, DI] = {
     val p = new BufferedPipe[UI](100)
     new Channel(p, transcoder.transcodeInput(p))
   }
@@ -66,10 +63,10 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
   override def onConnected() {
 
     outgoing.set(outputStream)
-    outgoing.into(upstream.outgoing)//, true, true){e => fatal(e)}
+    outgoing.into(upstream.outgoing) //, true, true){e => fatal(e)}
 
     incoming.set(inputStream)
-    incoming.into(downstream.incoming)//, true, true){e => fatal(e)}
+    incoming.into(downstream.incoming) //, true, true){e => fatal(e)}
   }
 
   override def onConnectionTerminated(reason: DisconnectCause) {
@@ -77,9 +74,9 @@ with UpstreamEventHandler[ControllerUpstream[U]] {
     incoming.unset()
   }
 
-  protected def fatal(state: NonOpenTransportState) : Unit = state match {
-    case TransportState.Closed => upstream.connection.kill(new Exception("Stream closed unexpectedly"))
-    case TransportState.Terminated(reason) =>  upstream.connection.kill(new Exception("Fatal Stream Error", reason))
+  protected def fatal(state: NonOpenTransportState): Unit = state match {
+    case TransportState.Closed             => upstream.connection.kill(new Exception("Stream closed unexpectedly"))
+    case TransportState.Terminated(reason) => upstream.connection.kill(new Exception("Fatal Stream Error", reason))
   }
 
   protected def fatalError(err: Throwable) {

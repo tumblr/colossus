@@ -1,14 +1,11 @@
 package colossus
 
 import org.scalatest._
-
 import akka.util.ByteString
-
 import protocols.memcache.MemcacheCommand._
 import colossus.protocols.memcache.NoCompressor
 
-
-class MemcacheCommandSuite extends FlatSpec with ShouldMatchers{
+class MemcacheCommandSuite extends FlatSpec with Matchers {
   "MemcacheCommand" should "format a GET correctly" in {
     val experimental = Get(ByteString("test"))
     experimental.toString() should equal("get test\r\n")
@@ -45,7 +42,7 @@ class MemcacheCommandSuite extends FlatSpec with ShouldMatchers{
     experimental.bytes(NoCompressor) should equal(ByteString("prepend key 0 0 5\r\nmagic\r\n"))
   }
 
-/*  it should "format a CAS correctly" in {
+  /*  it should "format a CAS correctly" in {
     val experimental = Cas(ByteString("key"), "magic", 30)
     //experimental.bytes(NoCompressor) should equal(ByteString("cas key 0 30 5\r\nmagic\r\n"))
     experimental.toString() should equal("cas key 0 30 5\r\nmagic\r\n")

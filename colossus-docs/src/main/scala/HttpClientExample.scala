@@ -8,7 +8,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 
 object HttpClientExample extends App {
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
   HttpServer.start("example-server", 9000) {
@@ -18,7 +18,7 @@ object HttpClientExample extends App {
 
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
-          case request@Get on Root =>
+          case request @ Get on Root =>
             val asyncResult = httpClient.send(HttpRequest.get("/#q=mysearch"))
             asyncResult.map { response =>
               val body = response.body.bytes.utf8String

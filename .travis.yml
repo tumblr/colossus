@@ -1,37 +1,37 @@
 language: scala
+
 scala:
-- 2.10.6
 - 2.11.7
-jdk: oraclejdk7
+- 2.12.2
+
+jdk: oraclejdk8
+
 sudo: false
+
 services:
 - memcached
 - redis
+
 cache:
   directories:
   - $HOME/.ivy2/cache
   - $HOME/.sbt/boot/
+
 script:
-- if [ "$TRAVIS_SCALA_VERSION" = "2.10.6" ]; then sbt ++$TRAVIS_SCALA_VERSION testAll;
-  else sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll && sbt coverageReport &&
-  sbt coverageAggregate; fi
-- find $HOME/.sbt -name "*.lock" | xargs rm
-- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+- sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll coverageReport coverageAggregate
+
+before_cache:
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+- find $HOME/.sbt        -name "*.lock"               -print -delete
+  
 env:
   global:
   - secure: IV1pPmnkaBj2iqeHSoLkhEjAXVFkJgEghhe7SFJ/bL2lEzoqIHcudw1I1WHMEW9ANzo1pEZRCj0GFfNn5/HWD931wMOlXbEdX/B4vLw8KcHZQzWFEDUMYzGiV5xzDjSYTX8DwUDxy1UDNmOOkS3DYjY3FBWpw8qyuLaLmYGpC84=
   - secure: EZRC7oP4UQXUVBkTIiviCHPoNRw1ur9rhFFqCV6qVpyNpg7uGtM4l882S598KKXW0C3oemXHEEdrF5t5cGozV2nIRYkuEb9K5Kb+1TIRMPZ3KTKGhKTE/5oObTnuIyggSp0ZQLoB7s5eRUup7O74UGkSYY8oJBqixDDhS5g9mwc=
   - secure: XSIdWCu0lX25akXyl8gRc5C7YhASFwkaYWxk7GImBGoZ1apXou9zUGQtxLuOwWcG1HkRldGmwBZz6OqV135jxOcl6IO+brvd0WGPuWXqPDTWWU63K4GgA5oNh+Pbbd/MxGceYbQKkRAgGxeiB8WhOuoxbfHHsjBordp/tco5hX4=
-before_install:
-- if [[ "$TRAVIS_TAG" =~ ^v.+$ || (( "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH"
-  = "develop" || "$TRAVIS_BRANCH" = "travis-test") && "$TRAVIS_PULL_REQUEST" = "false")  ]]
-  ; then SHOULD_PUBLISH=0; fi
-- if (( $SHOULD_PUBLISH == 0)) ; then openssl aes-256-cbc -K $encrypted_9df8dc1a95a3_key
-  -iv $encrypted_9df8dc1a95a3_iv -in secrets.tar.enc -out secrets.tar -d; tar xvf
-  secrets.tar; fi
+
 after_success:
-- if (( $SHOULD_PUBLISH == 0)) ; then  sbt ++$TRAVIS_SCALA_VERSION publishSigned;
-  fi
 - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash <(curl -s https://codecov.io/bash);
   elif [[ "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" ]]; then bash
   <(curl -s https://codecov.io/bash); fi
+- ./publish.sh

@@ -10,7 +10,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 
 object MemcacheClient extends App {
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
   HttpServer.start("example-server", 9000) {
@@ -20,11 +20,11 @@ object MemcacheClient extends App {
 
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
-          case request@Get on Root =>
+          case request @ Get on Root =>
             val asyncResult = memcacheClient.get(ByteString("1"))
             asyncResult.map {
               case Some(reply) => request.ok(reply.data.utf8String)
-              case None => request.notFound("")
+              case None        => request.notFound("")
             }
         }
       }

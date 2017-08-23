@@ -17,6 +17,7 @@ package object senders {
 
   object MetricsLogger {
     type Formatter = (MetricFragment, Long) => String
-    val defaultMetricsFormatter = (frag: MetricFragment, timestamp: Long) => OpenTsdbFormatter.format(frag, timestamp).stripLineEnd
+    val defaultMetricsFormatter = (frag: MetricFragment, timestamp: Long) =>
+      OpenTsdbFormatter.format(frag, timestamp).stripLineEnd
   }
 }

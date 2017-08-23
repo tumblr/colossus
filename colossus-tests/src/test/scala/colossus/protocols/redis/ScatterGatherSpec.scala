@@ -1,20 +1,19 @@
 package colossus
 package protocols.redis
 
-
 import UnifiedProtocol._
 
 import org.scalatest._
 
 import akka.util.ByteString
 
-class ScatterGatherSpec extends WordSpec with MustMatchers{
+class ScatterGatherSpec extends WordSpec with MustMatchers {
   val hasher = new CommandHasher[String] {
     def shardFor(key: ByteString) = key.utf8String(0).toString
   }
 
   "MGET scatter" must {
-    val mget = Command(CMD_MGET, "a1", "b2" , "a2" , "b1", "c1")
+    val mget = Command(CMD_MGET, "a1", "b2", "a2", "b1", "c1")
 
     "scatter an MGET" in {
       val expected = Seq(
@@ -33,14 +32,16 @@ class ScatterGatherSpec extends WordSpec with MustMatchers{
         MBulkReply(List(BulkReply(ByteString("va1")), BulkReply(ByteString("va2")))),
         MBulkReply(List(BulkReply(ByteString("vc1"))))
       )
-      val expected = MBulkReply(mget.args.map{arg => BulkReply(ByteString("v" + arg.utf8String))})
+      val expected = MBulkReply(mget.args.map { arg =>
+        BulkReply(ByteString("v" + arg.utf8String))
+      })
       s.gather(replies) must equal(expected)
     }
 
   }
 
   "MSET scatter" must {
-      val mset = Command(CMD_MSET, "b2", "vb2", "a1", "va1", "c1", "vc1", "b1", "vb1", "a2", "va2")
+    val mset = Command(CMD_MSET, "b2", "vb2", "a1", "va1", "c1", "vc1", "b1", "vb1", "a2", "va2")
     "scatter an MSET" in {
       val expected = Seq(
         "b" -> Command(CMD_MSET, "b2", "vb2", "b1", "vb1"),
@@ -49,12 +50,11 @@ class ScatterGatherSpec extends WordSpec with MustMatchers{
       )
       new MSetScatterGather(mset, hasher).scatter must equal(expected)
 
-
     }
     "gather replies" in {
       //notice - right now mset gathering doesn't depend on scattering (unlike mget which needs the indices), that may eventually change
       val replies = Seq(StatusReply("a"), StatusReply("b"), StatusReply("c"))
-      val s = new MSetScatterGather(mset, hasher)
+      val s       = new MSetScatterGather(mset, hasher)
       s.gather(replies).isInstanceOf[StatusReply] must equal(true)
 
       val repliesWithError = Seq(StatusReply("a"), ErrorReply("b"), StatusReply("c"))

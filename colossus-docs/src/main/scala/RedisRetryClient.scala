@@ -14,7 +14,7 @@ import colossus.service.LoadBalancingClient
 object RedisRetryClient extends App {
 
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
   HttpServer.start("example-server", 9000) {
@@ -24,15 +24,15 @@ object RedisRetryClient extends App {
         Redis.client(address.getHostName, address.getPort)
       }
 
-      val addresses = List.fill(3)(new InetSocketAddress("localhost", 6379))
+      val addresses                 = List.fill(3)(new InetSocketAddress("localhost", 6379))
       val loadBalancingRedisClients = new LoadBalancingClient[Redis](worker, generator, 3, addresses)
-      val redisClient = Redis.client(loadBalancingRedisClients)
+      val redisClient               = Redis.client(loadBalancingRedisClients)
 
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
-          case request@Get on Root =>
-            redisClient.append(ByteString("key"), ByteString("VALUE")).map {
-              result => request.ok(s"Length of key is $result")
+          case request @ Get on Root =>
+            redisClient.append(ByteString("key"), ByteString("VALUE")).map { result =>
+              request.ok(s"Length of key is $result")
             }
         }
       }

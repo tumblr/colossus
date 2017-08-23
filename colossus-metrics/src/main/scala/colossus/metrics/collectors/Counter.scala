@@ -43,7 +43,7 @@ trait Counter extends Collector {
 }
 
 //Working implementation of a Counter
-private[metrics] class DefaultCounter private[metrics](val address: MetricAddress) extends Counter {
+private[metrics] class DefaultCounter private[metrics] (val address: MetricAddress) extends Counter {
 
   private val counters = new CollectionMap[TagMap]
 
@@ -57,15 +57,15 @@ private[metrics] class DefaultCounter private[metrics](val address: MetricAddres
 
   def get(tags: TagMap = TagMap.Empty): Long = counters.get(tags).getOrElse(0)
 
-  def tick(interval: FiniteDuration): MetricMap  = {
+  def tick(interval: FiniteDuration): MetricMap = {
     val values = counters.snapshot(false, false)
     if (values.isEmpty) Map() else Map(address -> values)
   }
 }
 
 //Dummy implementation of a counter, used when "enabled=false" is specified at creation
-private[metrics] class NopCounter private[metrics](val address : MetricAddress) extends Counter {
-  val empty : MetricMap = Map()
+private[metrics] class NopCounter private[metrics] (val address: MetricAddress) extends Counter {
+  val empty: MetricMap                                   = Map()
   override def tick(interval: FiniteDuration): MetricMap = empty
 
   override def increment(tags: TagMap, amount: MetricValue): Unit = {}
@@ -86,7 +86,7 @@ object Counter {
     * @param ns The namespace to which this Metric is relative.
     * @return
     */
-  def apply(address : MetricAddress)(implicit ns : MetricNamespace) : Counter = {
+  def apply(address: MetricAddress)(implicit ns: MetricNamespace): Counter = {
     apply(address, DefaultConfigPath)
   }
 
@@ -100,8 +100,8 @@ object Counter {
     * @param ns The namespace to which this Metric is relative.
     * @return
     */
-  def apply(address : MetricAddress, configPath : String)(implicit ns : MetricNamespace) : Counter = {
-    ns.getOrAdd(address){ (fullAddress, config) =>
+  def apply(address: MetricAddress, configPath: String)(implicit ns: MetricNamespace): Counter = {
+    ns.getOrAdd(address) { (fullAddress, config) =>
       val params = config.resolveConfig(fullAddress, DefaultConfigPath, configPath)
       createCounter(fullAddress, params.getBoolean("enabled"))
     }
@@ -115,16 +115,16 @@ object Counter {
     * @param ns The namespace to which this Metric is relative.
     * @return
     */
-  def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns : MetricNamespace): Counter = {
-    ns.getOrAdd(address){(fullAddress, config) =>
+  def apply(address: MetricAddress, enabled: Boolean = true)(implicit ns: MetricNamespace): Counter = {
+    ns.getOrAdd(address) { (fullAddress, config) =>
       createCounter(fullAddress, enabled)
     }
   }
 
-  private def createCounter(address : MetricAddress, enabled : Boolean) : Counter = {
-    if(enabled){
+  private def createCounter(address: MetricAddress, enabled: Boolean): Counter = {
+    if (enabled) {
       new DefaultCounter(address)
-    }else{
+    } else {
       new NopCounter(address)
     }
   }

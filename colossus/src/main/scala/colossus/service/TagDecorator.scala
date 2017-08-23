@@ -12,7 +12,6 @@ class DefaultTagDecorator[P <: Protocol] extends TagDecorator[P] {
 }
 
 object TagDecorator {
-  
+
   def default[P <: Protocol] = new DefaultTagDecorator[P]
 }
-

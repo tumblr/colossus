@@ -16,38 +16,39 @@ import streaming._
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
 /**
- * Configuration class for a Service Server Connection Handler
+  * Configuration class for a Service Server Connection Handler
   *
   * @param requestTimeout how long to wait until we timeout the request
- * @param requestBufferSize how many concurrent requests a single connection can be processing
- * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
- * @param requestMetrics toggle request metrics
- * @param maxRequestSize max size allowed for requests
- * TODO: remove name from config, this should be the same as a server's name and
- * pulled from the ServerRef, though this requires giving the ServiceServer
- * access to the ServerRef
- */
-case class ServiceConfig(
-  requestTimeout: Duration,
-  requestBufferSize: Int,
-  logErrors: Boolean,
-  requestMetrics: Boolean,
-  maxRequestSize: DataSize)
+  * @param requestBufferSize how many concurrent requests a single connection can be processing
+  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
+  * @param requestMetrics toggle request metrics
+  * @param maxRequestSize max size allowed for requests
+  * TODO: remove name from config, this should be the same as a server's name and
+  * pulled from the ServerRef, though this requires giving the ServiceServer
+  * access to the ServerRef
+  */
+case class ServiceConfig(requestTimeout: Duration,
+                         requestBufferSize: Int,
+                         logErrors: Boolean,
+                         requestMetrics: Boolean,
+                         maxRequestSize: DataSize)
 
 object ServiceConfig {
 
-  val CONFIG_ROOT   = "colossus.service"
-  val DEFAULT_NAME  = "default"
+  val CONFIG_ROOT  = "colossus.service"
+  val DEFAULT_NAME = "default"
 
   lazy val Default = this.load(DEFAULT_NAME)
 
   private val cache = new ConfigCache[ServiceConfig] {
 
-    val baseConfig : Config = ConfigFactory.load()
+    val baseConfig: Config = ConfigFactory.load()
 
-    def load(name: String) : Try[ServiceConfig] = Try {
+    def load(name: String): Try[ServiceConfig] = Try {
       val config = try {
-        baseConfig.getConfig(CONFIG_ROOT + "." + name).withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
+        baseConfig
+          .getConfig(CONFIG_ROOT + "." + name)
+          .withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
       } catch {
         case ex: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
       }
@@ -56,13 +57,13 @@ object ServiceConfig {
   }
 
   /**
-   * Load a ServiceConfig from the loaded config at the path
-   * `colossus.service.<name>`.  Any settings not specified at that location
-   * will fall back to the defaults located at `colossus.service.default` in the
-   * reference.conf file.
-   */
+    * Load a ServiceConfig from the loaded config at the path
+    * `colossus.service.<name>`.  Any settings not specified at that location
+    * will fall back to the defaults located at `colossus.service.default` in the
+    * reference.conf file.
+    */
   def load(name: String): ServiceConfig = cache.get(name) match {
-    case Success(c) => c
+    case Success(c)   => c
     case Failure(err) => throw new ServiceConfigException(err)
   }
 
@@ -74,17 +75,17 @@ object ServiceConfig {
     */
   def load(config: Config): ServiceConfig = {
     import colossus.metrics.ConfigHelpers._
-    val timeout         = config.getScalaDuration("request-timeout")
-    val bufferSize      = config.getInt("request-buffer-size")
-    val logErrors       = config.getBoolean("log-errors")
-    val requestMetrics  = config.getBoolean("request-metrics")
-    val maxRequestSize  = DataSize(config.getString("max-request-size"))
+    val timeout        = config.getScalaDuration("request-timeout")
+    val bufferSize     = config.getInt("request-buffer-size")
+    val logErrors      = config.getBoolean("log-errors")
+    val requestMetrics = config.getBoolean("request-metrics")
+    val maxRequestSize = DataSize(config.getString("max-request-size"))
     ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
   }
 }
 
 trait RequestFormatter[I] {
-  def format(request : I) : String
+  def format(request: I): String
 }
 
 class ServiceServerException(message: String) extends Exception(message)
@@ -98,29 +99,27 @@ class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
 trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
 
-
 /**
- * The ServiceServer provides an interface and basic functionality to create a server that processes
- * requests and returns responses over a codec.
- *
- * A Codec is simply the format in which the data is represented.  Http, Redis protocol, Memcached protocl are all
- * examples(and natively supported).  It is entirely possible to use an additional Codec by creating a Codec to parse
- * the desired protocol.
- *
- * Requests can be processed synchronously or
- * asynchronously.  The server will ensure that all responses are written back
- * in the order that they are received.
- *
- */
+  * The ServiceServer provides an interface and basic functionality to create a server that processes
+  * requests and returns responses over a codec.
+  *
+  * A Codec is simply the format in which the data is represented.  Http, Redis protocol, Memcached protocl are all
+  * examples(and natively supported).  It is entirely possible to use an additional Codec by creating a Codec to parse
+  * the desired protocol.
+  *
+  * Requests can be processed synchronously or
+  * asynchronously.  The server will ensure that all responses are written back
+  * in the order that they are received.
+  *
+  */
 class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
-extends ControllerDownstream[Encoding.Server[P]] 
-with ServiceUpstream[P] 
-with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]] 
-with DownstreamEventHandler[GenRequestHandler[P]]
-{
+    extends ControllerDownstream[Encoding.Server[P]]
+    with ServiceUpstream[P]
+    with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
+    with DownstreamEventHandler[GenRequestHandler[P]] {
   import ServiceServer._
 
-  type Request = P#Request
+  type Request  = P#Request
   type Response = P#Response
 
   def downstream = requestHandler
@@ -128,18 +127,20 @@ with DownstreamEventHandler[GenRequestHandler[P]]
 
   val incoming = new BufferedPipe[Request](50)
 
-  def config = requestHandler.config
+  def config             = requestHandler.config
   implicit val namespace = requestHandler.serverContext.server.namespace
-  def name = requestHandler.serverContext.server.config.name
+  def name               = requestHandler.serverContext.server.config.name
 
   val log = Logging(context.worker.system.actorSystem, name.toString())
-  val controllerConfig = ControllerConfig(config.requestBufferSize, metricsEnabled = config.requestMetrics, inputMaxSize = config.maxRequestSize)
+  val controllerConfig = ControllerConfig(config.requestBufferSize,
+                                          metricsEnabled = config.requestMetrics,
+                                          inputMaxSize = config.maxRequestSize)
 
-  
-  private val requests  = Rate("requests", "connection-handler-requests")
-  private val latency   = Histogram("latency", "connection-handler-latency")
-  private val errors    = Rate("errors", "connection-handler-errors")
-  private val requestsPerConnection = Histogram("requests_per_connection", "connection-handler-requests-per-connection")
+  private val requests = Rate("requests", "connection-handler-requests")
+  private val latency  = Histogram("latency", "connection-handler-latency")
+  private val errors   = Rate("errors", "connection-handler-errors")
+  private val requestsPerConnection =
+    Histogram("requests_per_connection", "connection-handler-requests-per-connection")
   private val concurrentRequests = Counter("concurrent_requests", "connection-handler-concurrent-requests")
 
   //set to true when graceful disconnect has been triggered
@@ -154,21 +155,24 @@ with DownstreamEventHandler[GenRequestHandler[P]]
     errors.hit(tags = tags)
     if (config.logErrors) {
       val formattedRequest = error match {
-        case RecoverableError(request, reason) => requestHandler.requestLogFormat.map{_.format(request)}.getOrElse(request.toString)
+        case RecoverableError(request, reason) =>
+          requestHandler.requestLogFormat.map { _.format(request) }.getOrElse(request.toString)
         case IrrecoverableError(reason) => "Invalid Request"
       }
-      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}" )
+      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}")
     }
   }
 
   private case class SyncPromise(request: Request) {
     val creationTime = System.currentTimeMillis
 
-    def isTimedOut(time: Long) = !isComplete && config.requestTimeout.isFinite && (time - creationTime) > config.requestTimeout.toMillis
+    def isTimedOut(time: Long) =
+      !isComplete && config.requestTimeout.isFinite && (time - creationTime) > config.requestTimeout.toMillis
 
     private var _response: Option[Response] = None
-    def isComplete = _response.isDefined
-    def response = if (_response.isDefined) _response.get else throw new Exception("Attempt to use incomplete response")
+    def isComplete                          = _response.isDefined
+    def response =
+      if (_response.isDefined) _response.get else throw new Exception("Attempt to use incomplete response")
 
     def complete(response: Response) {
       _response = Some(response)
@@ -177,10 +181,9 @@ with DownstreamEventHandler[GenRequestHandler[P]]
 
   }
 
-
-  private val requestBuffer = new java.util.LinkedList[SyncPromise]()
+  private val requestBuffer    = new java.util.LinkedList[SyncPromise]()
   def currentRequestBufferSize = requestBuffer.size
-  private var numRequests = 0
+  private var numRequests      = 0
 
   override def onIdleCheck(period: FiniteDuration) {
     val time = System.currentTimeMillis
@@ -189,10 +192,10 @@ with DownstreamEventHandler[GenRequestHandler[P]]
       requestBuffer.peek.complete(handleFailure(RecoverableError(requestBuffer.peek.request, new TimeoutError)))
     }
   }
-    
+
   /**
-   * Pushes the completed responses down to the controller so they can be returned to the client.
-   */
+    * Pushes the completed responses down to the controller so they can be returned to the client.
+    */
   private def checkBuffer() {
     var continue = true
     while (continue && requestBuffer.size > 0 && requestBuffer.peek.isComplete) {
@@ -211,7 +214,7 @@ with DownstreamEventHandler[GenRequestHandler[P]]
           //it's faster than peeking since we have to do less operations on the
           //linkedlist on average
           requestBuffer.addFirst(done)
-          signal.notify{ checkBuffer() }
+          signal.notify { checkBuffer() }
           continue = false
         }
         case other => {
@@ -231,7 +234,7 @@ with DownstreamEventHandler[GenRequestHandler[P]]
     processMessages()
   }
 
-  override def onConnectionTerminated(cause : DisconnectCause) {
+  override def onConnectionTerminated(cause: DisconnectCause) {
     if (config.requestMetrics) {
       requestsPerConnection.add(numRequests)
       concurrentRequests.decrement(amount = requestBuffer.size)
@@ -243,15 +246,16 @@ with DownstreamEventHandler[GenRequestHandler[P]]
   }
 
   def processMessages() {
-    incoming.pullWhile (
+    incoming.pullWhile(
       request => {
         numRequests += 1
         val promise = new SyncPromise(request)
         requestBuffer.add(promise)
+
         /**
-         * Notice, if the request buffer is full we're still adding to it, but by skipping
-         * processing of requests we can hope to alleviate overloading
-         */
+          * Notice, if the request buffer is full we're still adding to it, but by skipping
+          * processing of requests we can hope to alleviate overloading
+          */
         val response: Callback[Response] = if (requestBuffer.size <= config.requestBufferSize) {
           try {
             requestHandler.handleRequest(request)
@@ -266,7 +270,7 @@ with DownstreamEventHandler[GenRequestHandler[P]]
           Callback.successful(handleFailure(RecoverableError(request, new RequestBufferFullException)))
         }
         if (config.requestMetrics) concurrentRequests.increment()
-        response.execute{
+        response.execute {
           case Success(res) => promise.complete(res)
           case Failure(err) => promise.complete(handleFailure(RecoverableError(promise.request, err)))
         }
@@ -275,8 +279,9 @@ with DownstreamEventHandler[GenRequestHandler[P]]
       _ => ()
     )
   }
-  
-  override def onFatalError(reason: Throwable) = FatalErrorAction.Disconnect(Some(handleFailure(IrrecoverableError(reason))))
+
+  override def onFatalError(reason: Throwable) =
+    FatalErrorAction.Disconnect(Some(handleFailure(IrrecoverableError(reason))))
 
   private def handleFailure(error: ProcessingFailure[Request]): Response = {
     addError(error)
@@ -294,14 +299,13 @@ with DownstreamEventHandler[GenRequestHandler[P]]
     checkGracefulDisconnect()
   }
 
-  
 }
 
 sealed trait ProcessingFailure[C] {
   def reason: Throwable
 }
 
-case class IrrecoverableError[C](reason: Throwable) extends ProcessingFailure[C]
+case class IrrecoverableError[C](reason: Throwable)           extends ProcessingFailure[C]
 case class RecoverableError[C](request: C, reason: Throwable) extends ProcessingFailure[C]
 
 object ServiceServer {

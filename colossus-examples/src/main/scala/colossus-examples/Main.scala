@@ -4,8 +4,6 @@ import colossus._
 import akka.actor._
 import java.net.InetSocketAddress
 
-
-
 object Main extends App {
 
   println(""" _______  _______  _        _______  _______  _______           _______ """)
@@ -36,7 +34,7 @@ object Main extends App {
 
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
-  */
+   */
 
   val benchmarkServer = BenchmarkService.start(9007)
 

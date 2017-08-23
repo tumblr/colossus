@@ -14,23 +14,23 @@ object Fibonacci2 extends App {
 
   def fibonacci(i: Long): Long = i match {
     case 1 | 2 => 1
-    case n => fibonacci(n - 1) + fibonacci(n - 2)
+    case n     => fibonacci(n - 1) + fibonacci(n - 2)
   }
 
-  implicit val actorSystem = ActorSystem()
+  implicit val actorSystem      = ActorSystem()
   implicit val executionContext = actorSystem.dispatcher
-  implicit val io = IOSystem("io-system", workerCount = Some(1), MetricSystem("io-system"))
+  implicit val io               = IOSystem("io-system", workerCount = Some(1), MetricSystem("io-system"))
 
   HttpServer.start("example-server", 9000) {
     new Initializer(_) {
       override def onConnect = new RequestHandler(_) {
         override def handle: PartialHandler[Http] = {
 
-          case req@Get on Root / "hello" =>
+          case req @ Get on Root / "hello" =>
             Callback.successful(req.ok("Hello World!"))
 
           // #fibonacci2
-          case req@Get on Root / "fib" / Long(n) =>
+          case req @ Get on Root / "fib" / Long(n) =>
             if (n > 0) {
               Callback.fromFuture(Future(fibonacci(n))).map { result =>
                 req.ok(result.toString)

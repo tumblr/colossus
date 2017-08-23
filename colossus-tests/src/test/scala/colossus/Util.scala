@@ -12,27 +12,30 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
-class NoopHandler(context: Context) extends CoreHandler(context) with ServerConnectionHandler with ClientConnectionHandler {
+class NoopHandler(context: Context)
+    extends CoreHandler(context)
+    with ServerConnectionHandler
+    with ClientConnectionHandler {
   def this(s: ServerContext) = this(s.context)
 
-  def receivedData(data: DataBuffer){}
+  def receivedData(data: DataBuffer) {}
   def readyForData(out: DataOutBuffer): MoreDataResult = MoreDataResult.Complete
 
-   protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
-   protected def connectionLost(cause: colossus.core.DisconnectError): Unit = {}
-   def idleCheck(period: scala.concurrent.duration.Duration): Unit = {}
+  protected def connectionClosed(cause: colossus.core.DisconnectCause): Unit = {}
+  protected def connectionLost(cause: colossus.core.DisconnectError): Unit   = {}
+  def idleCheck(period: scala.concurrent.duration.Duration): Unit            = {}
 
 }
 
-class EchoHandler(c: ServerContext) extends NoopHandler(c){
+class EchoHandler(c: ServerContext) extends NoopHandler(c) {
 
   val buffer = new collection.mutable.Queue[ByteString]
-  override def receivedData(data: DataBuffer){
+  override def receivedData(data: DataBuffer) {
     //endpoint.write(data)
     buffer.enqueue(ByteString(data.takeAll))
     connectionState match {
       case a: AliveState => a.endpoint.requestWrite()
-      case _ => {}
+      case _             => {}
     }
   }
 
@@ -40,9 +43,8 @@ class EchoHandler(c: ServerContext) extends NoopHandler(c){
     out.write(buffer.dequeue)
     if (buffer.isEmpty) MoreDataResult.Complete else MoreDataResult.Incomplete
   }
-  
-  def connectionFailed(){}
-      
+
+  def connectionFailed() {}
 
 }
 
@@ -50,17 +52,19 @@ object SimpleProtocol {
   //this differs from the raw protocol in that messages have a length, so we can encode multiple messages into a single bytestring
 
   trait SimpleEncoding extends Encoding {
-    type Input = ByteString
+    type Input  = ByteString
     type Output = ByteString
   }
 
   class SimpleCodec extends Codec[SimpleEncoding] {
     import parsing.Combinators._
-    def newparser = bytes(intUntil(';') >> {_.toInt}) >> {bytes => ByteString(bytes)}
+    def newparser = bytes(intUntil(';') >> { _.toInt }) >> { bytes =>
+      ByteString(bytes)
+    }
     var parser = newparser
 
     def decode(data: DataBuffer) = parser.parse(data)
-    def encode(bytes: ByteString, buffer: DataOutBuffer) { 
+    def encode(bytes: ByteString, buffer: DataOutBuffer) {
       buffer write ByteString(bytes.length.toString)
       buffer write ';'
       buffer write bytes
@@ -73,7 +77,7 @@ object SimpleProtocol {
   }
 
   trait Simple extends Protocol {
-    type Request = ByteString
+    type Request  = ByteString
     type Response = ByteString
   }
 }
@@ -81,10 +85,10 @@ object SimpleProtocol {
 object RawProtocol {
   import colossus.service._
 
-  trait BaseRawCodec  {
+  trait BaseRawCodec {
     def decode(data: DataBuffer) = if (data.hasUnreadData) Some(ByteString(data.takeAll)) else None
     def encode(raw: ByteString, buffer: DataOutBuffer) { buffer write raw }
-    def reset(){}
+    def reset() {}
     def endOfStream() = None
   }
 
@@ -92,26 +96,26 @@ object RawProtocol {
   object RawClientCodec extends BaseRawCodec with Codec.Client[Raw]
 
   trait Raw extends Protocol {
-    type Request = ByteString
+    type Request  = ByteString
     type Response = ByteString
   }
 
   implicit object RawClientLifter extends ClientLifter[Raw, RawClient] {
-    
-    override def lift[M[_]](client: Sender[Raw, M], clientConfig: Option[ClientConfig])(implicit async: Async[M]): RawClient[M] = {
+
+    override def lift[M[_]](client: Sender[Raw, M], clientConfig: Option[ClientConfig])(
+        implicit async: Async[M]): RawClient[M] = {
       new BasicLiftedClient(client, clientConfig) with RawClient[M]
     }
   }
 
-  object Raw extends ClientFactories[Raw, RawClient]{
+  object Raw extends ClientFactories[Raw, RawClient](RawClientLifter) {
     implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
-    
+
   }
 
   trait RawClient[M[_]] extends LiftedClient[Raw, M]
 
-  object RawClient {
-  }
+  object RawClient {}
 
   val RawServer = server.Server
 
@@ -119,8 +123,8 @@ object RawProtocol {
 
     def provideCodec() = RawServerCodec
 
-    def errorMessage(error: ProcessingFailure[ByteString]) = ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-
+    def errorMessage(error: ProcessingFailure[ByteString]) =
+      ByteString(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
 
   }
 
@@ -130,11 +134,11 @@ object TestClient {
   import RawProtocol._
 
   def apply(
-    io: IOSystem,
-    port: Int,
-    waitForConnected: Boolean = true,
-    connectRetry : RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))
-  ) : FutureClient[Raw] = {
+      io: IOSystem,
+      port: Int,
+      waitForConnected: Boolean = true,
+      connectRetry: RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds))
+  ): FutureClient[Raw] = {
     val config = ClientConfig(
       name = "/test",
       requestTimeout = 100.milliseconds,
@@ -156,7 +160,7 @@ object TestClient {
 
   def waitForStatus[P <: Protocol](client: FutureClient[P], status: ConnectionStatus, maxTries: Int = 5) {
     var tries = maxTries
-    var last = Await.result(client.connectionStatus, 10.seconds)
+    var last  = Await.result(client.connectionStatus, 10.seconds)
     while (last != status) {
       Thread.sleep(100)
       tries -= 1
@@ -169,10 +173,9 @@ object TestClient {
 
 }
 
-
 object TestUtil {
   def expectServerConnections(server: ServerRef, connections: Int, maxTries: Int = 10) {
-    var tries = maxTries
+    var tries            = maxTries
     implicit val timeout = Timeout(100.milliseconds)
     while (Await.result(server.info(), 100.milliseconds) != Server.ServerInfo(connections, ServerStatus.Bound)) {
       Thread.sleep(100)

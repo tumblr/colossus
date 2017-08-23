@@ -8,23 +8,21 @@ abstract class StaticOutState(val canPush: Boolean) {
   def disconnecting = !canPush
 }
 object StaticOutState {
-  case object Suspended extends StaticOutState(true)
-  case object Alive extends StaticOutState(true)
+  case object Suspended     extends StaticOutState(true)
+  case object Alive         extends StaticOutState(true)
   case object Disconnecting extends StaticOutState(false)
-  case object Terminated extends StaticOutState(false)
+  case object Terminated    extends StaticOutState(false)
 }
 
-trait StaticOutputController[E <: Encoding] extends BaseController[E]{
-
+trait StaticOutputController[E <: Encoding] extends BaseController[E] {
 
   private def pipe = new BufferedPipe[E#Output](controllerConfig.outputBufferSize)
 
   val outgoing = new PipeCircuitBreaker[E#Output, E#Output]()
-    
-  private var state: StaticOutState = StaticOutState.Suspended
-  private def disconnecting = state.disconnecting
-  private var _writesEnabled = true
 
+  private var state: StaticOutState = StaticOutState.Suspended
+  private def disconnecting         = state.disconnecting
+  private var _writesEnabled        = true
 
   def writesEnabled = _writesEnabled
 
@@ -33,23 +31,22 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     outgoing.set(pipe)
     state = StaticOutState.Alive
     outgoing.peek match {
-      case PullResult.Item(_) => signalWrite()
+      case PullResult.Item(_)       => signalWrite()
       case PullResult.Empty(signal) => signal.notify { signalWrite() }
-      case other => fatalError(new PipeStateException("Upstream in non-open state upon connection"), true)
+      case other                    => fatalError(new PipeStateException("Upstream in non-open state upon connection"), true)
     }
   }
-
 
   private def onClosed() {
     outgoing.unset()
   }
 
-  protected def connectionClosed(cause : DisconnectCause) {
+  protected def connectionClosed(cause: DisconnectCause) {
     state = StaticOutState.Terminated
     onClosed()
   }
 
-  protected def connectionLost(cause : DisconnectError) {
+  protected def connectionLost(cause: DisconnectError) {
     state = if (disconnecting) StaticOutState.Terminated else StaticOutState.Suspended
     onClosed()
   }
@@ -74,8 +71,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
     }
   }
 
-
-  def readyForData(buffer: DataOutBuffer) =  {
+  def readyForData(buffer: DataOutBuffer) = {
     if (disconnecting && !outgoing.peek.isInstanceOf[PullResult.Item[_]]) {
       upstream.shutdown()
       MoreDataResult.Complete
@@ -85,7 +81,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
         !buffer.isOverflowed
       } match {
         case Some(PullResult.Empty(sig)) => {
-          sig.notify{ signalWrite() }
+          sig.notify { signalWrite() }
           false
         }
         case Some(PullResult.Error(uhoh)) => {
@@ -108,8 +104,5 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E]{
       }
     }
   }
-        
-
-  
 
 }

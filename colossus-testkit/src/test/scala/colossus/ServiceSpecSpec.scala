@@ -12,18 +12,23 @@ import org.scalatest.exceptions.TestFailedException
 import Callback.Implicits._
 
 object TestService {
-  def apply()(implicit io: IOSystem) = RedisServer.basic("localhost", 3535, new RequestHandler(_){
-    def handle = {
-      case c: Command if (c.command == "GET") => StatusReply("OK")
-      case c: Command if (c.command == "DELAY") => Callback.schedule(200.milliseconds)(Callback.successful(StatusReply("OK")))
-    }
-  })
+  def apply()(implicit io: IOSystem) =
+    RedisServer.basic(
+      "localhost",
+      3535,
+      new RequestHandler(_) {
+        def handle = {
+          case c: Command if (c.command == "GET") => StatusReply("OK")
+          case c: Command if (c.command == "DELAY") =>
+            Callback.schedule(200.milliseconds)(Callback.successful(StatusReply("OK")))
+        }
+      }
+    )
 }
-
 
 class ServiceSpecSpec extends ServiceSpec[Redis] {
 
-  def service = TestService()
+  def service        = TestService()
   val requestTimeout = 5.seconds
 
   "test service" must {
@@ -31,11 +36,9 @@ class ServiceSpecSpec extends ServiceSpec[Redis] {
       expectResponse(Command("GET", "wahtever"), StatusReply("OK"))
     }
 
-
     "expect a response of type" in {
       expectResponseType[ErrorReply](Command("ASDF"))
     }
-
 
   }
 }
@@ -48,7 +51,7 @@ class ServiceSpecTimeoutSpec extends ServiceSpec[Redis] {
 
   "test service" must {
     "expectResponse properly times out" in {
-      intercept[TestFailedException]{
+      intercept[TestFailedException] {
         expectResponse(Command("DELAY"), StatusReply("OK"))
       }
     }

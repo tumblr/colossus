@@ -16,18 +16,18 @@ case class FakeWorker(probe: TestProbe, worker: WorkerRef)
 
 object FakeIOSystem {
   def apply()(implicit system: ActorSystem): IOSystem = {
-    new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x,y) => system.deadLetters)
+    new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x, y) => system.deadLetters)
   }
 
   /**
-   * Returns a WorkerRef with a TestProbe as the underlying actor.  Returns the probe with the WorkerRef.
-   *
-   * Important: This WorkerRef's callbackExecutor does NOT work, use `fakeExecutorWorkerRef` instead
-   */
+    * Returns a WorkerRef with a TestProbe as the underlying actor.  Returns the probe with the WorkerRef.
+    *
+    * Important: This WorkerRef's callbackExecutor does NOT work, use `fakeExecutorWorkerRef` instead
+    */
   def fakeWorkerRef(implicit system: ActorSystem): (TestProbe, WorkerRef) = {
-    val probe = TestProbe()
+    val probe         = TestProbe()
     implicit val aref = probe.ref
-    val ref = WorkerRef(0, probe.ref, apply())
+    val ref           = WorkerRef(0, probe.ref, apply())
     (probe, ref)
   }
   //use this for new tests
@@ -50,8 +50,8 @@ object FakeIOSystem {
   }
 
   /**
-   * Returns a ServerRef representing a server in the Bound state
-   */
+    * Returns a ServerRef representing a server in the Bound state
+    */
   def fakeServerRef(implicit system: ActorSystem): (TestProbe, ServerRef) = {
     val probe = TestProbe()
     val config = ServerConfig(
@@ -59,13 +59,16 @@ object FakeIOSystem {
       (initContext) => ???,
       ServerSettings(987)
     )
-    val ref = ServerRef(config, probe.ref, apply(), new AtomicReference(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
+    val ref = ServerRef(config,
+                        probe.ref,
+                        apply(),
+                        new AtomicReference(ServerState(ConnectionVolumeState.Normal, ServerStatus.Bound)))
     (probe, ref)
   }
 
   /**
-   * Returns a WorkerRef that is able to properly execute callbacks
-   */
+    * Returns a WorkerRef that is able to properly execute callbacks
+    */
   def fakeExecutorWorkerRef(implicit system: ActorSystem): WorkerRef = {
     val ex = testExecutor
     WorkerRef(0, testExecutor.executor, FakeIOSystem())
@@ -73,7 +76,7 @@ object FakeIOSystem {
 
   def withManagerProbe()(implicit system: ActorSystem): (IOSystem, TestProbe) = {
     val probe = TestProbe()
-    val sys = new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x,y) => probe.ref)
+    val sys   = new IOSystem("FAKE", 0, MetricSystem.deadSystem, system, (x, y) => probe.ref)
     (sys, probe)
   }
 
@@ -83,13 +86,12 @@ object FakeIOSystem {
   def testExecutor(implicit system: ActorSystem): CallbackExecutor = {
     exCache.get(system).getOrElse {
       val ref = system.actorOf(Props[GenericExecutor].withDispatcher("server-dispatcher"))
-      val ex = CallbackExecutor(system.dispatcher, ref)
+      val ex  = CallbackExecutor(system.dispatcher, ref)
       exCache(system) = ex
       ex
     }
   }
 }
-
 
 trait GenericCallback {
   def execute()
@@ -112,15 +114,17 @@ class GenericExecutor extends Actor with CallbackExecution {
 object CallbackAwait {
 
   /**
-   * Await the result of a Callback.  The Callback is properly executed inside
-   * an Actor running in a PinnedDispatcher.  The calling thread blocks until
-   * the Callback finishes execution or the timeout is reached
-   *
-   * Use [[colossus.testkit.FakeIOSystem]]`.testExecutor` to get an implicit `CallbackExecutor`
-   */
+    * Await the result of a Callback.  The Callback is properly executed inside
+    * an Actor running in a PinnedDispatcher.  The calling thread blocks until
+    * the Callback finishes execution or the timeout is reached
+    *
+    * Use [[colossus.testkit.FakeIOSystem]]`.testExecutor` to get an implicit `CallbackExecutor`
+    */
   def result[T](cb: Callback[T], in: Duration)(implicit ex: CallbackExecutor): T = {
     val p = Promise[T]()
-    ex.executor ! CallbackMessage(cb.mapTry{t => p.complete(t);t})
+    ex.executor ! CallbackMessage(cb.mapTry { t =>
+      p.complete(t); t
+    })
     Await.result(p.future, in)
   }
 

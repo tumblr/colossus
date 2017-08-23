@@ -11,7 +11,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 object HttpServiceExample extends App {
 
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   HttpServer.start("example-server", 9000) {
     new Initializer(_) {

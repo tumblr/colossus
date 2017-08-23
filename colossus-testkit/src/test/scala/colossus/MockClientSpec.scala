@@ -12,12 +12,12 @@ class MockClientSpec extends ColossusSpec {
   "MockClient" must {
     "work" in {
       implicit val worker = FakeIOSystem.fakeWorker.worker
-      val c: HttpClient[Callback] = Http.client(MockSender[Http, Callback](( request: HttpRequest) => Callback.successful(request.ok("hi"))))
+      val c: HttpClient[Callback] =
+        Http.client(MockSender[Http, Callback]((request: HttpRequest) => Callback.successful(request.ok("hi"))))
 
       CallbackAwait.result(c.send(HttpRequest.get("foo")), 1.second).body.asDataBlock.utf8String mustBe "hi"
     }
   }
-
 
   "MockClientFactory" must {
     "work with LoadBalancingClient" in {
@@ -32,7 +32,5 @@ class MockClientSpec extends ColossusSpec {
       CallbackAwait.result(l.send(HttpRequest.get("foo")), 1.second).body.asDataBlock.utf8String mustBe "test"
     }
   }
-        
 
 }
-
