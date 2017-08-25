@@ -1,17 +1,18 @@
-package colossus
-package service
+package colossus.service
 
-import colossus.parsing.{ParseException, DataSize}
-import com.typesafe.config.{ConfigFactory, Config, ConfigException}
-import core._
-import controller._
+import colossus.parsing.{DataSize, ParseException}
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import akka.event.Logging
-import metrics._
+import colossus.controller._
+import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler, UpstreamEvents}
+import colossus.metrics.collectors.{Counter, Histogram, Rate}
+import colossus.metrics.TagMap
+import colossus.util.ExceptionFormatter._
+import colossus.streaming.{BufferedPipe, PullAction, PushResult}
+import colossus.util.ConfigCache
+
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import util.ConfigCache
-import util.ExceptionFormatter._
-import streaming._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 

@@ -1,20 +1,17 @@
-package colossus
-package protocols.websocket
+package colossus.protocols.websocket
 
-import controller.Encoding
-import core.{DataBlock, DataBuffer, ServerContext}
-import streaming.PullResult
-
-import protocols.http._
+import colossus.controller.Encoding
+import colossus.core.{DataBlock, DataBuffer, ServerContext, WorkerCommand}
+import colossus.streaming.PullResult
+import colossus.protocols.http._
 import java.util.Random
 
 import colossus.testkit._
 import colossus.controller.ControllerMocks
-
 import akka.util.ByteString
 
 import scala.concurrent.duration._
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 import org.scalamock.scalatest.MockFactory
 
 class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
@@ -213,7 +210,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     }
 
     def createHandler = {
-      val init = new protocols.http.server.Initializer(FakeIOSystem.fakeInitContext) {
+      val init = new colossus.protocols.http.Initializer(FakeIOSystem.fakeInitContext) {
         def onConnect = new WebsocketHttpHandler(_, myinit, "/foo", List.empty)
       }
       MockConnection.server(ctx => init.fullHandler(init.onConnect(ctx)))
@@ -226,7 +223,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
       con.iterate()
       //con.expectOneWrite(validResponse.bytes)
       con.iterate()
-      con.workerProbe.expectMsgType[core.WorkerCommand.SwapHandler](100.milliseconds)
+      con.workerProbe.expectMsgType[WorkerCommand.SwapHandler](100.milliseconds)
     }
     "return 400 and not switch on invalid request" in {
       val bad = HttpRequest.get("/foo")

@@ -1,7 +1,7 @@
-package colossus
-package controller
+package colossus.controller
 
-import core.{DataBuffer, DataOutBuffer}
+import colossus.core.{DataBuffer, DataOutBuffer}
+import colossus.service.Protocol
 
 trait Codec[E <: Encoding] {
   def decode(data: DataBuffer): Option[E#Input]
@@ -23,10 +23,6 @@ trait Codec[E <: Encoding] {
 }
 
 object Codec {
-
-  import service.Protocol
-
   type Server[P <: Protocol] = Codec[Encoding.Server[P]]
   type Client[P <: Protocol] = Codec[Encoding.Client[P]]
-
 }

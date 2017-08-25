@@ -1,17 +1,17 @@
-package colossus
-package core
+package colossus.core
 package server
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import colossus.metrics.MetricSystem
-import testkit._
+import colossus.testkit.{ColossusSpec, FakeIOSystem}
 import akka.actor._
 import akka.testkit.TestProbe
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.ByteString
+import colossus._
 
 class ServerSpec extends ColossusSpec {
 

@@ -1,28 +1,26 @@
-package colossus
-package service
+package colossus.service
 
 import colossus.core._
-import controller._
-import streaming._
-import testkit._
+import colossus.testkit.{CallbackAwait, ColossusSpec, FakeIOSystem, MockConnection}
 import Callback.Implicits._
-
 import akka.testkit.TestProbe
 
-import metrics.MetricAddress
-
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
 import akka.util.ByteString
 import java.net.InetSocketAddress
 
-import protocols.redis._
-import UnifiedProtocol._
-import scala.concurrent.Await
-import parsing.DataSize
-import DataSize._
+import colossus.RawProtocol.Raw
+import colossus.{TestClient, TestUtil}
+import colossus.controller.{ControllerUpstream, Encoding}
+import colossus.metrics.MetricAddress
+import colossus.parsing.DataSize
+import colossus.parsing.DataSize._
+import colossus.protocols.redis._
+import colossus.protocols.redis.UnifiedProtocol._
+import colossus.streaming.{BufferedPipe, PullResult}
 
-import RawProtocol._
+import scala.concurrent.Await
 import org.scalamock.scalatest.MockFactory
 class ServiceClientSpec extends ColossusSpec with MockFactory {
 
@@ -380,8 +378,8 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "attempts to reconnect when server closes connection" in {
       //try it for real (reacting to a bug with NIO interaction)
       withIOSystem { implicit sys =>
-        import protocols.redis._
-        import protocols.redis.server._
+        import colossus.protocols.redis._
+        import colossus.protocols.redis.server._
 
         val reply = StatusReply("LATER LOSER!!!")
         val server = RedisServer.basic("test", TEST_PORT, new RequestHandler(_) {
@@ -414,7 +412,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem { implicit io =>
-        import RawProtocol.server._
+        import colossus.RawProtocol.server._
         val server = Server.basic("rawwww", TEST_PORT, new RequestHandler(_) {
           def handle = {
             case foo => {
@@ -434,7 +432,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem { implicit io =>
-        import RawProtocol.server._
+        import colossus.RawProtocol.server._
         val server = Server.basic("rawwww", TEST_PORT, new RequestHandler(_) {
           def handle = {
             case foo => {
@@ -531,7 +529,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     }
 
     "work with mocking" in {
-      import protocols.http._
+      import colossus.protocols.http._
 
       val c = stub[HttpClient[Callback]]
 

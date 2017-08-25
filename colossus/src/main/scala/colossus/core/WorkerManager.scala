@@ -1,11 +1,12 @@
-package colossus
-package core
+package colossus.core
 
 import akka.actor._
 import akka.pattern.ask
 import akka.routing.RoundRobinGroup
 import akka.util.Timeout
 import java.net.InetSocketAddress
+
+import colossus.{IOCommand, IOSystem}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

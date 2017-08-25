@@ -1,8 +1,7 @@
-package colossus
-package streaming
+package colossus.streaming
 
-import controller._
-import core._
+import colossus.controller.{ControllerDownstream, ControllerUpstream, Encoding}
+import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler}
 
 /**
   * A Transcoder is used to convert streams of one encoding to streams of

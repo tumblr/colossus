@@ -1,8 +1,7 @@
-package colossus
-package protocols.http
-import scala.language.higherKinds
+package colossus.protocols.http
+import colossus.service._
 
-import service._
+import scala.language.higherKinds
 
 trait BaseHttpClient[M[_], B, P <: BaseHttp[B]] extends LiftedClient[P, M] {
 

@@ -1,10 +1,9 @@
-package colossus
-package testkit
-
-import core._
+package colossus.testkit
 
 import akka.actor._
 import akka.testkit.TestProbe
+import colossus.core._
+
 import scala.concurrent.duration._
 
 trait MockConnection extends Connection with MockChannelActions {

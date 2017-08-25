@@ -1,11 +1,10 @@
-package colossus
-package service
+package colossus.service
 
 import akka.actor.ActorRef
-import core.{WorkerItem, WorkerRef}
-import scala.reflect.ClassTag
 
+import scala.reflect.ClassTag
 import java.net.InetSocketAddress
+import colossus.core.{WorkerItem, WorkerRef}
 
 /**
   * The PermutationGenerator creates permutations such that consecutive calls

@@ -1,5 +1,4 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import colossus.metrics.MetricSystem
 
@@ -7,8 +6,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 
-import core.ServerRef
-import service._
+import colossus.IOSystem
+import colossus.core.ServerRef
+import colossus.service.{ClientConfig, FutureClient, GenFutureClientFactory, Protocol}
+
 import scala.reflect.ClassTag
 
 abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClientFactory[P]) extends ColossusSpec {

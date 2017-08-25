@@ -1,7 +1,7 @@
 package colossus
 package task
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 import akka.actor._
 import akka.testkit.TestProbe

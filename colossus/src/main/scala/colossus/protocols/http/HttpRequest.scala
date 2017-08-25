@@ -1,7 +1,7 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
-import core.{DataOutBuffer, Encoder}
+import colossus.core.{DataOutBuffer, Encoder}
+
 
 trait FirstLine extends Encoder {
   def method: HttpMethod
@@ -85,7 +85,7 @@ trait HttpRequestHead extends Encoder with HttpMessageHead {
 
   lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap { Cookie.parseHeader }
 
-  def encode(buffer: core.DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     firstLine encode buffer
     headers encode buffer
   }
@@ -121,7 +121,7 @@ case class HttpRequest(head: HttpRequestHead, body: HttpBody)
 
   def initialVersion = head.version
 
-  def encode(buffer: core.DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     head encode buffer
     if (body.size == 0) {
       buffer write HttpParse.NEWLINE_ARRAY

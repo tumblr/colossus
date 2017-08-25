@@ -1,7 +1,7 @@
-package colossus.metrics
+package colossus.metrics.senders
 
 import akka.actor._
-import colossus.metrics.senders.MetricsLogger
+import colossus.metrics.MetricSender
 import colossus.metrics.senders.MetricsLogger.Formatter
 
 /**

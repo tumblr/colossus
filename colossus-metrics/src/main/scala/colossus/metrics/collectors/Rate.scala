@@ -1,4 +1,6 @@
-package colossus.metrics
+package colossus.metrics.collectors
+
+import colossus.metrics.{CollectionMap, Collector, MetricAddress, MetricMap, MetricNamespace, MetricValue, TagMap}
 
 import scala.concurrent.duration._
 

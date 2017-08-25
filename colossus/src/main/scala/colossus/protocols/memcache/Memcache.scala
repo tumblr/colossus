@@ -1,9 +1,7 @@
-package colossus
-package protocols.memcache
+package colossus.protocols.memcache
 
-import controller.Codec
-import core._
-
+import colossus.controller.Codec
+import colossus.core._
 import akka.util.{ByteString, ByteStringBuilder}
 import java.util.zip.{Deflater, Inflater}
 
@@ -288,7 +286,7 @@ class MemcacheReplyParser() {
 }
 
 object MemcacheReplyParser {
-  import parsing._
+  import colossus.parsing._
   import Combinators._
   import MemcacheReply._
 

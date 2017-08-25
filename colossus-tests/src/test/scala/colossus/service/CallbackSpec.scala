@@ -1,7 +1,6 @@
-package colossus
-package service
+package colossus.service
 
-import testkit._
+import colossus.testkit.ColossusSpec
 import akka.testkit.TestProbe
 
 import scala.concurrent.{Await, ExecutionContext, Promise}

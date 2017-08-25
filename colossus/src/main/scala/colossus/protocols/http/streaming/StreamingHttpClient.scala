@@ -1,11 +1,9 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
-import controller._
-import core.{WorkerCommand, WorkerRef}
-
-import service._
+import colossus.controller.{Controller, Encoding}
+import colossus.core.{WorkerCommand, WorkerRef}
+import colossus.protocols.http.BaseHttpClient
+import colossus.service._
 import colossus.streaming.Source
 
 trait StreamingHttpClient

@@ -1,8 +1,7 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
-import controller.Codec
-import core._
+import colossus.controller.Codec
+import colossus.core._
 
 class RedisServerCodec extends Codec.Server[Redis] {
   private var commandParser = RedisCommandParser.command

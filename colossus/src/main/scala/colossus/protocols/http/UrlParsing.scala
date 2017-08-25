@@ -1,5 +1,4 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 /**
   * URL parsing can be done using one of two paths. The first uses an object based decomposition with a minimal number

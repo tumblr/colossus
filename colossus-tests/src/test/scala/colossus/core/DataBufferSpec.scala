@@ -1,8 +1,7 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
 import akka.util.{ByteString, ByteStringBuilder}
+import colossus.testkit.ColossusSpec
 
 class DataBufferSpec extends ColossusSpec {
 

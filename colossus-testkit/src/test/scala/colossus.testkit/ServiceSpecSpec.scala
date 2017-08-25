@@ -1,15 +1,12 @@
 package colossus
-package testkit
 
 import scala.concurrent.duration._
-
 import protocols.redis._
 import protocols.redis.server._
 import service._
-
 import org.scalatest.exceptions.TestFailedException
-
 import Callback.Implicits._
+import colossus.testkit.ServiceSpec
 
 object TestService {
   def apply()(implicit io: IOSystem) =

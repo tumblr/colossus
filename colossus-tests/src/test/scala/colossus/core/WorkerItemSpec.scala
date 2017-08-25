@@ -1,10 +1,9 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
-
+import colossus.testkit.ColossusSpec
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
+import colossus.IOCommand
 
 import scala.concurrent.duration._
 

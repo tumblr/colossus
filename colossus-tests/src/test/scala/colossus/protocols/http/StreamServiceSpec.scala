@@ -1,14 +1,13 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
-import core._
-import controller._
-import testkit._
+import colossus.core._
+import colossus.controller._
+import colossus.testkit.{ColossusSpec, MockConnection}
 import colossus.streaming._
 import akka.util.ByteString
-
+import colossus.protocols.http.{HttpBody, HttpCodes, HttpHeaders, HttpMethod, HttpRequest, HttpRequestHead, HttpResponse, HttpResponseHead, HttpVersion, TransferEncoding}
 import org.scalamock.scalatest.MockFactory
+
 class StreamServiceSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
   "Streaming Http Response" must {

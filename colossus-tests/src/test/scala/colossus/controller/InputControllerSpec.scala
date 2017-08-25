@@ -1,12 +1,11 @@
-package colossus
-package controller
+package colossus.controller
 
 import akka.util.ByteString
 import colossus.core._
 import colossus.parsing.DataSize._
 import colossus.testkit._
 import colossus.streaming._
-import SimpleProtocol._
+import colossus.SimpleProtocol._
 
 class InputControllerSpec extends ColossusSpec with CallbackMatchers with ControllerMocks {
 

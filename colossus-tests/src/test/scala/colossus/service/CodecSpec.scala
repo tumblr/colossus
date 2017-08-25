@@ -1,12 +1,9 @@
-package colossus
-package service
+package colossus.service
 
-import core.{DataBuffer, DataOutBuffer}
-import controller.{Encoding, Codec}
-
-import org.scalatest.{WordSpec, MustMatchers}
-
+import org.scalatest.{MustMatchers, WordSpec}
 import akka.util.ByteString
+import colossus.controller.{Codec, Encoding}
+import colossus.core.{DataBuffer, DataOutBuffer}
 
 class CodecSpec extends WordSpec with MustMatchers {
 

@@ -8,7 +8,6 @@ import colossus.core.{ServerContext, ServerRef}
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http._
-import colossus.protocols.http.server._
 import colossus.protocols.redis._
 import colossus.service.Callback.Implicits._
 import colossus.service.Callback

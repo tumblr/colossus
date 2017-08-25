@@ -5,7 +5,7 @@ import colossus.metrics.MetricSystem
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
-import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
+import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.memcache.Memcache
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler

@@ -1,10 +1,9 @@
-package colossus
-package protocols
+package colossus.protocols
 
-import core._
-import controller.Encoding
 import java.util.Random
-import controller.Codec
+
+import colossus.controller.{Codec, Encoding}
+import colossus.core.{DataBuffer, DataOutBuffer}
 
 /**
   * **This package is experimental and subject to breaking changes between

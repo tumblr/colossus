@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import com.typesafe.config.{Config, ConfigFactory}
 import scala.concurrent.duration._

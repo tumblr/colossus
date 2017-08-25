@@ -1,5 +1,4 @@
-package colossus
-package streaming
+package colossus.streaming
 
 import colossus.testkit._
 import scala.concurrent.duration._

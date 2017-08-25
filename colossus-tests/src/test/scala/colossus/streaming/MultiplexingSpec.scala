@@ -1,8 +1,7 @@
-package colossus
-package streaming
+package colossus.streaming
 
 import colossus.testkit._
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 import scala.concurrent.duration._
 
 class MultiplexingSpec extends ColossusSpec {
@@ -11,7 +10,7 @@ class MultiplexingSpec extends ColossusSpec {
 
   "Pipe Demultiplexer" must {
     import StreamComponent._
-    import service.Callback
+    import colossus.service.Callback
 
     case class FooFrame(id: Int, component: StreamComponent, value: Int)
     implicit object FooStream extends MultiStream[Int, FooFrame] {

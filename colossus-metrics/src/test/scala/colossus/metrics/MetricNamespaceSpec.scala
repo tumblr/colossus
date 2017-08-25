@@ -1,6 +1,8 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{Counter, Rate}
 import org.scalatest.{MustMatchers, WordSpec}
+
 import scala.concurrent.duration._
 
 class MetricNamespaceSpec extends WordSpec with MustMatchers {

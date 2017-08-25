@@ -1,7 +1,6 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
-import service.{BasicServiceDSL, ProcessingFailure}
+import colossus.service.{BasicServiceDSL, ProcessingFailure}
 
 object server extends BasicServiceDSL[colossus.protocols.redis.Redis] {
 

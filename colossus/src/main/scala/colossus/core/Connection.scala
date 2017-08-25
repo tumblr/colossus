@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import scala.concurrent.duration._
 import java.nio.channels.{SelectionKey, SocketChannel}

@@ -1,11 +1,11 @@
-package colossus
-package core
-package server
+package colossus.core.server
 
 object ServerDSL {
   type Receive = PartialFunction[Any, Unit]
 }
 import ServerDSL._
+import colossus.IOSystem
+import colossus.core._
 import com.typesafe.config.{Config, ConfigFactory}
 
 /**

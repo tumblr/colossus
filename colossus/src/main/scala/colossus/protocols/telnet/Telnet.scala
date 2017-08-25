@@ -1,13 +1,9 @@
-package colossus
-package protocols
-
-import controller.Codec
-import core._
-import service._
+package colossus.protocols
 
 import akka.util.ByteString
-
-import service._
+import colossus.controller.Codec
+import colossus.core.{DataBuffer, DataOutBuffer}
+import colossus.service.Protocol
 
 package object telnet {
 

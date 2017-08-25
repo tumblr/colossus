@@ -1,16 +1,16 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import akka.util.ByteString
+import colossus.core.{DataBlock, DataOutBuffer}
+
 import scala.util.Try
-import core.DataBlock
 
 //TODO: this constructor should take an Option[String] for the contentType and create the header internally
 class HttpBody(private val body: Array[Byte], val contentType: Option[HttpHeader] = None) {
 
   def size = body.length
 
-  def encode(buffer: core.DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     if (size > 0) buffer.write(body)
   }
 

@@ -1,5 +1,4 @@
-package colossus
-package service
+package colossus.service
 
 import akka.actor._
 import scala.util.{Try, Success, Failure}

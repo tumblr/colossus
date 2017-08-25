@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{BaseHistogram, BucketList, Histogram}
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._

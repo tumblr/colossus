@@ -1,12 +1,9 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
+import colossus.controller.{ControllerDownstream, Encoding, FatalErrorAction}
+import colossus.protocols.http.{HttpMessageHead, HttpRequestHead, HttpResponseHead}
+import colossus.service.Protocol
 import colossus.streaming._
-
-import controller._
-import service.Protocol
-import service._
 
 import scala.language.higherKinds
 

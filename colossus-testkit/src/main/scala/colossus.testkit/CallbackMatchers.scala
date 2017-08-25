@@ -1,5 +1,4 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import colossus.service.{CallbackExecutor, Callback}
 import org.scalatest.Assertions

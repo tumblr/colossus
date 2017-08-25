@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import akka.actor._
 
@@ -75,8 +74,6 @@ trait WorkerItem extends WorkerItemEvents {
 
   /**
     * Signal from the worker to the item that it is now bound
-    * @param id  The id assigned to this Item.
-    * @param worker The Worker whom was bound
     */
   private[colossus] def setBind() {
     bound = true

@@ -1,9 +1,8 @@
-package colossus
-package testkit
+package colossus.testkit
+
+import colossus.protocols.http.{Http, HttpCode, HttpRequest, HttpResponse}
 
 import scala.concurrent.Await
-
-import protocols.http._
 
 abstract class HttpServiceSpec extends ServiceSpec[Http] {
 

@@ -1,9 +1,8 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import HttpMethod._
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 class HttpRequestSpec extends ColossusSpec {
 

@@ -1,12 +1,15 @@
-package colossus
-package core
-package server
+package colossus.core.server
 
 import akka.actor._
 import java.net.{InetSocketAddress, ServerSocket}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
 import java.util.concurrent.atomic.AtomicReference
-import metrics._
+
+import colossus.IOSystem
+import colossus.core._
+import colossus.metrics.MetricAddress
+import colossus.metrics.collectors.{Counter, Rate}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 

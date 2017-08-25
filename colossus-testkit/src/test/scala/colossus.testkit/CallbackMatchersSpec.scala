@@ -1,5 +1,4 @@
-package colossus
-package testkit
+package colossus.testkit
 
 import java.awt.datatransfer.UnsupportedFlavorException
 

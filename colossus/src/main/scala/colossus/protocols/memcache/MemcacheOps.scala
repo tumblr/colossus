@@ -1,10 +1,9 @@
-package colossus
-package protocols.memcache
+package colossus.protocols.memcache
 
 import akka.util.ByteString
 import colossus.protocols.memcache.MemcacheCommand._
 import colossus.protocols.memcache.MemcacheReply._
-import service._
+import colossus.service._
 
 import scala.language.higherKinds
 

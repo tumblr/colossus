@@ -1,19 +1,19 @@
-package colossus
-package service
+package colossus.service
 
 import java.net.InetSocketAddress
 
 import akka.event.Logging
-import com.typesafe.config.{ConfigFactory, Config}
+import colossus.controller._
+import colossus.core._
+import colossus.metrics.{MetricAddress, TagMap}
+import colossus.metrics.collectors.{Histogram, Rate}
+import com.typesafe.config.{Config, ConfigFactory}
 import colossus.parsing.DataSize
-import parsing.DataSize._
-import controller._
-import core._
-import metrics._
-import util.ExceptionFormatter._
+import colossus.parsing.DataSize._
+import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
+import colossus.util.ExceptionFormatter._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import streaming._
 
 /**
   * Configuration used to specify a Client's parameters

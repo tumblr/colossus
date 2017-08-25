@@ -1,5 +1,4 @@
-package colossus
-package util
+package colossus.util
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.util.Try
