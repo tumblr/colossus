@@ -73,7 +73,7 @@ trait MetricNamespace {
     * exists, a `DuplicateMetricException` will be thrown.
     * @param address Address meant to be relative to this MetricNamespace's namespace
     * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
-    * @tparam T
+    * @tparam T The Collector to be retrieved.
     * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
     */
   def getOrAdd[T <: Collector: ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
@@ -211,7 +211,7 @@ object MetricSystem {
   /**
     * Create a system which does nothing.  Useful for testing/debugging.
     *
-    * @param system
+    * @param system The useless, dead, worthless, should-never-have-been-born system.
     * @return
     */
   def deadSystem(implicit system: ActorSystem) = {

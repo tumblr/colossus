@@ -13,9 +13,9 @@ trait TagGenerator {
 /**
   * Configuration class for the metric reporter
   * @param metricSenders A list of [[MetricSender]] instances that the reporter will use to send metrics
-  * @param globalTags
-  * @param filters
-  * @param includeHostInGlobalTags
+  * @param globalTags A [[Map]] of tags to be used throughout the [[MetricReporter]].
+  * @param filters Tells the [[MetricReporter]] how to filter its Metrics before handing off to a Sender.
+  * @param includeHostInGlobalTags Whether to include the Host in the global tags.
   */
 case class MetricReporterConfig(
     metricSenders: Seq[MetricSender],
@@ -114,13 +114,13 @@ object MetricReporterFilter {
 
   /**
     * Only allow metrics for the specified MetricAddresses
-    * @param addresses
+    * @param addresses The MetricAddresses to whitelist.
     */
   case class WhiteList(addresses: Seq[MetricAddress]) extends MetricReporterFilter
 
   /**
     * Allow all other metrics except for the ones in the specified MetricAddresses
-    * @param addresses
+    * @param addresses The MetricAddresses to blacklist.
     */
   case class BlackList(addresses: Seq[MetricAddress]) extends MetricReporterFilter
 }

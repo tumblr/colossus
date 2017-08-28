@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
   * A config object passed to new event collectors in addition to their own config.
   *
   * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
-  * @param config A typesafe config object that contains all the config for collectors configured using typesafe config
+  * @param baseConfig A typesafe config object that contains all the config for collectors configured using typesafe config
   * @param collectorDefaults a typesafe config object for collector defaults
   */
 case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig: Config, collectorDefaults: Config) {
@@ -51,7 +51,7 @@ trait Collector {
   /**
     * TODO
     *
-    * @param interval
+    * @param interval TODO
     * @return
     */
   def tick(interval: FiniteDuration): MetricMap
