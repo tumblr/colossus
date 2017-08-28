@@ -439,7 +439,7 @@ class RedisITSpec extends BaseRedisITSpec with Eventually {
       client.set(getKey(), value).futureValue
       
       eventually {
-        val requests = client.async.environment.asInstanceOf[IOSystem].metrics.collectionIntervals(1.second)
+        val requests = metricSystem.collectionIntervals(1.second)
           .last(MetricAddress("redis/requests/count"))
 
         assert(requests.nonEmpty)

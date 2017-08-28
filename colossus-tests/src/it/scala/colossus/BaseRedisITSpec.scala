@@ -17,12 +17,6 @@ import scala.concurrent.duration._
 abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with ScaledTimeSpans {
   val metricSystem =  MetricSystem("test-system")
 
-  val reporterConfig = MetricReporterConfig(
-    metricSenders = Seq.empty,
-    globalTags = None
-  )
-  metricSystem.collectionIntervals.get(1.second).foreach(_.report(reporterConfig))
-
   implicit val sys = IOSystem("test-system", Some(2), metricSystem)
 
   implicit val ec = system.dispatcher
