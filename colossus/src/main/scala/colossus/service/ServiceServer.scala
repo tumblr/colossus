@@ -7,6 +7,7 @@ import colossus.controller._
 import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler, UpstreamEvents}
 import colossus.metrics.collectors.{Counter, Histogram, Rate}
 import colossus.metrics.TagMap
+import colossus.metrics.logging.ColossusLogging
 import colossus.util.ExceptionFormatter._
 import colossus.streaming.{BufferedPipe, PullAction, PushResult}
 import colossus.util.ConfigCache
@@ -117,7 +118,8 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
     extends ControllerDownstream[Encoding.Server[P]]
     with ServiceUpstream[P]
     with UpstreamEventHandler[ControllerUpstream[Encoding.Server[P]]]
-    with DownstreamEventHandler[GenRequestHandler[P]] {
+    with DownstreamEventHandler[GenRequestHandler[P]]
+    with ColossusLogging {
   import ServiceServer._
 
   type Request  = P#Request
@@ -151,16 +153,16 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
   //response but the last time we checked the output buffer it was full
   private var dequeuePaused = false
 
-  private def addError(error: ProcessingFailure[Request], extraTags: TagMap = TagMap.Empty) {
-    val tags = extraTags + ("type" -> error.reason.metricsName)
+  private def addError(failure: ProcessingFailure[Request], extraTags: TagMap = TagMap.Empty) {
+    val tags = extraTags + ("type" -> failure.reason.metricsName)
     errors.hit(tags = tags)
     if (config.logErrors) {
-      val formattedRequest = error match {
+      val formattedRequest = failure match {
         case RecoverableError(request, reason) =>
           requestHandler.requestLogFormat.map { _.format(request) }.getOrElse(request.toString)
         case IrrecoverableError(reason) => "Invalid Request"
       }
-      log.error(error.reason, s"Error processing request: $formattedRequest: ${error.reason}")
+      error(s"Error processing request: $formattedRequest: ${failure.reason}", failure.reason)
     }
   }
 
@@ -219,7 +221,7 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
           continue = false
         }
         case other => {
-          log.error(s"invalid state on incoming stream $other")
+          error(s"invalid state on incoming stream $other")
           upstream.connection.forceDisconnect()
         }
       }

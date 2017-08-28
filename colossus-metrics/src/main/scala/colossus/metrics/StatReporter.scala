@@ -3,6 +3,7 @@ package colossus.metrics
 import akka.actor.SupervisorStrategy._
 import akka.actor.{OneForOneStrategy, _}
 import colossus.metrics.IntervalAggregator.{RegisterReporter, ReportMetrics}
+import colossus.metrics.logging.ColossusLogging
 
 import scala.concurrent.duration._
 
@@ -26,7 +27,7 @@ case class MetricReporterConfig(
 
 class MetricReporter(intervalAggregator: ActorRef, config: MetricReporterConfig, metricSystemName: String)
     extends Actor
-    with ActorLogging {
+    with ColossusLogging {
   import MetricReporter._
   import config._
 
@@ -55,7 +56,7 @@ class MetricReporter(intervalAggregator: ActorRef, config: MetricReporterConfig,
       sendToReporters(s)
     }
     case ResetSender => {
-      log.info("resetting stats senders")
+      info("resetting stats senders")
       sendToReporters(PoisonPill)
       reporters = metricSenders.map(createSender)
     }

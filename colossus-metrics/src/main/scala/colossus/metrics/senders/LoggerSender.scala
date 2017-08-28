@@ -2,26 +2,27 @@ package colossus.metrics.senders
 
 import akka.actor._
 import colossus.metrics.MetricSender
+import colossus.metrics.logging.ColossusLogging
 import colossus.metrics.senders.MetricsLogger.Formatter
 
 /**
   * Simple sender that just prints the stats to the log
   */
-class LoggerSenderActor(override val formatter: Formatter) extends Actor with ActorLogging with MetricsLogger {
+class LoggerSenderActor(override val formatter: Formatter) extends Actor with ColossusLogging with MetricsLogger {
 
   def receive = {
     case s: MetricSender.Send => {
       logMetrics(s)
-      log.info(s"Logged ${s.metrics.size} stats")
+      info(s"Logged ${s.metrics.size} stats")
     }
   }
 
   override def preStart() {
-    log.info("starting dummy stats sender")
+    info("starting dummy stats sender")
   }
 
   override def postStop() {
-    log.info("shutting down dummy sender")
+    info("shutting down dummy sender")
   }
 }
 

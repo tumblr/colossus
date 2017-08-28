@@ -7,11 +7,13 @@ import colossus.controller._
 import colossus.core._
 import colossus.metrics.{MetricAddress, TagMap}
 import colossus.metrics.collectors.{Histogram, Rate}
+import colossus.metrics.logging.ColossusLogging
 import com.typesafe.config.{Config, ConfigFactory}
 import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
 import colossus.util.ExceptionFormatter._
+
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -162,7 +164,8 @@ class ServiceClient[P <: Protocol](
     extends ControllerDownstream[Encoding.Client[P]]
     with HasUpstream[ControllerUpstream[Encoding.Client[P]]]
     with Client[P, Callback]
-    with HandlerTail {
+    with HandlerTail
+    with ColossusLogging {
 
   type Request  = Encoding.Client[P]#Output
   type Response = Encoding.Client[P]#Input
@@ -254,7 +257,7 @@ class ServiceClient[P <: Protocol](
       pending into Sink.valve(upstream.outgoing.mapIn[SourcedRequest] { sourced =>
         sourced.markSent; sourced.message
       }, sentBuffer)
-      log.info(s"client $id connecting to $address")
+      info(s"client $id connecting to $address")
       worker ! Connect(address, id)
       clientState = ClientState.Connecting
 
@@ -315,7 +318,7 @@ class ServiceClient[P <: Protocol](
   )
 
   override def connected() {
-    log.info(s"$id Connected to $address")
+    info(s"$id Connected to $address")
     clientState = ClientState.Connected
     retryIncident = None
     processMessages()
@@ -341,12 +344,12 @@ class ServiceClient[P <: Protocol](
   protected def connectionLost(cause: DisconnectError) {
     cause match {
       case DisconnectCause.ConnectFailed(error) => {
-        log.warning(s"$id failed to connect to ${address.toString}: ${error.getMessage}")
+        warn(s"$id failed to connect to ${address.toString}: ${error.getMessage}")
         connectionFailures.hit(tags = hpTags)
         purgeBuffers(new NotConnectedException(s"${cause.logString}"))
       }
       case _ => {
-        log.warning(s"$id connection lost to ${address.toString}: ${cause.logString}")
+        warn(s"$id connection lost to ${address.toString}: ${cause.logString}")
         disconnects.hit(tags = hpTags + ("cause" -> cause.tagString))
         purgeBuffers(new ConnectionLostException(s"${cause.logString}"))
       }
@@ -373,18 +376,18 @@ class ServiceClient[P <: Protocol](
           val report = incident.end()
           retryIncident = None
           clientState = ClientState.Terminated
-          log.error(
+          error(
             s"failed to connect to ${address.toString} (${report.totalAttempts} attempts over ${report.totalTime}), giving up.")
           worker.unbind(id)
         }
         case RetryAttempt.RetryNow => {
-          log.warning(
+          warn(
             s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
           clientState = ClientState.Connecting
           worker ! Connect(address, id)
         }
         case RetryAttempt.RetryIn(time) => {
-          log.warning(
+          warn(
             s"attempting to reconnect to ${address.toString} in ${time} after ${incident.attempts} unsuccessful attempts.")
           clientState = ClientState.Connecting
           worker ! Schedule(time, Connect(address, id))
@@ -396,7 +399,7 @@ class ServiceClient[P <: Protocol](
   }
 
   override def shutdown() {
-    log.info(s"Terminating connection to $address")
+    info(s"Terminating connection to $address")
     clientState = ClientState.ShuttingDown
     checkGracefulDisconnect()
   }

@@ -38,7 +38,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "org.scalatest"          %% "scalatest"                   % SCALATEST_VERSION % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
     "org.mockito"            % "mockito-all"                  % "1.9.5" % "test",
-    "com.github.nscala-time" %% "nscala-time"                 % "2.16.0"
+    "com.github.nscala-time" %% "nscala-time"                 % "2.16.0",
+    "org.slf4j"              % "slf4j-api"                    % "1.7.6"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*"
 ) ++ Defaults.itSettings
@@ -85,7 +86,8 @@ lazy val MetricSettings = ColossusSettings
 
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s" %% "json4s-jackson" % "3.5.3"
+    "org.json4s"     %% "json4s-jackson" % "3.5.3",
+    "ch.qos.logback" % "logback-classic" % "1.2.2"
   )
 )
 

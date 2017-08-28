@@ -6,6 +6,7 @@ import akka.routing.RoundRobinGroup
 import akka.util.Timeout
 import java.net.InetSocketAddress
 
+import colossus.metrics.logging.ColossusLogging
 import colossus.{IOCommand, IOSystem}
 
 import scala.concurrent.Future
@@ -24,7 +25,7 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
                                       ioSystem: IOSystem,
                                       workerFactory: WorkerFactory)
     extends Actor
-    with ActorLogging
+    with ColossusLogging
     with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
@@ -68,7 +69,7 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
     case WorkerReady(worker) => {
       val nowReady = ready :+ worker
       if (nowReady.size == numWorkers) {
-        log.info("All Workers reports ready, lets do this")
+        info("All Workers reports ready, lets do this")
         workerAgent.set(nowReady)
         context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
         unstashAll()
@@ -121,7 +122,7 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
       case Worker.ConnectionSummary(sum) => {
         latestSummary = sum
         latestSummaryTime = System.currentTimeMillis
-        log.debug(s"Got connection summary, size ${sum.size}")
+        debug(s"Got connection summary, size ${sum.size}")
       }
       case GetConnectionSummary => {
         val r = sender()
@@ -133,12 +134,12 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
       }
       case Shutdown => self ! PoisonPill
       case Apocalypse => {
-        log.info("SHUT DOWN EVERYTHING")
+        info("SHUT DOWN EVERYTHING")
         context.system.terminate()
       }
       case c: IOCommand => nextWorker ! c
       case WorkerReady(worker) => {
-        log.warning("Received Ready Notification from new/restarted worker")
+        warn("Received Ready Notification from new/restarted worker")
         registeredServers.foreach { sender ! _ }
       }
     }
@@ -161,14 +162,14 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
     case UnregisterServer(server) =>
       registeredServers.find(_ == server) match {
         case Some(found) => unregisterServer(found)
-        case None        => log.warning(s"Attempted to Unregister unknown server ${server.name}")
+        case None        => warn(s"Attempted to Unregister unknown server ${server.name}")
       }
 
     //should be only triggered when a Server actor terminates
     case Terminated(ref) =>
       registeredServers.find(_.server == ref) match {
         case Some(found) => unregisterServer(found)
-        case None        => log.warning(s"received terminated signal for unregistered server $ref")
+        case None        => warn(s"received terminated signal for unregistered server $ref")
       }
 
     case ListRegisteredServers => {
@@ -179,7 +180,7 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
   }
 
   private def registerServer(server: ServerRef, retry: Option[RetryIncident]) {
-    log.debug(s"attempting to register ${server.name}")
+    debug(s"attempting to register ${server.name}")
     implicit val timeout = Timeout(server.config.settings.delegatorCreationPolicy.waitTime)
     val s                = Future.traverse(workers) { _ ? RegisterServer(server) }
     s.onComplete {
@@ -199,15 +200,15 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
       val fullMessage = s"Failed to register server ${server.name} after ${incident.attempts} attempts:"
       incident.nextAttempt() match {
         case RetryAttempt.Stop => {
-          log.error(s"$fullMessage, aborting")
+          error(s"$fullMessage, aborting")
           server.server ! RegistrationFailed
         }
         case RetryAttempt.RetryNow => {
-          log.error(s"$fullMessage, retrying now")
+          error(s"$fullMessage, retrying now")
           self ! AttemptRegisterServer(server, incident)
         }
         case RetryAttempt.RetryIn(time) => {
-          log.error(s"$fullMessage, retrying in $time")
+          error(s"$fullMessage, retrying in $time")
           context.system.scheduler.scheduleOnce(time, self, AttemptRegisterServer(server, incident))
         }
       }
@@ -215,7 +216,7 @@ private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
   }
 
   private def unregisterServer(server: ServerRef) {
-    log.info(s"unregistering server: ${server.name}")
+    info(s"unregistering server: ${server.name}")
     registeredServers -= server
     workers.foreach { worker =>
       worker ! UnregisterServer(server)

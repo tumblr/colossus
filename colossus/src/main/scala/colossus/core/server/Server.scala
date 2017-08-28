@@ -9,6 +9,7 @@ import colossus.IOSystem
 import colossus.core._
 import colossus.metrics.MetricAddress
 import colossus.metrics.collectors.{Counter, Rate}
+import colossus.metrics.logging.ColossusLogging
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -64,7 +65,7 @@ object ConnectionVolumeState {
 
 private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRef: AtomicReference[ServerState])
     extends Actor
-    with ActorLogging
+    with ColossusLogging
     with Stash {
   import Server._
   import context.dispatcher
@@ -105,18 +106,18 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     //setup the server
     try {
       ss.bind(address, settings.tcpBacklogSize.getOrElse(0))
-      log.info(s"name: Bound to port ${settings.port}")
+      info(s"name: Bound to port ${settings.port}")
       true
     } catch {
       case t: Throwable => {
-        log.error(t, s"bind failed: ${t.getMessage}, retrying")
+        error(s"bind failed: ${t.getMessage}, retrying", t)
         false
       }
     }
   }
 
   private def changeState(receive: Receive, status: ServerStatus) {
-    log.debug(s"changing state to $status")
+    debug(s"changing state to $status")
     context.become(receive)
     updateServerStatus(status)
   }
@@ -127,13 +128,13 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
 
   def waitForWorkers: Receive = alwaysHandle orElse {
     case WorkerManager.WorkersReady(workers) => {
-      log.debug(s"workers are ready, attempting to bind to port ${settings.port}")
+      debug(s"workers are ready, attempting to bind to port ${settings.port}")
       changeState(binding(workers), ServerStatus.Binding)
       self ! RetryBind(None)
       unstashAll()
     }
     case WorkerManager.RegistrationFailed => {
-      log.error(s"Could not register with the IOSystem.  Taking PoisonPill")
+      error(s"Could not register with the IOSystem.  Taking PoisonPill")
       self ! PoisonPill
     }
     case d: InitializerBroadcast => stash()
@@ -154,15 +155,15 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
         val message  = s"Failed to bind to port ${settings.port} after ${incident.attempts} attempts."
         incident.nextAttempt() match {
           case RetryAttempt.Stop => {
-            log.error(s"$message Shutting Down!")
+            error(s"$message Shutting Down!")
             self ! PoisonPill
           }
           case RetryAttempt.RetryNow => {
-            log.error(s"$message Retrying")
+            error(s"$message Retrying")
             self ! RetryBind(Some(incident))
           }
           case RetryAttempt.RetryIn(time) => {
-            log.error(s"$message Retrying in $time.")
+            error(s"$message Retrying in $time.")
             context.system.scheduler.scheduleOnce(time, self, RetryBind(Some(incident)))
           }
         }
@@ -182,7 +183,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     case ConnectionClosed(id, cause) => closeConnection(cause)
     case ConnectionRefused(sc, attempt) =>
       if (attempt >= Server.MaxConnectionRegisterAttempts) {
-        log.error(s"Failed to register new connection $attempt times, closing")
+        error(s"Failed to register new connection $attempt times, closing")
         sc.close()
         self ! ConnectionClosed(0, DisconnectCause.Error(new Server.MaxConnectionRegisterException))
       } else {
@@ -211,13 +212,13 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     case ConnectionClosed(id, cause) => closeConnection(cause)
     case ShutdownCheck =>
       if (System.currentTimeMillis - startTime > settings.shutdownTimeout.toMillis) {
-        log.warning(
+        warn(
           s"Shutdown timeout of ${settings.shutdownTimeout} reached, terminating ${openConnections} connections and shutting down")
         self ! PoisonPill
       } else if (openConnections == 0) {
         self ! PoisonPill
       } else {
-        log.info(s"waiting for $openConnections connections to close")
+        info(s"waiting for $openConnections connections to close")
         context.system.scheduler.scheduleOnce(Server.shutdownCheckFrequency, self, ShutdownCheck)
       }
   }
@@ -234,7 +235,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     while (it.hasNext) {
       val key: SelectionKey = it.next
       if (!key.isValid) {
-        log.error("KEY IS INVALID")
+        error("KEY IS INVALID")
         it.remove()
       } else if (key.isAcceptable) {
         // Accept the new connection
@@ -254,9 +255,9 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
             refused.hit()
           }
         } catch {
-          case c: java.nio.channels.NotYetBoundException => log.error(c, "Attempted to accept before bound!?")
-          case error: Throwable =>
-            log.error(error, s"Error accepting connection: ${error.getClass.getName} - ${error.getMessage}")
+          case c: java.nio.channels.NotYetBoundException => error("Attempted to accept before bound!?", c)
+          case t: Throwable =>
+            error(s"Error accepting connection: ${t.getClass.getName} - ${t.getMessage}", t)
         }
         it.remove()
       }
@@ -268,7 +269,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     super.preStart()
     context.watch(io.workerManager)
     io.workerManager ! WorkerManager.RegisterServer(me)
-    log.info("spinning up server")
+    info("spinning up server")
   }
 
   override def postStop() {
@@ -276,7 +277,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     selector.keys.foreach { _.channel.close }
     selector.close()
     ss.close()
-    log.info("SERVER PEACE OUT")
+    info("SERVER PEACE OUT")
     updateServerStatus(ServerStatus.Dead)
   }
 
