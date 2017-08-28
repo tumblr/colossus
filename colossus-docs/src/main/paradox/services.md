@@ -35,12 +35,20 @@ On the incoming request, body and content type are on the `HttpBody` and headers
 
 @@snip [HttpService2.scala](../scala/HttpService2.scala) { #example3 }
 
+There is no built in middleware, but the same effect can be achieved by wrapping routes in functions. For example,
+if you wanted easy access to the request body you might write:
+
+@@snip [MiddlewareAsFunctions.scala](../scala/MiddlewareAsFunctions.scala) { #example }
+
+And then use it like so:
+
+@@snip [MiddlewareAsFunctions.scala](../scala/MiddlewareAsFunctions.scala) { #example1 }
+
 ## Redis
 
 A redis server will take the following form:
 
 @@snip [RedisServiceExample.scala](../scala/RedisServiceExample.scala) { #example }
-
 
 ## Configuration
 
