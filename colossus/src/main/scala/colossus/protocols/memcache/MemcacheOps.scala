@@ -20,7 +20,7 @@ import scala.language.higherKinds
   * with what the [[colossus.protocols.memcache.MemcacheReply]] expects, or the parser will fail to recognize the response as valid.
   *
   *
-  * @tparam M
+  * @tparam M The response container
   */
 trait MemcacheClient[M[_]] extends LiftedClient[Memcache, M] {
 

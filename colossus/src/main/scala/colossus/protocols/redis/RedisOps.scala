@@ -37,7 +37,8 @@ import scala.language.higherKinds
   *  Some commands(mainly zset commands) have additional arguments which alter its behavior. Instead of trying to capture all the argument combinations
   *  the function provides a varargs ByteString so that the user can provide whatever trailing flags or options they want.  Each command which has this
   *  behavior is noted in its docs.
-  * @tparam M
+  *
+  * @tparam M The response container.
   */
 trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 
@@ -376,8 +377,8 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     * }}}
     *
     * Also, since these flags can change the return type, can be a Long in some cases and a Double in others, a Double is returned to capture both cases.
-    * @param key
-    * @param valuesAndArguments
+    * @param key The key at which the [[zadd]] operation is performed.
+    * @param valuesAndArguments The Redis-specific values and arguments to be passed in.
     * @return
     */
   def zadd(key: ByteString, valuesAndArguments: ByteString*): M[Double] =
@@ -407,9 +408,9 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     * {{{
     *   client.zinterstore(key, 2, keyA, keyB, "WEIGHTS", "1", "2", "AGGREGATE" "SUM")
     * }}}
-    * @param key
-    * @param numKeys
-    * @param keysAndArguments
+    * @param key The destination key at which the [[zinterstore]] result is placed.
+    * @param numKeys The number of keys to interoperate.
+    * @param keysAndArguments The Redis-specific values and arguments to be passed in.
     * @return
     */
   def zinterstore(key: ByteString, numKeys: Long, keysAndArguments: ByteString*): M[Long] =
@@ -425,10 +426,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     * http://redis.io/commands/zrange
     *
     * For now, this function is a bit raw, and a future change will have 2 versions of this function.
-    * @param key
-    * @param start
-    * @param stop
-    * @param arguments
+    * @param key The destination key at which the [[zrange]] result is placed.
+    * @param start The start point of the range.
+    * @param stop The stopping point of the range.
+    * @param arguments Optional `withscores` argument to include value scores.
     * @return
     */
   def zrange(key: ByteString, start: Long, stop: Long, arguments: ByteString*): M[Seq[ByteString]] =
@@ -447,10 +448,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     *
     * http://redis.io/commands/zrangebylex
     *
-    * @param key
-    * @param min
-    * @param max
-    * @param arguments
+    * @param key The destination key at which the [[zrangebylex]] result is placed.
+    * @param min The minimum lex to start by.
+    * @param max The maximum lex.
+    * @param arguments The limit/offset/count options.
     * @return
     */
   def zrangebylex(key: ByteString, min: ByteString, max: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
@@ -461,10 +462,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     *
     * http://redis.io/commands/zrangebyscore
     *
-    * @param key
-    * @param min
-    * @param max
-    * @param arguments
+    * @param key The destination key at which the [[zrangebyscore]] result is placed.
+    * @param min The minimum score to start by.
+    * @param max The maximum score.
+    * @param arguments The limit/offset/count options.
     * @return
     */
   def zrangebyscore(key: ByteString, min: ByteString, max: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
@@ -492,10 +493,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     * http://redis.io/commands/zrevrange
     *
     * For now, this function is a bit raw, and a future change will have 2 versions of this function.
-    * @param key
-    * @param start
-    * @param stop
-    * @param arguments
+    * @param key The destination key at which the [[zrevrange]] result is placed.
+    * @param start The starting point of the range.
+    * @param stop The endpoint of the range.
+    * @param arguments Optional `withscores` argument to include value scores.
     * @return
     */
   def zrevrange(key: ByteString, start: Long, stop: Long, arguments: ByteString*): M[Seq[ByteString]] =
@@ -506,10 +507,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     *
     * http://redis.io/commands/zrevrangebylex
     *
-    * @param key
-    * @param max
-    * @param min
-    * @param arguments
+    * @param key The destination key at which the [[zrevrangebylex]] result is placed.
+    * @param max The maximum lex to start by.
+    * @param min The minimum lex.
+    * @param arguments The limit/offset/count options.
     * @return
     */
   def zrevrangebylex(key: ByteString, max: ByteString, min: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
@@ -521,10 +522,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     *
     * http://redis.io/commands/zrevrangebyscore
     *
-    * @param key
-    * @param max
-    * @param min
-    * @param arguments
+    * @param key The destination key at which the [[zrevrangebyscore]] result is placed.
+    * @param max The maximum score.
+    * @param min The minimum score.
+    * @param arguments The limit/offset/count options.
     * @return
     */
   def zrevrangebyscore(key: ByteString, max: ByteString, min: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
@@ -547,9 +548,9 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     * {{{
     *   client.zunionstore(key, 2, keyA, keyB, "WEIGHTS", "1", "2", "AGGREGATE" "SUM")
     * }}}
-    * @param key
-    * @param numKeys
-    * @param keysAndArguments
+    * @param key The destination key at which the [[zunionstore]] result is placed.
+    * @param numKeys The number of keys to union.
+    * @param keysAndArguments The Redis-specific values and arguments to be passed in.
     * @return
     */
   def zunionstore(key: ByteString, numKeys: Long, keysAndArguments: ByteString*): M[Long] =
