@@ -211,12 +211,8 @@ object ServiceClientFactory {
 
 }
 
-trait CallbackClientFactory[P <: Protocol, T <: Sender[P, Callback]] extends ClientFactory[P, Callback, T, WorkerRef]
-
-trait FutureClientFactory[P <: Protocol, T <: Sender[P, Future]] extends ClientFactory[P, Future, T, IOSystem]
-
-class GenFutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P])
-    extends FutureClientFactory[P, FutureClient[P]] {
+class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P])
+    extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
 
   def defaultName = base.defaultName
 
@@ -252,7 +248,7 @@ abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](lifter: C
 
   implicit def clientFactory: FutureClient.BaseFactory[P]
 
-  implicit val futureFactory = new GenFutureClientFactory[P](clientFactory)
+  implicit val futureFactory = new FutureClientFactory[P](clientFactory)
 
   val client = new CodecClientFactory[P, Callback, T, WorkerRef](
     clientFactory,
