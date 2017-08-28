@@ -2,12 +2,12 @@ package colossus.core
 
 import server._
 import akka.actor._
-import akka.event.LoggingAdapter
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 
 import colossus.metrics.collectors.{Counter, Rate}
+import colossus.metrics.logging.ColossusLogging
 import colossus.{IOCommand, IOSystem}
 import colossus.service.{CallbackExecution, CallbackExecutor}
 
@@ -77,7 +77,7 @@ case class WorkerRef private[colossus] (id: Int, worker: ActorRef, system: IOSys
 /**
   * This keeps track of all the bound worker items, and properly handles added/removing them
   */
-class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
+class WorkerItemManager(worker: WorkerRef) extends ColossusLogging {
 
   private val workerItems = collection.mutable.Map[Long, WorkerItem]()
 
@@ -94,7 +94,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
     */
   def bind(workerItem: WorkerItem) {
     if (workerItem.isBound) {
-      log.error(s"Attempted to bind worker ${workerItem} that was already bound")
+      error(s"Attempted to bind worker ${workerItem} that was already bound")
     } else {
       workerItems(workerItem.id) = workerItem
       workerItem.setBind()
@@ -107,7 +107,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
       workerItems -= id
       item.setUnbind()
     } else {
-      log.error(s"Attempted to unbind worker $id that is not bound to this worker")
+      error(s"Attempted to unbind worker $id that is not bound to this worker")
     }
   }
 
@@ -129,7 +129,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
         false
       }
       .getOrElse {
-        log.error(s"Attempted to swap worker $id that is not bound to this worker")
+        error(s"Attempted to swap worker $id that is not bound to this worker")
         false
       }
   }
@@ -146,7 +146,7 @@ class WorkerItemManager(worker: WorkerRef, log: LoggingAdapter) {
   }
 }
 
-private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLogging with CallbackExecution {
+private[colossus] class Worker(config: WorkerConfig) extends Actor with ColossusLogging with CallbackExecution {
   import Server._
   import Worker._
   import WorkerManager._
@@ -156,9 +156,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   var trace  = true
 
   val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
-
-  implicit val mylog = log
-
+  
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
   implicit val ns         = io.namespace / io.name
@@ -180,12 +178,12 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
   val me = WorkerRef(workerId, self, io)
 
   //collection of all the bound WorkerItems, including connection handlers
-  val workerItems                                 = new WorkerItemManager(me, log)
+  val workerItems                                 = new WorkerItemManager(me)
   def getWorkerItem(id: Long): Option[WorkerItem] = workerItems.get(id)
 
   override def preStart() {
     super.preStart()
-    log.debug(s"starting worker ${config.workerId}")
+    debug(s"starting worker ${config.workerId}")
     parent ! WorkerReady(me)
     self ! Select
   }
@@ -212,7 +210,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           }
       }
       if (timedOut.size > 0) {
-        log.debug(s"Terminated ${timedOut.size} idle connections")
+        debug(s"Terminated ${timedOut.size} idle connections")
       }
       sender() ! IdleCheckExecuted
     }
@@ -220,16 +218,16 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       if (!initializers.contains(server.server)) {
         try {
           initializers(server.server) = server.config.initializerFactory(InitContext(server, me))
-          log.debug(s"registered server ${server.name}")
+          debug(s"registered server ${server.name}")
           sender ! ServerRegistered
         } catch {
           case NonFatal(e) => {
-            log.error(e, s"failed to create initializer")
+            error("failed to create initializer", e)
             sender ! RegistrationFailed
           }
         }
       } else {
-        log.warning("attempted to re-register a server")
+        warn("attempted to re-register a server")
         sender ! WorkerManager.ServerRegistered
       }
     case WorkerManager.UnregisterServer(server) => {
@@ -248,11 +246,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         .map {
           case (_, initializer) =>
             initializer.receive.orElse[Any, Unit] {
-              case unhandled => log.warning(s"Unhandled message $unhandled for initializer of server ${server.name}")
+              case unhandled => warn(s"Unhandled message $unhandled for initializer of server ${server.name}")
             }(message)
         }
         .getOrElse {
-          log.error(s"initializer message $message for unknown server ${server.name}")
+          error(s"initializer message $message for unknown server ${server.name}")
         }
     }
     case NewConnection(sc, attempt) =>
@@ -271,7 +269,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         }
         .getOrElse {
           sender ! Server.ConnectionRefused(sc, attempt)
-          log.error("Received connection from unregistered server!!!")
+          error("Received connection from unregistered server!!!")
         }
     case Terminated(handler) => {
       if (watchedConnections contains handler) {
@@ -302,7 +300,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       }
       case BindWithContext(context, itemFactory) => {
         if (context.worker != me) {
-          log.error("Attempted to bind to worker ${me.id} using a context for worker ${context.worker.id}")
+          error("Attempted to bind to worker ${me.id} using a context for worker ${context.worker.id}")
         } else {
           val item = itemFactory(context)
           if (!item.isBound) {
@@ -342,7 +340,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       }
     } catch {
       case t: Throwable => {
-        log.error(t, s"Failed to establish connection to $address: $t")
+        error(s"Failed to establish connection to $address: $t", t)
         unregisterConnection(connection, DisconnectCause.ConnectFailed(t))
       }
     }
@@ -358,7 +356,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
             item.receivedMessage(message, responder)
           }
           .getOrElse {
-            log.error(s"worker received message $message for unknown item $wid")
+            error(s"worker received message $message for unknown item $wid")
             responder ! MessageDeliveryFailed(wid, message)
           }
       }
@@ -387,11 +385,11 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
           .map {
             case handler: ClientConnectionHandler => clientConnect(address, handler)
             case other =>
-              log.error(
+              error(
                 s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
           }
           .getOrElse {
-            log.error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
+            error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
           }
       }
       case Bind(newHandler) => {
@@ -463,9 +461,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
       }
       initializers -= handler
       initializer.onShutdown()
-      log.info(s"unregistering server ${initializer.server.name} (terminating ${closed.size} associated connections)")
+      info(s"unregistering server ${initializer.server.name} (terminating ${closed.size} associated connections)")
     } else {
-      log.warning(s"Attempted to unregister unknown server actor ${handler.path.toString}")
+      warn(s"Attempted to unregister unknown server actor ${handler.path.toString}")
     }
   }
 
@@ -478,7 +476,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
     while (it.hasNext) {
       val key: SelectionKey = it.next
       if (!key.isValid) {
-        log.error("KEY IS INVALID")
+        error("KEY IS INVALID")
       } else if (key.isConnectable) {
         val con = key.attachment.asInstanceOf[ClientConnection]
         try {
@@ -525,18 +523,18 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
               key.cancel()
             }
             case t: Throwable => {
-              log.warning(s"Unknown Error! : ${t.getClass.getName}: ${t.getMessage}")
+              warn(s"Unknown Error! : ${t.getClass.getName}: ${t.getMessage}")
               if (trace) {
                 t.printStackTrace()
               }
               //close the connection to ensure it's not in an undefined state
               key.attachment match {
                 case c: Connection => {
-                  log.warning(s"closing connection ${c.id} due to unknown error")
+                  warn(s"closing connection ${c.id} due to unknown error")
                   unregisterConnection(c, DisconnectCause.Error(t))
                 }
                 case other => {
-                  log.error(s"Key has bad attachment!! $other")
+                  error(s"Key has bad attachment!! $other")
                 }
               }
               sc.close()
@@ -556,7 +554,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
                   unregisterConnection(c, DisconnectCause.Error(j))
                 }
                 case other: Throwable => {
-                  log.warning(s"Error handling write: ${other.getClass.getName} : ${other.getMessage}")
+                  warn(s"Error handling write: ${other.getClass.getName} : ${other.getMessage}")
                 }
               }
             case _ => {}
@@ -580,7 +578,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with ActorLog
         initializer.onShutdown()
     }
     selector.close()
-    log.info("PEACE OUT")
+    info("PEACE OUT")
   }
 
 }

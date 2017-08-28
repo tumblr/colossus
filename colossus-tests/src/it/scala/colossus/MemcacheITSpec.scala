@@ -204,7 +204,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         val nanos = System.nanoTime() - start
 
         assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
-        log.info(s"SET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+        info(s"SET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
       }
     }
 
@@ -232,7 +232,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         val nanos = System.nanoTime() - start
 
         assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
-        log.info(s"GET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+        info(s"GET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
       }
     }
   }

@@ -1,17 +1,17 @@
 package colossus.metrics
 
-import akka.actor.ActorLogging
+import colossus.metrics.logging.ColossusLogging
+
 
 package object senders {
 
-  trait MetricsLogger { this: ActorLogging =>
+  trait MetricsLogger { this: ColossusLogging =>
     import MetricsLogger.Formatter
     val formatter: Formatter = MetricsLogger.defaultMetricsFormatter
 
     def logMetrics(s: MetricSender.Send): Unit = {
       val frags = s.fragments
-      if (log.isDebugEnabled)
-        frags.foreach(stat => log.debug(formatter(stat, s.timestamp)))
+      frags.foreach(stat => debug(formatter(stat, s.timestamp)))
     }
   }
 

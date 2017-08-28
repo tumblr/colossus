@@ -1,7 +1,9 @@
 package colossus.service
 
 import akka.actor._
-import scala.util.{Try, Success, Failure}
+import colossus.metrics.logging.ColossusLogging
+
+import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -505,7 +507,7 @@ private[colossus] case class CallbackExec(cb: () => Unit, in: Option[FiniteDurat
   * this by sending a message to this actor living in the default dispatcher
   * which then does the proper scheduling
   */
-private[colossus] class Delayer extends Actor with ActorLogging {
+private[colossus] class Delayer extends Actor with ColossusLogging {
   import context.dispatcher
   def receive = {
     case c: CallbackExec => {
@@ -514,7 +516,7 @@ private[colossus] class Delayer extends Actor with ActorLogging {
   }
 }
 
-private[colossus] trait CallbackExecution extends Actor with ActorLogging {
+private[colossus] trait CallbackExecution extends Actor with ColossusLogging {
 
   val delayer = context.actorOf(Props[Delayer])
 

@@ -1,7 +1,9 @@
 package colossus.metrics
 
 import java.util.concurrent.atomic.AtomicReference
+
 import akka.actor._
+import colossus.metrics.logging.ColossusLogging
 
 import scala.concurrent.duration._
 
@@ -9,7 +11,7 @@ class IntervalAggregator(interval: FiniteDuration,
                          snapshot: AtomicReference[MetricMap],
                          sysMetricsNamespace: Option[MetricNamespace])
     extends Actor
-    with ActorLogging {
+    with ColossusLogging {
 
   import context.dispatcher
   import IntervalAggregator._
@@ -50,10 +52,10 @@ class IntervalAggregator(interval: FiniteDuration,
 
     case Terminated(child) => {
       if (reporters.contains(child)) {
-        log.debug(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
+        debug(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
         reporters.remove(child)
       } else {
-        log.warning(s"someone: $child died..for which there is no reporter registered")
+        warn(s"someone: $child died..for which there is no reporter registered")
       }
     }
 

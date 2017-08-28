@@ -1,13 +1,15 @@
 package colossus.metrics.senders
 
 import akka.actor._
+
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.net._
 
+import colossus.metrics.logging.ColossusLogging
 import colossus.metrics.{MetricFragment, MetricSender, OpenTsdbFormatter}
 
-class OpenTsdbWatchdog(socket: Socket, timeout: FiniteDuration) extends Actor with ActorLogging {
+class OpenTsdbWatchdog(socket: Socket, timeout: FiniteDuration) extends Actor with ColossusLogging {
 
   import OpenTsdbWatchdog._
 
@@ -26,7 +28,7 @@ class OpenTsdbWatchdog(socket: Socket, timeout: FiniteDuration) extends Actor wi
   def timing(start: Long): Receive = {
     case EndSend => context.become(idle)
     case CheckTimeout(time) if (time == start) => {
-      log.warning("TSDB sender has timed out, force closing socket")
+      warn("TSDB sender has timed out, force closing socket")
       socket.close()
       self ! PoisonPill
     }
@@ -42,7 +44,7 @@ object OpenTsdbWatchdog {
 //TODO : OH jeez don't use raw socket
 class OpenTsdbSenderActor(val host: String, val port: Int, timeout: FiniteDuration)
     extends Actor
-    with ActorLogging
+    with ColossusLogging
     with MetricsLogger {
   import OpenTsdbWatchdog._
 
@@ -67,13 +69,13 @@ class OpenTsdbSenderActor(val host: String, val port: Int, timeout: FiniteDurati
       os.write(OpenTsdbFormatter.format(stat, now).toCharArray.map { _.toByte })
     }
     os.flush()
-    log.info(s"Sent ${stats.size} stats to OpenTSDB")
+    info(s"Sent ${stats.size} stats to OpenTSDB")
     watchdog ! EndSend
   }
 
   def receive = {
     case Initialize => {
-      log.info("Initializing new stats sender")
+      info("Initializing new stats sender")
       socket.connect(address, 500)
       context.become(accepting)
     }
