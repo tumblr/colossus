@@ -8,11 +8,11 @@ import java.net.InetSocketAddress
 
 import colossus.IOSystem
 import colossus.core.ServerRef
-import colossus.service.{ClientConfig, FutureClient, GenFutureClientFactory, Protocol}
+import colossus.service.{ClientConfig, FutureClient, FutureClientFactory, Protocol}
 
 import scala.reflect.ClassTag
 
-abstract class ServiceSpec[P <: Protocol](implicit clientFactory: GenFutureClientFactory[P]) extends ColossusSpec {
+abstract class ServiceSpec[P <: Protocol](implicit clientFactory: FutureClientFactory[P]) extends ColossusSpec {
 
   type Request  = P#Request
   type Response = P#Response
