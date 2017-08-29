@@ -3,11 +3,11 @@ package colossus
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
-import colossus.metrics.MetricSystem
+import colossus.metrics.{MetricReporterConfig, MetricSystem}
 import colossus.protocols.redis._
 import colossus.service.ClientConfig
 import colossus.testkit.ColossusSpec
-import org.scalatest.concurrent.{ScaledTimeSpans, ScalaFutures}
+import org.scalatest.concurrent.{ScalaFutures, ScaledTimeSpans}
 import org.scalatest.time.Span
 import org.scalatest.time._
 
@@ -15,8 +15,9 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with ScaledTimeSpans {
+  val metricSystem =  MetricSystem("test-system")
 
-  implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
+  implicit val sys = IOSystem("test-system", Some(2), metricSystem)
 
   implicit val ec = system.dispatcher
 

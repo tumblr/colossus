@@ -1,11 +1,13 @@
 package colossus
 
 import akka.util.ByteString
+import colossus.metrics.MetricAddress
+import org.scalatest.concurrent.Eventually
 
 import scala.concurrent.duration._
 import colossus.protocols.redis.{IntegerReply, Command}
 
-class RedisITSpec extends BaseRedisITSpec{
+class RedisITSpec extends BaseRedisITSpec with Eventually {
 
   val keyPrefix = "colossusKeyIT"
 
@@ -430,6 +432,20 @@ class RedisITSpec extends BaseRedisITSpec{
       client.send(Command.c("DBSIZE")).map{
         case IntegerReply(x) => //sweet
         case other => throw new Exception(s"bad response! $other")
+      }
+    }
+    
+    "tag requests with operation" in {
+      client.set(getKey(), value).futureValue
+      
+      eventually {
+        val requests = metricSystem.collectionIntervals(1.second)
+          .last(MetricAddress("redis/requests/count"))
+
+        assert(requests.nonEmpty)
+        requests.keys.foreach { tags =>
+          assert(tags.contains("op"))
+        }
       }
     }
   }
