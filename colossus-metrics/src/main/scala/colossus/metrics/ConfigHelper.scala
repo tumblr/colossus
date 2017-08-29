@@ -19,6 +19,8 @@ object ConfigHelpers {
 
     def getLongOption(path: String): Option[Long] = getOption(path, config.getLong)
 
+    def getBoolOption(path: String): Option[Boolean] = getOption(path, config.getBoolean)
+
     private def getOption[T](path: String, f: String => T): Option[T] = {
       if (config.hasPath(path)) {
         Some(f(path))

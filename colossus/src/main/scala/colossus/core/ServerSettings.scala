@@ -1,6 +1,7 @@
 package colossus.core
 
 import com.typesafe.config.{Config, ConfigFactory}
+
 import scala.concurrent.duration._
 
 /** Contains values for configuring how a Server operates
@@ -52,7 +53,8 @@ case class ServerSettings(
     bindingRetry: RetryPolicy = BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second)),
     delegatorCreationPolicy: WaitPolicy =
       WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant)),
-    shutdownTimeout: FiniteDuration = 100.milliseconds
+    shutdownTimeout: FiniteDuration = 100.milliseconds,
+    reuseAddress: Option[Boolean] = None
 ) {
   def lowWatermark  = lowWatermarkPercentage * maxConnections
   def highWatermark = highWatermarkPercentage * maxConnections
@@ -78,7 +80,8 @@ object ServerSettings {
       tcpBacklogSize = config.getIntOption("tcp-backlog-size"),
       bindingRetry = bindingRetry,
       delegatorCreationPolicy = delegatorCreationPolicy,
-      shutdownTimeout = config.getFiniteDuration("shutdown-timeout")
+      shutdownTimeout = config.getFiniteDuration("shutdown-timeout"),
+      reuseAddress = config.getBoolOption("so-reuse-address")
     )
   }
 
