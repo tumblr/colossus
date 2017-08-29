@@ -23,18 +23,23 @@ object HttpService2 {
             request.ok("hello", HttpHeaders(HttpHeader("header-name", "header-value")))
             request.ok("hello", HttpHeaders(HttpHeader(HttpHeaders.CookieHeader, "header-value")))
           // #example1
+            // #example1a
+            request.ok("hello", HttpHeaders(HttpHeader("Content-Type", "header-value")))
+            // #example1a
 
           case request @ Get on Root =>
             // #example3
-            val body: String                    = request.body.bytes.utf8String
-            val contentType: Option[HttpHeader] = request.body.contentType
-            val headers: HttpHeaders            = request.head.headers
-            val parameter: Option[String]       = request.head.parameters.getFirst("key")
+            val body: String                = request.body.bytes.utf8String
+            val contentType: Option[String] = request.head.headers.contentType
+            val headers: HttpHeaders        = request.head.headers
+            val parameter: Option[String]   = request.head.parameters.getFirst("key")
             // #example3
 
             // #example2
-            request.respond(HttpCodes.CONFLICT,
-                            HttpBody("""{"name":"value"}""").withContentType(ContentType.ApplicationJson))
+            request.respond(
+              HttpCodes.CONFLICT,
+              HttpBody("""{"name":"value"}""")
+            ).withContentType(ContentType.ApplicationJson)
           // #example2
         }
       }

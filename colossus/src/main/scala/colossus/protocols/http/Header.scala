@@ -260,7 +260,6 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
     while (it.hasNext) {
       it.next.encode(buffer)
     }
-
   }
 
   /**
@@ -273,8 +272,10 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
-    case other             => false
+    case _                 => false
   }
+
+  override def hashCode(): Int = this.toSeq.toSet.hashCode()
 
   override def toString = "[" + toSeq.map { _.toString }.mkString(" ") + "]"
 

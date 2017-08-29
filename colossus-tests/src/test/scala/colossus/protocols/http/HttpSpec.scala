@@ -24,16 +24,10 @@ class HttpSpec extends WordSpec with MustMatchers {
 
   "http body" must {
 
-    "create with encoder and custom content-type" in {
+    "create with encoder" in {
       val str = "hello, world!™ᴂ無奈朝來寒雨"
-      val b   = HttpBody(str, "foo/bar")
-      b.contentType.get.value must equal("foo/bar")
+      val b   = HttpBody(str)
       b.bytes must equal(ByteString(str))
-    }
-
-    "copy with new content-type" in {
-      val b = HttpBody("hello")
-      b.withContentType("foo/bar").contentType.get.value must equal("foo/bar")
     }
 
     "decode using built-in decoders" in {

@@ -97,14 +97,13 @@ class HttpParserSuite extends WordSpec with MustMatchers {
             "content-length" -> len.toString
           )
         ),
-        HttpBody(body, "text/plain")
+        HttpBody(body)
       )
 
       val parser = requestParser
       val parsed = parser.parse(DataBuffer(ByteString(req)))
 
       parsed must equal(Some(expected))
-      parsed.get.body.contentType must equal(Some(HttpHeader("Content-Type", "text/plain")))
     }
 
     "handle request with content-length set to 0" in {

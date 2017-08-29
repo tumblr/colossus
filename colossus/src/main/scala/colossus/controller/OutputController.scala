@@ -88,7 +88,7 @@ trait StaticOutputController[E <: Encoding] extends BaseController[E] {
           false
         }
         case Some(PullResult.Closed) => {
-          fatalError(new PipeStateException("output stream unepectedly closed"), true)
+          fatalError(new PipeStateException("output stream unexpectedly closed"), true)
           false
         }
         case None => true //this would only occur if we returned false due to buffer overflowing

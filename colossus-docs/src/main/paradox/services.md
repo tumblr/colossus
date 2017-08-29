@@ -25,8 +25,13 @@ There are several different ways to set headers on the response.
 
 @@snip [HttpService2.scala](../scala/HttpService2.scala) { #example1 }
 
-Setting the content type or using a different http code involves a bit more work as the above helper methods can't be 
-used. Instead use the `respond` method.
+The content type header is a little special since it is usually set automatically but can also be set manually.
+It can be set just like any other header.
+
+@@snip [HttpService2.scala](../scala/HttpService2.scala) { #example1a }
+
+You can also use `.withContent()` to set the content type header.
+For a different HTTP status code, the helper methods don't exist; instead just use the `respond` method.
 
 @@snip [HttpService2.scala](../scala/HttpService2.scala) { #example2 }
 

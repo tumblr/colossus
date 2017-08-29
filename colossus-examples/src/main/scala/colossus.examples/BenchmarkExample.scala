@@ -11,8 +11,10 @@ import org.json4s.JsonDSL._
 object BenchmarkService {
 
   implicit object JsonBody extends HttpBodyEncoder[JValue] {
+    val contentType = Some(ContentType.ApplicationJson)
+
     def encode(json: JValue) = {
-      HttpBody(compact(render(json))).withContentType("application/json")
+      HttpBody(compact(render(json)))
     }
   }
 
