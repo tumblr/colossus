@@ -23,6 +23,9 @@ object HttpService2 {
             request.ok("hello", HttpHeaders(HttpHeader("header-name", "header-value")))
             request.ok("hello", HttpHeaders(HttpHeader(HttpHeaders.CookieHeader, "header-value")))
           // #example1
+            // #example1a
+            request.ok("hello", HttpHeaders(HttpHeader("Content-Type", "header-value")))
+            // #example1a
 
           case request @ Get on Root =>
             // #example3
