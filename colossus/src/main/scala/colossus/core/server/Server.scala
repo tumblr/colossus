@@ -1,7 +1,7 @@
 package colossus.core.server
 
 import akka.actor._
-import java.net.{InetSocketAddress, ServerSocket}
+import java.net.{InetSocketAddress, ServerSocket, StandardSocketOptions}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
 import java.util.concurrent.atomic.AtomicReference
 
@@ -77,6 +77,12 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
   val selector: Selector = Selector.open()
   val ssc                = ServerSocketChannel.open()
   ssc.configureBlocking(false)
+
+  serverConfig.settings.reuseAddress.foreach { reuseAddr =>
+    // wow, mixing Scala Boolean and Java Boolean gives you Any, which pisses off invariant interfaces. Go figure.
+    ssc.setOption[java.lang.Boolean](StandardSocketOptions.SO_REUSEADDR, reuseAddr)
+  }
+
   val ss: ServerSocket = ssc.socket()
   val address          = new InetSocketAddress(settings.port)
   ssc.register(selector, SelectionKey.OP_ACCEPT)
