@@ -22,9 +22,9 @@ object MetricTickExample extends App {
 
   val badUrl = Rate("badurl")
 
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
-      override def onConnect = new RequestHandler(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root / "url" =>
             //bad url, metric tick

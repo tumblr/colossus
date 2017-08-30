@@ -24,10 +24,10 @@ object ServiceConfigExample {
   )
   // #example
 
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
       // #example1
-      override def onConnect = new RequestHandler(_, serviceConfig) {
+      override def onConnect = serverContext => new RequestHandler(serverContext, serviceConfig) {
         // #example1
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root => Callback.successful(request.ok("Hello world!"))

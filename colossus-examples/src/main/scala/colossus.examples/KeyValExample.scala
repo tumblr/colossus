@@ -35,9 +35,9 @@ object KeyValExample {
 
     val db = io.actorSystem.actorOf(Props[KeyValDB])
 
-    RedisServer.start("key-value-example", port) {
-      new Initializer(_) {
-        def onConnect = new RequestHandler(_) {
+    RedisServer.start("key-value-example", port) { initContext =>
+      new Initializer(initContext) {
+        def onConnect = serverContext => new RequestHandler(serverContext) {
           def handle = {
             case Command("GET", args) => {
               val dbCmd = KeyValDB.Get(args(0))

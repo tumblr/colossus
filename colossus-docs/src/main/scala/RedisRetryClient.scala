@@ -17,8 +17,8 @@ object RedisRetryClient extends App {
   implicit val ioSystem    = IOSystem()
 
   // #example
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
 
       val generator = (address: InetSocketAddress) => {
         Redis.client(address.getHostName, address.getPort)
@@ -28,7 +28,7 @@ object RedisRetryClient extends App {
       val loadBalancingRedisClients = new LoadBalancingClient[Redis](worker, generator, 3, addresses)
       val redisClient               = Redis.client(loadBalancingRedisClients)
 
-      override def onConnect = new RequestHandler(_) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root =>
             redisClient.append(ByteString("key"), ByteString("VALUE")).map { result =>

@@ -22,7 +22,7 @@ object StreamServiceExample {
     StreamingHttpServer.basic(
       "stream-service",
       port,
-      new GenRequestHandler[StreamingHttp](_, config) {
+      serverContext => new GenRequestHandler[StreamingHttp](serverContext, config) {
 
         def handle = {
           case StreamingHttpRequest(head, source) if (head.url == "/plaintext") =>
