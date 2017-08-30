@@ -121,6 +121,7 @@ lazy val ColossusTestkitProject = Project(id = "colossus-testkit", base = file("
 
 lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs"))
   .settings(ColossusSettings: _*)
+  .settings(ExamplesSettings: _*)
   .enablePlugins(ParadoxPlugin)
   .settings(
     paradoxTheme := Some(builtinParadoxTheme("generic"))

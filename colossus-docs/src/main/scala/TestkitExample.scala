@@ -13,9 +13,9 @@ object TestkitExample extends App {
   implicit val actorSystem = ActorSystem()
   implicit val ioSystem    = IOSystem()
 
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
-      override def onConnect = new MyHandler(_)
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
+      override def onConnect = serverContext => new MyHandler(serverContext)
     }
   }
 }
