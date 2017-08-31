@@ -21,7 +21,7 @@ object RedisClient extends App {
 
       val redisClient = Redis.client("localhost", 6379)
 
-      override def onConnect = new RequestHandler(_) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
 
           case req @ Get on Root / "get" / key => {

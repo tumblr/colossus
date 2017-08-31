@@ -12,12 +12,12 @@ object CallbackClient extends App {
   implicit val actorSystem = ActorSystem()
   implicit val ioSystem    = IOSystem()
 
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
 
       val callbackClient = Http.client("example.org", 80)
 
-      override def onConnect = new RequestHandler(_) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root =>
             val request = HttpRequest.get("/")

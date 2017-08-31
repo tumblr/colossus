@@ -13,12 +13,12 @@ object MemcacheClient extends App {
   implicit val ioSystem    = IOSystem()
 
   // #example
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
 
       val memcacheClient = Memcache.client("localhost", 11211)
 
-      override def onConnect = new RequestHandler(_) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root =>
             val asyncResult = memcacheClient.get(ByteString("1"))

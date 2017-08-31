@@ -15,9 +15,9 @@ object RedisServiceExample extends App {
 
   val db = new ConcurrentHashMap[String, String]()
 
-  RedisServer.start("example-server", 9000) {
-    new Initializer(_) {
-      override def onConnect = new RequestHandler(_) {
+  RedisServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Redis] = {
           case Command("GET", args) =>
             args match {

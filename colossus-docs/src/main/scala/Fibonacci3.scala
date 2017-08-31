@@ -24,12 +24,12 @@ object Fibonacci3 extends App {
   implicit val io               = IOSystem("io-system", workerCount = Some(1), MetricSystem("io-system"))
 
   // #fibonacci3
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
 
       val cache = Memcache.client("localhost", 11211)
 
-      override def onConnect = new RequestHandler(_) {
+      override def onConnect = serverContext => new RequestHandler(serverContext) {
         override def handle: PartialHandler[Http] = {
 
           case req @ Get on Root / "hello" =>
