@@ -26,5 +26,5 @@ abstract class StreamServiceInitializer(ctx: InitContext)
     with ServiceInitializer[GenRequestHandler[StreamingHttp]]
 
 object StreamingHttpServer extends ServiceDSL[GenRequestHandler[StreamingHttp], StreamServiceInitializer] {
-  def basicInitializer = new StreamServiceHandlerGenerator(_)
+  def basicInitializer = initContext => new StreamServiceHandlerGenerator(initContext)
 }

@@ -53,12 +53,12 @@ abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig) extends
   */
 object HttpServer extends ServiceDSL[RequestHandler, Initializer] {
 
-  def basicInitializer = new Generator(_)
+  def basicInitializer = initContext => new Generator(initContext)
 
   def basic(name: String, port: Int)(handler: PartialFunction[HttpRequest, Callback[HttpResponse]])(
-      implicit io: IOSystem) = start(name, port) {
-    new Initializer(_) {
-      def onConnect = new RequestHandler(_) { def handle = handler }
+      implicit io: IOSystem) = start(name, port) { initContext =>
+    new Initializer(initContext) {
+      def onConnect = serverContext => new RequestHandler(serverContext) { def handle = handler }
     }
   }
 }

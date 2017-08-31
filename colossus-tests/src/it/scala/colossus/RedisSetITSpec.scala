@@ -163,7 +163,7 @@ class RedisSetITSpec extends BaseRedisITSpec {
         y <- client.spopOption(key)
         z <- client.scard(key)
       }yield{
-          (x,  y.map(Set(val1, val2).contains(_)) ,z)
+          (x,  y.map(v => Set(val1, val2).contains(v)) ,z)
         }
 
       res.futureValue mustBe((None, Some(true), 1))
@@ -190,7 +190,7 @@ class RedisSetITSpec extends BaseRedisITSpec {
         y <- client.srandmemberOption(key)
         z <- client.scard(key)
       }yield{
-          (x,  y.map(Set(val1, val2).contains(_)) ,z)
+          (x,  y.map(v => Set(val1, val2).contains(v)) ,z)
         }
 
       res.futureValue mustBe((None, Some(true), 2))

@@ -382,7 +382,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         import colossus.protocols.redis.server._
 
         val reply = StatusReply("LATER LOSER!!!")
-        val server = RedisServer.basic("test", TEST_PORT, new RequestHandler(_) {
+        val server = RedisServer.basic("test", TEST_PORT, serverContext => new RequestHandler(serverContext) {
           def handle = {
             case c if (c.command == "BYE") => {
               disconnect()
@@ -413,7 +413,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem { implicit io =>
         import colossus.RawProtocol.server._
-        val server = Server.basic("rawwww", TEST_PORT, new RequestHandler(_) {
+        val server = Server.basic("rawwww", TEST_PORT, serverContext => new RequestHandler(serverContext) {
           def handle = {
             case foo => {
               disconnect()
@@ -433,7 +433,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem { implicit io =>
         import colossus.RawProtocol.server._
-        val server = Server.basic("rawwww", TEST_PORT, new RequestHandler(_) {
+        val server = Server.basic("rawwww", TEST_PORT, serverContext => new RequestHandler(serverContext) {
           def handle = {
             case foo => {
               disconnect()

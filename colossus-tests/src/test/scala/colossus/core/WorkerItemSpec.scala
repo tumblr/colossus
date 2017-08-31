@@ -22,7 +22,7 @@ class WorkerItemSpec extends ColossusSpec {
             probe.ref ! "BOUND"
           }
         }
-        io ! IOCommand.BindWorkerItem(new MyItem(_))
+        io ! IOCommand.BindWorkerItem(context => new MyItem(context))
         probe.expectMsg(100.milliseconds, "BOUND")
       }
     }
@@ -36,7 +36,7 @@ class WorkerItemSpec extends ColossusSpec {
             io ! IOCommand.BindWorkerItem(_ => this)
           }
         }
-        io ! IOCommand.BindWorkerItem(new MyItem(_))
+        io ! IOCommand.BindWorkerItem(context => new MyItem(context))
         probe.expectMsg(100.milliseconds, "BOUND")
         probe.expectNoMsg(100.milliseconds)
       }
@@ -56,7 +56,7 @@ class WorkerItemSpec extends ColossusSpec {
             }
           }
         }
-        io ! IOCommand.BindWorkerItem(new MyItem(_))
+        io ! IOCommand.BindWorkerItem(context => new MyItem(context))
         probe.expectMsg(100.milliseconds, "PONG")
       }
     }
@@ -75,7 +75,7 @@ class WorkerItemSpec extends ColossusSpec {
             }
           }
         }
-        io ! IOCommand.BindWorkerItem(new MyItem(_))
+        io ! IOCommand.BindWorkerItem(context => new MyItem(context))
         probe.expectNoMsg(100.milliseconds)
       }
     }

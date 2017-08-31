@@ -315,7 +315,7 @@ object WebsocketServer {
 
         val websockinit: WebsocketInitializer[E] = init(context.worker)
 
-        def onConnect = new WebsocketHttpHandler(_, websockinit, upgradePath, origins)
+        def onConnect = serverContext => new WebsocketHttpHandler(serverContext, websockinit, upgradePath, origins)
 
       }
     }

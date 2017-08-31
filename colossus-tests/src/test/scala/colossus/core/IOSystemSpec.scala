@@ -30,7 +30,7 @@ class IOSystemSpec extends ColossusSpec {
         val server = RawServer.basic("test", 15151) { case x => x }
         waitForServer(server)
 
-        sys.connect(new InetSocketAddress("localhost", 15151), new MyHandler(_))
+        sys.connect(new InetSocketAddress("localhost", 15151), serverContext => new MyHandler(serverContext))
         probe.expectMsg(200.milliseconds, "CONNECTED")
 
       }

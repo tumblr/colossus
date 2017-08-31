@@ -12,7 +12,7 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar {
   "Connection" must {
 
     "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
-      val con = MockConnection.client(new NoopHandler(_) {
+      val con = MockConnection.client(context => new NoopHandler(context) {
 
         override def connectionClosed(cause: DisconnectCause) {
           throw new Exception("x_x")
@@ -33,7 +33,7 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar {
 
   "ClientConnection" must {
     "timeout idle connection" in {
-      val con = MockConnection.client(new NoopHandler(_) {
+      val con = MockConnection.client(context => new NoopHandler(context) {
         override def maxIdleTime = 100.milliseconds
       })
       val time = System.currentTimeMillis

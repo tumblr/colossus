@@ -61,7 +61,7 @@ class ServiceDSLSpec extends ColossusSpec {
         val server = RawServer.basic(
           "test",
           TEST_PORT,
-          new RequestHandler(_) with ProxyActor {
+          serverContext => new RequestHandler(serverContext) with ProxyActor {
             def shutdownRequest() {
               shutdown()
             }
@@ -89,7 +89,7 @@ class ServiceDSLSpec extends ColossusSpec {
 
     "override error handler" in {
       withIOSystem { implicit system =>
-        val server = RawServer.basic("test", TEST_PORT, new RequestHandler(_) {
+        val server = RawServer.basic("test", TEST_PORT, serverContext => new RequestHandler(serverContext) {
           override def onError = {
             case error => ByteString("OVERRIDE")
           }
