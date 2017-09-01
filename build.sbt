@@ -99,6 +99,9 @@ lazy val RootProject = Project(id = "root", base = file("."))
 
 lazy val ColossusProject: Project = Project(id = "colossus", base = file("colossus"))
   .settings(ColossusSettings: _*)
+  .settings{
+    mimaPreviousArtifacts := Set("com.tumblr" % "colossus_2.11" % "0.9.1")
+  }
   .configs(IntegrationTest)
   .aggregate(ColossusTestsProject)
   .dependsOn(ColossusMetricsProject)
@@ -111,11 +114,17 @@ lazy val ColossusExamplesProject = Project(id = "colossus-examples", base = file
 
 lazy val ColossusMetricsProject = Project(id = "colossus-metrics", base = file("colossus-metrics"))
   .settings(MetricSettings: _*)
+  .settings{
+    mimaPreviousArtifacts := Set("com.tumblr" % "colossus-metrics_2.11" % "0.9.1")
+  }
   .configs(IntegrationTest)
 
 lazy val ColossusTestkitProject = Project(id = "colossus-testkit", base = file("colossus-testkit"))
   .settings(ColossusSettings: _*)
   .settings(testkitDependencies)
+  .settings{
+    mimaPreviousArtifacts := Set("com.tumblr" % "colossus-testkit_2.11" % "0.9.1")
+  }
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
 
