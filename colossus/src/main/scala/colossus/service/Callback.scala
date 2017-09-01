@@ -280,7 +280,11 @@ case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   }
 
   def execute(onComplete: Try[O] => Unit = _ => ()) {
-    onComplete(value)
+    try {
+      onComplete(value)
+    } catch {
+      case err: Throwable => throw new CallbackExecutionException(err)
+    }
   }
 
 }

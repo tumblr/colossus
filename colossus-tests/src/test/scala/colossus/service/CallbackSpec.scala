@@ -557,7 +557,7 @@ class CallbackSpec extends ColossusSpec {
 
       intercept[CallbackExecutionException] {
         Callback(func).execute {
-          case _ => throw new FoobarException
+          _ => throw new FoobarException
         }
       }
 
@@ -567,12 +567,14 @@ class CallbackSpec extends ColossusSpec {
             Callback(func)
           }
           .execute {
-            case _ => {
-              val e = new FoobarException
-              //e.printStackTrace()
-              throw e
-            }
+            _ => throw new FoobarException
           }
+      }
+
+      intercept[CallbackExecutionException] {
+        Callback.successful(true).execute {
+          _ => throw new FoobarException
+        }
       }
 
     }
