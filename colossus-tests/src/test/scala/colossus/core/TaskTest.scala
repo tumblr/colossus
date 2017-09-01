@@ -26,7 +26,7 @@ class TaskTest extends ColossusSpec {
     "bind to a worker" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        Task.start(new Task(_) {
+        Task.start(context => new Task(context) {
           def run() {
             probe.ref.!("BOUND")(self)
           }
@@ -41,7 +41,7 @@ class TaskTest extends ColossusSpec {
     "receive a message through the proxy" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(new Task(_) {
+        val task = Task.start(context => new Task(context) {
           def run() {}
 
           def receive = {
@@ -57,7 +57,7 @@ class TaskTest extends ColossusSpec {
     "receive through self" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(new Task(_) {
+        val task = Task.start(context => new Task(context) {
           def run() {
             self ! "PING"
           }
@@ -73,7 +73,7 @@ class TaskTest extends ColossusSpec {
     "unbind by killing self actor" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(new Task(_) {
+        val task = Task.start(context => new Task(context) {
           def run() {
             probe.ref.!("BOUND")(self)
           }

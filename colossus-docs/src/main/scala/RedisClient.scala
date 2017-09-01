@@ -16,8 +16,8 @@ object RedisClient extends App {
   implicit val ioSystem    = IOSystem()
 
   // #redis-client
-  HttpServer.start("example-server", 9000) {
-    new Initializer(_) {
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
 
       val redisClient = Redis.client("localhost", 6379)
 

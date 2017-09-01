@@ -13,7 +13,7 @@ object TestService {
     RedisServer.basic(
       "localhost",
       3535,
-      new RequestHandler(_) {
+      serverContext => new RequestHandler(serverContext) {
         def handle = {
           case c: Command if (c.command == "GET") => StatusReply("OK")
           case c: Command if (c.command == "DELAY") =>

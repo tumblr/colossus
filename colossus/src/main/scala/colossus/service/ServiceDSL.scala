@@ -97,12 +97,12 @@ trait BasicServiceDSL[P <: Protocol] {
 
   object Server extends ServiceDSL[RequestHandler, Initializer] {
 
-    def basicInitializer = new Generator(_)
+    def basicInitializer = initContext => new Generator(initContext)
 
     def basic(name: String, port: Int)(handler: PartialFunction[P#Request, Callback[P#Response]])(
-        implicit io: IOSystem) = start(name, port) {
-      new Initializer(_) {
-        def onConnect = new RequestHandler(_) { def handle = handler }
+        implicit io: IOSystem) = start(name, port) { initContext =>
+      new Initializer(initContext) {
+        def onConnect = serverContext => new RequestHandler(serverContext) { def handle = handler }
       }
     }
 

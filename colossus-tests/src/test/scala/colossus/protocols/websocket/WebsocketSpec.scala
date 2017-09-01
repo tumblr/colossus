@@ -197,7 +197,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     import subprotocols.rawstring._
     val myinit = new WebsocketInitializer[RawString](FakeIOSystem.fakeWorker.worker) {
       def provideCodec = new RawStringCodec
-      def onConnect = new WebsocketServerHandler[RawString](_) {
+      def onConnect = serverContext => new WebsocketServerHandler[RawString](serverContext) {
         def handle = {
           case "A" => {
             send("B")
@@ -211,7 +211,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
 
     def createHandler = {
       val init = new colossus.protocols.http.Initializer(FakeIOSystem.fakeInitContext) {
-        def onConnect = new WebsocketHttpHandler(_, myinit, "/foo", List.empty)
+        def onConnect = serverContext => new WebsocketHttpHandler(serverContext, myinit, "/foo", List.empty)
       }
       MockConnection.server(ctx => init.fullHandler(init.onConnect(ctx)))
     }

@@ -22,7 +22,7 @@ class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends NoopHa
 class CoreHandlerSpec extends ColossusSpec {
 
   def setup(callSuperShutdown: Boolean = true): TypedMockConnection[TestHandler] = {
-    val con = MockConnection.server(new TestHandler(_, callSuperShutdown))
+    val con = MockConnection.server(serverContext => new TestHandler(serverContext, callSuperShutdown))
     con.handler.connected(con)
     con
   }
@@ -70,7 +70,7 @@ class CoreHandlerSpec extends ColossusSpec {
     }
 
     "kill does nothing if the connection isn't connected" in {
-      val con = MockConnection.server(new TestHandler(_, true))
+      val con = MockConnection.server(serverContext => new TestHandler(serverContext, true))
       con.typedHandler.kill(new Exception("foo"))
       con.workerProbe.expectNoMsg(100.milliseconds)
     }
@@ -91,7 +91,7 @@ class CoreHandlerSpec extends ColossusSpec {
     }
 
     "connection state stays in NotConnected while shutting down" in {
-      val con = MockConnection.server(new TestHandler(_, true))
+      val con = MockConnection.server(serverContext => new TestHandler(serverContext, true))
       con.typedHandler.connectionState must equal(NotConnected)
       con.typedHandler.shutdownRequest()
       con.typedHandler.connectionState must equal(NotConnected)

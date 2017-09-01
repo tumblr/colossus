@@ -86,7 +86,7 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
 
   implicit val timeout = Timeout(100.milliseconds)
 
-  protected val proxy = sys.bindWithProxy(new ClientWrapper(_))
+  protected val proxy = sys.bindWithProxy(context => new ClientWrapper(context))
 
   //the canary is used to determine when it's no longer ok to try sending
   //requests to the proxy.  This is set to true if the user calls disconnect or
