@@ -289,7 +289,7 @@ class ServiceClient[P <: Protocol](
     * Create a callback for sending a request.  this allows you to do something like
     * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
     */
-  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
+  def send(request: Request): Callback[P#Response] = MappedCallback[P#Response, P#Response](sendNow(request), identity[Try[P#Response]])
 
   def processMessages(): Unit = incoming.pullWhile(
     response => {

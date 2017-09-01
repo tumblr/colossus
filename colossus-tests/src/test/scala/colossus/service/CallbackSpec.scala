@@ -43,7 +43,7 @@ class CallbackSpec extends ColossusSpec {
       def sfunc(s: String): Callback[String] = Callback { f: (Try[String] => Unit) =>
         f(Success("hey " + s))
       }
-      val cb1 = UnmappedCallback(func)
+      val cb1 = MappedCallback(func, identity[Try[Int]])
       val cb2 = cb1.flatMap { i: Int =>
         sfunc((i + 1).toString)
       }

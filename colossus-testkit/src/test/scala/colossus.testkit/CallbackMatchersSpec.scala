@@ -2,7 +2,7 @@ package colossus.testkit
 
 import java.awt.datatransfer.UnsupportedFlavorException
 
-import colossus.service.{UnmappedCallback, Callback}
+import colossus.service.{MappedCallback, Callback}
 import scala.concurrent.duration._
 
 import scala.util.Try
@@ -21,7 +21,7 @@ class CallbackMatchersSpec extends ColossusSpec {
 
       def cbFunc(f: Try[Int] => Unit) {}
 
-      val unmapped = UnmappedCallback(cbFunc)
+      val unmapped = MappedCallback(cbFunc, identity[Try[Int]])
 
       var execd  = false
       val result = new CallbackEvaluateTo[Int](duration, a => execd = true).apply(unmapped)
