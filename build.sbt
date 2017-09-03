@@ -14,6 +14,7 @@ lazy val GeneralSettings = Seq[Setting[_]](
   organization := "com.tumblr",
   scalaVersion := "2.12.2",
   crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  apiURL := Some(url("https://www.javadoc.io/doc/")),
   parallelExecution in Test := false,
   scalacOptions := scalaVersion.map { v: String =>
     val default = List(
@@ -124,7 +125,10 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
   .settings(ExamplesSettings: _*)
   .enablePlugins(ParadoxPlugin)
   .settings(
-    paradoxTheme := Some(builtinParadoxTheme("generic"))
+    paradoxTheme := Some(builtinParadoxTheme("generic")),
+    paradoxProperties in Compile ++= Map(
+      "scaladoc.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus_2.11/${version.value}/index.html#"
+    )
   )
   .configs(IntegrationTest)
   .dependsOn(ColossusProject, ColossusTestkitProject)
