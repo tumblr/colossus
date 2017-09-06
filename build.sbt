@@ -2,9 +2,11 @@ import sbt._
 import Keys._
 import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
+import ProjectImplicits._
 
 val AKKA_VERSION      = "2.5.4"
 val SCALATEST_VERSION = "3.0.1"
+val MIMA_PREVIOUS_VERSIONS = Seq("0.9.1")
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -99,6 +101,7 @@ lazy val RootProject = Project(id = "root", base = file("."))
 
 lazy val ColossusProject: Project = Project(id = "colossus", base = file("colossus"))
   .settings(ColossusSettings: _*)
+  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
   .configs(IntegrationTest)
   .aggregate(ColossusTestsProject)
   .dependsOn(ColossusMetricsProject)
@@ -111,11 +114,13 @@ lazy val ColossusExamplesProject = Project(id = "colossus-examples", base = file
 
 lazy val ColossusMetricsProject = Project(id = "colossus-metrics", base = file("colossus-metrics"))
   .settings(MetricSettings: _*)
+  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
   .configs(IntegrationTest)
 
 lazy val ColossusTestkitProject = Project(id = "colossus-testkit", base = file("colossus-testkit"))
   .settings(ColossusSettings: _*)
   .settings(testkitDependencies)
+  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
 
