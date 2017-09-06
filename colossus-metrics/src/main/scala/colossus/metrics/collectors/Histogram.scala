@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import colossus.metrics.{Collector, MetricAddress, MetricMap, MetricNamespace, TagMap, ValueMap}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import com.typesafe.config.Config
 
@@ -19,13 +20,12 @@ object BucketConfig {
   case class LogScale(numBuckets: Int, infinity: Int)    extends BucketConfig
 
   def fromConfig(config: Config): BucketConfig = {
-    import scala.collection.JavaConversions._
     def infinity: Int = config.getString("infinity").toUpperCase match {
       case "MAX" => Int.MaxValue
       case other => other.toInt
     }
     config.getString("type").trim.toUpperCase match {
-      case "MANUAL" => Manual(config.getIntList("values").map { _.toInt }.toList)
+      case "MANUAL" => Manual(config.getIntList("values").asScala.map { _.toInt }.toList)
       case "LINEARSCALE" =>
         LinearScale(
           config.getInt("num-buckets"),
@@ -138,7 +138,7 @@ object Histogram {
     * accuracy for values below, but all values above will be lumped into a
     * single bucket
     */
-  def generateBucketRanges(num: Int, infinity: Int = Int.MaxValue) = {
+  def generateBucketRanges(num: Int, infinity: Int = Int.MaxValue): BucketList = {
     val mult = math.log(infinity) //log is actually ln
     val buckets = (0 to num).map { i =>
       if (i == 0) {
@@ -175,10 +175,9 @@ object Histogram {
     */
   def apply(address: MetricAddress, configPath: String)(implicit ns: MetricNamespace): Histogram = {
     ns.getOrAdd(address) { (fullAddress, config) =>
-      import scala.collection.JavaConversions._
 
       val params      = config.resolveConfig(fullAddress, DefaultConfigPath, configPath)
-      val percentiles = params.getDoubleList("percentiles").map(_.toDouble)
+      val percentiles = params.getDoubleList("percentiles").asScala.map(_.toDouble)
       val sampleRate  = params.getDouble("sample-rate")
       val pruneEmpty  = params.getBoolean("prune-empty")
       val enabled     = params.getBoolean("enabled")
@@ -240,17 +239,20 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   private val mCount = new AtomicLong(0)
   private val mTotal = new AtomicLong(0)
 
-  def min     = if (count > 0) mMin.get else 0L
-  def max     = mMax.get
-  def count   = mCount.get
-  def buckets = mBuckets
+  def min: Long = if (count > 0) mMin.get else 0L
 
-  def mean = {
+  def max: Long = mMax.get
+
+  def count: Long = mCount.get
+
+  def buckets: Seq[AtomicLong] = mBuckets
+
+  def mean: Long = {
     val scount = count
     if (scount > 0) mTotal.get / scount else 0L
   }
 
-  def bucketFor(value: Int) = {
+  def bucketFor(value: Int): Int = {
     def s(index: Int, n: Int): Int =
       if (ranges(index) > value) {
         s(index - n, math.max(1, n / 2))
@@ -308,7 +310,7 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
       remain.headOption match {
         case None => build
         case Some(perc) => {
-          if (perc <= 0.0 || count == 0 || ranges.size == 0) {
+          if (perc <= 0.0 || count == 0 || ranges.isEmpty) {
             p(num, index, build :+ 0, remain.tail, lastNonZeroIndex)
           } else if (perc >= 1.0) {
             p(num, index, build :+ max.toInt, remain.tail, lastNonZeroIndex)
@@ -341,9 +343,9 @@ private[metrics] class BaseHistogram(val bucketList: BucketList = Histogram.defa
   def percentile(perc: Double): Int = percentiles(Seq(perc))(perc)
 
   def metrics(address: MetricAddress, tags: TagMap, percs: Seq[Double]): MetricMap = {
-    val others = Map(("min" -> min), ("max" -> max), ("mean" -> mean)).map {
+    val others = Map("min" -> min, "max" -> max, "mean" -> mean).map {
       case (label, value) =>
-        (tags + ("label" -> label) -> value.toLong)
+        tags + ("label" -> label) -> value.toLong
     }
 
     Map(
@@ -366,7 +368,7 @@ class DefaultHistogram private[metrics] (
 
   val tagHists: Map[FiniteDuration, ConcurrentHashMap[TagMap, BaseHistogram]] = intervals.map { i =>
     val m = new ConcurrentHashMap[TagMap, BaseHistogram]
-    (i -> m)
+    i -> m
   }.toMap
 
   def add(value: Int, tags: TagMap = TagMap.Empty) {
@@ -375,11 +377,10 @@ class DefaultHistogram private[metrics] (
         case (_, taghists) =>
           Option(taghists.get(tags)) match {
             case Some(got) => got.add(value)
-            case None => {
+            case None =>
               taghists.putIfAbsent(tags, new BaseHistogram(buckets))
               //TODO: possible race condition if removed between these lines
               taghists.get(tags).add(value)
-            }
           }
       }
     }

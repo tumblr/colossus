@@ -11,7 +11,7 @@ import colossus.metrics.MetricAddress
 import colossus.metrics.collectors.{Counter, Rate}
 import colossus.metrics.logging.ColossusLogging
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 /** Configuration used to specify a Server's application-level behavior
@@ -280,7 +280,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
 
   override def postStop() {
     //cleanup
-    selector.keys.foreach { _.channel.close }
+    selector.keys.asScala.foreach { _.channel.close }
     selector.close()
     ss.close()
     info("SERVER PEACE OUT")
