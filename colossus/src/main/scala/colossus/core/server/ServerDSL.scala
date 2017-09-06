@@ -55,8 +55,8 @@ trait ServerDSL {
     *
     * @param name The name of this Server
     * @param serverConfig Config object in the shape of `colossus.server`
-    * @param initializer
-    * @param io
+    * @param initializer Generate server initializer from initial runtime context object
+    * @param io the Java I/O process
     * @return
     */
   def start(name: String, serverConfig: Config = ConfigFactory.load())(initializer: InitContext => Initializer)(
@@ -71,8 +71,8 @@ trait ServerDSL {
     *
     * @param name Name of this Server.
     * @param port Port to run on
-    * @param initializer
-    * @param io
+    * @param initializer Generate server initializer from initial runtime context object
+    * @param io the Java I/O process
     * @return
     */
   def start(name: String, port: Int)(initializer: InitContext => Initializer)(implicit io: IOSystem): ServerRef = {
@@ -85,8 +85,8 @@ trait ServerDSL {
     *
     * @param name  Name of this Server.
     * @param settings Settings for this Server.
-    * @param initializer
-    * @param io
+    * @param initializer Generate server initializer from initial runtime context object
+    * @param io the Java I/O process
     * @return
     */
   def start(name: String, settings: ServerSettings)(initializer: InitContext => Initializer)(
@@ -108,7 +108,7 @@ trait ServerDSL {
     * @param name Name of this Server
     * @param serverConfig Config object in the shape of `colossus.server`
     * @param handlerFactory
-    * @param io
+    * @param io the Java I/O process
     * @return
     */
   def basic(name: String, serverConfig: Config = ConfigFactory.load())(
@@ -124,7 +124,7 @@ trait ServerDSL {
     * @param name Name of this Server.
     * @param port Port to run on
     * @param handlerFactory
-    * @param io
+    * @param io the Java I/O process
     * @return
     */
   def basic(name: String, port: Int)(handlerFactory: ServerContext => ServerConnectionHandler)(
@@ -142,7 +142,7 @@ trait ServerDSL {
     * @param name Name of this Server.
     * @param settings Settings for this Server.
     * @param handlerFactory
-    * @param io
+    * @param io the Java I/O process
     * @return
     */
   def basic(name: String, settings: ServerSettings)(handlerFactory: ServerContext => ServerConnectionHandler)(

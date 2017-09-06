@@ -36,7 +36,7 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Convenience function for using an IOSystem.  This will create an IOSystem, and ensure its shutdown.
-    * @param f
+    * @param f The function to take the [[IOSystem]]
     */
   def withIOSystem(f: IOSystem => Any) {
     val sys = IOSystem("test-system-" + System.currentTimeMillis.toString, Some(2), MetricSystem.deadSystem)
@@ -49,7 +49,7 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Shuts down the IOSystem, and ensures all Servers have been terminated.
-    * @param sys
+    * @param sys The [[IOSystem]] to shut down.
     */
   def shutdownIOSystem(sys: IOSystem) {
     implicit val ec = mySystem.dispatcher
@@ -68,8 +68,8 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Waits for a Server to be in the specified status.
-    * @param server
-    * @param waitTime
+    * @param server A reference to the server we'll wait on.
+    * @param waitTime The time in ms to wait.
     * @param serverStatus Defaults to ServerStatus.Bound
     */
   def waitForServer(server: ServerRef,
@@ -128,7 +128,7 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Shuts down, and asserts that a Server has been terminated.
-    * @param server
+    * @param server The server to shutdown.
     */
   def end(server: ServerRef) {
     val probe = TestProbe()
@@ -139,8 +139,8 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Convenience function which waits for a Server,and then shuts the Server down after the function runs.
-    * @param server
-    * @param op
+    * @param server The server to wait on.
+    * @param op The function to run before shutting the previously mentioned server down.
     * @return
     */
   def withServer(server: ServerRef)(op: => Any) {

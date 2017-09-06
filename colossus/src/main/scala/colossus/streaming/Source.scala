@@ -87,7 +87,7 @@ trait Source[+T] extends Transport {
     * processing function.
     *
     * This method is generally intended for linking the output of a `Source` to
-    * the input of a [[Sink]]`.  For a simplified version of this functionality, see
+    * the input of a [[Sink]].  For a simplified version of this functionality, see
     * `Source.into`.
     */
   def pullWhile(fn: T => PullAction, onComplete: TerminalPullResult => Any)

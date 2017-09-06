@@ -73,7 +73,7 @@ trait MetricNamespace {
     * exists, a `DuplicateMetricException` will be thrown.
     * @param address Address meant to be relative to this MetricNamespace's namespace
     * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
-    * @tparam T
+    * @tparam T The Collector to be retrieved.
     * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
     */
   def getOrAdd[T <: Collector: ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
@@ -98,10 +98,8 @@ case class SystemMetricsConfig(enabled: Boolean, namespace: MetricAddress)
   *
   * @param enabled true to enable all functionality.  Setting to false will effectively create a dummy system that does nothing
   * @param name The name of the metric system.  Name is not used in the root path of a metric system.
-  * @param collectionIntervals The intervals that the system should use to periodicaly collect metrics.  Multiple intervals can be specified to allow the collection of, for example, both per second and per minute metrics.
-  * @param collectSystemMetrics whether to collect system metrics like GC usage
-  * @param systemMetricsNamespace an optional namespace for system metrics, defaults to "/name" where name is the name of the metric system
-  * @param collectorConfigs a typesafe config object containing configurations for individual collectors
+  * @param systemMetrics a namespace config for system metrics, defaults to "/name" where name is the name of the metric system
+  * @param collectorConfig a typesafe config object containing configurations for individual collectors
   */
 case class MetricSystemConfig(
     enabled: Boolean,
@@ -213,7 +211,7 @@ object MetricSystem {
   /**
     * Create a system which does nothing.  Useful for testing/debugging.
     *
-    * @param system
+    * @param system The useless, dead, worthless, should-never-have-been-born system.
     * @return
     */
   def deadSystem(implicit system: ActorSystem) = {
