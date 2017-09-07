@@ -136,7 +136,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
           }
           case Failure(err) => cb(Failure(err))
       })
-    UnmappedCallback(newTrigger)
+    MappedCallback(newTrigger, identity[Try[U]])
   }
   def map[U](f: O => U): Callback[U] =
     MappedCallback(trigger, { i: Try[I] =>
@@ -182,73 +182,7 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
               case t: Throwable => cb(Failure(t))
             }
       })
-    UnmappedCallback(newtrigger)
-  }
-
-}
-
-/**
-  * A Callback that has not been mapped.  See the docs for [[Callback]] for more information
-  */
-case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callback[I] {
-  def map[O](f: I => O): Callback[O] = MappedCallback(trigger, (i: Try[I]) => i.map(f))
-  def flatMap[O](f: I => Callback[O]): Callback[O] = {
-    val newTrigger: (Try[O] => Unit) => Unit = cb =>
-      trigger {
-        case Success(value) => {
-          Try(f(value)) match {
-            case Success(callback) => callback.execute(cb)
-            case Failure(err)      => cb(Failure(err))
-          }
-        }
-        case Failure(err) => cb(Failure(err))
-    }
-    UnmappedCallback(newTrigger)
-  }
-
-  def mapTry[O](f: Try[I] => Try[O]): Callback[O] =
-    MappedCallback(trigger, (i: Try[I]) => try { f(i) } catch { case t: Throwable => Failure(t) })
-
-  def execute(onComplete: Try[I] => Unit = _ => ()) {
-    try {
-      trigger({ i =>
-        onComplete(i)
-      })
-    } catch {
-      case err: Throwable => throw new CallbackExecutionException(err)
-    }
-  }
-
-  def recover[U >: I](p: PartialFunction[Throwable, U]): Callback[U] =
-    MappedCallback(
-      trigger,
-      (i: Try[I]) =>
-        i match {
-          case Success(o) => Success(o)
-          case Failure(err) =>
-            try {
-              p.andThen(s => Success(s))
-                .applyOrElse(err, { e: Throwable =>
-                  Failure[U](e)
-                })
-            } catch {
-              case t: Throwable => Failure(t)
-            }
-      }
-    )
-
-  def recoverWith[U >: I](p: PartialFunction[Throwable, Callback[U]]): Callback[U] = {
-    val newTrigger: (Try[U] => Unit) => Unit = cb =>
-      trigger {
-        case Success(o) => cb(Success(o))
-        case Failure(err) =>
-          try {
-            p.applyOrElse(err, (e: Throwable) => Callback.failed(e)).execute(cb)
-          } catch {
-            case t: Throwable => cb(Failure(t))
-          }
-    }
-    UnmappedCallback(newTrigger)
+    MappedCallback(newtrigger, identity[Try[U]])
   }
 
 }
@@ -362,14 +296,14 @@ object Callback {
     * continuation that will be the fully built mappings on the result
     * `Callback`.
     */
-  def apply[I](f: (Try[I] => Unit) => Unit): Callback[I] = UnmappedCallback(f)
+  def apply[I](f: (Try[I] => Unit) => Unit): Callback[I] = MappedCallback(f, identity[Try[I]])
 
   /**
     * Zip two [[Callback Callbacks]] together into a single `Callback` containing
     * a tuple of the results.
     */
   def zip[A, B](a: Callback[A], b: Callback[B]): Callback[(A, B)] = {
-    UnmappedCallback((f: Try[(A, B)] => Unit) => new TupledCallback[A, B](a, b, f).execute())
+    MappedCallback((f: Try[(A, B)] => Unit) => new TupledCallback[A, B](a, b, f).execute(), identity[Try[(A, B)]])
   }
 
   /**
@@ -378,7 +312,7 @@ object Callback {
     * that the success/failure of each individual `Callback` can be determined.
     */
   def sequence[A: ClassTag](callbacks: Seq[Callback[A]]): Callback[Seq[Try[A]]] = {
-    UnmappedCallback((f: Function1[Try[Seq[Try[A]]], Unit]) => new SequencedCallback(f, callbacks).execute())
+    MappedCallback((f: Function1[Try[Seq[Try[A]]], Unit]) => new SequencedCallback(f, callbacks).execute(), identity[Try[Seq[Try[A]]]])
   }
 
   /** Create a callback that immediately returns the value
@@ -420,7 +354,7 @@ object Callback {
       future.onComplete { res =>
         executor.executor ! CallbackExec(() => cb(res))
     }
-    UnmappedCallback(trigger)
+    MappedCallback(trigger, identity[Try[I]])
   }
 
   /**
@@ -435,7 +369,7 @@ object Callback {
   def schedule[I](in: FiniteDuration)(cb: Callback[I])(implicit executor: CallbackExecutor): Callback[I] = {
     implicit val ex                       = executor.context
     val trigger: (Try[I] => Unit) => Unit = x => executor.executor ! CallbackExec(() => cb.execute(x), Some(in))
-    UnmappedCallback(trigger)
+    MappedCallback(trigger, identity[Try[I]])
   }
 
   object Implicits {
@@ -461,14 +395,14 @@ class CallbackPromise[T] {
   private var value: Option[Try[T]]              = None
   private var completion: Option[Try[T] => Unit] = None
 
-  val callback: Callback[T] = UnmappedCallback(trigger => {
+  val callback: Callback[T] = MappedCallback[T, T](trigger  => {
     value match {
       case Some(v) => trigger(v)
       case None => {
         completion = Some(trigger)
       }
     }
-  })
+  }, identity[Try[T]])
 
   def success(t: T) {
     complete(Success(t))

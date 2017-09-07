@@ -1,7 +1,7 @@
 package colossus.streaming
 
-import scala.util.{Try, Success, Failure}
-import colossus.service.{Callback, UnmappedCallback}
+import scala.util.{Failure, Success, Try}
+import colossus.service.{Callback, MappedCallback}
 
 sealed trait PullAction
 
@@ -109,7 +109,7 @@ trait Source[+T] extends Transport {
     done
   }
 
-  def pullCB(): Callback[Option[T]] = UnmappedCallback(pull)
+  def pullCB(): Callback[Option[T]] = MappedCallback(pull, identity[Try[Option[T]]])
 
   def fold[U](init: U)(cb: (T, U) => U): Callback[U] = {
     pullCB().flatMap {
