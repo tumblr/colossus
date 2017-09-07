@@ -6,12 +6,13 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 
+import colossus.metrics.MetricNamespace
 import colossus.metrics.collectors.{Counter, Rate}
 import colossus.metrics.logging.ColossusLogging
 import colossus.{IOCommand, IOSystem}
 import colossus.service.{CallbackExecution, CallbackExecutor}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -47,7 +48,7 @@ case class WorkerRef private[colossus] (id: Int, worker: ActorRef, system: IOSys
     * @param sender  The sendef of the message
     * @return
     */
-  def !(message: Any)(implicit sender: ActorRef = ActorRef.noSender) = worker ! message
+  def !(message: Any)(implicit sender: ActorRef = ActorRef.noSender): Unit = worker ! message
 
   /**
     * Bind a new worker item to this worker.  The item should have been created
@@ -94,7 +95,7 @@ class WorkerItemManager(worker: WorkerRef) extends ColossusLogging {
     */
   def bind(workerItem: WorkerItem) {
     if (workerItem.isBound) {
-      error(s"Attempted to bind worker ${workerItem} that was already bound")
+      error(s"Attempted to bind worker $workerItem that was already bound")
     } else {
       workerItems(workerItem.id) = workerItem
       workerItem.setBind()
@@ -140,8 +141,8 @@ class WorkerItemManager(worker: WorkerRef) extends ColossusLogging {
 
   def idleCheck(period: FiniteDuration) {
     workerItems.foreach {
-      case (id, i: IdleCheck) => i.idleCheck(period)
-      case _                  => {}
+      case (_, i: IdleCheck) => i.idleCheck(period)
+      case _                 =>
     }
   }
 }
@@ -152,28 +153,29 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
   import WorkerManager._
   import config._
 
-  val parent = context.parent
-  var trace  = true
+  private val parent = context.parent
 
-  val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
+  private var trace = true
+
+  private val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
   
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
-  implicit val ns         = io.namespace / io.name
+  implicit val ns: MetricNamespace = io.namespace / io.name
+
   val eventLoops          = Rate("worker/event_loops", "worker-event-loops")
   val numConnections      = Counter("worker/connections", "worker-connections")
   val rejectedConnections = Rate("worker/rejected_connections", "worker-rejected-connections")
 
-  val selector: Selector = Selector.open()
-  val buffer             = ByteBuffer.allocateDirect(1024 * 128)
+  private val selector = Selector.open()
 
-  val outputBuffer = new DynamicOutBuffer(1024 * 1024 * 4)
+  private val buffer = ByteBuffer.allocateDirect(1024 * 128)
 
-  //collection of all the active connections
-  val connections = collection.mutable.Map[Long, Connection]()
+  private val outputBuffer = new DynamicOutBuffer(1024 * 1024 * 4)
 
-  //mapping of registered servers to their initializers
-  val initializers = collection.mutable.Map[ActorRef, Initializer]()
+  private val activeConnections = collection.mutable.Map[Long, Connection]()
+
+  private val serversToInitializers = collection.mutable.Map[ActorRef, Initializer]()
 
   val me = WorkerRef(workerId, self, io)
 
@@ -188,7 +190,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
     self ! Select
   }
 
-  def receive = handleCallback orElse accepting
+  def receive: Receive = handleCallback orElse accepting
 
   def accepting: Receive = {
     case Select => {
@@ -200,7 +202,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
     case CheckIdleConnections => {
       workerItems.idleCheck(WorkerManager.IdleCheckFrequency)
       val time = System.currentTimeMillis
-      val timedOut = connections.filter {
+      val timedOut = activeConnections.filter {
         case (_, con) =>
           if (con.isTimedOut(time)) {
             unregisterConnection(con, DisconnectCause.TimedOut)
@@ -209,39 +211,37 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
             false
           }
       }
-      if (timedOut.size > 0) {
+      if (timedOut.nonEmpty) {
         debug(s"Terminated ${timedOut.size} idle connections")
       }
       sender() ! IdleCheckExecuted
     }
     case WorkerManager.RegisterServer(server) =>
-      if (!initializers.contains(server.server)) {
+      if (!serversToInitializers.contains(server.server)) {
         try {
-          initializers(server.server) = server.config.initializerFactory(InitContext(server, me))
+          serversToInitializers(server.server) = server.config.initializerFactory(InitContext(server, me))
           debug(s"registered server ${server.name}")
           sender ! ServerRegistered
         } catch {
-          case NonFatal(e) => {
+          case NonFatal(e) =>
             error("failed to create initializer", e)
             sender ! RegistrationFailed
-          }
         }
       } else {
         warn("attempted to re-register a server")
         sender ! WorkerManager.ServerRegistered
       }
-    case WorkerManager.UnregisterServer(server) => {
+    case WorkerManager.UnregisterServer(server) =>
       unregisterServer(server.server)
-    }
-    case WorkerManager.ServerShutdownRequest(server) => {
-      connections.collect {
-        case (id, connection: ServerConnection) if (connection.server == server) => {
+
+    case WorkerManager.ServerShutdownRequest(server) =>
+      activeConnections.collect {
+        case (id, connection: ServerConnection) if connection.server == server =>
           connection.serverHandler.shutdownRequest()
-        }
       }
-    }
+
     case InitializerMessage(server, message) => {
-      initializers
+      serversToInitializers
         .find { case (_, initializer) => initializer.server == server }
         .map {
           case (_, initializer) =>
@@ -253,8 +253,9 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
           error(s"initializer message $message for unknown server ${server.name}")
         }
     }
+
     case NewConnection(sc, attempt) =>
-      initializers
+      serversToInitializers
         .get(sender())
         .map { initializer =>
           Try(initializer.onConnect.apply(ServerContext(initializer.server, initializer.worker.generateContext())))
@@ -271,34 +272,34 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
           sender ! Server.ConnectionRefused(sc, attempt)
           error("Received connection from unregistered server!!!")
         }
-    case Terminated(handler) => {
+
+    case Terminated(handler) =>
       if (watchedConnections contains handler) {
         watchedConnections(handler).close(DisconnectCause.Disconnect) //TODO: Is this right?  Should I be sending Terminated?
         watchedConnections -= handler
       }
-    }
-    case ConnectionSummaryRequest => {
+
+    case ConnectionSummaryRequest =>
       val now = System.currentTimeMillis //save a few thousand calls by doing this
-      sender ! ConnectionSummary(connections.values.map { _.info(now) }.toSeq)
-    }
+      sender ! ConnectionSummary(activeConnections.values.map { _.info(now) }.toSeq)
   }
 
   def handleIOCommand(cmd: IOCommand) {
     import IOCommand._
     cmd match {
-      case BindWorkerItem(itemFactory) => {
-        val item = itemFactory(me.generateContext)
+      case BindWorkerItem(itemFactory) =>
+        val item = itemFactory(me.generateContext())
         //the item may have already bound itself
         if (!item.isBound) {
           workerItems.bind(item)
         }
-      }
-      case BindAndConnectWorkerItem(address, itemFactory) => {
-        val item = itemFactory(me.generateContext)
+
+      case BindAndConnectWorkerItem(address, itemFactory) =>
+        val item = itemFactory(me.generateContext())
         workerItems.bind(item)
         self ! WorkerCommand.Connect(address, item.id)
-      }
-      case BindWithContext(context, itemFactory) => {
+
+      case BindWithContext(context, itemFactory) =>
         if (context.worker != me) {
           error("Attempted to bind to worker ${me.id} using a context for worker ${context.worker.id}")
         } else {
@@ -307,7 +308,6 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
             workerItems.bind(item)
           }
         }
-      }
     }
   }
 
@@ -321,7 +321,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
       val channel = newChannel
     }
     newKey.attach(connection)
-    connections(connection.id) = connection
+    activeConnections(connection.id) = connection
     numConnections.increment(workerIdTag)
     handler match {
       case w: WatchedHandler => {
@@ -371,12 +371,12 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
         workerItems.unbind(id)
       }
       case Disconnect(connectionId) => {
-        connections.get(connectionId).foreach { con =>
+        activeConnections.get(connectionId).foreach { con =>
           unregisterConnection(con, DisconnectCause.Disconnect)
         }
       }
       case Kill(connectionId, errorCause) => {
-        connections.get(connectionId).foreach { con =>
+        activeConnections.get(connectionId).foreach { con =>
           unregisterConnection(con, errorCause)
         }
       }
@@ -396,7 +396,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
         workerItems.bind(newHandler)
       }
       case SwapHandler(newHandler) => {
-        connections.get(newHandler.id).foreach { con =>
+        activeConnections.get(newHandler.id).foreach { con =>
           workerItems.replace(newHandler)
           con.setHandler(newHandler)
         }
@@ -414,7 +414,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
       val channel = sc
     }
     newKey.attach(connection)
-    connections(connection.id) = connection
+    activeConnections(connection.id) = connection
     numConnections.increment(workerIdTag)
     workerItems.bind(handler)
     handler.connected(connection)
@@ -442,7 +442,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
     * leak of bound WorkerItems
     */
   def unregisterConnection(con: Connection, cause: DisconnectCause) {
-    connections -= con.id
+    activeConnections -= con.id
     con.close(cause)
     numConnections.decrement(workerIdTag)
     (con.handler, cause) match {
@@ -452,14 +452,14 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
   }
 
   def unregisterServer(handler: ActorRef) {
-    if (initializers contains handler) {
-      val initializer = initializers(handler)
-      val closed = connections.collect {
+    if (serversToInitializers contains handler) {
+      val initializer = serversToInitializers(handler)
+      val closed = activeConnections.collect {
         case (_, s: ServerConnection) if (s.server == initializer.server) => {
           unregisterConnection(s, DisconnectCause.Terminated)
         }
       }
-      initializers -= handler
+      serversToInitializers -= handler
       initializer.onShutdown()
       info(s"unregistering server ${initializer.server.name} (terminating ${closed.size} associated connections)")
     } else {
@@ -568,12 +568,12 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
 
   override def postStop() {
     //cleanup
-    selector.keys.foreach { _.channel.close }
-    connections.foreach {
+    selector.keys.asScala.foreach { _.channel.close }
+    activeConnections.foreach {
       case (_, con) =>
         con.close(DisconnectCause.Terminated)
     }
-    initializers.foreach {
+    serversToInitializers.foreach {
       case (server, initializer) =>
         initializer.onShutdown()
     }

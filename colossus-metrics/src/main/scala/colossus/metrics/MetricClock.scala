@@ -3,9 +3,11 @@ package colossus.metrics
 import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor._
+import colossus.metrics.IntervalAggregator._
 import colossus.metrics.logging.ColossusLogging
 
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 
 class IntervalAggregator(interval: FiniteDuration,
                          snapshot: AtomicReference[MetricMap],
@@ -14,21 +16,17 @@ class IntervalAggregator(interval: FiniteDuration,
     with ColossusLogging {
 
   import context.dispatcher
-  import IntervalAggregator._
-  import scala.collection.JavaConversions._
 
-  val systemMetrics = sysMetricsNamespace.map { ns =>
-    new SystemMetricsCollector(ns)
-  }
+  private val systemMetrics = sysMetricsNamespace.map(new SystemMetricsCollector(_))
+
+  private var collections = Set[Collection]()
+  private var reporters   = Set[ActorRef]()
 
   def blankMap(): MetricMap = systemMetrics.map { _.metrics }.getOrElse(Map())
 
-  var collections = Set[Collection]()
-  var reporters   = Set[ActorRef]()
+  def receive: Receive = {
 
-  def receive = {
-
-    case Tick => {
+    case Tick =>
       context.system.scheduler.scheduleOnce(interval, self, Tick)
       var build = blankMap()
       collections.foreach { collection =>
@@ -39,29 +37,24 @@ class IntervalAggregator(interval: FiniteDuration,
       reporters.foreach { reporter =>
         reporter ! ReportMetrics(build)
       }
-    }
 
-    case RegisterCollection(collection) => {
+    case RegisterCollection(collection) =>
       collections = collections + collection
-    }
 
-    case RegisterReporter(ref) => {
+    case RegisterReporter(ref) =>
       reporters = reporters + ref
       context.watch(ref)
-    }
 
-    case Terminated(child) => {
+    case Terminated(child) =>
       if (reporters.contains(child)) {
         debug(s"oh no!  We lost a MetricReporter $child. Removing from registered reporters.")
-        reporters.remove(child)
+        reporters = reporters - child
       } else {
         warn(s"someone: $child died..for which there is no reporter registered")
       }
-    }
 
-    case ListReporters => {
-      sender ! reporters.toSet //yea..that's right..immutable on the way out.
-    }
+    case ListReporters =>
+      sender ! reporters
   }
 
   override def preStart() {
@@ -70,7 +63,6 @@ class IntervalAggregator(interval: FiniteDuration,
 }
 
 object IntervalAggregator {
-
   case class RegisterReporter(ref: ActorRef)
   case class RegisterCollection(collection: Collection)
   case class ReportMetrics(m: MetricMap)
@@ -96,15 +88,15 @@ class SystemMetricsCollector(namespace: MetricNamespace) {
       )
     )
     val gcInfo: MetricMap = {
-      val beans = ManagementFactory.getGarbageCollectorMXBeans().toArray
-      val (cycles, msec) = beans.foldLeft((ValueMap.Empty, ValueMap.Empty)) {
+      val beans = ManagementFactory.getGarbageCollectorMXBeans.asScala
+      val (cyclesMetric, msecMetric) = beans.foldLeft((ValueMap.Empty, ValueMap.Empty)) {
         case ((cycles, msec), tastyBean: management.GarbageCollectorMXBean) =>
           val tags = Map("type" -> tastyBean.getName.replace(' ', '_'))
           (cycles + (tags -> tastyBean.getCollectionCount), msec + (tags -> tastyBean.getCollectionTime))
       }
       Map(
-        (namespace.namespace / "system" / "gc" / "cycles") -> cycles,
-        (namespace.namespace / "system" / "gc" / "msec")   -> msec
+        (namespace.namespace / "system" / "gc" / "cycles") -> cyclesMetric,
+        (namespace.namespace / "system" / "gc" / "msec")   -> msecMetric
       )
     }
 
@@ -120,3 +112,5 @@ class SystemMetricsCollector(namespace: MetricNamespace) {
     (memoryInfo ++ gcInfo ++ fdInfo).withTags(namespace.tags)
   }
 }
+
+

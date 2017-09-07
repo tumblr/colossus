@@ -6,12 +6,12 @@ import com.typesafe.config.{Config, ConfigFactory}
 import scala.concurrent.duration._
 import scala.util.Try
 
+import scala.collection.JavaConverters._
+
 //has to be a better way
 object ConfigHelpers {
 
   implicit class ConfigExtractors(config: Config) {
-
-    import scala.collection.JavaConversions._
 
     def getStringOption(path: String): Option[String] = getOption(path, config.getString)
 
@@ -30,7 +30,7 @@ object ConfigHelpers {
     }
 
     def getFiniteDurations(path: String): Seq[FiniteDuration] =
-      config.getStringList(path).map(finiteDurationOnly(_, path))
+      config.getStringList(path).asScala.map(finiteDurationOnly(_, path))
 
     def getFiniteDuration(path: String): FiniteDuration = finiteDurationOnly(config.getString(path), path)
 
