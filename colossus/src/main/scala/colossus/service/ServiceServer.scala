@@ -87,7 +87,8 @@ object ServiceConfig {
 }
 
 trait RequestFormatter[I] {
-  def format(request: I): String
+  def formatRequest(request: I): String
+  def formatError(error: Throwable): String
 }
 
 class ServiceServerException(message: String) extends Exception(message)
@@ -159,10 +160,13 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
     if (config.logErrors) {
       val formattedRequest = failure match {
         case RecoverableError(request, reason) =>
-          requestHandler.requestLogFormat.map { _.format(request) }.getOrElse(request.toString)
+          requestHandler.requestLogFormat.map { _.formatRequest(request) }.getOrElse(request.toString)
         case IrrecoverableError(reason) => "Invalid Request"
       }
-      error(s"Error processing request: $formattedRequest: ${failure.reason}", failure.reason)
+      requestHandler.requestLogFormat match {
+        case None =>            error(s"Error processing request: $formattedRequest", failure.reason)
+        case Some(formatter) => error(s"Error processing request: $formattedRequest: ${formatter.formatError(failure.reason)}")
+      }
     }
   }
 
