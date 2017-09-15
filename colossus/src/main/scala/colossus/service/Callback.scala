@@ -108,7 +108,16 @@ sealed trait Callback[+O] {
 }
 
 /**
-  * A Callback that has been mapped on.  See the docs for [[Callback]] for more information
+  * A mapped callback is the most generalized implementation of a callback and is usually created when a callback has
+  * been mapped on (i.e. map/mapTry/recover). An unmapped callback and constant callback are specialized versions,
+  * that exist to improve performance. For example:
+  *
+  * {{{
+  *   MappedCallback[Int, Int](_ => Success(5), identity[Try[Int]]) <==> ConstantCallback[Int](Success(5))
+  *
+  * }}}
+  *
+  * See the docs for [[Callback]] for more information.
   */
 case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[I] => Try[O]) extends Callback[O] {
   def execute(onComplete: Try[O] => Unit = _ => ()) {
@@ -188,7 +197,13 @@ case class MappedCallback[I, O](trigger: (Try[I] => Unit) => Unit, handler: Try[
 }
 
 /**
-  * A Callback that has not been mapped.  See the docs for [[Callback]] for more information
+  * A Callback that has not been mapped (i.e. map/mapTry/recover). Unmapped callback is the same as a mapped callback
+  * that uses the identity function as the handler:
+  *
+  * {{{ UnmappedCallback[I](func) <==> MappedCallback[I, I](func, identity[Try[I]]) }}}
+  *
+  * An unmapped callback is 30% faster to execute than the mapped version. See the docs for [[Callback]] for more
+  * information.
   */
 case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callback[I] {
   def map[O](f: I => O): Callback[O] = MappedCallback(trigger, (i: Try[I]) => i.map(f))
@@ -254,9 +269,9 @@ case class UnmappedCallback[I](trigger: (Try[I] => Unit) => Unit) extends Callba
 }
 
 /**
-  * A Callback containing a constant value, usually created as the result of
-  * calling `Callback.success` or `Callback.failure`.  See the docs for
-  * [[Callback]] for more information.
+  * A Callback containing a constant value, usually created as the result of calling `Callback.success` or
+  * `Callback.failure`. A constant callback is slightly faster than an unmapped callback, but only by a small margin.
+  * See the docs for [[Callback]] for more information.
   */
 case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   def map[U](f: O => U): Callback[U] = ConstantCallback(value.map(f))
