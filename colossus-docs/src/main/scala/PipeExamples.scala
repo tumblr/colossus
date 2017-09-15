@@ -71,6 +71,4 @@ object PipeExamples extends App {
     // #pipe_compose
   }
 
-    
-
 }

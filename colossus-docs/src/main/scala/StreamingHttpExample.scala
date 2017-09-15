@@ -2,7 +2,7 @@ import colossus._
 
 import protocols.http._
 import protocols.http.streaming._
-import core.DataBlock
+import core._
 import service._
 import colossus.streaming._
 
@@ -10,7 +10,7 @@ object StreamServiceExample {
 
   // #streaming_http
 
-  class MyRequestHandler extends GenRequestHandler[StreamingHttp](serverContext, config) {
+  class MyRequestHandler(serverContext: ServerContext) extends GenRequestHandler[StreamingHttp](serverContext) {
 
     def handle = {
       case StreamingHttpRequest(head, source) if (head.url == "/chunked") => {
@@ -32,7 +32,7 @@ object StreamServiceExample {
   }
 
   def start(port: Int)(implicit sys: IOSystem) = {
-    StreamingHttpServer.basic("stream-service", port, serverContext => new MyRequestHandler)
+    StreamingHttpServer.basic("stream-service", port, serverContext => new MyRequestHandler(serverContext))
   }
 
   // #streaming_http
