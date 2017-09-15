@@ -112,10 +112,7 @@ sealed trait Callback[+O] {
   * been mapped on (i.e. map/mapTry/recover). An unmapped callback and constant callback are specialized versions,
   * that exist to improve performance. For example:
   *
-  * {{{
-  *   MappedCallback[Int, Int](_ => Success(5), identity[Try[Int]]) <==> ConstantCallback[Int](Success(5))
-  *
-  * }}}
+  * {{{ MappedCallback[Int, Int](_ => Success(5), identity[Try[Int]]) <==> ConstantCallback[Int](Success(5)) }}}
   *
   * See the docs for [[Callback]] for more information.
   */
