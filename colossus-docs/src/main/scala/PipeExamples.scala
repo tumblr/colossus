@@ -58,4 +58,19 @@ object PipeExamples extends App {
     
   }
 
+  def pipeTransform = {
+
+    // #pipe_compose
+    val pipe1: Pipe[Int, Int] = new BufferedPipe[Int](10)
+    val pipe2: Pipe[String, String] = new BufferedPipe[String](10)
+
+    val pipe3: Pipe[Int, String] = pipe1.map{i => (i * 2).toString}.weld(pipe2)
+
+    pipe3.push(2)
+    pipe3.pull() // PullResult.Item("4")
+    // #pipe_compose
+  }
+
+    
+
 }

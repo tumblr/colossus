@@ -126,8 +126,9 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
   .enablePlugins(ParadoxPlugin)
   .settings(
     paradoxTheme := Some(builtinParadoxTheme("generic")),
-    paradoxProperties in Compile ++= Map(
-      "scaladoc.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus_2.11/${version.value}/index.html#"
+    paradoxProperties ++= Map(
+      "extref.docs.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus_2.11/${version.value}/index.html#%s",
+      "snip.examples.base_dir" -> "../scala" 
     )
   )
   .configs(IntegrationTest)

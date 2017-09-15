@@ -1,5 +1,11 @@
 # Streams and Streaming Protocols
 
+@@@ note
+
+**Experimental** : This API is under development and subject to breaking changes in future releases.
+
+@@@
+
 Normally when a server receives or a client sends a message, the entire message
 must be in memory and ready to encode/decode all at once.  This is not an issue
 for relatively small messages, but when messages start to get larger, anywhere
@@ -11,7 +17,7 @@ where the messages being sent/received are streamed out/in in chunks.
 
 # The Steaming API
 
-At the heart of streaming is a small set of composoble types for building
+At the heart of streaming is a small set of composable types for building
 reactive streams of objects.  The objects themselves can either be pieces of
 a larger object (such as chunks of an http message), or full messages
 themselves.  You can even have streams of streams.
@@ -85,6 +91,10 @@ supplies the signal with a callback function via the `notify` method.
 
 @@snip [PipeExamples.scala](../scala/PipeExamples.scala) { #full_push }
 
+See the docs for @extref[Sink](docs:colossus.streaming.Sink) for more
+information on how to push to sinks and also some built-in functions to work
+with them.
+
 ### Pulling from Sources
 
 Similar to sinks, calling `pull()` on a Source returns a `PullResult[T]`.  This may
@@ -99,18 +109,15 @@ method which allows you to supply a function that is called whenever an item is
 ready to pull.  It also gives you control over whether to continue using the
 callback function.
 
-See the documentation for @scaladoc[Source](colossus.streaming.Source) for more
+See the documentation for @extref[Source](docs:colossus.streaming.Source) for more
 ways to handle pulling items.
 
-### Composing and Transforming Pipes
+### Transforming and Composing Pipes
 
-A wide variety of methods are available to construct more complex streaming
-workflows.
+There are many methods available to build complex pipes by transforming and piecing together existing pipes.
 
-The simplest way to compose Pipes is with `Source.into` which feeds a
-`Source[T]` into a `Sink[T]`.
+@@snip [PipeExamples.scala](../scala/PipeExamples.scala) { #pipe_compose }
 
-### Pipe Multiplexing
 
 # Streaming HTTP
 
@@ -127,11 +134,5 @@ a high-level API that is more like a standard HTTP service.
 The high-level API is more-or-less a standard HTTP service, except that the
 body of the request/response is a stream of message chunks.
 
-## Streaming Http Messages
-
-The low-level API gives you direct access to the raw stream of HTTP message
-pieces.  Instead of receiving a stream for each message in a typical
-request/response workflow, there is just one incoming stream to read from and
-one outgoing stream to write to.
-
+@@snip [StreamingHttpExample.scala]($examples$/StreamingHttpExample.scala) { #streaming_http }
 
