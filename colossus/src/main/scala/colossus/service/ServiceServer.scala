@@ -86,9 +86,23 @@ object ServiceConfig {
   }
 }
 
+object RequestFormatter {
+  case class LogMessage(message: String, includeStackTrace: Boolean)
+}
+
 trait RequestFormatter[I] {
-  def formatRequest(request: I): String
-  def formatError(error: Throwable): String
+  import RequestFormatter._
+  // None means do not log. Some(true) means log with stack trace, Some(false) means log without it.
+  def logWithStackTrace(error: Throwable): Option[Boolean]
+
+  def format(request: I, error: Throwable): Option[String]
+
+  final def formatLogMessage(request: I, error: Throwable): Option[LogMessage] = {
+    logWithStackTrace(error).map { includeStackTrace =>
+      val message = format(request, error).getOrElse(request.toString)
+      LogMessage(message, includeStackTrace)
+    }
+  }
 }
 
 class ServiceServerException(message: String) extends Exception(message)
@@ -158,14 +172,29 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
     val tags = extraTags + ("type" -> failure.reason.metricsName)
     errors.hit(tags = tags)
     if (config.logErrors) {
-      val formattedRequest = failure match {
-        case RecoverableError(request, reason) =>
-          requestHandler.requestLogFormat.map { _.formatRequest(request) }.getOrElse(request.toString)
-        case IrrecoverableError(reason) => "Invalid Request"
-      }
       requestHandler.requestLogFormat match {
-        case None =>            error(s"Error processing request: $formattedRequest", failure.reason)
-        case Some(formatter) => error(s"Error processing request: $formattedRequest: ${formatter.formatError(failure.reason)}")
+        case Some(formatter) => {
+          val logMessage = failure match {
+            case RecoverableError(request, reason) =>
+              formatter.formatLogMessage(request, reason)
+            case IrrecoverableError(reason) =>
+              formatter.logWithStackTrace(reason).map(b => RequestFormatter.LogMessage("Invalid Request", b))
+          }
+          logMessage.foreach { x =>
+            if (x.includeStackTrace) {
+              error(s"Error processing request: ${x.message}", failure.reason)
+            } else {
+              error(s"Error processing request: ${x.message}")
+            }
+          }
+        }
+        case None => {
+          val requestString = failure match {
+            case RecoverableError(request, _) => request.toString
+            case IrrecoverableError(_) => "Invalid Request"
+          }
+          error(s"Error processing request: $requestString", failure.reason)
+        }
       }
     }
   }
