@@ -8,7 +8,7 @@ Colossus
 [![codecov.io](http://codecov.io/github/tumblr/colossus/coverage.svg?branch=master)](http://codecov.io/github/tumblr/colossus?branch=master)
 
 Colossus is a lightweight I/O framework for building Scala services.
-Colossus是一个用来写Scala微服务的轻型I/O框架。
+Colossus是一个用来构建Scala微服务的轻量级I/O框架。
 
 Full documentation can be found here : http://tumblr.github.io/colossus
 
