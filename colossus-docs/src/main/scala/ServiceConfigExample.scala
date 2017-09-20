@@ -5,7 +5,7 @@ import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
-import colossus.service.{Callback, ErrorConfig, ServiceConfig}
+import colossus.service.{Callback, ErrorConfig, RequestFormatter, ServiceConfig}
 import colossus.service.GenRequestHandler.PartialHandler
 
 import scala.concurrent.duration._
@@ -33,6 +33,13 @@ object ServiceConfigExample {
         override def handle: PartialHandler[Http] = {
           case request @ Get on Root => Callback.successful(request.ok("Hello world!"))
         }
+
+        // #example2
+        override def requestLogFormat: Option[RequestFormatter[Request]] = {
+          // you can create a custom subclass of `ConfigurableRequestFormatter` and override the format() method here
+          super.requestLogFormat
+        }
+        // #example2
       }
     }
   }

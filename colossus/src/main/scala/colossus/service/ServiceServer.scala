@@ -75,7 +75,6 @@ object ServiceConfig {
     * Load a ServiceConfig object from a Config source.  The Config object is
     * expected to be in the form of `colossus.service.default`.  Please refer to
     * the reference.conf file.
-    *
     */
   def load(config: Config): ServiceConfig = {
     import colossus.metrics.ConfigHelpers._
@@ -100,7 +99,12 @@ object RequestFormatter {
 
 trait RequestFormatter[I] {
   import RequestFormatter._
-  // None means do not log. Some(false) means log only the name. Some(true) means log with stack trace (default).
+
+  /**
+   * None means do not log.
+   * Some(false) means log only the name.
+   * Some(true) means log with stack trace (default).
+   */
   def logWithStackTrace(error: Throwable): Option[Boolean]
 
   def format(request: I, error: Throwable): Option[String]
@@ -113,6 +117,9 @@ trait RequestFormatter[I] {
   }
 }
 
+/**
+  * The ErrorConfig here is normally loaded from the ServiceConfig.
+  */
 class ConfigurableRequestFormatter[I](errorConfig: ErrorConfig) extends RequestFormatter[I] {
   override def logWithStackTrace(error: Throwable): Option[Boolean] = {
     val errorName = error.getClass.getSimpleName
