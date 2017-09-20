@@ -100,7 +100,7 @@ object RequestFormatter {
 
 trait RequestFormatter[I] {
   import RequestFormatter._
-  // None means do not log. Some(true) means log with stack trace, Some(false) means log without it.
+  // None means do not log. Some(false) means log only the name. Some(true) means log with stack trace (default).
   def logWithStackTrace(error: Throwable): Option[Boolean]
 
   def format(request: I, error: Throwable): Option[String]
