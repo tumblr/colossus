@@ -14,6 +14,7 @@ import colossus.util.ConfigCache
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import collection.JavaConverters._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -33,7 +34,8 @@ case class ServiceConfig(requestTimeout: Duration,
                          requestBufferSize: Int,
                          logErrors: Boolean,
                          requestMetrics: Boolean,
-                         maxRequestSize: DataSize)
+                         maxRequestSize: DataSize,
+                         errorConfig: ErrorConfig)
 
 object ServiceConfig {
 
@@ -82,9 +84,15 @@ object ServiceConfig {
     val logErrors      = config.getBoolean("log-errors")
     val requestMetrics = config.getBoolean("request-metrics")
     val maxRequestSize = DataSize(config.getString("max-request-size"))
-    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+
+    val errorConf      = config.getConfig("errors")
+    val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
+    val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
+    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize, ErrorConfig(errorsDoNotLog, errorsLogName))
   }
 }
+
+case class ErrorConfig(doNotLog: Set[String], logOnlyName: Set[String])
 
 object RequestFormatter {
   case class LogMessage(message: String, includeStackTrace: Boolean)
@@ -103,6 +111,21 @@ trait RequestFormatter[I] {
       LogMessage(message, includeStackTrace)
     }
   }
+}
+
+class ConfigurableRequestFormatter[I](errorConfig: ErrorConfig) extends RequestFormatter[I] {
+  override def logWithStackTrace(error: Throwable): Option[Boolean] = {
+    val errorName = error.getClass.getSimpleName
+    if (errorConfig.doNotLog.contains(errorName)) {
+      None
+    } else if (errorConfig.logOnlyName.contains(errorName)) {
+      Some(false)
+    } else {
+      Some(true)
+    }
+  }
+
+  override def format(request: I, error: Throwable): Option[String] = None
 }
 
 class ServiceServerException(message: String) extends Exception(message)

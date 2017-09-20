@@ -59,7 +59,7 @@ abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext
   def handleFailure(error: ProcessingFailure[Request]): Response = errorHandler(error)
 
   def tagDecorator: TagDecorator[P]                       = TagDecorator.default[P]
-  def requestLogFormat: Option[RequestFormatter[Request]] = None
+  def requestLogFormat: Option[RequestFormatter[Request]] = Some(new ConfigurableRequestFormatter[Request](config.errorConfig))
 
   protected def disconnect() {
     connection.disconnect()

@@ -5,7 +5,7 @@ import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
-import colossus.service.{Callback, ServiceConfig}
+import colossus.service.{Callback, ErrorConfig, ServiceConfig}
 import colossus.service.GenRequestHandler.PartialHandler
 
 import scala.concurrent.duration._
@@ -20,7 +20,8 @@ object ServiceConfigExample {
     requestBufferSize = 100,
     logErrors = true,
     requestMetrics = true,
-    maxRequestSize = 10.MB
+    maxRequestSize = 10.MB,
+    errorConfig = ErrorConfig(Set.empty[String], Set.empty[String])
   )
   // #example
 
