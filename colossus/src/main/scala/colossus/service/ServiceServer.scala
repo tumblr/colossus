@@ -14,6 +14,7 @@ import colossus.util.ConfigCache
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import collection.JavaConverters._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -33,7 +34,8 @@ case class ServiceConfig(requestTimeout: Duration,
                          requestBufferSize: Int,
                          logErrors: Boolean,
                          requestMetrics: Boolean,
-                         maxRequestSize: DataSize)
+                         maxRequestSize: DataSize,
+                         errorConfig: ErrorConfig)
 
 object ServiceConfig {
 
@@ -73,7 +75,6 @@ object ServiceConfig {
     * Load a ServiceConfig object from a Config source.  The Config object is
     * expected to be in the form of `colossus.service.default`.  Please refer to
     * the reference.conf file.
-    *
     */
   def load(config: Config): ServiceConfig = {
     import colossus.metrics.ConfigHelpers._
@@ -82,12 +83,56 @@ object ServiceConfig {
     val logErrors      = config.getBoolean("log-errors")
     val requestMetrics = config.getBoolean("request-metrics")
     val maxRequestSize = DataSize(config.getString("max-request-size"))
-    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
+
+    val errorConf      = config.getConfig("errors")
+    val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
+    val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
+    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize, ErrorConfig(errorsDoNotLog, errorsLogName))
   }
 }
 
+case class ErrorConfig(doNotLog: Set[String], logOnlyName: Set[String])
+
+object RequestFormatter {
+  case class LogMessage(message: String, includeStackTrace: Boolean)
+}
+
 trait RequestFormatter[I] {
-  def format(request: I): String
+  import RequestFormatter._
+
+  /**
+   * None means do not log.
+   * Some(false) means log only the name.
+   * Some(true) means log with stack trace (default).
+   */
+  def logWithStackTrace(error: Throwable): Option[Boolean]
+
+  def format(request: I, error: Throwable): Option[String]
+
+  final def formatLogMessage(request: I, error: Throwable): Option[LogMessage] = {
+    logWithStackTrace(error).map { includeStackTrace =>
+      val message = format(request, error).getOrElse(request.toString)
+      LogMessage(message, includeStackTrace)
+    }
+  }
+}
+
+/**
+  * The ErrorConfig here is normally loaded from the ServiceConfig.
+  */
+class ConfigurableRequestFormatter[I](errorConfig: ErrorConfig) extends RequestFormatter[I] {
+  override def logWithStackTrace(error: Throwable): Option[Boolean] = {
+    val errorName = error.getClass.getSimpleName
+    if (errorConfig.doNotLog.contains(errorName)) {
+      None
+    } else if (errorConfig.logOnlyName.contains(errorName)) {
+      Some(false)
+    } else {
+      Some(true)
+    }
+  }
+
+  override def format(request: I, error: Throwable): Option[String] = None
 }
 
 class ServiceServerException(message: String) extends Exception(message)
@@ -157,12 +202,30 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
     val tags = extraTags + ("type" -> failure.reason.metricsName)
     errors.hit(tags = tags)
     if (config.logErrors) {
-      val formattedRequest = failure match {
-        case RecoverableError(request, reason) =>
-          requestHandler.requestLogFormat.map { _.format(request) }.getOrElse(request.toString)
-        case IrrecoverableError(reason) => "Invalid Request"
+      requestHandler.requestLogFormat match {
+        case Some(formatter) => {
+          val logMessage = failure match {
+            case RecoverableError(request, reason) =>
+              formatter.formatLogMessage(request, reason)
+            case IrrecoverableError(reason) =>
+              formatter.logWithStackTrace(reason).map(b => RequestFormatter.LogMessage("Invalid Request", b))
+          }
+          logMessage.foreach { x =>
+            if (x.includeStackTrace) {
+              error(s"Error processing request: ${x.message}", failure.reason)
+            } else {
+              error(s"Error processing request: ${x.message}")
+            }
+          }
+        }
+        case None => {
+          val requestString = failure match {
+            case RecoverableError(request, _) => request.toString
+            case IrrecoverableError(_) => "Invalid Request"
+          }
+          error(s"Error processing request: $requestString", failure.reason)
+        }
       }
-      error(s"Error processing request: $formattedRequest: ${failure.reason}", failure.reason)
     }
   }
 
