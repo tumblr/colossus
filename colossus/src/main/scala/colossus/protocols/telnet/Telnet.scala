@@ -1,18 +1,14 @@
-package colossus
-package protocols
-
-import controller.Codec
-import core._
-import service._
+package colossus.protocols
 
 import akka.util.ByteString
-
-import service._
+import colossus.controller.Codec
+import colossus.core.{DataBuffer, DataOutBuffer}
+import colossus.service.Protocol
 
 package object telnet {
 
   trait Telnet extends Protocol {
-    type Request = TelnetCommand
+    type Request  = TelnetCommand
     type Response = TelnetReply
   }
 
@@ -23,7 +19,6 @@ package object telnet {
       case TelnetCommand(args) => Some(args)
     }
   }
-
 
   case class TelnetReply(reply: String) {
     def bytes = {
@@ -38,9 +33,9 @@ package object telnet {
       var args: List[String] = Nil
 
       //set to true if the last character was a \
-      var escaped = false
-      var newline = false //set to true on unescaped \r
-      var inQuote = false //set to true when we're inside an un-escaped quote
+      var escaped    = false
+      var newline    = false //set to true on unescaped \r
+      var inQuote    = false //set to true when we're inside an un-escaped quote
       var argBuilder = new StringBuilder
 
       def completeArg() {
@@ -50,12 +45,10 @@ package object telnet {
         }
       }
 
-
       def result = TelnetCommand(args.reverse)
     }
 
     var builder: Builder = new Builder
-
 
     def parse(data: DataBuffer): Option[TelnetCommand] = {
       var line: Option[TelnetCommand] = None
@@ -109,8 +102,8 @@ package object telnet {
     val parser = new TelnetCommandParser
 
     def decode(data: DataBuffer): Option[TelnetCommand] = parser.parse(data)
-    def encode(reply: TelnetReply, buffer: DataOutBuffer){ buffer.write(reply.bytes) }
-    def reset(){}
+    def encode(reply: TelnetReply, buffer: DataOutBuffer) { buffer.write(reply.bytes) }
+    def reset() {}
 
     def apply() = this
 

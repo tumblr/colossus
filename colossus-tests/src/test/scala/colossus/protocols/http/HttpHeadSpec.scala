@@ -1,14 +1,12 @@
 package colossus.protocols.http
 
-
 import org.scalatest._
 import java.util.Date
 import java.text.SimpleDateFormat
 import scala.util.{Success, Failure}
 import colossus.core.DynamicOutBuffer
 
-
-class HttpHeadSpec extends WordSpec with MustMatchers{
+class HttpHeadSpec extends WordSpec with MustMatchers {
 
   import HttpHeader.Conversions._
 
@@ -25,10 +23,10 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
   "HttpHeaders" must {
 
     "be equal" in {
-      HttpHeaders(HttpHeader("a", "b"), HttpHeader("b", "c")) must equal(HttpHeaders(HttpHeader("b", "c"), HttpHeader("a", "b")))
+      HttpHeaders(HttpHeader("a", "b"), HttpHeader("b", "c")) must equal(
+        HttpHeaders(HttpHeader("b", "c"), HttpHeader("a", "b")))
     }
   }
-
 
   "HttpRequestHead" must {
     "correctly parse a cookie" in {
@@ -54,7 +52,10 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
       head.cookies must equal(expected)
     }
     "parse cookies with expiration" in {
-      val head = HttpRequestHead(HttpMethod.Get, "/foo", HttpVersion.`1.1`, List(("cookie" -> "foo=bar ; bar=baz ; Expires=Wed, 09 Jun 2021 10:18:14 GMT")))
+      val head = HttpRequestHead(HttpMethod.Get,
+                                 "/foo",
+                                 HttpVersion.`1.1`,
+                                 List(("cookie" -> "foo=bar ; bar=baz ; Expires=Wed, 09 Jun 2021 10:18:14 GMT")))
       val exp = Cookie.parseCookieExpiration("Wed, 09 Jun 2021 10:18:14 GMT")
       val expected = List(
         Cookie("foo", "bar", Some(exp)),
@@ -90,7 +91,7 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
 
   "DateHeader" must {
 
-    val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
+    val formatter        = new SimpleDateFormat(DateHeader.DATE_FORMAT)
     def date(time: Long) = "Date: " + formatter.format(new Date(time)) + "\r\n"
 
     "generate a correct date" in {
@@ -99,7 +100,7 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
     }
     "only generate a new date when more than a second past the last generated date" in {
       val time = System.currentTimeMillis + 1000000
-      val d = new DateHeader(123)
+      val d    = new DateHeader(123)
       d.bytes(time).utf8String must equal(date(time))
       d.bytes(time + 999).utf8String must equal(date(time))
       d.bytes(time + 1000).utf8String must equal(date(time + 1000))
@@ -120,13 +121,15 @@ class HttpHeadSpec extends WordSpec with MustMatchers{
 
   "ParsedHttpHeaders" must {
     "encode separate headers" in {
-      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")), Some(TransferEncoding.Chunked), None, None, Some(Connection.KeepAlive))
+      val p = new ParsedHttpHeaders(HttpHeaders(HttpHeader("foo", "bar")),
+                                    Some(TransferEncoding.Chunked),
+                                    None,
+                                    None,
+                                    Some(Connection.KeepAlive))
       val b = new DynamicOutBuffer(500)
       p.encode(b)
       b.data.asByteString.utf8String mustBe "Transfer-Encoding: chunked\r\nConnection: keep-alive\r\nfoo: bar\r\n"
     }
   }
 
-
 }
-

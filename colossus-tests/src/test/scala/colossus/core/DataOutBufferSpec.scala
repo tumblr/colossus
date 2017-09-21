@@ -1,7 +1,6 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
+import colossus.testkit.ColossusSpec
 import akka.util.ByteString
 
 class DataOutBufferSpec extends ColossusSpec {
@@ -10,7 +9,7 @@ class DataOutBufferSpec extends ColossusSpec {
 
     "handle overflow" in {
       val data = ByteString("123456789")
-      val n = new DynamicOutBuffer(5)
+      val n    = new DynamicOutBuffer(5)
       n.write(data)
       ByteString(n.data.takeAll) must equal(data)
     }
@@ -18,7 +17,7 @@ class DataOutBufferSpec extends ColossusSpec {
     "resize overflow" in {
       val d1 = ByteString("123")
       val d2 = ByteString("456")
-      val n = new DynamicOutBuffer(2)
+      val n  = new DynamicOutBuffer(2)
       n.write(d1)
       n.write(d2)
       ByteString(n.data.takeAll) must equal(d1 ++ d2)
@@ -26,7 +25,7 @@ class DataOutBufferSpec extends ColossusSpec {
 
     "copy from bytebuffer" in {
       val data = ByteString("123456789")
-      val n = new DynamicOutBuffer(5)
+      val n    = new DynamicOutBuffer(5)
       n.write(DataBuffer(data))
       ByteString(n.data.takeAll) must equal(data)
     }

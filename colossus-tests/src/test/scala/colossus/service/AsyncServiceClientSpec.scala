@@ -1,27 +1,25 @@
-package colossus
-package service
+package colossus.service
 
-import core._
-import testkit._
-
+import colossus.testkit.ColossusSpec
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import Callback.Implicits._
-
 import akka.util.ByteString
-import RawProtocol._
+import colossus.{IOSystem, TestClient, TestUtil}
+import colossus.core.{ConnectionStatus, NoRetry, ServerRef}
+import colossus.RawProtocol.{Raw, RawServer}
+
 
 class FutureClientSpec extends ColossusSpec {
 
   def makeServer()(implicit sys: IOSystem): ServerRef = {
-    RawServer.basic("future-client-test", TEST_PORT){case x => x}
+    RawServer.basic("future-client-test", TEST_PORT) { case x => x }
   }
 
   "FutureClient" must {
     "send a command" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
           Await.result(client.send(ByteString("foo")), 500.milliseconds) must equal(ByteString("foo"))
@@ -30,7 +28,7 @@ class FutureClientSpec extends ColossusSpec {
     }
 
     "get connection status" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
           TestClient.waitForStatus(client, ConnectionStatus.Connected)
@@ -39,7 +37,7 @@ class FutureClientSpec extends ColossusSpec {
     }
 
     "disconnect from server" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         val server = makeServer()
         withServer(server) {
           val client = TestClient(io, TEST_PORT)
@@ -52,7 +50,7 @@ class FutureClientSpec extends ColossusSpec {
     }
 
     "properly fail requests after disconnected" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
           client.disconnect()
@@ -66,7 +64,7 @@ class FutureClientSpec extends ColossusSpec {
     }
 
     "allow graceful disconnect" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         withServer(makeServer()) {
           val client = TestClient(io, TEST_PORT)
           val future = client.send(ByteString("foo"))
@@ -81,7 +79,7 @@ class FutureClientSpec extends ColossusSpec {
     }
 
     "properly buffer messages before workeritem bound" in {
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         val client = TestClient(io, TEST_PORT, waitForConnected = false)
         intercept[NotConnectedException] {
           Await.result(client.send(ByteString("foo")), 500.milliseconds)
@@ -89,10 +87,9 @@ class FutureClientSpec extends ColossusSpec {
       }
     }
 
-
     "shutdown when connection is unbound" in {
       var client: Option[FutureClient[Raw]] = None
-      withIOSystem{ implicit io =>
+      withIOSystem { implicit io =>
         withServer(makeServer()) {
           client = Some(TestClient(io, TEST_PORT, connectRetry = NoRetry))
           Await.result(client.get.send(ByteString("foo")), 500.milliseconds) must equal(ByteString("foo"))
@@ -103,4 +100,3 @@ class FutureClientSpec extends ColossusSpec {
 
   }
 }
-

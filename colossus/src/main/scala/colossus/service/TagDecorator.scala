@@ -1,7 +1,6 @@
-package colossus
-package service
+package colossus.service
 
-import metrics.TagMap
+import colossus.metrics.TagMap
 
 trait TagDecorator[P <: Protocol] {
   def tagsFor(request: P#Request, response: P#Response): TagMap
@@ -12,7 +11,6 @@ class DefaultTagDecorator[P <: Protocol] extends TagDecorator[P] {
 }
 
 object TagDecorator {
-  
+
   def default[P <: Protocol] = new DefaultTagDecorator[P]
 }
-

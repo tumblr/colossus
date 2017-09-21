@@ -1,5 +1,4 @@
-package colossus
-package streaming
+package colossus.streaming
 
 import colossus.testkit._
 
@@ -37,7 +36,7 @@ class SinkSpec extends ColossusSpec {
 
   "Sink.mapIn" must {
     "map items" in {
-      val s = new BufferedPipe[String](4)
+      val s            = new BufferedPipe[String](4)
       val t: Sink[Int] = s.mapIn[Int](i => i.toString)
       t.push(4) mustBe PushResult.Ok
       s.pull mustBe PullResult.Item("4")
@@ -49,4 +48,3 @@ class SinkSpec extends ColossusSpec {
   }
 
 }
-

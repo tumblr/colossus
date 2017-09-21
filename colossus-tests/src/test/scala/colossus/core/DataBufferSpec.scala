@@ -1,15 +1,13 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
 import akka.util.{ByteString, ByteStringBuilder}
+import colossus.testkit.ColossusSpec
 
 class DataBufferSpec extends ColossusSpec {
 
-
   "DataBuffer" must {
     "read bytes one at a time" in {
-      val b = ByteString("Hello World!")
+      val b    = ByteString("Hello World!")
       val data = DataBuffer(b.asByteBuffer, b.size)
       data.size must equal(b.size)
       val builder = new ByteStringBuilder
@@ -23,8 +21,8 @@ class DataBufferSpec extends ColossusSpec {
     }
 
     "read batches of bytes" in {
-      val b = ByteString("Hello World!")
-      val data = DataBuffer(b.asByteBuffer, b.size)
+      val b       = ByteString("Hello World!")
+      val data    = DataBuffer(b.asByteBuffer, b.size)
       val builder = new ByteStringBuilder
       builder.putBytes(data.take(3))
       data.remaining must equal(data.size - 3)
@@ -34,8 +32,8 @@ class DataBufferSpec extends ColossusSpec {
     }
 
     "read all remaining data" in {
-      val b = ByteString("Hello World!")
-      val data = DataBuffer(b.asByteBuffer, b.size)
+      val b       = ByteString("Hello World!")
+      val data    = DataBuffer(b.asByteBuffer, b.size)
       val builder = new ByteStringBuilder
       builder.putBytes(data.takeAll)
       data.remaining must equal(0)
@@ -43,7 +41,7 @@ class DataBufferSpec extends ColossusSpec {
     }
 
     "copy remaining data into new buffer" in {
-      val b = ByteString("Hello World!")
+      val b    = ByteString("Hello World!")
       val data = DataBuffer(b.asByteBuffer, b.size)
       ByteString(data.take(3)) must equal(ByteString("Hel"))
       val newBuffer = data.takeCopy

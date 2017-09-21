@@ -21,12 +21,12 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
       val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, HttpHeaders(), ByteString("test conversion"))
 
       // currently there's no easy way to pass the contentType into HttpResponse.apply()
-      response must equal(expected.copy(body = expected.body.withContentType("text/plain")))
+      response must equal(expected.withContentType("text/plain"))
     }
   }
 
   "HttpResponseBuilding" must {
-  
+
     def expectCode(response: HttpResponse, code: HttpCode) {
       val expected = HttpResponse(HttpVersion.`1.1`, code, HttpHeaders.Empty, HttpBody("hello"))
       response mustBe expected

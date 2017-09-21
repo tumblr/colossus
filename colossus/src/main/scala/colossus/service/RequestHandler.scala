@@ -3,8 +3,8 @@ package colossus.service
 import colossus.core._
 
 class UnhandledRequestException(message: String) extends Exception(message)
-class ReceiveException(message: String) extends Exception(message)
-class RequestHandlerException(message: String) extends Exception(message)
+class ReceiveException(message: String)          extends Exception(message)
+class RequestHandlerException(message: String)   extends Exception(message)
 
 object GenRequestHandler {
 
@@ -18,17 +18,19 @@ object GenRequestHandler {
 }
 import GenRequestHandler._
 
-abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext, val config: ServiceConfig) 
-extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstream[P]] {
+abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext, val config: ServiceConfig)
+    extends DownstreamEvents
+    with HandlerTail
+    with UpstreamEventHandler[ServiceUpstream[P]] {
 
-  type Request = P#Request
+  type Request  = P#Request
   type Response = P#Response
 
   def this(context: ServerContext) = this(context, ServiceConfig.load(context.name))
 
   protected val server = serverContext.server
-  def context = serverContext.context
-  implicit val worker = context.worker
+  def context          = serverContext.context
+  implicit val worker  = context.worker
 
   private var _connectionManager: Option[ConnectionManager] = None
 
@@ -40,10 +42,10 @@ extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstr
     _connectionManager = Some(connection)
   }
 
-  implicit val executor   = context.worker.callbackExecutor
+  implicit val executor = context.worker.callbackExecutor
 
   protected def handle: PartialHandler[P]
-  protected def unhandledError: ErrorHandler[P] 
+  protected def unhandledError: ErrorHandler[P]
 
   protected def onError: ErrorHandler[P] = Map()
 
@@ -52,14 +54,12 @@ extends DownstreamEvents with HandlerTail with UpstreamEventHandler[ServiceUpstr
   }
 
   def handleRequest(request: Request): Callback[Response] = fullHandler(request)
-  private lazy val errorHandler: ErrorHandler[P] = onError orElse unhandledError
+  private lazy val errorHandler: ErrorHandler[P]          = onError orElse unhandledError
 
   def handleFailure(error: ProcessingFailure[Request]): Response = errorHandler(error)
 
-  def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
-  def requestLogFormat : Option[RequestFormatter[Request]] = None
-
-
+  def tagDecorator: TagDecorator[P]                       = TagDecorator.default[P]
+  def requestLogFormat: Option[RequestFormatter[Request]] = Some(new ConfigurableRequestFormatter[Request](config.errorConfig))
 
   protected def disconnect() {
     connection.disconnect()

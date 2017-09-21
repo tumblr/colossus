@@ -1,20 +1,18 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
-import org.scalatest.mock.MockitoSugar
-
+import org.scalatest.mockito.MockitoSugar
 import akka.util.ByteString
+import colossus.NoopHandler
+import colossus.testkit.{ColossusSpec, MockConnection}
 
 import scala.concurrent.duration._
 
-class ConnectionSpec extends ColossusSpec with MockitoSugar{
+class ConnectionSpec extends ColossusSpec with MockitoSugar {
 
   "Connection" must {
 
-
     "catch exceptions thrown in handler's connectionTerminated when connection closed" in {
-      val con = MockConnection.client(new NoopHandler(_) {
+      val con = MockConnection.client(context => new NoopHandler(context) {
 
         override def connectionClosed(cause: DisconnectCause) {
           throw new Exception("x_x")
@@ -33,10 +31,9 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
 
   }
 
-
   "ClientConnection" must {
     "timeout idle connection" in {
-      val con = MockConnection.client(new NoopHandler(_) {
+      val con = MockConnection.client(context => new NoopHandler(context) {
         override def maxIdleTime = 100.milliseconds
       })
       val time = System.currentTimeMillis
@@ -56,4 +53,3 @@ class ConnectionSpec extends ColossusSpec with MockitoSugar{
   }
 
 }
-

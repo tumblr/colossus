@@ -3,11 +3,11 @@ package colossus.streaming
 import scala.util.{Try, Success}
 
 /**
- * A Sink is the write side of a pipe.  It allows you to push items to it,
- * and will return whether or not it can accept more data.  In the case where
- * the pipe is full, the Sink will return a mutable Trigger and you can
- * attach a callback to for when the pipe can receive more items
- */
+  * A Sink is the write side of a pipe.  It allows you to push items to it,
+  * and will return whether or not it can accept more data.  In the case where
+  * the pipe is full, the Sink will return a mutable Trigger and you can
+  * attach a callback to for when the pipe can receive more items
+  */
 trait Sink[-T] extends Transport {
   def push(item: T): PushResult
 
@@ -23,10 +23,10 @@ trait Sink[-T] extends Transport {
   def mapIn[A](f: A => T): Sink[A] = {
     val me = this
     new Sink[A] {
-      def push(item: A) = me.push(f(item))
-      def pushPeek = me.pushPeek
-      def inputState = me.inputState
-      def complete(): Try[Unit] = me.complete()
+      def push(item: A)                      = me.push(f(item))
+      def pushPeek                           = me.pushPeek
+      def inputState                         = me.inputState
+      def complete(): Try[Unit]              = me.complete()
       def terminate(reason: Throwable): Unit = me.terminate(reason)
     }
   }
@@ -36,9 +36,9 @@ trait Sink[-T] extends Transport {
 object Sink {
 
   /**
-   * Create a sink from a function.  The Sink will always report itself as being
-   * open and cannot be completed nor terminated
-   */
+    * Create a sink from a function.  The Sink will always report itself as being
+    * open and cannot be completed nor terminated
+    */
   def open[T](f: T => PushResult) = new Sink[T] {
     def push(item: T) = f(item)
 
@@ -48,14 +48,14 @@ object Sink {
 
     def complete() = Success(())
 
-    def terminate(reason: Throwable){}
+    def terminate(reason: Throwable) {}
   }
 
   def blackHole[T]: Sink[T] = new Sink[T] {
     private var state: TransportState = TransportState.Open
     def push(item: T): PushResult = state match {
-      case TransportState.Open => PushResult.Ok
-      case TransportState.Closed => PushResult.Closed
+      case TransportState.Open            => PushResult.Ok
+      case TransportState.Closed          => PushResult.Closed
       case TransportState.Terminated(err) => PushResult.Error(err)
     }
     def inputState = state
@@ -69,9 +69,9 @@ object Sink {
 
     def pushPeek = PushResult.Ok
   }
-  
+
   class ValveSink[T](sink: Sink[T], valve: Sink[T]) extends Sink[T] {
-    
+
     def push(item: T): PushResult = pushPeek match {
       case PushResult.Ok => {
         valve.push(item)
@@ -82,7 +82,7 @@ object Sink {
 
     def pushPeek = valve.pushPeek match {
       case PushResult.Ok => sink.pushPeek
-      case other => other
+      case other         => other
     }
 
     def inputState = sink.inputState

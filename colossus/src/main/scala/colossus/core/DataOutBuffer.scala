@@ -1,16 +1,15 @@
-package colossus
-package core
+package colossus.core
 
 import akka.util.ByteString
 import java.nio.ByteBuffer
 
 /**
- * The DataOutBuffer is a ConnectionHandler's interface for writing data out to
- * the connection.  DataOutBuffers support a "soft" overflow, which means it
- * will dynamically allocate more space as needed, but is based off a
- * fixed-length base size.  The idea is that writing should stop as soon as the
- * overflow is hit, but it is not a requirement.
- */
+  * The DataOutBuffer is a ConnectionHandler's interface for writing data out to
+  * the connection.  DataOutBuffers support a "soft" overflow, which means it
+  * will dynamically allocate more space as needed, but is based off a
+  * fixed-length base size.  The idea is that writing should stop as soon as the
+  * overflow is hit, but it is not a requirement.
+  */
 trait DataOutBuffer {
 
   def isOverflowed: Boolean
@@ -52,14 +51,14 @@ trait DataOutBuffer {
 }
 
 /**
- * A ByteBuffer-backed growable buffer.  A fixed-size direct buffer is used for
- * most of the time, but overflows are written to a eponentially growing
- * non-direct buffer.
- *
- *
- * Be aware, the DataBuffer returned from `data` merely wraps the underlying
- * buffer to avoid copying
- */
+  * A ByteBuffer-backed growable buffer.  A fixed-size direct buffer is used for
+  * most of the time, but overflows are written to a eponentially growing
+  * non-direct buffer.
+  *
+  *
+  * Be aware, the DataBuffer returned from `data` merely wraps the underlying
+  * buffer to avoid copying
+  */
 class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends DataOutBuffer {
 
   private val base = if (allocateDirect) {
@@ -70,11 +69,11 @@ class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends Da
 
   private var dyn: Option[ByteBuffer] = if (allocateDirect) None else Some(base)
 
-  def size = dyn.map{_.position}.getOrElse(base.position)
+  def size = dyn.map { _.position }.getOrElse(base.position)
 
   def isOverflowed: Boolean = dyn.isDefined
 
-  private def dynAvailable = dyn.map{_.remaining}.getOrElse(0)
+  private def dynAvailable = dyn.map { _.remaining }.getOrElse(0)
 
   private def growDyn() {
     dyn match {
@@ -93,18 +92,19 @@ class DynamicOutBuffer(baseSize: Int, allocateDirect: Boolean = true) extends Da
     }
   }
 
-  protected def copyDestination(bytesNeeded: Long) : ByteBuffer = if (base.remaining >= bytesNeeded) base else {
-    while (dynAvailable < bytesNeeded) {
-      growDyn()
+  protected def copyDestination(bytesNeeded: Long): ByteBuffer =
+    if (base.remaining >= bytesNeeded) base
+    else {
+      while (dynAvailable < bytesNeeded) {
+        growDyn()
+      }
+      dyn.get
     }
-    dyn.get
-  }
 
   def reset() {
     dyn = None
     base.clear()
   }
-
 
   def data = {
     val d = dyn.getOrElse(base)

@@ -1,7 +1,4 @@
-package colossus
-package util
-
-
+package colossus.util
 
 object ExceptionFormatter {
 

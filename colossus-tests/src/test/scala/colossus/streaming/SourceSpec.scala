@@ -1,6 +1,4 @@
-
-package colossus
-package streaming
+package colossus.streaming
 
 import colossus.testkit._
 import scala.concurrent.duration._
@@ -12,11 +10,11 @@ class SourceSpec extends ColossusSpec {
   "Source" must {
     "map" in {
       val s = Source.fromIterator(Array(1, 2).toIterator)
-      val t = s.map{_.toString}
+      val t = s.map { _.toString }
       t.pull() mustBe PullResult.Item("1")
     }
   }
-  
+
   "Source.into" must {
     def setup: (Source[Int], Pipe[Int, Int]) = {
       val x = Source.fromIterator(Array(2, 4).toIterator)
@@ -25,7 +23,7 @@ class SourceSpec extends ColossusSpec {
       (x, y)
     }
 
-    "push items into sink"  in {
+    "push items into sink" in {
       val (x, y) = setup
       y.pull mustBe PullResult.Item(2)
       y.pull mustBe PullResult.Item(4)
@@ -52,14 +50,14 @@ class SourceSpec extends ColossusSpec {
       x.outputState mustBe a[TransportState.Terminated]
     }
 
-    "not close downstream when linkClosed is false"  in {
+    "not close downstream when linkClosed is false" in {
       val x = Source.fromIterator(Array(1).toIterator)
       val y = new BufferedPipe[Int](1)
       x.into(y, false, true)(_ => ())
       y.pull() mustBe PullResult.Item(1)
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
-    } 
+    }
 
     "not terminate downstream when linkTerminated is false" in {
       val x = Source.fromIterator(Array(1).toIterator)
@@ -72,40 +70,39 @@ class SourceSpec extends ColossusSpec {
     }
 
     "notify on closing" in {
-      val x = Source.empty[Int]
-      val y = new BufferedPipe[Int](1)
+      val x        = Source.empty[Int]
+      val y        = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false, false)(_ => {notified = true})
+      x.into(y, false, false)(_ => { notified = true })
       x.outputState mustBe TransportState.Closed
       y.inputState mustBe TransportState.Open
       notified mustBe true
     }
 
     "notify on terminating" in {
-      val x = new BufferedPipe[Int](1)
-      val y = new BufferedPipe[Int](1)
+      val x        = new BufferedPipe[Int](1)
+      val y        = new BufferedPipe[Int](1)
       var notified = false
-      x.into(y, false, true)(_ => {notified = true})
+      x.into(y, false, true)(_ => { notified = true })
       x.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.inputState mustBe a[TransportState.Terminated]
       notified mustBe true
 
     }
-      
-      
+
   }
 
   "Source.fromArray" must {
     "do the thing we expect it to do" in {
-      val s = Source.fromArray(Array(1, 2, 3))
+      val s   = Source.fromArray(Array(1, 2, 3))
       var sum = 0
       s.pullWhile(
         i => {
           sum += i
           PullAction.PullContinue
         }, {
-          case PullResult.Closed => PullAction.Stop
+          case PullResult.Closed     => PullAction.Stop
           case PullResult.Error(err) => throw err
         }
       )
@@ -116,10 +113,10 @@ class SourceSpec extends ColossusSpec {
   "Source.fromIterator" must {
 
     "read a full iterator" in {
-      val items = Array(1, 2, 3, 4, 5, 6, 7, 8)
+      val items          = Array(1, 2, 3, 4, 5, 6, 7, 8)
       val s: Source[Int] = Source.fromIterator(items.toIterator)
       s.outputState mustBe TransportState.Open
-      CallbackAwait.result(s.reduce{_ + _}, 1.second) mustBe items.sum
+      CallbackAwait.result(s.reduce { _ + _ }, 1.second) mustBe items.sum
       s.outputState mustBe TransportState.Closed
     }
 
@@ -135,7 +132,7 @@ class SourceSpec extends ColossusSpec {
     }
 
     "terminate pullWhile correctly" in {
-      val s = Source.fromArray(Array(1,2, 3))
+      val s   = Source.fromArray(Array(1, 2, 3))
       var sum = 0
       s.pullWhile(
         i => {
@@ -180,28 +177,27 @@ class SourceSpec extends ColossusSpec {
     }
   }
 
-
   "Source.flatten" must {
     def setup: (Source[Int], Source[Int], Sink[Source[Int]], Source[Int]) = {
-      val a = Source.fromIterator(Array(1,2).toIterator)
-      val b = Source.fromIterator(Array(3).toIterator)
+      val a    = Source.fromIterator(Array(1, 2).toIterator)
+      val b    = Source.fromIterator(Array(3).toIterator)
       val pipe = new BufferedPipe[Source[Int]](5)
       val flat = Source.flatten(pipe)
       pipe.push(a)
       pipe.push(b)
-      (a,b, pipe, flat)
+      (a, b, pipe, flat)
     }
 
     "pull from input sources one at a time" in {
-      val (a,b,_,flat) = setup
+      val (a, b, _, flat) = setup
       flat.pull() mustBe PullResult.Item(1)
       flat.pull() mustBe PullResult.Item(2)
       flat.pull() mustBe PullResult.Item(3)
       flat.outputState mustBe TransportState.Open
     }
 
-    "closing the base pipe closes the flattened pipe"  in {
-      val (a,b,pipe,flat) = setup
+    "closing the base pipe closes the flattened pipe" in {
+      val (a, b, pipe, flat) = setup
       println("closing now")
       pipe.complete()
       flat.pull() mustBe PullResult.Item(1)
@@ -211,8 +207,8 @@ class SourceSpec extends ColossusSpec {
     }
 
     "handle forward pressure correctly" in {
-      val a = new BufferedPipe[Int](10)
-      val b = new BufferedPipe[Int](10)
+      val a    = new BufferedPipe[Int](10)
+      val b    = new BufferedPipe[Int](10)
       val pipe = new BufferedPipe[Source[Int]](10)
       pipe.push(a)
       pipe.push(b)
@@ -226,17 +222,16 @@ class SourceSpec extends ColossusSpec {
       flat.pull() mustBe PullResult.Item(30)
     }
 
-
-    "fuck up everything if flattend source terminates" taggedAs(org.scalatest.Tag("test")) in {
-      val (x,y,_,flat) = setup
+    "fuck up everything if flattend source terminates" taggedAs (org.scalatest.Tag("test")) in {
+      val (x, y, _, flat) = setup
       flat.terminate(new Exception("BYE"))
       x.outputState mustBe a[TransportState.Terminated]
       y.outputState mustBe a[TransportState.Terminated]
     }
 
     "fuck up everything if a subsource terminates" in {
-      val x = new BufferedPipe[Int](10)
-      val b = new BufferedPipe[Int](10)
+      val x    = new BufferedPipe[Int](10)
+      val b    = new BufferedPipe[Int](10)
       val pipe = new BufferedPipe[Source[Int]](10)
       pipe.push(x)
       pipe.push(b)
@@ -250,7 +245,7 @@ class SourceSpec extends ColossusSpec {
     }
 
     "fuck up everything if the base source terminates" ignore {
-      val (x,y,pipe,_) = setup
+      val (x, y, pipe, _) = setup
       pipe.terminate(new Exception("BYE"))
       //TODO: the flattener is unable to terminate the sub-pipes because it
       //can't get them out of the base pipe.  We should consider allowing a
@@ -279,27 +274,25 @@ class SourceSpec extends ColossusSpec {
     }
 
     "pullWhile" in {
-      val s = Source.fromArray(Array(1, 2, 3, 4))
-      val t = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
-      var sum = 0
+      val s        = Source.fromArray(Array(1, 2, 3, 4))
+      val t        = s.filterMap(x => if (x % 2 == 1) Some(x * 10) else None)
+      var sum      = 0
       var complete = false
-      t.pullWhile( 
-        i =>{  sum += i; PullAction.PullContinue },
-        _ => complete = true 
+      t.pullWhile(
+        i => { sum += i; PullAction.PullContinue },
+        _ => complete = true
       )
       sum mustBe 40
       complete mustBe true
     }
   }
-      
 
   "DualSource" must {
     "correctly link two sources" in {
       val a = Source.fromIterator(Array(1, 2, 3, 4).toIterator)
       val b = Source.fromIterator(Array(5, 6, 7, 8).toIterator)
 
-      
-      val c = (a ++ b).fold((0, true)){ case (next, (last, ok)) => (next, next > last && ok) }
+      val c = (a ++ b).fold((0, true)) { case (next, (last, ok)) => (next, next > last && ok) }
       CallbackAwait.result(c, 1.second) mustBe (8, true)
     }
 
@@ -336,7 +329,7 @@ class SourceSpec extends ColossusSpec {
       x.outputState mustBe a[TransportState.Terminated]
       y.outputState mustBe a[TransportState.Terminated]
     }
-      
+
   }
 
 }

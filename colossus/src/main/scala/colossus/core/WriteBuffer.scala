@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import java.net.InetAddress
 import java.nio.channels.{CancelledKeyException, SelectionKey}
@@ -17,16 +16,16 @@ object WriteStatus {
 }
 
 /**
- * This trait abstracts actions performed on a raw socket channel.
- *
- * This is essentially the only trait that should differ between live
- * connections and fake connections in testing
- */
+  * This trait abstracts actions performed on a raw socket channel.
+  *
+  * This is essentially the only trait that should differ between live
+  * connections and fake connections in testing
+  */
 trait ChannelActions {
 
   /**
-   * Hook to perform that actual operation of writing to a channel
-   */
+    * Hook to perform that actual operation of writing to a channel
+    */
   protected def channelWrite(data: DataBuffer): Int
 
   protected def channelClose()
@@ -39,14 +38,13 @@ trait ChannelActions {
 
   def status: ConnectionStatus
 
-
 }
 
 trait KeyInterestManager extends ChannelActions {
-  private var _readsEnabled = true
+  private var _readsEnabled      = true
   private var _writeReadyEnabled = false
 
-  def readsEnabled = _readsEnabled
+  def readsEnabled      = _readsEnabled
   def writeReadyEnabled = _writeReadyEnabled
 
   protected def setKeyInterest() {
@@ -73,23 +71,21 @@ trait KeyInterestManager extends ChannelActions {
   }
 }
 
-
 private[colossus] trait WriteBuffer extends KeyInterestManager {
   import WriteStatus._
 
-
   /**
-   * The WriteBuffer calls this if it has been signaled to disconnect and
-   * finishes writing any existing partial buffer
-   */
+    * The WriteBuffer calls this if it has been signaled to disconnect and
+    * finishes writing any existing partial buffer
+    */
   protected def completeDisconnect()
 
   /**
-   * This should be called when it's time to disconnect the connection, but we
-   * wish to finish writing any existing partial buffer.  We do this because any
-   * levels higher up already consider any data in a partial buffer to be sent,
-   * so we don't want to disconnect until we fullfil that promise.
-   */
+    * This should be called when it's time to disconnect the connection, but we
+    * wish to finish writing any existing partial buffer.  We do this because any
+    * levels higher up already consider any data in a partial buffer to be sent,
+    * so we don't want to disconnect until we fullfil that promise.
+    */
   def gracefulDisconnect() {
     disconnecting = true
     if (partialBuffer.isEmpty) {
@@ -102,7 +98,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   private var disconnecting = false
 
   private var _bytesSent = 0L
-  def bytesSent = _bytesSent
+  def bytesSent          = _bytesSent
 
   //this is only filled when we only partially wrote data
   private var partialBuffer: Option[DataBuffer] = None
@@ -152,25 +148,27 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   }
 
   /**
-   * Attempts to continue writing any existing partial buffer and returns true
-   * if the write buffer is able to accept more data immediately.  This will
-   * return false if the WriteBuffer is currently in the middle of draining an
-   * existing PartialBuffer, so if this returns false, then calling `write` will
-   * return `Zero`
-   */
+    * Attempts to continue writing any existing partial buffer and returns true
+    * if the write buffer is able to accept more data immediately.  This will
+    * return false if the WriteBuffer is currently in the middle of draining an
+    * existing PartialBuffer, so if this returns false, then calling `write` will
+    * return `Zero`
+    */
   private[colossus] def continueWrite(): Boolean = {
-    partialBuffer.map{raw =>
-      if (writeRaw(raw) == Complete) {
-        if (disconnecting) {
-          completeDisconnect()
+    partialBuffer
+      .map { raw =>
+        if (writeRaw(raw) == Complete) {
+          if (disconnecting) {
+            completeDisconnect()
+          }
+          true
+        } else {
+          false
         }
-        true
-      } else {
-        false
       }
-    }.getOrElse{
-      true
-    }
+      .getOrElse {
+        true
+      }
   }
 
   def requestWrite() {
@@ -178,4 +176,3 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   }
 
 }
-

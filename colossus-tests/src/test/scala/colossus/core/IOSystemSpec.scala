@@ -1,6 +1,6 @@
 package colossus
 
-import testkit._
+import colossus.testkit.ColossusSpec
 import core._
 
 import akka.actor._
@@ -18,19 +18,19 @@ class IOSystemSpec extends ColossusSpec {
 
   "IOSystem" must {
     "connect client handler using connect method" in {
-      withIOSystem{implicit sys =>
+      withIOSystem { implicit sys =>
         val probe = TestProbe()
         class MyHandler(c: Context) extends NoopHandler(c) {
-          def connectionFailed(){}
+          def connectionFailed() {}
           override def connected(w: WriteEndpoint) {
             probe.ref ! "CONNECTED"
           }
         }
 
-        val server = RawServer.basic("test", 15151){case x => x}
+        val server = RawServer.basic("test", 15151) { case x => x }
         waitForServer(server)
 
-        sys.connect(new InetSocketAddress("localhost", 15151), new MyHandler(_))
+        sys.connect(new InetSocketAddress("localhost", 15151), serverContext => new MyHandler(serverContext))
         probe.expectMsg(200.milliseconds, "CONNECTED")
 
       }

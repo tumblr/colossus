@@ -5,11 +5,10 @@ import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef
 
-
 /**
- * A Sender is anything that is able to asynchronously send a request and
- * receive a corresponding response
- */
+  * A Sender is anything that is able to asynchronously send a request and
+  * receive a corresponding response
+  */
 trait Sender[P <: Protocol, M[_]] {
 
   def send(input: P#Request): M[P#Response]
@@ -18,33 +17,31 @@ trait Sender[P <: Protocol, M[_]] {
 
 }
 
-
 /**
- * A Typeclass for abstracting over callbacks and futures
- */
+  * A Typeclass for abstracting over callbacks and futures
+  */
 trait Async[M[_]] {
 
   //the environment type is really only needed by futures (the execution context
   //when mapping and flatmapping)
   type E
 
-
   implicit def environment: E
 
-  def map[T, U](t : M[T])(f : T => U)  : M[U]
+  def map[T, U](t: M[T])(f: T => U): M[U]
 
-  def flatMap[T, U](t : M[T])(f : T => M[U]) : M[U]
+  def flatMap[T, U](t: M[T])(f: T => M[U]): M[U]
 
-  def success[T](t : T) : M[T]
+  def success[T](t: T): M[T]
 
-  def failure[T](ex : Throwable) : M[T]
+  def failure[T](ex: Throwable): M[T]
 
 }
 
 /**
- * A Typeclass for building Async instances, used internally by ClientFactory.
- * This is needed to get the environment into the Async.
- */
+  * A Typeclass for building Async instances, used internally by ClientFactory.
+  * This is needed to get the environment into the Async.
+  */
 trait AsyncBuilder[M[_], E] {
 
   def build(env: E): Async[M]
@@ -60,7 +57,6 @@ object AsyncBuilder {
     def build(i: IOSystem) = new FutureAsync()(i)
   }
 }
-
 
 object CallbackAsync extends Async[Callback] {
 
@@ -91,4 +87,3 @@ class FutureAsync(implicit val environment: IOSystem) extends Async[Future] {
 
   def failure[T](ex: Throwable): Future[T] = Future.failed(ex)
 }
-

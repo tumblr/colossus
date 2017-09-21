@@ -4,7 +4,7 @@ import colossus.metrics.MetricAddress
 import colossus.testkit.ColossusSpec
 import com.typesafe.config.ConfigFactory
 
-class IOSystemConfigSpec extends ColossusSpec{
+class IOSystemConfigSpec extends ColossusSpec {
 
   "IOSystem creation" must {
 
@@ -24,7 +24,7 @@ class IOSystemConfigSpec extends ColossusSpec{
                       """.stripMargin
 
       //to imitate an already loaded configuration
-      val c = ConfigFactory.parseString(userConfig).withFallback(ConfigFactory.defaultReference())
+      val c  = ConfigFactory.parseString(userConfig).withFallback(ConfigFactory.defaultReference())
       val io = IOSystem("my-io-system", c.getConfig(IOSystem.ConfigRoot))
       io.numWorkers mustBe 2
       io.name mustBe "my-io-system"

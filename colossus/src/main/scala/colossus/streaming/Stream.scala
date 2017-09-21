@@ -1,6 +1,4 @@
-package colossus
-package streaming
-
+package colossus.streaming
 
 sealed trait StreamComponent
 object StreamComponent {
@@ -11,8 +9,6 @@ object StreamComponent {
 
 trait Stream[T] {
 
-  def component(t: T) : StreamComponent
+  def component(t: T): StreamComponent
 
 }
-
-

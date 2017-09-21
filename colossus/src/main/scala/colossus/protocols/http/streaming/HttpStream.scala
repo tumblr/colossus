@@ -1,11 +1,10 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
-import controller._
-import service.Protocol
-import core._
-import parsing.Combinators.Parser
+import colossus.controller.Codec
+import colossus.core.{DataBlock, DataBuffer, DataOutBuffer}
+import colossus.parsing.Combinators.Parser
+import colossus.protocols.http.{HttpMessageHead, HttpParse, HttpRequestHead, HttpRequestParser, HttpResponseHead, HttpResponseParser, TransferEncoding}
+import colossus.service.Protocol
 
 class StreamHttpException(message: String) extends Exception(message)
 
@@ -14,25 +13,24 @@ sealed trait HttpStream[+T <: HttpMessageHead]
 case class Head[T <: HttpMessageHead](head: T) extends HttpStream[T]
 
 sealed trait StreamBodyMessage extends HttpStream[Nothing]
-/**
- * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
- * is raw data(false) or a properly encoded http chunk (true).  In most cases
- * this should be false unless the data is being proxied verbatim.
- */
-case class Data(data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage
-case object End extends StreamBodyMessage
 
+/**
+  * A Piece of data for a http message body.  `chunkEncoded` declares whether the data
+  * is raw data(false) or a properly encoded http chunk (true).  In most cases
+  * this should be false unless the data is being proxied verbatim.
+  */
+case class Data(data: DataBlock, chunkEncoded: Boolean = false) extends StreamBodyMessage
+case object End                                                 extends StreamBodyMessage
 
 trait StreamHttp extends Protocol {
 
-
-  type Request = HttpStream[HttpRequestHead]
+  type Request  = HttpStream[HttpRequestHead]
   type Response = HttpStream[HttpResponseHead]
 }
 
 trait HeadParserProvider[T <: HttpMessageHead] {
   def parser: Parser[T]
-  def eosTerminatesMessage : Boolean
+  def eosTerminatesMessage: Boolean
 }
 object HeadParserProvider {
   implicit object RequestHeadParserProvider extends HeadParserProvider[HttpRequestHead] {
@@ -40,7 +38,6 @@ object HeadParserProvider {
 
     def eosTerminatesMessage = false
 
-    
   }
   object ResponseHeadParserProvider extends HeadParserProvider[HttpResponseHead] {
     def parser = HttpResponseParser.head
@@ -49,7 +46,7 @@ object HeadParserProvider {
   }
 }
 
-trait StreamDecoder[T <: HttpMessageHead] { 
+trait StreamDecoder[T <: HttpMessageHead] {
 
   def parserProvider: HeadParserProvider[T]
 
@@ -64,73 +61,79 @@ trait StreamDecoder[T <: HttpMessageHead] {
   //(so non-chunked encoding)
   private class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
-    def done = size.map{_ == taken}.getOrElse(false)
-    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = if (done) {
-      Some(End)
-    } else if (input.hasUnreadData) {
-      val bytes = input.take(size.map{_ - taken}.getOrElse(input.remaining))
-      taken += bytes.length
-      Some(Data(DataBlock(bytes), false))
-    } else {
-      None
-    }
+    def done          = size.map { _ == taken }.getOrElse(false)
+    def nextPiece(input: DataBuffer): Option[StreamBodyMessage] =
+      if (done) {
+        Some(End)
+      } else if (input.hasUnreadData) {
+        val bytes = input.take(size.map { _ - taken }.getOrElse(input.remaining))
+        taken += bytes.length
+        Some(Data(DataBlock(bytes), false))
+      } else {
+        None
+      }
   }
   private class ChunkedBodyState extends BodyState {
-    import parsing.Combinators._
+    import colossus.parsing.Combinators._
     val parser: Parser[StreamBodyMessage] = intUntil('\r', 16) <~ byte |> {
-      case 0 => bytes(2) >> {_ => End}
-      case n => bytes(n.toInt) <~ bytes(2) >> {bytes => Data(DataBlock(bytes), false)}
+      case 0 =>
+        bytes(2) >> { _ =>
+          End
+        }
+      case n =>
+        bytes(n.toInt) <~ bytes(2) >> { bytes =>
+          Data(DataBlock(bytes), false)
+        }
     }
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = parser.parse(input)
-  
+
   }
   private var state: State = HeadState
 
   def decode(data: DataBuffer): Option[HttpStream[T]] = state match {
-    case HeadState => headParser.parse(data) match {
-      case Some(h) => {
-        if (h.headers.transferEncoding == TransferEncoding.Chunked) {
-          state = new ChunkedBodyState
-        } else {
-          val lengthOpt = if (parserProvider.eosTerminatesMessage || h.headers.contentLength.isDefined) {
-            h.headers.contentLength
+    case HeadState =>
+      headParser.parse(data) match {
+        case Some(h) => {
+          if (h.headers.transferEncoding == TransferEncoding.Chunked) {
+            state = new ChunkedBodyState
           } else {
-            Some(0)
+            val lengthOpt = if (parserProvider.eosTerminatesMessage || h.headers.contentLength.isDefined) {
+              h.headers.contentLength
+            } else {
+              Some(0)
+            }
+            state = new FiniteBodyState(lengthOpt)
           }
-          state = new FiniteBodyState(lengthOpt)
+          Some(Head(h))
         }
-        Some(Head(h))
+        case None => None
       }
-      case None => None
-    }
-    case b: BodyState => b.nextPiece(data) match {
-      case Some(End) => {
-        state = HeadState
-        Some(End)
+    case b: BodyState =>
+      b.nextPiece(data) match {
+        case Some(End) => {
+          state = HeadState
+          Some(End)
+        }
+        case other => other
       }
-      case other => other
-    }
   }
-
 
   def resetDecoder() {
     state = HeadState
     headParser = parserProvider.parser
   }
 
-  
   def endOfStream(): Option[HttpStream[T]] = state match {
     case f: FiniteBodyState if (f.size.isEmpty && parserProvider.eosTerminatesMessage) => Some(End)
-    case _ => None
+    case _                                                                             => None
   }
-
 
 }
 
 trait StreamEncoder[T <: HttpMessageHead] {
 
   private sealed trait State
-  private case object HeadState extends State
+  private case object HeadState         extends State
   private case class BodyState(head: T) extends State
 
   private var state: State = HeadState
@@ -144,15 +147,16 @@ trait StreamEncoder[T <: HttpMessageHead] {
 
   def encode(output: HttpStream[T], buffer: DataOutBuffer) {
     state match {
-      case HeadState => output match {
-        case Head(h) => {
-          state = BodyState(h)
-          h.encode(buffer)
-          //need to write the final newline
-          buffer write HttpParse.NEWLINE
+      case HeadState =>
+        output match {
+          case Head(h) => {
+            state = BodyState(h)
+            h.encode(buffer)
+            //need to write the final newline
+            buffer write HttpParse.NEWLINE
+          }
+          case _ => throw new StreamHttpException("Cannot send body data before head")
         }
-        case _ => throw new StreamHttpException("Cannot send body data before head")
-      }
       case BodyState(current) => {
         output match {
           case Head(h) => throw new StreamHttpException("cannot send new head while streaming a body")
@@ -176,7 +180,10 @@ trait StreamEncoder[T <: HttpMessageHead] {
   }
 }
 
-class StreamHttpServerCodec extends Codec.Server[StreamHttp] with StreamDecoder[HttpRequestHead] with StreamEncoder[HttpResponseHead] {
+class StreamHttpServerCodec
+    extends Codec.Server[StreamHttp]
+    with StreamDecoder[HttpRequestHead]
+    with StreamEncoder[HttpResponseHead] {
 
   def parserProvider = HeadParserProvider.RequestHeadParserProvider
 
@@ -187,7 +194,10 @@ class StreamHttpServerCodec extends Codec.Server[StreamHttp] with StreamDecoder[
 
 }
 
-class StreamHttpClientCodec extends Codec.Client[StreamHttp] with StreamDecoder[HttpResponseHead] with StreamEncoder[HttpRequestHead] {
+class StreamHttpClientCodec
+    extends Codec.Client[StreamHttp]
+    with StreamDecoder[HttpResponseHead]
+    with StreamEncoder[HttpRequestHead] {
 
   def parserProvider = HeadParserProvider.ResponseHeadParserProvider
 
@@ -197,4 +207,3 @@ class StreamHttpClientCodec extends Codec.Client[StreamHttp] with StreamDecoder[
   }
 
 }
-

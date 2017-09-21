@@ -1,7 +1,6 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 class DataBlockSpec extends ColossusSpec {
 
@@ -25,6 +24,3 @@ class DataBlockSpec extends ColossusSpec {
 
   }
 }
-
-
-

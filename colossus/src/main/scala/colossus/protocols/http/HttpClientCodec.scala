@@ -1,26 +1,21 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
+import colossus.controller.{Codec, Encoding}
 import colossus.core._
-import parsing._
-import Combinators.Parser
-
-import controller.{Codec, Encoding}
+import colossus.parsing.Combinators.Parser
 
 class StaticHttpClientCodec extends Codec[Encoding.Client[Http]] {
 
-  private var parser : Parser[HttpResponse] = HttpResponseParser.static()
-
+  private var parser: Parser[HttpResponse] = HttpResponseParser.static()
 
   override def encode(out: HttpRequest, buffer: DataOutBuffer) { out.encode(buffer) }
 
-  override def decode(data: DataBuffer): Option[HttpResponse] = parser.parse(data) 
+  override def decode(data: DataBuffer): Option[HttpResponse] = parser.parse(data)
 
   override def reset(): Unit = {
     parser = HttpResponseParser.static()
   }
 
-  override def endOfStream() = parser.endOfStream() 
+  override def endOfStream() = parser.endOfStream()
 
 }
-

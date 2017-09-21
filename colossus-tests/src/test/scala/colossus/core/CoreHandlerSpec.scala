@@ -13,7 +13,7 @@ class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends NoopHa
   var shutdownCalled = false
 
   override def onShutdown() {
-    shutdownCalled =true
+    shutdownCalled = true
     if (callSuperShutdown) super.onShutdown()
   }
 
@@ -22,7 +22,7 @@ class TestHandler(ctx: ServerContext, callSuperShutdown: Boolean) extends NoopHa
 class CoreHandlerSpec extends ColossusSpec {
 
   def setup(callSuperShutdown: Boolean = true): TypedMockConnection[TestHandler] = {
-    val con = MockConnection.server(new TestHandler(_, callSuperShutdown))
+    val con = MockConnection.server(serverContext => new TestHandler(serverContext, callSuperShutdown))
     con.handler.connected(con)
     con
   }
@@ -70,15 +70,14 @@ class CoreHandlerSpec extends ColossusSpec {
     }
 
     "kill does nothing if the connection isn't connected" in {
-      val con = MockConnection.server(new TestHandler(_, true))
+      val con = MockConnection.server(serverContext => new TestHandler(serverContext, true))
       con.typedHandler.kill(new Exception("foo"))
       con.workerProbe.expectNoMsg(100.milliseconds)
     }
 
-
     "become" in {
       val con = setup()
-      val f = new NoopHandler(con.typedHandler.context)
+      val f   = new NoopHandler(con.typedHandler.context)
       con.typedHandler.become(() => f)
       con.typedHandler.shutdownCalled must equal(true)
       val m = con.workerProbe.receiveOne(100.milliseconds).asInstanceOf[WorkerCommand.SwapHandler]
@@ -92,13 +91,11 @@ class CoreHandlerSpec extends ColossusSpec {
     }
 
     "connection state stays in NotConnected while shutting down" in {
-      val con = MockConnection.server(new TestHandler(_, true))
+      val con = MockConnection.server(serverContext => new TestHandler(serverContext, true))
       con.typedHandler.connectionState must equal(NotConnected)
       con.typedHandler.shutdownRequest()
       con.typedHandler.connectionState must equal(NotConnected)
     }
-
-
 
     "not call shutdown when disconnect is called while in the shuttingdown state" in {
       val con = setup(false)
@@ -108,9 +105,6 @@ class CoreHandlerSpec extends ColossusSpec {
       con.typedHandler.shutdownRequest()
       con.typedHandler.shutdownCalled must equal(false)
     }
-
-
-
 
   }
 

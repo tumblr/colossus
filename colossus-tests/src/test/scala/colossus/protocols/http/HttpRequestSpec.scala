@@ -1,12 +1,10 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import HttpMethod._
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 class HttpRequestSpec extends ColossusSpec {
-
 
   "HttpRequestBuilder" must {
     "build a request" in {
@@ -17,6 +15,5 @@ class HttpRequestSpec extends ColossusSpec {
       HttpRequest.delete("/foo") must equal(HttpRequest.base.withMethod(Delete).withPath("/foo"))
     }
   }
-
 
 }

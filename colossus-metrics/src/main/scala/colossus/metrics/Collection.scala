@@ -10,12 +10,12 @@ import scala.reflect.ClassTag
 
 /**
   * A config object passed to new event collectors in addition to their own config.
- *
- * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
- * @param config A typesafe config object that contains all the config for collectors configured using typesafe config
- * @param collectorDefaults a typesafe config object for collector defaults
- */
-case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig : Config, collectorDefaults: Config) {
+  *
+  * @param intervals The aggregation intervals configured for the MetricSystem this collection belongs to
+  * @param baseConfig A typesafe config object that contains all the config for collectors configured using typesafe config
+  * @param collectorDefaults a typesafe config object for collector defaults
+  */
+case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig: Config, collectorDefaults: Config) {
 
   /**
     * Build a Config for a collector by stacking config objects specified by the paths elements
@@ -27,10 +27,10 @@ case class CollectorConfig(intervals: Seq[FiniteDuration], baseConfig : Config, 
     * @param alternatePaths Ordered list of config paths, ordered by highest precedence.
     * @return
     */
-  def resolveConfig(address : MetricAddress, defaultsPath: String, alternatePaths: String*) : Config = {
+  def resolveConfig(address: MetricAddress, defaultsPath: String, alternatePaths: String*): Config = {
     import ConfigHelpers._
     baseConfig
-      .withFallbacks((address.configString +: alternatePaths):_*)
+      .withFallbacks((address.configString +: alternatePaths): _*)
       .withFallback(collectorDefaults.getConfig(defaultsPath))
   }
 
@@ -51,7 +51,7 @@ trait Collector {
   /**
     * TODO
     *
-    * @param interval
+    * @param interval TODO
     * @return
     */
   def tick(interval: FiniteDuration): MetricMap
@@ -65,7 +65,9 @@ private[metrics] class CollectionMap[T] {
     Option(map.get(tags)) match {
       case Some(got) => op(got)(num)
       case None => {
-        Option(map.putIfAbsent(tags, new AtomicLong(num))).foreach{got => op(got)(num)}          
+        Option(map.putIfAbsent(tags, new AtomicLong(num))).foreach { got =>
+          op(got)(num)
+        }
       }
     }
 
@@ -79,10 +81,10 @@ private[metrics] class CollectionMap[T] {
     update(tags, num, _.set _)
   }
 
-  def get(tags: T): Option[Long] = Option(map.get(tags)).map{_.get}
+  def get(tags: T): Option[Long] = Option(map.get(tags)).map { _.get }
 
   def snapshot(pruneEmpty: Boolean, reset: Boolean): Map[T, Long] = {
-    val keys = map.keys
+    val keys  = map.keys
     var build = Map[T, Long]()
     while (keys.hasMoreElements) {
       val key = keys.nextElement
@@ -98,7 +100,7 @@ private[metrics] class CollectionMap[T] {
       } else {
         map.get(key).get
       }
-      if (!(pruneEmpty &&  value == 0)) {
+      if (!(pruneEmpty && value == 0)) {
         build = build + (key -> value)
       }
     }
@@ -113,18 +115,20 @@ class DuplicateMetricException(message: String) extends Exception(message)
 class Collection(val config: CollectorConfig) {
 
   import Collection.TaggedCollector
-  val collectors : ConcurrentHashMap[MetricAddress, TaggedCollector] = new ConcurrentHashMap[MetricAddress, TaggedCollector]()
+  val collectors: ConcurrentHashMap[MetricAddress, TaggedCollector] =
+    new ConcurrentHashMap[MetricAddress, TaggedCollector]()
 
   /**
-   * Retrieve a collector of a specific type by address, creating a new one if
-   * it does not exist.  If an existing collector of a different type already
-   * exists, a `DuplicateMetricException` will be thrown.
-   * @param address Address meant to be relative to this MetricNamespace's namespace
-   * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
+    * Retrieve a collector of a specific type by address, creating a new one if
+    * it does not exist.  If an existing collector of a different type already
+    * exists, a `DuplicateMetricException` will be thrown.
+    * @param address Address meant to be relative to this MetricNamespace's namespace
+    * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
     */
-  def getOrAdd[T <: Collector : ClassTag](address : MetricAddress, tags: TagMap)(f : (MetricAddress, CollectorConfig) => T): T = {
+  def getOrAdd[T <: Collector: ClassTag](address: MetricAddress, tags: TagMap)(
+      f: (MetricAddress, CollectorConfig) => T): T = {
     def cast(retrieved: Collector): T = retrieved match {
-      case t : T => t
+      case t: T => t
       case other => {
         throw new DuplicateMetricException(
           s"An event collector with address $address of type ${other.getClass.getSimpleName} already exists"
@@ -136,14 +140,14 @@ class Collection(val config: CollectorConfig) {
     } else {
       val c = f(address, config)
       collectors.putIfAbsent(address, TaggedCollector(c, tags)) match {
-        case null => c
+        case null  => c
         case other => cast(other.collector)
       }
     }
   }
 
   def tick(interval: FiniteDuration): MetricMap = {
-    val keys = collectors.keys
+    val keys             = collectors.keys
     var build: MetricMap = Map()
     while (keys.hasMoreElements) {
       val key = keys.nextElement
@@ -156,15 +160,14 @@ class Collection(val config: CollectorConfig) {
     build
   }
 
-
 }
 
 //Used as a convenience function in tests.  Used in both both colossus-tests and in colossus-metrics tests, which means
 //this project is the lowest common denominator for both.
-object Collection{
-  def withReferenceConf(intervals : Seq[FiniteDuration]) : Collection = {
+object Collection {
+  def withReferenceConf(intervals: Seq[FiniteDuration]): Collection = {
     val config = ConfigFactory.defaultReference().getConfig(MetricSystemConfig.ConfigRoot)
-    new Collection(CollectorConfig(intervals,config, config.getConfig("system.collector-defaults") ))
+    new Collection(CollectorConfig(intervals, config, config.getConfig("system.collector-defaults")))
   }
 
   case class TaggedCollector(collector: Collector, tagMap: TagMap)

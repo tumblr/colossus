@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{DefaultRate, Rate}
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,7 +25,6 @@ class RateSpec extends MetricIntegrationSpec {
       r.value(1.second) mustBe 23
       r.tick(1.second)("/foo")(Map()) must equal(23)
     }
-
 
     "tick resets value for interval" in {
       val r = rate()
@@ -95,21 +96,22 @@ class RateSpec extends MetricIntegrationSpec {
 
     "have the right address" in {
       implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
-      val r = Rate("/baz")
+      val r           = Rate("/baz")
       r.address must equal(MetricAddress("/foo/bar/baz"))
 
     }
 
     "correctly handle hits from multiple threads" in {
       val r = rate()
-      val f = Future.sequence{(1 to 1000).map{_ =>
-        Future { 
-          (1 to 5).foreach(_ => r.hit()) 
+      val f = Future.sequence {
+        (1 to 1000).map { _ =>
+          Future {
+            (1 to 5).foreach(_ => r.hit())
+          }
         }
-      }}
+      }
       Await.result(f, 1.second)
       r.tick(1.second)("/foo")(Map()) must equal(5000)
     }
   }
 }
-

@@ -1,16 +1,15 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
 import akka.util.{ByteString, ByteStringBuilder}
-/**
- * The Command class allows us to do basic parsing and building with minimal overhead
- */
 
+/**
+  * The Command class allows us to do basic parsing and building with minimal overhead
+  */
 case class Command(command: String, args: Seq[ByteString]) {
 
   def raw = {
     import UnifiedProtocol._
-    val size = args.map{_.size}.sum * 2
+    val size    = args.map { _.size }.sum * 2
     val builder = new ByteStringBuilder
     builder.sizeHint(size)
     builder append NUM_ARGS
@@ -21,7 +20,7 @@ case class Command(command: String, args: Seq[ByteString]) {
     builder append RN
     builder putBytes command.getBytes
     builder append RN
-    args.foreach{ arg =>
+    args.foreach { arg =>
       builder append ARG_LEN
       builder append ByteString(arg.size.toString)
       builder append RN
@@ -31,13 +30,13 @@ case class Command(command: String, args: Seq[ByteString]) {
     builder.result
   }
 
-  override def toString = command + " " + args.map{_.utf8String}.mkString(" ")
+  override def toString = command + " " + args.map { _.utf8String }.mkString(" ")
 }
 
 object Command {
 
   def apply(args: String*): Command = {
-    Command(args.head, args.tail.map{ByteString(_)})
+    Command(args.head, args.tail.map { ByteString(_) })
   }
 
   def c(rawArgs: Seq[ByteString]): Command = Command(rawArgs.head.utf8String.toUpperCase, rawArgs.tail)

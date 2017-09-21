@@ -1,33 +1,26 @@
-package colossus
-package protocols
+package colossus.protocols
 
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.service._
-
+import colossus.metrics.TagMap
+import colossus.protocols.redis.RedisClient.RedisClientLifter
+import colossus.service.{ClientFactories, Protocol, ServiceClientFactory, TagDecorator}
 
 package object redis {
 
   trait Redis extends Protocol {
-    type Request = Command
+    type Request  = Command
     type Response = Reply
   }
 
-  object Redis extends ClientFactories[Redis, RedisClient]{
-
-    implicit def clientFactory = ServiceClientFactory.basic("redis", () => new RedisClientCodec)
-    
-
-    object defaults {
-
-      /*
-
-      implicit val redisServerDefaults = new ServiceCodecProvider[Redis] {
-        def provideCodec() = new RedisServerCodec
-        def errorResponse(error: ProcessingFailure[Command]) = ErrorReply(s"Error (${error.reason.getClass.getName}): ${error.reason.getMessage}")
-      }
-      */
-
+  object Redis extends ClientFactories[Redis, RedisClient](RedisClientLifter) {
+    lazy val tagDecorator: TagDecorator[Redis] = new TagDecorator[Redis] {
+      override def tagsFor(request: Command, response: Reply): TagMap = Map(
+        "op" -> request.command
+      )
     }
+    
+    implicit def clientFactory = 
+      ServiceClientFactory.basic("redis", () => new RedisClientCodec, tagDecorator)
 
   }
 
@@ -44,4 +37,3 @@ package object redis {
     }
   }
 }
-

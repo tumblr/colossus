@@ -1,15 +1,14 @@
-package colossus
-package core
+package colossus.core
 
-import testkit._
+import colossus.testkit.ColossusSpec
 
 import scala.concurrent.duration._
 
 class ConnectionLimiterSpec extends ColossusSpec {
 
-
   "connection limiter" must {
-    class ManualLimiter(var manualTime: Long, initial: Int, max: Int, duration: FiniteDuration) extends ConnectionLimiter(initial, max, duration) {
+    class ManualLimiter(var manualTime: Long, initial: Int, max: Int, duration: FiniteDuration)
+        extends ConnectionLimiter(initial, max, duration) {
       override def currentTime = manualTime
     }
 
@@ -34,11 +33,9 @@ class ConnectionLimiterSpec extends ColossusSpec {
 
     "no limiting for nolimiter" in {
       val l = ConnectionLimiter.noLimiting(50)
-      l.limit mustBe(50)
+      l.limit mustBe (50)
     }
 
   }
 
 }
-
-

@@ -1,25 +1,23 @@
-package colossus
-package controller
+package colossus.controller
 
-import core._
-import streaming._
-import testkit._
 import akka.util.ByteString
+import colossus.core.{DisconnectCause, DynamicOutBuffer}
+import colossus.streaming.{PushResult, Source}
+import colossus.testkit.ColossusSpec
 
 class OutputControllerSpec extends ColossusSpec with ControllerMocks {
-
 
   "OutputController" must {
     "push a message" in {
       val (u, con, d) = get()
-      val message = ByteString("Hello World!")
+      val message     = ByteString("Hello World!")
       con.connected()
       con.outgoing.push(message)
       expectWrite(con, message)
     }
     "push multiple messages" in {
       val (u, con, d) = get()
-      val data = ByteString("Hello World!")
+      val data        = ByteString("Hello World!")
       con.connected()
       con.outgoing.push(data)
       con.outgoing.push(data)
@@ -28,8 +26,8 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
 
     "respect buffer soft overflow" in {
       val (u, con, d) = get()
-      val over = ByteString("abc")
-      val next = ByteString("hey")
+      val over        = ByteString("abc")
+      val next        = ByteString("hey")
       con.connected()
       con.outgoing.push(over)
       con.outgoing.push(next)
@@ -57,7 +55,9 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       con.connected()
       val upstream = Source
         .fromArray((0 to 50).toArray)
-        .map{i => if (i > 10) { con.outgoing.terminate(new Exception("ASDF")) }; ByteString(i.toString) }
+        .map { i =>
+          if (i > 10) { con.outgoing.terminate(new Exception("ASDF")) }; ByteString(i.toString)
+        }
       upstream into con.outgoing
       con.readyForData(new DynamicOutBuffer(1000))
       (con.upstream.kill _).verify(*)
@@ -67,17 +67,14 @@ class OutputControllerSpec extends ColossusSpec with ControllerMocks {
       val (u, con, d) = get()
       con.connected()
       //this pipe will close when the iterator is finished
-      val upstream = Source.fromIterator((0 to 5).map{i => ByteString(i.toString)}.toIterator)
+      val upstream = Source.fromIterator((0 to 5).map { i =>
+        ByteString(i.toString)
+      }.toIterator)
       upstream into con.outgoing
       con.readyForData(new DynamicOutBuffer(1000))
       (con.upstream.kill _).verify(*)
     }
 
-      
-
   }
-    
-
-
 
 }

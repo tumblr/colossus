@@ -1,8 +1,7 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
 import akka.util.ByteString
-import parsing._
+import colossus.parsing._
 import Combinators._
 import DataSize._
 
@@ -14,16 +13,21 @@ object RedisCommandParser {
 
   def command: Parser[Command] = byte |> {
     case '*' => unified
-    case n => line >> {data => Command((ByteString(n) ++ ByteString(data)).utf8String.split(" "):_*)}
+    case n =>
+      line >> { data =>
+        Command((ByteString(n) ++ ByteString(data)).utf8String.split(" "): _*)
+      }
   }
 
-  def unified: Parser[Command] = repeat(argNum, arg) >> {args => Command.c(args)}
-  def arg = bytes(argLength).map{b => ByteString(b)} <~ bytes(2)
-  def argLength = literal($_BYTE) ~> intUntil('\r').map{_.toInt} <~ byte
-  def argNum = intUntil('\r') <~ byte
-
+  def unified: Parser[Command] = repeat(argNum, arg) >> { args =>
+    Command.c(args)
+  }
+  def arg =
+    bytes(argLength).map { b =>
+      ByteString(b)
+    } <~ bytes(2)
+  def argLength = literal($_BYTE) ~> intUntil('\r').map { _.toInt } <~ byte
+  def argNum    = intUntil('\r') <~ byte
 
   val $_BYTE = ByteString("$")
 }
-
-

@@ -1,12 +1,17 @@
 package colossus.metrics
 
+import colossus.metrics.collectors._
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 
 class ConfigLoadingSpec extends MetricIntegrationSpec {
 
-  def config(userOverrides: String) = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference()).getConfig(MetricSystemConfig.ConfigRoot)
+  def config(userOverrides: String) =
+    ConfigFactory
+      .parseString(userOverrides)
+      .withFallback(ConfigFactory.defaultReference())
+      .getConfig(MetricSystemConfig.ConfigRoot)
 
   def msconfig(userOverrides: String): MetricSystemConfig = MetricSystemConfig.load("test", config(userOverrides))
 
@@ -94,7 +99,7 @@ class ConfigLoadingSpec extends MetricIntegrationSpec {
       """.stripMargin
     implicit val ms = metricSystem(userOverrides)
 
-    "load a rate using collector defaults" taggedAs(org.scalatest.Tag("test")) in {
+    "load a rate using collector defaults" taggedAs (org.scalatest.Tag("test")) in {
       println(ms.config.collectorConfig.collectorDefaults.toString)
       val r = Rate(MetricAddress("my-rate"))
       r.pruneEmpty mustBe true

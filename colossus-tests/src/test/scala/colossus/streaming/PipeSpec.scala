@@ -1,5 +1,4 @@
-package colossus
-package streaming
+package colossus.streaming
 
 import colossus.testkit._
 import scala.util.{Success, Failure}
@@ -13,24 +12,28 @@ class PipeSpec extends ColossusSpec {
   implicit val cbe = FakeIOSystem.testExecutor
 
   implicit val duration = 1.second
-  
+
   val PA = PullAction
 
   "BufferedPipe" must {
 
     "push an item after pull request without buffering" in {
       val pipe = new BufferedPipe[Int](1)
-      var v = 0
-      pipe.pull{x => v = x.get.get}
+      var v    = 0
+      pipe.pull { x =>
+        v = x.get.get
+      }
       pipe.push(2) mustBe Ok
       v must equal(2)
     }
 
     "push an item after pull request with another request during execution" in {
       val pipe = new BufferedPipe[Int](1)
-      var v = 0
+      var v    = 0
       def pl() {
-        pipe.pull{x => v = x.get.get;pl()}
+        pipe.pull { x =>
+          v = x.get.get; pl()
+        }
       }
       pl()
       pipe.push(2) must equal(Ok)
@@ -39,11 +42,12 @@ class PipeSpec extends ColossusSpec {
 
     "reject pushes after pipe is closed" in {
       val pipe = new BufferedPipe[Int](1)
-      pipe.pull{x => pipe.complete()}
+      pipe.pull { x =>
+        pipe.complete()
+      }
       pipe.push(2) must equal(Ok)
       pipe.push(3) mustBe Closed
     }
-
 
     "fail to push when pipe is full" in {
       val pipe = new BufferedPipe[Int](1)
@@ -68,12 +72,14 @@ class PipeSpec extends ColossusSpec {
       pipe.push(8)
       val f = pipe.push(1) match {
         case Full(trig) => trig
-        case other => fail(s"didn't get trigger, got $other")
+        case other      => fail(s"didn't get trigger, got $other")
       }
       var triggered = false
-      f.notify{triggered = true}
+      f.notify { triggered = true }
       triggered must equal(false)
-      pipe.pull{_ => ()}
+      pipe.pull { _ =>
+        ()
+      }
       triggered must equal(true)
     }
 
@@ -81,15 +87,17 @@ class PipeSpec extends ColossusSpec {
       val pipe = new BufferedPipe[Int](1)
       pipe.terminate(new Exception("asdf"))
       var pulled = false
-      pipe.pull{r => pulled = true; r mustBe an[Failure[_]]}
+      pipe.pull { r =>
+        pulled = true; r mustBe an[Failure[_]]
+      }
       pulled mustBe true
     }
 
     "fold" in {
-      val pipe = new BufferedPipe[Int](1)
+      val pipe     = new BufferedPipe[Int](1)
       var executed = false
-      pipe.fold(0){case (a, b) => a + b}.execute{
-        case Success(6) => {executed = true}
+      pipe.fold(0) { case (a, b) => a + b }.execute {
+        case Success(6) => { executed = true }
         case other => {
           println("FAIL")
           throw new Exception(s"bad end value $other")
@@ -106,15 +114,19 @@ class PipeSpec extends ColossusSpec {
     }
 
     "foldWhile folds before terminal condition is met" in {
-      val pipe = new BufferedPipe[Int](1)
+      val pipe     = new BufferedPipe[Int](1)
       var executed = false
-      pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
-        case Success(x) if x < 10 => {executed = true}
-        case other => {
-          throw new Exception(s"bad end value $other")
-        }
+      pipe
+        .foldWhile(0) { (a, b) =>
+          a + b
+        } { _ != 10 }
+        .execute {
+          case Success(x) if x < 10 => { executed = true }
+          case other => {
+            throw new Exception(s"bad end value $other")
+          }
 
-      }
+        }
       //the first 4 pushes should bring our total to 8
       (1 to 4).foreach { i =>
         executed must equal(false)
@@ -126,36 +138,44 @@ class PipeSpec extends ColossusSpec {
     }
 
     "foldWhile stops folding after terminal condition" in {
-      val pipe = new BufferedPipe[Int](1)
+      val pipe     = new BufferedPipe[Int](1)
       var executed = false
-      pipe.foldWhile(0){(a, b) => a + b}{_ != 10}.execute{
-        case Success(10) => {executed = true}
-         case other => {
-          throw new Exception(s"bad end value $other")
-         }
-      }
-       //the first 4 pushes should bring our total to 8
-       (1 to 4).foreach { i =>
-         executed must equal(false)
-         pipe.push(2)
-       }
-        (1 to 4).foreach { i =>
-          pipe.push(2)
+      pipe
+        .foldWhile(0) { (a, b) =>
+          a + b
+        } { _ != 10 }
+        .execute {
+          case Success(10) => { executed = true }
+          case other => {
+            throw new Exception(s"bad end value $other")
+          }
         }
-        pipe.complete()
-        executed must equal(true)
+      //the first 4 pushes should bring our total to 8
+      (1 to 4).foreach { i =>
+        executed must equal(false)
+        pipe.push(2)
+      }
+      (1 to 4).foreach { i =>
+        pipe.push(2)
+      }
+      pipe.complete()
+      executed must equal(true)
     }
 
-    "handle multiple push triggers"  in {
+    "handle multiple push triggers" in {
       val pipe = new BufferedPipe[Int](1)
       def tryPush(i: Int): Unit = pipe.push(i) match {
-        case PushResult.Full(t) => t.notify{ println(s"triggered $i");pipe.push(i) match { 
-          case PushResult.Ok => ()
-          case other => throw new Exception(s"wrong notify result $other")
-        }}
+        case PushResult.Full(t) =>
+          t.notify {
+            println(s"triggered $i");
+            pipe.push(i) match {
+              case PushResult.Ok => ()
+              case other         => throw new Exception(s"wrong notify result $other")
+            }
+          }
         case other => throw new Exception(s"wrong pushresult $other")
       }
-      pipe.push(0)//fill the pipe
+      pipe.push(0) //fill the pipe
       tryPush(1)
       tryPush(2)
       pipe.pull() mustBe PullResult.Item(0)
@@ -170,7 +190,7 @@ class PipeSpec extends ColossusSpec {
       pipe.push(1) mustBe Ok
       pipe.push(1) mustBe a[Full]
       pipe.complete()
-      CallbackAwait.result(pipe.reduce{_ + _}, 1.second) mustBe 3
+      CallbackAwait.result(pipe.reduce { _ + _ }, 1.second) mustBe 3
     }
 
     "enqueue and dequeue in the right order" in {
@@ -178,7 +198,7 @@ class PipeSpec extends ColossusSpec {
       pipe.push(1) mustBe Ok
       pipe.push(2) mustBe Ok
       pipe.push(3) mustBe Ok
-      val c = pipe.fold((0, true)){ case (next, (last, ok)) => (next, next > last && ok) }
+      val c = pipe.fold((0, true)) { case (next, (last, ok)) => (next, next > last && ok) }
       pipe.complete()
       CallbackAwait.result(c, 1.second) mustBe (3, true)
     }
@@ -187,9 +207,8 @@ class PipeSpec extends ColossusSpec {
 
   "BufferedPipe.pullWhile" must {
 
-
     "fast-track pushes" in {
-      val p = new BufferedPipe[Int](5)
+      val p   = new BufferedPipe[Int](5)
       var sum = 0
       p.pullWhile(
         i => {
@@ -207,13 +226,12 @@ class PipeSpec extends ColossusSpec {
     }
 
     "fast-track: callback is notified of closing" in {
-      val p = new BufferedPipe[Int](5)
+      val p      = new BufferedPipe[Int](5)
       var closed = false
       p.pullWhile(
-        _ => PA.PullContinue,
-        {
+        _ => PA.PullContinue, {
           case PullResult.Closed => closed = true
-          case _ => {}
+          case _                 => {}
         }
       )
       p.push(1)
@@ -222,26 +240,24 @@ class PipeSpec extends ColossusSpec {
       closed mustBe true
     }
 
-
     "trigger pushes on emptying a full buffer" in {
       val p = new BufferedPipe[Int](2)
       p.push(1) mustBe PushResult.Ok
       p.push(2) mustBe PushResult.Ok
       p.push(3) match {
-        case PushResult.Full(signal) => signal.notify{ p.push(4) }
-        case _ => throw new Exception("WRONG")
+        case PushResult.Full(signal) => signal.notify { p.push(4) }
+        case _                       => throw new Exception("WRONG")
       }
       var sum = 0
-      p.pullWhile (
+      p.pullWhile(
         i => {
           sum += i
           PA.PullContinue
         },
-         _ => PA.Stop
+        _ => PA.Stop
       )
       sum mustBe 7
     }
-
 
     "drain the buffer when fast-tracking" in {
       val p = new BufferedPipe[Int](10)
@@ -266,10 +282,9 @@ class PipeSpec extends ColossusSpec {
       p.push(1)
       var terminated = false
       p.pullWhile(
-        i => PullAction.Terminate(new Exception("HEY")),
-        {
+        i => PullAction.Terminate(new Exception("HEY")), {
           case PullResult.Error(reason) => terminated = true
-          case _ => {}
+          case _                        => {}
         }
       )
       terminated mustBe true
@@ -277,7 +292,7 @@ class PipeSpec extends ColossusSpec {
     }
 
   }
-  
+
   "BufferedPipe.peek" must {
     "return Item" in {
       val p = new BufferedPipe[Int](3)
@@ -307,46 +322,48 @@ class PipeSpec extends ColossusSpec {
       p.push(1) mustBe PushResult.Ok
       p.push(2) mustBe PushResult.Ok
       p.push(3) match {
-        case PushResult.Full(signal) => signal.notify{ onNotify }
-        case _ => throw new Exception("WRONG")
+        case PushResult.Full(signal) => signal.notify { onNotify }
+        case _                       => throw new Exception("WRONG")
       }
       p
     }
 
     "set off signals when previously full" in {
-      var sum = 0
+      var sum                       = 0
       lazy val p: BufferedPipe[Int] = setup(p.push(3))
-      p.pullUntilNull({x => sum += x; true}).get mustBe a[PullResult.Empty]
+      p.pullUntilNull({ x =>
+          sum += x; true
+        })
+        .get mustBe a[PullResult.Empty]
       sum mustBe 6
     }
 
     "return Closed if push trigger closes" in {
-      var sum = 0
-      lazy val p : BufferedPipe[Int] = setup(p.complete())
-      p.pullUntilNull({x => sum += x; true}) mustBe Some(PullResult.Closed)
+      var sum                       = 0
+      lazy val p: BufferedPipe[Int] = setup(p.complete())
+      p.pullUntilNull({ x =>
+        sum += x; true
+      }) mustBe Some(PullResult.Closed)
       sum mustBe 3
     }
 
     "return Error if terminated in push trigger" in {
-      lazy val p : BufferedPipe[Int] = setup(p.terminate(new Exception("ASDF")))
+      lazy val p: BufferedPipe[Int] = setup(p.terminate(new Exception("ASDF")))
       p.pullUntilNull(_ => true).get mustBe a[PullResult.Error]
     }
 
     "return Error if pipe is terminated while pulling" in {
       val p = new BufferedPipe[Int](10)
       (0 to 3).foreach(p.push)
-      p.pullUntilNull(i => {if (i > 1) p.terminate(new Exception("ADSF")) ; true}).get mustBe a[PullResult.Error]
+      p.pullUntilNull(i => { if (i > 1) p.terminate(new Exception("ADSF")); true }).get mustBe a[PullResult.Error]
     }
 
-      
   }
-
-
 
   "Pipe" must {
     "map" in {
       val p = new BufferedPipe[Int](5)
-      val q = p.map{_.toString}
+      val q = p.map { _.toString }
       q.push(4)
       q.pull() mustBe PullResult.Item("4")
     }
@@ -355,9 +372,9 @@ class PipeSpec extends ColossusSpec {
 
   "Pipe.fuse" must {
     "weld two pipes" in {
-      val p1 = new BufferedPipe[Int](1)
-      val p2 = new BufferedPipe[String](5)
-      val p3: Pipe[Int, String] = p1 map {_.toString} weld p2
+      val p1                    = new BufferedPipe[Int](1)
+      val p2                    = new BufferedPipe[String](5)
+      val p3: Pipe[Int, String] = p1 map { _.toString } weld p2
       p3.push(1) mustBe PushResult.Ok
       p3.push(2) mustBe PushResult.Ok
       p3.pull() mustBe PullResult.Item("1")
@@ -367,7 +384,9 @@ class PipeSpec extends ColossusSpec {
 
   "Pipe.filterMap" must {
     "filter and map correctly" in {
-      val p = new BufferedPipe[Int](10).filterMap{i => if (i > 3) Some(i.toString) else None}
+      val p = new BufferedPipe[Int](10).filterMap { i =>
+        if (i > 3) Some(i.toString) else None
+      }
       p.push(4)
       p.push(2)
       p.pull() mustBe PullResult.Item("4")
@@ -392,8 +411,8 @@ class PipeSpec extends ColossusSpec {
       p.push(2)
       var notified = false
       p.push(3) match {
-        case PushResult.Full(signal) => signal.notify{notified = true}
-        case _ => throw new Exception("WRONG RESULT")
+        case PushResult.Full(signal) => signal.notify { notified = true }
+        case _                       => throw new Exception("WRONG RESULT")
       }
       p.filterScan(_ > 5)
       notified mustBe false
@@ -405,12 +424,10 @@ class PipeSpec extends ColossusSpec {
 
   }
 
-
-
   "channel" must {
     "correctly link a source and sink" in {
-      val p1 = new BufferedPipe[Int](4)
-      val p2 = new BufferedPipe[String](4)
+      val p1                         = new BufferedPipe[Int](4)
+      val p2                         = new BufferedPipe[String](4)
       val channel: Pipe[Int, String] = new Channel(p1, p2)
       channel.push(4) mustBe PushResult.Ok
       p1.pull() mustBe PullResult.Item(4)
@@ -420,7 +437,7 @@ class PipeSpec extends ColossusSpec {
     }
 
     "create two linked pipes" in {
-      val (a,b) = Channel[Int, String]()
+      val (a, b) = Channel[Int, String]()
       a.push(3) mustBe PushResult.Ok
       b.pull() mustBe PullResult.Item(3)
 
@@ -430,4 +447,3 @@ class PipeSpec extends ColossusSpec {
   }
 
 }
-

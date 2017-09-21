@@ -2,7 +2,7 @@ package colossus.metrics
 
 import org.scalatest._
 
-class CollectionMapSpec extends WordSpec with MustMatchers with BeforeAndAfterAll{
+class CollectionMapSpec extends WordSpec with MustMatchers with BeforeAndAfterAll {
 
   "CollectionMap" must {
 
@@ -59,4 +59,3 @@ class CollectionMapSpec extends WordSpec with MustMatchers with BeforeAndAfterAl
   }
 
 }
-

@@ -1,18 +1,17 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
-import core.{DataOutBuffer, Encoder}
 import java.util.{LinkedList, List => JList}
 
-import scala.util.{Failure, Success, Try}
-import parsing.ParseException
+import colossus.core.{DataOutBuffer, Encoder}
+import colossus.parsing.{ParseException, Zero}
 
+import scala.util.{Failure, Success, Try}
 
 sealed abstract class HttpMethod(val name: String) {
   val bytes: Array[Byte] = name.getBytes("UTF-8")
-  val encodedSize = bytes.length
+  val encodedSize        = bytes.length
 }
 
 object HttpMethod {
@@ -32,17 +31,18 @@ object HttpMethod {
     def fail = throw new ParseException(s"Invalid http method")
     val guess = line(0) match {
       case 'G' => Get
-      case 'P' => line(1) match {
-        case 'A' => Patch
-        case 'O' => Post
-        case 'U' => Put
-        case _   => fail
-      }
-      case 'D' => Delete
-      case 'H' => Head
-      case 'O' => Options
-      case 'T' => Trace
-      case 'C' => Connect
+      case 'P' =>
+        line(1) match {
+          case 'A' => Patch
+          case 'O' => Post
+          case 'U' => Put
+          case _   => fail
+        }
+      case 'D'   => Delete
+      case 'H'   => Head
+      case 'O'   => Options
+      case 'T'   => Trace
+      case 'C'   => Connect
       case other => fail
     }
     //ensure we're actually getting the method we think we are
@@ -56,12 +56,11 @@ object HttpMethod {
     guess
   }
 
-
   def apply(str: String): HttpMethod = {
     val ucase = str.toUpperCase
     def loop(remain: List[HttpMethod]): HttpMethod = remain match {
       case head :: tail => if (head.name == ucase) head else loop(tail)
-      case Nil => throw new ParseException(s"Invalid http method $str")
+      case Nil          => throw new ParseException(s"Invalid http method $str")
     }
     loop(methods)
   }
@@ -69,15 +68,17 @@ object HttpMethod {
 
 sealed abstract class HttpVersion(versionString: String) {
   override def toString = versionString
-  val messageBytes = ByteString("HTTP/" + versionString)
-  val messageArr = messageBytes.toArray
+  val messageBytes      = ByteString("HTTP/" + versionString)
+  val messageArr        = messageBytes.toArray
 }
 object HttpVersion {
   case object `1.0` extends HttpVersion("1.0")
   case object `1.1` extends HttpVersion("1.1")
 
   def apply(str: String): HttpVersion = {
-    if (str == "HTTP/1.1") `1.1` else if (str=="HTTP/1.0") `1.0` else throw new ParseException(s"Invalid http version '$str'")
+    if (str == "HTTP/1.1") `1.1`
+    else if (str == "HTTP/1.0") `1.0`
+    else throw new ParseException(s"Invalid http version '$str'")
   }
 
   def apply(bytes: Array[Byte], start: Int, length: Int): HttpVersion = {
@@ -85,8 +86,6 @@ object HttpVersion {
     if (b == '1') `1.1` else if (b == '0') `1.0` else throw new ParseException(s"Invalid http version")
   }
 }
-
-
 
 trait HttpHeader extends Encoder {
 
@@ -96,23 +95,23 @@ trait HttpHeader extends Encoder {
 }
 
 object HttpHeader {
-  val DELIM = ": "
+  val DELIM   = ": "
   val NEWLINE = "\r\n"
 
-  private val ContentLengthKey = ByteString("Content-Length: ")
+  private val ContentLengthKey      = ByteString("Content-Length: ")
   private val ContentLengthKeyArray = ContentLengthKey.toArray
 
   /**
-   * Directly write a content-length header to a buffer.  Note that this does
-   * NOT write the terminating newline
-   */
+    * Directly write a content-length header to a buffer.  Note that this does
+    * NOT write the terminating newline
+    */
   def encodeContentLength(buffer: DataOutBuffer, length: Int) {
     def fastIntToString() {
       if (length == 0) {
         buffer.write('0'.toByte)
       } else {
-        val arr = new Array[Byte](10)
-        var r = length
+        val arr   = new Array[Byte](10)
+        var r     = length
         var index = 9
         while (r > 0) {
           arr(index) = ((r % 10) + 48).toByte
@@ -126,18 +125,18 @@ object HttpHeader {
     fastIntToString()
   }
 
-
   object Conversions {
-    implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = HttpHeaders.fromSeq (
-      l.map{ case (k,v) => HttpHeader(k,v) }
+    implicit def liftTupleList(l: Seq[(String, String)]): HttpHeaders = HttpHeaders.fromSeq(
+      l.map { case (k, v) => HttpHeader(k, v) }
     )
   }
 
   def apply(data: Array[Byte]): EncodedHttpHeader = new EncodedHttpHeader(data)
 
-  def apply(key: String, value: String) : HttpHeader = new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
+  def apply(key: String, value: String): HttpHeader =
+    new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
 
-  implicit object FPHZero extends parsing.Zero[EncodedHttpHeader] {
+  implicit object FPHZero extends Zero[EncodedHttpHeader] {
     def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n
   }
 
@@ -150,18 +149,18 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
   protected def parseErrorMessage = "Malformed header"
 
   private lazy val valueStart = parsed { data.indexOf(':'.toByte) + 1 }
-  lazy val key        = parsed { new String(data, 0, valueStart - 1).toLowerCase }
-  lazy val value      = parsed { new String(data, valueStart, data.length - valueStart - 2).trim }
+  lazy val key                = parsed { new String(data, 0, valueStart - 1).toLowerCase }
+  lazy val value              = parsed { new String(data, valueStart, data.length - valueStart - 2).trim }
 
   def encode(out: DataOutBuffer) {
     out.write(data)
   }
 
   /**
-   * Faster version of checking if the header key matches the given key.  It
-   * will check the first character before attempting to build the full string
-   * of the header, amortizing the costs
-   */
+    * Faster version of checking if the header key matches the given key.  It
+    * will check the first character before attempting to build the full string
+    * of the header, amortizing the costs
+    */
   def matches(matchkey: String) = {
     val c = matchkey(0).toByte
     if (data(0) == c || data(0) + 32 == c) matchkey == key else false
@@ -171,37 +170,38 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
 
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeader => this.key == that.key && this.value == that.value
-    case other => false
+    case other            => false
   }
 
   override def hashCode = toString.hashCode
 }
 
 /**
- * This is the set of headers that are parsed into more structured forms and
- * used internally by colossus
- */
+  * This is the set of headers that are parsed into more structured forms and
+  * used internally by colossus
+  */
 class ParsedHttpHeaders(
-  headers: JList[HttpHeader],
-  val transferEncodingOpt: Option[TransferEncoding],
-  override val contentType: Option[String],
-  override val contentLength: Option[Int],
-  override val connection: Option[Connection]
+    headers: JList[HttpHeader],
+    val transferEncodingOpt: Option[TransferEncoding],
+    override val contentType: Option[String],
+    override val contentLength: Option[Int],
+    override val connection: Option[Connection]
 ) extends HttpHeaders(headers) {
 
   def this(
-    headers: HttpHeaders,
-    transferEncodingOpt: Option[TransferEncoding],
-    contentType: Option[String],
-    contentLength: Option[Int],
-    connection: Option[Connection]
+      headers: HttpHeaders,
+      transferEncodingOpt: Option[TransferEncoding],
+      contentType: Option[String],
+      contentLength: Option[Int],
+      connection: Option[Connection]
   ) = this(headers.headers, transferEncodingOpt, contentType, contentLength, connection)
 
-  override def transferEncoding = if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
+  override def transferEncoding =
+    if (transferEncodingOpt.isDefined) transferEncodingOpt.get else TransferEncoding.Identity
 
-  override def encode(buffer: core.DataOutBuffer) {
-    transferEncodingOpt.foreach{_.header.encode(buffer)}
-    connection.foreach{_.header.encode(buffer)}
+  override def encode(buffer: DataOutBuffer) {
+    transferEncodingOpt.foreach { _.header.encode(buffer) }
+    connection.foreach { _.header.encode(buffer) }
     contentLength.foreach { c =>
       HttpHeader.encodeContentLength(buffer, c)
     }
@@ -210,11 +210,9 @@ class ParsedHttpHeaders(
 
 }
 
-
-
 /**
- * A Wrapper class for a set of Http headers, for a request or response.
- */
+  * A Wrapper class for a set of Http headers, for a request or response.
+  */
 class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   // NOTE - the headers value should contain ALL headers, even ones like
@@ -222,79 +220,82 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
 
   def firstValue(name: String): Option[String] = {
     val l = name.toLowerCase
-    toSeq.collectFirst{ case x if (x.key == l) => x.value }
+    toSeq.collectFirst { case x if (x.key == l) => x.value }
   }
 
   def allValues(name: String): Seq[String] = {
     val l = name.toLowerCase
-    toSeq.collect{ case x if (x.key == l) => x.value }
+    toSeq.collect { case x if (x.key == l) => x.value }
   }
 
   /** Returns the value of the content-length header, if it exists.
-   *
-   * Be aware that lacking this header may or may not be a valid request,
-   * depending if the "transfer-encoding" header is set to "chunked"
-   */
-  def contentLength: Option[Int] = firstValue(HttpHeaders.ContentLength).map{_.toInt}
+    *
+    * Be aware that lacking this header may or may not be a valid request,
+    * depending if the "transfer-encoding" header is set to "chunked"
+    */
+  def contentLength: Option[Int] = firstValue(HttpHeaders.ContentLength).map { _.toInt }
 
-  def transferEncoding : TransferEncoding = firstValue(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
+  def transferEncoding: TransferEncoding =
+    firstValue(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
 
   def connection: Option[Connection] = firstValue(HttpHeaders.Connection).map(Connection(_))
 
   def contentType: Option[String] = firstValue(HttpHeaders.ContentType)
 
-  def + (kv: (String, String)): HttpHeaders = {
+  def +(kv: (String, String)): HttpHeaders = {
     val n = HttpHeader(kv._1, kv._2)
     this + n
   }
 
-  def + (header: HttpHeader): HttpHeaders = {
+  def +(header: HttpHeader): HttpHeaders = {
     HttpHeaders.fromSeq(toSeq :+ header)
   }
 
   def size = headers.size
 
-  def toSeq : Seq[HttpHeader] = headers.toArray(Array[HttpHeader]())
+  def toSeq: Seq[HttpHeader] = headers.toArray(Array[HttpHeader]())
 
-  def encode(buffer: core.DataOutBuffer) {
+  def encode(buffer: DataOutBuffer) {
     val it = headers.iterator
     while (it.hasNext) {
       it.next.encode(buffer)
     }
-
   }
 
   /**
-   * Mutably add a new header to this set of headers.  Be aware that this method
-   * is not thread safe, though considerably faster than using `+`.
-   */
+    * Mutably add a new header to this set of headers.  Be aware that this method
+    * is not thread safe, though considerably faster than using `+`.
+    */
   def unsafeAppend(header: HttpHeader) {
     headers.add(header)
   }
 
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
-    case other => false
+    case _                 => false
   }
 
-  override def toString = "[" + toSeq.map{_.toString}.mkString(" ") + "]"
+  override def hashCode(): Int = this.toSeq.toSet.hashCode()
+
+  override def toString = "[" + toSeq.map { _.toString }.mkString(" ") + "]"
 
 }
 
 object HttpHeaders {
 
   //make these all lower-case
-  val Accept            = "accept"
-  val Connection        = "connection"
-  val ContentLength     = "content-length"
-  val ContentType       = "content-type"
-  val CookieHeader      = "cookie"
-  val Host              = "host"
-  val SetCookie         = "set-cookie"
-  val TransferEncoding  = "transfer-encoding"
+  val Accept           = "accept"
+  val Connection       = "connection"
+  val ContentLength    = "content-length"
+  val ContentType      = "content-type"
+  val CookieHeader     = "cookie"
+  val Host             = "host"
+  val SetCookie        = "set-cookie"
+  val TransferEncoding = "transfer-encoding"
 
-  def apply(hdrs: HttpHeader*) : HttpHeaders = HttpHeaders.fromSeq(hdrs)
-  def fromString(hdrs: (String, String)*): HttpHeaders = HttpHeaders.fromSeq(hdrs.map{case (k,v)  => HttpHeader(k,v)})
+  def apply(hdrs: HttpHeader*): HttpHeaders = HttpHeaders.fromSeq(hdrs)
+  def fromString(hdrs: (String, String)*): HttpHeaders =
+    HttpHeaders.fromSeq(hdrs.map { case (k, v) => HttpHeader(k, v) })
 
   def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = {
     val l = new LinkedList[HttpHeader]
@@ -305,30 +306,39 @@ object HttpHeaders {
   val Empty = new HttpHeaders(new LinkedList)
 }
 
-
 case class Cookie(name: String, value: String, expiration: Option[DateTime])
 
 object Cookie {
   def parseHeader(line: String): List[Cookie] = {
-    val keyvals: Map[String, String] = line.split(";").map{c => c.trim.split("=", 2).map{i => i.trim}.toList match {
-      case key :: value :: Nil => (key.toLowerCase -> value)
-      case key :: Nil => key.toLowerCase -> "true"
-      case _ => throw new InvalidRequestException(s"Invalid data in cookies")
-    }}.toMap
+    val keyvals: Map[String, String] = line
+      .split(";")
+      .map { c =>
+        c.trim
+          .split("=", 2)
+          .map { i =>
+            i.trim
+          }
+          .toList match {
+          case key :: value :: Nil => (key.toLowerCase -> value)
+          case key :: Nil          => key.toLowerCase -> "true"
+          case _                   => throw new InvalidRequestException(s"Invalid data in cookies")
+        }
+      }
+      .toMap
 
-    val cookieVals = keyvals.filter{case (k,v) => k != "expires"}
-    val expiration = keyvals.collectFirst{case (k,v) if (k == "expires") => parseCookieExpiration(v)}
-    cookieVals.map{case (key, value) => Cookie(key, value, expiration)}.toList
+    val cookieVals = keyvals.filter { case (k, v)                           => k != "expires" }
+    val expiration = keyvals.collectFirst { case (k, v) if (k == "expires") => parseCookieExpiration(v) }
+    cookieVals.map { case (key, value) => Cookie(key, value, expiration) }.toList
   }
 
   val CookieExpirationFormat = org.joda.time.format.DateTimeFormat.forPattern("E, dd MMM yyyy HH:mm:ss z")
   def parseCookieExpiration(str: String): DateTime = {
-    org.joda.time.DateTime.parse(str, CookieExpirationFormat )
+    org.joda.time.DateTime.parse(str, CookieExpirationFormat)
   }
 }
 
 sealed trait TransferEncoding {
-  def value : String
+  def value: String
 
   lazy val header: HttpHeader = HttpHeader("Transfer-Encoding", value)
 }
@@ -343,7 +353,7 @@ object TransferEncoding {
   }
 
   private val all = Seq(Identity, Chunked)
-  def apply(str : String) : TransferEncoding = {
+  def apply(str: String): TransferEncoding = {
     val toFind = str.toLowerCase
     all.find(_.value == toFind).getOrElse(throw new ParseException(s"Invalid transfer-encoding header value '$str'"))
   }
@@ -371,7 +381,7 @@ object ContentEncoding {
   }
 
   private val all = Seq(Gzip, Deflate, Compressed, Identity)
-  def apply(str : String) : ContentEncoding = {
+  def apply(str: String): ContentEncoding = {
     val toFind = str.toLowerCase
     all.find(_.value == toFind).getOrElse(throw new ParseException("Invalid content-encoding header value '$str'"))
   }
@@ -394,7 +404,7 @@ object Connection {
   }
 
   private val all = Seq(Close, KeepAlive, Upgrade)
-  def apply(str : String) : Connection = {
+  def apply(str: String): Connection = {
     val toFind = str.toLowerCase
     all.find(_.value == toFind).getOrElse(throw new ParseException(s"Invalid connection header value '$str'"))
   }
@@ -402,11 +412,10 @@ object Connection {
 
 object ContentType {
 
-  val TextPlain = "text/plain"
+  val TextPlain       = "text/plain"
   val ApplicationJson = "application/json"
 
 }
-
 
 trait ParameterParser[T] {
   def parse(value: String): Try[T]
@@ -430,36 +439,36 @@ object ParameterParser {
 
 case class NoParameterException(name: String) extends Exception(s"No value for parameter $name")
 
-case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal{
+case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal {
 
   def apply(key: String) = getFirst(key).get
 
   /**
-   * Get the value of a query string parameter when only at most one value is
-   * expected.  If there are multiple instances of the parameter then only the
-   * value of the first is returned
+    * Get the value of a query string parameter when only at most one value is
+    * expected.  If there are multiple instances of the parameter then only the
+    * value of the first is returned
    **/
-  def getFirst(key: String): Option[String] = parameters.collectFirst{case (k,v) if k == key => v}
+  def getFirst(key: String): Option[String] = parameters.collectFirst { case (k, v) if k == key => v }
 
   /**
-   * Get the value of a query string parameter and attempt to cast it to the given type
-   */
+    * Get the value of a query string parameter and attempt to cast it to the given type
+    */
   def getFirstAs[T](key: String)(implicit parser: ParameterParser[T]): Try[T] = getFirst(key) match {
     case Some(v) => parser.parse(v)
-    case None => Failure(NoParameterException(key))
+    case None    => Failure(NoParameterException(key))
   }
 
   /**
-   * Get the values of all instances of key
-   *
-   * This is for urls like http://foo.com?bar=val1&bar=val2&bar=val3, which is a valid url
-   */
-  def getAll(key: String) : Seq[String] = parameters.collect{case (k,v) if k == key => v}
+    * Get the values of all instances of key
+    *
+    * This is for urls like http://foo.com?bar=val1&bar=val2&bar=val3, which is a valid url
+    */
+  def getAll(key: String): Seq[String] = parameters.collect { case (k, v) if k == key => v }
 
   /**
-   * return true if at least one parameter's key matches the given key
-   */
-  def contains(key: String): Boolean = parameters.exists{case (k,v) => k == key}
+    * return true if at least one parameter's key matches the given key
+    */
+  def contains(key: String): Boolean = parameters.exists { case (k, v) => k == key }
 
 }
 
@@ -470,10 +479,10 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
 
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
-  private var lastDate = generate(start)
-  private var lastTime = start
+  private var lastDate             = generate(start)
+  private var lastTime             = start
 
-  def key = lastDate.key
+  def key   = lastDate.key
   def value = lastDate.value
 
   private def check(time: Long) {
@@ -500,4 +509,3 @@ object DateHeader {
   val DATE_FORMAT = "EEE, MMM d yyyy HH:mm:ss z"
 
 }
-

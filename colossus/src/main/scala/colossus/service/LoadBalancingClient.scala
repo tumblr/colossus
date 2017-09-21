@@ -1,25 +1,24 @@
-package colossus
-package service
+package colossus.service
 
 import akka.actor.ActorRef
-import core.{WorkerItem, WorkerRef}
-import scala.reflect.ClassTag
 
+import scala.reflect.ClassTag
 import java.net.InetSocketAddress
+import colossus.core.{WorkerItem, WorkerRef}
 
 /**
- * The PermutationGenerator creates permutations such that consecutive calls
- * are guaranteed to cycle though all items as the first element.
- *
- * This currently doesn't iterate through every possible permutation, but it
- * does evenly distribute 1st and 2nd tries...needs some more work
- */
-class PermutationGenerator[T : ClassTag](val seedlist: Seq[T]) extends Iterator[List[T]] {
-  private val items:Array[T] = seedlist.toArray
+  * The PermutationGenerator creates permutations such that consecutive calls
+  * are guaranteed to cycle though all items as the first element.
+  *
+  * This currently doesn't iterate through every possible permutation, but it
+  * does evenly distribute 1st and 2nd tries...needs some more work
+  */
+class PermutationGenerator[T: ClassTag](val seedlist: Seq[T]) extends Iterator[List[T]] {
+  private val items: Array[T] = seedlist.toArray
 
   private var swapIndex = 1
 
-  private val cycleSize = seedlist.size * (seedlist.size - 1)
+  private val cycleSize  = seedlist.size * (seedlist.size - 1)
   private var cycleCount = 0
 
   def hasNext = true
@@ -57,37 +56,37 @@ class PermutationGenerator[T : ClassTag](val seedlist: Seq[T]) extends Iterator[
 }
 
 class LoadBalancingClientException(message: String) extends Exception(message)
-class SendFailedException(tries: Int, finalCause: Throwable) extends Exception(
-  s"Failed after ${tries} tries, error on last try: ${finalCause.getMessage}",
-  finalCause
-)
-
-
+class SendFailedException(tries: Int, finalCause: Throwable)
+    extends Exception(
+      s"Failed after ${tries} tries, error on last try: ${finalCause.getMessage}",
+      finalCause
+    )
 
 /**
- * The LoadBalancingClient will evenly distribute requests across a set of
- * clients.  If one client begins failing, the balancer will retry up to
- * numRetries times across the other clients (with each failover hitting
- * different clients to avoid a cascading pileup
- *
- * Note that the balancer will never try the same client twice for a request,
- * so setting maxTries to a very large number will mean that every client will
- * be tried once
- *
- * TODO: does this need to actually be a WorkerItem anymore?
- */
-class LoadBalancingClient[P <: Protocol] (
-  worker: WorkerRef,
-  generator: InetSocketAddress => Sender[P, Callback],
-  maxTries: Int = Int.MaxValue,
-  initialClients: Seq[InetSocketAddress] = Nil
-) extends WorkerItem with Sender[P, Callback]  {
+  * The LoadBalancingClient will evenly distribute requests across a set of
+  * clients.  If one client begins failing, the balancer will retry up to
+  * numRetries times across the other clients (with each failover hitting
+  * different clients to avoid a cascading pileup
+  *
+  * Note that the balancer will never try the same client twice for a request,
+  * so setting maxTries to a very large number will mean that every client will
+  * be tried once
+  *
+  * TODO: does this need to actually be a WorkerItem anymore?
+  */
+class LoadBalancingClient[P <: Protocol](
+    worker: WorkerRef,
+    generator: InetSocketAddress => Sender[P, Callback],
+    maxTries: Int = Int.MaxValue,
+    initialClients: Seq[InetSocketAddress] = Nil
+) extends WorkerItem
+    with Sender[P, Callback] {
 
   def this(
-    addresses: Seq[InetSocketAddress],
-    baseConfig: ClientConfig,
-    factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef], 
-    maxTries: Int
+      addresses: Seq[InetSocketAddress],
+      baseConfig: ClientConfig,
+      factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef],
+      maxTries: Int
   )(implicit worker: WorkerRef) = {
     this(worker, address => factory(baseConfig.copy(address = address)), maxTries, addresses)
   }
@@ -100,12 +99,12 @@ class LoadBalancingClient[P <: Protocol] (
 
   private val clients = collection.mutable.ArrayBuffer[Client]()
 
-  private var permutations = new PermutationGenerator(clients.map{_.client})
+  private var permutations = new PermutationGenerator(clients.map { _.client })
 
   update(initialClients, true)
 
   private def regeneratePermutations() {
-    permutations = new PermutationGenerator(clients.map{_.client})
+    permutations = new PermutationGenerator(clients.map { _.client })
   }
 
   private def addClient(address: InetSocketAddress, regen: Boolean): Unit = {
@@ -127,42 +126,43 @@ class LoadBalancingClient[P <: Protocol] (
       }
     }
   }
-  
+
   def removeClient(address: InetSocketAddress) {
-    removeFilter{c =>
+    removeFilter { c =>
       c.address == address
     }
     regeneratePermutations()
   }
 
   /**
-   * Updates the client list, creating connections for new addresses not in the
-   * existing list and closing connections not in the new list
-   */
+    * Updates the client list, creating connections for new addresses not in the
+    * existing list and closing connections not in the new list
+    */
   def update(addresses: Seq[InetSocketAddress], allowDuplicates: Boolean = false) {
     removeFilter(c => !addresses.contains(c.address))
-    addresses.foreach{address =>
-      if (! clients.exists{_.address == address} || allowDuplicates) {
-        addClient(address,false)
+    addresses.foreach { address =>
+      if (!clients.exists { _.address == address } || allowDuplicates) {
+        addClient(address, false)
       }
     }
     regeneratePermutations()
   }
 
   def disconnect() {
-    clients.foreach{_.client.disconnect()}
+    clients.foreach { _.client.disconnect() }
     clients.clear()
   }
 
-
   def send(request: P#Request): Callback[P#Response] = {
-    val retryList =  permutations.next().take(maxTries)
-    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Response] = next.send(request).recoverWith{
-      case err => list match {
-        case head :: tail => go(head, tail)
-        case Nil => Callback.failed(new SendFailedException(retryList.size, err))
+    val retryList = permutations.next().take(maxTries)
+    def go(next: Sender[P, Callback], list: List[Sender[P, Callback]]): Callback[P#Response] =
+      next.send(request).recoverWith {
+        case err =>
+          list match {
+            case head :: tail => go(head, tail)
+            case Nil          => Callback.failed(new SendFailedException(retryList.size, err))
+          }
       }
-    }
     if (retryList.isEmpty) {
       Callback.failed(new SendFailedException(retryList.size, new Exception("Empty client list!")))
     } else {
@@ -170,8 +170,6 @@ class LoadBalancingClient[P <: Protocol] (
     }
   }
 
-  override def receivedMessage(message: Any, sender: ActorRef) {
-  }
+  override def receivedMessage(message: Any, sender: ActorRef) {}
 
 }
-

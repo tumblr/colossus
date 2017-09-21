@@ -1,25 +1,22 @@
-package colossus
-package protocols.http
-package streaming
+package colossus.protocols.http.streaming
 
+import colossus.controller.{ControllerDownstream, Encoding, FatalErrorAction}
+import colossus.protocols.http.{HttpMessageHead, HttpRequestHead, HttpResponseHead}
+import colossus.service.Protocol
 import colossus.streaming._
-
-import controller._
-import service.Protocol
-import service._
 
 import scala.language.higherKinds
 
 object GenEncoding {
 
   type StreamHeader = Protocol {
-    type Request = HttpRequestHead
+    type Request  = HttpRequestHead
     type Response = HttpResponseHead
   }
 
   type HeadEncoding = Encoding {
     type Input <: HttpMessageHead
-    type  Output <: HttpMessageHead
+    type Output <: HttpMessageHead
   }
 
   //the difference between GenEncoding and ExEncoding is that Gen simply
@@ -36,17 +33,17 @@ object GenEncoding {
   }
 
   type ExEncoding[M[T <: HttpMessageHead], E <: HeadEncoding] = Encoding {
-    type Input = M[E#Input]
+    type Input  = M[E#Input]
     type Output = M[E#Output]
   }
 
   type InputMessageBuilder[H <: HttpMessageHead, T <: StreamingHttpMessage[H]] = (H, Source[Data]) => T
 
-  implicit def ms[T <: HttpMessageHead]: MultiStream[Unit, HttpStream[T]] = new MultiStream[Unit,HttpStream[T]] {
+  implicit def ms[T <: HttpMessageHead]: MultiStream[Unit, HttpStream[T]] = new MultiStream[Unit, HttpStream[T]] {
     def component(c: HttpStream[T]) = c match {
-      case Head(_) => StreamComponent.Head
-      case Data(_,_) => StreamComponent.Body
-      case End   => StreamComponent.Tail
+      case Head(_)    => StreamComponent.Head
+      case Data(_, _) => StreamComponent.Body
+      case End        => StreamComponent.Tail
     }
 
     def streamId(c: HttpStream[T]) = ()
@@ -56,63 +53,65 @@ object GenEncoding {
 
 import GenEncoding._
 
-
 /**
- * This converts a raw http stream into a stream of http messages.  The type
- * parameters allow us to use this both for server streams and client streams
- */
+  * This converts a raw http stream into a stream of http messages.  The type
+  * parameters allow us to use this both for server streams and client streams
+  */
 abstract class HttpTranscoder[
-  E <: HeadEncoding, 
-  A <: ExEncoding[HttpStream, E], 
-  B <: GenEncoding[StreamingHttpMessage, E]
+    E <: HeadEncoding,
+    A <: ExEncoding[HttpStream, E],
+    B <: GenEncoding[StreamingHttpMessage, E]
 ] extends Transcoder[A, B] {
 
   // this has to be a member and not a constructor parameter because this only
   // compiles when using the type aliases, probably a compiler bug
   val builder: (E#Input, Source[Data]) => DI
 
-  def transcodeInput(source: Source[UI]): Source[DI] = Multiplexing.demultiplex(source).map{ case SubSource(id, stream) =>
-    val head = stream.pull match {
-      case PullResult.Item(Head(head)) => head
-      case other => throw new Exception("not a head")
-    }
-    val mapped : Source[Data] = stream.filterMap{
-      case d @ Data(_,_) => Some(d)
-      case other => None
-    }
-    builder(head, mapped)
+  def transcodeInput(source: Source[UI]): Source[DI] = Multiplexing.demultiplex(source).map {
+    case SubSource(id, stream) =>
+      val head = stream.pull match {
+        case PullResult.Item(Head(head)) => head
+        case other                       => throw new Exception("not a head")
+      }
+      val mapped: Source[Data] = stream.filterMap {
+        case d @ Data(_, _) => Some(d)
+        case other          => None
+      }
+      builder(head, mapped)
   }
-  def transcodeOutput(source: Source[DO]): Source[UO] = Source.flatten(source.map{_.collapse})
+  def transcodeOutput(source: Source[DO]): Source[UO] = Source.flatten(source.map { _.collapse })
 }
 
-class HttpServerTranscoder extends HttpTranscoder[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]]{ 
-  val builder = StreamingHttpRequest.apply _ 
+class HttpServerTranscoder
+    extends HttpTranscoder[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]] {
+  val builder = StreamingHttpRequest.apply _
 }
 
-class HttpClientTranscoder extends HttpTranscoder[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]]{
-  val builder = StreamingHttpResponse.apply _ : (HttpResponseHead, Source[Data]) => DI
+class HttpClientTranscoder
+    extends HttpTranscoder[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]] {
+  val builder = StreamingHttpResponse.apply _: (HttpResponseHead, Source[Data]) => DI
 }
-
 
 abstract class HttpStreamController[
-  E <: HeadEncoding, 
-  A <: ExEncoding[HttpStream, E], 
-  B <: GenEncoding[StreamingHttpMessage, E]
-](ds: ControllerDownstream[B], transcoder: HttpTranscoder[E,A,B]) extends StreamTranscodingController[A, B](ds, transcoder)
-
+    E <: HeadEncoding,
+    A <: ExEncoding[HttpStream, E],
+    B <: GenEncoding[StreamingHttpMessage, E]
+](ds: ControllerDownstream[B], transcoder: HttpTranscoder[E, A, B])
+    extends StreamTranscodingController[A, B](ds, transcoder)
 
 class HttpStreamServerController(ds: ControllerDownstream[Encoding.Server[StreamingHttp]])
-extends HttpStreamController[Encoding.Server[StreamHeader], Encoding.Server[StreamHttp], Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder) {
+    extends HttpStreamController[Encoding.Server[StreamHeader],
+                                 Encoding.Server[StreamHttp],
+                                 Encoding.Server[StreamingHttp]](ds, new HttpServerTranscoder) {
 
   def onFatalError(reason: Throwable) = FatalErrorAction.Disconnect(None)
 }
 
 class HttpStreamClientController(ds: ControllerDownstream[Encoding.Client[StreamingHttp]])
-extends HttpStreamController[Encoding.Client[StreamHeader], Encoding.Client[StreamHttp], Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder) {
-  
+    extends HttpStreamController[Encoding.Client[StreamHeader],
+                                 Encoding.Client[StreamHttp],
+                                 Encoding.Client[StreamingHttp]](ds, new HttpClientTranscoder) {
+
   def onFatalError(reason: Throwable) = FatalErrorAction.Terminate
 
 }
-
-
-

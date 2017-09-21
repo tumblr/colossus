@@ -8,6 +8,7 @@
 * [Testing Servers](testkit.md)
 * [Metrics](metrics.md)
 * [Tasks](tasks.md)
+* [Streaming](streaming.md)
 * [About](about.md)
 
 @@@

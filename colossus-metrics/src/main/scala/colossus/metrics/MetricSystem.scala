@@ -8,40 +8,40 @@ import com.typesafe.config.{Config, ConfigFactory}
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
-class CollectionInterval private[metrics](
-  name: String,
-  interval: FiniteDuration,
-  private[colossus] val intervalAggregator: ActorRef,
-  snapshot: AtomicReference[MetricMap]
-){
+class CollectionInterval private[metrics] (
+    name: String,
+    interval: FiniteDuration,
+    private[colossus] val intervalAggregator: ActorRef,
+    snapshot: AtomicReference[MetricMap]
+) {
 
   /**
-   * The latest metrics snapshot
+    * The latest metrics snapshot
     *
     * @return
-   */
+    */
   def last: MetricMap = snapshot.get()
 
   /**
-   * Attach a reporter to this MetricPeriod.
+    * Attach a reporter to this MetricPeriod.
     *
     * @param config  The [[MetricReporterConfig]] used to configure the [[MetricReporter]]
-   * @return
-   */
-  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef = MetricReporter(config, intervalAggregator, name)
+    * @return
+    */
+  def report(config: MetricReporterConfig)(implicit fact: ActorRefFactory): ActorRef =
+    MetricReporter(config, intervalAggregator, name)
 }
 
-
 /**
- * A MetricNamespace is essentially just an address prefix and set of tags. It is needed when
- * getting or creating collectors. The `namespace` address is prefixed onto the
- * given address for the collector to create the full address. Tags are added to each collector under under this
- * context.
- *
- * {{{
- * val subnameSpace: MetricContext = namespace / "foo" * ("a" -> "b")
- * }}}
- */
+  * A MetricNamespace is essentially just an address prefix and set of tags. It is needed when
+  * getting or creating collectors. The `namespace` address is prefixed onto the
+  * given address for the collector to create the full address. Tags are added to each collector under under this
+  * context.
+  *
+  * {{{
+  * val subnameSpace: MetricContext = namespace / "foo" * ("a" -> "b")
+  * }}}
+  */
 trait MetricNamespace {
 
   /**
@@ -65,7 +65,7 @@ trait MetricNamespace {
     */
   def *(tags: (String, String)*): MetricContext = MetricContext(namespace, collection, this.tags ++ tags)
 
-  def withTags(tags: (String, String)*): MetricContext = *(tags:_*)
+  def withTags(tags: (String, String)*): MetricContext = *(tags: _*)
 
   /**
     * Retrieve a [[Collector]] of a specific type by address, creating a new one if
@@ -73,41 +73,39 @@ trait MetricNamespace {
     * exists, a `DuplicateMetricException` will be thrown.
     * @param address Address meant to be relative to this MetricNamespace's namespace
     * @param f Function which takes in an absolutely pathed MetricAddress, and a [[CollectorConfig]] and returns an instance of a [[Collector]]
-    * @tparam T
+    * @tparam T The Collector to be retrieved.
     * @return  A newly created instance of [[Collector]], created by `f` or an existing [[Collector]] if one already exists with the same MetricAddress
     */
-  def getOrAdd[T <: Collector : ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
-    val fullAddress =  namespace / address
+  def getOrAdd[T <: Collector: ClassTag](address: MetricAddress)(f: (MetricAddress, CollectorConfig) => T): T = {
+    val fullAddress = namespace / address
     collection.getOrAdd(fullAddress, tags)(f)
   }
 
   /**
-   * Get a new namespace by appending `subpath` to the namespace
-   */
+    * Get a new namespace by appending `subpath` to the namespace
+    */
   def /(subpath: MetricAddress): MetricContext = MetricContext(namespace / subpath, collection, tags)
 
 }
 
-case class MetricContext(namespace: MetricAddress, collection: Collection, tags: TagMap = TagMap.Empty) extends MetricNamespace
+case class MetricContext(namespace: MetricAddress, collection: Collection, tags: TagMap = TagMap.Empty)
+    extends MetricNamespace
 
 case class SystemMetricsConfig(enabled: Boolean, namespace: MetricAddress)
 
-
 /**
- * Configuration object for a [[MetricSystem]]
- *
- * @param enabled true to enable all functionality.  Setting to false will effectively create a dummy system that does nothing
- * @param name The name of the metric system.  Name is not used in the root path of a metric system.
- * @param collectionIntervals The intervals that the system should use to periodicaly collect metrics.  Multiple intervals can be specified to allow the collection of, for example, both per second and per minute metrics.
- * @param collectSystemMetrics whether to collect system metrics like GC usage
- * @param systemMetricsNamespace an optional namespace for system metrics, defaults to "/name" where name is the name of the metric system
- * @param collectorConfigs a typesafe config object containing configurations for individual collectors
- */
+  * Configuration object for a [[MetricSystem]]
+  *
+  * @param enabled true to enable all functionality.  Setting to false will effectively create a dummy system that does nothing
+  * @param name The name of the metric system.  Name is not used in the root path of a metric system.
+  * @param systemMetrics a namespace config for system metrics, defaults to "/name" where name is the name of the metric system
+  * @param collectorConfig a typesafe config object containing configurations for individual collectors
+  */
 case class MetricSystemConfig(
-  enabled: Boolean,
-  name: String,
-  systemMetrics: SystemMetricsConfig,
-  collectorConfig: CollectorConfig
+    enabled: Boolean,
+    name: String,
+    systemMetrics: SystemMetricsConfig,
+    collectorConfig: CollectorConfig
 )
 
 object MetricSystemConfig {
@@ -115,44 +113,51 @@ object MetricSystemConfig {
   val ConfigRoot = "colossus.metrics"
 
   /**
-   * Load a MetricSystemConfig from a typesafe config object.  When providing a
-   * config object, the format should be that of the `colossus.metrics` section
-   * in the reference.conf.  For example, if creating a metric system named
-   * "foo" that will create a rate named "bar", the config should look like:
-   *
-   * ```
+    * Load a MetricSystemConfig from a typesafe config object.  When providing a
+    * config object, the format should be that of the `colossus.metrics` section
+    * in the reference.conf.  For example, if creating a metric system named
+    * "foo" that will create a rate named "bar", the config should look like:
+    *
+    * ```
    foo {
      system.enabled = true
      //...
    }
    bar.pruneEmpty = true
    ```
-   */
+    */
   def load(name: String, config: Config = ConfigFactory.load().getConfig(ConfigRoot)): MetricSystemConfig = {
     val systemConfig = if (config.hasPath(name)) config.getConfig(name).withFallback(config) else config
     import ConfigHelpers._
-    val enabled               = systemConfig.getBoolean("system.enabled")
-    val collectSystemMetrics  = systemConfig.getBoolean("system.system-metrics.enabled")
-    val metricIntervals       = systemConfig.getFiniteDurations("system.collection-intervals")
+    val enabled              = systemConfig.getBoolean("system.enabled")
+    val collectSystemMetrics = systemConfig.getBoolean("system.system-metrics.enabled")
+    val metricIntervals      = systemConfig.getFiniteDurations("system.collection-intervals")
     val systemMetricsNamespace = {
-      systemConfig.getStringOption("system.system-metrics.namespace").map{n =>
-        if (n == "__NAME__") name else n
-      }.getOrElse("/")
+      systemConfig
+        .getStringOption("system.system-metrics.namespace")
+        .map { n =>
+          if (n == "__NAME__") name else n
+        }
+        .getOrElse("/")
     }
     val collectorConfig = CollectorConfig(metricIntervals, config, systemConfig.getConfig("system.collector-defaults"))
-    MetricSystemConfig(enabled, name, SystemMetricsConfig(collectSystemMetrics, systemMetricsNamespace) , collectorConfig)
+    MetricSystemConfig(enabled,
+                       name,
+                       SystemMetricsConfig(collectSystemMetrics, systemMetricsNamespace),
+                       collectorConfig)
   }
 
 }
 
 /**
- * The MetricSystem provides the environment for creating metrics and is required to create collectors.
- */
-class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit system: ActorSystem) extends MetricNamespace {
+  * The MetricSystem provides the environment for creating metrics and is required to create collectors.
+  */
+class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit system: ActorSystem)
+    extends MetricNamespace {
 
   val namespace: MetricAddress = "/"
 
-  private lazy val localHostname = try  {
+  private lazy val localHostname = try {
     java.net.InetAddress.getLocalHost.getHostName
   } catch {
     case e: java.net.UnknownHostException => "unknown_host"
@@ -162,16 +167,15 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
 
   protected val collection = new Collection(config.collectorConfig)
 
-
   private val intervalNamespace = if (config.systemMetrics.enabled) {
     Some(this / config.systemMetrics.namespace)
   } else {
     None
   }
   val collectionIntervals: Map[FiniteDuration, CollectionInterval] = config.collectorConfig.intervals.map { interval =>
-    val snap = new AtomicReference(Map.empty[MetricAddress, ValueMap])
-    val aggregator : ActorRef = system.actorOf(Props(classOf[IntervalAggregator], interval, snap, intervalNamespace))
-    val i = new CollectionInterval(config.name, interval, aggregator, snap)
+    val snap                 = new AtomicReference(Map.empty[MetricAddress, ValueMap])
+    val aggregator: ActorRef = system.actorOf(Props(classOf[IntervalAggregator], interval, snap, intervalNamespace))
+    val i                    = new CollectionInterval(config.name, interval, aggregator, snap)
     interval -> i
   }.toMap
 
@@ -185,13 +189,12 @@ class MetricSystem private[metrics] (val config: MetricSystemConfig)(implicit sy
   */
 object MetricSystem {
 
-
   /**
-   * Create a new MetricSystem with the given configuration.  Be aware that if
-   * creating multiple metric systems, `name` must be unique.
-   *
-   */
-  def apply(config : MetricSystemConfig)(implicit system: ActorSystem): MetricSystem = {
+    * Create a new MetricSystem with the given configuration.  Be aware that if
+    * creating multiple metric systems, `name` must be unique.
+    *
+    */
+  def apply(config: MetricSystemConfig)(implicit system: ActorSystem): MetricSystem = {
     if (config.enabled) {
       new MetricSystem(config)
     } else {
@@ -200,15 +203,15 @@ object MetricSystem {
   }
 
   /**
-   * Create a new MetricSystem with configuration automatically loaded from
-   * location `colossus.metrics.<name>`
-   */
+    * Create a new MetricSystem with configuration automatically loaded from
+    * location `colossus.metrics.<name>`
+    */
   def apply(name: String)(implicit system: ActorSystem): MetricSystem = MetricSystem(MetricSystemConfig.load(name))
 
   /**
     * Create a system which does nothing.  Useful for testing/debugging.
     *
-    * @param system
+    * @param system The useless, dead, worthless, should-never-have-been-born system.
     * @return
     */
   def deadSystem(implicit system: ActorSystem) = {
@@ -226,11 +229,3 @@ object MetricSystem {
   }
 
 }
-
-
-
-
-
-
-
-

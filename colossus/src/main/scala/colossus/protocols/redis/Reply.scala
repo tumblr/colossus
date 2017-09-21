@@ -1,7 +1,6 @@
-package colossus
-package protocols.redis
+package colossus.protocols.redis
 
-import core.DataBuffer
+import colossus.core.DataBuffer
 
 import akka.util.{ByteString, ByteStringBuilder}
 
@@ -25,14 +24,13 @@ sealed abstract class MessageReply(message: String) extends Reply {
   }
 }
 
-
 case class StatusReply(message: String) extends MessageReply(message) {
-  def prefix = STATUS_REPLY
+  def prefix            = STATUS_REPLY
   override def toString = "StatusReply(" + message + ")"
 }
 
-case class ErrorReply(message: String)  extends MessageReply(message) {
-  def prefix = ERROR_REPLY
+case class ErrorReply(message: String) extends MessageReply(message) {
+  def prefix            = ERROR_REPLY
   override def toString = "ErrorReply(" + message + ")"
 }
 
@@ -53,7 +51,9 @@ case class MBulkReply(replies: Seq[Reply]) extends Reply {
     b append MBULK_REPLY
     b append ByteString(replies.size.toString)
     b append RN
-    replies.foreach{reply => b append ByteString(reply.raw.takeAll)} //TODO no raw data access!
+    replies.foreach { reply =>
+      b append ByteString(reply.raw.takeAll)
+    } //TODO no raw data access!
     DataBuffer(b.result)
   }
 }

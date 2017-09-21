@@ -1,5 +1,4 @@
-package colossus
-package core
+package colossus.core
 
 import akka.actor._
 import akka.pattern.ask
@@ -7,29 +6,33 @@ import akka.routing.RoundRobinGroup
 import akka.util.Timeout
 import java.net.InetSocketAddress
 
+import colossus.metrics.logging.ColossusLogging
+import colossus.{IOCommand, IOSystem}
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.collection.immutable.Iterable
 import scala.util.{Failure, Success}
 
-
-
 /**
- * A WorkerManager is just that, an Actor who is responsible for managing all of the Worker Actors in an IOSystem.
- * It is responsible for creating, killing, restarting, relaying messages, etc.
- *
- * @param workerAgent WorkerRefs that this WorkerManager manages
- * @param ioSystem Containing IOSystem
- */
-private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent, ioSystem: IOSystem, workerFactory: WorkerFactory)
-extends Actor with ActorLogging with Stash {
+  * A WorkerManager is just that, an Actor who is responsible for managing all of the Worker Actors in an IOSystem.
+  * It is responsible for creating, killing, restarting, relaying messages, etc.
+  *
+  * @param workerAgent WorkerRefs that this WorkerManager manages
+  * @param ioSystem Containing IOSystem
+  */
+private[colossus] class WorkerManager(workerAgent: IOSystem.WorkerAgent,
+                                      ioSystem: IOSystem,
+                                      workerFactory: WorkerFactory)
+    extends Actor
+    with ColossusLogging
+    with Stash {
   import WorkerManager._
   import akka.actor.OneForOneStrategy
   import akka.actor.SupervisorStrategy._
   import context.dispatcher
 
   import ioSystem.numWorkers
-
 
   /*
    * This strategy is chosen specifically for durability.  We don't want to kill the entire system if workers start
@@ -41,16 +44,19 @@ extends Actor with ActorLogging with Stash {
     }
   }
 
-  val workers = (1 to numWorkers).map{i => workerFactory.createWorker(i, ioSystem, context)}
+  val workers = (1 to numWorkers).map { i =>
+    workerFactory.createWorker(i, ioSystem, context)
+  }
 
-  val workerRouter = context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString) : _*))))
+  val workerRouter =
+    context.actorOf(Props.empty.withRouter(RoundRobinGroup(Iterable(workers.map(_.path.toString): _*))))
   var registeredServers = collection.mutable.ArrayBuffer[ServerRef]()
 
   //this is used when the manager receives a Connect request to round-robin across workers
   var nextConnectIndex = 0
 
   var latestSummary: Seq[ConnectionSnapshot] = Nil
-  var latestSummaryTime = 0L
+  var latestSummaryTime                      = 0L
 
   var outstandingWorkerIdleAcks = 0
 
@@ -63,7 +69,7 @@ extends Actor with ActorLogging with Stash {
     case WorkerReady(worker) => {
       val nowReady = ready :+ worker
       if (nowReady.size == numWorkers) {
-        log.info("All Workers reports ready, lets do this")
+        info("All Workers reports ready, lets do this")
         workerAgent.set(nowReady)
         context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
         unstashAll()
@@ -90,11 +96,11 @@ extends Actor with ActorLogging with Stash {
       }
       case IdleCheck => {
         outstandingWorkerIdleAcks = workers.size
-        workers.foreach{_ ! Worker.CheckIdleConnections}
+        workers.foreach { _ ! Worker.CheckIdleConnections }
       }
       case IdleCheckExecuted => {
         outstandingWorkerIdleAcks -= 1
-        if(outstandingWorkerIdleAcks == 0){
+        if (outstandingWorkerIdleAcks == 0) {
           context.system.scheduler.scheduleOnce(IdleCheckFrequency, self, IdleCheck)
         }
       }
@@ -102,17 +108,21 @@ extends Actor with ActorLogging with Stash {
       case GatherConnectionInfo(rOpt) => {
         implicit val timeout = Timeout(50.milliseconds)
         Future
-          .traverse(workers){worker => (worker ? Worker.ConnectionSummaryRequest).mapTo[Worker.ConnectionSummary]}
-          .map{seqs =>
-            val summary = Worker.ConnectionSummary(seqs.flatMap{_.infos})
+          .traverse(workers) { worker =>
+            (worker ? Worker.ConnectionSummaryRequest).mapTo[Worker.ConnectionSummary]
+          }
+          .map { seqs =>
+            val summary = Worker.ConnectionSummary(seqs.flatMap { _.infos })
             self ! summary
-            rOpt.foreach{requester => requester ! summary}
+            rOpt.foreach { requester =>
+              requester ! summary
+            }
           }
       }
       case Worker.ConnectionSummary(sum) => {
         latestSummary = sum
         latestSummaryTime = System.currentTimeMillis
-        log.debug(s"Got connection summary, size ${sum.size}")
+        debug(s"Got connection summary, size ${sum.size}")
       }
       case GetConnectionSummary => {
         val r = sender()
@@ -124,13 +134,13 @@ extends Actor with ActorLogging with Stash {
       }
       case Shutdown => self ! PoisonPill
       case Apocalypse => {
-        log.info("SHUT DOWN EVERYTHING")
-        context.system.shutdown()
+        info("SHUT DOWN EVERYTHING")
+        context.system.terminate()
       }
       case c: IOCommand => nextWorker ! c
       case WorkerReady(worker) => {
-        log.warning("Received Ready Notification from new/restarted worker")
-        registeredServers.foreach{sender ! _}
+        warn("Received Ready Notification from new/restarted worker")
+        registeredServers.foreach { sender ! _ }
       }
     }
 
@@ -149,33 +159,35 @@ extends Actor with ActorLogging with Stash {
       context.watch(server.server)
       server.server ! WorkersReady(workerRouter)
     }
-    case UnregisterServer(server) => registeredServers.find(_ == server) match {
-      case Some(found) => unregisterServer(found)
-      case None => log.warning(s"Attempted to Unregister unknown server ${server.name}")
-    }
+    case UnregisterServer(server) =>
+      registeredServers.find(_ == server) match {
+        case Some(found) => unregisterServer(found)
+        case None        => warn(s"Attempted to Unregister unknown server ${server.name}")
+      }
 
     //should be only triggered when a Server actor terminates
-    case Terminated(ref) => registeredServers.find(_.server == ref) match {
-      case Some(found)  => unregisterServer(found)
-      case None         => log.warning(s"received terminated signal for unregistered server $ref")
-    }
+    case Terminated(ref) =>
+      registeredServers.find(_.server == ref) match {
+        case Some(found) => unregisterServer(found)
+        case None        => warn(s"received terminated signal for unregistered server $ref")
+      }
 
     case ListRegisteredServers => {
       sender ! RegisteredServers(registeredServers)
     }
 
-    case s:  ServerShutdownRequest => workers.foreach{_ ! s}
+    case s: ServerShutdownRequest => workers.foreach { _ ! s }
   }
 
-  private def registerServer(server: ServerRef, retry: Option[RetryIncident]){
-    log.debug(s"attempting to register ${server.name}")
+  private def registerServer(server: ServerRef, retry: Option[RetryIncident]) {
+    debug(s"attempting to register ${server.name}")
     implicit val timeout = Timeout(server.config.settings.delegatorCreationPolicy.waitTime)
-    val s = Future.traverse(workers){ _ ? RegisterServer(server) }
+    val s                = Future.traverse(workers) { _ ? RegisterServer(server) }
     s.onComplete {
       case Success(x) if !x.contains(RegistrationFailed) => {
         self ! RegistrationSucceeded(server)
       }
-      case Failure(err)  => {
+      case Failure(err) => {
         retryRegister(err.getMessage)
       }
       case _ => {
@@ -184,19 +196,19 @@ extends Actor with ActorLogging with Stash {
       }
     }
     def retryRegister(message: String) = {
-      val incident = retry.getOrElse(server.config.settings.delegatorCreationPolicy.retryPolicy.start())
+      val incident    = retry.getOrElse(server.config.settings.delegatorCreationPolicy.retryPolicy.start())
       val fullMessage = s"Failed to register server ${server.name} after ${incident.attempts} attempts:"
       incident.nextAttempt() match {
         case RetryAttempt.Stop => {
-          log.error(s"$fullMessage, aborting")
+          error(s"$fullMessage, aborting")
           server.server ! RegistrationFailed
         }
         case RetryAttempt.RetryNow => {
-          log.error(s"$fullMessage, retrying now")
+          error(s"$fullMessage, retrying now")
           self ! AttemptRegisterServer(server, incident)
         }
         case RetryAttempt.RetryIn(time) => {
-          log.error(s"$fullMessage, retrying in $time")
+          error(s"$fullMessage, retrying in $time")
           context.system.scheduler.scheduleOnce(time, self, AttemptRegisterServer(server, incident))
         }
       }
@@ -204,15 +216,15 @@ extends Actor with ActorLogging with Stash {
   }
 
   private def unregisterServer(server: ServerRef) {
-    log.info(s"unregistering server: ${server.name}")
+    info(s"unregistering server: ${server.name}")
     registeredServers -= server
-    workers.foreach{worker =>
+    workers.foreach { worker =>
       worker ! UnregisterServer(server)
     }
   }
 
   override def postStop() {
-    workers.foreach{_ ! PoisonPill}
+    workers.foreach { _ ! PoisonPill }
   }
 }
 
@@ -220,13 +232,14 @@ private[colossus] trait WorkerFactory {
   def createWorker(id: Int, ioSystem: IOSystem, context: ActorContext): ActorRef
 }
 
-private[colossus] object DefaultWorkerFactory extends WorkerFactory{
+private[colossus] object DefaultWorkerFactory extends WorkerFactory {
   override def createWorker(id: Int, ioSystem: IOSystem, context: ActorContext): ActorRef = {
     val workerConfig = WorkerConfig(
       workerId = id,
       io = ioSystem
     )
-    val worker = context.actorOf(Props(classOf[Worker],workerConfig ).withDispatcher("server-dispatcher"), name = s"worker-$id")
+    val worker =
+      context.actorOf(Props(classOf[Worker], workerConfig).withDispatcher("server-dispatcher"), name = s"worker-$id")
     context.watch(worker)
     worker
   }
@@ -247,14 +260,14 @@ private[colossus] object WorkerManager {
   private[colossus] case object RegistrationFailed
 
   /**
-   * The manager sends this to itself to retry registering a server
-   */
+    * The manager sends this to itself to retry registering a server
+    */
   private[colossus] case class AttemptRegisterServer(server: ServerRef, retry: RetryIncident)
 
   /**
-   * The manager sends this to itself when the registration for the given server
-   * (which happens asynchronously via futures) is complete
-   */
+    * The manager sends this to itself when the registration for the given server
+    * (which happens asynchronously via futures) is complete
+    */
   private[colossus] case class RegistrationSucceeded(server: ServerRef)
 
   //ping manager
@@ -268,7 +281,7 @@ private[colossus] object WorkerManager {
 
   case object ListRegisteredServers
 
-  case class RegisteredServers(servers : Seq[ServerRef])
+  case class RegisteredServers(servers: Seq[ServerRef])
 
   private[colossus] case class GatherConnectionInfo(requester: Option[ActorRef])
 

@@ -5,9 +5,10 @@ import java.net.InetSocketAddress
 import colossus.metrics.MetricAddress
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{MustMatchers, WordSpec}
+
 import scala.concurrent.duration._
 
-class ClientConfigLoadingSpec extends WordSpec with MustMatchers{
+class ClientConfigLoadingSpec extends WordSpec with MustMatchers {
 
   "ClientConfig loading" must {
 
@@ -21,10 +22,13 @@ class ClientConfigLoadingSpec extends WordSpec with MustMatchers{
           |}
         """.stripMargin
 
-      val c = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
+      val c            = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
       val clientConfig = ClientConfig.load("my-client", c)
 
-      val expected = ClientConfig(new InetSocketAddress("127.0.0.1", 6379), requestTimeout = 1.second, name = MetricAddress("redis"), pendingBufferSize = 500)
+      val expected = ClientConfig(new InetSocketAddress("127.0.0.1", 6379),
+                                  requestTimeout = 1.second,
+                                  name = MetricAddress("redis"),
+                                  pendingBufferSize = 500)
 
       clientConfig mustBe expected
     }

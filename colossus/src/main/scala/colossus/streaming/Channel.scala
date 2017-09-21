@@ -1,15 +1,14 @@
 package colossus.streaming
 
-
-class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
+class Channel[I, O](sink: Sink[I], source: Source[O]) extends Pipe[I, O] {
 
   def push(item: I): PushResult = sink.push(item)
 
-  def pull() = source.pull() 
-  def peek = source.peek
+  def pull() = source.pull()
+  def peek   = source.peek
 
   def outputState = source.outputState
-  def inputState = sink.inputState
+  def inputState  = sink.inputState
 
   def complete() = sink.complete()
 
@@ -20,7 +19,6 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
   override def pullUntilNull(fn: O => Boolean): Option[NullPullResult] = source.pullUntilNull(fn)
 
   def pushPeek = sink.pushPeek
-
 
   //TODO: This works fine when the termination is done on the channel, but what
   //happens if either the source or sink is independantly terminated?  Perhaps
@@ -34,8 +32,8 @@ class Channel[I,O](sink: Sink[I], source: Source[O]) extends Pipe[I,O] {
 
 object Channel {
 
-  def apply[I,O](bufferSize: Int = 10) : (Channel[I,O], Channel[O,I]) = {
-    val inpipe = new BufferedPipe[I](bufferSize)
+  def apply[I, O](bufferSize: Int = 10): (Channel[I, O], Channel[O, I]) = {
+    val inpipe  = new BufferedPipe[I](bufferSize)
     val outpipe = new BufferedPipe[O](bufferSize)
     (new Channel(inpipe, outpipe), new Channel(outpipe, inpipe))
   }

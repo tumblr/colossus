@@ -1,22 +1,22 @@
-package colossus
-package protocols.http
+package colossus.protocols.http
 
+import colossus.controller.Codec
+import colossus.core.{DataBuffer, DataOutBuffer}
+import colossus.parsing.DataSize
 
-import core._
-import controller.Codec
+class StaticHttpServerCodec(headers: HttpHeaders, maxRequestSize: DataSize) extends Codec.Server[Http] {
+  private var parser = HttpRequestParser(maxRequestSize)
 
-class StaticHttpServerCodec(headers: HttpHeaders) extends Codec.Server[Http] {
-  private var parser = HttpRequestParser()
-
-  def encode(response: HttpResponse, buffer: DataOutBuffer){ response.encode(buffer, headers) }
+  def encode(response: HttpResponse, buffer: DataOutBuffer): Unit = {
+    response.encode(buffer, headers)
+  }
 
   def decode(data: DataBuffer): Option[HttpRequest] = parser.parse(data)
 
-  def reset(){
-    parser = HttpRequestParser()
+  def reset(): Unit = {
+    parser = HttpRequestParser(maxRequestSize)
   }
 
   def endOfStream() = parser.endOfStream()
 
 }
-

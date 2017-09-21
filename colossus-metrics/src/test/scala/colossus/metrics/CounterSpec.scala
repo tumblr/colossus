@@ -1,5 +1,7 @@
 package colossus.metrics
 
+import colossus.metrics.collectors.{Counter, DefaultCounter}
+
 import scala.concurrent.duration._
 
 class CounterSpec extends MetricIntegrationSpec {
@@ -31,7 +33,7 @@ class CounterSpec extends MetricIntegrationSpec {
 
     "correctly handle tags" in {
       val c = counter
-      c.set(tags = Map("a" -> "a"), 123)
+      c.set(tags = Map("a"       -> "a"), 123)
       c.increment(tags = Map("a" -> "b"))
       c.increment(tags = Map("a" -> "b"))
       c.get(Map("a" -> "a")) must equal(123)
@@ -44,11 +46,10 @@ class CounterSpec extends MetricIntegrationSpec {
 
     "have correct address" in {
       implicit val ns = MetricContext("/foo", Collection.withReferenceConf(Seq(1.second))) / "bar"
-      val c = Counter("/baz")
+      val c           = Counter("/baz")
       c.address must equal(MetricAddress("/foo/bar/baz"))
 
     }
-
 
   }
 

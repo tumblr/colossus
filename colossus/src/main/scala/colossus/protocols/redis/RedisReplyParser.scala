@@ -1,16 +1,12 @@
-package colossus
-package protocols.redis
-
+package colossus.protocols.redis
 
 import akka.util.ByteString
 import colossus.parsing._
-
 
 object RedisReplyParser {
   import Combinators._
 
   def apply(): Parser[Reply] = reply
-
 
   def reply: Parser[Reply] = byte |> {
     case BULK_BYTE    => bulkReply
@@ -22,23 +18,34 @@ object RedisReplyParser {
 
   protected def bulkReply = intUntil('\r') <~ byte |> {
     case -1 => const(NilReply)
-    case n  => bytes(n.toInt) <~ bytes(2) >> {b => BulkReply(ByteString(b))}
+    case n =>
+      bytes(n.toInt) <~ bytes(2) >> { b =>
+        BulkReply(ByteString(b))
+      }
   }
 
-  protected def statusReply = stringReply >> {s => StatusReply(s)}
+  protected def statusReply = stringReply >> { s =>
+    StatusReply(s)
+  }
 
-  protected def errorReply = stringReply >> {s => ErrorReply(s)}
+  protected def errorReply = stringReply >> { s =>
+    ErrorReply(s)
+  }
 
-  protected def integerReply = intUntil('\r') <~ byte >> {i => IntegerReply(i)}
+  protected def integerReply = intUntil('\r') <~ byte >> { i =>
+    IntegerReply(i)
+  }
 
   protected def stringReply = stringUntil('\r', allowWhiteSpace = true) <~ byte
 
   protected def mBulkReply = intUntil('\r') <~ byte |> {
-    case 0 => const(EmptyMBulkReply)
+    case 0  => const(EmptyMBulkReply)
     case -1 => const(NilMBulkReply)
-    case n => repeat(n.toInt, reply) >> {replies => MBulkReply(replies)}
+    case n =>
+      repeat(n.toInt, reply) >> { replies =>
+        MBulkReply(replies)
+      }
   }
-
 
   val BULK_BYTE: Byte    = ByteString("$")(0)
   val ERROR_BYTE: Byte   = ByteString("-")(0)
@@ -51,5 +58,3 @@ object RedisReplyParser {
   val R_BYTE = ByteString("\r")(0)
   val N_BYTE = ByteString("\n")(0)
 }
-
-
