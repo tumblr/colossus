@@ -10,10 +10,11 @@ import akka.testkit.TestProbe
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.util.ByteString
+import akka.util.{ByteString, Timeout}
 import colossus._
 
 class ServerSpec extends ColossusSpec {
+  override implicit val timeout: Timeout = Timeout(1.second)
 
   def expectConnections(server: ServerRef, num: Int) {
     server.server ! Server.GetInfo

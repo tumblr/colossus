@@ -24,7 +24,7 @@ abstract class ColossusSpec(_system: ActorSystem)
   def this() = this(ActorSystem("Spec"))
 
   val TEST_PORT        = 19264
-  implicit val timeout = Timeout(1.second)
+  implicit val timeout = Timeout(500.milliseconds)
 
   implicit val mySystem = system
 

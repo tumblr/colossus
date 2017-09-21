@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import org.scalatest.time.Span._
 
 class WorkerManagerSpec extends ColossusSpec with Eventually {
-  override implicit def patienceConfig = super.patienceConfig.copy(timeout = timeout.duration)
+  override implicit def patienceConfig = super.patienceConfig.copy(timeout = 1.second)
 
   "WorkerManager" must {
 
