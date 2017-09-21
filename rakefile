@@ -61,24 +61,14 @@ namespace :site do
 
       system "git checkout tags/v#{tag}"
 
-      system "sbt \";clean; doc; project colossus-docs; paradox\""
+      system "sbt \";clean; project colossus-docs; paradox\""
 
       version_dir = "#{tmp_dir}/#{tag}"
-      colossus_api_dir = "#{version_dir}/colossus-api"
-      colossus_metrics_api_dir = "#{version_dir}/colossus-metrics-api"
-      colossus_testkit_api_dir = "#{version_dir}/colossus-testkit-api"
       Dir.mkdir version_dir
-      Dir.mkdir colossus_api_dir
-      Dir.mkdir colossus_metrics_api_dir
-      Dir.mkdir colossus_testkit_api_dir
 
       puts "Copying files to temporary directory #{version_dir}"
 
       cp_r 'colossus-docs/target/paradox/site/main/.', version_dir
-      cp_r 'colossus/target/scala-2.11/api/.', colossus_api_dir
-      cp_r 'colossus-metrics/target/scala-2.11/api/.', colossus_metrics_api_dir
-      cp_r 'colossus-testkit/target/scala-2.11/api/.', colossus_testkit_api_dir
-
     }
 
     puts "Create redirecting index.html"

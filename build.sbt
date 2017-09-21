@@ -134,6 +134,8 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
     paradoxTheme := Some(builtinParadoxTheme("generic")),
     paradoxProperties ++= Map(
       "extref.docs.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus_2.11/${version.value}/index.html#%s",
+      "extref.docs-metrics.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus-metrics_2.11/${version.value}/index.html#%s",
+      "extref.docs-testkit.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus-testkit_2.11/${version.value}/index.html#%s",
       "snip.examples.base_dir" -> "../scala" 
     )
   )
