@@ -72,7 +72,7 @@ colossus {
       request-metrics : true
       max-request-size : "1000 MB"
       errors : {
-        do-not-log : ["NonsenseException"]
+        do-not-log : []
         log-only-name : ["DroppedReplyException"]
       }
     }
@@ -86,12 +86,8 @@ To configure via code, create a `ServiceConfig` object and pass it to the `Reque
 
 @@snip [ServiceConfigExample.conf](../scala/ServiceConfigExample.scala) { #example1 }
 
-`RequestHandler` allows you to configure how request errors are reported. The `ServiceConfig` case class contains the
-`logErrors` and `errorConfig` fields, populated from the `log-errors` and `errors` config fields respectively.
-The trait `RequestFormatter` contains methods stubs that determine format requests and errors (together if you so desire),
-and its implementation class `ConfigurableRequestFormatter` uses the `ErrorConfig` case class from the `ServiceConfig` to
-decide whether to format the specific error. This method, `logWithStackTrace()` returns a `Option[Boolean]` (chosen for
-the convenience of `map` and `foreach`). You can create your own subclass of `ConfigurableRequestFormatter` that overrides
-the `format()` method.
+`RequestHandler` allows for the configuration of how request errors are reported. By default, requests are directly
+converted to `String`s and logged with the complete stack trace. This can be overridden by either filling in the `errors`
+config, or by providing a custom implementation of the `RequestFormatter` trait in the `RequestHandler`.
 
 @@snip [ServiceConfigExample.conf](../scala/ServiceConfigExample.scala) { #example2 }

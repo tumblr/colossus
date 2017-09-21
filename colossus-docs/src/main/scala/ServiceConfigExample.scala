@@ -5,7 +5,7 @@ import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
-import colossus.service.{Callback, ErrorConfig, RequestFormatter, ServiceConfig}
+import colossus.service._
 import colossus.service.GenRequestHandler.PartialHandler
 
 import scala.concurrent.duration._
@@ -21,7 +21,10 @@ object ServiceConfigExample {
     logErrors = true,
     requestMetrics = true,
     maxRequestSize = 10.MB,
-    errorConfig = ErrorConfig(Set.empty[String], Set.empty[String])
+    errorConfig = ErrorConfig(
+      doNotLog = Set.empty[String],
+      logOnlyName = Set("DroppedReplyException")
+    )
   )
   // #example
 
@@ -36,8 +39,12 @@ object ServiceConfigExample {
 
         // #example2
         override def requestLogFormat: Option[RequestFormatter[Request]] = {
-          // you can create a custom subclass of `ConfigurableRequestFormatter` and override the format() method here
-          super.requestLogFormat
+          val customFormatter = new ConfigurableRequestFormatter[Request](serviceConfig.errorConfig) {
+            override def format(request: Request, error: Throwable): Option[String] = {
+              Some(s"$request failed with ${error.getClass.getSimpleName}")
+            }
+          }
+          Some(customFormatter)
         }
         // #example2
       }
