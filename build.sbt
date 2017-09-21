@@ -44,7 +44,11 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "com.github.nscala-time" %% "nscala-time"                 % "2.16.0",
     "org.slf4j"              % "slf4j-api"                    % "1.7.6"
   ),
-  coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*"
+  coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
+  credentials += Credentials("Sonatype Nexus Repository Manager",
+    "oss.sonatype.org",
+    sys.env.getOrElse("SONATYPE_USERNAME", ""),
+    sys.env.getOrElse("SONATYPE_PASSWORD", ""))
 ) ++ Defaults.itSettings
 
 lazy val publishSettings: Seq[Setting[_]] = Seq(
@@ -58,10 +62,6 @@ lazy val publishSettings: Seq[Setting[_]] = Seq(
   ),
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
-  credentials += Credentials("Sonatype Nexus Repository Manager",
-                             "oss.sonatype.org",
-                             sys.env.getOrElse("SONATYPE_USERNAME", ""),
-                             sys.env.getOrElse("SONATYPE_PASSWORD", "")),
   useGpg := false,
   pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toCharArray),
   pgpSecretRing := file("secring.gpg"),
