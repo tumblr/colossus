@@ -11,7 +11,7 @@ Colossus is a lightweight I/O framework for building Scala services.
 
 Colossus是一个用来构建Scala微服务的轻量级I/O框架。
 
-Full documentation can be found here: http://tumblr.github.io/colossus
+Full documentation can be found here: https://tumblr.github.io/colossus
 
 For general discussion and Q&A, check out the [Google Group](https://groups.google.com/forum/#!forum/colossus-users).
 
