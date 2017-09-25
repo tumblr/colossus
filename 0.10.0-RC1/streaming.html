@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Streams and Streaming Protocols · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.10.0-RC1">0.10.0-RC1</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.10.0-RC1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.10.0-RC1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="active page">Streams and Streaming Protocols</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.10.0-RC1">0.10.0-RC1</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.10.0-RC1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.10.0-RC1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="active page">Streams and Streaming Protocols</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Streams and Streaming Protocols</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#streams-and-streaming-protocols" name="streams-and-streaming-protocols" class="anchor"><span class="anchor-link"></span></a>Streams and Streaming Protocols</h1><div class="callout note "><div class="callout-title">Note</div>
+<p><strong>Experimental</strong> : This API is under development and subject to breaking changes in future releases.</p></div>
+<p>Normally when a server receives or a client sends a message, the entire message must be in memory and ready to encode/decode all at once. This is not an issue for relatively small messages, but when messages start to get larger, anywhere from a few MB to multiple GB, the requirement for having the entire message available all at once has both memory and performance implications.</p>
+<p>Colossus includes a powerful and efficient API for building <em>streaming protocols</em> where the messages being sent/received are streamed out/in in chunks. </p>
+<h1><a href="#the-steaming-api" name="the-steaming-api" class="anchor"><span class="anchor-link"></span></a>The Steaming API</h1>
+<p>At the heart of streaming is a small set of composable types for building reactive streams of objects. The objects themselves can either be pieces of a larger object (such as chunks of an http message), or full messages themselves. You can even have streams of streams.</p>
+<p>In fact, Colossus itself uses these components in its own infrastructure for buffering and routing messages for service connections. Thus it should be no surprise that they are highly optimized for speed and efficient batch-processing.</p>
+<h2><a href="#pipes-sources-and-sinks" name="pipes-sources-and-sinks" class="anchor"><span class="anchor-link"></span></a>Pipes, Sources, and Sinks</h2>
+<p>A <code>Pipe[I,O]</code> is a one-way stream of messages. Input messages of type <code>I</code> are <em>pushed</em> into the pipe and output messages of type <code>O</code> are <em>pulled</em> from it. In the simplest cases, <code>I</code> and <code>O</code> will be the same type and the pipe will act as a buffer, but in many situations a pipe can be backed by a complex transformation workflow such that the input and output types differ.</p>
+<pre class="prettyprint"><code class="language-scala">// The primary implementation of a Pipe is BufferedPipe, backed by a fixed-length buffer
+val pipe = new BufferedPipe[Int](5)
+
+//pushing to a Pipe returns a PushResult indicating if the push succeeded
+val pushResult: PushResult = pipe.push(2) //PushResult.Ok
+
+//pulling from a Pipe returns a PullResult
+val pullResult: PullResult[Int] = pipe.pull() //PullResult.Item(2)</code></pre>
+<p>Often we want to share a pipe between a producer and consumer, such that the producer can only push messages and the consumer only pull them. The <code>Sink[I]</code> and <code>Source[O]</code> traits are used for this purpose, as <code>Pipe[I,O]</code> implements them both.</p>
+<p>Both pushing and pulling are non-blocking operations. </p><div class="callout warning "><div class="callout-title">Warning</div>
+<p>Pipes and other types in the streaming API are <strong>not</strong> thread-safe. They are designed to efficiently handle streaming network I/O (which is always single-threaded in Colossus) and are not intended to be used for general stream-processing purposes.</p></div>
+<h3><a href="#pipe-transport-states" name="pipe-transport-states" class="anchor"><span class="anchor-link"></span></a>Pipe Transport States</h3>
+<p>A Pipe/Source/Sink can be in one of three <em>transport states</em>:</p>
+<ul>
+  <li>Open : Able to push/pull messages</li>
+  <li>Closed : The Pipe has been shutdown without error and no further messages can be pushed/pulled.</li>
+  <li>Terminated : The pipe has been shutdown due to an error.</li>
+</ul>
+<p>The only possible state transitions are open to closed and open to terminated.</p>
+<p>In general, the closed state is for pipes that represent a stream of a single object like a http message. Closing the pipe indicates the message has been fully sent/received. Terminating a pipe indicate an irrecoverable error has occurred, such as closing a connection mid-stream.</p>
+<h2><a href="#back-forward-pressure" name="back-forward-pressure" class="anchor"><span class="anchor-link"></span></a>Back/Forward-Pressure</h2>
+<p>Aside from acting as buffers, the primary purpose of Pipes is to efficiently mediate the asynchronous interactions between producers and consumers of a stream. Pipes handle two situations: <em>back-pressure</em> is when consumers are not able to keep up and need to signal to producers to back-off, and <em>forward-pressure</em> is when consumers are waiting for work from a producer. Both situations require signaling mechanisms; producers need to know when consumers are ready to take on more work and consumers need to know when more work is available.</p>
+<h3><a href="#pushing-to-sinks" name="pushing-to-sinks" class="anchor"><span class="anchor-link"></span></a>Pushing to Sinks</h3>
+<p>The primary method of <code>Sink[I]</code> is <code>push(input: I): PushResult</code>. The returned <code>PushResult</code> indicates if the message was successfully pushed into the pipe or what should be done if it was not pushed. When a Sink is <em>full</em>, it is currently unable to accept any more items and will return a <code>PushResult.Full(signal)</code>. The contained <code>Signal</code> provides a way for the caller to be notified when the sink is able to accept items. The caller simply supplies the signal with a callback function via the <code>notify</code> method.</p>
+<pre class="prettyprint"><code class="language-scala">//create a pipe with a buffer size of 1
+val pipe = new BufferedPipe[Int](1)
+
+pipe.push(10) //PushResult.ok
+
+//the pipe can only buffer one item, so the next push fails and returns a
+//PushResult.Full
+val fullResult = pipe.push(12).asInstanceOf[PushResult.Full]
+
+//provide a callback function for the returned signal
+fullResult.onReady.notify{
+  println(&quot;ready to push&quot;)
+}
+
+//signal is triggered as soon as the item is pulled.  &quot;ready to push&quot; is
+//printed before pull() returns
+val item = pipe.pull()
+</code></pre>
+<p>See the docs for <a href="https://static.javadoc.io/com.tumblr/colossus_2.11/0.10.0-RC1/index.html#colossus.streaming.Sink">Sink</a> for more information on how to push to sinks and also some built-in functions to work with them.</p>
+<h3><a href="#pulling-from-sources" name="pulling-from-sources" class="anchor"><span class="anchor-link"></span></a>Pulling from Sources</h3>
+<p>Similar to sinks, calling <code>pull()</code> on a Source returns a <code>PullResult[T]</code>. This may be a <code>PullResult.item(item)</code> containing the item pulled, or it may be <code>PullResult.Empty(signal)</code>. This signal can be given a callback which will get called when there is at least one item to pull from the Source.</p>
+<pre class="prettyprint"><code class="language-scala">val pipe = new BufferedPipe[Int](10)
+
+//the pipe is empty so it returns a PullResult.Empty
+val result = pipe.pull().asInstanceOf[PullResult.Empty]
+
+//provide the returned signal with a callback function
+result.whenReady.notify {
+  println(&quot;items available to pull&quot;)
+}
+
+//the signal is triggered as soon as an item is pushed into the pipe
+pipe.push(1)
+</code></pre>
+<p>Another highly efficient way to work with sources is through the <code>pullWhile</code> method which allows you to supply a function that is called whenever an item is ready to pull. It also gives you control over whether to continue using the callback function.</p>
+<p>See the documentation for <a href="https://static.javadoc.io/com.tumblr/colossus_2.11/0.10.0-RC1/index.html#colossus.streaming.Source">Source</a> for more ways to handle pulling items.</p>
+<h3><a href="#transforming-and-composing-pipes" name="transforming-and-composing-pipes" class="anchor"><span class="anchor-link"></span></a>Transforming and Composing Pipes</h3>
+<p>There are many methods available to build complex pipes by transforming and piecing together existing pipes.</p>
+<pre class="prettyprint"><code class="language-scala">val pipe1: Pipe[Int, Int] = new BufferedPipe[Int](10)
+val pipe2: Pipe[String, String] = new BufferedPipe[String](10)
+
+val pipe3: Pipe[Int, String] = pipe1.map{i =&gt; (i * 2).toString}.weld(pipe2)
+
+pipe3.push(2)
+pipe3.pull() // PullResult.Item(&quot;4&quot;)</code></pre>
+<h1><a href="#streaming-http" name="streaming-http" class="anchor"><span class="anchor-link"></span></a>Streaming HTTP</h1>
+<p>Currently the only streaming protocol built-into Colossus is Streaming HTTP. While it shares some types with the standard HTTP protocol, it is a separate protocol with its own message types.</p>
+<p>There are actually two different streaming HTTP API&rsquo;s: a low-level API that gives you direct control over streams of http messages and message chunks, and a high-level API that is more like a standard HTTP service.</p>
+<h2><a href="#streaming-http-service" name="streaming-http-service" class="anchor"><span class="anchor-link"></span></a>Streaming Http Service</h2>
+<p>The high-level API is more-or-less a standard HTTP service, except that the body of the request/response is a stream of message chunks.</p>
+<pre class="prettyprint"><code class="language-scala"><br/>class MyRequestHandler(serverContext: ServerContext) extends GenRequestHandler[StreamingHttp](serverContext) {
+
+  def handle = {
+    case StreamingHttpRequest(head, source) if (head.url == &quot;/chunked&quot;) =&gt; {
+      source.collected.map { sourceBody =&gt;
+        val responseBody = Source.fromIterator(List(&quot;this is &quot;, &quot;a chunked &quot;, &quot;response&quot;).toIterator.map { s =&gt;
+          Data(DataBlock(s))
+        })
+        StreamingHttpResponse(
+          HttpResponseHead(head.version, HttpCodes.OK, Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
+          responseBody
+        )
+      }
+    }
+  }
+
+  def unhandledError = {
+    case err =&gt; StreamingHttpResponse(HttpResponse.error(s&quot;error: $err&quot;))
+  }
+}
+
+def start(port: Int)(implicit sys: IOSystem) = {
+  StreamingHttpServer.basic(&quot;stream-service&quot;, port, serverContext =&gt; new MyRequestHandler(serverContext))
+}
+</code></pre>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/tumblr/colossus/tree/master/colossus-docs/src/main/paradox/streaming.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="about.html">About</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="streaming.html#streams-and-streaming-protocols" class="header">Streams and Streaming Protocols</a>
+  <ul>
+    <li><a href="streaming.html#the-steaming-api" class="header">The Steaming API</a></li>
+    <li><a href="streaming.html#streaming-http" class="header">Streaming HTTP</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>
