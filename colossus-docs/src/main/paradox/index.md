@@ -28,6 +28,6 @@ code and greatly reducing the overhead of asynchronous operations.
 ## Source & Docs
 
 * [https://github.com/tumblr/colossus](https://github.com/tumblr/colossus)
-* [Colossus API](colossus-api/index.html#colossus.package)
-* [Colossus Metrics API](colossus-metrics-api/index.html#colossus.package)
-* [Colossus Teskit API](colossus-testkit-api/index.html#colossus.package)
+* @extref[Colossus API](docs:colossus.package)
+* @extref[Colossus Metrics API](docs-metrics:colossus.package)
+* @extref[Colossus Teskit API](docs-testkit:colossus.package)
