@@ -2,7 +2,7 @@ package colossus.protocols.http
 
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
-import java.util.{LinkedList, List => JList}
+import java.util.{LinkedList, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
 import colossus.parsing.{ParseException, Zero}
@@ -474,9 +474,8 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal {
 
 class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.util.Date
-  import java.text.SimpleDateFormat
 
-  private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
+  private val formatter = DateHeader.createFormatter()
 
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
   private var lastDate             = generate(start)
@@ -505,7 +504,12 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
 }
 
 object DateHeader {
+  import java.text.SimpleDateFormat
 
-  val DATE_FORMAT = "EEE, MMM d yyyy HH:mm:ss z"
+  def createFormatter(): SimpleDateFormat = {
+    val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")
+    df.setTimeZone(TimeZone.getTimeZone("GMT"))
+    df
+  }
 
 }
