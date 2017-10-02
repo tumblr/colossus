@@ -474,10 +474,8 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal {
 
 class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.util.Date
-  import java.text.SimpleDateFormat
 
-  private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
-  formatter.setTimeZone(TimeZone.getTimeZone("GMT"))
+  private val formatter = DateHeader.createFormatter()
 
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
   private var lastDate             = generate(start)
@@ -506,7 +504,12 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
 }
 
 object DateHeader {
+  import java.text.SimpleDateFormat
 
-  val DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z"
+  def createFormatter(): SimpleDateFormat = {
+    val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")
+    df.setTimeZone(TimeZone.getTimeZone("GMT"))
+    df
+  }
 
 }
