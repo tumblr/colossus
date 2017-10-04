@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Services · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.10.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.10.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="active page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="page">Streams and Streaming Protocols</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.10.0";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.10.0/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="active page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="page">Streams and Streaming Protocols</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Services</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#services" name="services" class="anchor"><span class="anchor-link"></span></a>Services</h1>
+<p>A service receives requests and returns responses. Colossus has built in support for http, memcache, redis and telnet.</p>
+<h2><a href="#http" name="http" class="anchor"><span class="anchor-link"></span></a>Http</h2>
+<p>A http service will take the following form:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import colossus.IOSystem
+import colossus.protocols.http.Http
+import colossus.protocols.http.HttpMethod._
+import colossus.protocols.http.UrlParsing._
+import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
+import colossus.service.Callback
+import colossus.service.GenRequestHandler.PartialHandler
+
+object HttpServiceExample extends App {
+
+  implicit val actorSystem = ActorSystem()
+  implicit val ioSystem    = IOSystem()
+
+  HttpServer.start(&quot;example-server&quot;, 9000) { initContext =&gt;
+    new Initializer(initContext) {
+      override def onConnect = serverContext =&gt; new RequestHandler(serverContext) {
+        override def handle: PartialHandler[Http] = {
+          case request @ Get on Root / &quot;hello&quot; =&gt;
+            Callback.successful(request.ok(&quot;Hello world!&quot;))
+        }
+      }
+    }
+  }
+}</code></pre>
+<p><code>ok</code> is a helper method on <code>HttpRequest</code> that returns a <code>HttpResponse</code>. The implicit <code>colossus.service.Callback.Implicits.objectToSuccessfulCallback</code> then turns the response into a <code>Callback[HttpResponse]</code>.</p>
+<p>The following helper method are available, which will default the content type to text and return the corresponding http code.</p>
+<ul>
+  <li>ok</li>
+  <li>notFound</li>
+  <li>error</li>
+  <li>badRequest</li>
+  <li>unauthorized</li>
+  <li>forbidden</li>
+</ul>
+<p>There are several different ways to set headers on the response.</p>
+<pre class="prettyprint"><code class="language-scala">request.ok(&quot;hello&quot;).withHeader(&quot;header-name&quot;, &quot;header-value&quot;)
+request.ok(&quot;hello&quot;, HttpHeaders(HttpHeader(&quot;header-name&quot;, &quot;header-value&quot;)))
+request.ok(&quot;hello&quot;, HttpHeaders(HttpHeader(HttpHeaders.CookieHeader, &quot;header-value&quot;)))</code></pre>
+<p>The content type header is a little special since it is usually set automatically but can also be set manually. It can be set just like any other header.</p>
+<pre class="prettyprint"><code class="language-scala">request.ok(&quot;hello&quot;, HttpHeaders(HttpHeader(&quot;Content-Type&quot;, &quot;header-value&quot;)))</code></pre>
+<p>You can also use <code>.withContent()</code> to set the content type header. For a different HTTP status code, the helper methods don&rsquo;t exist; instead just use the <code>respond</code> method.</p>
+<pre class="prettyprint"><code class="language-scala">request.respond(
+  HttpCodes.CONFLICT,
+  HttpBody(&quot;&quot;&quot;{&quot;name&quot;:&quot;value&quot;}&quot;&quot;&quot;)
+).withContentType(ContentType.ApplicationJson)</code></pre>
+<p>On the incoming request, body and content type are on the <code>HttpBody</code> and headers and parameters are on the <code>HttpHead</code>.</p>
+<pre class="prettyprint"><code class="language-scala">val body: String                = request.body.bytes.utf8String
+val contentType: Option[String] = request.head.headers.contentType
+val headers: HttpHeaders        = request.head.headers
+val parameter: Option[String]   = request.head.parameters.getFirst(&quot;key&quot;)</code></pre>
+<p>There is no built in middleware, but the same effect can be achieved by wrapping routes in functions. For example, if you wanted easy access to the request body you might write:</p>
+<pre class="prettyprint"><code class="language-scala">def withBody(req: HttpRequest)(f: String =&gt; Callback[HttpResponse]): Callback[HttpResponse] = {
+  val bytes = req.body.bytes
+  if (bytes.isEmpty) {
+    Callback.successful(req.badRequest(&quot;Missing body&quot;))
+  } else {
+    f(bytes.utf8String)
+  }
+}</code></pre>
+<p>And then use it like so:</p>
+<pre class="prettyprint"><code class="language-scala">case request @ Post on Root / &quot;shout&quot; =&gt; withBody(request) { body =&gt;
+  Callback.successful(request.ok(body.toUpperCase))
+}</code></pre>
+<h2><a href="#redis" name="redis" class="anchor"><span class="anchor-link"></span></a>Redis</h2>
+<p>A redis server will take the following form:</p>
+<pre class="prettyprint"><code class="language-scala">import java.util.concurrent.ConcurrentHashMap
+import akka.actor.ActorSystem
+import akka.util.ByteString
+import colossus.IOSystem
+import colossus.protocols.redis._
+import colossus.protocols.redis.server.{Initializer, RedisServer, RequestHandler}
+import colossus.service.Callback
+import colossus.service.GenRequestHandler.PartialHandler
+
+object RedisServiceExample extends App {
+
+  implicit val actorSystem = ActorSystem()
+  implicit val ioSystem = IOSystem()
+
+  val db = new ConcurrentHashMap[String, String]()
+
+  RedisServer.start(&quot;example-server&quot;, 9000) { initContext =&gt;
+    new Initializer(initContext) {
+      override def onConnect = serverContext =&gt; new RequestHandler(serverContext) {
+        override def handle: PartialHandler[Redis] = {
+          case Command(&quot;GET&quot;, args) =&gt;
+            args match {
+              case head :: _ =&gt;
+                Option(db.get(head.utf8String)) match {
+                  case Some(value) =&gt; Callback.successful(BulkReply(ByteString(value)))
+                  case None =&gt; Callback.successful(NilReply)
+                }
+              case Nil =&gt;
+                Callback.successful(ErrorReply(&quot;ERR wrong number of arguments for &#39;get&#39; command&quot;))
+            }
+
+          case Command(&quot;SET&quot;, args) =&gt;
+            args match {
+              case key :: value :: _ =&gt;
+                db.put(key.utf8String, value.utf8String)
+                Callback.successful(StatusReply(&quot;OK&quot;))
+              case Nil =&gt;
+                Callback.successful(ErrorReply(&quot;ERR wrong number of arguments for &#39;set&#39; command&quot;))
+            }
+        }
+      }
+    }
+  }
+}</code></pre>
+<h2><a href="#configuration" name="configuration" class="anchor"><span class="anchor-link"></span></a>Configuration</h2>
+<p>A service can be configured either programmatically or by using typesafe config. The settings in <code>colossus/src/resources/reference.conf</code> will be used as defaults.</p>
+<p>To configure via config, create or update <code>application.conf</code> with the server specific settings:</p>
+<pre><code>colossus {
+  service {
+    example-server {
+      request-timeout : 1 second
+      request-buffer-size : 100
+      log-errors : true
+      request-metrics : true
+      max-request-size : &quot;1000 MB&quot;
+      errors : {
+        do-not-log : []
+        log-only-name : [&quot;DroppedReplyException&quot;]
+      }
+    }
+  }
+}
+</code></pre>
+<p>To configure via code, create a <code>ServiceConfig</code> object and pass it to the <code>RequestHandler</code>.</p>
+<pre class="prettyprint"><code class="language-scala">val serviceConfig = ServiceConfig(
+  requestTimeout = 1.second,
+  requestBufferSize = 100,
+  logErrors = true,
+  requestMetrics = true,
+  maxRequestSize = 10.MB,
+  errorConfig = ErrorConfig(
+    doNotLog = Set.empty[String],
+    logOnlyName = Set(&quot;DroppedReplyException&quot;)
+  )
+)</code></pre>
+<pre class="prettyprint"><code class="language-scala">override def onConnect = serverContext =&gt; new RequestHandler(serverContext, serviceConfig) {</code></pre>
+<p><code>RequestHandler</code> allows for the configuration of how request errors are reported. By default, requests are directly converted to <code>String</code>s and logged with the complete stack trace. This can be overridden by either filling in the <code>errors</code> config, or by providing a custom implementation of the <code>RequestFormatter</code> trait in the <code>RequestHandler</code>.</p>
+<pre class="prettyprint"><code class="language-scala">override def requestLogFormat: Option[RequestFormatter[Request]] = {
+  val customFormatter = new ConfigurableRequestFormatter[Request](serviceConfig.errorConfig) {
+    override def format(request: Request, error: Throwable): Option[String] = {
+      Some(s&quot;$request failed with ${error.getClass.getSimpleName}&quot;)
+    }
+  }
+  Some(customFormatter)
+}</code></pre>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/tumblr/colossus/tree/master/colossus-docs/src/main/paradox/services.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="configuration.html">Configuration</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="services.html#services" class="header">Services</a>
+  <ul>
+    <li><a href="services.html#http" class="header">Http</a></li>
+    <li><a href="services.html#redis" class="header">Redis</a></li>
+    <li><a href="services.html#configuration" class="header">Configuration</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2017</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>
