@@ -32,7 +32,7 @@ package object http extends HttpBodyEncoders with HttpBodyDecoders {
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
         case RecoverableError(request, reason) =>
           reason match {
-            case c: UnhandledRequestException => request.notFound(s"No route for ${request.head.url}")
+            case c: UnhandledRequestException => request.notFound(s"Not found")
             case other                        => request.error(reason.toString)
           }
         case IrrecoverableError(reason) => {
