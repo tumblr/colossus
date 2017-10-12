@@ -75,6 +75,37 @@ is usually best to kill CPU heavy apps.
 
 In order to accept your pull request, we need you to submit a Contributor License Agreement (CLA). A CLA is a way of protecting intellectual property disputes from harming the project. Complete your CLA [here](http://static.tumblr.com/zyubucd/GaTngbrpr/tumblr_corporate_contributor_license_agreement_v1__10-7-14.pdf).
 
+# Publish
+
+1. Merge develop (or hot fix branch) into master.
+2. Update version in `version.sbt` and add to `docs.yml`
+
+    ```bash
+    git add version.sbt
+    git add docs.yml
+    git commit -m "v{VERSION NUMBER}"
+    ```
+
+3. Create tag using just the version.
+
+    ```bash
+    git tag -a v{VERSION NUMBER}
+    ```
+    
+4. Push changes to remote; travis will build and automatically publish to [sonatype](https://oss.sonatype.org/).
+
+    ```bash
+    git push origin 
+    ```
+    
+5. Generate the docs.
+
+    ```bash
+    rake site:publish
+    ```
+    
+6. Merge master into develop and update version in `version.sbt` to point to the next snapshot.
+
 ## License
 
 By contributing to Colossus you agree that your contributions will be licensed under its Apache 2.0 license.
