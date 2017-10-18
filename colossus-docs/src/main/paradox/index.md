@@ -10,6 +10,7 @@
 * [Tasks](tasks.md)
 * [Streaming](streaming.md)
 * [About](about.md)
+* [Migration Guide](migration.md)
 
 @@@
 
