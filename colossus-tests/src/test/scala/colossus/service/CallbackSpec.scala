@@ -142,7 +142,7 @@ class CallbackSpec extends ColossusSpec {
           res = x.toUpperCase
         }
         .execute()
-      t.expectNoMsg(100.milliseconds)
+      t.expectNoMessage(100.milliseconds)
       p.complete(Success("hello"))
       val ex = t.receiveOne(50.milliseconds) match {
         case e: CallbackExec => e
@@ -556,8 +556,8 @@ class CallbackSpec extends ColossusSpec {
       class FoobarException extends Exception("FOOBAR")
 
       intercept[CallbackExecutionException] {
-        Callback(func).execute {
-          _ => throw new FoobarException
+        Callback(func).execute { _ =>
+          throw new FoobarException
         }
       }
 
@@ -566,14 +566,14 @@ class CallbackSpec extends ColossusSpec {
           .flatMap { x =>
             Callback(func)
           }
-          .execute {
-            _ => throw new FoobarException
+          .execute { _ =>
+            throw new FoobarException
           }
       }
 
       intercept[CallbackExecutionException] {
-        Callback.successful(true).execute {
-          _ => throw new FoobarException
+        Callback.successful(true).execute { _ =>
+          throw new FoobarException
         }
       }
 

@@ -141,9 +141,9 @@ class ConnectionHandlerSpec extends ColossusSpec {
       withIOSystem { implicit io =>
         withServer(RawServer.basic("test", TEST_PORT) { case x => x }) {
           io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
-          probe.expectNoMsg(200.milliseconds)
+          probe.expectNoMessage(200.milliseconds)
         }
-        probe.expectNoMsg(200.milliseconds)
+        probe.expectNoMessage(200.milliseconds)
       }
     }
 
@@ -156,7 +156,7 @@ class ConnectionHandlerSpec extends ColossusSpec {
       }
       withIOSystem { implicit io =>
         io ! IOCommand.BindAndConnectWorkerItem(new InetSocketAddress("localhost", TEST_PORT), c => new MyHandler(c))
-        probe.expectNoMsg(200.milliseconds)
+        probe.expectNoMessage(200.milliseconds)
       }
 
     }
