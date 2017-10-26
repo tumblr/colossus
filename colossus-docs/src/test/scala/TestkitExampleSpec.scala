@@ -18,7 +18,7 @@ class TestkitExampleSpec extends HttpServiceSpec {
   implicit val formats = org.json4s.DefaultFormats
 
   override def service: ServerRef = {
-    HttpServer.start("example-server", 9000) { initContext =>
+    HttpServer.start("example-server", 9123) { initContext =>
       new Initializer(initContext) {
         override def onConnect = serverContext => new MyHandler(serverContext)
       }
@@ -34,11 +34,15 @@ class TestkitExampleSpec extends HttpServiceSpec {
     }
 
     "return 200 and body that satisfies predicate" in {
-      expectCodeAndBodyPredicate(HttpRequest.get("ping/1"), HttpCodes.OK, body => {
-        val jsonMap = JsonMethods.parse(body).extract[Map[String, JValue]]
-        val expected = Map("data" -> JInt(1), "type" -> JString("pong"))
-        jsonMap == expected
-      })
+      expectCodeAndBodyPredicate(
+        HttpRequest.get("ping/1"),
+        HttpCodes.OK,
+        body => {
+          val jsonMap  = JsonMethods.parse(body).extract[Map[String, JValue]]
+          val expected = Map("data" -> JInt(1), "type" -> JString("pong"))
+          jsonMap == expected
+        }
+      )
     }
 
   }

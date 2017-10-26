@@ -57,7 +57,7 @@ class WorkerManagerSpec extends ColossusSpec with Eventually {
         probes.foreach { _.expectMsg(window, Worker.CheckIdleConnections) }
 
         //no more messages should be sent, until acks are received
-        probes.foreach { _.expectNoMsg(window * 2) }
+        probes.foreach { _.expectNoMessage(window * 2) }
 
         //lets now send the acks back
         probes.foreach { x =>
