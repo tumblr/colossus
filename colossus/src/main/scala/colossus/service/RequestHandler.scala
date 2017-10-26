@@ -46,11 +46,15 @@ abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext
 
   protected def handle: PartialHandler[P]
   protected def unhandledError: ErrorHandler[P]
+  protected def filters: Seq[Filter[P]]= Seq.empty
 
   protected def onError: ErrorHandler[P] = Map()
 
-  private lazy val fullHandler: PartialHandler[P] = handle orElse {
-    case req => Callback.failed(new UnhandledRequestException(s"Unhandled Request $req"))
+  private lazy val fullHandler: PartialHandler[P] = {
+    val handler: PartialHandler[P] = handle orElse {
+      case req => Callback.failed(new UnhandledRequestException(s"Unhandled Request $req"))
+    }
+    filters.foldLeft(handler){case (h, f) => f.apply(h)}
   }
 
   def handleRequest(request: Request): Callback[Response] = fullHandler(request)

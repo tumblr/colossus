@@ -42,4 +42,10 @@ object Main extends App {
 
   val streamServiceServer = StreamServiceExample.start(9010)
 
+  /**
+    * Requests to localhost:9011 are allowed, 127.0.0.1:9011 will fail
+    * All responses are reversed
+    */
+  val httpFilterExample = HttpFilterExample.start(9011)
+
 }
