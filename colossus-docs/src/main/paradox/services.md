@@ -49,6 +49,16 @@ And then use it like so:
 
 @@snip [MiddlewareAsFunctions.scala](../scala/MiddlewareAsFunctions.scala) { #example1 }
 
+You can add filters to modify and/or shortcut requests and responses.
+
+Defining Filters:
+
+@@snip [FilterExample.scala](../scala/FilterExample.scala) { #example }
+
+To use them override `filters` function in your service.
+
+@@snip [FilterExample.scala](../scala/FilterExample.scala) { #example1 }
+
 ## Redis
 
 A redis server will take the following form:

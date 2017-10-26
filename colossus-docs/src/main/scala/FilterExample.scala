@@ -1,37 +1,36 @@
-package colossus.examples
-
-import colossus.service.Callback.Implicits._
+import akka.actor.ActorSystem
 import colossus.IOSystem
-import colossus.core.{ServerContext, ServerRef}
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.{Http, HttpServer, Initializer, RequestHandler}
-import colossus.protocols.http.UrlParsing.{/, Root, on}
-import colossus.service.GenRequestHandler.PartialHandler
+import colossus.protocols.http.UrlParsing.{Root, on}
 import colossus.service.Filter
+import colossus.service.GenRequestHandler.PartialHandler
+import colossus.service.Callback.Implicits._
 
-object HttpFilterExample {
+object FilterExample extends App {
 
-  class HttpFilterExampleHandler(context: ServerContext) extends RequestHandler(context) {
+  implicit val actorSystem = ActorSystem()
+  implicit val ioSystem    = IOSystem()
 
-    def handle = {
-      case req @ Get on Root => req.ok("Hello World!")
+  HttpServer.start("example-server", 9000) { initContext =>
+    new Initializer(initContext) {
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root => request.ok("Hello World!")
+            }
+            // #example1
+            override def filters: Seq[Filter[Http]] = Seq(
+              new AllowedHostsFilter(),
+              new ReverseResponseFilter()
+            )
+            // #example1
+        }
     }
-
-    override def filters = Seq(
-      new AllowedHostsFilter(),
-      new ReverseResponseFilter()
-    )
-
   }
 
-  def start(port: Int)(implicit system: IOSystem): ServerRef = {
-    HttpServer.start("http-filter-example", port) { init =>
-      new Initializer(init) {
-        def onConnect = context => new HttpFilterExampleHandler(context)
-      }
-    }
-  }
-
+  // #example
   /**
     * Primitive allowed hosts filter
     */
@@ -47,7 +46,7 @@ object HttpFilterExample {
   }
 
   /**
-    * meaningless filter to demonstrate response modification (gzip for example)
+    * filter to reverse response
     */
   class ReverseResponseFilter extends Filter[Http] {
     override def apply(next: PartialHandler[Http]): PartialHandler[Http] = {
@@ -57,4 +56,6 @@ object HttpFilterExample {
         }
     }
   }
+  // #example
+
 }
