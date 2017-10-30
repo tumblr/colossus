@@ -39,7 +39,7 @@ trait HttpBodyDecoder[T] {
 
 }
 
-trait HttpBodyDecoders {
+object HttpBodyDecoder {
 
   implicit object StringDecoder extends HttpBodyDecoder[String] {
     def decode(body: Array[Byte]) = Try {
@@ -67,24 +67,27 @@ trait HttpBodyEncoder[T] {
 
 }
 
-trait HttpBodyEncoders {
+object HttpBodyEncoder {
   implicit object ByteStringEncoder extends HttpBodyEncoder[ByteString] {
     val contentType = None
+
     def encode(data: ByteString): HttpBody = new HttpBody(data.toArray)
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
     val contentType = Some(ContentType.TextPlain)
+
     def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"))
   }
 
   implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
     val contentType = None
+
     def encode(b: HttpBody) = b
   }
 }
 
-object HttpBody extends HttpBodyEncoders {
+object HttpBody {
 
   val NoBody = new HttpBody(Array.emptyByteArray)
 
