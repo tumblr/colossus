@@ -243,6 +243,10 @@ class CodecClientFactory[P <: Protocol, M[_], T[M[_]] <: Sender[P, M], E](
   def apply(sender: Sender[P, M])(implicit env: E): T[M] = {
     lifter.lift(sender, None)(builder.build(env))
   }
+
+  def apply(hostManager: HostManager)(implicit env: E): T[M] = {
+    apply(new LoadBalanceClient(hostManager, this)(env, builder.build(env)))
+  }
 }
 
 /**
