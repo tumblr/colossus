@@ -12,6 +12,8 @@ object MockSender {
     def send(request: P#Request): M[P#Response] = responder(request)
 
     def disconnect() {}
+
+    override def addInterceptor(interceptor: Interceptor[P]): Unit = {}
   }
 }
 
