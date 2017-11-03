@@ -43,7 +43,6 @@ import scala.concurrent.duration._
   */
 case class ServerSettings(
     port: Int,
-    slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
     maxConnections: Int = 1000,
     maxIdleTime: Duration = Duration.Inf,
     lowWatermarkPercentage: Double = 0.75,
@@ -72,7 +71,6 @@ object ServerSettings {
     ServerSettings(
       port = config.getInt("port"),
       maxConnections = config.getInt("max-connections"),
-      slowStart = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
       maxIdleTime = config.getScalaDuration("max-idle-time"),
       lowWatermarkPercentage = config.getDouble("low-watermark-percentage"),
       highWatermarkPercentage = config.getDouble("high-watermark-percentage"),

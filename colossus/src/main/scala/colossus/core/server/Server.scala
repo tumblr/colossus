@@ -89,8 +89,6 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
 
   val me = ServerRef(serverConfig, self, io, stateRef)
 
-  val connectionLimiter = ConnectionLimiter(settings.maxConnections, settings.slowStart)
-
   //initialize metrics
   implicit val ns = me.namespace
   val connections = Counter("connections", "server-connections")
@@ -154,7 +152,6 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
-        connectionLimiter.begin()
         self ! Select
       } else {
         val incident = incidentOpt.getOrElse(settings.bindingRetry.start())
@@ -249,7 +246,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
           val ssc: ServerSocketChannel = key.channel.asInstanceOf[ServerSocketChannel] //oh, java
           val sc: SocketChannel        = ssc.accept()
           connects.hit()
-          if (openConnections < connectionLimiter.limit) {
+          if (openConnections < settings.maxConnections) {
             openConnections += 1
             connections.increment()
             sc.configureBlocking(false)
