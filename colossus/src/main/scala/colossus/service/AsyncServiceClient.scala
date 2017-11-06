@@ -76,7 +76,7 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
         import scala.concurrent.ExecutionContext.Implicits.global
         promise.completeWith(client.connectionStatus.toFuture)
       }
-
+      case interceptor: Interceptor[P] => client.addInterceptor(interceptor)
     }
     override def onUnbind() {
       super.onUnbind()
@@ -128,6 +128,8 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
     }
 
     val clientConfig = config
+
+    override def addInterceptor(interceptor: Interceptor[P]): Unit = proxy ! interceptor
   }
 
 }
