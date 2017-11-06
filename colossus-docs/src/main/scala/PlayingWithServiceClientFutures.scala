@@ -1,3 +1,5 @@
+import java.net.{InetAddress, InetSocketAddress}
+
 import akka.actor.ActorSystem
 import akka.util.ByteString
 import colossus.IOSystem
@@ -8,7 +10,7 @@ import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.service.{Callback, HostManager}
+import colossus.service.Callback
 
 import scala.concurrent.Future
 
@@ -21,13 +23,15 @@ object PlayingWithServiceClientFutures extends App with ColossusLogging {
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
 
-      val hostManager = HostManager()
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
+      val hosts = Seq(
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379)
+      )
 
-      val redisClient = Redis.futureClient(hostManager)
+      val redisClient = Redis.futureClient(hosts)
 
       override def onConnect =
         serverContext =>

@@ -15,7 +15,7 @@ class HttpClientSpec extends ColossusSpec with MockFactory {
   "Http Client" must {
 
     val clientConfig = ClientConfig(
-      address = new InetSocketAddress("localhost", 80),
+      address = Seq(new InetSocketAddress("localhost", 80)),
       requestTimeout = Duration.Inf,
       name = MetricAddress.Root / "testMetric"
     )

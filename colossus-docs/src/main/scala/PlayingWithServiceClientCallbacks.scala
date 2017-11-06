@@ -1,3 +1,5 @@
+import java.net.{InetAddress, InetSocketAddress}
+
 import akka.actor.ActorSystem
 import akka.util.ByteString
 import colossus.IOSystem
@@ -7,7 +9,6 @@ import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{Http, HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.service.HostManager
 
 import scala.util.{Failure, Success, Try}
 
@@ -20,13 +21,16 @@ object PlayingWithServiceClientCallbacks extends App with ColossusLogging {
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
 
-      val hostManager = HostManager()
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
-      hostManager.addHost("localhost", 6379)
+      val hosts = Seq(
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379),
+        new InetSocketAddress("localhost", 6379)
+      )
 
-      val redisClient = Redis.client(hostManager)
+      // if we need to change the hosts, then we would create a new instance
+      val redisClient = Redis.client(hosts)
 
       override def onConnect =
         serverContext =>

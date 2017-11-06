@@ -1,5 +1,7 @@
 package colossus.service
 
+import java.net.InetSocketAddress
+
 import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import colossus.IOSystem
@@ -18,6 +20,8 @@ trait Sender[P <: Protocol, M[_]] {
   def disconnect()
   
   def addInterceptor(interceptor: Interceptor[P]): Unit
+
+  def address(): InetSocketAddress
 
 }
 

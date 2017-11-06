@@ -142,7 +142,7 @@ object TestClient {
     val config = ClientConfig(
       name = "/test",
       requestTimeout = 100.milliseconds,
-      address = new InetSocketAddress("localhost", port),
+      address = Seq(new InetSocketAddress("localhost", port)),
       pendingBufferSize = 10,
       failFast = true,
       connectRetry = connectRetry

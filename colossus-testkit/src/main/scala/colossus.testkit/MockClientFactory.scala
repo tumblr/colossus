@@ -14,6 +14,8 @@ object MockSender {
     def disconnect() {}
 
     override def addInterceptor(interceptor: Interceptor[P]): Unit = {}
+
+    override def address() = ???
   }
 }
 
