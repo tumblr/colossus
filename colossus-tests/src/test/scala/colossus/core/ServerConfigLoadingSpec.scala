@@ -43,9 +43,6 @@ class ServerConfigLoadingSpec extends ColossusSpec {
           |    max-connections : 1000
           |    max-idle-time : "1 second"
           |    shutdown-timeout : "2 seconds"
-          |}
-          |colossus.server {
-          |   shutdown-timeout : "3 seconds"
           |    tcp-backlog-size : 100
           |}
         """.stripMargin

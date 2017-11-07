@@ -1,7 +1,6 @@
 package colossus.service
 
-import colossus.parsing.{DataSize, ParseException}
-import com.typesafe.config.{Config, ConfigException, ConfigFactory}
+import colossus.parsing.ParseException
 import akka.event.Logging
 import colossus.controller._
 import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler, UpstreamEvents}
@@ -10,86 +9,11 @@ import colossus.metrics.TagMap
 import colossus.metrics.logging.ColossusLogging
 import colossus.util.ExceptionFormatter._
 import colossus.streaming.{BufferedPipe, PullAction, PushResult}
-import colossus.util.ConfigCache
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
-import collection.JavaConverters._
+import scala.util.{Failure, Success}
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
-
-/**
-  * Configuration class for a Service Server Connection Handler
-  *
-  * @param requestTimeout how long to wait until we timeout the request
-  * @param requestBufferSize how many concurrent requests a single connection can be processing
-  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
-  * @param requestMetrics toggle request metrics
-  * @param maxRequestSize max size allowed for requests
-  * TODO: remove name from config, this should be the same as a server's name and
-  * pulled from the ServerRef, though this requires giving the ServiceServer
-  * access to the ServerRef
-  */
-case class ServiceConfig(requestTimeout: Duration,
-                         requestBufferSize: Int,
-                         logErrors: Boolean,
-                         requestMetrics: Boolean,
-                         maxRequestSize: DataSize,
-                         errorConfig: ErrorConfig)
-
-object ServiceConfig {
-
-  val CONFIG_ROOT  = "colossus.service"
-  val DEFAULT_NAME = "default"
-
-  lazy val Default = this.load(DEFAULT_NAME)
-
-  private val cache = new ConfigCache[ServiceConfig] {
-
-    val baseConfig: Config = ConfigFactory.load()
-
-    def load(name: String): Try[ServiceConfig] = Try {
-      val config = try {
-        baseConfig
-          .getConfig(CONFIG_ROOT + "." + name)
-          .withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
-      } catch {
-        case ex: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
-      }
-      ServiceConfig.load(config)
-    }
-  }
-
-  /**
-    * Load a ServiceConfig from the loaded config at the path
-    * `colossus.service.<name>`.  Any settings not specified at that location
-    * will fall back to the defaults located at `colossus.service.default` in the
-    * reference.conf file.
-    */
-  def load(name: String): ServiceConfig = cache.get(name) match {
-    case Success(c)   => c
-    case Failure(err) => throw new ServiceConfigException(err)
-  }
-
-  /**
-    * Load a ServiceConfig object from a Config source.  The Config object is
-    * expected to be in the form of `colossus.service.default`.  Please refer to
-    * the reference.conf file.
-    */
-  def load(config: Config): ServiceConfig = {
-    import colossus.metrics.ConfigHelpers._
-    val timeout        = config.getScalaDuration("request-timeout")
-    val bufferSize     = config.getInt("request-buffer-size")
-    val logErrors      = config.getBoolean("log-errors")
-    val requestMetrics = config.getBoolean("request-metrics")
-    val maxRequestSize = DataSize(config.getString("max-request-size"))
-
-    val errorConf      = config.getConfig("errors")
-    val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
-    val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
-    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize, ErrorConfig(errorsDoNotLog, errorsLogName))
-  }
-}
 
 case class ErrorConfig(doNotLog: Set[String], logOnlyName: Set[String])
 
@@ -101,10 +25,10 @@ trait RequestFormatter[I] {
   import RequestFormatter._
 
   /**
-   * None means do not log.
-   * Some(false) means log only the name.
-   * Some(true) means log with stack trace (default).
-   */
+    * None means do not log.
+    * Some(false) means log only the name.
+    * Some(true) means log with stack trace (default).
+    */
   def logWithStackTrace(error: Throwable): Option[Boolean]
 
   def format(request: I, error: Throwable): Option[String]
@@ -221,7 +145,7 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
         case None => {
           val requestString = failure match {
             case RecoverableError(request, _) => request.toString
-            case IrrecoverableError(_) => "Invalid Request"
+            case IrrecoverableError(_)        => "Invalid Request"
           }
           error(s"Error processing request: $requestString", failure.reason)
         }

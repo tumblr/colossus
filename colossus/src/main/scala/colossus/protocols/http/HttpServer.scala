@@ -2,7 +2,7 @@ package colossus.protocols.http
 
 import colossus.IOSystem
 import colossus.controller.Controller
-import colossus.core.{InitContext, PipelineHandler, ServerContext}
+import colossus.core.{InitContext, PipelineHandler, ServerContext, ServerSettings}
 import colossus.service._
 
 class HttpServiceHandler(rh: RequestHandler) extends ServiceServer[Http](rh) {}
@@ -31,8 +31,7 @@ abstract class Initializer(ctx: InitContext) extends Generator(ctx) with Service
 /**
   * A RequestHandler contains the business logic for transforming [[HttpRequest]] into [[HttpResponse]] objects.
   */
-abstract class RequestHandler(ctx: ServerContext, config: ServiceConfig) extends GenRequestHandler[Http](ctx, config) {
-  def this(ctx: ServerContext) = this(ctx, ServiceConfig.load(ctx.name))
+abstract class RequestHandler(ctx: ServerContext) extends GenRequestHandler[Http](ctx) {
 
   val defaults = new Http.ServerDefaults
 

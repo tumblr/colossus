@@ -1,13 +1,15 @@
 package colossus.core
 
-import com.typesafe.config.{Config, ConfigFactory}
+import colossus.parsing.DataSize
+import colossus.service.ErrorConfig
+import colossus.metrics.ConfigHelpers._
+import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
+import scala.util.Try
 
 /** Contains values for configuring how a Server operates
-  *
-  * These are all lower-level configuration settings that are for the most part
-  * not concerned with a server's application behavior
   *
   * The low/high watermark percentages are used to help mitigate connection
   * overload.  When a server hits the high watermark percentage of live
@@ -32,7 +34,7 @@ import scala.concurrent.duration._
   * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
   * to handle delegator startup.  Since a Server waits for a signal from the
   * [[colossus.IOSystem]] that every worker has properly initialized a
-  * [[colossus.core.Initializer]], this determines how long to wait before the
+  * [[colossus.core.server.Initializer]], this determines how long to wait before the
   * initialization is considered a failure and whether to retry the
   * initialization.
   *
@@ -40,34 +42,47 @@ import scala.concurrent.duration._
   * request to every open connection.  This determines how long it will wait for
   * every connection to self-terminate before it forcibly closes them and
   * completes the shutdown.
+  *   * @param requestTimeout how long to wait until we timeout the request
+  * @param requestBufferSize how many concurrent requests a single connection can be processing
+  * @param logErrors if true, any uncaught exceptions or service-level errors will be logged
+  * @param requestMetrics toggle request metrics
+  * @param maxRequestSize max size allowed for requests
   */
 case class ServerSettings(
     port: Int,
     slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
-    maxConnections: Int = 1000,
-    maxIdleTime: Duration = Duration.Inf,
-    lowWatermarkPercentage: Double = 0.75,
-    highWatermarkPercentage: Double = 0.85,
-    highWaterMaxIdleTime: FiniteDuration = 100.milliseconds,
+    maxConnections: Int,
+    maxIdleTime: Duration,
+    lowWatermarkPercentage: Double,
+    highWatermarkPercentage: Double,
+    highWaterMaxIdleTime: FiniteDuration,
     tcpBacklogSize: Option[Int] = None,
-    bindingRetry: RetryPolicy = BackoffPolicy(100.milliseconds, BackoffMultiplier.Exponential(1.second)),
-    delegatorCreationPolicy: WaitPolicy =
-      WaitPolicy(500.milliseconds, BackoffPolicy(50.milliseconds, BackoffMultiplier.Constant)),
-    shutdownTimeout: FiniteDuration = 100.milliseconds,
-    reuseAddress: Option[Boolean] = None
+    bindingRetry: RetryPolicy,
+    delegatorCreationPolicy: WaitPolicy,
+    shutdownTimeout: FiniteDuration,
+    reuseAddress: Option[Boolean] = None,
+    requestTimeout: Duration,
+    requestBufferSize: Int,
+    logErrors: Boolean,
+    requestMetrics: Boolean,
+    maxRequestSize: DataSize,
+    errorConfig: ErrorConfig
 ) {
-  def lowWatermark  = lowWatermarkPercentage * maxConnections
-  def highWatermark = highWatermarkPercentage * maxConnections
+  def lowWatermark: Double  = lowWatermarkPercentage * maxConnections
+  def highWatermark: Double = highWatermarkPercentage * maxConnections
 }
 
 object ServerSettings {
   val ConfigRoot = "colossus.server"
 
-  def extract(config: Config): ServerSettings = {
-    import colossus.metrics.ConfigHelpers._
+  lazy val default: ServerSettings = extract(ConfigFactory.load().getConfig(s"$ConfigRoot.default"))
 
-    val bindingRetry            = RetryPolicy.fromConfig(config.getConfig("binding-retry"))
-    val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
+  def extract(config: Config): ServerSettings = {
+
+    val errorConf      = config.getConfig("errors")
+    val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
+    val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
+    val errorConfig    = ErrorConfig(errorsDoNotLog, errorsLogName)
 
     ServerSettings(
       port = config.getInt("port"),
@@ -78,20 +93,28 @@ object ServerSettings {
       highWatermarkPercentage = config.getDouble("high-watermark-percentage"),
       highWaterMaxIdleTime = config.getFiniteDuration("highwater-max-idle-time"),
       tcpBacklogSize = config.getIntOption("tcp-backlog-size"),
-      bindingRetry = bindingRetry,
-      delegatorCreationPolicy = delegatorCreationPolicy,
+      bindingRetry = RetryPolicy.fromConfig(config.getConfig("binding-retry")),
+      delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy")),
       shutdownTimeout = config.getFiniteDuration("shutdown-timeout"),
-      reuseAddress = config.getBoolOption("so-reuse-address")
+      reuseAddress = config.getBoolOption("so-reuse-address"),
+      requestTimeout = config.getScalaDuration("request-timeout"),
+      requestBufferSize = config.getInt("request-buffer-size"),
+      logErrors = config.getBoolean("log-errors"),
+      requestMetrics = config.getBoolean("request-metrics"),
+      maxRequestSize = DataSize(config.getString("max-request-size")),
+      errorConfig = errorConfig
     )
   }
 
   def load(name: String, config: Config = ConfigFactory.load()): ServerSettings = {
     val nameRoot = ConfigRoot + "." + name
-    val resolved = if (config.hasPath(nameRoot)) {
-      config.getConfig(nameRoot).withFallback(config.getConfig(ConfigRoot))
-    } else {
-      config.getConfig(ConfigRoot)
+    val resolved = try {
+      config.getConfig(s"$ConfigRoot.$name").withFallback(config.getConfig(s"$ConfigRoot.default"))
+    } catch {
+      case ex: ConfigException.Missing =>
+        config.getConfig(s"$ConfigRoot.default")
     }
+
     extract(resolved)
 
   }

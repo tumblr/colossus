@@ -281,7 +281,7 @@ class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext,
                                           websocketInit: WebsocketInitializer[E],
                                           upgradePath: String,
                                           origins: List[String])
-    extends colossus.protocols.http.RequestHandler(ctx, ServiceConfig.Default) {
+    extends colossus.protocols.http.RequestHandler(ctx) {
   def handle = {
     case request if (request.head.path == upgradePath) => {
       val response = UpgradeRequest.validate(request, origins) match {
@@ -300,7 +300,6 @@ class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext,
 
 object WebsocketServer {
   import colossus.protocols.http._
-  
 
   /**
     * Start a Websocket server on the specified port.  Since Websocket

@@ -18,7 +18,7 @@ object GenRequestHandler {
 }
 import GenRequestHandler._
 
-abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext, val config: ServiceConfig)
+abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext)
     extends DownstreamEvents
     with HandlerTail
     with UpstreamEventHandler[ServiceUpstream[P]] {
@@ -26,11 +26,11 @@ abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext
   type Request  = P#Request
   type Response = P#Response
 
-  def this(context: ServerContext) = this(context, ServiceConfig.load(context.name))
-
   protected val server = serverContext.server
   def context          = serverContext.context
   implicit val worker  = context.worker
+
+  val config = serverContext.server.config.settings
 
   private var _connectionManager: Option[ConnectionManager] = None
 
