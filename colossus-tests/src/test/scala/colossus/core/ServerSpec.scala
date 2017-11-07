@@ -54,9 +54,7 @@ class ServerSpec extends ColossusSpec {
     }
 
     "expose ConnectionSummary data" in {
-      val settings = ServerSettings(
-        port = TEST_PORT
-      )
+      val settings = ServerSettings.default.copy(port = TEST_PORT)
 
       withServer(serverContext => new EchoHandler(serverContext)) { server =>
         {
@@ -104,9 +102,11 @@ class ServerSpec extends ColossusSpec {
       withIOSystem { implicit io =>
         val existingServer = Server.basic("echo3", TEST_PORT)(context => new EchoHandler(context))
         waitForServer(existingServer)
-        val settings = ServerSettings(port = TEST_PORT,
-                                      bindingRetry =
-                                        BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
+        val settings =
+          ServerSettings.default.copy(
+            port = TEST_PORT,
+            bindingRetry = BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3))
+          )
         val p                         = TestProbe()
         val clashingServer: ServerRef = Server.basic("echo2", settings)(context => new EchoHandler(context))
         p.watch(clashingServer.server)
@@ -122,7 +122,7 @@ class ServerSpec extends ColossusSpec {
         val cfg = ServerConfig(
           "echo",
           badDelegator,
-          ServerSettings(
+          ServerSettings.default.copy(
             TEST_PORT,
             delegatorCreationPolicy =
               WaitPolicy(200 milliseconds,
@@ -183,7 +183,7 @@ class ServerSpec extends ColossusSpec {
       withIOSystem { implicit io =>
         val probe = TestProbe()
         val server =
-          Server.basic("test", ServerSettings(port = TEST_PORT, shutdownTimeout = 1.hour))(
+          Server.basic("test", ServerSettings.default.copy(port = TEST_PORT, shutdownTimeout = 1.hour))(
             serverContext => new EchoHandler(serverContext)
           )
         probe.watch(server.server)
@@ -200,9 +200,10 @@ class ServerSpec extends ColossusSpec {
       withIOSystem { implicit io =>
         val serverProbe = TestProbe()
         val failedServer =
-          Server.start(
-            "fail",
-            ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(initContext =>
+          Server.start("fail",
+                       ServerSettings.default.copy(
+                         TEST_PORT,
+                         delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(initContext =>
             new Initializer(initContext) {
               Thread.sleep(600)
               def onConnect = serverContext => new EchoHandler(serverContext)
@@ -237,7 +238,7 @@ class ServerSpec extends ColossusSpec {
     }
 
     "reject connection when maxed out" in {
-      val settings = ServerSettings(
+      val settings = ServerSettings.default.copy(
         port = TEST_PORT,
         maxConnections = 1
       )
@@ -253,7 +254,7 @@ class ServerSpec extends ColossusSpec {
     }
 
     "open up spot when connection closes" in {
-      val settings = ServerSettings(
+      val settings = ServerSettings.default.copy(
         port = TEST_PORT,
         maxConnections = 1
       )
@@ -273,9 +274,10 @@ class ServerSpec extends ColossusSpec {
 
     "times out idle client connection" in {
       withIOSystem { implicit io =>
-        val server = Server.basic("test", ServerSettings(port = TEST_PORT, maxIdleTime = 100.milliseconds))(
-          serverContext => new EchoHandler(serverContext)
-        )
+        val server =
+          Server.basic("test", ServerSettings.default.copy(port = TEST_PORT, maxIdleTime = 100.milliseconds))(
+            serverContext => new EchoHandler(serverContext)
+          )
         withServer(server) {
           val c = TestClient(server.system, TEST_PORT, connectRetry = NoRetry)
           expectConnections(server, 1)
@@ -311,7 +313,7 @@ class ServerSpec extends ColossusSpec {
     "switch to high water timeout when connection count passes the high water mark" in {
       //for now this test only checks to see that the server switched its status
       withIOSystem { implicit io =>
-        val settings = ServerSettings(
+        val settings = ServerSettings.default.copy(
           port = TEST_PORT,
           maxConnections = 4,
           lowWatermarkPercentage = 0.00,

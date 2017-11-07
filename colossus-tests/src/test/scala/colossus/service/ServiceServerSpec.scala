@@ -12,14 +12,14 @@ import scala.concurrent.duration._
 import org.scalamock.scalatest.MockFactory
 
 class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMocks {
-  val config = ServiceConfig.Default.copy(
+  val config = ServerSettings.default.copy(
     requestBufferSize = 2,
     requestTimeout = 50.milliseconds,
     maxRequestSize = 300.bytes
   )
 
   class FakeHandler(handler: ByteString => Callback[ByteString] = x => Callback.successful(x), context: ServerContext)
-      extends GenRequestHandler[Raw](context, config) {
+      extends GenRequestHandler[Raw](context) {
 
     def handle         = { case req => handler(req) }
     def unhandledError = { case _   => ByteString("ERROR") }
@@ -30,7 +30,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
     val endpoint = MockConnection.server(ctx => {
       val fh = new FakeHandler(handler, ctx)
       new PipelineHandler(new Controller(new ServiceServer[Raw](fh), RawServerCodec), fh)
-    })
+    }, config = Some(config))
 
     endpoint.handler.connected(endpoint)
     endpoint
@@ -39,7 +39,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
   def fs(fn: ByteString => Callback[ByteString] = x => Callback.successful(x))
     : (ServiceServer[Raw], TestUpstream[Encoding.Server[Raw]]) = {
     val upstream = new TestUpstream[Encoding.Server[Raw]]
-    val fh       = new FakeHandler(fn, FakeIOSystem.fakeServerContext)
+    val fh       = new FakeHandler(fn, FakeIOSystem.fakeServerContext(Some(config)))
     val service  = new ServiceServer(fh)
     service.setUpstream(upstream)
     service.connected()
@@ -96,7 +96,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
     }
 
     "timeout request that takes too long" ignore {
-      val serverSettings = ServerSettings(
+      val serverSettings = ServerSettings.default.copy(
         port = TEST_PORT,
         maxIdleTime = Duration.Inf
       )

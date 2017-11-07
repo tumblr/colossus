@@ -1,5 +1,6 @@
 import akka.actor.ActorSystem
 import colossus.IOSystem
+import colossus.core.ServerSettings
 import colossus.parsing.DataSize._
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
@@ -12,10 +13,11 @@ import scala.concurrent.duration._
 
 object ServiceConfigExample {
   implicit val actorSystem = ActorSystem()
-  implicit val ioSystem = IOSystem()
+  implicit val ioSystem    = IOSystem()
 
   // #example
-  val serviceConfig = ServiceConfig(
+  val serviceConfig = ServerSettings.default.copy(
+    port = 9000,
     requestTimeout = 1.second,
     requestBufferSize = 100,
     logErrors = true,
@@ -28,26 +30,28 @@ object ServiceConfigExample {
   )
   // #example
 
-  HttpServer.start("example-server", 9000) { initContext =>
+  HttpServer.start("example-server", serviceConfig) { initContext =>
     new Initializer(initContext) {
       // #example1
-      override def onConnect = serverContext => new RequestHandler(serverContext, serviceConfig) {
-        // #example1
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root => Callback.successful(request.ok("Hello world!"))
-        }
-
-        // #example2
-        override def requestLogFormat: Option[RequestFormatter[Request]] = {
-          val customFormatter = new ConfigurableRequestFormatter[Request](serviceConfig.errorConfig) {
-            override def format(request: Request, error: Throwable): Option[String] = {
-              Some(s"$request failed with ${error.getClass.getSimpleName}")
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            // #example1
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root => Callback.successful(request.ok("Hello world!"))
             }
-          }
-          Some(customFormatter)
+
+            // #example2
+            override def requestLogFormat: Option[RequestFormatter[Request]] = {
+              val customFormatter = new ConfigurableRequestFormatter[Request](serviceConfig.errorConfig) {
+                override def format(request: Request, error: Throwable): Option[String] = {
+                  Some(s"$request failed with ${error.getClass.getSimpleName}")
+                }
+              }
+              Some(customFormatter)
+            }
+            // #example2
         }
-        // #example2
-      }
     }
   }
 }

@@ -147,3 +147,4 @@ lazy val ColossusTestsProject = Project(
   base = file("colossus-tests"),
   dependencies = Seq(ColossusTestkitProject % "compile;test->test")
 ).settings(noPubSettings: _*).configs(IntegrationTest)
+  .settings(libraryDependencies ++= Seq("ch.qos.logback" % "logback-classic" % "1.2.2"))

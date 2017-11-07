@@ -463,7 +463,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
           val client = Raw.futureFactory(config)
           TestUtil.expectServerConnections(server, 0)
-          TestClient.waitForStatus(client, ConnectionStatus.NotConnected)
+          TestClient.waitForStatus(client, ConnectionStatus.NotConnected, 10)
         }
       }
     }

@@ -70,9 +70,11 @@ trait TypedMockConnection[T <: ConnectionHandler] extends MockConnection {
 
 object MockConnection {
 
-  def server[T <: ServerConnectionHandler](handlerF: ServerContext => T, _maxWriteSize: Int = 1024)(
+  def server[T <: ServerConnectionHandler](handlerF: ServerContext => T,
+                                           _maxWriteSize: Int = 1024,
+                                           config: Option[ServerSettings] = None)(
       implicit sys: ActorSystem): ServerConnection with TypedMockConnection[T] = {
-    val (_serverProbe, server) = FakeIOSystem.fakeServerRef
+    val (_serverProbe, server) = FakeIOSystem.fakeServerRef(config)
     val fw                     = FakeIOSystem.fakeWorker
     val ctx                    = ServerContext(server, fw.worker.generateContext())
     val _handler               = handlerF(ctx)

@@ -39,13 +39,13 @@ object FakeIOSystem {
 
   def fakeContext(implicit system: ActorSystem) = fakeWorker.worker.generateContext()
 
-  def fakeServerContext(implicit system: ActorSystem) = {
-    val (_serverProbe, server) = FakeIOSystem.fakeServerRef
+  def fakeServerContext(config: Option[ServerSettings] = None)(implicit system: ActorSystem) = {
+    val (_serverProbe, server) = FakeIOSystem.fakeServerRef(config)
     ServerContext(server, fakeContext)
   }
 
-  def fakeInitContext(implicit system: ActorSystem) = {
-    val (_, s) = fakeServerRef
+  def fakeInitContext(config: Option[ServerSettings] = None)(implicit system: ActorSystem) = {
+    val (_, s) = fakeServerRef(config)
     val (_, w) = fakeWorkerRef
     InitContext(s, w)
   }
@@ -53,12 +53,12 @@ object FakeIOSystem {
   /**
     * Returns a ServerRef representing a server in the Bound state
     */
-  def fakeServerRef(implicit system: ActorSystem): (TestProbe, ServerRef) = {
+  def fakeServerRef(configOpt: Option[ServerSettings] = None)(implicit system: ActorSystem): (TestProbe, ServerRef) = {
     val probe = TestProbe()
     val config = ServerConfig(
       "/foo",
       (initContext) => ???,
-      ServerSettings(987)
+      configOpt.getOrElse(ServerSettings.default.copy(port = 987))
     )
     val ref = ServerRef(config,
                         probe.ref,

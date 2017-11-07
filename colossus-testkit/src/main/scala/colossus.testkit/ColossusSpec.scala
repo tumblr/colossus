@@ -104,10 +104,7 @@ abstract class ColossusSpec(_system: ActorSystem)
     withIOSystem { implicit io =>
       val config = ServerConfig(
         name = "async-test",
-        settings = customSettings.getOrElse(
-          ServerSettings(
-            port = TEST_PORT
-          )),
+        settings = customSettings.getOrElse(ServerSettings.default.copy(port = TEST_PORT)),
         initializerFactory = factory
       )
       val server = Server(config)
