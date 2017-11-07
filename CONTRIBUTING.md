@@ -106,6 +106,27 @@ In order to accept your pull request, we need you to submit a Contributor Licens
     
 6. Merge master into develop and update version in `version.sbt` to point to the next snapshot.
 
+# Publishing Snapshots
+
+1. Update version ending with `-SNAPSHOT` in `version.sbt` 
+    ```bash
+    git add version.sbt
+    git commit -m "v{VERSION NUMBER}"
+    ```
+2. Create tag using just the version with `-SNAPSHOT`.
+    ```bash
+    git tag -a v{VERSION NUMBER}
+    ```
+3. Push changes to remote; travis will build and automatically publish to [sonatype](https://oss.sonatype.org/).
+    ```bash
+    git push origin 
+    ``` 
+4. Remove tag
+    ```bash
+    git tag --delete tagname
+    git push --delete origin tagname
+    ```
+
 ## License
 
 By contributing to Colossus you agree that your contributions will be licensed under its Apache 2.0 license.
