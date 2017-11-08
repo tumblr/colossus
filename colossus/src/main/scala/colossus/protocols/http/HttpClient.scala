@@ -1,4 +1,5 @@
 package colossus.protocols.http
+
 import colossus.service._
 
 import scala.language.higherKinds
@@ -7,15 +8,13 @@ trait BaseHttpClient[M[_], B, P <: BaseHttp[B]] extends LiftedClient[P, M] {
 
   def ops: MessageOps[HttpRequestHead, B, P#Request] // = implicitly[MessageOps[HttpRequestHead, B, P#Request]]
 
-  protected lazy val hostHeader = clientConfig.map(config => {
-    HttpHeader(HttpHeaders.Host, config.address.getHostName)
-  })
+  protected lazy val hostHeader = HttpHeader(HttpHeaders.Host, address.getHostName)
 
   override def send(input: P#Request): M[P#Response] = {
     val headers = input.head.headers
     val decoratedRequest = headers.firstValue(HttpHeaders.Host) match {
       case Some(_) => input // Host header is already present.
-      case None    => hostHeader.map(header => ops.withHeader(input, header)).getOrElse(input)
+      case None    => ops.withHeader(input, hostHeader)
     }
     super.send(decoratedRequest)
   }

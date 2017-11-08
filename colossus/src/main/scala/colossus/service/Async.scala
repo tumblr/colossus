@@ -1,9 +1,13 @@
 package colossus.service
 
-import scala.concurrent.Future
+import java.net.InetSocketAddress
+
+import scala.concurrent.{Future, Promise}
 import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef
+
+import scala.concurrent.duration.FiniteDuration
 
 /**
   * A Sender is anything that is able to asynchronously send a request and
@@ -16,6 +20,8 @@ trait Sender[P <: Protocol, M[_]] {
   def disconnect()
   
   def addInterceptor(interceptor: Interceptor[P]): Unit
+
+  def address(): InetSocketAddress
 
 }
 
@@ -38,6 +44,11 @@ trait Async[M[_]] {
 
   def failure[T](ex: Throwable): M[T]
 
+  def recoverWith[T, U >: T](t: M[T])(p: PartialFunction[Throwable, M[U]]): M[U]
+
+  def delay[T](delay: FiniteDuration)(block: => M[T]): M[T]
+
+  def execute[T](t: M[T]): Unit
 }
 
 /**
@@ -52,19 +63,19 @@ trait AsyncBuilder[M[_], E] {
 object AsyncBuilder {
 
   implicit object CallbackAsyncBuilder extends AsyncBuilder[Callback, WorkerRef] {
-    def build(w: WorkerRef) = CallbackAsync
+    def build(w: WorkerRef) = new CallbackAsync(w.callbackExecutor)
   }
 
   implicit object FutureAsyncBuilder extends AsyncBuilder[Future, IOSystem] {
-    def build(i: IOSystem) = new FutureAsync()(i)
+    def build(i: IOSystem) = new FutureAsync(i)
   }
 }
 
-object CallbackAsync extends Async[Callback] {
+class CallbackAsync(val callbackExecutor: CallbackExecutor) extends Async[Callback] {
 
-  type E = Unit //we don't actually need any environment for callbacks
+  type E = CallbackExecutor
 
-  implicit val environment: E = ()
+  implicit val environment: E = callbackExecutor
 
   def map[T, U](t: Callback[T])(f: (T) => U): Callback[U] = t.map(f)
 
@@ -73,9 +84,18 @@ object CallbackAsync extends Async[Callback] {
   def success[T](t: T): Callback[T] = Callback.successful(t)
 
   def failure[T](ex: Throwable): Callback[T] = Callback.failed(ex)
+
+  def recoverWith[T, U >: T](t: Callback[T])(p: PartialFunction[Throwable, Callback[U]]): Callback[U] = t.recoverWith(p)
+
+  def delay[T](delay: FiniteDuration)(block: => Callback[T]): Callback[T] =
+    Callback.schedule(delay)(block)
+
+  override def execute[T](t: Callback[T]): Unit = {
+    t.execute()
+  }
 }
 
-class FutureAsync(implicit val environment: IOSystem) extends Async[Future] {
+class FutureAsync(val environment: IOSystem) extends Async[Future] {
 
   type E = IOSystem
 
@@ -88,4 +108,24 @@ class FutureAsync(implicit val environment: IOSystem) extends Async[Future] {
   def success[T](t: T): Future[T] = Future.successful(t)
 
   def failure[T](ex: Throwable): Future[T] = Future.failed(ex)
+
+  def recoverWith[T, U >: T](t: Future[T])(p: PartialFunction[Throwable, Future[U]]): Future[U] = t.recoverWith(p)
+
+  def delay[T](delay: FiniteDuration)(block: => Future[T]): Future[T] = {
+    val promise = Promise[T]
+    environment.actorSystem.scheduler.scheduleOnce(delay) {
+      val whenItGoesWell = flatMap(block) { t =>
+        promise.success(t).future
+      }
+      recoverWith(whenItGoesWell) {
+        case throwable =>
+          promise.failure(throwable).future
+      }
+    }
+    promise.future
+  }
+
+  override def execute[T](t: Future[T]): Unit = {
+    Unit
+  }
 }

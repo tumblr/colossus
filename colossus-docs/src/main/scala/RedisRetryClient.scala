@@ -9,8 +9,8 @@ import colossus.protocols.http.UrlParsing.{Root, on}
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.service.LoadBalancingClient
 
+/*
 object RedisRetryClient extends App {
 
   implicit val actorSystem = ActorSystem()
@@ -40,3 +40,4 @@ object RedisRetryClient extends App {
   }
   // #example
 }
+ */

@@ -22,7 +22,7 @@ object GenericClient extends App {
   }
 
   // using future client
-  implicit val futureAsync      = new FutureAsync()
+  implicit val futureAsync      = new FutureAsync(ioSystem)
   implicit val executionContext = actorSystem.dispatcher
   doTheThing(Http.futureClient("example.org", 80)).map { string =>
     println(string)
@@ -32,16 +32,18 @@ object GenericClient extends App {
     new Initializer(initContext) {
       val client = Http.client("example.org", 80)
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root =>
-            // using callback client
-            implicit val callbackAsync = CallbackAsync
-            doTheThing(client).map { string =>
-              request.ok(string)
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root =>
+                // using callback client
+                implicit val callbackAsync = new CallbackAsync(worker.callbackExecutor)
+                doTheThing(client).map { string =>
+                  request.ok(string)
+                }
             }
         }
-      }
     }
   }
   // #example

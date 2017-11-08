@@ -14,7 +14,7 @@ trait PR extends Protocol {
 
 class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
 
-  type C = Sender[PR, Callback]
+  /*type C = Sender[PR, Callback]
 
   implicit val executor = FakeIOSystem.testExecutor
 
@@ -168,7 +168,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
         val x = MockConnection.client(h, fw, 1024)
         h.connected(x)
         h
-       */
+ */
       }
       val l = new LoadBalancingClient[PR](fw.worker, generator, maxTries = 2, initialClients = addrs(3))
 
@@ -223,6 +223,6 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
       p.get(addr) must equal(None)
       p.get(addr2).isEmpty must equal(false)
     }
-  }
+  }*/
 
 }
