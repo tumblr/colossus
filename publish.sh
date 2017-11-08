@@ -5,7 +5,7 @@ if [[ $CI != 'true' ]]; then
     exit 0
 fi
  
-if [[ $TRAVIS_BRANCH =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+|-M[0-9]+)?$ || ($TRAVIS_PULL_REQUEST == "false" && $TRAVIS_BRANCH =~ ^v[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ && $(cat version.sbt) =~ "-SNAPSHOT") ]]; then
+if [[ $TRAVIS_BRANCH =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-RC[0-9]+|-M[0-9]+)?$ ]]; then
     # decrypt secrets & untar 
     openssl aes-256-cbc -K $encrypted_9df8dc1a95a3_key -iv $encrypted_9df8dc1a95a3_iv -in secrets.tar.enc -out secrets.tar -d
     tar xvf secrets.tar

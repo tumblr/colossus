@@ -78,7 +78,7 @@ In order to accept your pull request, we need you to submit a Contributor Licens
 # Publish
 
 1. Merge develop (or hot fix branch) into master.
-2. Update version in `version.sbt` and add to `docs.yml`
+2. Update version in `version.sbt` and add to `docs.yml` (append `RC{X}` for release candidates)
 
     ```bash
     git add version.sbt
@@ -106,14 +106,14 @@ In order to accept your pull request, we need you to submit a Contributor Licens
     
 6. Merge master into develop and update version in `version.sbt` to point to the next snapshot.
 
-# Publishing Snapshots
+# Publishing Milestones
 
-1. Update version ending with `-SNAPSHOT` in `version.sbt` 
+1. On develop update version (must end with `-M{milestone number}`) in `version.sbt` 
     ```bash
     git add version.sbt
     git commit -m "v{VERSION NUMBER}"
     ```
-2. Create tag using just the version with `-SNAPSHOT`.
+2. Create tag using just the version (with `-M{X}`).
     ```bash
     git tag -a v{VERSION NUMBER}
     ```
@@ -121,11 +121,6 @@ In order to accept your pull request, we need you to submit a Contributor Licens
     ```bash
     git push origin 
     ``` 
-4. Remove tag
-    ```bash
-    git tag --delete tagname
-    git push --delete origin tagname
-    ```
 
 ## License
 
