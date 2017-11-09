@@ -7,7 +7,7 @@ Colossus has a test kit that includes some classes for simplifying tests for ser
 Make sure you add `colossus-testkit` to your dependencies, using the same version as colossus itself.  For example:
 
 ```sbtshell
-libraryDependencies += "com.tumblr" %% "colossus-testkit" % "LATEST_VERSION" % "test
+libraryDependencies += "com.tumblr" %% "colossus-testkit" % "LATEST_VERSION" % "test"
 ```
 
 ## Unit Testing
