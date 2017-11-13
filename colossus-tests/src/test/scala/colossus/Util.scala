@@ -158,7 +158,7 @@ object TestClient {
     waitForStatus(client, ConnectionStatus.Connected, maxTries)
   }
 
-  def waitForStatus[P <: Protocol](client: FutureClient[P], status: ConnectionStatus, maxTries: Int = 5) {
+  def waitForStatus[P <: Protocol](client: FutureClient[P], status: ConnectionStatus, maxTries: Int = 10) {
     var tries = maxTries
     var last  = Await.result(client.connectionStatus, 10.seconds)
     while (last != status) {
