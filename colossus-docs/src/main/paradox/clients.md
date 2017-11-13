@@ -114,7 +114,7 @@ The equivalent command would be "get 1" from a telnet session on 11211.
 When using the memcached client an implicit workerRef is required when using the Callback
 interface.  An implicit ClientCodeProvider is required.
 
-@@snip [MemcacheClient.scala](../scala/MemcacheClient.scala) { #example }
+@@snip [MemcacheClientExample.scala](../scala/MemcacheClientExample.scala) { #example }
 
 
 ### Redis Example
@@ -131,12 +131,11 @@ interface.  An implicit ClientCodeProvider is required.
 ### Retry Policy
 
 In the event of a Connection Failure, the service client uses a 
-[RetryPolicy](https://tumblr.github.io/colossus/api/index.html#colossus.core.RetryPolicy)
+@extref[RetryPolicy](docs:colossus.core.RetryPolicy)
 for re-establishing connections.  Each service client takes in a RetryPolicy on
 creation.  The client defaults to an exponential backoff starting at 50 
 milliseconds and with a maximum of 5 seconds.  The policy type can be either 
-[NoRetry](https://tumblr.github.io/colossus/api/index.html#colossus.core.NoRetry) 
-or [BackoffPolicy](https://tumblr.github.io/colossus/api/index.html#colossus.core.BackoffPolicy).
+@extref[NoRetry](docs:colossus.core.NoRetry) or @extref[BackoffPolicy](docs:colossus.core.BackoffPolicy).
 
 A Backoff retry policy contains a multiplier which can be:
  

@@ -23,19 +23,19 @@ If an `IOSystem` is constructed without a `MetricSystem`, it will create a new o
 
 Servers will look for path-based configuration at the path
 `colossus.server.<name>`, falling back to just `colossus.server` for defaults.
-See the API documentation for [Server](https://tumblr.github.io/colossus/api/index.html#colossus.core.Server$) and [ServerSettings](https://tumblr.github.io/colossus/api/index.html#colossus.core.ServerSettings) for more details
+See the API documentation for @extref[Server](docs:colossus.core.Server$) and @extref[ServerSettings](docs:colossus.core.ServerSettings) for more details
 
 ### Configuring Service Request Handlers
 
 Request handlers will look for path-based config in the path
 `colossus.service.<name>`, where "name" is the name of the server of the request
-handler.  See the API docs for [Service](https://tumblr.github.io/colossus/api/index.html#colossus.service.Service) and [ServiceConfig](https://tumblr.github.io/colossus/api/index.html#colossus.service.ServiceConfig) for more details.
+handler.  See the API docs for @extref[Service](docs:colossus.service.Service) and @extref[ServiceConfig](docs:colossus.service.ServiceConfig) for more details.
 
 ### Configuring Service Clients
 
-Clients will look for path-based config in the path `colossus.client.<name>`
-where name is the name of the client.  See the API docs for
-[ServiceClientFactory](https://tumblr.github.io/colossus/api/index.html#colossus.service.ClientFactory) and [ClientConfig](https://tumblr.github.io/colossus/api/index.html#colossus.service.ClientConfig) for more details.
+Clients will look for path-based config in the path `colossus.client.<name>` where name is the name of the client. See 
+the API docs for @extref[ServiceClientFactory](docs:colossus.service.ClientFactory) and 
+@extref[ClientConfig](docs:colossus.service.ClientConfig) for more details.
 
 
 

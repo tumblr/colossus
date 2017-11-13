@@ -10,7 +10,7 @@ import colossus.service.GenRequestHandler.PartialHandler
 
 import scala.util.{Failure, Success}
 
-object RedisClient extends App {
+object RedisClientExample2 extends App {
 
   implicit val actorSystem = ActorSystem()
   implicit val ioSystem    = IOSystem()
@@ -21,23 +21,25 @@ object RedisClient extends App {
 
       val redisClient = Redis.client("localhost", 6379)
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
 
-          case req @ Get on Root / "get" / key => {
-            redisClient.get(ByteString(key)).mapTry {
-              case Success(data) => Success(req.ok(data.utf8String))
-              case Failure(_)    => Success(req.notFound(s"Key $key was not found"))
-            }
-          }
+              case req @ Get on Root / "get" / key => {
+                redisClient.get(ByteString(key)).mapTry {
+                  case Success(data) => Success(req.ok(data.utf8String))
+                  case Failure(_)    => Success(req.notFound(s"Key $key was not found"))
+                }
+              }
 
-          case req @ Get on Root / "set" / key / value => {
-            redisClient.set(ByteString(key), ByteString(value)).map { _ =>
-              req.ok("OK")
+              case req @ Get on Root / "set" / key / value => {
+                redisClient.set(ByteString(key), ByteString(value)).map { _ =>
+                  req.ok("OK")
+                }
+              }
             }
-          }
         }
-      }
     }
   }
   // #redis-client

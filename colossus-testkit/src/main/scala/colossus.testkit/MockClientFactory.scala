@@ -4,7 +4,9 @@ import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef
 import colossus.service._
+
 import scala.concurrent.Future
+import scala.util.Try
 
 object MockSender {
 
@@ -14,6 +16,10 @@ object MockSender {
     def disconnect() {}
 
     override def addInterceptor(interceptor: Interceptor[P]): Unit = {}
+  }
+
+  def mockResponse[C <: Protocol](map: Map[C#Request, Try[C#Response]]): C#Request => Callback[C#Response] = { c =>
+    Callback.complete(map(c))
   }
 }
 
