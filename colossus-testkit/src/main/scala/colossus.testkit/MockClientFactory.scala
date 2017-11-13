@@ -1,9 +1,12 @@
 package colossus.testkit
 
+import java.net.InetSocketAddress
+
 import scala.language.higherKinds
 import colossus.IOSystem
 import colossus.core.WorkerRef
 import colossus.service._
+
 import scala.concurrent.Future
 
 object MockSender {
@@ -14,6 +17,10 @@ object MockSender {
     def disconnect() {}
 
     override def addInterceptor(interceptor: Interceptor[P]): Unit = {}
+
+    override def address() = new InetSocketAddress(8888)
+
+    override def update(addresses: Seq[InetSocketAddress]): Unit = {}
   }
 }
 

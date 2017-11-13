@@ -15,7 +15,7 @@ class HttpClientSpec extends ColossusSpec with MockFactory {
   "Http Client" must {
 
     val clientConfig = ClientConfig(
-      address = new InetSocketAddress("localhost", 80),
+      address = Seq(new InetSocketAddress("localhost", 80)),
       requestTimeout = Duration.Inf,
       name = MetricAddress.Root / "testMetric"
     )
@@ -27,6 +27,7 @@ class HttpClientSpec extends ColossusSpec with MockFactory {
         val sender = mock[Sender[Http, Future]]
 
         val expectedRequest = request.withHeader("host", "localhost")
+        (sender.address _).expects().returns(new InetSocketAddress("localhost", 88))
         (sender.send _).expects(expectedRequest)
 
         val httpClient = Http.futureClient(sender, clientConfig)

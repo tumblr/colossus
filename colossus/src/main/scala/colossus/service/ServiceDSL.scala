@@ -161,15 +161,21 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
 
   def apply(config: ClientConfig)(implicit env: E): T
 
+  def apply(hosts: Seq[InetSocketAddress])(implicit env: E): T = {
+    // TODO default request timeout should come from config
+    apply(hosts, 1.second)
+  }
+
   def apply(host: String, port: Int)(implicit env: E): T = {
+    // TODO default request timeout should come from config
     apply(host, port, 1.second)
   }
 
   def apply(host: String, port: Int, requestTimeout: Duration)(implicit env: E): T = {
-    apply(new InetSocketAddress(host, port), requestTimeout)
+    apply(Seq(new InetSocketAddress(host, port)), requestTimeout)
   }
 
-  def apply(address: InetSocketAddress, requestTimeout: Duration)(implicit env: E): T = {
+  def apply(address: Seq[InetSocketAddress], requestTimeout: Duration)(implicit env: E): T = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,
@@ -179,31 +185,36 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
   }
 }
 
-trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef] {
+trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Client[P, Callback], WorkerRef] {
 
   implicit def clientTagDecorator: TagDecorator[P]
-  
+
   def connectionHandler(base: ServiceClient[P], codec: Codec[Encoding.Client[P]]): ClientConnectionHandler = {
     new UnbindHandler(new Controller[Encoding.Client[P]](base, codec), base)
   }
 
   def codecProvider: Codec.Client[P]
 
-  def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+  def apply(config: ClientConfig)(implicit worker: WorkerRef): Client[P, Callback] = {
+    new LoadBalancer[P, Client[P, Callback]](config, this)
+  }
+
+  def createClient(config: ClientConfig, address: InetSocketAddress)(
+      implicit worker: WorkerRef): Client[P, Callback] = {
     //TODO : binding a client needs to be split up from creating the connection handler
     // we should make a method called "create" the abstract method, and have
     // this apply call it, then move this to a more generic parent type
-    val base    = new ServiceClient[P](config, worker.generateContext())
+    val base    = new ServiceClient[P](address, config, worker.generateContext())
     val handler = connectionHandler(base, codecProvider)
     worker.worker ! WorkerCommand.Bind(handler)
     base
   }
-
 }
 
 object ServiceClientFactory {
 
-  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P],
+  def basic[P <: Protocol](name: String,
+                           provider: () => Codec.Client[P],
                            tagDecorator: TagDecorator[P] = TagDecorator.default[P]) = new ServiceClientFactory[P] {
 
     def defaultName = name
@@ -270,19 +281,20 @@ abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](lifter: C
 
 trait LiftedClient[P <: Protocol, M[_]] extends Sender[P, M] {
 
+  def address: InetSocketAddress = client.address()
   def clientConfig: Option[ClientConfig]
   def client: Sender[P, M]
   implicit val async: Async[M]
 
-  def send(input: P#Request): M[P#Response] = client.send(input)
+  override def send(input: P#Request): M[P#Response] = client.send(input)
 
   protected def executeAndMap[T](i: P#Request)(f: P#Response => M[T]) = async.flatMap(send(i))(f)
 
-  def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
+  override def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
 
-  def disconnect() {
-    client.disconnect()
-  }
+  override def disconnect(): Unit = client.disconnect()
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit = client.update(addresses)
 
 }
 

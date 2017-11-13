@@ -30,7 +30,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-  val client = Memcache.futureClient(ClientConfig(new InetSocketAddress("localhost", 11211), 2.seconds, "memcache"))
+  val client = Memcache.futureClient(ClientConfig(Seq(new InetSocketAddress("localhost", 11211)), 2.seconds, "memcache"))
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 

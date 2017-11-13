@@ -81,7 +81,7 @@ class FutureClientSpec extends ColossusSpec {
     "properly buffer messages before workeritem bound" in {
       withIOSystem { implicit io =>
         val client = TestClient(io, TEST_PORT, waitForConnected = false)
-        intercept[NotConnectedException] {
+        intercept[SendFailedException] {
           Await.result(client.send(ByteString("foo")), 500.milliseconds)
         }
       }

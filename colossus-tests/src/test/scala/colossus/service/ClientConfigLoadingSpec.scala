@@ -16,7 +16,7 @@ class ClientConfigLoadingSpec extends WordSpec with MustMatchers {
       val userOverrides =
         """
           |colossus.client.my-client {
-          |  address : "127.0.0.1:6379"
+          |  address : ["127.0.0.1:6379"]
           |  name : "redis"
           |  pending-buffer-size : 500
           |}
@@ -25,7 +25,7 @@ class ClientConfigLoadingSpec extends WordSpec with MustMatchers {
       val c            = ConfigFactory.parseString(userOverrides).withFallback(ConfigFactory.defaultReference())
       val clientConfig = ClientConfig.load("my-client", c)
 
-      val expected = ClientConfig(new InetSocketAddress("127.0.0.1", 6379),
+      val expected = ClientConfig(Seq(new InetSocketAddress("127.0.0.1", 6379)),
                                   requestTimeout = 1.second,
                                   name = MetricAddress("redis"),
                                   pendingBufferSize = 500)

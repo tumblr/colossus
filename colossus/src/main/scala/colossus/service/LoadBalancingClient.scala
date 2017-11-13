@@ -72,7 +72,7 @@ class SendFailedException(tries: Int, finalCause: Throwable)
   * so setting maxTries to a very large number will mean that every client will
   * be tried once
   *
-  * TODO: does this need to actually be a WorkerItem anymore?
+  * @deprecated
   */
 class LoadBalancingClient[P <: Protocol](
     worker: WorkerRef,
@@ -88,7 +88,7 @@ class LoadBalancingClient[P <: Protocol](
       factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef],
       maxTries: Int
   )(implicit worker: WorkerRef) = {
-    this(worker, address => factory(baseConfig.copy(address = address)), maxTries, addresses)
+    this(worker, address => factory(baseConfig.copy(address = Seq(address))), maxTries, addresses)
   }
 
   val context = worker.generateContext
@@ -172,6 +172,11 @@ class LoadBalancingClient[P <: Protocol](
 
   override def receivedMessage(message: Any, sender: ActorRef) {}
 
-  // TODO: fix this
   override def addInterceptor(interceptor: Interceptor[P]): Unit = clients.foreach(_.client.addInterceptor(interceptor))
+
+  override def address(): InetSocketAddress = throw new NotImplementedError("Deprecated class")
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit = {
+    update(addresses, allowDuplicates = false)
+  }
 }
