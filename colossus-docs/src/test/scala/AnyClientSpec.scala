@@ -24,7 +24,7 @@ class AnyClientSpec extends HttpServiceSpec {
   val basicMemcache: MemcacheCommand => Callback[MemcacheReply] = MockSender.mockResponse[Memcache](
     Map(
       MemcacheCommand.Get(ByteString("bob")) -> Success(MemcacheReply.Value(ByteString("ben"), ByteString("2"), 0)),
-      MemcacheCommand.Get(ByteString("jen")) -> Success(MemcacheReply.NoData),
+      MemcacheCommand.Get(ByteString("jen")) -> Success(MemcacheReply.NoData)
     )
   )
 
