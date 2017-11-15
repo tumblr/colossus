@@ -111,7 +111,7 @@ trait RequestFormatter[I] {
 
   final def formatLogMessage(request: I, error: Throwable): Option[LogMessage] = {
     logWithStackTrace(error).map { includeStackTrace =>
-      val message = format(request, error).getOrElse(request.toString)
+      val message = format(request, error).getOrElse(s"${error.getClass.getSimpleName}: ${request.toString}")
       LogMessage(message, includeStackTrace)
     }
   }
