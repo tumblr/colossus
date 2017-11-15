@@ -58,7 +58,7 @@ object FakeIOSystem {
     val config = ServerConfig(
       "/foo",
       (initContext) => ???,
-      ServerSettings(987)
+      ServerSettings(port = 987)
     )
     val ref = ServerRef(config,
                         probe.ref,
