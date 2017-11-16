@@ -7,7 +7,7 @@ import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpReq
 import colossus.protocols.http.filters.HttpCustomFilters
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.util.ZCompressor
+import colossus.util.{GzipCompressor, ZCompressor}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{MustMatchers, WordSpec}
 
@@ -19,20 +19,48 @@ class HttpCustomFiltersSpec extends WordSpec with MustMatchers with ScalaFutures
 
   "Gzip custom filter" should {
     "do not compress" in {
-      val filter = new HttpCustomFilters.GZipFilter()
+      val filter = new HttpCustomFilters.CompressionFilter()
       val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(HttpRequest.base)
       e.toFuture.futureValue.body.bytes mustBe(ByteString("hello-world"))
     }
 
-    "compress if accept encoding is set" in {
-      val filter = new HttpCustomFilters.GZipFilter()
+    "compress if accept encoding is deflate" in {
+      val filter = new HttpCustomFilters.CompressionFilter()
+      val request = HttpRequest(
+        HttpMethod.Get,
+        "/",
+        HttpHeaders() + (HttpHeaders.AcceptEncoding, "deflate"),
+        HttpBody.NoBody)
+
+      val c = new ZCompressor()
+      val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(request)
+
+      e.toFuture.futureValue.body.bytes mustBe(c.compress(ByteString("hello-world".getBytes())))
+    }
+
+    "won't compress if accept encoding is no supported" in {
+      val filter = new HttpCustomFilters.CompressionFilter()
+      val request = HttpRequest(
+        HttpMethod.Get,
+        "/",
+        HttpHeaders() + (HttpHeaders.AcceptEncoding, "compress"),
+        HttpBody.NoBody)
+
+      val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(request)
+
+      e.toFuture.futureValue.body.bytes mustBe(ByteString("hello-world".getBytes()))
+    }
+
+
+    "compress if accept encoding is gzip" in {
+      val filter = new HttpCustomFilters.CompressionFilter()
       val request = HttpRequest(
         HttpMethod.Get,
         "/",
         HttpHeaders() + (HttpHeaders.AcceptEncoding, "gzip"),
         HttpBody.NoBody)
 
-      val c = new ZCompressor()
+      val c = new GzipCompressor()
       val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(request)
 
       e.toFuture.futureValue.body.bytes mustBe(c.compress(ByteString("hello-world".getBytes())))

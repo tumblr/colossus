@@ -3,28 +3,37 @@ package colossus.protocols.http.filters
 import colossus.protocols.http.{ContentEncoding, Http, HttpBody, HttpHeaders}
 import colossus.service.Filter
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.util.ZCompressor
+import colossus.util.{GzipCompressor, ZCompressor}
 
 
 object HttpCustomFilters {
-  class GZipFilter extends Filter[Http] {
+
+  class CompressionFilter(bufferedKb: Int = 10) extends Filter[Http] {
+
     override def apply(next: PartialHandler[Http]): PartialHandler[Http] = {
       case request =>
+        val maybeCompressor = request.head.headers.firstValue(HttpHeaders.AcceptEncoding).flatMap { header =>
+          if (header.contains(ContentEncoding.Gzip.value)) {
+            Some(new GzipCompressor(bufferedKb), ContentEncoding.Gzip)
+          } else if (header.contains(ContentEncoding.Deflate.value)) {
+            Some(new ZCompressor(bufferedKb), ContentEncoding.Deflate)
+          } else {
+            None
+          }
+        }
+
         next(request).map { response =>
-          request.head.headers.firstValue(HttpHeaders.AcceptEncoding) match {
-            case Some(header) if header.toLowerCase.contains(ContentEncoding.Gzip.value) =>
-              val deflater = new ZCompressor()
-              val compressed = deflater.compress(response.body.bytes)
-              val headers = response.head.headers + (HttpHeaders.ContentEncoding, ContentEncoding.Gzip.value)
+          maybeCompressor match {
+            case Some((compressor, encoding)) =>
+              val compressed = compressor.compress(response.body.bytes)
+              val headers = response.head.headers + (HttpHeaders.ContentEncoding, encoding.value)
               val newHead = response.head.copy(headers = headers)
-
               response.copy(body = HttpBody(compressed), head = newHead)
-
-            case _ =>
+            case None =>
               response
           }
         }
     }
   }
-}
 
+}

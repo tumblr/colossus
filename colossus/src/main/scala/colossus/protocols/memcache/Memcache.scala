@@ -3,7 +3,6 @@ package colossus.protocols.memcache
 import colossus.controller.Codec
 import colossus.core._
 import akka.util.{ByteString, ByteStringBuilder}
-import java.util.zip.{Deflater, Inflater}
 
 import colossus.util.{Compressor, NoCompressor}
 

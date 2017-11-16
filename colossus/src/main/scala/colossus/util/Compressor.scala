@@ -1,16 +1,19 @@
 package colossus.util
 
-import java.util.zip.{Deflater, Inflater}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util.zip._
 
 import akka.util.{ByteString, ByteStringBuilder}
 
 trait Compressor {
   def compress(bytes: ByteString): ByteString
+
   def decompress(bytes: ByteString): ByteString
 }
 
 object NoCompressor extends Compressor {
-  def compress(bytes: ByteString): ByteString   = bytes
+  def compress(bytes: ByteString): ByteString = bytes
+
   def decompress(bytes: ByteString): ByteString = bytes
 }
 
@@ -45,4 +48,32 @@ class ZCompressor(bufferKB: Int = 10) extends Compressor {
   }
 
 }
+
+class GzipCompressor(bufferKB: Int = 10) extends Compressor {
+  override def compress(bytes: ByteString): ByteString = {
+    val bos = new ByteArrayOutputStream(bytes.length)
+    val gzip = new GZIPOutputStream(bos)
+    gzip.write(bytes.toArray)
+    gzip.close()
+    val compressed = bos.toByteArray
+    bos.close()
+    ByteString(compressed)
+  }
+
+  override def decompress(bytes: ByteString): ByteString = {
+    val inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes.toArray))
+    val buffer: Array[Byte] = new Array[Byte](1024 * bufferKB)
+    var read: Int = 0
+    val builder = new ByteStringBuilder
+
+    do {
+      read = inputStream.read(buffer)
+      builder.putBytes(buffer, 0, read)
+    } while (read != -1)
+
+    inputStream.close()
+    builder.result()
+  }
+}
+
 

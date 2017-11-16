@@ -25,7 +25,7 @@ object FilterExample extends App {
             override def filters: Seq[Filter[Http]] = Seq(
               new AllowedHostsFilter(),
               new ReverseResponseFilter(),
-              new HttpCustomFilters.GZipFilter()
+              new HttpCustomFilters.CompressionFilter()
             )
             // #example1
         }
