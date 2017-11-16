@@ -1,10 +1,7 @@
-package colossus.protocols.http.client
-
-
+package colossus.protocols.http.filters
 
 import akka.util.ByteString
-import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpRequest, HttpRequestHead, HttpResponse}
-import colossus.protocols.http.filters.HttpCustomFilters
+import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpRequest, HttpResponse}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.util.{GzipCompressor, ZCompressor}

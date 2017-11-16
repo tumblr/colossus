@@ -69,7 +69,7 @@ class GzipCompressor(bufferKB: Int = 10) extends Compressor {
     do {
       read = inputStream.read(buffer)
       builder.putBytes(buffer, 0, read)
-    } while (read != -1)
+    } while (read > 0)
 
     inputStream.close()
     builder.result()
