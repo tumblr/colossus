@@ -63,11 +63,16 @@ object ConfigHelpers {
       }
     }
 
-    def getInetSocketAddress(path: String): InetSocketAddress = {
-      val raw = config.getString(path)
-      raw.split(":") match {
-        case Array(host, Port(x)) => new InetSocketAddress(host, x)
-        case _                    => throw new InvalidHostAddressException(raw)
+    def getInetSocketAddressList(path: String): Seq[InetSocketAddress] = {
+      val raw  = config.getList(path)
+      val list = raw.iterator().asScala.toList
+      list.map { configValue =>
+        println(configValue.unwrapped().asInstanceOf[String])
+
+        configValue.unwrapped().asInstanceOf[String].split(":") match {
+          case Array(host, Port(x)) => new InetSocketAddress(host, x)
+          case _                    => throw new InvalidHostAddressException(raw.render())
+        }
       }
     }
 

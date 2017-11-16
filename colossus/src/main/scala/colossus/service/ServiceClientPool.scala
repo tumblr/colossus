@@ -18,7 +18,7 @@ class ServiceClientPool[T <: Sender[_, Callback]](val commonConfig: ClientConfig
 
   private def create(address: InetSocketAddress) = {
     val config = commonConfig.copy(
-      address = address
+      address = Seq(address)
     )
     val client = creator(config, worker)
     client

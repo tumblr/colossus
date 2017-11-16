@@ -1,5 +1,7 @@
 package colossus.service
 
+import java.net.InetSocketAddress
+
 import akka.actor._
 import akka.util.Timeout
 import java.util.concurrent.atomic.AtomicBoolean
@@ -7,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import colossus.IOSystem
 import colossus.core._
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.duration._
 import scala.language.higherKinds
 
@@ -76,7 +78,10 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
         import scala.concurrent.ExecutionContext.Implicits.global
         promise.completeWith(client.connectionStatus.toFuture)
       }
+
       case interceptor: Interceptor[P] => client.addInterceptor(interceptor)
+
+      case addresses: Seq[InetSocketAddress] => client.update(addresses)
     }
     override def onUnbind() {
       super.onUnbind()
@@ -127,9 +132,13 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
       }
     }
 
+    override def address(): InetSocketAddress = ???
+
     val clientConfig = config
 
     override def addInterceptor(interceptor: Interceptor[P]): Unit = proxy ! interceptor
+
+    override def update(addresses: Seq[InetSocketAddress]): Unit = proxy ! addresses
   }
 
 }
