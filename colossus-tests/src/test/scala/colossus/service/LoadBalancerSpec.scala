@@ -44,8 +44,11 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
       val (serviceClientFactory, sentToClients, interceptorCount) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
-      lb.addInterceptor((request: HttpRequest, callback: Callback[HttpResponse] => Callback[HttpResponse]) => {
-        (request, callback)
+      lb.addInterceptor(new Interceptor[Http] {
+        override def apply(request: HttpRequest, callback: Callback[HttpResponse] => Callback[HttpResponse])
+          : (HttpRequest, Callback[HttpResponse] => Callback[HttpResponse]) = {
+          (request, callback)
+        }
       })
 
       // each client should have the interceptor added
