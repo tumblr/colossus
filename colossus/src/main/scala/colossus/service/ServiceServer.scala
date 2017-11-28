@@ -87,35 +87,16 @@ object ServiceConfig {
     val errorConf      = config.getConfig("errors")
     val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
     val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
-    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize, ErrorConfig(errorsDoNotLog, errorsLogName))
+    ServiceConfig(timeout,
+                  bufferSize,
+                  logErrors,
+                  requestMetrics,
+                  maxRequestSize,
+                  ErrorConfig(errorsDoNotLog, errorsLogName))
   }
 }
 
 case class ErrorConfig(doNotLog: Set[String], logOnlyName: Set[String])
-
-object RequestFormatter {
-  case class LogMessage(message: String, includeStackTrace: Boolean)
-}
-
-trait RequestFormatter[I] {
-  import RequestFormatter._
-
-  /**
-   * None means do not log.
-   * Some(false) means log only the name.
-   * Some(true) means log with stack trace (default).
-   */
-  def logWithStackTrace(error: Throwable): Option[Boolean]
-
-  def format(request: I, error: Throwable): Option[String]
-
-  final def formatLogMessage(request: I, error: Throwable): Option[LogMessage] = {
-    logWithStackTrace(error).map { includeStackTrace =>
-      val message = format(request, error).getOrElse(s"${error.getClass.getSimpleName}: ${request.toString}")
-      LogMessage(message, includeStackTrace)
-    }
-  }
-}
 
 /**
   * The ErrorConfig here is normally loaded from the ServiceConfig.
@@ -221,7 +202,7 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
         case None => {
           val requestString = failure match {
             case RecoverableError(request, _) => request.toString
-            case IrrecoverableError(_) => "Invalid Request"
+            case IrrecoverableError(_)        => "Invalid Request"
           }
           error(s"Error processing request: $requestString", failure.reason)
         }
