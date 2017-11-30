@@ -94,7 +94,7 @@ lazy val ExamplesSettings = Seq(
   )
 )
 
-lazy val RootProject = Project(id = "root", base = file("."))
+lazy val RootProject = Project(id = "colossus-root", base = file("."))
   .settings(noPubSettings: _*)
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
