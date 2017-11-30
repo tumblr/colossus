@@ -32,7 +32,7 @@ class HttpCustomFiltersSpec extends WordSpec with MustMatchers with ScalaFutures
       val c = new ZCompressor()
       val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(request)
 
-      e.toFuture.futureValue.body.bytes mustBe(c.compress(ByteString("hello-world".getBytes())))
+      c.decompress(e.toFuture.futureValue.body.bytes) mustBe ByteString("hello-world".getBytes())
     }
 
     "won't compress if accept encoding is no supported" in {
