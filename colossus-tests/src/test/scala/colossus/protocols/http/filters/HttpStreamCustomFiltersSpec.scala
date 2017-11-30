@@ -82,7 +82,7 @@ class HttpStreamCustomFiltersSpec extends WordSpec with MustMatchers with ScalaF
         }
       }.toFuture
       
-      result mustBe compressor.compress(ByteString("this is a chunked response".getBytes))
+      result.futureValue mustBe "this is a chunked response"
     }
   }
 }

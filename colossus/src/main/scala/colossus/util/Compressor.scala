@@ -65,11 +65,11 @@ class GzipCompressor(bufferKB: Int = 10) extends Compressor {
     val buffer: Array[Byte] = new Array[Byte](1024 * bufferKB)
     var read: Int = 0
     val builder = new ByteStringBuilder
-
-    do {
-      read = inputStream.read(buffer)
+    read = inputStream.read(buffer)
+    while (read > 0) {
       builder.putBytes(buffer, 0, read)
-    } while (read > 0)
+      read =inputStream.read(buffer)
+    }
 
     inputStream.close()
     builder.result()
