@@ -23,7 +23,7 @@ class RedisHashITSpec extends BaseRedisITSpec {
         _ <- client.hset(delKey, field3, val3)
         x <- client.hdel(delKey, field1, field2)
         y <- client.hget(delKey, field3) //should be unaffected
-        z <- client.hget(delKey, field1) //snould be none, since it was deleted
+        z <- client.hget(delKey, field1) //should be none, since it was deleted
       } yield { (x, y, z) }
 
       res.futureValue must be((2, Some(val3), None))
