@@ -22,7 +22,7 @@ class RedisSetITSpec extends BaseRedisITSpec {
         (x, y)
       }
 
-      res.futureValue must be ((3, Set(val1, val2, val3)))
+      res.futureValue must be((3, Set(val1, val2, val3)))
     }
 
     "scard" in {
@@ -32,10 +32,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.sadd(key, val1, val2, val3)
         y <- client.scard(key)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((3, 3))
+      res.futureValue must be((3, 3))
     }
 
     "sdiff" in {
@@ -46,10 +46,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key2, val2)
         x <- client.sdiff(key1, key2)
       } yield {
-          x
-        }
+        x
+      }
 
-      res.futureValue must be (Set(val1))
+      res.futureValue must be(Set(val1))
     }
 
     "sdiffstore" in {
@@ -62,10 +62,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.sdiffstore(key3, key1, key2)
         y <- client.smembers(key3)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((1,Set(val1)))
+      res.futureValue must be((1, Set(val1)))
     }
 
     "sinter" in {
@@ -76,10 +76,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key2, val1, val2)
         x <- client.sinter(key1, key2)
       } yield {
-          x
-        }
+        x
+      }
 
-      res.futureValue must be (Set(val1))
+      res.futureValue must be(Set(val1))
     }
 
     "sinterstore" in {
@@ -92,10 +92,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.sinterstore(key3, key1, key2)
         y <- client.smembers(key3)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((1,Set(val1)))
+      res.futureValue must be((1, Set(val1)))
     }
 
     "sismember" in {
@@ -106,10 +106,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.sismember(key, val1)
         y <- client.sismember(key, val2)
       } yield {
-          (w, x, y)
-        }
+        (w, x, y)
+      }
 
-      res.futureValue must be ((false, true, false))
+      res.futureValue must be((false, true, false))
     }
 
     "smembers" in {
@@ -119,27 +119,27 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2, val3)
         y <- client.smembers(key)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((Set(), Set(val1, val2, val3)))
+      res.futureValue must be((Set(), Set(val1, val2, val3)))
 
     }
 
     "smove" in {
 
-      val key = getKey()
+      val key     = getKey()
       val destKey = getKey()
       val res = for {
-        _ <- client.sadd(key, val1, val2 )
+        _ <- client.sadd(key, val1, val2)
         _ <- client.sadd(destKey, val2)
         w <- client.smove(key, destKey, val1)
         x <- client.scard(key)
         y <- client.scard(destKey)
-      }yield {
-        (w,x,y)
+      } yield {
+        (w, x, y)
       }
-      res.futureValue must be ((true, 1, 2))
+      res.futureValue must be((true, 1, 2))
     }
 
     "spop" in {
@@ -148,11 +148,11 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2)
         x <- client.spop(key)
         y <- client.scard(key)
-      }yield{
-          (Set(val1, val2).contains(x) ,y)
-        }
+      } yield {
+        (Set(val1, val2).contains(x.get), y)
+      }
 
-      res.futureValue mustBe((true, 1))
+      res.futureValue mustBe ((true, 1))
     }
 
     "spopOption" in {
@@ -162,11 +162,11 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2)
         y <- client.spopOption(key)
         z <- client.scard(key)
-      }yield{
-          (x,  y.map(v => Set(val1, val2).contains(v)) ,z)
-        }
+      } yield {
+        (x, y.map(v => Set(val1, val2).contains(v)), z)
+      }
 
-      res.futureValue mustBe((None, Some(true), 1))
+      res.futureValue mustBe ((None, Some(true), 1))
     }
 
     "srandmember" in {
@@ -175,11 +175,11 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2)
         x <- client.srandmember(key)
         y <- client.scard(key)
-      }yield{
-          (Set(val1, val2).contains(x) ,y)
-        }
+      } yield {
+        (Set(val1, val2).contains(x.get), y)
+      }
 
-      res.futureValue mustBe((true, 2))
+      res.futureValue mustBe ((true, 2))
     }
 
     "srandmemberOption" in {
@@ -189,11 +189,11 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2)
         y <- client.srandmemberOption(key)
         z <- client.scard(key)
-      }yield{
-          (x,  y.map(v => Set(val1, val2).contains(v)) ,z)
-        }
+      } yield {
+        (x, y.map(v => Set(val1, val2).contains(v)), z)
+      }
 
-      res.futureValue mustBe((None, Some(true), 2))
+      res.futureValue mustBe ((None, Some(true), 2))
     }
 
     "srandmembers" in {
@@ -202,11 +202,11 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key, val1, val2)
         x <- client.srandmember(key, 2)
         z <- client.scard(key)
-      }yield{
-          (x.size, z)
-        }
+      } yield {
+        (x.size, z)
+      }
 
-      res.futureValue mustBe((2, 2))
+      res.futureValue mustBe ((2, 2))
     }
 
     "srem" in {
@@ -216,10 +216,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.srem(key, val1, val2)
         y <- client.scard(key)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((2, 1))
+      res.futureValue must be((2, 1))
     }
 
     "sunion" in {
@@ -230,10 +230,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         _ <- client.sadd(key2, val1, val2)
         x <- client.sunion(key1, key2)
       } yield {
-          x
-        }
+        x
+      }
 
-      res.futureValue must be (Set(val1,val2))
+      res.futureValue must be(Set(val1, val2))
     }
 
     "sunionstore" in {
@@ -246,10 +246,10 @@ class RedisSetITSpec extends BaseRedisITSpec {
         x <- client.sunionstore(key3, key1, key2)
         y <- client.smembers(key3)
       } yield {
-          (x, y)
-        }
+        (x, y)
+      }
 
-      res.futureValue must be ((3,Set(val1, val2, val3)))
+      res.futureValue must be((3, Set(val1, val2, val3)))
     }
 
   }

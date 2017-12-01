@@ -24,12 +24,8 @@ import scala.language.higherKinds
   *  provide a generic 'execute' command, which allows for the execution of arbitrary [[colossus.protocols.redis.Command]]objects.
   *  The calling code is responsible for handling the raw [[colossus.protocols.redis.Reply]].
   *
-  * In some cases if a command can return an optional response(ie: a bulk reply or nil reply, like 'get'), 2 variants are provided.  One which
-  * will return the data directly, and fail if its not there, and another which returns an Option.  This is done to provide the user with some flexibility
-  * in how they query data.  The point being, if you want to query and fail on non existence, you don't have to deal w/ an intermediate Option.
-  *
-  * No camelcase?  Yea..camelcasing redis commands looked and felt weird. MGet? mGet? mget? mSetNx? msetNX? etc.  So, since all redis commands are uppercased(at least in the docs),
-  * I went with all lower case for the API.  I just wanted something consistent looking.  The only camelcasing is for the functions which return options ie: getOption.
+  *  No camelcase?  Yea..camelcasing redis commands looked and felt weird. MGet? mGet? mget? mSetNx? msetNX? etc.  So, since all redis commands are uppercased(at least in the docs),
+  *  I went with all lower case for the API.  I just wanted something consistent looking.  The only camelcasing is for the functions which return options ie: getOption.
   *
   *  This trait tries its best to be redis version agonstic.  It doesn't know anything about the version of redis you are communicating
   *  with, so, for example, if an 'hstrlen' command is issued to a redis server that's < 3.2, you will get an Exception.
@@ -68,25 +64,31 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     }
   }
 
-  protected def stringReplyCommand(c: Command, key: ByteString) = executeCommand(c, key) {
+  protected def stringReplyCommand(c: Command, key: ByteString): M[Boolean] = executeCommand(c, key) {
     case StatusReply(x) => success(true)
   }
-  protected def integerReplyCommand(c: Command, key: ByteString) = executeCommand(c, key) {
+
+  protected def integerReplyCommand(c: Command, key: ByteString): M[Long] = executeCommand(c, key) {
     case IntegerReply(x) => success(x)
   }
+
   protected def integerReplyOptionCommand(c: Command, key: ByteString): M[Option[Long]] = executeCommand(c, key) {
     case IntegerReply(x) => success(Some(x))
     case NilReply        => success(None)
   }
-  protected def integerReplyBoolCommand(c: Command, key: ByteString) = executeCommand(c, key) {
+
+  protected def integerReplyBoolCommand(c: Command, key: ByteString): M[Boolean] = executeCommand(c, key) {
     case IntegerReply(x) => success(x == 1)
   }
-  protected def bulkReplyCommand(c: Command, key: ByteString) = executeCommand(c, key) {
+
+  protected def bulkReplyCommand(c: Command, key: ByteString): M[ByteString] = executeCommand(c, key) {
     case BulkReply(x) => success(x)
   }
-  protected def bulkReplyAsDoubleCommand(c: Command, key: ByteString) = executeCommand(c, key) {
+
+  protected def bulkReplyAsDoubleCommand(c: Command, key: ByteString): M[Double] = executeCommand(c, key) {
     case BulkReply(x) => success(x.utf8String.toDouble)
   }
+
   protected def bulkReplyAsDoubleOptionCommand(c: Command, key: ByteString): M[Option[Double]] =
     executeCommand(c, key) {
       case BulkReply(x) => success(Some(new String(x.toArray).toDouble))
@@ -97,6 +99,7 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
     case BulkReply(x) => success(Some(x))
     case NilReply     => success(None)
   }
+
   protected def mBulkReplyCommand(c: Command, key: ByteString): M[Seq[ByteString]] = executeCommand(c, key) {
     case MBulkReply(x) => {
       val b = x.collect {
@@ -156,25 +159,32 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def expireat(key: ByteString, unixTimeInSeconds: Long): M[Boolean] =
     integerReplyBoolCommand(cmd(CMD_EXPIREAT, key, unixTimeInSeconds), key)
 
-  def get(key: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_GET, key), key)
+  def get(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_GET, key), key)
 
+  @deprecated("get and getOption have been merged, use get", "0.11.0")
   def getOption(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_GET, key), key)
 
   def getrange(key: ByteString, from: Long, to: Long): M[ByteString] =
     bulkReplyCommand(cmd(CMD_GETRANGE, key, from, to), key)
 
-  def getset(key: ByteString, value: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_GETSET, key, value), key)
+  def getset(key: ByteString, value: ByteString): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_GETSET, key, value), key)
 
+  @deprecated("getset and getsetOption have been merged, use getset", "0.11.0")
   def getsetOption(key: ByteString, value: ByteString): M[Option[ByteString]] =
     bulkReplyOptionCommand(cmd(CMD_GETSET, key, value), key)
 
-  def hdel(key: ByteString, fields: ByteString*) = integerReplyCommand(cmd(CMD_HDEL, key +: fields: _*), key)
+  def hdel(key: ByteString, fields: ByteString*): M[Long] = integerReplyCommand(cmd(CMD_HDEL, key +: fields: _*), key)
 
-  def hexists(key: ByteString, field: ByteString) = integerReplyBoolCommand(cmd(CMD_HEXISTS, key, field), key)
+  def hexists(key: ByteString, field: ByteString): M[Boolean] =
+    integerReplyBoolCommand(cmd(CMD_HEXISTS, key, field), key)
 
-  def hget(key: ByteString, field: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_HGET, key, field), key)
+  def hget(key: ByteString, field: ByteString): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_HGET, key, field), key)
 
-  def hgetOption(key: ByteString, field: ByteString) = bulkReplyOptionCommand(cmd(CMD_HGET, key, field), key)
+  @deprecated("hget and hgetOption have been merged, use hget", "0.11.0")
+  def hgetOption(key: ByteString, field: ByteString): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_HGET, key, field), key)
 
   //todo: change return type to map
   def hgetall(key: ByteString): M[Seq[ByteString]] = mBulkReplyCommand(cmd(CMD_HGETALL, key), key)
@@ -214,8 +224,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 
   def keys(key: ByteString): M[Seq[ByteString]] = mBulkReplyCommand(cmd(CMD_KEYS, key), key)
 
-  def lindex(key: ByteString, index: Long): M[ByteString] = bulkReplyCommand(cmd(CMD_LINDEX, key, index), key)
+  def lindex(key: ByteString, index: Long): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_LINDEX, key, index), key)
 
+  @deprecated("lindex and lindexOption have been merged, use lindex", "0.11.0")
   def lindexOption(key: ByteString, index: Long): M[Option[ByteString]] =
     bulkReplyOptionCommand(cmd(CMD_LINDEX, key, index), key)
 
@@ -227,8 +239,9 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
 
   def llen(key: ByteString): M[Long] = integerReplyCommand(cmd(CMD_LLEN, key), key)
 
-  def lpop(key: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_LPOP, key), key)
+  def lpop(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_LPOP, key), key)
 
+  @deprecated("lpop and lpopOption have been merged, use lpop", "0.11.0")
   def lpopOption(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_LPOP, key), key)
 
   def lpush(key: ByteString, values: ByteString*): M[Long] =
@@ -278,13 +291,15 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def renamenx(source: ByteString, destination: ByteString): M[Boolean] =
     integerReplyBoolCommand(cmd(CMD_RENAMENX, source, destination), source)
 
-  def rpop(key: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_RPOP, key), key)
+  def rpop(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_RPOP, key), key)
 
+  @deprecated("rpop and rpopOption have been merged, use rpop", "0.11.0")
   def rpopOption(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_RPOP, key), key)
 
-  def rpoplpush(key: ByteString, destination: ByteString): M[ByteString] =
-    bulkReplyCommand(cmd(CMD_RPOPLPUSH, key, destination), key)
+  def rpoplpush(key: ByteString, destination: ByteString): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_RPOPLPUSH, key, destination), key)
 
+  @deprecated("rpoplpush and rpoplpushOption have been merged, use rpoplpush", "0.11.0")
   def rpoplpushOption(key: ByteString, destination: ByteString): M[Option[ByteString]] =
     bulkReplyOptionCommand(cmd(CMD_RPOPLPUSH, key, destination), key)
 
@@ -343,12 +358,15 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def smove(source: ByteString, destination: ByteString, value: ByteString): M[Boolean] =
     integerReplyBoolCommand(cmd(CMD_SMOVE, source, destination, value), source)
 
-  def spop(key: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_SPOP, key), key)
+  def spop(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_SPOP, key), key)
 
+  @deprecated("spop and spopOption have been merged, use spop", "0.11.0")
   def spopOption(key: ByteString): M[Option[ByteString]] = bulkReplyOptionCommand(cmd(CMD_SPOP, key), key)
 
-  def srandmember(key: ByteString): M[ByteString] = bulkReplyCommand(cmd(CMD_SRANDMEMBER, key), key)
+  def srandmember(key: ByteString): M[Option[ByteString]] =
+    bulkReplyOptionCommand(cmd(CMD_SRANDMEMBER, key), key)
 
+  @deprecated("srandmember and srandmemberOption have been merged, use srandmember", "0.11.0")
   def srandmemberOption(key: ByteString): M[Option[ByteString]] =
     bulkReplyOptionCommand(cmd(CMD_SRANDMEMBER, key), key)
 
@@ -471,8 +489,10 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def zrangebyscore(key: ByteString, min: ByteString, max: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
     mBulkReplyCommand(cmd(CMD_ZRANGEBYSCORE, key +: min +: max +: arguments: _*), key)
 
-  def zrank(key: ByteString, value: ByteString): M[Long] = integerReplyCommand(cmd(CMD_ZRANK, key, value), key)
+  def zrank(key: ByteString, value: ByteString): M[Option[Long]] =
+    integerReplyOptionCommand(cmd(CMD_ZRANK, key, value), key)
 
+  @deprecated("zrank and zrankOption have been merged, use zrank", "0.11.0")
   def zrankOption(key: ByteString, value: ByteString): M[Option[Long]] =
     integerReplyOptionCommand(cmd(CMD_ZRANK, key, value), key)
 
@@ -531,14 +551,17 @@ trait RedisClient[M[_]] extends LiftedClient[Redis, M] {
   def zrevrangebyscore(key: ByteString, max: ByteString, min: ByteString, arguments: ByteString*): M[Seq[ByteString]] =
     mBulkReplyCommand(cmd(CMD_ZREVRANGEBYSCORE, key +: max +: min +: arguments: _*), key)
 
-  def zrevrank(key: ByteString, value: ByteString): M[Long] = integerReplyCommand(cmd(CMD_ZREVRANK, key, value), key)
+  def zrevrank(key: ByteString, value: ByteString): M[Option[Long]] =
+    integerReplyOptionCommand(cmd(CMD_ZREVRANK, key, value), key)
 
+  @deprecated("zrevrank and zrevrankOption have been merged, use zrevrank", "0.11.0")
   def zrevrankOption(key: ByteString, value: ByteString): M[Option[Long]] =
     integerReplyOptionCommand(cmd(CMD_ZREVRANK, key, value), key)
 
-  def zscore(key: ByteString, value: ByteString): M[Double] =
-    bulkReplyAsDoubleCommand(cmd(CMD_ZSCORE, key, value), key)
+  def zscore(key: ByteString, value: ByteString): M[Option[Double]] =
+    bulkReplyAsDoubleOptionCommand(cmd(CMD_ZSCORE, key, value), key)
 
+  @deprecated("zscore and zscoreOption have been merged, use zscore", "0.11.0")
   def zscoreOption(key: ByteString, value: ByteString): M[Option[Double]] =
     bulkReplyAsDoubleOptionCommand(cmd(CMD_ZSCORE, key, value), key)
 
