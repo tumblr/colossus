@@ -59,6 +59,9 @@ To use them override `filters` function in your service.
 
 @@snip [FilterExample.scala](../scala/FilterExample.scala) { #example1 }
 
+To enable Gzip and Deflate compression just add HttpCustomFilters.CompressionFilter to the request handler filters.
+@@snip[HttpCompressionExample.scala]($examples$/HttpCompressionExample.scala) {#compressed_http}
+
 ## Redis
 
 A redis server will take the following form:
