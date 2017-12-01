@@ -3,8 +3,7 @@ package colossus.protocols.memcache
 import colossus.controller.Codec
 import colossus.core._
 import akka.util.{ByteString, ByteStringBuilder}
-
-import colossus.util.{Compressor, NoCompressor}
+import colossus.util.compress.{Compressor, NoCompressor}
 
 /*
  * Memcache protocol for Colossus, implements a majority of the commands with the exception of some of the

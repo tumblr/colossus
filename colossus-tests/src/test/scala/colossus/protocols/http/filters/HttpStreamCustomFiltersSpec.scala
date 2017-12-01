@@ -1,14 +1,13 @@
 package colossus.protocols.http.filters
 
-import akka.actor.Status.Success
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 import colossus.core.DataBlock
 import colossus.protocols.http.streaming.{Data, StreamingHttp, StreamingHttpRequest, StreamingHttpResponse}
 import colossus.protocols.http.{HttpCodes, HttpHeaders, HttpMethod, HttpRequestHead, HttpResponseHead, HttpVersion, TransferEncoding}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.streaming.Source
-import colossus.util.{GzipCompressor, ZCompressor}
+import colossus.util.compress.{GzipCompressor, ZCompressor}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{MustMatchers, WordSpec}
 

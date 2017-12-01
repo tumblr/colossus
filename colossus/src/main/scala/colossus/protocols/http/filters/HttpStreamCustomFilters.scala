@@ -3,11 +3,10 @@ package colossus.protocols.http.filters
 import akka.util.ByteString
 import colossus.core.DataBlock
 import colossus.protocols.http.streaming.{Data, StreamingHttp, StreamingHttpResponse}
-import colossus.protocols.http.{ContentEncoding, HttpHeaders, TransferEncoding}
+import colossus.protocols.http.{HttpHeaders, TransferEncoding}
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.service.{Callback, Filter}
 import colossus.streaming.Source
-import colossus.util.{GzipCompressor, ZCompressor}
 
 object HttpStreamCustomFilters {
 
@@ -15,15 +14,7 @@ object HttpStreamCustomFilters {
 
     override def apply(next: PartialHandler[StreamingHttp]): PartialHandler[StreamingHttp] = {
       case request =>
-        val maybeCompressor = request.head.headers.firstValue(HttpHeaders.AcceptEncoding).flatMap { header =>
-          if (header.contains(ContentEncoding.Gzip.value)) {
-            Some(new GzipCompressor(bufferedKb), ContentEncoding.Gzip)
-          } else if (header.contains(ContentEncoding.Deflate.value)) {
-            Some(new ZCompressor(bufferedKb), ContentEncoding.Deflate)
-          } else {
-            None
-          }
-        }
+        val maybeCompressor = FilterHeaderUtils.getCompressorFromHeader(request.head, bufferedKb)
 
         next(request).flatMap { response =>
           maybeCompressor match {

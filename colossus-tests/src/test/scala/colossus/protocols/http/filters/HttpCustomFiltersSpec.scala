@@ -4,7 +4,7 @@ import akka.util.ByteString
 import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpRequest, HttpResponse}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.util.{GzipCompressor, ZCompressor}
+import colossus.util.compress.{GzipCompressor, ZCompressor}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{MustMatchers, WordSpec}
 

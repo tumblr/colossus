@@ -1,9 +1,8 @@
 package colossus.protocols.http.filters
 
-import colossus.protocols.http.{ContentEncoding, Http, HttpBody, HttpHeaders}
+import colossus.protocols.http.{Http, HttpBody, HttpHeaders}
 import colossus.service.Filter
 import colossus.service.GenRequestHandler.PartialHandler
-import colossus.util.{GzipCompressor, ZCompressor}
 
 
 object HttpCustomFilters {
@@ -12,15 +11,7 @@ object HttpCustomFilters {
 
     override def apply(next: PartialHandler[Http]): PartialHandler[Http] = {
       case request =>
-        val maybeCompressor = request.head.headers.firstValue(HttpHeaders.AcceptEncoding).flatMap { header =>
-          if (header.contains(ContentEncoding.Gzip.value)) {
-            Some(new GzipCompressor(bufferedKb), ContentEncoding.Gzip)
-          } else if (header.contains(ContentEncoding.Deflate.value)) {
-            Some(new ZCompressor(bufferedKb), ContentEncoding.Deflate)
-          } else {
-            None
-          }
-        }
+        val maybeCompressor = FilterHeaderUtils.getCompressorFromHeader(request.head, bufferedKb)
 
         next(request).map { response =>
           maybeCompressor match {
