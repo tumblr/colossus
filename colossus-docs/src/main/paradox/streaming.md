@@ -136,7 +136,7 @@ body of the request/response is a stream of message chunks.
 
 @@snip [StreamingHttpExample.scala]($examples$/StreamingHttpExample.scala) { #streaming_http }
 
-## Enabling compression for the streaming services
+## Compression
 
 Colossus supports Gzip and Deflate compression out of the box using the request handler filter mechanism.
 To enable it just add HttpStreamCustomFilters.CompressionFilter to the request handler filters.
