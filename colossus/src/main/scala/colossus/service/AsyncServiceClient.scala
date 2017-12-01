@@ -134,7 +134,8 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
       }
     }
 
-    override def address(): InetSocketAddress = ???
+    override def address(): InetSocketAddress =
+      throw new NotImplementedError("Async handler generator does not have an address")
 
     val clientConfig = config
 
