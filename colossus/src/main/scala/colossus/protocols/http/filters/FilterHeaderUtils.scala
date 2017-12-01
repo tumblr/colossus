@@ -1,6 +1,6 @@
 package colossus.protocols.http.filters
 
-import colossus.protocols.http.{ContentEncoding, HttpHeaders, HttpRequest, HttpRequestHead}
+import colossus.protocols.http.{ContentEncoding, HttpHeaders, HttpRequestHead}
 import colossus.util.compress.{Compressor, GzipCompressor, ZCompressor}
 
 object FilterHeaderUtils {

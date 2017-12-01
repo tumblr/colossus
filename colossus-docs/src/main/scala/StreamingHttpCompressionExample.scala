@@ -27,12 +27,6 @@ object StreamingHttpCompressionExample extends App {
           )
         }
       }
-
-      case _ => Callback.successful(StreamingHttpResponse(
-        HttpResponseHead(HttpVersion.`1.1`, HttpCodes.NOT_FOUND, Some(TransferEncoding.Identity), None, None, None, HttpHeaders.Empty),
-        Source.empty[Data]
-      )
-      )
     }
 
     def unhandledError = {
