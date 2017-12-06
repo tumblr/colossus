@@ -135,7 +135,14 @@ trait HttpResponseBuilding {
   def initialVersion: HttpVersion
 
   def respond[T: HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
-    HttpResponse(HttpResponseHead(initialVersion, code, headers), HttpBody(data))
+    HttpResponse(HttpResponseHead(initialVersion, code, headersWithContentType[T](headers)), HttpBody(data))
+  }
+
+  def headersWithContentType[T: HttpBodyEncoder](headers: HttpHeaders = HttpHeaders.Empty): HttpHeaders = {
+    implicitly[HttpBodyEncoder[T]].contentType match {
+      case Some(s) => headers + (ContentType.HeaderKey -> s)
+      case None => headers
+    }
   }
 
   def ok[T: HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(OK, data, headers)

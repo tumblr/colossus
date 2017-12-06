@@ -411,10 +411,9 @@ object Connection {
 }
 
 object ContentType {
-
+  val HeaderKey       = "Content-Type"
   val TextPlain       = "text/plain"
   val ApplicationJson = "application/json"
-
 }
 
 trait ParameterParser[T] {
