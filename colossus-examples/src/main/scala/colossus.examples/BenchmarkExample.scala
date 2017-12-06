@@ -3,31 +3,25 @@ package colossus.examples
 import colossus.IOSystem
 import colossus.service.Callback.Implicits._
 import colossus.protocols.http._
-
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.json4s.JsonDSL._
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 object BenchmarkService {
 
-  implicit object JsonBody extends HttpBodyEncoder[JValue] {
-    val contentType = Some(ContentType.ApplicationJson)
+  private val mapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
 
-    def encode(json: JValue) = {
-      HttpBody(compact(render(json)))
-    }
+  implicit object JsonEncoder extends HttpBodyEncoder[Array[Byte]] {
+    val contentType = Some(ContentType.ApplicationJson)
+    def encode(json: Array[Byte]): HttpBody = new HttpBody(json)
   }
 
-  val json: JValue = ("message" -> "Hello, World!")
+  def json: Array[Byte] = mapper.writeValueAsBytes(Map("message" -> "Hello, World!"))
   val plaintext    = HttpBody("Hello, World!")
 
   def start(port: Int)(implicit io: IOSystem) {
-
     HttpServer.basic("benchmark", port) {
-      case req if (req.head.url == "/plaintext") => req.ok(plaintext)
-      case req if (req.head.url == "/json")      => req.ok(json)
+      case req if req.head.url == "/plaintext" => req.ok(plaintext)
+      case req if req.head.url == "/json"      => req.ok(json)
     }
-
   }
-
 }
