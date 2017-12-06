@@ -7,6 +7,8 @@ import scala.util.Try
 
 class HttpBody(private val body: Array[Byte]) {
 
+  protected[http] var contentType: String = ""
+
   def size = body.length
 
   def encode(buffer: DataOutBuffer) {
@@ -60,30 +62,19 @@ object HttpBodyDecoder {
 }
 
 trait HttpBodyEncoder[T] {
-
   def encode(data: T): HttpBody
-
-  def contentType: Option[String]
-
+  def contentType: String
 }
 
 object HttpBodyEncoder {
   implicit object ByteStringEncoder extends HttpBodyEncoder[ByteString] {
-    val contentType = None
-
+    val contentType: String = ContentType.TextPlain
     def encode(data: ByteString): HttpBody = new HttpBody(data.toArray)
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val contentType = Some(ContentType.TextPlain)
-
+    val contentType = ContentType.TextPlain
     def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"))
-  }
-
-  implicit object IdentityEncoder extends HttpBodyEncoder[HttpBody] {
-    val contentType = None
-
-    def encode(b: HttpBody) = b
   }
 }
 
@@ -92,5 +83,4 @@ object HttpBody {
   val NoBody = new HttpBody(Array.emptyByteArray)
 
   def apply[T](data: T)(implicit encoder: HttpBodyEncoder[T]): HttpBody = encoder.encode(data)
-
 }
