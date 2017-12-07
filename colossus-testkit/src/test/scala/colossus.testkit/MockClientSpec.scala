@@ -24,7 +24,7 @@ class MockClientSpec extends ColossusSpec {
       implicit val worker = FakeIOSystem.fakeWorker.worker
       val l: LoadBalancingClient[Http] = new LoadBalancingClient(
         List(new InetSocketAddress("1.1.1.1", 34)),
-        ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
+        ClientConfig(address = Seq(new InetSocketAddress("0.0.0.0", 1)), name = "/foo", requestTimeout = 1.second),
         MockClientFactory.client[Http]((x: HttpRequest) => Callback.successful(x.ok("test"))),
         4
       )

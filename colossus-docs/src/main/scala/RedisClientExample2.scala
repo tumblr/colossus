@@ -8,8 +8,6 @@ import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
 import colossus.service.GenRequestHandler.PartialHandler
 
-import scala.util.{Failure, Success}
-
 object RedisClientExample2 extends App {
 
   implicit val actorSystem = ActorSystem()
@@ -25,23 +23,19 @@ object RedisClientExample2 extends App {
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {
-
-              case req @ Get on Root / "get" / key => {
-                redisClient.get(ByteString(key)).mapTry {
-                  case Success(data) => Success(req.ok(data.utf8String))
-                  case Failure(_)    => Success(req.notFound(s"Key $key was not found"))
+              case req @ Get on Root / "get" / key =>
+                redisClient.get(ByteString(key)).map {
+                  case Some(data) => req.ok(data.utf8String)
+                  case None       => req.notFound(s"Key $key was not found")
                 }
-              }
 
-              case req @ Get on Root / "set" / key / value => {
+              case req @ Get on Root / "set" / key / value =>
                 redisClient.set(ByteString(key), ByteString(value)).map { _ =>
                   req.ok("OK")
                 }
-              }
             }
         }
     }
   }
   // #redis-client
-
 }

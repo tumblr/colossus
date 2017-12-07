@@ -1,5 +1,7 @@
 package colossus.service
 
+import java.net.InetSocketAddress
+
 import scala.concurrent.Future
 import scala.language.higherKinds
 import colossus.IOSystem
@@ -13,10 +15,13 @@ trait Sender[P <: Protocol, M[_]] {
 
   def send(input: P#Request): M[P#Response]
 
-  def disconnect()
-  
+  def disconnect(): Unit
+
   def addInterceptor(interceptor: Interceptor[P]): Unit
 
+  def address(): InetSocketAddress
+
+  def update(addresses: Seq[InetSocketAddress]): Unit
 }
 
 /**

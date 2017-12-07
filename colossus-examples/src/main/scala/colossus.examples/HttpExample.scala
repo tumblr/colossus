@@ -42,8 +42,9 @@ object HttpExample {
       }
 
       case req @ Get on Root / "get" / key =>
-        redis.get(ByteString(key)).map { x =>
-          req.ok(x.utf8String)
+        redis.get(ByteString(key)).map {
+          case Some(value) => req.ok(value.utf8String)
+          case None        => req.ok("No value found")
         }
 
       case req @ Get on Root / "set" / key / value =>

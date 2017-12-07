@@ -14,6 +14,7 @@ object ConnectionStatus {
   case object NotConnected extends ConnectionStatus
   case object Connected    extends ConnectionStatus
   case object Connecting   extends ConnectionStatus
+  case object Mixed        extends ConnectionStatus
 }
 
 /**

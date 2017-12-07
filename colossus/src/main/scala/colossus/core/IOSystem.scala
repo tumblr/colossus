@@ -71,9 +71,9 @@ object IOSystem {
     }
   }
 
-  type WorkerAgent = AtomicReference[Seq[WorkerRef]]
+  type WorkerRefs = AtomicReference[Seq[WorkerRef]]
 
-  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
+  private[colossus] val workerManagerFactory = (agent: WorkerRefs, sys: IOSystem) => {
     sys.actorSystem.actorOf(
       WorkerManager.props(agent, sys, DefaultWorkerFactory),
       name = s"${actorFriendlyName(sys.name)}-manager"
@@ -94,7 +94,7 @@ class IOSystem private[colossus] (val name: String,
                                   val numWorkers: Int,
                                   val metrics: MetricSystem,
                                   val actorSystem: ActorSystem,
-                                  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef) {
+                                  managerFactory: (IOSystem.WorkerRefs, IOSystem) => ActorRef) {
 
   import IOCommand._
 

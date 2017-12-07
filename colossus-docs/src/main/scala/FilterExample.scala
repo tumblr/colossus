@@ -3,6 +3,7 @@ import colossus.IOSystem
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.{Http, HttpServer, Initializer, RequestHandler}
 import colossus.protocols.http.UrlParsing.{Root, on}
+import colossus.protocols.http.filters._
 import colossus.service.Filter
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.service.Callback.Implicits._
@@ -23,7 +24,8 @@ object FilterExample extends App {
             // #example1
             override def filters: Seq[Filter[Http]] = Seq(
               new AllowedHostsFilter(),
-              new ReverseResponseFilter()
+              new ReverseResponseFilter(),
+              new HttpCustomFilters.CompressionFilter()
             )
             // #example1
         }

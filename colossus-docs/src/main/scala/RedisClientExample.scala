@@ -19,17 +19,20 @@ object RedisClientExample extends App {
 
       val redisClient = Redis.client("localhost", 6379)
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
 
-          case request @ Get on Root / "get" / key => {
-            val asyncResult = redisClient.get(ByteString("1"))
-            asyncResult.map {
-              case bytes => request.ok(bytes.utf8String)
+              case request @ Get on Root / "get" / key => {
+                val asyncResult = redisClient.get(ByteString("1"))
+                asyncResult.map {
+                  case Some(bytes) => request.ok(bytes.utf8String)
+                  case None        => request.ok("Not found")
+                }
+              }
             }
-          }
         }
-      }
     }
   }
   // #example

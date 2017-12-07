@@ -32,7 +32,7 @@ abstract class ServiceSpec[P <: Protocol](implicit clientFactory: FutureClientFa
 
   def clientConfig(timeout: FiniteDuration) = ClientConfig(
     name = "/test-client",
-    address = new InetSocketAddress("localhost", runningService.config.settings.port),
+    address = Seq(new InetSocketAddress("localhost", runningService.config.settings.port)),
     requestTimeout = timeout
   )
 

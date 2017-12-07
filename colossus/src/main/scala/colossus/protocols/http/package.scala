@@ -5,6 +5,7 @@ import colossus.metrics.TagMap
 import colossus.protocols.http.HttpClient.HttpClientLifter
 import colossus.service.{
   ClientFactories,
+  FutureClient,
   IrrecoverableError,
   ProcessingFailure,
   Protocol,
@@ -35,7 +36,8 @@ package object http {
 
   object Http extends ClientFactories[Http, HttpClient](HttpClientLifter) {
 
-    implicit lazy val clientFactory = ServiceClientFactory.basic("http", () => new StaticHttpClientCodec)
+    implicit lazy val clientFactory: FutureClient.BaseFactory[Http] =
+      ServiceClientFactory.basic("http", () => new StaticHttpClientCodec)
 
     class ServerDefaults {
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
