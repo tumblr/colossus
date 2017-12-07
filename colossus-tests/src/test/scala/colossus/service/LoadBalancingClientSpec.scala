@@ -69,6 +69,10 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
         def disconnect() {}
 
         override def addInterceptor(interceptor: Interceptor[PR]): Unit = {}
+
+        override def address(): InetSocketAddress = ???
+
+        override def update(addresses: Seq[InetSocketAddress]): Unit = {}
       }
       (1 to 5).foreach { num =>
         val ops       = (1 to num).permutations.toList.size //lazy factorial
@@ -185,7 +189,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
       implicit val w = FakeIOSystem.fakeWorker.worker
       val l = new LoadBalancingClient[Http](
         List(new InetSocketAddress("127.0.0.1", 1)),
-        ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
+        ClientConfig(address = Seq(new InetSocketAddress("0.0.0.0", 1)), name = "/foo", requestTimeout = 1.second),
         Http.client,
         4
       )
@@ -196,10 +200,10 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
   "ServiceClientPool" must {
     val fw = FakeIOSystem.fakeWorker
     def pool() = new ServiceClientPool(
-      ClientConfig(address = new InetSocketAddress("0.0.0.0", 1), name = "/foo", requestTimeout = 1.second),
+      ClientConfig(address = Seq(new InetSocketAddress("0.0.0.0", 1)), name = "/foo", requestTimeout = 1.second),
       fw.worker,
       (config, worker) => {
-        mockClient(config.address.getPort)
+        mockClient(config.address.head.getPort)
       }
     )
 

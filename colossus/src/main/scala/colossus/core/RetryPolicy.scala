@@ -10,7 +10,7 @@ import scala.concurrent.duration._
   * how it should try to reconnect if it's first attempt to connect fails.
   *
   * RetryPolicy acts as a factory for [[RetryIncident]], which is a per-incident
-  * manager of retries.  So everytime a user encounters a sitiation where an
+  * manager of retries.  So every time a user encounters a situation where an
   * operation needs to be retried, it should use the `RetryPolicy` create a new
   * incident, and use the incident until either the operation succeeds or the
   * incident indicates to stop retrying.
