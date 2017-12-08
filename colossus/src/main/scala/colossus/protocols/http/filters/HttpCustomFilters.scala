@@ -4,7 +4,6 @@ import colossus.protocols.http.{Http, HttpBody, HttpHeaders}
 import colossus.service.Filter
 import colossus.service.GenRequestHandler.PartialHandler
 
-
 object HttpCustomFilters {
 
   class CompressionFilter(bufferedKb: Int = 10) extends Filter[Http] {
@@ -17,8 +16,8 @@ object HttpCustomFilters {
           maybeCompressor match {
             case Some((compressor, encoding)) =>
               val compressed = compressor.compress(response.body.bytes)
-              val headers = response.head.headers + (HttpHeaders.ContentEncoding, encoding.value)
-              val newHead = response.head.copy(headers = headers)
+              val headers    = response.head.headers + (HttpHeaders.ContentEncoding, encoding.value)
+              val newHead    = response.head.copy(headers = headers)
               response.copy(body = HttpBody(compressed), head = newHead)
             case None =>
               response

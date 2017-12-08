@@ -24,16 +24,18 @@ object MetricTickExample extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root / "url" =>
-            //bad url, metric tick
-            if (!request.head.parameters.contains("myurl")) {
-              badUrl.hit()
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root / "url" =>
+                //bad url, metric tick
+                if (!request.head.parameters.contains("myurl")) {
+                  badUrl.hit()
+                }
+                Callback.successful(request.ok("received response"))
             }
-            Callback.successful(request.ok("received response"))
         }
-      }
     }
   }
   // #example

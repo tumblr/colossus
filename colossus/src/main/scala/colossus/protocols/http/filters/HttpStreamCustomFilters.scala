@@ -19,14 +19,16 @@ object HttpStreamCustomFilters {
         next(request).flatMap { response =>
           maybeCompressor match {
             case Some((compressor, encoding)) =>
-              val iteratorCB: Callback[Iterator[Data]] = response.body.fold(new collection.mutable.ArrayBuffer[Data]) {
-                case (data, buffer) =>
-                  val bytes = ByteString(data.data.data)
-                  val compressed = compressor.compress(bytes).toArray
-                  val newData = Data(DataBlock(compressed))
-                  buffer.append(newData)
-                  buffer
-              }.map(_.toIterator)
+              val iteratorCB: Callback[Iterator[Data]] = response.body
+                .fold(new collection.mutable.ArrayBuffer[Data]) {
+                  case (data, buffer) =>
+                    val bytes      = ByteString(data.data.data)
+                    val compressed = compressor.compress(bytes).toArray
+                    val newData    = Data(DataBlock(compressed))
+                    buffer.append(newData)
+                    buffer
+                }
+                .map(_.toIterator)
 
               val headers = response.head.headers +
                 (HttpHeaders.ContentEncoding, encoding.value) +

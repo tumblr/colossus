@@ -80,7 +80,8 @@ class SendFailedException(tries: Int, finalCause: Throwable)
   *
   *
   */
-@deprecated("Load balancer now built into client", "0.11.0") class LoadBalancingClient[P <: Protocol](
+@deprecated("Load balancer now built into client", "0.11.0")
+class LoadBalancingClient[P <: Protocol](
     worker: WorkerRef,
     generator: InetSocketAddress => Sender[P, Callback],
     maxTries: Int = Int.MaxValue,
@@ -178,7 +179,8 @@ class SendFailedException(tries: Int, finalCause: Throwable)
 
   override def receivedMessage(message: Any, sender: ActorRef) {}
 
-  override def addInterceptor(interceptor: Interceptor[P]): Unit = clients.foreach(_.client.addInterceptor(interceptor))
+  override def addInterceptor(interceptor: Interceptor[P]): Unit =
+    clients.foreach(_.client.addInterceptor(interceptor))
 
   override def address(): InetSocketAddress = throw new NotImplementedError("Deprecated class")
 

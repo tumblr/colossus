@@ -40,7 +40,7 @@ object ConfigHelpers {
 
     def getScalaDuration(path: String): Duration = Duration(config.getString(path))
 
-    def getAddresses(path:String): Seq[String] = getStringListOption(path).getOrElse(Seq.empty)
+    def getAddresses(path: String): Seq[String] = getStringListOption(path).getOrElse(Seq.empty)
 
     private def finiteDurationOnly(str: String, key: String) = {
       Duration(str) match {

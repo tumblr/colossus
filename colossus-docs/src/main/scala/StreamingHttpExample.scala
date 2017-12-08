@@ -12,7 +12,6 @@ object StreamingHttpExample extends App {
 
   class MyRequestHandler(serverContext: ServerContext) extends GenRequestHandler[StreamingHttp](serverContext) {
 
-
     def handle = {
       case StreamingHttpRequest(head, source) if (head.url == "/chunked") => {
 
@@ -21,7 +20,13 @@ object StreamingHttpExample extends App {
             Data(DataBlock(s))
           })
           StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK, Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
+            HttpResponseHead(head.version,
+                             HttpCodes.OK,
+                             Some(TransferEncoding.Chunked),
+                             None,
+                             None,
+                             None,
+                             HttpHeaders.Empty),
             responseBody
           )
         }
@@ -42,4 +47,3 @@ object StreamingHttpExample extends App {
   // #streaming_http
 
 }
-

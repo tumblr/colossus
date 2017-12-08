@@ -20,20 +20,22 @@ object Fibonacci extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
 
-          case req @ Get on Root / "hello" =>
-            Callback.successful(req.ok("Hello World!"))
+              case req @ Get on Root / "hello" =>
+                Callback.successful(req.ok("Hello World!"))
 
-          case req @ Get on Root / "fib" / Long(n) =>
-            if (n > 0) {
-              Callback.successful(req.ok(fibonacci(n).toString))
-            } else {
-              Callback.successful(req.badRequest("number must be positive"))
+              case req @ Get on Root / "fib" / Long(n) =>
+                if (n > 0) {
+                  Callback.successful(req.ok(fibonacci(n).toString))
+                } else {
+                  Callback.successful(req.badRequest("number must be positive"))
+                }
             }
         }
-      }
     }
   }
   // #fibonacci

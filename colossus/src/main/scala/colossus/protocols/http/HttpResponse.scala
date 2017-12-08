@@ -114,9 +114,11 @@ object HttpResponse extends HttpResponseBuilding {
   def initialVersion = HttpVersion.`1.1`
 
   def apply[T: HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
-    val encoder = implicitly[HttpBodyEncoder[T]]
+    val encoder  = implicitly[HttpBodyEncoder[T]]
     val response = HttpResponse(head, HttpBody(encoder.encode(body)))
-    encoder.contentType.fold(response) { ct => response.withContentType(ct) }
+    encoder.contentType.fold(response) { ct =>
+      response.withContentType(ct)
+    }
   }
 
   def apply[T: HttpBodyEncoder](version: HttpVersion, code: HttpCode, headers: HttpHeaders, data: T): HttpResponse = {
