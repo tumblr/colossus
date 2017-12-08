@@ -84,7 +84,7 @@ class AnyClientSpec2 extends HttpServiceSpec with MockitoSugar {
     }
 
     "return valid memcache value" in {
-      when(redis.get(ByteString("bob"))).thenReturn(Callback.failed(new Exception("not here")))
+      when(redis.get(ByteString("bob"))).thenReturn(Callback.successful(None))
       when(memcache.get(ByteString("bob"))).thenReturn(
         Callback.successful(Some(MemcacheReply.Value(ByteString("ben"), ByteString("2"), 0)))
       )
@@ -92,7 +92,7 @@ class AnyClientSpec2 extends HttpServiceSpec with MockitoSugar {
     }
 
     "return no value for unknown key" in {
-      when(redis.get(ByteString("jen"))).thenReturn(Callback.failed(new Exception("not here")))
+      when(redis.get(ByteString("jen"))).thenReturn(Callback.successful(None))
       when(memcache.get(ByteString("jen"))).thenReturn(Callback.successful(None))
       expectCodeAndBody(HttpRequest.get("/data/jen"), HttpCodes.OK, "The key jen has no value")
     }
