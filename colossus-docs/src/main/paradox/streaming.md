@@ -1,4 +1,4 @@
-# Streams and Streaming Protocols
+# Streaming
 
 @@@ note
 

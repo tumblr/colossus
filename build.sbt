@@ -90,7 +90,8 @@ lazy val testkitDependencies = libraryDependencies ++= Seq(
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
     "org.json4s"     %% "json4s-jackson"  % "3.5.3",
-    "ch.qos.logback" %  "logback-classic" % "1.2.2"
+    "ch.qos.logback" %  "logback-classic" % "1.2.2",
+    "org.mockito"    %  "mockito-all"     % "1.10.19"
   )
 )
 
@@ -133,6 +134,7 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
   .settings(
     paradoxTheme := Some(builtinParadoxTheme("generic")),
     paradoxProperties ++= Map(
+      "github.base_url" -> s"https://github.com/tumblr/colossus/blob/${version.value}",
       "extref.docs.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus_2.11/${version.value}/index.html#%s",
       "extref.docs-metrics.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus-metrics_2.11/${version.value}/index.html#%s",
       "extref.docs-testkit.base_url" -> s"https://static.javadoc.io/${organization.value}/colossus-testkit_2.11/${version.value}/index.html#%s",

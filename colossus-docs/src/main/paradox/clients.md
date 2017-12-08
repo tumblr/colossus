@@ -108,7 +108,7 @@ The equivalent command would be "get 1" from a telnet session on 11211.
 When using the memcached client an implicit workerRef is required when using the Callback
 interface.  An implicit ClientCodeProvider is required.
 
-@@snip [MemcacheClient.scala](../scala/MemcacheClient.scala) { #example }
+@@snip [MemcacheClientExample.scala](../scala/MemcacheClientExample.scala) { #example }
 
 
 ### Redis Example
@@ -120,7 +120,6 @@ interface.  An implicit ClientCodeProvider is required.
 
 
 @@snip [RedisClientExample.scala](../scala/RedisClientExample.scala) { #example }
-
 
 
 ## Generic clients

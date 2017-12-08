@@ -8,7 +8,7 @@ import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
 import colossus.protocols.redis.Redis
 import colossus.service.GenRequestHandler.PartialHandler
 
-object RedisClient extends App {
+object RedisClientExample2 extends App {
 
   implicit val actorSystem = ActorSystem()
   implicit val ioSystem    = IOSystem()
@@ -38,5 +38,4 @@ object RedisClient extends App {
     }
   }
   // #redis-client
-
 }
