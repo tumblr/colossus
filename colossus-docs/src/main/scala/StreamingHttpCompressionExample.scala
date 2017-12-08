@@ -13,7 +13,6 @@ object StreamingHttpCompressionExample extends App {
 
   class MyRequestHandler(serverContext: ServerContext) extends GenRequestHandler[StreamingHttp](serverContext) {
 
-
     def handle = {
       case StreamingHttpRequest(head, source) if (head.url == "/chunked") => {
 
@@ -22,7 +21,13 @@ object StreamingHttpCompressionExample extends App {
             Data(DataBlock(s))
           })
           StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK, Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
+            HttpResponseHead(head.version,
+                             HttpCodes.OK,
+                             Some(TransferEncoding.Chunked),
+                             None,
+                             None,
+                             None,
+                             HttpHeaders.Empty),
             responseBody
           )
         }
@@ -35,10 +40,15 @@ object StreamingHttpCompressionExample extends App {
   }
 
   def start(port: Int)(implicit sys: IOSystem) = {
-    StreamingHttpServer.basic("stream-service", port, serverContext => new MyRequestHandler(serverContext) {
-      //enable Gzip/deflate compression
-      override def filters: Seq[Filter[StreamingHttp]] = Seq(new HttpStreamCustomFilters.CompressionFilter())
-    })
+    StreamingHttpServer.basic(
+      "stream-service",
+      port,
+      serverContext =>
+        new MyRequestHandler(serverContext) {
+          //enable Gzip/deflate compression
+          override def filters: Seq[Filter[StreamingHttp]] = Seq(new HttpStreamCustomFilters.CompressionFilter())
+      }
+    )
   }
 
   implicit val actorSystem = ActorSystem("stream")
@@ -46,4 +56,3 @@ object StreamingHttpCompressionExample extends App {
   // #streaming_http
 
 }
-

@@ -33,7 +33,7 @@ object StreamingHttpClient {
           )
           worker.worker ! WorkerCommand.Bind(handler)
           new BasicLiftedClient(client, Some(config))(implicitly[AsyncBuilder[Callback, WorkerRef]].build(worker))
-            with StreamingHttpClient
+          with StreamingHttpClient
         }
       }.head
     }

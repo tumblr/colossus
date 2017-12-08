@@ -87,7 +87,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
   val ss: ServerSocket = ssc.socket()
   val addresses: Seq[InetSocketAddress] =
     serverConfig.settings.addresses.isEmpty match {
-      case true => Seq(new InetSocketAddress(settings.port))
+      case true  => Seq(new InetSocketAddress(settings.port))
       case false => serverConfig.settings.addresses.map(address => new InetSocketAddress(address, settings.port))
     }
 

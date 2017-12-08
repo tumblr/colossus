@@ -417,7 +417,6 @@ object ContentType {
   val TextPlain       = "text/plain"
   val ApplicationJson = "application/json"
 
-
 }
 
 trait ParameterParser[T] {

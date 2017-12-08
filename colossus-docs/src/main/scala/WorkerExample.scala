@@ -23,11 +23,13 @@ object WorkerExample extends App {
         case NameChange(name) => currentName = name
       }
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root => Callback.successful(request.ok(s"My name is $currentName"))
+      override def onConnect =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root => Callback.successful(request.ok(s"My name is $currentName"))
+            }
         }
-      }
     }
   }
 

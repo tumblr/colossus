@@ -2,7 +2,6 @@ package colossus.metrics
 
 import colossus.metrics.logging.ColossusLogging
 
-
 package object senders {
 
   trait MetricsLogger { this: ColossusLogging =>

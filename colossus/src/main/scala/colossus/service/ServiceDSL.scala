@@ -199,8 +199,7 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Cli
     new LoadBalancer[P](config, this, new PrinciplePermutationGenerator[Client[P, Callback]](_))
   }
 
-  def createClient(config: ClientConfig, address: InetSocketAddress)(
-      implicit worker: WorkerRef): Client[P, Callback] = {
+  def createClient(config: ClientConfig, address: InetSocketAddress)(implicit worker: WorkerRef): Client[P, Callback] = {
     //TODO : binding a client needs to be split up from creating the connection handler
     // we should make a method called "create" the abstract method, and have
     // this apply call it, then move this to a more generic parent type
