@@ -1,6 +1,6 @@
 import akka.util.ByteString
 import colossus.core.{ServerContext, ServerRef, WorkerRef}
-import colossus.protocols.http.{Http, HttpCodes, HttpRequest, HttpServer, Initializer}
+import colossus.protocols.http.{HttpCodes, HttpRequest, HttpServer, Initializer}
 import colossus.protocols.memcache.{Memcache, MemcacheClient, MemcacheCommand, MemcacheReply}
 import colossus.protocols.redis.{BulkReply, Command, NilReply, Redis, RedisClient, Reply}
 import colossus.service.Callback
@@ -79,7 +79,7 @@ class AnyClientSpec2 extends HttpServiceSpec with MockitoSugar {
 
   "Any client handler" must {
     "return valid redis value" in {
-      when(redis.get(ByteString("ben"))).thenReturn(Callback.successful(ByteString("1")))
+      when(redis.get(ByteString("ben"))).thenReturn(Callback.successful(Some(ByteString("1"))))
       expectCodeAndBody(HttpRequest.get("/data/ben"), HttpCodes.OK, "The key ben has value 1")
     }
 

@@ -38,11 +38,10 @@ class AnyClientHandler(context: ServerContext,
     case request @ Get on Root / "data" / name =>
       redisClient
         .get(ByteString(name))
-        .map { value =>
-          request.ok(s"The key $name has value ${value.utf8String}")
-        }
-        .recoverWith {
-          case _ =>
+        .flatMap {
+          case Some(value) =>
+            Callback.successful(request.ok(s"The key $name has value ${value.utf8String}"))
+          case None =>
             memcacheClient.get(ByteString(name)).map {
               case Some(Value(_, data, _)) =>
                 request.ok(s"The key $name has value ${data.utf8String}")
