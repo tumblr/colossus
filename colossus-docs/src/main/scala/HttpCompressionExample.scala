@@ -15,7 +15,7 @@ object HttpCompressionExample extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {

@@ -31,7 +31,7 @@ object ServiceConfigExample {
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
       // #example1
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext, serviceConfig) {
             // #example1

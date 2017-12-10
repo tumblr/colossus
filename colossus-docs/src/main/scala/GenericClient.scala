@@ -32,7 +32,7 @@ object GenericClient extends App {
     new Initializer(initContext) {
       val client = Http.client("example.org", 80)
 
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {

@@ -1,5 +1,6 @@
 import akka.actor.ActorSystem
 import colossus.IOSystem
+import colossus.core.ServerContext
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
@@ -15,7 +16,7 @@ object HelloWorld extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {
