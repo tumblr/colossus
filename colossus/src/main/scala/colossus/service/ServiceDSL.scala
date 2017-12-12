@@ -43,24 +43,67 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
     override def onShutdown() { serviceInitializer.onShutdown() }
   }
 
+  /**
+    * Start service with an explicit [[colossus.core.ServerSettings]].
+    *
+    * @param name Service name
+    * @param settings Settings that configure the service
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, settings) { i =>
       new BridgeInitializer(i, init(i))
     }
-
   }
 
+  /**
+    * Start service with a particular port, but other settings will be loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param port Port to open server on
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port) { i =>
       new BridgeInitializer(i, init(i))
     }
   }
 
-  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
+  /**
+    * Start service with settings loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
+  def start(name: String)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name) { i =>
+      new BridgeInitializer(i, init(i))
+    }
+  }
+
+  /**
+    * Start a basic service with a particular port, but other settings will be loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param port Port to open server on
+    * @param handler Logic that is applied to each request
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
+  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port) { i =>
       new Initializer(i) {
-        val rinit     = basicInitializer(i)
-        def onConnect = ctx => rinit.fullHandler(handler(ctx))
+        val requestInit = basicInitializer(i)
+
+        def onConnect: ServerContext => ServerConnectionHandler = { ctx =>
+          requestInit.fullHandler(handler(ctx))
+        }
       }
     }
   }
@@ -199,7 +242,8 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Cli
     new LoadBalancer[P](config, this, new PrinciplePermutationGenerator[Client[P, Callback]](_))
   }
 
-  def createClient(config: ClientConfig, address: InetSocketAddress)(implicit worker: WorkerRef): Client[P, Callback] = {
+  def createClient(config: ClientConfig, address: InetSocketAddress)(
+      implicit worker: WorkerRef): Client[P, Callback] = {
     //TODO : binding a client needs to be split up from creating the connection handler
     // we should make a method called "create" the abstract method, and have
     // this apply call it, then move this to a more generic parent type
