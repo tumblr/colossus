@@ -21,7 +21,7 @@ object SimpleMetricExample extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect: ServerContext => SimpleMetricRequestHandler = { serverContext =>
+      override def onConnect: RequestHandlerFactory = { serverContext =>
         new SimpleMetricRequestHandler(serverContext, controller)
       }
     }

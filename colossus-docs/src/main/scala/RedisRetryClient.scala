@@ -37,7 +37,7 @@ object RedisRetryClient extends App {
 
       val redisClient = Redis.client(config)
 
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {

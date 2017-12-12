@@ -29,7 +29,7 @@ object Fibonacci3 extends App {
 
       val cache = Memcache.client("localhost", 11211)
 
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {

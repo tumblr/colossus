@@ -1,9 +1,6 @@
 package colossus.core.server
 
-object ServerDSL {
-  type Receive = PartialFunction[Any, Unit]
-}
-import ServerDSL._
+import akka.actor.Actor.Receive
 import colossus.IOSystem
 import colossus.core._
 import com.typesafe.config.{Config, ConfigFactory}
@@ -13,7 +10,7 @@ import com.typesafe.config.{Config, ConfigFactory}
   * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
   * connections from the server with connection handlers.  An initializer is
   * created per worker, so all actions on a single Initializer are
-  * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
+  * single-threaded.  See [[colossus.core.server.Server]] to see how `Initializer` is
   * used when starting servers.
   */
 abstract class Initializer(context: InitContext) {

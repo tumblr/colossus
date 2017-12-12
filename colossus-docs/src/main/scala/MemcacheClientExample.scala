@@ -18,7 +18,7 @@ object MemcacheClientExample extends App {
 
       val memcacheClient = Memcache.client("localhost", 11211)
 
-      override def onConnect =
+      override def onConnect: RequestHandlerFactory =
         serverContext =>
           new RequestHandler(serverContext) {
             override def handle: PartialHandler[Http] = {

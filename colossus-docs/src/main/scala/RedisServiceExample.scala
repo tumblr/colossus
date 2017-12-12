@@ -19,7 +19,7 @@ object RedisServiceExample extends App {
 
   RedisServer.start("example-server", 6379) { initContext =>
     new Initializer(initContext) {
-      override def onConnect: ServerContext => MyRequestHandler = { serverContext =>
+      override def onConnect: RequestHandlerFactory = { serverContext =>
         new MyRequestHandler(serverContext, db)
       }
     }

@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.language.higherKinds
 import java.net.InetSocketAddress
 
+import akka.actor.Actor.Receive
 import colossus.IOSystem
 import colossus.controller.{Codec, Controller, Encoding}
 import colossus.core.server.{Initializer, Server, ServerDSL}
@@ -19,17 +20,22 @@ trait Protocol {
 }
 
 abstract class HandlerGenerator[T](ctx: InitContext) {
-  implicit val worker = ctx.worker
-  val server          = ctx.server
+
+  implicit val worker: WorkerRef = ctx.worker
+
+  val server: ServerRef = ctx.server
 
   def fullHandler: T => ServerConnectionHandler
 }
 
 trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
-  def onConnect: ServerContext => T
+  type RequestHandlerFactory = ServerContext => T
 
-  def receive: ServerDSL.Receive = Map()
+  def onConnect: RequestHandlerFactory
+
+  def receive: Receive = Map()
+
   def onShutdown() {}
 }
 
@@ -38,9 +44,15 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
   def basicInitializer: InitContext => HandlerGenerator[T]
 
   class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends Initializer(init) {
-    def onConnect        = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
-    override def receive = serviceInitializer.receive
-    override def onShutdown() { serviceInitializer.onShutdown() }
+    override def onConnect: (ServerContext) => ServerConnectionHandler = { ctx =>
+      serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
+    }
+
+    override def receive: Receive = serviceInitializer.receive
+
+    override def onShutdown(): Unit = {
+      serviceInitializer.onShutdown()
+    }
   }
 
   /**
