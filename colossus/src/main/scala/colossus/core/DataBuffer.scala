@@ -83,7 +83,7 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     * @param n the number of bytes to skip.
     * @throws IllegalArgumentException if n is larger than the number of remaining bytes
     */
-  def skip(n: Int) {
+  def skip(n: Int) = {
     data.position(data.position() + n)
   }
 

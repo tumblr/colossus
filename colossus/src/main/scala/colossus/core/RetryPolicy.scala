@@ -186,7 +186,7 @@ object BackoffMultiplier {
   *
   * @param baseBackoff The base value to use for backing off.  This may be used by the [[multiplier]]
   * @param multiplier The multiplier that will be applied to the [[baseBackoff]]
-  * @param maxTime The maximim amount of time to allow for retrying
+  * @param maxTime The maximum amount of time to allow for retrying
   * @param maxTries The maximum number of attempts to make
   * @param immediateFirstAttempt Whether the first retry attempt should be immediate or use the given backoff and multiplier
   */
@@ -249,7 +249,7 @@ case object NoRetry extends RetryPolicy with RetryIncident {
   * for some operation to complete, and if/how to retry the operation if it fails
   * to complete within the waiting time.
   *
-  * For example, a WaitPolicy is used by [[colossus.core.Server]] to determine
+  * For example, a WaitPolicy is used by `Server` to determine
   * how long to wait for it's delegators to start up and how to respond if they
   * fail
   *

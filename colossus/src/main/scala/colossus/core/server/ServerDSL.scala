@@ -7,10 +7,10 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 /**
   * An `Initializer` is used to perform any setup/coordination logic for a
-  * [[colossus.core.server.Server]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
+  * `Server` inside a `Worker`.  Initializers are also used to provide new
   * connections from the server with connection handlers.  An initializer is
   * created per worker, so all actions on a single Initializer are
-  * single-threaded.  See [[colossus.core.server.Server]] to see how `Initializer` is
+  * single-threaded.  See `Server` to see how `Initializer` is
   * used when starting servers.
   */
 abstract class Initializer(context: InitContext) {

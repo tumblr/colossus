@@ -76,7 +76,7 @@ object Multiplexing {
 
   /**
     * Demultiplex a multiplexed stream into individual sub-streams.  An implicit
-    * [[MultiStream[K,T] Multistream]] is required in order to determine the
+    * [[MultiStream]] is required in order to determine the
     * proper substream of each message in the multiplexed stream.
     *
     * @param base The multiplexed source
