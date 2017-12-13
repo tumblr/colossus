@@ -123,7 +123,7 @@ class ServerSpec extends ColossusSpec {
           "echo",
           badDelegator,
           ServerSettings(
-            TEST_PORT,
+            port = TEST_PORT,
             delegatorCreationPolicy =
               WaitPolicy(200 milliseconds,
                          BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
@@ -202,7 +202,8 @@ class ServerSpec extends ColossusSpec {
         val failedServer =
           Server.start(
             "fail",
-            ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(initContext =>
+            ServerSettings(port = TEST_PORT,
+                           delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(initContext =>
             new Initializer(initContext) {
               Thread.sleep(600)
               def onConnect = serverContext => new EchoHandler(serverContext)

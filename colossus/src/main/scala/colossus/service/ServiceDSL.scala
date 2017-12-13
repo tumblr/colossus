@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.language.higherKinds
 import java.net.InetSocketAddress
 
+import akka.actor.Actor.Receive
 import colossus.IOSystem
 import colossus.controller.{Codec, Controller, Encoding}
 import colossus.core.server.{Initializer, Server, ServerDSL}
@@ -19,17 +20,22 @@ trait Protocol {
 }
 
 abstract class HandlerGenerator[T](ctx: InitContext) {
-  implicit val worker = ctx.worker
-  val server          = ctx.server
+
+  implicit val worker: WorkerRef = ctx.worker
+
+  val server: ServerRef = ctx.server
 
   def fullHandler: T => ServerConnectionHandler
 }
 
 trait ServiceInitializer[T] extends HandlerGenerator[T] {
 
-  def onConnect: ServerContext => T
+  type RequestHandlerFactory = ServerContext => T
 
-  def receive: ServerDSL.Receive = Map()
+  def onConnect: RequestHandlerFactory
+
+  def receive: Receive = Map()
+
   def onShutdown() {}
 }
 
@@ -38,29 +44,78 @@ trait ServiceDSL[T, I <: ServiceInitializer[T]] {
   def basicInitializer: InitContext => HandlerGenerator[T]
 
   class BridgeInitializer(init: InitContext, val serviceInitializer: I) extends Initializer(init) {
-    def onConnect        = ctx => serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
-    override def receive = serviceInitializer.receive
-    override def onShutdown() { serviceInitializer.onShutdown() }
+    override def onConnect: (ServerContext) => ServerConnectionHandler = { ctx =>
+      serviceInitializer.fullHandler(serviceInitializer.onConnect(ctx))
+    }
+
+    override def receive: Receive = serviceInitializer.receive
+
+    override def onShutdown(): Unit = {
+      serviceInitializer.onShutdown()
+    }
   }
 
+  /**
+    * Start service with an explicit [[colossus.core.ServerSettings]].
+    *
+    * @param name Service name
+    * @param settings Settings that configure the service
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
   def start(name: String, settings: ServerSettings)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, settings) { i =>
       new BridgeInitializer(i, init(i))
     }
-
   }
 
+  /**
+    * Start service with a particular port, but other settings will be loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param port Port to open server on
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
   def start(name: String, port: Int)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port) { i =>
       new BridgeInitializer(i, init(i))
     }
   }
 
-  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem) = {
+  /**
+    * Start service with settings loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param init Initialization context to start the server
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
+  def start(name: String)(init: InitContext => I)(implicit io: IOSystem): ServerRef = {
+    Server.start(name) { i =>
+      new BridgeInitializer(i, init(i))
+    }
+  }
+
+  /**
+    * Start a basic service with a particular port, but other settings will be loaded from the configuration file.
+    *
+    * @param name Service name
+    * @param port Port to open server on
+    * @param handler Logic that is applied to each request
+    * @param io I/O system where work is executed
+    * @return Reference to the server
+    */
+  def basic(name: String, port: Int, handler: ServerContext => T)(implicit io: IOSystem): ServerRef = {
     Server.start(name, port) { i =>
       new Initializer(i) {
-        val rinit     = basicInitializer(i)
-        def onConnect = ctx => rinit.fullHandler(handler(ctx))
+        val requestInit = basicInitializer(i)
+
+        def onConnect: ServerContext => ServerConnectionHandler = { ctx =>
+          requestInit.fullHandler(handler(ctx))
+        }
       }
     }
   }
@@ -161,15 +216,21 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
 
   def apply(config: ClientConfig)(implicit env: E): T
 
+  def apply(hosts: Seq[InetSocketAddress])(implicit env: E): T = {
+    // TODO default request timeout should come from config
+    apply(hosts, 1.second)
+  }
+
   def apply(host: String, port: Int)(implicit env: E): T = {
+    // TODO default request timeout should come from config
     apply(host, port, 1.second)
   }
 
   def apply(host: String, port: Int, requestTimeout: Duration)(implicit env: E): T = {
-    apply(new InetSocketAddress(host, port), requestTimeout)
+    apply(Seq(new InetSocketAddress(host, port)), requestTimeout)
   }
 
-  def apply(address: InetSocketAddress, requestTimeout: Duration)(implicit env: E): T = {
+  def apply(address: Seq[InetSocketAddress], requestTimeout: Duration)(implicit env: E): T = {
     val config = ClientConfig(
       address = address,
       requestTimeout = requestTimeout,
@@ -179,31 +240,36 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
   }
 }
 
-trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, ServiceClient[P], WorkerRef] {
+trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Client[P, Callback], WorkerRef] {
 
   implicit def clientTagDecorator: TagDecorator[P]
-  
+
   def connectionHandler(base: ServiceClient[P], codec: Codec[Encoding.Client[P]]): ClientConnectionHandler = {
     new UnbindHandler(new Controller[Encoding.Client[P]](base, codec), base)
   }
 
   def codecProvider: Codec.Client[P]
 
-  def apply(config: ClientConfig)(implicit worker: WorkerRef): ServiceClient[P] = {
+  def apply(config: ClientConfig)(implicit worker: WorkerRef): Client[P, Callback] = {
+    new LoadBalancer[P](config, this, new PrinciplePermutationGenerator[Client[P, Callback]](_))
+  }
+
+  def createClient(config: ClientConfig, address: InetSocketAddress)(
+      implicit worker: WorkerRef): Client[P, Callback] = {
     //TODO : binding a client needs to be split up from creating the connection handler
     // we should make a method called "create" the abstract method, and have
     // this apply call it, then move this to a more generic parent type
-    val base    = new ServiceClient[P](config, worker.generateContext())
+    val base    = new ServiceClient[P](address, config, worker.generateContext())
     val handler = connectionHandler(base, codecProvider)
     worker.worker ! WorkerCommand.Bind(handler)
     base
   }
-
 }
 
 object ServiceClientFactory {
 
-  def basic[P <: Protocol](name: String, provider: () => Codec.Client[P],
+  def basic[P <: Protocol](name: String,
+                           provider: () => Codec.Client[P],
                            tagDecorator: TagDecorator[P] = TagDecorator.default[P]) = new ServiceClientFactory[P] {
 
     def defaultName = name
@@ -270,19 +336,20 @@ abstract class ClientFactories[P <: Protocol, T[M[_]] <: Sender[P, M]](lifter: C
 
 trait LiftedClient[P <: Protocol, M[_]] extends Sender[P, M] {
 
+  def address: InetSocketAddress = client.address()
   def clientConfig: Option[ClientConfig]
   def client: Sender[P, M]
   implicit val async: Async[M]
 
-  def send(input: P#Request): M[P#Response] = client.send(input)
+  override def send(input: P#Request): M[P#Response] = client.send(input)
 
   protected def executeAndMap[T](i: P#Request)(f: P#Response => M[T]) = async.flatMap(send(i))(f)
 
-  def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
+  override def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
 
-  def disconnect() {
-    client.disconnect()
-  }
+  override def disconnect(): Unit = client.disconnect()
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit = client.update(addresses)
 
 }
 

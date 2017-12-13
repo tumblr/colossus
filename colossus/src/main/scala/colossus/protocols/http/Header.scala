@@ -285,9 +285,11 @@ object HttpHeaders {
 
   //make these all lower-case
   val Accept           = "accept"
+  val AcceptEncoding   = "accept-encoding"
   val Connection       = "connection"
   val ContentLength    = "content-length"
   val ContentType      = "content-type"
+  val ContentEncoding  = "content-encoding"
   val CookieHeader     = "cookie"
   val Host             = "host"
   val SetCookie        = "set-cookie"

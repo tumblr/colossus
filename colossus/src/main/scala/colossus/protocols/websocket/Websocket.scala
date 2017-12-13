@@ -300,7 +300,6 @@ class WebsocketHttpHandler[E <: Encoding](ctx: ServerContext,
 
 object WebsocketServer {
   import colossus.protocols.http._
-  
 
   /**
     * Start a Websocket server on the specified port.  Since Websocket

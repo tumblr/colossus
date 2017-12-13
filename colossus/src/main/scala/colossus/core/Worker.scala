@@ -158,7 +158,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
   private var trace = true
 
   private val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
-  
+
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
   implicit val ns: MetricNamespace = io.namespace / io.name
@@ -385,8 +385,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
           .map {
             case handler: ClientConnectionHandler => clientConnect(address, handler)
             case other =>
-              error(
-                s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
+              error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
           }
           .getOrElse {
             error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")

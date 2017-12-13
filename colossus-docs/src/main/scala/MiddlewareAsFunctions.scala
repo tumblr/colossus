@@ -14,15 +14,18 @@ object MiddlewareAsFunctions extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          // #example1
-          case request @ Post on Root / "shout" => withBody(request) { body =>
-            Callback.successful(request.ok(body.toUpperCase))
-          }
-          // #example1
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              // #example1
+              case request @ Post on Root / "shout" =>
+                withBody(request) { body =>
+                  Callback.successful(request.ok(body.toUpperCase))
+                }
+              // #example1
+            }
         }
-      }
     }
   }
 

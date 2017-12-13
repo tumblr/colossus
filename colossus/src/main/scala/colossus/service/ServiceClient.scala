@@ -33,7 +33,7 @@ import scala.util.{Failure, Success, Try}
   * @param maxResponseSize max allowed response size -- larger responses are dropped
   */
 case class ClientConfig(
-    address: InetSocketAddress,
+    address: Seq[InetSocketAddress],
     requestTimeout: Duration,
     name: MetricAddress,
     pendingBufferSize: Int = 500,
@@ -41,7 +41,8 @@ case class ClientConfig(
     failFast: Boolean = false,
     connectRetry: RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
     idleTimeout: Duration = Duration.Inf,
-    maxResponseSize: DataSize = 1.MB
+    maxResponseSize: DataSize = 1.MB,
+    requestRetry: RetryPolicy = BackoffPolicy(0.milliseconds, BackoffMultiplier.Constant)
 )
 
 object ClientConfig {
@@ -66,7 +67,7 @@ object ClientConfig {
     */
   def load(config: Config): ClientConfig = {
     import colossus.metrics.ConfigHelpers._
-    val address            = config.getInetSocketAddress("address")
+    val address            = config.getInetSocketAddressList("address")
     val name               = config.getString("name")
     val requestTimeout     = config.getScalaDuration("request-timeout")
     val pendingBufferSize  = config.getInt("pending-buffer-size")
@@ -75,6 +76,8 @@ object ClientConfig {
     val connectRetryPolicy = RetryPolicy.fromConfig(config.getConfig("connect-retry-policy"))
     val idleTimeout        = config.getScalaDuration("idle-timeout")
     val maxResponseSize    = DataSize(config.getString("max-response-size"))
+    val requestRetry       = RetryPolicy.fromConfig(config.getConfig("request-retry-policy"))
+
     ClientConfig(address,
                  requestTimeout,
                  name,
@@ -83,7 +86,8 @@ object ClientConfig {
                  failFast,
                  connectRetryPolicy,
                  idleTimeout,
-                 maxResponseSize)
+                 maxResponseSize,
+                 requestRetry)
   }
 }
 
@@ -158,6 +162,7 @@ class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandl
   * TODO: make underlying output controller data size configurable
   */
 class ServiceClient[P <: Protocol](
+    val address: InetSocketAddress,
     val config: ClientConfig,
     val context: Context
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
@@ -228,7 +233,8 @@ class ServiceClient[P <: Protocol](
   private var retryIncident: Option[RetryIncident] = None
 
   //TODO way too application specific
-  private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
+  private val hpTags: TagMap =
+    Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
 
   private var interceptors = mutable.ListBuffer[Interceptor[P]]()
 
@@ -447,4 +453,7 @@ class ServiceClient[P <: Protocol](
   def disconnect() {
     connection.disconnect()
   }
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit =
+    throw new NotImplementedError("Can not directly update service client")
 }

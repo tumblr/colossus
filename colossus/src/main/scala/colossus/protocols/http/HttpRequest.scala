@@ -2,7 +2,6 @@ package colossus.protocols.http
 
 import colossus.core.{DataOutBuffer, Encoder}
 
-
 trait FirstLine extends Encoder {
   def method: HttpMethod
   def path: String

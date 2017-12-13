@@ -5,10 +5,10 @@
 * [Workers](workers.md)
 * [Services](services.md)
 * [Configuration](configuration.md)
-* [Testing Servers](testkit.md)
 * [Metrics](metrics.md)
 * [Tasks](tasks.md)
 * [Streaming](streaming.md)
+* [Testing](testing.md)
 * [About](about.md)
 
 @@@
