@@ -85,8 +85,9 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
 
   def encode(buffer: DataOutBuffer, extraHeaders: HttpHeaders) {
     head.encode(buffer)
-    if (head.headers.firstValue(HttpHeaders.ContentType).isEmpty && !body.contentType.isEmpty) {
-      HttpHeader(HttpHeaders.ContentType, body.contentType).encode(buffer)
+    //if 'content-type' wasn't manually defined in the response head, add the encoder's 'content-type' if it exists
+    if (head.headers.firstValue(HttpHeaders.ContentType).isEmpty && !body.encoderContentType.isEmpty) {
+      HttpHeader(HttpHeaders.ContentType, body.encoderContentType).encode(buffer)
     }
     extraHeaders.encode(buffer)
     //unlike requests, we always encode content-length, even if it's 0
@@ -119,7 +120,7 @@ object HttpResponse extends HttpResponseBuilding {
   def apply[T: HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
     val encoder = implicitly[HttpBodyEncoder[T]]
     val httpBody = encoder.encode(body)
-    httpBody.contentType = encoder.contentType
+    httpBody.encoderContentType = encoder.contentType
     HttpResponse(head, httpBody)
   }
 

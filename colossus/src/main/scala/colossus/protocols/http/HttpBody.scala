@@ -7,7 +7,7 @@ import scala.util.Try
 
 class HttpBody(private val body: Array[Byte]) {
 
-  protected[http] var contentType: String = ""
+  protected[http] var encoderContentType: String = ""
 
   def size = body.length
 
@@ -73,7 +73,7 @@ object HttpBodyEncoder {
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val contentType = ContentType.TextPlain
+    val contentType: String = ContentType.TextPlain
     def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"))
   }
 }
