@@ -19,7 +19,7 @@ case class SubSink[K, T](id: K, stream: Sink[T])
   * that source are routed into the base sink.
   *
   * Likewise, demultiplexing a multiplexed `Source[T]` will create a
-  * `Source[SubSource[K,T]]`, with each [[Subsource]] being one of the
+  * `Source[SubSource[K,T]]`, with each [[SubSource]] being one of the
   * sub-streams being fed into the multiplexed source.
   */
 object Multiplexing {
@@ -76,7 +76,7 @@ object Multiplexing {
 
   /**
     * Demultiplex a multiplexed stream into individual sub-streams.  An implicit
-    * [[Multistream[K,T] Multistream]] is required in order to determine the
+    * [[MultiStream[K,T] Multistream]] is required in order to determine the
     * proper substream of each message in the multiplexed stream.
     *
     * @param base The multiplexed source

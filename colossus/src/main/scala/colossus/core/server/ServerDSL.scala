@@ -7,7 +7,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 /**
   * An `Initializer` is used to perform any setup/coordination logic for a
-  * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
+  * [[colossus.core.server.Server]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
   * connections from the server with connection handlers.  An initializer is
   * created per worker, so all actions on a single Initializer are
   * single-threaded.  See [[colossus.core.server.Server]] to see how `Initializer` is
@@ -20,14 +20,14 @@ abstract class Initializer(context: InitContext) {
   val server = context.server
 
   /**
-    * Given a [[ServerContext]] for a new connection, provide a new connection
+    * Given a [[colossus.core.ServerContext]] for a new connection, provide a new connection
     * handler for the connection
     */
   def onConnect: ServerContext => ServerConnectionHandler
 
   /**
     * Message receive hook.  This is used to handle any messages that are sent
-    * using [[ServerRef]] `initializerBroadcast`.
+    * using [[colossus.core.ServerRef]] `initializerBroadcast`.
     */
   def receive: Receive = Map() //empty receive
 

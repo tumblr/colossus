@@ -36,7 +36,7 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Convenience function for using an IOSystem.  This will create an IOSystem, and ensure its shutdown.
-    * @param f The function to take the [[IOSystem]]
+    * @param f The function to take the I/O system
     */
   def withIOSystem(f: IOSystem => Any) {
     val sys = IOSystem("test-system-" + System.currentTimeMillis.toString, Some(2), MetricSystem.deadSystem)
@@ -49,7 +49,7 @@ abstract class ColossusSpec(_system: ActorSystem)
 
   /**
     * Shuts down the IOSystem, and ensures all Servers have been terminated.
-    * @param sys The [[IOSystem]] to shut down.
+    * @param sys The I/O system to shut down.
     */
   def shutdownIOSystem(sys: IOSystem) {
     implicit val ec = mySystem.dispatcher
@@ -90,10 +90,10 @@ abstract class ColossusSpec(_system: ActorSystem)
   }
 
   /**
-    * Convenience function for createing an IOSystem and Server, based on the Delegator factory passed in.  By default the
-    * created server will be listening on [[TEST_PORT]], and will have all of the default values listed in [[colossus.core.ServerSettings]]
+    * Convenience function for creating an IOSystem and Server, based on the Delegator factory passed in.  By default the
+    * created server will be listening on `TEST_PORT`, and will have all of the default values listed in `ServerSettings`
     * @param factory The factory to create Delegators
-    * @param customSettings An custom settings which will override the defaults found in [[colossus.core.ServerSettings]]
+    * @param customSettings An custom settings which will override the defaults found in `ServerSettings`
     * @param waitTime Amount of time to wait for the Server to be ready
     * @param f The function which runs tests.
     * @return

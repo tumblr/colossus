@@ -65,7 +65,7 @@ case class DataBuffer(data: ByteBuffer) extends Encoder {
     * @param buffer the array to copy into
     * @param offset the first index of buffer to start writing to
     * @param length how many bytes to write
-    * @throws ArrayOutOfBoundsException if target array is too small or buffer doesn't have sufficient bytes available
+    * @throws IndexOutOfBoundsException if target array is too small or buffer doesn't have sufficient bytes available
     */
   def takeInto(buffer: Array[Byte], offset: Int, length: Int) {
     if (length > remaining) {

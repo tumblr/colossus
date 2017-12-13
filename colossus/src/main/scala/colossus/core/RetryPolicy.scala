@@ -72,7 +72,7 @@ case class IncidentReport(totalTime: FiniteDuration, totalAttempts: Int)
   * [[colossus.service.ServiceClient]] fails to connect to its target host, it
   * will create a new `RetryIncident` from it's given [[RetryPolicy]].
   *
-  * On each successive failure of the operation, a call to [[nextAttempt()]]
+  * On each successive failure of the operation, a call to `nextAttempt()`
   * should be made that will return a `RetryAttempt` indicating what action
   * should be taken.  A single `RetryIncident` cannot be reused should be
   * discarded when either the operation completes or gives up
