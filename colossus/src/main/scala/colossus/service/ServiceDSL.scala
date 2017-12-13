@@ -10,7 +10,7 @@ import java.net.InetSocketAddress
 import akka.actor.Actor.Receive
 import colossus.IOSystem
 import colossus.controller.{Codec, Controller, Encoding}
-import colossus.core.server.{Initializer, Server, ServerDSL}
+import colossus.core.server.{Initializer, Server}
 import colossus.core._
 import colossus.metrics.MetricAddress
 
