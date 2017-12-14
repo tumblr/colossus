@@ -48,10 +48,10 @@ case class ClientConfig(
 object ClientConfig {
 
   /**
-    * Load a ClientConfig definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
+    * Load a ClientConfig definition from a Config.  Looks into `colossus.clients.clientName` and falls back onto
     * `colossus.client-defaults`
     * @param clientName The name of the client definition to load
-    * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
+    * @param config A config object which contains at the least a `colossus.clients.clientName` and a `colossus.client-defaults`
     * @return
     */
   def load(clientName: String, config: Config = ConfigFactory.load()): ClientConfig = {

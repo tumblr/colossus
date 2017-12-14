@@ -10,7 +10,7 @@ import java.net.InetSocketAddress
 import akka.actor.Actor.Receive
 import colossus.IOSystem
 import colossus.controller.{Codec, Controller, Encoding}
-import colossus.core.server.{Initializer, Server, ServerDSL}
+import colossus.core.server.{Initializer, Server}
 import colossus.core._
 import colossus.metrics.MetricAddress
 
@@ -194,10 +194,10 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
   protected lazy val configDefaults = ConfigFactory.load()
 
   /**
-    * Load a ServiceClient definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
+    * Load a ServiceClient definition from a Config.  Looks into `colossus.clients.clientName` and falls back onto
     * `colossus.client-defaults`
     * @param clientName The name of the client definition to load
-    * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
+    * @param config A config object which contains at the least a `colossus.clients.clientName` and a `colossus.client-defaults`
     * @return
     */
   def apply(clientName: String, config: Config = configDefaults)(implicit env: E): T = {
