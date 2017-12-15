@@ -27,7 +27,7 @@ object HelloWorld2 extends App {
 // #hello_world_part2
 class HelloInitializer(context: InitContext) extends Initializer(context) {
 
-  override def onConnect = context => new HelloRequestHandler(context)
+  override def onConnect: RequestHandlerFactory = context => new HelloRequestHandler(context)
 
 }
 // #hello_world_part2

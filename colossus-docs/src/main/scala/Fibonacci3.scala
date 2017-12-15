@@ -29,28 +29,30 @@ object Fibonacci3 extends App {
 
       val cache = Memcache.client("localhost", 11211)
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
 
-          case req @ Get on Root / "hello" =>
-            Callback.successful(req.ok("Hello World!"))
+              case req @ Get on Root / "hello" =>
+                Callback.successful(req.ok("Hello World!"))
 
-          case req @ Get on Root / "fib" / Long(n) =>
-            if (n > 0) {
-              val key = ByteString(s"fib_$n")
-              cache.get(key).flatMap {
-                case Some(value) => Callback.successful(req.ok(value.data.utf8String))
-                case None =>
-                  for {
-                    result   <- Callback.fromFuture(Future(fibonacci(n)))
-                    cacheSet <- cache.set(key, ByteString(result.toString))
-                  } yield req.ok(result.toString)
-              }
-            } else {
-              Callback.successful(req.badRequest("number must be positive"))
+              case req @ Get on Root / "fib" / Long(n) =>
+                if (n > 0) {
+                  val key = ByteString(s"fib_$n")
+                  cache.get(key).flatMap {
+                    case Some(value) => Callback.successful(req.ok(value.data.utf8String))
+                    case None =>
+                      for {
+                        result   <- Callback.fromFuture(Future(fibonacci(n)))
+                        cacheSet <- cache.set(key, ByteString(result.toString))
+                      } yield req.ok(result.toString)
+                  }
+                } else {
+                  Callback.successful(req.badRequest("number must be positive"))
+                }
             }
         }
-      }
     }
   }
   // #fibonacci3

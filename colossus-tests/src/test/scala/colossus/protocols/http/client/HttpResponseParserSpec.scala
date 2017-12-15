@@ -4,7 +4,7 @@ import colossus.core.{DataBuffer, DynamicOutBuffer}
 import akka.util.ByteString
 import org.scalatest.{MustMatchers, WordSpec}
 import colossus.parsing.DataSize._
-import colossus.protocols.http.{HttpBody, HttpCodes, HttpHeaders, HttpResponse, HttpResponseHead, HttpResponseParser, HttpVersion, StaticHttpClientCodec}
+import colossus.protocols.http.{ContentType, HttpBody, HttpCodes, HttpHeaders, HttpResponse, HttpResponseHead, HttpResponseParser, HttpVersion, StaticHttpClientCodec}
 
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
@@ -139,7 +139,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         ByteString("{some : json}")
       )
 
-      val expected = Some(sent.withHeader("content-length", size.toString))
+      val expected = Some(sent.withHeader("content-length", size.toString).withContentType(ContentType.TextPlain))
 
       val clientProtocol = new StaticHttpClientCodec
 

@@ -1,3 +1,4 @@
+import akka.actor.Actor.Receive
 import akka.actor.ActorSystem
 import colossus.IOSystem
 import colossus.protocols.http.Http
@@ -19,15 +20,17 @@ object WorkerExample extends App {
 
       var currentName = "Jones"
 
-      override def receive = {
+      override def receive: Receive = {
         case NameChange(name) => currentName = name
       }
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root => Callback.successful(request.ok(s"My name is $currentName"))
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root => Callback.successful(request.ok(s"My name is $currentName"))
+            }
         }
-      }
     }
   }
 

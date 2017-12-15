@@ -175,7 +175,6 @@ object Histogram {
     */
   def apply(address: MetricAddress, configPath: String)(implicit ns: MetricNamespace): Histogram = {
     ns.getOrAdd(address) { (fullAddress, config) =>
-
       val params      = config.resolveConfig(fullAddress, DefaultConfigPath, configPath)
       val percentiles = params.getDoubleList("percentiles").asScala.map(_.toDouble)
       val sampleRate  = params.getDouble("sample-rate")

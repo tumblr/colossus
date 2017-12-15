@@ -16,9 +16,17 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
 
     "be constructable from a ByteStringLike" in {
 
-      val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, HttpHeaders(), "test conversion")
+      val response = HttpResponse(
+        HttpVersion.`1.1`,
+        HttpCodes.ACCEPTED,
+        HttpHeaders(HttpHeader(HttpHeaders.ContentType, ContentType.TextPlain)),
+        "test conversion")
 
-      val expected = HttpResponse(HttpVersion.`1.1`, HttpCodes.ACCEPTED, HttpHeaders(), ByteString("test conversion"))
+      val expected = HttpResponse(
+        HttpVersion.`1.1`,
+        HttpCodes.ACCEPTED,
+        HttpHeaders(HttpHeader(HttpHeaders.ContentType, ContentType.TextPlain)),
+        ByteString("test conversion"))
 
       // currently there's no easy way to pass the contentType into HttpResponse.apply()
       response must equal(expected.withContentType("text/plain"))
@@ -31,8 +39,8 @@ class HttpResponseSpec extends ColossusSpec with TryValues with OptionValues wit
       val expected = HttpResponse(
         HttpVersion.`1.1`,
         code,
-        HttpHeaders(HttpHeader(ContentType.HeaderKey, ContentType.TextPlain)),
-        HttpBody("hello")
+        HttpHeaders(),
+        "hello"
       )
       response mustBe expected
     }

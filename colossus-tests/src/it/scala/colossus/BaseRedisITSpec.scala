@@ -26,7 +26,7 @@ abstract class BaseRedisITSpec extends ColossusSpec with ScalaFutures with Scale
 
   def keyPrefix : String
 
-  val client = Redis.futureClient(ClientConfig(new InetSocketAddress("localhost", 6379), 1.second, "redis"))
+  val client = Redis.futureClient(ClientConfig(Seq(new InetSocketAddress("localhost", 6379)), 1.second, "redis"))
 
   val usedKeys = scala.collection.mutable.HashSet.empty[ByteString]
 

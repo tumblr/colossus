@@ -3,7 +3,15 @@ package colossus.protocols.http.streaming
 import colossus.controller.Codec
 import colossus.core.{DataBlock, DataBuffer, DataOutBuffer}
 import colossus.parsing.Combinators.Parser
-import colossus.protocols.http.{HttpMessageHead, HttpParse, HttpRequestHead, HttpRequestParser, HttpResponseHead, HttpResponseParser, TransferEncoding}
+import colossus.protocols.http.{
+  HttpMessageHead,
+  HttpParse,
+  HttpRequestHead,
+  HttpRequestParser,
+  HttpResponseHead,
+  HttpResponseParser,
+  TransferEncoding
+}
 import colossus.service.Protocol
 
 class StreamHttpException(message: String) extends Exception(message)

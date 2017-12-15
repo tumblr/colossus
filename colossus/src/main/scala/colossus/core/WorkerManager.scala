@@ -24,7 +24,9 @@ import scala.util.{Failure, Success}
   * @param ioSystem Containing IOSystem
   * @param workerFactory Worker factory for creating workers
   */
-private[colossus] class WorkerManager(workerRefs: IOSystem.WorkerRefs, ioSystem: IOSystem, workerFactory: WorkerFactory)
+private[colossus] class WorkerManager(workerRefs: IOSystem.WorkerRefs,
+                                      ioSystem: IOSystem,
+                                      workerFactory: WorkerFactory)
     extends Actor
     with ColossusLogging
     with Stash {

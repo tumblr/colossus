@@ -112,5 +112,3 @@ class SystemMetricsCollector(namespace: MetricNamespace) {
     (memoryInfo ++ gcInfo ++ fdInfo).withTags(namespace.tags)
   }
 }
-
-

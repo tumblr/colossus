@@ -17,6 +17,7 @@ import scala.concurrent.duration._
   * `lowWatermarkPercentage`.  This can be totally disabled by just setting both
   * watermarks to 1.
   *
+  * @param addresses List of addresses to bind to. Defaults to [ "0.0.0.0" ]
   * @param port Port on which this Server will accept connections
   * @param maxConnections Max number of simultaneous live connections
   * @param lowWatermarkPercentage Percentage of live/max connections which represent a normal state
@@ -32,7 +33,7 @@ import scala.concurrent.duration._
   * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
   * to handle delegator startup.  Since a Server waits for a signal from the
   * [[colossus.IOSystem]] that every worker has properly initialized a
-  * [[colossus.core.Initializer]], this determines how long to wait before the
+  * [[colossus.core.server.Initializer]], this determines how long to wait before the
   * initialization is considered a failure and whether to retry the
   * initialization.
   *
@@ -42,6 +43,7 @@ import scala.concurrent.duration._
   * completes the shutdown.
   */
 case class ServerSettings(
+    addresses: Seq[String] = Seq.empty,
     port: Int,
     maxConnections: Int = 1000,
     maxIdleTime: Duration = Duration.Inf,
@@ -69,6 +71,7 @@ object ServerSettings {
     val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
 
     ServerSettings(
+      addresses = config.getAddresses("addresses"),
       port = config.getInt("port"),
       maxConnections = config.getInt("max-connections"),
       maxIdleTime = config.getScalaDuration("max-idle-time"),

@@ -1,12 +1,12 @@
+import akka.actor.ActorSystem
 import colossus._
-
-import protocols.http._
-import protocols.http.streaming._
-import core._
-import service._
+import colossus.core._
+import colossus.protocols.http._
+import colossus.protocols.http.streaming._
+import colossus.service._
 import colossus.streaming._
 
-object StreamServiceExample {
+object StreamingHttpExample extends App {
 
   // #streaming_http
 
@@ -14,12 +14,19 @@ object StreamServiceExample {
 
     def handle = {
       case StreamingHttpRequest(head, source) if (head.url == "/chunked") => {
+
         source.collected.map { sourceBody =>
           val responseBody = Source.fromIterator(List("this is ", "a chunked ", "response").toIterator.map { s =>
             Data(DataBlock(s))
           })
           StreamingHttpResponse(
-            HttpResponseHead(head.version, HttpCodes.OK, Some(TransferEncoding.Chunked), None, None, None, HttpHeaders.Empty),
+            HttpResponseHead(head.version,
+                             HttpCodes.OK,
+                             Some(TransferEncoding.Chunked),
+                             None,
+                             None,
+                             None,
+                             HttpHeaders.Empty),
             responseBody
           )
         }
@@ -35,6 +42,8 @@ object StreamServiceExample {
     StreamingHttpServer.basic("stream-service", port, serverContext => new MyRequestHandler(serverContext))
   }
 
+  implicit val actorSystem = ActorSystem("stream")
+  start(9000)(IOSystem())
   // #streaming_http
-}
 
+}

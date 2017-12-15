@@ -85,6 +85,10 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
 
   def encode(buffer: DataOutBuffer, extraHeaders: HttpHeaders) {
     head.encode(buffer)
+    //if 'content-type' wasn't manually defined in the response head, add the encoder's 'content-type' if it exists
+    if (head.headers.firstValue(HttpHeaders.ContentType).isEmpty && !body.encoderContentType.isEmpty) {
+      HttpHeader(HttpHeaders.ContentType, body.encoderContentType).encode(buffer)
+    }
     extraHeaders.encode(buffer)
     //unlike requests, we always encode content-length, even if it's 0
     HttpHeader.encodeContentLength(buffer, body.size)
@@ -115,8 +119,9 @@ object HttpResponse extends HttpResponseBuilding {
 
   def apply[T: HttpBodyEncoder](head: HttpResponseHead, body: T): HttpResponse = {
     val encoder = implicitly[HttpBodyEncoder[T]]
-    val response = HttpResponse(head, HttpBody(encoder.encode(body)))
-    encoder.contentType.fold(response) { ct => response.withContentType(ct) }
+    val httpBody = encoder.encode(body)
+    httpBody.encoderContentType = encoder.contentType
+    HttpResponse(head, httpBody)
   }
 
   def apply[T: HttpBodyEncoder](version: HttpVersion, code: HttpCode, headers: HttpHeaders, data: T): HttpResponse = {
@@ -135,17 +140,11 @@ trait HttpResponseBuilding {
   def initialVersion: HttpVersion
 
   def respond[T: HttpBodyEncoder](code: HttpCode, data: T, headers: HttpHeaders = HttpHeaders.Empty) = {
-    HttpResponse(HttpResponseHead(initialVersion, code, headersWithContentType[T](headers)), HttpBody(data))
+    HttpResponse(HttpResponseHead(initialVersion, code, headers), data)
   }
 
-  def headersWithContentType[T: HttpBodyEncoder](headers: HttpHeaders = HttpHeaders.Empty): HttpHeaders = {
-    implicitly[HttpBodyEncoder[T]].contentType match {
-      case Some(s) => headers + (ContentType.HeaderKey -> s)
-      case None => headers
-    }
-  }
-
-  def ok[T: HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty) = respond(OK, data, headers)
+  def ok[T: HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty) =
+    respond(OK, data, headers)
   def notFound[T: HttpBodyEncoder](data: T, headers: HttpHeaders = HttpHeaders.Empty) =
     respond(NOT_FOUND, data, headers)
   def error[T: HttpBodyEncoder](message: T, headers: HttpHeaders = HttpHeaders.Empty) =

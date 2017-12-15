@@ -3,9 +3,9 @@ package colossus.metrics
 import java.net.InetSocketAddress
 
 import com.typesafe.config.{Config, ConfigFactory}
+
 import scala.concurrent.duration._
 import scala.util.Try
-
 import scala.collection.JavaConverters._
 
 //has to be a better way
@@ -20,6 +20,8 @@ object ConfigHelpers {
     def getLongOption(path: String): Option[Long] = getOption(path, config.getLong)
 
     def getBoolOption(path: String): Option[Boolean] = getOption(path, config.getBoolean)
+
+    def getStringListOption(path: String): Option[Seq[String]] = getOption(path, config.getStringList).map(_.asScala)
 
     private def getOption[T](path: String, f: String => T): Option[T] = {
       if (config.hasPath(path)) {
@@ -37,6 +39,8 @@ object ConfigHelpers {
     def getFiniteDurationOption(path: String): Option[FiniteDuration] = getOption(path, getFiniteDuration)
 
     def getScalaDuration(path: String): Duration = Duration(config.getString(path))
+
+    def getAddresses(path: String): Seq[String] = getStringListOption(path).getOrElse(Seq.empty)
 
     private def finiteDurationOnly(str: String, key: String) = {
       Duration(str) match {
@@ -59,11 +63,16 @@ object ConfigHelpers {
       }
     }
 
-    def getInetSocketAddress(path: String): InetSocketAddress = {
-      val raw = config.getString(path)
-      raw.split(":") match {
-        case Array(host, Port(x)) => new InetSocketAddress(host, x)
-        case _                    => throw new InvalidHostAddressException(raw)
+    def getInetSocketAddressList(path: String): Seq[InetSocketAddress] = {
+      val raw  = config.getList(path)
+      val list = raw.iterator().asScala.toList
+      list.map { configValue =>
+        println(configValue.unwrapped().asInstanceOf[String])
+
+        configValue.unwrapped().asInstanceOf[String].split(":") match {
+          case Array(host, Port(x)) => new InetSocketAddress(host, x)
+          case _                    => throw new InvalidHostAddressException(raw.render())
+        }
       }
     }
 

@@ -37,25 +37,27 @@ object KeyValExample {
 
     RedisServer.start("key-value-example", port) { initContext =>
       new Initializer(initContext) {
-        def onConnect = serverContext => new RequestHandler(serverContext) {
-          def handle = {
-            case Command("GET", args) => {
-              val dbCmd = KeyValDB.Get(args(0))
-              db ! dbCmd
-              Callback.fromFuture(dbCmd.promise.future).map {
-                case Some(value) => BulkReply(value)
-                case None        => NilReply
+        def onConnect =
+          serverContext =>
+            new RequestHandler(serverContext) {
+              def handle = {
+                case Command("GET", args) => {
+                  val dbCmd = KeyValDB.Get(args(0))
+                  db ! dbCmd
+                  Callback.fromFuture(dbCmd.promise.future).map {
+                    case Some(value) => BulkReply(value)
+                    case None        => NilReply
+                  }
+                }
+                case Command("SET", args) => {
+                  val dbCmd = KeyValDB.Set(args(0), args(1))
+                  db ! dbCmd
+                  Callback.fromFuture(dbCmd.promise.future).map { _ =>
+                    StatusReply("OK")
+                  }
+                }
               }
-            }
-            case Command("SET", args) => {
-              val dbCmd = KeyValDB.Set(args(0), args(1))
-              db ! dbCmd
-              Callback.fromFuture(dbCmd.promise.future).map { _ =>
-                StatusReply("OK")
-              }
-            }
           }
-        }
       }
     }
   }
