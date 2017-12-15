@@ -36,7 +36,7 @@ object Main extends App {
   val chatServer = ChatExample.start(9005)
    */
 
-  val benchmarkServer = BenchmarkService.start(9007)
+  val benchmarkServer = BenchmarkExample.start(9007)
 
   val websocketServer = WebsocketExample.start(9008)
 
