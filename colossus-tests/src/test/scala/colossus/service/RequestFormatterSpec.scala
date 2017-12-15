@@ -7,12 +7,10 @@ class RequestFormatterSpec extends WordSpec {
   "Request formatter" must {
     "format log message with exception name, request and stack trace when no special format implementation provided" in {
       val requestFormatter = new RequestFormatter[HttpRequest] {
-        override def logWithStackTrace(error: Throwable): Option[Boolean] = Some(true)
-
-        override def format(request: HttpRequest, error: Throwable): Option[String] = None
+        override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.LogWithStackTrace
       }
 
-      val output = requestFormatter.formatLogMessage(HttpRequest.get("/"), new Exception("Too fast"))
+      val output = requestFormatter.formatLogMessage(Some(HttpRequest.get("/")), new Exception("Too fast"))
 
       val expected = RequestFormatter.LogMessage(
         "Exception: HttpRequest(BuiltHead(Get / 1.1,[]),)",
@@ -24,12 +22,10 @@ class RequestFormatterSpec extends WordSpec {
 
     "format log message with exception name and request when no special format implementation provided" in {
       val requestFormatter = new RequestFormatter[HttpRequest] {
-        override def logWithStackTrace(error: Throwable): Option[Boolean] = Some(false)
-
-        override def format(request: HttpRequest, error: Throwable): Option[String] = None
+        override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.LogNameOnly
       }
 
-      val output = requestFormatter.formatLogMessage(HttpRequest.get("/"), new RuntimeException("No running"))
+      val output = requestFormatter.formatLogMessage(Some(HttpRequest.get("/")), new RuntimeException("No running"))
 
       val expected = RequestFormatter.LogMessage(
         "RuntimeException: HttpRequest(BuiltHead(Get / 1.1,[]),)",
@@ -41,12 +37,10 @@ class RequestFormatterSpec extends WordSpec {
 
     "return nothing if logging is turned off" in {
       val requestFormatter = new RequestFormatter[HttpRequest] {
-        override def logWithStackTrace(error: Throwable): Option[Boolean] = None
-
-        override def format(request: HttpRequest, error: Throwable): Option[String] = None
+        override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.DoNotLog
       }
 
-      val output = requestFormatter.formatLogMessage(HttpRequest.get("/"), new RuntimeException("No running"))
+      val output = requestFormatter.formatLogMessage(Some(HttpRequest.get("/")), new RuntimeException("No running"))
 
       assert(output.isEmpty)
     }

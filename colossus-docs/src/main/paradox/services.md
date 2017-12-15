@@ -84,10 +84,6 @@ colossus {
       log-errors : true
       request-metrics : true
       max-request-size : "1000 MB"
-      errors : {
-        do-not-log : []
-        log-only-name : ["DroppedReplyException"]
-      }
     }
   }
 }
@@ -99,8 +95,8 @@ To configure via code, create a `ServiceConfig` object and pass it to the `Reque
 
 @@snip [ServiceConfigExample.conf](../scala/ServiceConfigExample.scala) { #example1 }
 
-`RequestHandler` allows for the configuration of how request errors are reported. By default, requests are directly
-converted to `String`s and logged with the complete stack trace. This can be overridden by either filling in the
-`errors` config, or by providing a custom implementation of the `RequestFormatter` trait in the `RequestHandler`.
+`RequestHandler` allows for the configuration of how request errors are reported. By default, `ColossusRuntimeException`s
+are converted to `String`s and logged with no stack trace, and other exceptions are logged with a stack trace. A custom 
+implementation of `RequestFormatter` can be provided as demonstrated in this example.
 
 @@snip [ServiceConfigExample.conf](../scala/ServiceConfigExample.scala) { #example2 }
