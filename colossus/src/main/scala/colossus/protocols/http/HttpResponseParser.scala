@@ -27,7 +27,7 @@ object HttpResponseParser {
         }
       case _ =>
         chunkedBody >> { body =>
-          HttpResponse(parsedHead, HttpBody(body))
+          HttpResponse(parsedHead, body)
         }
     }
   }

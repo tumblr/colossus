@@ -413,10 +413,9 @@ object Connection {
 }
 
 object ContentType {
-
   val TextPlain       = "text/plain"
   val ApplicationJson = "application/json"
-
+  val OctetStream     = "application/octet-stream"
 }
 
 trait ParameterParser[T] {

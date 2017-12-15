@@ -172,7 +172,7 @@ trait HttpRequestBuilder[T] {
 
 object HttpRequest extends HttpRequestBuilder[HttpRequest] {
 
-  val base = HttpRequest(HttpMethod.Get, "/", HttpHeaders(), HttpBody.NoBody)
+  val base = HttpRequest(BuiltHead(BuildFL(HttpMethod.Get, "/", HttpVersion.`1.1`), HttpHeaders()), HttpBody.NoBody)
 
   protected def build(r: HttpRequest) = r
 

@@ -1,7 +1,7 @@
 package colossus.protocols.http.filters
 
 import akka.util.ByteString
-import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpRequest, HttpResponse}
+import colossus.protocols.http.{Http, HttpBody, HttpHeaders, HttpMethod, HttpRequest, HttpRequestHead, HttpResponse, HttpVersion}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.util.compress.{GzipCompressor, ZCompressor}
@@ -24,9 +24,11 @@ class HttpCustomFiltersSpec extends WordSpec with MustMatchers with ScalaFutures
     "compress if accept encoding is deflate" in {
       val filter = new HttpCustomFilters.CompressionFilter()
       val request = HttpRequest(
-        HttpMethod.Get,
-        "/",
-        HttpHeaders() + (HttpHeaders.AcceptEncoding, "deflate"),
+        HttpRequestHead(
+          HttpMethod.Get,
+          "/", HttpVersion.`1.1`,
+          HttpHeaders() + (HttpHeaders.AcceptEncoding, "deflate")
+        ),
         HttpBody.NoBody)
 
       val c = new ZCompressor()
@@ -38,9 +40,12 @@ class HttpCustomFiltersSpec extends WordSpec with MustMatchers with ScalaFutures
     "won't compress if accept encoding is no supported" in {
       val filter = new HttpCustomFilters.CompressionFilter()
       val request = HttpRequest(
-        HttpMethod.Get,
-        "/",
-        HttpHeaders() + (HttpHeaders.AcceptEncoding, "compress"),
+        HttpRequestHead(
+          HttpMethod.Get,
+          "/",
+          HttpVersion.`1.1`,
+          HttpHeaders() + (HttpHeaders.AcceptEncoding, "compress")
+        ),
         HttpBody.NoBody)
 
       val e: Callback[HttpResponse] = filter.apply(helloWorldPartialHandler)(request)
@@ -52,9 +57,12 @@ class HttpCustomFiltersSpec extends WordSpec with MustMatchers with ScalaFutures
     "compress if accept encoding is gzip" in {
       val filter = new HttpCustomFilters.CompressionFilter()
       val request = HttpRequest(
-        HttpMethod.Get,
-        "/",
-        HttpHeaders() + (HttpHeaders.AcceptEncoding, "gzip"),
+        HttpRequestHead(
+          HttpMethod.Get,
+          "/",
+          HttpVersion.`1.1`,
+          HttpHeaders() + (HttpHeaders.AcceptEncoding, "gzip")
+        ),
         HttpBody.NoBody)
 
       val c = new GzipCompressor()

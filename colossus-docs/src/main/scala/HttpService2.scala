@@ -3,7 +3,7 @@ import colossus.IOSystem
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
-import colossus.protocols.http.{ContentType, Http, HttpBody, HttpCodes, HttpHeader, HttpHeaders}
+import colossus.protocols.http.{ContentType, Http, HttpCodes, HttpHeader, HttpHeaders}
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.service.Callback.Implicits._
 
@@ -40,7 +40,7 @@ object HttpService2 {
                 request
                   .respond(
                     HttpCodes.CONFLICT,
-                    HttpBody("""{"name":"value"}""")
+                    """{"name":"value"}"""
                   )
                   .withContentType(ContentType.ApplicationJson)
               // #example2
