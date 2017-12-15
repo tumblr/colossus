@@ -2,8 +2,8 @@ package colossus.controller
 
 import colossus.core.{AliveState, DataBuffer}
 import colossus.metrics.collectors.Histogram
-import colossus.parsing.ParserSizeTracker
 import colossus.streaming.{PushResult, Source}
+import colossus.util.ParserSizeTracker
 
 //TODO: the onComplete/onError logic should be moved out of here and instead use
 //the callback passed to Source.into.  However, that requires having an iterator

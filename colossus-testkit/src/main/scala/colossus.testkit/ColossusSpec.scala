@@ -10,8 +10,7 @@ import akka.testkit.TestProbe
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.util.Timeout
-import colossus.IOSystem
-import colossus.core.{ServerConnectionHandler, ServerContext, ServerRef, ServerSettings}
+import colossus.core.{IOSystem, ServerConnectionHandler, ServerContext, ServerRef, ServerSettings}
 import colossus.core.server.{Initializer, Server, ServerConfig, ServerStatus}
 
 abstract class ColossusSpec(_system: ActorSystem)

@@ -2,11 +2,11 @@ package colossus.examples
 
 import akka.actor._
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.ServerRef
+import colossus.core.{IOSystem, ServerRef}
 import colossus.service._
 import colossus.protocols.redis._
 import colossus.protocols.redis.server._
+
 import scala.concurrent.Promise
 
 class KeyValDB extends Actor {

@@ -1,5 +1,5 @@
 import akka.actor.ActorSystem
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.metrics.MetricSystem
 import colossus.metrics.collectors.Rate
 import colossus.protocols.http.Http

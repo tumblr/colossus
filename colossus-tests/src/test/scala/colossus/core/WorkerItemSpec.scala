@@ -3,7 +3,6 @@ package colossus.core
 import colossus.testkit.ColossusSpec
 import akka.actor.ActorRef
 import akka.testkit.TestProbe
-import colossus.IOCommand
 
 import scala.concurrent.duration._
 

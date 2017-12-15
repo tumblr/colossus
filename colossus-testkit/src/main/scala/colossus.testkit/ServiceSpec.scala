@@ -6,8 +6,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.net.InetSocketAddress
 
-import colossus.IOSystem
-import colossus.core.ServerRef
+import colossus.core.{IOSystem, ServerRef}
 import colossus.service.{ClientConfig, FutureClient, FutureClientFactory, Protocol}
 
 import scala.reflect.ClassTag

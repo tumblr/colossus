@@ -1,7 +1,6 @@
 import akka.actor.ActorSystem
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.{ServerContext, WorkerRef}
+import colossus.core.{IOSystem, ServerContext, WorkerRef}
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.UrlParsing.{/, Root, on}
 import colossus.protocols.http.{Http, HttpServer, Initializer, RequestHandler}

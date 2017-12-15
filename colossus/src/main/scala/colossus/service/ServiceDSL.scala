@@ -8,10 +8,9 @@ import scala.language.higherKinds
 import java.net.InetSocketAddress
 
 import akka.actor.Actor.Receive
-import colossus.IOSystem
 import colossus.controller.{Codec, Controller, Encoding}
 import colossus.core.server.{Initializer, Server}
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import colossus.metrics.MetricAddress
 
 trait Protocol {

@@ -14,11 +14,11 @@ import colossus.RawProtocol.Raw
 import colossus.{TestClient, TestUtil}
 import colossus.controller.{ControllerUpstream, Encoding}
 import colossus.metrics.MetricAddress
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.protocols.redis._
 import colossus.protocols.redis.UnifiedProtocol._
 import colossus.streaming.{BufferedPipe, PullResult}
+import colossus.util.DataSize
 
 import scala.concurrent.Await
 import org.scalamock.scalatest.MockFactory

@@ -5,7 +5,8 @@ import com.github.nscala_time.time.Imports._
 import java.util.{LinkedList, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
-import colossus.parsing.{ParseException, Zero}
+import colossus.util.Zero
+import colossus.util.{ParseException, Zero}
 
 import scala.util.{Failure, Success, Try}
 
@@ -137,7 +138,7 @@ object HttpHeader {
     new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
 
   implicit object FPHZero extends Zero[EncodedHttpHeader] {
-    def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n
+    def isZero(t: EncodedHttpHeader) = t.data.length == 2 //just the /r/n
   }
 
 }

@@ -2,9 +2,9 @@ package colossus
 package task
 
 import colossus.testkit.ColossusSpec
-
 import akka.actor._
 import akka.testkit.TestProbe
+import colossus.util.Task
 
 import scala.concurrent.duration._
 
@@ -26,12 +26,13 @@ class TaskTest extends ColossusSpec {
     "bind to a worker" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        Task.start(context => new Task(context) {
-          def run() {
-            probe.ref.!("BOUND")(self)
-          }
+        Task.start(context =>
+          new Task(context) {
+            def run() {
+              probe.ref.!("BOUND")(self)
+            }
 
-          def receive = { case _ => () }
+            def receive = { case _ => () }
         })
 
         probe.expectMsg(500.milliseconds, "BOUND")
@@ -41,12 +42,13 @@ class TaskTest extends ColossusSpec {
     "receive a message through the proxy" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(context => new Task(context) {
-          def run() {}
+        val task = Task.start(context =>
+          new Task(context) {
+            def run() {}
 
-          def receive = {
-            case "PING" => probe.ref.!("PONG")(self)
-          }
+            def receive = {
+              case "PING" => probe.ref.!("PONG")(self)
+            }
         })
         task ! "PING"
         probe.expectMsg(100.milliseconds, "PONG")
@@ -57,14 +59,15 @@ class TaskTest extends ColossusSpec {
     "receive through self" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(context => new Task(context) {
-          def run() {
-            self ! "PING"
-          }
+        val task = Task.start(context =>
+          new Task(context) {
+            def run() {
+              self ! "PING"
+            }
 
-          def receive = {
-            case "PING" => probe.ref.!("PONG")(self)
-          }
+            def receive = {
+              case "PING" => probe.ref.!("PONG")(self)
+            }
         })
         probe.expectMsg(100.milliseconds, "PONG")
       }
@@ -73,16 +76,17 @@ class TaskTest extends ColossusSpec {
     "unbind by killing self actor" in {
       withIOSystem { implicit io =>
         val probe = TestProbe()
-        val task = Task.start(context => new Task(context) {
-          def run() {
-            probe.ref.!("BOUND")(self)
-          }
-          def receive = { case _ => () }
+        val task = Task.start(context =>
+          new Task(context) {
+            def run() {
+              probe.ref.!("BOUND")(self)
+            }
+            def receive = { case _ => () }
 
-          override def onUnbind() {
-            super.onUnbind()
-            probe.ref.!("UNBOUND")(self)
-          }
+            override def onUnbind() {
+              super.onUnbind()
+              probe.ref.!("UNBOUND")(self)
+            }
         })
         probe.expectMsg(100.milliseconds, "BOUND")
         task ! PoisonPill

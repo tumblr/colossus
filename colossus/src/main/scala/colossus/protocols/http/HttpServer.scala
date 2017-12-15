@@ -1,8 +1,7 @@
 package colossus.protocols.http
 
-import colossus.IOSystem
 import colossus.controller.Controller
-import colossus.core.{InitContext, PipelineHandler, ServerContext}
+import colossus.core.{IOSystem, InitContext, PipelineHandler, ServerContext}
 import colossus.service._
 
 class HttpServiceHandler(rh: RequestHandler) extends ServiceServer[Http](rh) {}
@@ -19,7 +18,7 @@ class Generator(context: InitContext) extends HandlerGenerator[RequestHandler](c
       new PipelineHandler(
         new Controller(
           new HttpServiceHandler(requestHandler),
-          new StaticHttpServerCodec(defaultHeaders, requestHandler.config.maxRequestSize)
+          new HttpServerCodec(defaultHeaders, requestHandler.config.maxRequestSize)
         ),
         requestHandler
     )

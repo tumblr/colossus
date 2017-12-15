@@ -5,8 +5,7 @@ import java.net.{InetSocketAddress, ServerSocket, StandardSocketOptions}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
 import java.util.concurrent.atomic.AtomicReference
 
-import colossus.IOSystem
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import colossus.metrics.MetricAddress
 import colossus.metrics.collectors.{Counter, Rate}
 import colossus.metrics.logging.ColossusLogging

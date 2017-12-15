@@ -4,8 +4,8 @@ import org.scalatest._
 import akka.util.ByteString
 import UnifiedProtocol._
 import colossus.core.DataBuffer
-import colossus.parsing.ParseException
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
+import colossus.util.ParseException
 
 class FastCommandSuite extends FlatSpec with Matchers {
 

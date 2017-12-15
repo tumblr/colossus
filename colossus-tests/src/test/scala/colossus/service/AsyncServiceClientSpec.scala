@@ -6,10 +6,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import Callback.Implicits._
 import akka.util.ByteString
-import colossus.{IOSystem, TestClient, TestUtil}
-import colossus.core.{ConnectionStatus, NoRetry, ServerRef}
+import colossus.{TestClient, TestUtil}
+import colossus.core.{ConnectionStatus, IOSystem, NoRetry, ServerRef}
 import colossus.RawProtocol.{Raw, RawServer}
-
 
 class FutureClientSpec extends ColossusSpec {
 

@@ -1,6 +1,6 @@
 package colossus.core
 
-import colossus.parsing.{InvalidDataSizeException, DataSize}
+import colossus.util.{DataSize, InvalidDataSizeException}
 import org.scalatest.{MustMatchers, WordSpec}
 
 class DataSizeSpec extends WordSpec with MustMatchers {
@@ -28,7 +28,7 @@ class DataSizeSpec extends WordSpec with MustMatchers {
     }
 
     "implicits should work" in {
-      import colossus.parsing.DataSize._
+      import colossus.util.DataSize._
       1L.MB mustBe DataSize("1 MB")
       1L.KB mustBe DataSize("1 KB")
     }

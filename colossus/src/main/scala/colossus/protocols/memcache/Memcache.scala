@@ -3,6 +3,7 @@ package colossus.protocols.memcache
 import colossus.controller.Codec
 import colossus.core._
 import akka.util.{ByteString, ByteStringBuilder}
+import colossus.util.ParseException
 import colossus.util.compress.{Compressor, NoCompressor}
 
 /*
@@ -286,8 +287,8 @@ class MemcacheReplyParser() {
 }
 
 object MemcacheReplyParser {
-  import colossus.parsing._
-  import Combinators._
+  import colossus.util._
+  import colossus.util.Combinators._
   import MemcacheReply._
 
   def apply() = reply
