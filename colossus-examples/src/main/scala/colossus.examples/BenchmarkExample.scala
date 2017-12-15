@@ -11,7 +11,7 @@ object BenchmarkService {
   private val mapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
 
   implicit object JsonBody extends HttpBodyEncoder[Array[Byte]] {
-    val contentType = Some(ContentType.ApplicationJson)
+    val contentType: String = ContentType.ApplicationJson
     def encode(json: Array[Byte]): HttpBody = new HttpBody(json)
   }
 
