@@ -5,16 +5,15 @@ import colossus.protocols.http.UrlParsing.{/, Root, on}
 import colossus.service.Callback
 import colossus.service.GenRequestHandler.PartialHandler
 import colossus.testkit.HttpServiceSpec
-import org.json4s.Formats
-import org.json4s.JsonAST._
-import org.json4s.jackson.JsonMethods
+import com.fasterxml.jackson.databind.node.{IntNode, TextNode}
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
-// to run this: start sbt, set project to colossus-docs, and run "testOnly TestkitExampleSpec".
+// to run this: sbt "test:testOnly *MyHttpHandlerSpec"
 
 // #example2
 class MyHttpHandlerSpec extends HttpServiceSpec {
-
-  implicit val formats: Formats = org.json4s.DefaultFormats
 
   override def service: ServerRef = {
     HttpServer.start("example-server", 9123) { initContext =>
@@ -33,14 +32,16 @@ class MyHttpHandlerSpec extends HttpServiceSpec {
 
     "return 200 and body that satisfies predicate" in {
       expectCodeAndBodyPredicate(HttpRequest.get("ping/1"), HttpCodes.OK) { body =>
-        val actual   = JsonMethods.parse(body).extract[Map[String, JValue]]
-        val expected = Map("data" -> JInt(1), "type" -> JString("pong"))
+
+        val mapper = new ObjectMapper() with ScalaObjectMapper
+        mapper.registerModule(DefaultScalaModule)
+        val actual = mapper.readValue[Map[String, JsonNode]](body)
+        val expected = Map("data" -> new IntNode(1), "type" -> new TextNode("pong"))
+
         actual == expected
       }
     }
-
   }
-
 }
 // #example2
 
