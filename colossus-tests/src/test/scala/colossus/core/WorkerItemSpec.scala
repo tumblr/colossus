@@ -38,7 +38,7 @@ class WorkerItemSpec extends ColossusSpec {
         }
         io ! IOCommand.BindWorkerItem(context => new MyItem(context))
         probe.expectMsg(100.milliseconds, "BOUND")
-        probe.expectNoMsg(100.milliseconds)
+        probe.expectNoMessage(100.milliseconds)
       }
 
     }
@@ -76,7 +76,7 @@ class WorkerItemSpec extends ColossusSpec {
           }
         }
         io ! IOCommand.BindWorkerItem(context => new MyItem(context))
-        probe.expectNoMsg(100.milliseconds)
+        probe.expectNoMessage(100.milliseconds)
       }
     }
 

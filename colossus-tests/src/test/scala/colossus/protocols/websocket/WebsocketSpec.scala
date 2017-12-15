@@ -197,16 +197,18 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
     import subprotocols.rawstring._
     val myinit = new WebsocketInitializer[RawString](FakeIOSystem.fakeWorker.worker) {
       def provideCodec = new RawStringCodec
-      def onConnect = serverContext => new WebsocketServerHandler[RawString](serverContext) {
-        def handle = {
-          case "A" => {
-            send("B")
-          }
+      def onConnect =
+        serverContext =>
+          new WebsocketServerHandler[RawString](serverContext) {
+            def handle = {
+              case "A" => {
+                send("B")
+              }
+            }
+            def handleError(reason: Throwable): Unit = {
+              send("E")
+            }
         }
-        def handleError(reason: Throwable): Unit = {
-          send("E")
-        }
-      }
     }
 
     def createHandler = {
@@ -233,7 +235,7 @@ class WebsocketSpec extends ColossusSpec with MockFactory with ControllerMocks {
       con.iterate()
       con.withExpectedWrite(_.utf8String.contains("400") mustBe true)
       con.iterate()
-      con.workerProbe.expectNoMsg(100.milliseconds)
+      con.workerProbe.expectNoMessage(100.milliseconds)
 
     }
   }

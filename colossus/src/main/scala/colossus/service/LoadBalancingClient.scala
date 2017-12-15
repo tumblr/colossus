@@ -172,4 +172,6 @@ class LoadBalancingClient[P <: Protocol](
 
   override def receivedMessage(message: Any, sender: ActorRef) {}
 
+  // TODO: fix this
+  override def addInterceptor(interceptor: Interceptor[P]): Unit = clients.foreach(_.client.addInterceptor(interceptor))
 }

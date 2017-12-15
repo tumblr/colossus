@@ -4,9 +4,10 @@ import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import ProjectImplicits._
 
-val AKKA_VERSION      = "2.5.4"
-val SCALATEST_VERSION = "3.0.1"
-val MIMA_PREVIOUS_VERSIONS = Seq("0.9.1")
+val AkkaVersion      = "2.5.6"
+val ScalatestVersion = "3.0.1"
+
+val MIMAPreviousVersions = Seq("0.9.1")
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -36,13 +37,13 @@ lazy val GeneralSettings = Seq[Setting[_]](
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
   scalacOptions in (Compile, console) := Seq(),
   libraryDependencies ++= Seq(
-    "com.typesafe.akka"      %% "akka-actor"                  % AKKA_VERSION,
-    "com.typesafe.akka"      %% "akka-testkit"                % AKKA_VERSION,
-    "org.scalatest"          %% "scalatest"                   % SCALATEST_VERSION % "test, it",
+    "com.typesafe.akka"      %% "akka-actor"                  % AkkaVersion,
+    "com.typesafe.akka"      %% "akka-testkit"                % AkkaVersion % "test",
+    "org.scalatest"          %% "scalatest"                   % ScalatestVersion % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
-    "org.mockito"            % "mockito-all"                  % "1.9.5" % "test",
+    "org.mockito"            %  "mockito-all"                 % "1.9.5" % "test",
     "com.github.nscala-time" %% "nscala-time"                 % "2.16.0",
-    "org.slf4j"              % "slf4j-api"                    % "1.7.6"
+    "org.slf4j"              %  "slf4j-api"                   % "1.7.6"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
   credentials += Credentials("Sonatype Nexus Repository Manager",
@@ -82,15 +83,14 @@ lazy val noPubSettings = GeneralSettings ++ Seq(
 )
 
 lazy val testkitDependencies = libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % SCALATEST_VERSION
+  "org.scalatest"     %% "scalatest"    % ScalatestVersion,
+  "com.typesafe.akka" %% "akka-testkit" % AkkaVersion
 )
-
-lazy val MetricSettings = ColossusSettings
 
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s"     %% "json4s-jackson" % "3.5.3",
-    "ch.qos.logback" % "logback-classic" % "1.2.2",
+    "org.json4s"                   %% "json4s-jackson"       % "3.5.3",
+    "ch.qos.logback"               %  "logback-classic"      % "1.2.2",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.2"
   )
 )
@@ -103,7 +103,7 @@ lazy val RootProject = Project(id = "root", base = file("."))
 
 lazy val ColossusProject: Project = Project(id = "colossus", base = file("colossus"))
   .settings(ColossusSettings: _*)
-  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
+  .withMima(MIMAPreviousVersions : _*)
   .configs(IntegrationTest)
   .aggregate(ColossusTestsProject)
   .dependsOn(ColossusMetricsProject)
@@ -115,14 +115,14 @@ lazy val ColossusExamplesProject = Project(id = "colossus-examples", base = file
   .dependsOn(ColossusProject)
 
 lazy val ColossusMetricsProject = Project(id = "colossus-metrics", base = file("colossus-metrics"))
-  .settings(MetricSettings: _*)
-  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
+  .settings(ColossusSettings: _*)
+  .withMima(MIMAPreviousVersions : _*)
   .configs(IntegrationTest)
 
 lazy val ColossusTestkitProject = Project(id = "colossus-testkit", base = file("colossus-testkit"))
   .settings(ColossusSettings: _*)
   .settings(testkitDependencies)
-  .withMima(MIMA_PREVIOUS_VERSIONS : _*)
+  .withMima(MIMAPreviousVersions : _*)
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
 

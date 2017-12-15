@@ -13,7 +13,7 @@ import colossus.parsing.DataSize
 import colossus.parsing.DataSize._
 import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
 import colossus.util.ExceptionFormatter._
-
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -230,6 +230,8 @@ class ServiceClient[P <: Protocol](
   //TODO way too application specific
   private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
 
+  private var interceptors = mutable.ListBuffer[Interceptor[P]]()
+
   def connectionStatus: Callback[ConnectionStatus] =
     Callback.successful(clientState match {
       case ClientState.Connected                             => ConnectionStatus.Connected
@@ -248,6 +250,10 @@ class ServiceClient[P <: Protocol](
     case ClientState.Connected                             => true
     case ClientState.Initializing | ClientState.Connecting => !failFast
     case _                                                 => false
+  }
+
+  def addInterceptor(interceptor: Interceptor[P]): Unit = {
+    interceptors.append(interceptor)
   }
 
   override def onBind() {
@@ -289,7 +295,13 @@ class ServiceClient[P <: Protocol](
     * Create a callback for sending a request.  this allows you to do something like
     * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
     */
-  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
+  def send(request: Request): Callback[P#Response] = {
+    val (modifiedRequest, callbackWrapper) = interceptors.foldLeft((request, identity[Callback[P#Response]] _)) {
+      case ((intReq, intCB), interceptor) =>
+        interceptor(intReq, intCB)
+    }
+    callbackWrapper(UnmappedCallback[P#Response](sendNow(modifiedRequest)))
+  }
 
   def processMessages(): Unit = incoming.pullWhile(
     response => {
@@ -380,8 +392,7 @@ class ServiceClient[P <: Protocol](
           worker.unbind(id)
         }
         case RetryAttempt.RetryNow => {
-          warn(
-            s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
+          warn(s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
           clientState = ClientState.Connecting
           worker ! Connect(address, id)
         }

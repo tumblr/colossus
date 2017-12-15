@@ -67,6 +67,8 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
           Callback.successful(numCalled)
         }
         def disconnect() {}
+
+        override def addInterceptor(interceptor: Interceptor[PR]): Unit = {}
       }
       (1 to 5).foreach { num =>
         val ops       = (1 to num).permutations.toList.size //lazy factorial

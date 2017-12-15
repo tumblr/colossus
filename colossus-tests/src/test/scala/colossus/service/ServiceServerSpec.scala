@@ -87,7 +87,7 @@ class ServiceServerSpec extends ColossusSpec with MockFactory with ControllerMoc
       t.typedHandler.receivedData(DataBuffer(r1))
       t.typedHandler.disconnect()
       t.status must equal(ConnectionStatus.Connected)
-      t.workerProbe.expectNoMsg(100.milliseconds)
+      t.workerProbe.expectNoMessage(100.milliseconds)
       promises(0).success(ByteString("B"))
       t.iterate()
       t.iterate() //second one is needed for disconnect behavior

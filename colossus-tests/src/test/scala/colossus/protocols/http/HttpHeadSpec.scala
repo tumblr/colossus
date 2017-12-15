@@ -2,7 +2,6 @@ package colossus.protocols.http
 
 import org.scalatest._
 import java.util.Date
-import java.text.SimpleDateFormat
 import scala.util.{Success, Failure}
 import colossus.core.DynamicOutBuffer
 
@@ -91,7 +90,7 @@ class HttpHeadSpec extends WordSpec with MustMatchers {
 
   "DateHeader" must {
 
-    val formatter        = new SimpleDateFormat(DateHeader.DATE_FORMAT)
+    val formatter        = DateHeader.createFormatter()
     def date(time: Long) = "Date: " + formatter.format(new Date(time)) + "\r\n"
 
     "generate a correct date" in {

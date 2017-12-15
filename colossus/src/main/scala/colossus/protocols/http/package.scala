@@ -3,9 +3,18 @@ package colossus.protocols
 import colossus.core.DataOutBuffer
 import colossus.metrics.TagMap
 import colossus.protocols.http.HttpClient.HttpClientLifter
-import colossus.service.{ClientFactories, IrrecoverableError, ProcessingFailure, Protocol, RecoverableError, ServiceClientFactory, TagDecorator, UnhandledRequestException}
+import colossus.service.{
+  ClientFactories,
+  IrrecoverableError,
+  ProcessingFailure,
+  Protocol,
+  RecoverableError,
+  ServiceClientFactory,
+  TagDecorator,
+  UnhandledRequestException
+}
 
-package object http extends HttpBodyEncoders with HttpBodyDecoders {
+package object http {
 
   class InvalidRequestException(message: String) extends Exception(message)
 

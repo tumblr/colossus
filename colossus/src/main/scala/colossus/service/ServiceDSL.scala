@@ -278,6 +278,8 @@ trait LiftedClient[P <: Protocol, M[_]] extends Sender[P, M] {
 
   protected def executeAndMap[T](i: P#Request)(f: P#Response => M[T]) = async.flatMap(send(i))(f)
 
+  def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
+
   def disconnect() {
     client.disconnect()
   }

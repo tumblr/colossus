@@ -14,6 +14,8 @@ trait Sender[P <: Protocol, M[_]] {
   def send(input: P#Request): M[P#Response]
 
   def disconnect()
+  
+  def addInterceptor(interceptor: Interceptor[P]): Unit
 
 }
 

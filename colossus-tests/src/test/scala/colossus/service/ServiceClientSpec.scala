@@ -312,7 +312,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       endpoint.expectOneWrite(cmd1.raw)
       endpoint.clearBuffer()
       endpoint.disconnectCalled must equal(false)
-      probe.expectNoMsg(100.milliseconds)
+      probe.expectNoMessage(100.milliseconds)
       client.incoming.push(rep1)
       res1 must equal(Some(rep1.message))
       endpoint.iterate()
@@ -345,7 +345,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
       val (endpoint, client, probe) = newClient(true, 10)
       client.send(cmd1).execute()
       client.disconnect()
-      probe.expectNoMsg(100.milliseconds)
+      probe.expectNoMessage(100.milliseconds)
       endpoint.disrupt()
       probe.expectMsg(100.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
     }
@@ -369,7 +369,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         .execute()
       endpoint.iterate()
       endpoint.expectOneWrite(cmd.raw)
-      probe.expectNoMsg(100.milliseconds)
+      probe.expectNoMessage(100.milliseconds)
       client.incoming.push(reply)
       endpoint.iterate()
       probe.expectMsg(100.milliseconds, WorkerCommand.Disconnect(client.id))
@@ -382,17 +382,22 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
         import colossus.protocols.redis.server._
 
         val reply = StatusReply("LATER LOSER!!!")
-        val server = RedisServer.basic("test", TEST_PORT, serverContext => new RequestHandler(serverContext) {
-          def handle = {
-            case c if (c.command == "BYE") => {
-              disconnect()
-              reply
-            }
-            case other => {
-              StatusReply("ok")
-            }
+        val server = RedisServer.basic(
+          "test",
+          TEST_PORT,
+          serverContext =>
+            new RequestHandler(serverContext) {
+              def handle = {
+                case c if (c.command == "BYE") => {
+                  disconnect()
+                  reply
+                }
+                case other => {
+                  StatusReply("ok")
+                }
+              }
           }
-        })
+        )
         withServer(server) {
           val config = ClientConfig(
             address = new InetSocketAddress("localhost", TEST_PORT),
@@ -413,14 +418,17 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "not attempt reconnect when autoReconnect is false" in {
       withIOSystem { implicit io =>
         import colossus.RawProtocol.server._
-        val server = Server.basic("rawwww", TEST_PORT, serverContext => new RequestHandler(serverContext) {
-          def handle = {
-            case foo => {
-              disconnect()
-              foo
-            }
-          }
-        })
+        val server = Server.basic("rawwww",
+                                  TEST_PORT,
+                                  serverContext =>
+                                    new RequestHandler(serverContext) {
+                                      def handle = {
+                                        case foo => {
+                                          disconnect()
+                                          foo
+                                        }
+                                      }
+                                  })
         withServer(server) {
           val client = TestClient(io, TEST_PORT, connectRetry = NoRetry)
           import server.system.actorSystem.dispatcher
@@ -433,14 +441,17 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     "attempt to reconnect a maximum amount of times when autoReconnect is true and a maximum amount is specified" in {
       withIOSystem { implicit io =>
         import colossus.RawProtocol.server._
-        val server = Server.basic("rawwww", TEST_PORT, serverContext => new RequestHandler(serverContext) {
-          def handle = {
-            case foo => {
-              disconnect()
-              foo
-            }
-          }
-        })
+        val server = Server.basic("rawwww",
+                                  TEST_PORT,
+                                  serverContext =>
+                                    new RequestHandler(serverContext) {
+                                      def handle = {
+                                        case foo => {
+                                          disconnect()
+                                          foo
+                                        }
+                                      }
+                                  })
         withServer(server) {
 
           val config = ClientConfig(
@@ -471,11 +482,11 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
       client.disconnect()
       //no disconnect message is sent because it's not connected
-      fakeWorker.probe.expectNoMsg(50.milliseconds)
+      fakeWorker.probe.expectNoMessage(50.milliseconds)
 
       client.connectionTerminated(DisconnectCause.ConnectFailed(new Exception("HI!!")))
       fakeWorker.probe.expectMsg(50.milliseconds, WorkerCommand.UnbindWorkerItem(client.id))
-      fakeWorker.probe.expectNoMsg(50.milliseconds)
+      fakeWorker.probe.expectNoMessage(50.milliseconds)
 
     }
 
