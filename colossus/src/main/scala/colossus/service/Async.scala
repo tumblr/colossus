@@ -4,8 +4,7 @@ import java.net.InetSocketAddress
 
 import scala.concurrent.Future
 import scala.language.higherKinds
-import colossus.IOSystem
-import colossus.core.WorkerRef
+import colossus.core.{IOSystem, WorkerRef}
 
 /**
   * A Sender is anything that is able to asynchronously send a request and

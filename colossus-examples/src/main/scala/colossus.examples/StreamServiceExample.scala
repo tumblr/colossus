@@ -1,10 +1,9 @@
 package colossus.examples
 
 import colossus._
-
 import protocols.http._
 import protocols.http.streaming._
-import core.DataBlock
+import core.{DataBlock, IOSystem}
 import service._
 import colossus.streaming._
 

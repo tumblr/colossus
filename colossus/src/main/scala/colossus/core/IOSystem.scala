@@ -1,13 +1,13 @@
-package colossus
+package colossus.core
 
-import akka.util.Timeout
-import colossus.core.Worker.ConnectionSummary
-import com.typesafe.config.{Config, ConfigFactory}
-import core._
-import akka.actor._
-import metrics._
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
+
+import akka.actor._
+import akka.util.Timeout
+import colossus.core.Worker.ConnectionSummary
+import colossus.metrics.{MetricNamespace, MetricSystem}
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -97,7 +97,6 @@ class IOSystem private[colossus] (val name: String,
                                   managerFactory: (IOSystem.WorkerRefs, IOSystem) => ActorRef) {
 
   import IOCommand._
-
   import akka.pattern.ask
   import colossus.core.WorkerManager.RegisteredServers
 

@@ -1,6 +1,5 @@
 package colossus.service
 
-import colossus.parsing.{DataSize, ParseException}
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import akka.event.Logging
 import colossus.controller._
@@ -10,7 +9,7 @@ import colossus.metrics.TagMap
 import colossus.metrics.logging.ColossusLogging
 import colossus.util.ExceptionFormatter._
 import colossus.streaming.{BufferedPipe, PullAction, PushResult}
-import colossus.util.ConfigCache
+import colossus.util.{ConfigCache, DataSize, ParseException}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
@@ -54,7 +53,7 @@ object ServiceConfig {
           .getConfig(CONFIG_ROOT + "." + name)
           .withFallback(baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME))
       } catch {
-        case ex: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
+        case _: ConfigException.Missing => baseConfig.getConfig(CONFIG_ROOT + "." + DEFAULT_NAME)
       }
       ServiceConfig.load(config)
     }

@@ -1,7 +1,6 @@
 // #hello_world_2
 import akka.actor.ActorSystem
-import colossus.IOSystem
-import colossus.core.{InitContext, ServerContext}
+import colossus.core.{IOSystem, InitContext, ServerContext}
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._

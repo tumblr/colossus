@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.actor.{ActorRef, PoisonPill}
 import akka.pattern.ask
 import akka.util.Timeout
-import colossus.IOSystem
 
 import scala.concurrent.duration._
 import scala.concurrent.Future

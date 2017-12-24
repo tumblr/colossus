@@ -37,7 +37,7 @@ package object http {
   object Http extends ClientFactories[Http, HttpClient](HttpClientLifter) {
 
     implicit lazy val clientFactory: FutureClient.BaseFactory[Http] =
-      ServiceClientFactory.basic("http", () => new StaticHttpClientCodec)
+      ServiceClientFactory.basic("http", () => new HttpClientCodec)
 
     class ServerDefaults {
       def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {

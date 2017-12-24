@@ -108,7 +108,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
   //simplifies the calculations
   private var _lastTimeDataWritten: Long = System.currentTimeMillis
 
-  def lastTimeDataWritten = _lastTimeDataWritten
+  def lastTimeDataWritten: Long = _lastTimeDataWritten
 
   def isDataBuffered: Boolean = partialBuffer.isDefined
 
@@ -117,7 +117,7 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
       _bytesSent += channelWrite(raw)
       _lastTimeDataWritten = System.currentTimeMillis
       if (raw.hasUnreadData) {
-        if (!partialBuffer.isDefined) {
+        if (partialBuffer.isEmpty) {
           //we must take a copy of the buffer since it will be repurposed.
           //notice if the partial buffer is defined, then it must be the same as
           //what we're currently trying to write, so we don't need to set it
@@ -130,10 +130,9 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
         Complete
       }
     } catch {
-      case t: CancelledKeyException => {
+      case _: CancelledKeyException =>
         //no cleanup is required since the connection is closed for good,
         Failed
-      }
     }
   }
 
@@ -154,21 +153,15 @@ private[colossus] trait WriteBuffer extends KeyInterestManager {
     * existing PartialBuffer, so if this returns false, then calling `write` will
     * return `Zero`
     */
-  private[colossus] def continueWrite(): Boolean = {
-    partialBuffer
-      .map { raw =>
-        if (writeRaw(raw) == Complete) {
-          if (disconnecting) {
-            completeDisconnect()
-          }
-          true
-        } else {
-          false
-        }
+  private[colossus] def continueWrite(): Boolean = partialBuffer.forall { raw =>
+    if (writeRaw(raw) == Complete) {
+      if (disconnecting) {
+        completeDisconnect()
       }
-      .getOrElse {
-        true
-      }
+      true
+    } else {
+      false
+    }
   }
 
   def requestWrite() {

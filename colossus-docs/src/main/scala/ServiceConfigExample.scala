@@ -1,6 +1,6 @@
 import akka.actor.ActorSystem
-import colossus.IOSystem
-import colossus.parsing.DataSize._
+import colossus.core.IOSystem
+import colossus.util.DataSize._
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._

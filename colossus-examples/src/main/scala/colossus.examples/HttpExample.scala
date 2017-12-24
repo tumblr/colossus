@@ -3,8 +3,7 @@ package colossus.examples
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.{ServerContext, ServerRef}
+import colossus.core.{IOSystem, ServerContext, ServerRef}
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http._

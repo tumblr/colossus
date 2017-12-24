@@ -16,7 +16,7 @@ sealed abstract class MessageReply(message: String) extends Reply {
 
   def raw = {
     val b = new ByteStringBuilder
-    b.sizeHint(message.size + 3)
+    b.sizeHint(message.length + 3)
     b append prefix
     b putBytes message.getBytes
     b append RN

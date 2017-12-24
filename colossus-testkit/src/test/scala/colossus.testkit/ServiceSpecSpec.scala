@@ -6,7 +6,7 @@ import protocols.redis.server._
 import service._
 import org.scalatest.exceptions.TestFailedException
 import Callback.Implicits._
-import colossus.core.ServerRef
+import colossus.core.{IOSystem, ServerRef}
 import colossus.testkit.ServiceSpec
 
 object TestService {

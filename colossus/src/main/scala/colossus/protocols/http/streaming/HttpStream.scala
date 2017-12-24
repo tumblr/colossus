@@ -2,7 +2,7 @@ package colossus.protocols.http.streaming
 
 import colossus.controller.Codec
 import colossus.core.{DataBlock, DataBuffer, DataOutBuffer}
-import colossus.parsing.Combinators.Parser
+import colossus.util.Combinators.Parser
 import colossus.protocols.http.{
   HttpMessageHead,
   HttpParse,
@@ -10,6 +10,7 @@ import colossus.protocols.http.{
   HttpRequestParser,
   HttpResponseHead,
   HttpResponseParser,
+  ParsedHead,
   TransferEncoding
 }
 import colossus.service.Protocol
@@ -42,13 +43,13 @@ trait HeadParserProvider[T <: HttpMessageHead] {
 }
 object HeadParserProvider {
   implicit object RequestHeadParserProvider extends HeadParserProvider[HttpRequestHead] {
-    def parser = HttpRequestParser.httpHead
+    def parser: Parser[ParsedHead] = HttpRequestParser.httpHead
 
     def eosTerminatesMessage = false
 
   }
   object ResponseHeadParserProvider extends HeadParserProvider[HttpResponseHead] {
-    def parser = HttpResponseParser.head
+    def parser: Parser[HttpResponseHead] = HttpResponseParser.head
 
     def eosTerminatesMessage = true
   }
@@ -69,20 +70,22 @@ trait StreamDecoder[T <: HttpMessageHead] {
   //(so non-chunked encoding)
   private class FiniteBodyState(val size: Option[Int]) extends BodyState {
     private var taken = 0
-    def done          = size.map { _ == taken }.getOrElse(false)
+
+    def done: Boolean = size.contains(taken)
+
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage] =
       if (done) {
         Some(End)
       } else if (input.hasUnreadData) {
         val bytes = input.take(size.map { _ - taken }.getOrElse(input.remaining))
         taken += bytes.length
-        Some(Data(DataBlock(bytes), false))
+        Some(Data(DataBlock(bytes)))
       } else {
         None
       }
   }
   private class ChunkedBodyState extends BodyState {
-    import colossus.parsing.Combinators._
+    import colossus.util.Combinators._
     val parser: Parser[StreamBodyMessage] = intUntil('\r', 16) <~ byte |> {
       case 0 =>
         bytes(2) >> { _ =>
@@ -90,7 +93,7 @@ trait StreamDecoder[T <: HttpMessageHead] {
         }
       case n =>
         bytes(n.toInt) <~ bytes(2) >> { bytes =>
-          Data(DataBlock(bytes), false)
+          Data(DataBlock(bytes))
         }
     }
     def nextPiece(input: DataBuffer): Option[StreamBodyMessage] = parser.parse(input)
@@ -101,7 +104,7 @@ trait StreamDecoder[T <: HttpMessageHead] {
   def decode(data: DataBuffer): Option[HttpStream[T]] = state match {
     case HeadState =>
       headParser.parse(data) match {
-        case Some(h) => {
+        case Some(h) =>
           if (h.headers.transferEncoding == TransferEncoding.Chunked) {
             state = new ChunkedBodyState
           } else {
@@ -113,15 +116,15 @@ trait StreamDecoder[T <: HttpMessageHead] {
             state = new FiniteBodyState(lengthOpt)
           }
           Some(Head(h))
-        }
+
         case None => None
       }
     case b: BodyState =>
       b.nextPiece(data) match {
-        case Some(End) => {
+        case Some(End) =>
           state = HeadState
           Some(End)
-        }
+
         case other => other
       }
   }
@@ -132,8 +135,10 @@ trait StreamDecoder[T <: HttpMessageHead] {
   }
 
   def endOfStream(): Option[HttpStream[T]] = state match {
-    case f: FiniteBodyState if (f.size.isEmpty && parserProvider.eosTerminatesMessage) => Some(End)
-    case _                                                                             => None
+    case f: FiniteBodyState if f.size.isEmpty && parserProvider.eosTerminatesMessage =>
+      Some(End)
+    case _ =>
+      None
   }
 
 }
@@ -157,29 +162,28 @@ trait StreamEncoder[T <: HttpMessageHead] {
     state match {
       case HeadState =>
         output match {
-          case Head(h) => {
+          case Head(h) =>
             state = BodyState(h)
             h.encode(buffer)
             //need to write the final newline
             buffer write HttpParse.NEWLINE
-          }
+
           case _ => throw new StreamHttpException("Cannot send body data before head")
         }
-      case BodyState(current) => {
+      case BodyState(current) =>
         output match {
-          case Head(h) => throw new StreamHttpException("cannot send new head while streaming a body")
-          case Data(data, false) if (current.headers.transferEncoding == TransferEncoding.Chunked) => {
+          case Head(_) =>
+            throw new StreamHttpException("cannot send new head while streaming a body")
+          case Data(data, false) if current.headers.transferEncoding == TransferEncoding.Chunked =>
             encodeChunk(data, buffer)
-          }
-          case Data(data, _) => buffer.write(data)
-          case End => {
+          case Data(data, _) =>
+            buffer.write(data)
+          case End =>
             if (current.headers.transferEncoding == TransferEncoding.Chunked) {
               encodeChunk(DataBlock.Empty, buffer)
             }
             state = HeadState
-          }
         }
-      }
     }
   }
 
@@ -193,7 +197,7 @@ class StreamHttpServerCodec
     with StreamDecoder[HttpRequestHead]
     with StreamEncoder[HttpResponseHead] {
 
-  def parserProvider = HeadParserProvider.RequestHeadParserProvider
+  def parserProvider: HeadParserProvider[HttpRequestHead] = HeadParserProvider.RequestHeadParserProvider
 
   def reset() {
     resetEncoder()
@@ -207,7 +211,7 @@ class StreamHttpClientCodec
     with StreamDecoder[HttpResponseHead]
     with StreamEncoder[HttpRequestHead] {
 
-  def parserProvider = HeadParserProvider.ResponseHeadParserProvider
+  def parserProvider: HeadParserProvider[HttpResponseHead] = HeadParserProvider.ResponseHeadParserProvider
 
   def reset() {
     resetEncoder()

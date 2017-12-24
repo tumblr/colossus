@@ -1,5 +1,6 @@
 package colossus
 
+import colossus.core.IOSystem
 import colossus.metrics.MetricAddress
 import colossus.testkit.ColossusSpec
 import com.typesafe.config.ConfigFactory

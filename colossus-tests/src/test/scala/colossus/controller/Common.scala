@@ -5,7 +5,7 @@ import akka.util.ByteString
 import colossus.RawProtocol.{Raw, RawServerCodec}
 import colossus.core.{ConnectionManager, CoreDownstream, CoreUpstream, DynamicOutBuffer}
 import org.scalamock.scalatest.MockFactory
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.streaming.{BufferedPipe, Pipe}
 import colossus.testkit.FakeIOSystem
 

@@ -1,6 +1,5 @@
 package colossus.examples
 
-import colossus._
 import colossus.core._
 import colossus.protocols.websocket._
 import colossus.streaming.PushResult

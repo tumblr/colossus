@@ -1,5 +1,4 @@
 import akka.actor.ActorSystem
-import colossus._
 import colossus.core._
 import colossus.protocols.http._
 import colossus.protocols.http.streaming._

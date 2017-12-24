@@ -9,10 +9,11 @@ import colossus.metrics.{MetricAddress, TagMap}
 import colossus.metrics.collectors.{Histogram, Rate}
 import colossus.metrics.logging.ColossusLogging
 import com.typesafe.config.{Config, ConfigFactory}
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
+import colossus.util.DataSize
 import colossus.util.ExceptionFormatter._
+
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}

@@ -4,7 +4,7 @@ import akka.util.ByteString
 import colossus.RawProtocol._
 import colossus.core._
 import colossus.controller._
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.testkit._
 import colossus.streaming._
 

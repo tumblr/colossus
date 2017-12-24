@@ -1,7 +1,6 @@
 package colossus.core
 
 import akka.actor.{ActorContext, ActorRef, Props}
-import colossus.IOSystem
 
 private[colossus] trait WorkerFactory {
   def createWorker(id: Int, ioSystem: IOSystem, context: ActorContext): ActorRef

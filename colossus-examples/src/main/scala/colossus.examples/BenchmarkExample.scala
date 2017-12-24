@@ -1,9 +1,8 @@
 package colossus.examples
 
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.service.Callback.Implicits._
 import colossus.protocols.http._
-
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.JsonDSL._
