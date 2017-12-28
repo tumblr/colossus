@@ -43,7 +43,7 @@ package object http {
       def errorResponse(error: ProcessingFailure[HttpRequest]): HttpResponse = error match {
         case RecoverableError(request, reason) =>
           reason match {
-            case _: UnhandledRequestException => request.notFound(s"Not found")
+            case _: UnhandledRequestException => request.notFound("Not found")
             case _                            => request.error(reason.toString)
           }
 

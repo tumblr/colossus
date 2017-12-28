@@ -86,7 +86,7 @@ object ServiceConfig {
   }
 }
 
-class StandardRequestFormatter[I] extends RequestFormatter[I] {
+class StandardRequestFormatter[I] extends RequestExceptionFormatter[I] {
   override def formatterOption(error: Throwable): RequestFormatType = {
     error match {
       case _: ColossusRuntimeException => RequestFormatType.LogNameOnly

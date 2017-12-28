@@ -97,6 +97,6 @@ To configure via code, create a `ServiceConfig` object and pass it to the `Reque
 
 `RequestHandler` allows for the configuration of how request errors are reported. By default, `ColossusRuntimeException`s
 are converted to `String`s and logged with no stack trace, and other exceptions are logged with a stack trace. A custom 
-implementation of `RequestFormatter` can be provided as demonstrated in this example.
+implementation of `RequestExceptionFormatter` can be provided as demonstrated in this example.
 
 @@snip [ServiceConfigExample.conf](../scala/ServiceConfigExample.scala) { #example2 }

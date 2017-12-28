@@ -15,11 +15,11 @@ object RequestFormatType {
 }
 
 /**
-  * A request formatter is used to determine the message that is logged when a request fails.
+  * A request exception formatter is used to determine the message that is logged when a request fails.
   *
   * @tparam I Protocol request
   */
-trait RequestFormatter[I] {
+trait RequestExceptionFormatter[I] {
 
   def formatterOption(error: Throwable): RequestFormatType
 
@@ -27,16 +27,16 @@ trait RequestFormatter[I] {
     s"${error.getClass.getSimpleName}: ${request.getOrElse("Invalid request")}"
   }
 
-  final def formatLogMessage(request: Option[I], error: Throwable): Option[RequestFormatter.LogMessage] = {
+  final def formatLogMessage(request: Option[I], error: Throwable): Option[RequestExceptionFormatter.LogMessage] = {
     formatterOption(error) match {
       case RequestFormatType.DoNotLog =>
         None
       case other =>
-        Some(RequestFormatter.LogMessage(format(request, error), other == RequestFormatType.LogWithStackTrace))
+        Some(RequestExceptionFormatter.LogMessage(format(request, error), other == RequestFormatType.LogWithStackTrace))
     }
   }
 }
 
-object RequestFormatter {
+object RequestExceptionFormatter {
   case class LogMessage(message: String, includeStackTrace: Boolean)
 }

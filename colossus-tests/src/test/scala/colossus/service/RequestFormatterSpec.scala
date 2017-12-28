@@ -6,13 +6,13 @@ import org.scalatest.WordSpec
 class RequestFormatterSpec extends WordSpec {
   "Request formatter" must {
     "format log message with exception name, request and stack trace when no special format implementation provided" in {
-      val requestFormatter = new RequestFormatter[HttpRequest] {
+      val requestFormatter = new RequestExceptionFormatter[HttpRequest] {
         override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.LogWithStackTrace
       }
 
       val output = requestFormatter.formatLogMessage(Some(HttpRequest.get("/")), new Exception("Too fast"))
 
-      val expected = RequestFormatter.LogMessage(
+      val expected = RequestExceptionFormatter.LogMessage(
         "Exception: HttpRequest(BuiltHead(Get / 1.1,[]),)",
         includeStackTrace = true
       )
@@ -21,13 +21,13 @@ class RequestFormatterSpec extends WordSpec {
     }
 
     "format log message with exception name and request when no special format implementation provided" in {
-      val requestFormatter = new RequestFormatter[HttpRequest] {
+      val requestFormatter = new RequestExceptionFormatter[HttpRequest] {
         override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.LogNameOnly
       }
 
       val output = requestFormatter.formatLogMessage(Some(HttpRequest.get("/")), new RuntimeException("No running"))
 
-      val expected = RequestFormatter.LogMessage(
+      val expected = RequestExceptionFormatter.LogMessage(
         "RuntimeException: HttpRequest(BuiltHead(Get / 1.1,[]),)",
         includeStackTrace = false
       )
@@ -36,7 +36,7 @@ class RequestFormatterSpec extends WordSpec {
     }
 
     "return nothing if logging is turned off" in {
-      val requestFormatter = new RequestFormatter[HttpRequest] {
+      val requestFormatter = new RequestExceptionFormatter[HttpRequest] {
         override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.DoNotLog
       }
 

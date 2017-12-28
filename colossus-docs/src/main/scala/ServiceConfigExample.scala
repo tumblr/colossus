@@ -36,7 +36,7 @@ object ServiceConfigExample {
             }
 
             // #example2
-            override def requestLogFormat: RequestFormatter[Request] = new RequestFormatter[Request] {
+            override def requestLogFormat: RequestExceptionFormatter[Request] = new RequestExceptionFormatter[Request] {
               override def format(request: Option[Request], error: Throwable): String = {
                 s"$request failed with ${error.getClass.getSimpleName}"
               }

@@ -66,7 +66,7 @@ abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext
 
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
 
-  def requestLogFormat: RequestFormatter[Request] = new StandardRequestFormatter[Request]
+  def requestLogFormat: RequestExceptionFormatter[Request] = new StandardRequestFormatter[Request]
 
   protected def disconnect() {
     connection.disconnect()
