@@ -1,6 +1,6 @@
 package colossus.service
 
-import colossus.ColossusRuntimeException
+import colossus.core.ColossusRuntimeException
 import colossus.core._
 
 class UnhandledRequestException(message: String) extends Exception(message) with ColossusRuntimeException

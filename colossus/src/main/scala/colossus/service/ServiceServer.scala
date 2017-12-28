@@ -2,7 +2,7 @@ package colossus.service
 
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import akka.event.Logging
-import colossus.ColossusRuntimeException
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler, UpstreamEvents}
 import colossus.metrics.collectors.{Counter, Histogram, Rate}

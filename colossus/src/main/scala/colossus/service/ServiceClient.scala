@@ -3,7 +3,7 @@ package colossus.service
 import java.net.InetSocketAddress
 
 import akka.event.Logging
-import colossus.ColossusRuntimeException
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core._
 import colossus.metrics.{MetricAddress, TagMap}
