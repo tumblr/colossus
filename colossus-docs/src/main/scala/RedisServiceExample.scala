@@ -3,8 +3,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import akka.actor.ActorSystem
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.ServerContext
+import colossus.core.{IOSystem, ServerContext}
 import colossus.protocols.redis._
 import colossus.protocols.redis.server.{Initializer, RedisServer, RequestHandler}
 import colossus.service.Callback

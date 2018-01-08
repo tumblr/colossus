@@ -36,20 +36,20 @@ class PrinciplePermutationGenerator[T: ClassTag](val seedlist: Seq[T])
   }
 
   def next(): List[T] = {
-    if (items.size == 1) {
+    if (items.length == 1) {
       items.head
     } else {
       swap(0, swapIndex)
       swapIndex += 1
-      if (swapIndex == items.size) {
+      if (swapIndex == items.length) {
         swapIndex = 1
       }
       cycleCount += 1
-      if (items.size > 3) {
+      if (items.length > 3) {
         if (cycleCount == cycleSize) {
           cycleCount = 0
           swapIndex += 1
-          if (swapIndex == items.size) {
+          if (swapIndex == items.length) {
             swapIndex = 1
           }
         }

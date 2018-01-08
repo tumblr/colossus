@@ -3,8 +3,7 @@ package colossus.testkit
 import java.net.InetSocketAddress
 
 import scala.language.higherKinds
-import colossus.IOSystem
-import colossus.core.WorkerRef
+import colossus.core.{IOSystem, WorkerRef}
 import colossus.service._
 
 import scala.concurrent.Future

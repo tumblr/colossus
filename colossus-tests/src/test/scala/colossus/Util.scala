@@ -57,7 +57,7 @@ object SimpleProtocol {
   }
 
   class SimpleCodec extends Codec[SimpleEncoding] {
-    import parsing.Combinators._
+    import colossus.util.Combinators._
     def newparser = bytes(intUntil(';') >> { _.toInt }) >> { bytes =>
       ByteString(bytes)
     }

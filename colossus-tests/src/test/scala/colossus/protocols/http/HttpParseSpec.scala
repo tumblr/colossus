@@ -3,7 +3,8 @@ package colossus.protocols.http
 import colossus.core._
 import org.scalatest._
 import akka.util.ByteString
-import colossus.parsing._, DataSize._
+import colossus.util.DataSize._
+import colossus.util.ParseException
 
 object Broke extends Tag("broke")
 

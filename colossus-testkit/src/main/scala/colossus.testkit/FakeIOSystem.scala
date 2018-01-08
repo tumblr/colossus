@@ -4,9 +4,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor._
 import akka.testkit.TestProbe
-import colossus.IOSystem
 import colossus.core.server.{ConnectionVolumeState, ServerConfig, ServerState, ServerStatus}
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import colossus.metrics.MetricSystem
 import colossus.service.{Callback, CallbackExecution, CallbackExecutor}
 

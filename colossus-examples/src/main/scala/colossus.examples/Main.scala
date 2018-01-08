@@ -1,8 +1,9 @@
 package colossus.examples
 
-import colossus._
 import akka.actor._
 import java.net.InetSocketAddress
+
+import colossus.core.IOSystem
 
 object Main extends App {
 

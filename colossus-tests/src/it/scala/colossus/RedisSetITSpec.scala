@@ -158,9 +158,9 @@ class RedisSetITSpec extends BaseRedisITSpec {
     "spopOption" in {
       val key = getKey()
       val res = for {
-        x <- client.spopOption(key)
+        x <- client.spop(key)
         _ <- client.sadd(key, val1, val2)
-        y <- client.spopOption(key)
+        y <- client.spop(key)
         z <- client.scard(key)
       } yield {
         (x, y.map(v => Set(val1, val2).contains(v)), z)
@@ -185,9 +185,9 @@ class RedisSetITSpec extends BaseRedisITSpec {
     "srandmemberOption" in {
       val key = getKey()
       val res = for {
-        x <- client.srandmemberOption(key)
+        x <- client.srandmember(key)
         _ <- client.sadd(key, val1, val2)
-        y <- client.srandmemberOption(key)
+        y <- client.srandmember(key)
         z <- client.scard(key)
       } yield {
         (x, y.map(v => Set(val1, val2).contains(v)), z)

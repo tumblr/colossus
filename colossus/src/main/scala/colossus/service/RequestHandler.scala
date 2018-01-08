@@ -1,10 +1,11 @@
 package colossus.service
 
+import colossus.core.ColossusRuntimeException
 import colossus.core._
 
-class UnhandledRequestException(message: String) extends Exception(message)
-class ReceiveException(message: String)          extends Exception(message)
-class RequestHandlerException(message: String)   extends Exception(message)
+class UnhandledRequestException(message: String) extends Exception(message) with ColossusRuntimeException
+
+class RequestHandlerException(message: String) extends Exception(message)
 
 object GenRequestHandler {
 
@@ -58,13 +59,14 @@ abstract class GenRequestHandler[P <: Protocol](val serverContext: ServerContext
   }
 
   def handleRequest(request: Request): Callback[Response] = fullHandler(request)
-  private lazy val errorHandler: ErrorHandler[P]          = onError orElse unhandledError
+
+  private lazy val errorHandler: ErrorHandler[P] = onError orElse unhandledError
 
   def handleFailure(error: ProcessingFailure[Request]): Response = errorHandler(error)
 
   def tagDecorator: TagDecorator[P] = TagDecorator.default[P]
-  def requestLogFormat: Option[RequestFormatter[Request]] =
-    Some(new ConfigurableRequestFormatter[Request](config.errorConfig))
+
+  def requestLogFormat: RequestExceptionFormatter[Request] = new StandardRequestFormatter[Request]
 
   protected def disconnect() {
     connection.disconnect()

@@ -3,10 +3,11 @@ package colossus
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
+import colossus.core.IOSystem
 import colossus.metrics.MetricSystem
 import colossus.protocols.memcache._
 import colossus.protocols.memcache.MemcacheReply._
-import colossus.service.{FutureClient, ClientConfig}
+import colossus.service.{ClientConfig, FutureClient}
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -22,7 +23,7 @@ which has data you care about.
 This test runs by hitting the REST endpoints exposed by teh TestMemcachedServer, which just proxies directly to
 a Memcached client, which communicates with memcached
  */
-class MemcacheITSpec extends ColossusSpec with ScalaFutures{
+class MemcacheITSpec extends ColossusSpec with ScalaFutures {
 
   type AsyncMemacheClient = FutureClient[Memcache]
 
@@ -30,7 +31,8 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   implicit val sys = IOSystem("test-system", Some(2), MetricSystem.deadSystem)
 
-  val client = Memcache.futureClient(ClientConfig(Seq(new InetSocketAddress("localhost", 11211)), 2.seconds, "memcache"))
+  val client =
+    Memcache.futureClient(ClientConfig(Seq(new InetSocketAddress("localhost", 11211)), 2.seconds, "memcache"))
 
   val usedKeys = scala.collection.mutable.HashSet[ByteString]()
 
@@ -38,7 +40,7 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
 
   override def afterAll() {
     val f: Future[mutable.HashSet[Boolean]] = Future.sequence(usedKeys.map(client.delete))
-    f.futureValue must be (mutable.HashSet(true, false)) //some keys are deleted by the tests.
+    f.futureValue must be(mutable.HashSet(true, false)) //some keys are deleted by the tests.
     super.afterAll()
   }
 
@@ -51,10 +53,10 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.get(key)
         z <- client.add(key, mValue)
       } yield {
-          (x,y,z)
-        }
+        (x, y, z)
+      }
 
-      res.futureValue must be ((true, Some(Value(ByteString("colITAdd"), mValue, 0)), false))
+      res.futureValue must be((true, Some(Value(ByteString("colITAdd"), mValue, 0)), false))
     }
 
     "append" in {
@@ -65,10 +67,10 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.append(key, ByteString("valueA"))
         z <- client.get(key)
       } yield {
-          (w,x,y,z)
-        }
+        (w, x, y, z)
+      }
 
-      res.futureValue must be ((false, true, true, Some(Value(ByteString("colITAppend"), ByteString("valuevalueA"), 0))))
+      res.futureValue must be((false, true, true, Some(Value(ByteString("colITAppend"), ByteString("valuevalueA"), 0))))
     }
 
     "decr" in {
@@ -79,8 +81,8 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.add(key, ByteString("2"))
         z <- client.decr(key, 1)
       } yield {
-          (x,y,z)
-        }
+        (x, y, z)
+      }
 
       res.futureValue must be((None, true, Some(1)))
 
@@ -93,26 +95,27 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.delete(key)
         z <- client.delete(key)
       } yield {
-          (x,y,z)
-        }
+        (x, y, z)
+      }
 
-      res.futureValue must be ((true, true, false))
+      res.futureValue must be((true, true, false))
     }
 
     "get multiple keys" in {
       val keyA = getKey("colITMGetA")
       val keyB = getKey("colITMGetB")
-      val expectedMap = Map(ByteString("colITMGetA")->Value(ByteString("colITMGetA"), mValue, 0), ByteString("colITMGetB")->Value(ByteString("colITMGetB"), mValue, 0))
+      val expectedMap = Map(ByteString("colITMGetA") -> Value(ByteString("colITMGetA"), mValue, 0),
+                            ByteString("colITMGetB") -> Value(ByteString("colITMGetB"), mValue, 0))
 
       val res = for {
         _ <- client.add(keyA, mValue)
         _ <- client.add(keyB, mValue)
         x <- client.getAll(keyA, keyB)
       } yield {
-          x
-        }
+        x
+      }
 
-      res.futureValue must be (expectedMap)
+      res.futureValue must be(expectedMap)
     }
 
     "incr" in {
@@ -122,10 +125,10 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.add(key, ByteString("2"))
         z <- client.incr(key, 1)
       } yield {
-          (x,y,z)
-        }
+        (x, y, z)
+      }
 
-      res.futureValue must be ((None, true, Some(3)))
+      res.futureValue must be((None, true, Some(3)))
     }
 
     "prepend" in {
@@ -136,8 +139,8 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.prepend(key, ByteString("valueP"))
         z <- client.get(key)
       } yield {
-          (w,x,y,z)
-        }
+        (w, x, y, z)
+      }
 
       res.futureValue must be(false, true, true, Some(Value(ByteString("colITPrepend"), ByteString("valuePvalue"), 0)))
     }
@@ -150,8 +153,8 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.replace(key, ByteString("newValue"))
         z <- client.get(key)
       } yield {
-          (w,x,y,z)
-        }
+        (w, x, y, z)
+      }
     }
 
     "set" in {
@@ -162,10 +165,13 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.set(key, ByteString("newValue"))
         z <- client.get(key)
       } yield {
-          (w,x,y,z)
-        }
+        (w, x, y, z)
+      }
 
-      res.futureValue must be(true, Some(Value(ByteString("colITSet"), ByteString("value"), 0)), true, Some(Value(ByteString("colITSet"), ByteString("newValue"), 0)))
+      res.futureValue must be(true,
+                              Some(Value(ByteString("colITSet"), ByteString("value"), 0)),
+                              true,
+                              Some(Value(ByteString("colITSet"), ByteString("newValue"), 0)))
     }
 
     "touch" in {
@@ -175,44 +181,49 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
         y <- client.set(key, mValue)
         z <- client.touch(key, 100)
       } yield {
-          (x,y,z)
-        }
-      res.futureValue must be (false, true, true)
+        (x, y, z)
+      }
+      res.futureValue must be(false, true, true)
     }
 
     val iterations = 100
-    val cycles = 1
+    val cycles     = 1
     import java.nio.ByteBuffer
     val benchmarkKey = "1234567890" * 25
 
     "benchmark writes" in {
       for (_ <- 1 to cycles) {
-        val keyA = ByteString(benchmarkKey)
+        val keyA  = ByteString(benchmarkKey)
         val start = System.nanoTime()
-        val fut = (1 to iterations).foldLeft(client.set(keyA, ByteString(0))) {
-          case (agg, i) =>
-            val buff = new Array[Byte](4)
-            val bb = ByteBuffer.wrap(buff)
-            bb.putInt(0, i)
-            agg.flatMap { _ => client.set(keyA, ByteString(buff)) }
-        }.flatMap {
-          case true => client.get(keyA)
-          case false => throw new Exception("set failed!")
-        }
+        val fut = (1 to iterations)
+          .foldLeft(client.set(keyA, ByteString(0))) {
+            case (agg, i) =>
+              val buff = new Array[Byte](4)
+              val bb   = ByteBuffer.wrap(buff)
+              bb.putInt(0, i)
+              agg.flatMap { _ =>
+                client.set(keyA, ByteString(buff))
+              }
+          }
+          .flatMap {
+            case true  => client.get(keyA)
+            case false => throw new Exception("set failed!")
+          }
 
         val result = Await.result(fut, 60 seconds)
-        val nanos = System.nanoTime() - start
+        val nanos  = System.nanoTime() - start
 
         assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
-        info(s"SET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+        info(
+          s"SET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
       }
     }
 
     "benchmark reads" in {
-      for(_ <- 1 to cycles) {
+      for (_ <- 1 to cycles) {
         import java.nio.ByteBuffer
         val buff = new Array[Byte](4)
-        val bb = ByteBuffer.wrap(buff)
+        val bb   = ByteBuffer.wrap(buff)
         val keyA = ByteString(benchmarkKey)
         bb.putInt(0, iterations)
         val start = System.nanoTime()
@@ -224,15 +235,18 @@ class MemcacheITSpec extends ColossusSpec with ScalaFutures{
                 .foldLeft(client.get(keyA)) {
                   case (agg, i) =>
                     bb.putInt(0, i)
-                    agg.flatMap { _ => client.get(keyA) }
+                    agg.flatMap { _ =>
+                      client.get(keyA)
+                    }
                 }
           }
 
         val result = Await.result(fut, 60 seconds)
-        val nanos = System.nanoTime() - start
+        val nanos  = System.nanoTime() - start
 
         assert(iterations === ByteBuffer.wrap(result.get.data.toArray).getInt())
-        info(s"GET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
+        info(
+          s"GET benchmark completed $iterations in ${nanos / 1.0E06} ms. ${iterations * 1.0E9 / nanos} iterations/sec")
       }
     }
   }

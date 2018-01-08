@@ -8,7 +8,6 @@ import java.net.InetSocketAddress
 import akka.actor.{Actor, ActorRef, OneForOneStrategy, PoisonPill, Props, Stash, Terminated}
 import akka.actor.SupervisorStrategy.Restart
 import colossus.metrics.logging.ColossusLogging
-import colossus.{IOCommand, IOSystem}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -24,9 +23,7 @@ import scala.util.{Failure, Success}
   * @param ioSystem Containing IOSystem
   * @param workerFactory Worker factory for creating workers
   */
-private[colossus] class WorkerManager(workerRefs: IOSystem.WorkerRefs,
-                                      ioSystem: IOSystem,
-                                      workerFactory: WorkerFactory)
+private[colossus] class WorkerManager(workerRefs: IOSystem.WorkerRefs, ioSystem: IOSystem, workerFactory: WorkerFactory)
     extends Actor
     with ColossusLogging
     with Stash {

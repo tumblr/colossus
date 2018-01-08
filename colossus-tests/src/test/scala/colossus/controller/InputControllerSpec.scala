@@ -2,7 +2,7 @@ package colossus.controller
 
 import akka.util.ByteString
 import colossus.core._
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.testkit._
 import colossus.streaming._
 import colossus.SimpleProtocol._

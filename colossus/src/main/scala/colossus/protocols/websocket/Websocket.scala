@@ -5,11 +5,11 @@ import akka.util.ByteStringBuilder
 import java.security.MessageDigest
 import java.util.Random
 
-import colossus.IOSystem
 import colossus.controller._
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import colossus.service._
 import colossus.streaming.{PushResult, Sink}
+
 import scala.util.{Failure, Success}
 import sun.misc.BASE64Encoder
 
@@ -129,7 +129,7 @@ object Frame {
     val build = new Array[Byte](payload.length)
     var index = 0
     while (index < payload.length) {
-      build(index) = (payload(index) ^ (mask(index % 4).toByte)).toByte
+      build(index) = (payload(index) ^ mask(index % 4)).toByte
       index += 1
     }
     DataBlock(build)
@@ -138,8 +138,7 @@ object Frame {
 }
 
 object FrameParser {
-  import colossus.parsing._
-  import Combinators._
+  import colossus.util.Combinators._
 
   /**
     * When the mask bit is set (always from client messages) we need to XOR the

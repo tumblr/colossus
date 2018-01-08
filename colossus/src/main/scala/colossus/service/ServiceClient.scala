@@ -3,16 +3,18 @@ package colossus.service
 import java.net.InetSocketAddress
 
 import akka.event.Logging
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core._
 import colossus.metrics.{MetricAddress, TagMap}
 import colossus.metrics.collectors.{Histogram, Rate}
 import colossus.metrics.logging.ColossusLogging
 import com.typesafe.config.{Config, ConfigFactory}
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
+import colossus.util.DataSize
 import colossus.util.ExceptionFormatter._
+
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
@@ -91,7 +93,7 @@ object ClientConfig {
   }
 }
 
-class ServiceClientException(message: String) extends Exception(message)
+class ServiceClientException(message: String) extends Exception(message) with ColossusRuntimeException
 
 /**
   * Thrown when a request is lost in transit

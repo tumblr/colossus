@@ -1,9 +1,9 @@
 package colossus.protocols.redis
 
 import akka.util.ByteString
-import colossus.parsing._
-import Combinators._
-import DataSize._
+import colossus.util.Combinators._
+import colossus.util.DataSize
+import colossus.util.DataSize._
 
 object RedisCommandParser {
 

@@ -3,8 +3,18 @@ package colossus.protocols.http.client
 import colossus.core.{DataBuffer, DynamicOutBuffer}
 import akka.util.ByteString
 import org.scalatest.{MustMatchers, WordSpec}
-import colossus.parsing.DataSize._
-import colossus.protocols.http.{ContentType, HttpBody, HttpCodes, HttpHeaders, HttpResponse, HttpResponseHead, HttpResponseParser, HttpVersion, StaticHttpClientCodec}
+import colossus.util.DataSize._
+import colossus.protocols.http.{
+  ContentType,
+  HttpBody,
+  HttpCodes,
+  HttpHeaders,
+  HttpResponse,
+  HttpResponseHead,
+  HttpResponseParser,
+  HttpVersion,
+  HttpClientCodec
+}
 
 //NOTICE - all expected headers names must lowercase, otherwise these tests will fail equality testing
 
@@ -95,7 +105,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
         ),
         ByteString("{some : json}")
       )
-      val data   = DataBuffer(ByteString(res))
+      val data                         = DataBuffer(ByteString(res))
       val parsed: Option[HttpResponse] = parser.parse(data)
       // expected body was constructed with a ByteString so its contentType is None. We will just compare the head and bytes instead.
       parsed must equal(Some(expected))
@@ -114,7 +124,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val expected = Some(sent.withHeader("content-length", "0"))
 
-      val clientProtocol = new StaticHttpClientCodec
+      val clientProtocol = new HttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
       sent.encode(buf)
@@ -141,7 +151,7 @@ class HttpResponseParserSpec extends WordSpec with MustMatchers {
 
       val expected = Some(sent.withHeader("content-length", size.toString).withContentType(ContentType.TextPlain))
 
-      val clientProtocol = new StaticHttpClientCodec
+      val clientProtocol = new HttpClientCodec
 
       val buf = new DynamicOutBuffer(100)
       sent.encode(buf)

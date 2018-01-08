@@ -37,19 +37,19 @@ package object http {
   object Http extends ClientFactories[Http, HttpClient](HttpClientLifter) {
 
     implicit lazy val clientFactory: FutureClient.BaseFactory[Http] =
-      ServiceClientFactory.basic("http", () => new StaticHttpClientCodec)
+      ServiceClientFactory.basic("http", () => new HttpClientCodec)
 
     class ServerDefaults {
-      def errorResponse(error: ProcessingFailure[HttpRequest]) = error match {
+      def errorResponse(error: ProcessingFailure[HttpRequest]): HttpResponse = error match {
         case RecoverableError(request, reason) =>
           reason match {
-            case c: UnhandledRequestException => request.notFound(s"Not found")
-            case other                        => request.error(reason.toString)
+            case _: UnhandledRequestException => request.notFound("Not found")
+            case _                            => request.error(reason.toString)
           }
-        case IrrecoverableError(reason) => {
+
+        case IrrecoverableError(_) =>
           HttpResponse(HttpResponseHead(HttpVersion.`1.1`, HttpCodes.BAD_REQUEST, HttpHeaders.Empty),
                        HttpBody("Bad Request"))
-        }
       }
     }
 

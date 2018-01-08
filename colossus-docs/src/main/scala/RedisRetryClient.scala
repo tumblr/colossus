@@ -2,8 +2,7 @@ import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.{BackoffMultiplier, BackoffPolicy}
+import colossus.core.{BackoffMultiplier, BackoffPolicy, IOSystem}
 import colossus.metrics.MetricAddress
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.Http

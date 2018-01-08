@@ -1,14 +1,11 @@
 package colossus
 
 import core.DataBuffer
-
-import parsing._
-import Combinators._
-
 import org.scalatest._
-
 import akka.util.ByteString
-import DataSize._
+import colossus.util.{ParseException, Zero}
+import colossus.util.Combinators._
+import colossus.util.DataSize._
 
 class CombinatorSuite extends WordSpec with MustMatchers {
 

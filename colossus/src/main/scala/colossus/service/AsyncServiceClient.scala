@@ -6,8 +6,7 @@ import akka.actor._
 import akka.util.Timeout
 import java.util.concurrent.atomic.AtomicBoolean
 
-import colossus.IOSystem
-import colossus.core._
+import colossus.core.{IOSystem, _}
 
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._

@@ -39,7 +39,7 @@ package object telnet {
       var argBuilder = new StringBuilder
 
       def completeArg() {
-        if (argBuilder.length > 0) {
+        if (argBuilder.nonEmpty) {
           builder.args = builder.argBuilder.toString :: builder.args
           argBuilder = new StringBuilder
         }

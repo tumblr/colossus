@@ -1,8 +1,7 @@
 package colossus.core.server
 
 import akka.actor.Actor.Receive
-import colossus.IOSystem
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import com.typesafe.config.{Config, ConfigFactory}
 
 /**
