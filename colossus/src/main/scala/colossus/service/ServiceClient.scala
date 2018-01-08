@@ -3,6 +3,7 @@ package colossus.service
 import java.net.InetSocketAddress
 
 import akka.event.Logging
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core._
 import colossus.metrics.{MetricAddress, TagMap}
@@ -92,7 +93,7 @@ object ClientConfig {
   }
 }
 
-class ServiceClientException(message: String) extends Exception(message)
+class ServiceClientException(message: String) extends Exception(message) with ColossusRuntimeException
 
 /**
   * Thrown when a request is lost in transit

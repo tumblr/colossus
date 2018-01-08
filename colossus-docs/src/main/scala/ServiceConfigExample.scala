@@ -20,11 +20,7 @@ object ServiceConfigExample {
     requestBufferSize = 100,
     logErrors = true,
     requestMetrics = true,
-    maxRequestSize = 10.MB,
-    errorConfig = ErrorConfig(
-      doNotLog = Set.empty[String],
-      logOnlyName = Set("DroppedReplyException")
-    )
+    maxRequestSize = 10.MB
   )
   // #example
 
@@ -40,13 +36,12 @@ object ServiceConfigExample {
             }
 
             // #example2
-            override def requestLogFormat: Option[RequestFormatter[Request]] = {
-              val customFormatter = new ConfigurableRequestFormatter[Request](serviceConfig.errorConfig) {
-                override def format(request: Request, error: Throwable): Option[String] = {
-                  Some(s"$request failed with ${error.getClass.getSimpleName}")
-                }
+            override def requestLogFormat: RequestExceptionFormatter[Request] = new RequestExceptionFormatter[Request] {
+              override def format(request: Option[Request], error: Throwable): String = {
+                s"$request failed with ${error.getClass.getSimpleName}"
               }
-              Some(customFormatter)
+
+              override def formatterOption(error: Throwable): RequestFormatType = RequestFormatType.LogWithStackTrace
             }
             // #example2
         }

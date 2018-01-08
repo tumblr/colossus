@@ -224,3 +224,9 @@ object IOCommand {
   case class BindWithContext(context: Context, item: Context => WorkerItem) extends IOCommand
 
 }
+
+/**
+  * Exceptions extending `ColossusRuntimeException` can occur under normal conditions of handling connections
+  * and requests. Stack traces for these exceptions are not useful.
+  */
+trait ColossusRuntimeException

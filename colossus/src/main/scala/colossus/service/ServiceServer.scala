@@ -2,6 +2,7 @@ package colossus.service
 
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import akka.event.Logging
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core.{DisconnectCause, DownstreamEventHandler, UpstreamEventHandler, UpstreamEvents}
 import colossus.metrics.collectors.{Counter, Histogram, Rate}
@@ -13,7 +14,6 @@ import colossus.util.{ConfigCache, DataSize, ParseException}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import collection.JavaConverters._
 
 class ServiceConfigException(err: Throwable) extends Exception("Error loading config", err)
 
@@ -33,8 +33,7 @@ case class ServiceConfig(requestTimeout: Duration,
                          requestBufferSize: Int,
                          logErrors: Boolean,
                          requestMetrics: Boolean,
-                         maxRequestSize: DataSize,
-                         errorConfig: ErrorConfig)
+                         maxRequestSize: DataSize)
 
 object ServiceConfig {
 
@@ -83,44 +82,22 @@ object ServiceConfig {
     val requestMetrics = config.getBoolean("request-metrics")
     val maxRequestSize = DataSize(config.getString("max-request-size"))
 
-    val errorConf      = config.getConfig("errors")
-    val errorsDoNotLog = errorConf.getStringList("do-not-log").asScala.toSet
-    val errorsLogName  = errorConf.getStringList("log-only-name").asScala.toSet
-    ServiceConfig(timeout,
-                  bufferSize,
-                  logErrors,
-                  requestMetrics,
-                  maxRequestSize,
-                  ErrorConfig(errorsDoNotLog, errorsLogName))
+    ServiceConfig(timeout, bufferSize, logErrors, requestMetrics, maxRequestSize)
   }
 }
 
-case class ErrorConfig(doNotLog: Set[String], logOnlyName: Set[String])
-
-/**
-  * The ErrorConfig here is normally loaded from the ServiceConfig.
-  */
-class ConfigurableRequestFormatter[I](errorConfig: ErrorConfig) extends RequestFormatter[I] {
-  override def logWithStackTrace(error: Throwable): Option[Boolean] = {
-    val errorName = error.getClass.getSimpleName
-    if (errorConfig.doNotLog.contains(errorName)) {
-      None
-    } else if (errorConfig.logOnlyName.contains(errorName)) {
-      Some(false)
-    } else {
-      Some(true)
+class StandardRequestFormatter[I] extends RequestExceptionFormatter[I] {
+  override def formatterOption(error: Throwable): RequestFormatType = {
+    error match {
+      case _: ColossusRuntimeException => RequestFormatType.LogNameOnly
+      case _                           => RequestFormatType.LogWithStackTrace
     }
   }
-
-  override def format(request: I, error: Throwable): Option[String] = None
 }
 
-class ServiceServerException(message: String) extends Exception(message)
+class ServiceServerException(message: String) extends Exception(message) with ColossusRuntimeException
 
 class RequestBufferFullException extends ServiceServerException("Request Buffer full")
-
-//if this exception is ever thrown it indicates a bug
-class FatalServiceServerException(message: String) extends ServiceServerException(message)
 
 class DroppedReplyException extends ServiceServerException("Dropped Reply")
 
@@ -130,7 +107,7 @@ trait ServiceUpstream[P <: Protocol] extends UpstreamEvents
   * The ServiceServer provides an interface and basic functionality to create a server that processes
   * requests and returns responses over a codec.
   *
-  * A Codec is simply the format in which the data is represented.  Http, Redis protocol, Memcached protocl are all
+  * A Codec is simply the format in which the data is represented.  Http, Redis protocol, Memcached protocol are all
   * examples(and natively supported).  It is entirely possible to use an additional Codec by creating a Codec to parse
   * the desired protocol.
   *
@@ -181,29 +158,20 @@ class ServiceServer[P <: Protocol](val requestHandler: GenRequestHandler[P])
   private def addError(failure: ProcessingFailure[Request], extraTags: TagMap = TagMap.Empty) {
     val tags = extraTags + ("type" -> failure.reason.metricsName)
     errors.hit(tags = tags)
+
     if (config.logErrors) {
-      requestHandler.requestLogFormat match {
-        case Some(formatter) => {
-          val logMessage = failure match {
-            case RecoverableError(request, reason) =>
-              formatter.formatLogMessage(request, reason)
-            case IrrecoverableError(reason) =>
-              formatter.logWithStackTrace(reason).map(b => RequestFormatter.LogMessage("Invalid Request", b))
-          }
-          logMessage.foreach { x =>
-            if (x.includeStackTrace) {
-              error(s"Error processing request: ${x.message}", failure.reason)
-            } else {
-              error(s"Error processing request: ${x.message}")
-            }
-          }
-        }
-        case None => {
-          val requestString = failure match {
-            case RecoverableError(request, _) => request.toString
-            case IrrecoverableError(_)        => "Invalid Request"
-          }
-          error(s"Error processing request: $requestString", failure.reason)
+      val logMessage = failure match {
+        case RecoverableError(request, reason) =>
+          requestHandler.requestLogFormat.formatLogMessage(Some(request), reason)
+        case IrrecoverableError(reason) =>
+          requestHandler.requestLogFormat.formatLogMessage(None, reason)
+      }
+
+      logMessage.foreach { x =>
+        if (x.includeStackTrace) {
+          error(s"Error processing request: ${x.message}", failure.reason)
+        } else {
+          error(s"Error processing request: ${x.message}")
         }
       }
     }
