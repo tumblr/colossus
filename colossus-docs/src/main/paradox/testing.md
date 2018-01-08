@@ -46,7 +46,7 @@ And now, the `HttpServiceSpec`-based test class:
 * `expectCodeAndBody` will hit the service instance with a request, and match the returned code and body with a given
 expected code and body.
 * `expectCodeAndBodyPredicate` takes a predicate that the body must satisfy. In the example, the returned JSON body 
-is parsed into a `Map[String, JsonNode]` and is tested for equality against a given `Map[String, JsonNode]` instead.
+is parsed into a `Map[String, JValue]` and is tested for equality against a given `Map[String, JValue]` instead.
 
 ## Testing Clients
 

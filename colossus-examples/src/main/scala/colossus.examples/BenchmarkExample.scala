@@ -8,15 +8,14 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 object BenchmarkExample {
 
-  implicit object JsonBody extends HttpBodyEncoder[HelloWorld] {
+  implicit object JsonBody extends HttpBodyEncoder[AnyRef] {
     private val mapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
     val contentType: String = ContentType.ApplicationJson
-    def encode(helloWorld: HelloWorld): HttpBody = new HttpBody(mapper.writeValueAsBytes(helloWorld))
+    def encode(helloWorld: AnyRef): HttpBody = new HttpBody(mapper.writeValueAsBytes(helloWorld))
   }
 
   case class HelloWorld(message: String)
-
-  def helloWorld: HelloWorld = HelloWorld("Hello, World!")
+  def helloWorld: AnyRef = HelloWorld("Hello, World!")
 
   def start(port: Int)(implicit io: IOSystem) {
     HttpServer.basic("benchmark", port) {
