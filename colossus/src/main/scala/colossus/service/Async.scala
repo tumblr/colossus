@@ -15,9 +15,7 @@ trait Sender[P <: Protocol, M[_]] {
   def send(input: P#Request): M[P#Response]
 
   def disconnect(): Unit
-
-  def addInterceptor(interceptor: Interceptor[P]): Unit
-
+  
   def address(): InetSocketAddress
 
   def update(addresses: Seq[InetSocketAddress]): Unit

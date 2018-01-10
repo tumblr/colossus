@@ -343,9 +343,7 @@ trait LiftedClient[P <: Protocol, M[_]] extends Sender[P, M] {
   override def send(input: P#Request): M[P#Response] = client.send(input)
 
   protected def executeAndMap[T](i: P#Request)(f: P#Response => M[T]) = async.flatMap(send(i))(f)
-
-  override def addInterceptor(interceptor: Interceptor[P]): Unit = client.addInterceptor(interceptor)
-
+  
   override def disconnect(): Unit = client.disconnect()
 
   override def update(addresses: Seq[InetSocketAddress]): Unit = client.update(addresses)
