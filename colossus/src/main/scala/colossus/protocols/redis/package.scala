@@ -20,7 +20,7 @@ package object redis {
     }
 
     implicit def clientFactory =
-      ServiceClientFactory.basic("redis", () => new RedisClientCodec, tagDecorator)
+      ServiceClientFactory.basic[Redis]("redis", () => new RedisClientCodec, tagDecorator)
 
   }
 

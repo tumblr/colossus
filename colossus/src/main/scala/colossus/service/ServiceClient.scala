@@ -15,7 +15,6 @@ import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sin
 import colossus.util.DataSize
 import colossus.util.ExceptionFormatter._
 
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -166,7 +165,8 @@ class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandl
 class ServiceClient[P <: Protocol](
     val address: InetSocketAddress,
     val config: ClientConfig,
-    val context: Context
+    val context: Context,
+    requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
     extends ControllerDownstream[Encoding.Client[P]]
     with Client[P, Callback]
@@ -297,7 +297,8 @@ class ServiceClient[P <: Protocol](
     * Create a callback for sending a request.  this allows you to do something like
     * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
     */
-  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
+  def send(request: Request): Callback[P#Response] =
+    UnmappedCallback[P#Response](sendNow(requestEnhancement(request, this)))
 
   def processMessages(): Unit = incoming.pullWhile(
     response => {

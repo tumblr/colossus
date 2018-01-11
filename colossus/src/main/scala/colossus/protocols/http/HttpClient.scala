@@ -7,18 +7,6 @@ import scala.language.higherKinds
 trait BaseHttpClient[M[_], B, P <: BaseHttp[B]] extends LiftedClient[P, M] {
 
   def ops: MessageOps[HttpRequestHead, B, P#Request] // = implicitly[MessageOps[HttpRequestHead, B, P#Request]]
-
-  protected lazy val hostHeader = HttpHeader(HttpHeaders.Host, address.getHostName)
-
-  override def send(input: P#Request): M[P#Response] = {
-    val headers = input.head.headers
-    val decoratedRequest = headers.firstValue(HttpHeaders.Host) match {
-      case Some(_) => input // Host header is already present.
-      case None    => ops.withHeader(input, hostHeader)
-    }
-    super.send(decoratedRequest)
-  }
-
 }
 
 trait HttpClient[M[_]]
@@ -31,7 +19,6 @@ trait HttpClient[M[_]]
   protected def build(req: HttpRequest) = send(req)
 
   val base = HttpRequest.base
-
 }
 
 object HttpClient {

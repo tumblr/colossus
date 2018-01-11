@@ -190,6 +190,8 @@ trait ClientFactory[P <: Protocol, M[_], +T <: Sender[P, M], E] {
 
   def defaultName: String
 
+  def requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request
+
   protected lazy val configDefaults = ConfigFactory.load()
 
   /**
@@ -249,7 +251,7 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Cli
 
   def codecProvider: Codec.Client[P]
 
-  def apply(config: ClientConfig)(implicit worker: WorkerRef): Client[P, Callback] = {
+  override def apply(config: ClientConfig)(implicit worker: WorkerRef): Client[P, Callback] = {
     new LoadBalancer[P](config, this, new PrinciplePermutationGenerator[Client[P, Callback]](_))
   }
 
@@ -258,7 +260,7 @@ trait ServiceClientFactory[P <: Protocol] extends ClientFactory[P, Callback, Cli
     //TODO : binding a client needs to be split up from creating the connection handler
     // we should make a method called "create" the abstract method, and have
     // this apply call it, then move this to a more generic parent type
-    val base    = new ServiceClient[P](address, config, worker.generateContext())
+    val base    = new ServiceClient[P](address, config, worker.generateContext(), requestEnhancement)
     val handler = connectionHandler(base, codecProvider)
     worker.worker ! WorkerCommand.Bind(handler)
     base
@@ -269,19 +271,26 @@ object ServiceClientFactory {
 
   def basic[P <: Protocol](name: String,
                            provider: () => Codec.Client[P],
-                           tagDecorator: TagDecorator[P] = TagDecorator.default[P]) = new ServiceClientFactory[P] {
+                           tagDecorator: TagDecorator[P] = TagDecorator.default[P],
+                           enhancementFunc: (P#Request, Sender[P, Callback]) => P#Request =
+                             (request: P#Request, _: Sender[P, Callback]) => request) =
+    new ServiceClientFactory[P] {
 
-    def defaultName = name
+      def defaultName = name
 
-    def codecProvider = provider()
+      override def requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request = enhancementFunc
 
-    override def clientTagDecorator: TagDecorator[P] = tagDecorator
-  }
+      def codecProvider = provider()
+
+      override def clientTagDecorator: TagDecorator[P] = tagDecorator
+    }
 
 }
 
 class FutureClientFactory[P <: Protocol](base: FutureClient.BaseFactory[P])
     extends ClientFactory[P, Future, FutureClient[P], IOSystem] {
+
+  override def requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request = base.requestEnhancement
 
   def defaultName = base.defaultName
 
@@ -296,6 +305,8 @@ class CodecClientFactory[P <: Protocol, M[_], T[M[_]] <: Sender[P, M], E](
     extends ClientFactory[P, M, T[M], E] {
 
   def defaultName: String = baseFactory.defaultName
+
+  override def requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request = baseFactory.requestEnhancement
 
   def apply(config: ClientConfig)(implicit env: E): T[M] = {
     apply(baseFactory(config), config)
@@ -343,7 +354,7 @@ trait LiftedClient[P <: Protocol, M[_]] extends Sender[P, M] {
   override def send(input: P#Request): M[P#Response] = client.send(input)
 
   protected def executeAndMap[T](i: P#Request)(f: P#Response => M[T]) = async.flatMap(send(i))(f)
-  
+
   override def disconnect(): Unit = client.disconnect()
 
   override def update(addresses: Seq[InetSocketAddress]): Unit = client.update(addresses)

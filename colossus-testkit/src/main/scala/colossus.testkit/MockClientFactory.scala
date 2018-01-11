@@ -15,7 +15,7 @@ object MockSender {
     def send(request: P#Request): M[P#Response] = responder(request)
 
     def disconnect() {}
-    
+
     override def address() = new InetSocketAddress(8888)
 
     override def update(addresses: Seq[InetSocketAddress]): Unit = {}
@@ -31,9 +31,11 @@ object MockClientFactory {
   def apply[P <: Protocol, M[_], E](responder: P#Request => M[P#Response]): ClientFactory[P, M, Sender[P, M], E] =
     new ClientFactory[P, M, Sender[P, M], E] {
 
-      def apply(config: ClientConfig)(implicit env: E) = MockSender[P, M](responder)
+      def apply(config: ClientConfig)(implicit env: E): Sender[P, M] = MockSender[P, M](responder)
 
       def defaultName = "mock-client"
+
+      override def requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request = (request, _) => request
     }
 
   def client[P <: Protocol](
