@@ -195,6 +195,8 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
           override def update(addresses: Seq[InetSocketAddress]): Unit = {}
         }
       }
+
+      override def requestEnhancement: (HttpRequest, Sender[Http, Callback]) => HttpRequest = ???
     }
 
     (serviceClientFactory, sentToClients, interceptorCount)

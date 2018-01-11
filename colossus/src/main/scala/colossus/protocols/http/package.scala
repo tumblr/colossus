@@ -3,17 +3,7 @@ package colossus.protocols
 import colossus.core.DataOutBuffer
 import colossus.metrics.TagMap
 import colossus.protocols.http.HttpClient.HttpClientLifter
-import colossus.service.{
-  ClientFactories,
-  FutureClient,
-  IrrecoverableError,
-  ProcessingFailure,
-  Protocol,
-  RecoverableError,
-  ServiceClientFactory,
-  TagDecorator,
-  UnhandledRequestException
-}
+import colossus.service._
 
 package object http {
 
@@ -36,8 +26,16 @@ package object http {
 
   object Http extends ClientFactories[Http, HttpClient](HttpClientLifter) {
 
-    implicit lazy val clientFactory: FutureClient.BaseFactory[Http] =
-      ServiceClientFactory.basic("http", () => new HttpClientCodec)
+    def requestEnhancement: (HttpRequest, Sender[Http, Callback]) => HttpRequest =
+      (input: HttpRequest, sender: Sender[Http, Callback]) => {
+        input.head.headers.firstValue(HttpHeaders.Host) match {
+          case Some(_) => input // Host header is already present.
+          case None    => HttpRequestOps.withHeader(input, HttpHeader(HttpHeaders.Host, sender.address().getHostName))
+        }
+      }
+
+    implicit lazy val clientFactory =
+      ServiceClientFactory.basic[Http]("http", () => new HttpClientCodec, enhancementFunc = requestEnhancement)
 
     class ServerDefaults {
       def errorResponse(error: ProcessingFailure[HttpRequest]): HttpResponse = error match {

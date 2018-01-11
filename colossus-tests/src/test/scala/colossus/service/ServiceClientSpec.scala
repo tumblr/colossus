@@ -45,7 +45,7 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
     )
     implicit val w = fakeWorker.worker
 
-    val client = new ServiceClient[Redis](address.head, config, w.generateContext())
+    val client = new ServiceClient[Redis](address.head, config, w.generateContext(), (request, sender) => request)
 
     val fullHandler: ClientConnectionHandler = Redis.clientFactory.connectionHandler(client, new RedisClientCodec)
 
@@ -267,7 +267,10 @@ class ServiceClientSpec extends ColossusSpec with MockFactory {
 
     "resume sending requests on reconnect" taggedAs (org.scalatest.Tag("test")) in {
       val config = ClientConfig(Seq(new InetSocketAddress("localhost", 1)), 1.second, "foo", sentBufferSize = 1)
-      val client = new ServiceClient[Raw](new InetSocketAddress("localhost", 1), config, FakeIOSystem.fakeContext)
+      val client = new ServiceClient[Raw](new InetSocketAddress("localhost", 1),
+                                          config,
+                                          FakeIOSystem.fakeContext,
+                                          (request, _) => request)
       val fakeup = stub[ControllerUpstream[Encoding.Client[Raw]]]
       val p      = new BufferedPipe[ByteString](5)
       (fakeup.outgoing _) when () returns (p)
