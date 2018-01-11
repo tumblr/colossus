@@ -44,15 +44,6 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
       val (serviceClientFactory, sentToClients, interceptorCount) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
-      lb.addInterceptor(new Interceptor[Http] {
-        override def apply(request: HttpRequest, callback: Callback[HttpResponse] => Callback[HttpResponse])
-          : (HttpRequest, Callback[HttpResponse] => Callback[HttpResponse]) = {
-          (request, callback)
-        }
-      })
-
-      // each client should have the interceptor added
-      assert(interceptorCount.get() == 5)
 
       val newAddresses = Seq(address1, address2, address2, address3, address5)
 
@@ -61,9 +52,6 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
       assert(sentToClients == beginningClients)
 
       lb.update(newAddresses)
-
-      // new clients should have the interceptor added (only two added)
-      assert(interceptorCount.get() == 7)
 
       sentToClients.clear()
 
@@ -201,10 +189,6 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
           }
 
           override def disconnect(): Unit = {}
-
-          override def addInterceptor(interceptor: Interceptor[Http]): Unit = {
-            interceptorCount.incrementAndGet()
-          }
 
           override def address(): InetSocketAddress = clientAddress
 

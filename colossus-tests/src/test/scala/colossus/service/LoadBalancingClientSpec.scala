@@ -67,9 +67,7 @@ class LoadBalancingClientSpec extends ColossusSpec with MockFactory {
           Callback.successful(numCalled)
         }
         def disconnect() {}
-
-        override def addInterceptor(interceptor: Interceptor[PR]): Unit = {}
-
+        
         override def address(): InetSocketAddress = ???
 
         override def update(addresses: Seq[InetSocketAddress]): Unit = {}

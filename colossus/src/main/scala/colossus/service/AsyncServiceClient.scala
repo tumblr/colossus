@@ -77,10 +77,7 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
       case FutureClient.GetConnectionStatus(promise) =>
         import scala.concurrent.ExecutionContext.Implicits.global
         promise.completeWith(client.connectionStatus.toFuture)
-
-      case interceptor: Interceptor[P] =>
-        client.addInterceptor(interceptor)
-
+        
       case Addresses(addresses) =>
         client.update(addresses)
     }
@@ -137,9 +134,7 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
       throw new NotImplementedError("Async handler generator does not have an address")
 
     val clientConfig = config
-
-    override def addInterceptor(interceptor: Interceptor[P]): Unit = proxy ! interceptor
-
+    
     override def update(addresses: Seq[InetSocketAddress]): Unit = proxy ! Addresses(addresses)
   }
 

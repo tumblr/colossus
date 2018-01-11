@@ -18,9 +18,7 @@ private class LoadBalancer[P <: Protocol](
     with ColossusLogging {
 
   implicit val cbe: CallbackExecutor = worker.callbackExecutor
-
-  private var interceptors = Seq.empty[Interceptor[P]]
-
+  
   private var clients: Seq[Client[P, Callback]] = config.address.map(address => createClient(address))
 
   private var permutations = permutationFactory(clients)
@@ -103,12 +101,6 @@ private class LoadBalancer[P <: Protocol](
 
   override def address() = throw new NotImplementedError("Load balancer does not have an address")
 
-  override def addInterceptor(interceptor: Interceptor[P]): Unit = {
-    // save interceptors so they can be added when new clients need to be added
-    interceptors = interceptors :+ interceptor
-    clients.foreach(_.addInterceptor(interceptor))
-  }
-
   override def update(addresses: Seq[InetSocketAddress]): Unit = {
     val newSetup      = addresses.groupBy(a => a).mapValues(_.size)
     val oldClientsMap = clients.groupBy(_.address())
@@ -151,7 +143,6 @@ private class LoadBalancer[P <: Protocol](
 
   private def createClient(address: InetSocketAddress): Client[P, Callback] = {
     val client = clientFactory.createClient(config, address)
-    interceptors.foreach(interceptor => client.addInterceptor(interceptor))
     client
   }
 }
