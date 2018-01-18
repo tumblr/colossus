@@ -319,8 +319,8 @@ object Combinators {
     }
   }
 
-  def bytes(num: Parser[Int]): Parser[Array[Byte]] = bytes(num, 10.MB, 1.MB)
-  def bytes(num: Int): Parser[Array[Byte]]         = bytes(num, 10.MB, 1.MB)
+  def bytes(num: Parser[Int]): Parser[Array[Byte]] = bytes(num, 10240.MB, 1.MB)
+  def bytes(num: Int): Parser[Array[Byte]]         = bytes(num, 10240.MB, 1.MB)
 
   /**
     * Keep reading bytes until the terminus is encounted.  This accounts for
