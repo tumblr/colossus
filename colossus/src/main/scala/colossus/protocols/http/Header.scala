@@ -2,7 +2,7 @@ package colossus.protocols.http
 
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
-import java.util.{LinkedList, TimeZone, List => JList}
+import java.util.{LinkedList, Locale, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
 import colossus.util.Zero
@@ -334,7 +334,10 @@ object Cookie {
     cookieVals.map { case (key, value) => Cookie(key, value, expiration) }.toList
   }
 
-  val CookieExpirationFormat = org.joda.time.format.DateTimeFormat.forPattern("E, dd MMM yyyy HH:mm:ss z")
+  val CookieExpirationFormat = org.joda.time.format.DateTimeFormat
+    .forPattern("E, dd MMM yyyy HH:mm:ss z")
+    .withLocale(Locale.ENGLISH)
+
   def parseCookieExpiration(str: String): DateTime = {
     org.joda.time.DateTime.parse(str, CookieExpirationFormat)
   }
@@ -509,7 +512,7 @@ object DateHeader {
   import java.text.SimpleDateFormat
 
   def createFormatter(): SimpleDateFormat = {
-    val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z")
+    val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
     df.setTimeZone(TimeZone.getTimeZone("GMT"))
     df
   }
