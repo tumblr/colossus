@@ -119,7 +119,7 @@ In order to accept your pull request, we need you to submit a Contributor Licens
     ```
 3. Push changes to remote; travis will build and automatically publish to [sonatype](https://oss.sonatype.org/).
     ```bash
-    git push origin v{VERSION NUMBER} 
+    git push --follow-tags
     ``` 
 
 ## License
