@@ -1,5 +1,5 @@
 import akka.actor.ActorSystem
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.protocols.http.HttpMethod.Get
 import colossus.protocols.http.UrlParsing.{Root, on}
 import colossus.protocols.http.{HttpServer, Initializer, RequestHandler}
@@ -32,16 +32,18 @@ object GenericClient extends App {
     new Initializer(initContext) {
       val client = Http.client("example.org", 80)
 
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root =>
-            // using callback client
-            implicit val callbackAsync = CallbackAsync
-            doTheThing(client).map { string =>
-              request.ok(string)
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root =>
+                // using callback client
+                implicit val callbackAsync = CallbackAsync
+                doTheThing(client).map { string =>
+                  request.ok(string)
+                }
             }
         }
-      }
     }
   }
   // #example

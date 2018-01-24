@@ -1,8 +1,7 @@
-package colossus.task
+package colossus.util
 
 import akka.actor._
-import colossus.IOSystem
-import colossus.core.{Context, ProxyActor, WorkerItem}
+import colossus.core.{Context, IOSystem, ProxyActor, WorkerItem}
 
 /**
   * A Task is basically a way to run an arbitrary function inside a worker.

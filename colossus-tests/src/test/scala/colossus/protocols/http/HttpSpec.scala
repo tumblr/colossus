@@ -13,7 +13,13 @@ class HttpSpec extends WordSpec with MustMatchers {
   "first line" must {
 
     "respect equality" in {
-      val fl1: FirstLine = HttpRequest(HttpMethod.Get, "/foobar", HttpHeaders(), HttpBody.NoBody).head.firstLine
+      val fl1: FirstLine = HttpRequest(
+        HttpRequestHead(
+          HttpMethod.Get,
+          "/foobar",
+          HttpVersion.`1.1`,
+          HttpHeaders()
+        ), HttpBody.NoBody).head.firstLine
       val fl2: FirstLine = ParsedFL(ByteString("GET /foobar HTTP/1.1\t\n").toArray)
       val fl3: FirstLine = ParsedFL(ByteString("GET /foobaz HTTP/1.1\t\n").toArray)
       fl1 == fl2 must equal(true)
@@ -146,7 +152,7 @@ class HttpSpec extends WordSpec with MustMatchers {
     "encode basic response" in {
       val content  = "Hello World!"
       val response = HttpResponse(HttpVersion.`1.1`, HttpCodes.OK, HttpHeaders(), ByteString(content))
-      val expected = s"HTTP/1.1 200 OK\r\nContent-Length: ${content.length}\r\n\r\n$content"
+      val expected = s"HTTP/1.1 200 OK\r\ncontent-type: text/plain\r\nContent-Length: ${content.length}\r\n\r\n$content"
       val buf      = new DynamicOutBuffer(100)
       val res      = response.encode(buf)
       val received = ByteString(buf.data.takeAll).utf8String

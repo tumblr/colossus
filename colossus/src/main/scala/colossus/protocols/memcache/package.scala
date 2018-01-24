@@ -17,8 +17,9 @@ package object memcache {
         "op" -> request.commandName.utf8String
       )
     }
-    
-    implicit lazy val clientFactory = ServiceClientFactory.basic("memcache", () => new MemcacheClientCodec, tagDecorator)
+
+    implicit lazy val clientFactory =
+      ServiceClientFactory.basic[Memcache]("memcache", () => new MemcacheClientCodec, tagDecorator)
 
   }
 

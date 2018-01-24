@@ -1,19 +1,15 @@
 package colossus.core.server
 
-object ServerDSL {
-  type Receive = PartialFunction[Any, Unit]
-}
-import ServerDSL._
-import colossus.IOSystem
-import colossus.core._
+import akka.actor.Actor.Receive
+import colossus.core.{IOSystem, _}
 import com.typesafe.config.{Config, ConfigFactory}
 
 /**
   * An `Initializer` is used to perform any setup/coordination logic for a
-  * [[Server!]] inside a [[WorkerRef Worker]].  Initializers are also used to provide new
+  * `Server` inside a `Worker`.  Initializers are also used to provide new
   * connections from the server with connection handlers.  An initializer is
   * created per worker, so all actions on a single Initializer are
-  * single-threaded.  See [[colossus.core.Server!]] to see how `Initializer` is
+  * single-threaded.  See `Server` to see how `Initializer` is
   * used when starting servers.
   */
 abstract class Initializer(context: InitContext) {
@@ -23,14 +19,14 @@ abstract class Initializer(context: InitContext) {
   val server = context.server
 
   /**
-    * Given a [[ServerContext]] for a new connection, provide a new connection
+    * Given a [[colossus.core.ServerContext]] for a new connection, provide a new connection
     * handler for the connection
     */
   def onConnect: ServerContext => ServerConnectionHandler
 
   /**
     * Message receive hook.  This is used to handle any messages that are sent
-    * using [[ServerRef]] `initializerBroadcast`.
+    * using [[colossus.core.ServerRef]] `initializerBroadcast`.
     */
   def receive: Receive = Map() //empty receive
 

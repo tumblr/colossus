@@ -6,10 +6,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import Callback.Implicits._
 import akka.util.ByteString
-import colossus.{IOSystem, TestClient, TestUtil}
-import colossus.core.{ConnectionStatus, NoRetry, ServerRef}
+import colossus.{TestClient, TestUtil}
+import colossus.core.{ConnectionStatus, IOSystem, NoRetry, ServerRef}
 import colossus.RawProtocol.{Raw, RawServer}
-
 
 class FutureClientSpec extends ColossusSpec {
 
@@ -81,7 +80,7 @@ class FutureClientSpec extends ColossusSpec {
     "properly buffer messages before workeritem bound" in {
       withIOSystem { implicit io =>
         val client = TestClient(io, TEST_PORT, waitForConnected = false)
-        intercept[NotConnectedException] {
+        intercept[SendFailedException] {
           Await.result(client.send(ByteString("foo")), 500.milliseconds)
         }
       }

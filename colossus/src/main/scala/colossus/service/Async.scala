@@ -1,9 +1,10 @@
 package colossus.service
 
+import java.net.InetSocketAddress
+
 import scala.concurrent.Future
 import scala.language.higherKinds
-import colossus.IOSystem
-import colossus.core.WorkerRef
+import colossus.core.{IOSystem, WorkerRef}
 
 /**
   * A Sender is anything that is able to asynchronously send a request and
@@ -13,8 +14,11 @@ trait Sender[P <: Protocol, M[_]] {
 
   def send(input: P#Request): M[P#Response]
 
-  def disconnect()
+  def disconnect(): Unit
+  
+  def address(): InetSocketAddress
 
+  def update(addresses: Seq[InetSocketAddress]): Unit
 }
 
 /**

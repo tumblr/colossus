@@ -3,6 +3,7 @@ package colossus.protocols.memcache
 import org.scalatest._
 import akka.util.ByteString
 import colossus.protocols.memcache.MemcacheCommand._
+import colossus.util.compress.NoCompressor
 
 class MemcacheCommandSuite extends FlatSpec with Matchers {
   "MemcacheCommand" should "format a GET correctly" in {

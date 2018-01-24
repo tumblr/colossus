@@ -10,7 +10,7 @@ import scala.concurrent.duration._
   * how it should try to reconnect if it's first attempt to connect fails.
   *
   * RetryPolicy acts as a factory for [[RetryIncident]], which is a per-incident
-  * manager of retries.  So everytime a user encounters a sitiation where an
+  * manager of retries.  So every time a user encounters a situation where an
   * operation needs to be retried, it should use the `RetryPolicy` create a new
   * incident, and use the incident until either the operation succeeds or the
   * incident indicates to stop retrying.
@@ -41,7 +41,7 @@ object RetryPolicy {
 }
 
 /**
-  * A `RetryAttempt` represents the next action that should be taken when retring an operation.
+  * A `RetryAttempt` represents the next action that should be taken when retrying an operation.
   */
 sealed trait RetryAttempt
 object RetryAttempt {
@@ -72,7 +72,7 @@ case class IncidentReport(totalTime: FiniteDuration, totalAttempts: Int)
   * [[colossus.service.ServiceClient]] fails to connect to its target host, it
   * will create a new `RetryIncident` from it's given [[RetryPolicy]].
   *
-  * On each successive failure of the operation, a call to [[nextAttempt()]]
+  * On each successive failure of the operation, a call to `nextAttempt()`
   * should be made that will return a `RetryAttempt` indicating what action
   * should be taken.  A single `RetryIncident` cannot be reused should be
   * discarded when either the operation completes or gives up
@@ -81,7 +81,7 @@ case class IncidentReport(totalTime: FiniteDuration, totalAttempts: Int)
 trait RetryIncident {
 
   /**
-    * Get the next retry attempt, which incidates what action should be taken for
+    * Get the next retry attempt, which indicates what action should be taken for
     * the next retry
     */
   def nextAttempt(): RetryAttempt
@@ -109,7 +109,7 @@ trait BackoffMultiplier {
 
 object BackoffMultiplier {
 
-  def fromConfig(config: Config) = {
+  def fromConfig(config: Config): BackoffMultiplier = {
     val mtype = config.getString("type").toUpperCase
     mtype match {
       case "CONSTANT"    => Constant
@@ -123,7 +123,7 @@ object BackoffMultiplier {
     * A multiplier that will keep the backoff time constant
     */
   case object Constant extends BackoffMultiplier {
-    def value(base: FiniteDuration, attempt: Int) = base
+    def value(base: FiniteDuration, attempt: Int): FiniteDuration = base
   }
 
   trait IncreasingMultiplier extends BackoffMultiplier {
@@ -133,7 +133,7 @@ object BackoffMultiplier {
     //needed to avoid possible out-of-range issue with FiniteDuration
     private var hitMax = false
 
-    def value(base: FiniteDuration, attempt: Int) = {
+    def value(base: FiniteDuration, attempt: Int): FiniteDuration = {
       if (hitMax) {
         max
       } else {
@@ -154,14 +154,14 @@ object BackoffMultiplier {
     * A multiplier that will increase the backoff linearly with each attempt, up to `max`
     */
   case class Linear(max: FiniteDuration) extends IncreasingMultiplier {
-    protected def increaseValue(base: FiniteDuration, attempt: Int) = base * attempt
+    protected def increaseValue(base: FiniteDuration, attempt: Int): FiniteDuration = base * attempt
   }
 
   /**
     * A multiplier that will double the backoff time with each attempt, up to `max`
     */
   case class Exponential(max: FiniteDuration) extends IncreasingMultiplier {
-    protected def increaseValue(base: FiniteDuration, attempt: Int) = {
+    protected def increaseValue(base: FiniteDuration, attempt: Int): FiniteDuration = {
       base * math.pow(2, attempt - 1).toLong
     }
   }
@@ -186,7 +186,7 @@ object BackoffMultiplier {
   *
   * @param baseBackoff The base value to use for backing off.  This may be used by the [[multiplier]]
   * @param multiplier The multiplier that will be applied to the [[baseBackoff]]
-  * @param maxTime The maximim amount of time to allow for retrying
+  * @param maxTime The maximum amount of time to allow for retrying
   * @param maxTries The maximum number of attempts to make
   * @param immediateFirstAttempt Whether the first retry attempt should be immediate or use the given backoff and multiplier
   */
@@ -200,25 +200,21 @@ case class BackoffPolicy(
 
   class BackoffIncident extends RetryIncident {
     private var attempt = 0
-    def attempts        = attempt
-    private val start   = System.currentTimeMillis
-    import RetryAttempt._
 
-    def nextAttempt() = {
+    def attempts: Int = attempt
+
+    private val start = System.currentTimeMillis
+
+    def nextAttempt(): RetryAttempt = {
       val now = System.currentTimeMillis
-      if (maxTime
-            .map { t =>
-              start + t.toMillis < now
-            }
-            .getOrElse(false) ||
-          maxTries.map { _ <= attempt }.getOrElse(false)) {
-        Stop
+      if (maxTime.exists(t => start + t.toMillis < now) || maxTries.exists(_ <= attempt)) {
+        RetryAttempt.Stop
       } else {
         attempt += 1
         if (immediateFirstAttempt && attempt == 1) {
-          RetryNow
+          RetryAttempt.RetryNow
         } else {
-          RetryIn(multiplier.value(baseBackoff, attempt))
+          RetryAttempt.RetryIn(multiplier.value(baseBackoff, attempt))
         }
       }
     }
@@ -234,13 +230,13 @@ case class BackoffPolicy(
   */
 case object NoRetry extends RetryPolicy with RetryIncident {
 
-  def start() = this
+  def start(): RetryIncident = this
 
   def attempts = 1
 
   def end() = IncidentReport(0.milliseconds, 1)
 
-  def nextAttempt() = RetryAttempt.Stop
+  def nextAttempt(): RetryAttempt = RetryAttempt.Stop
 
 }
 
@@ -249,7 +245,7 @@ case object NoRetry extends RetryPolicy with RetryIncident {
   * for some operation to complete, and if/how to retry the operation if it fails
   * to complete within the waiting time.
   *
-  * For example, a WaitPolicy is used by [[colossus.core.Server]] to determine
+  * For example, a WaitPolicy is used by `Server` to determine
   * how long to wait for it's delegators to start up and how to respond if they
   * fail
   *

@@ -1,7 +1,6 @@
 language: scala
 
 scala:
-- 2.11.7
 - 2.12.2
 
 jdk: oraclejdk8
@@ -18,7 +17,7 @@ cache:
   - $HOME/.sbt/boot/
 
 script:
-- sbt ++$TRAVIS_SCALA_VERSION clean coverage testAll coverageReport coverageAggregate
+- sbt +clean +coverage +testAll +coverageReport +coverageAggregate
 
 before_cache:
 - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete

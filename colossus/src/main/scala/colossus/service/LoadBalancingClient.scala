@@ -6,6 +6,10 @@ import scala.reflect.ClassTag
 import java.net.InetSocketAddress
 import colossus.core.{WorkerItem, WorkerRef}
 
+trait PermutationGenerator[T] {
+  def next(): List[T]
+}
+
 /**
   * The PermutationGenerator creates permutations such that consecutive calls
   * are guaranteed to cycle though all items as the first element.
@@ -13,7 +17,9 @@ import colossus.core.{WorkerItem, WorkerRef}
   * This currently doesn't iterate through every possible permutation, but it
   * does evenly distribute 1st and 2nd tries...needs some more work
   */
-class PermutationGenerator[T: ClassTag](val seedlist: Seq[T]) extends Iterator[List[T]] {
+class PrinciplePermutationGenerator[T: ClassTag](val seedlist: Seq[T])
+    extends PermutationGenerator[T]
+    with Iterator[List[T]] {
   private val items: Array[T] = seedlist.toArray
 
   private var swapIndex = 1
@@ -30,20 +36,20 @@ class PermutationGenerator[T: ClassTag](val seedlist: Seq[T]) extends Iterator[L
   }
 
   def next(): List[T] = {
-    if (items.size == 1) {
+    if (items.length == 1) {
       items.head
     } else {
       swap(0, swapIndex)
       swapIndex += 1
-      if (swapIndex == items.size) {
+      if (swapIndex == items.length) {
         swapIndex = 1
       }
       cycleCount += 1
-      if (items.size > 3) {
+      if (items.length > 3) {
         if (cycleCount == cycleSize) {
           cycleCount = 0
           swapIndex += 1
-          if (swapIndex == items.size) {
+          if (swapIndex == items.length) {
             swapIndex = 1
           }
         }
@@ -72,8 +78,9 @@ class SendFailedException(tries: Int, finalCause: Throwable)
   * so setting maxTries to a very large number will mean that every client will
   * be tried once
   *
-  * TODO: does this need to actually be a WorkerItem anymore?
+  *
   */
+@deprecated("Load balancer now built into client", "0.11.0")
 class LoadBalancingClient[P <: Protocol](
     worker: WorkerRef,
     generator: InetSocketAddress => Sender[P, Callback],
@@ -88,7 +95,7 @@ class LoadBalancingClient[P <: Protocol](
       factory: ClientFactory[P, Callback, Sender[P, Callback], WorkerRef],
       maxTries: Int
   )(implicit worker: WorkerRef) = {
-    this(worker, address => factory(baseConfig.copy(address = address)), maxTries, addresses)
+    this(worker, address => factory(baseConfig.copy(address = Seq(address))), maxTries, addresses)
   }
 
   val context = worker.generateContext
@@ -99,12 +106,12 @@ class LoadBalancingClient[P <: Protocol](
 
   private val clients = collection.mutable.ArrayBuffer[Client]()
 
-  private var permutations = new PermutationGenerator(clients.map { _.client })
+  private var permutations = new PrinciplePermutationGenerator(clients.map { _.client })
 
   update(initialClients, true)
 
   private def regeneratePermutations() {
-    permutations = new PermutationGenerator(clients.map { _.client })
+    permutations = new PrinciplePermutationGenerator(clients.map { _.client })
   }
 
   private def addClient(address: InetSocketAddress, regen: Boolean): Unit = {
@@ -172,4 +179,9 @@ class LoadBalancingClient[P <: Protocol](
 
   override def receivedMessage(message: Any, sender: ActorRef) {}
 
+  override def address(): InetSocketAddress = throw new NotImplementedError("Deprecated class")
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit = {
+    update(addresses, allowDuplicates = false)
+  }
 }

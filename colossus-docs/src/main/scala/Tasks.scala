@@ -1,7 +1,7 @@
 import akka.actor.ActorSystem
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.core.ProxyActor.Receive
-import colossus.task.Task
+import colossus.util.Task
 
 object Tasks extends App {
 

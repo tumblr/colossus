@@ -1,13 +1,13 @@
-package colossus
+package colossus.core
 
-import akka.util.Timeout
-import colossus.core.Worker.ConnectionSummary
-import com.typesafe.config.{Config, ConfigFactory}
-import core._
-import akka.actor._
-import metrics._
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.{AtomicLong, AtomicReference}
+
+import akka.actor._
+import akka.util.Timeout
+import colossus.core.Worker.ConnectionSummary
+import colossus.metrics.{MetricNamespace, MetricSystem}
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -71,9 +71,9 @@ object IOSystem {
     }
   }
 
-  type WorkerAgent = AtomicReference[Seq[WorkerRef]]
+  type WorkerRefs = AtomicReference[Seq[WorkerRef]]
 
-  private[colossus] val workerManagerFactory = (agent: WorkerAgent, sys: IOSystem) => {
+  private[colossus] val workerManagerFactory = (agent: WorkerRefs, sys: IOSystem) => {
     sys.actorSystem.actorOf(
       WorkerManager.props(agent, sys, DefaultWorkerFactory),
       name = s"${actorFriendlyName(sys.name)}-manager"
@@ -94,10 +94,9 @@ class IOSystem private[colossus] (val name: String,
                                   val numWorkers: Int,
                                   val metrics: MetricSystem,
                                   val actorSystem: ActorSystem,
-                                  managerFactory: (IOSystem.WorkerAgent, IOSystem) => ActorRef) {
+                                  managerFactory: (IOSystem.WorkerRefs, IOSystem) => ActorRef) {
 
   import IOCommand._
-
   import akka.pattern.ask
   import colossus.core.WorkerManager.RegisteredServers
 
@@ -225,3 +224,9 @@ object IOCommand {
   case class BindWithContext(context: Context, item: Context => WorkerItem) extends IOCommand
 
 }
+
+/**
+  * Exceptions extending `ColossusRuntimeException` can occur under normal conditions of handling connections
+  * and requests. Stack traces for these exceptions are not useful.
+  */
+trait ColossusRuntimeException

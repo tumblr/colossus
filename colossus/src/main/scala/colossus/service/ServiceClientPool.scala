@@ -18,7 +18,7 @@ class ServiceClientPool[T <: Sender[_, Callback]](val commonConfig: ClientConfig
 
   private def create(address: InetSocketAddress) = {
     val config = commonConfig.copy(
-      address = address
+      address = Seq(address)
     )
     val client = creator(config, worker)
     client
@@ -45,12 +45,13 @@ class ServiceClientPool[T <: Sender[_, Callback]](val commonConfig: ClientConfig
     }
   }
 
-  def apply(address: InetSocketAddress) = clients.get(address).getOrElse {
-    val c = create(address)
-    clients(address) = c
-    c
-  }
+  def apply(address: InetSocketAddress): T =
+    clients.getOrElse(address, {
+      val c = create(address)
+      clients(address) = c
+      c
+    })
 
-  def get(address: InetSocketAddress) = clients.get(address)
+  def get(address: InetSocketAddress): Option[T] = clients.get(address)
 
 }

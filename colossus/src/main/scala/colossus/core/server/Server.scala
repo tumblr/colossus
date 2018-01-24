@@ -5,8 +5,7 @@ import java.net.{InetSocketAddress, ServerSocket, StandardSocketOptions}
 import java.nio.channels.{SelectionKey, Selector, ServerSocketChannel, SocketChannel}
 import java.util.concurrent.atomic.AtomicReference
 
-import colossus.IOSystem
-import colossus.core._
+import colossus.core.{IOSystem, _}
 import colossus.metrics.MetricAddress
 import colossus.metrics.collectors.{Counter, Rate}
 import colossus.metrics.logging.ColossusLogging
@@ -67,6 +66,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     extends Actor
     with ColossusLogging
     with Stash {
+
   import Server._
   import context.dispatcher
   import serverConfig._
@@ -84,12 +84,15 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
   }
 
   val ss: ServerSocket = ssc.socket()
-  val address          = new InetSocketAddress(settings.port)
+  val addresses: Seq[InetSocketAddress] =
+    serverConfig.settings.addresses.isEmpty match {
+      case true  => Seq(new InetSocketAddress(settings.port))
+      case false => serverConfig.settings.addresses.map(address => new InetSocketAddress(address, settings.port))
+    }
+
   ssc.register(selector, SelectionKey.OP_ACCEPT)
 
   val me = ServerRef(serverConfig, self, io, stateRef)
-
-  val connectionLimiter = ConnectionLimiter(settings.maxConnections, settings.slowStart)
 
   //initialize metrics
   implicit val ns = me.namespace
@@ -111,8 +114,8 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
   def start() = {
     //setup the server
     try {
-      ss.bind(address, settings.tcpBacklogSize.getOrElse(0))
-      info(s"name: Bound to port ${settings.port}")
+      addresses.foreach(address => ss.bind(address, settings.tcpBacklogSize.getOrElse(0)))
+      info(s"name: Bound to ${addresses.mkString(", ")}")
       true
     } catch {
       case t: Throwable => {
@@ -154,7 +157,6 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
     case RetryBind(incidentOpt) => {
       if (start()) {
         changeState(accepting(router), Bound)
-        connectionLimiter.begin()
         self ! Select
       } else {
         val incident = incidentOpt.getOrElse(settings.bindingRetry.start())
@@ -249,7 +251,7 @@ private[colossus] class Server(io: IOSystem, serverConfig: ServerConfig, stateRe
           val ssc: ServerSocketChannel = key.channel.asInstanceOf[ServerSocketChannel] //oh, java
           val sc: SocketChannel        = ssc.accept()
           connects.hit()
-          if (openConnections < connectionLimiter.limit) {
+          if (openConnections < settings.maxConnections) {
             openConnections += 1
             connections.increment()
             sc.configureBlocking(false)

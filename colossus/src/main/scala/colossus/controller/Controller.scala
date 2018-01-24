@@ -2,9 +2,9 @@ package colossus.controller
 
 import colossus.core._
 import colossus.metrics.MetricNamespace
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.streaming._
+import colossus.util.DataSize
 
 /**
   * Configuration for the controller

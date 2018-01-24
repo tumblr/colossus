@@ -1,9 +1,9 @@
 package colossus.protocols.http
 
 import colossus.core.DataOutBuffer
-import colossus.parsing.Combinators._
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.Combinators._
+import colossus.util.DataSize._
+import colossus.util.DataSize
 
 object HttpRequestParser {
   import HttpParse._
@@ -23,7 +23,7 @@ object HttpRequestParser {
         }
       case _ =>
         chunkedBody >> { body =>
-          HttpRequest(head, HttpBody(body))
+          HttpRequest(head, body)
         }
     }
   }

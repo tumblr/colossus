@@ -17,33 +17,34 @@ import scala.concurrent.duration._
   * `lowWatermarkPercentage`.  This can be totally disabled by just setting both
   * watermarks to 1.
   *
+  * @param addresses List of addresses to bind to. Defaults to [ "0.0.0.0" ]
   * @param port Port on which this Server will accept connections
   * @param maxConnections Max number of simultaneous live connections
   * @param lowWatermarkPercentage Percentage of live/max connections which represent a normal state
   * @param highWatermarkPercentage Percentage of live/max connections which represent a high water state.
   * @param maxIdleTime Maximum idle time for connections when in non high water conditions
-  * @param highWaterMaxIdleTime Max idle time for connections when in high water conditions.
-  * @param tcpBacklogSize Set the max number of simultaneous connections awaiting accepting, or None for NIO default
+  * @param highWaterMaxIdleTime    Max idle time for connections when in high water conditions.
+  * @param tcpBacklogSize          Set the max number of simultaneous connections awaiting accepting, or None for NIO default
   *
-  * @param bindingRetry A [[colossus.core.RetryPolicy]] describing how to retry
-  * binding to the port if the first attempt fails.  By default it will keep
-  * retrying forever.
+  * @param bindingRetry            A [[colossus.core.RetryPolicy]] describing how to retry
+  *                                binding to the port if the first attempt fails.  By default it will keep
+  *                                retrying forever.
   *
   * @param delegatorCreationPolicy A [[colossus.core.WaitPolicy]] describing how
-  * to handle delegator startup.  Since a Server waits for a signal from the
-  * [[colossus.IOSystem]] that every worker has properly initialized a
-  * [[colossus.core.Initializer]], this determines how long to wait before the
-  * initialization is considered a failure and whether to retry the
-  * initialization.
+  *                                to handle delegator startup.  Since a Server waits for a signal from the
+  *                                [[IOSystem]] that every worker has properly initialized a
+  *                                [[colossus.core.server.Initializer]], this determines how long to wait before the
+  *                                initialization is considered a failure and whether to retry the
+  *                                initialization.
   *
-  * @param shutdownTimeout Once a Server begins to shutdown, it will signal a
-  * request to every open connection.  This determines how long it will wait for
-  * every connection to self-terminate before it forcibly closes them and
-  * completes the shutdown.
+  * @param shutdownTimeout         Once a Server begins to shutdown, it will signal a
+  *                                request to every open connection.  This determines how long it will wait for
+  *                                every connection to self-terminate before it forcibly closes them and
+  *                                completes the shutdown.
   */
 case class ServerSettings(
+    addresses: Seq[String] = Seq.empty,
     port: Int,
-    slowStart: ConnectionLimiterConfig = ConnectionLimiterConfig.NoLimiting,
     maxConnections: Int = 1000,
     maxIdleTime: Duration = Duration.Inf,
     lowWatermarkPercentage: Double = 0.75,
@@ -70,9 +71,9 @@ object ServerSettings {
     val delegatorCreationPolicy = WaitPolicy.fromConfig(config.getConfig("delegator-creation-policy"))
 
     ServerSettings(
+      addresses = config.getAddresses("addresses"),
       port = config.getInt("port"),
       maxConnections = config.getInt("max-connections"),
-      slowStart = ConnectionLimiterConfig.fromConfig(config.getConfig("slow-start")),
       maxIdleTime = config.getScalaDuration("max-idle-time"),
       lowWatermarkPercentage = config.getDouble("low-watermark-percentage"),
       highWatermarkPercentage = config.getDouble("high-watermark-percentage"),

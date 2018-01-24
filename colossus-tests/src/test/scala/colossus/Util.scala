@@ -57,7 +57,7 @@ object SimpleProtocol {
   }
 
   class SimpleCodec extends Codec[SimpleEncoding] {
-    import parsing.Combinators._
+    import colossus.util.Combinators._
     def newparser = bytes(intUntil(';') >> { _.toInt }) >> { bytes =>
       ByteString(bytes)
     }
@@ -109,7 +109,7 @@ object RawProtocol {
   }
 
   object Raw extends ClientFactories[Raw, RawClient](RawClientLifter) {
-    implicit def clientFactory = ServiceClientFactory.basic("raw", () => RawClientCodec)
+    implicit def clientFactory = ServiceClientFactory.basic[Raw]("raw", () => RawClientCodec)
 
   }
 
@@ -142,7 +142,7 @@ object TestClient {
     val config = ClientConfig(
       name = "/test",
       requestTimeout = 100.milliseconds,
-      address = new InetSocketAddress("localhost", port),
+      address = Seq(new InetSocketAddress("localhost", port)),
       pendingBufferSize = 10,
       failFast = true,
       connectRetry = connectRetry
@@ -158,7 +158,7 @@ object TestClient {
     waitForStatus(client, ConnectionStatus.Connected, maxTries)
   }
 
-  def waitForStatus[P <: Protocol](client: FutureClient[P], status: ConnectionStatus, maxTries: Int = 5) {
+  def waitForStatus[P <: Protocol](client: FutureClient[P], status: ConnectionStatus, maxTries: Int = 10) {
     var tries = maxTries
     var last  = Await.result(client.connectionStatus, 10.seconds)
     while (last != status) {

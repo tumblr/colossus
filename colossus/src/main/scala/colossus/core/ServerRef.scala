@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicReference
 import akka.actor.{ActorRef, PoisonPill}
 import akka.pattern.ask
 import akka.util.Timeout
-import colossus.IOSystem
 
 import scala.concurrent.duration._
 import scala.concurrent.Future
@@ -46,9 +45,9 @@ case class ServerRef private[colossus] (config: ServerConfig,
   }
 
   /**
-    * Broadcast a message to a all of the [[Initializer]]s of this server.
+    * Broadcast a message to a all of the [[colossus.core.server.Initializer]]s of this server.
     *
-    * @param message Message to broadcast to the server's [[Initializer]]s
+    * @param message Message to broadcast to the server's [[colossus.core.server.Initializer]]s
     * @param sender Reference to the Actor who sent the message
     * @return
     */

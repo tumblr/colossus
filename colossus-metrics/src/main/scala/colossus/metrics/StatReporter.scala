@@ -14,7 +14,7 @@ trait TagGenerator {
 /**
   * Configuration class for the metric reporter
   * @param metricSenders A list of [[MetricSender]] instances that the reporter will use to send metrics
-  * @param globalTags A [[Map]] of tags to be used throughout the [[MetricReporter]].
+  * @param globalTags A map of tags to be used throughout the [[MetricReporter]].
   * @param filters Tells the [[MetricReporter]] how to filter its Metrics before handing off to a Sender.
   * @param includeHostInGlobalTags Whether to include the Host in the global tags.
   */

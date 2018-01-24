@@ -10,7 +10,7 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
 
-addSbtPlugin("com.lightbend.paradox" % "sbt-paradox" % "0.2.13")
+addSbtPlugin("com.lightbend.paradox" % "sbt-paradox" % "0.3.1")
 
 addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.10")
 

@@ -4,14 +4,15 @@ import java.util.concurrent.atomic.AtomicReference
 
 import akka.actor.{ActorContext, ActorRef}
 import akka.testkit.TestProbe
-import colossus.IOSystem
 import colossus.testkit.ColossusSpec
 import org.scalatest.concurrent.Eventually
 
 import scala.collection.immutable.IndexedSeq
 import scala.concurrent.duration._
+import org.scalatest.time.Span._
 
 class WorkerManagerSpec extends ColossusSpec with Eventually {
+  override implicit def patienceConfig = super.patienceConfig.copy(timeout = 1.second)
 
   "WorkerManager" must {
 
@@ -55,7 +56,7 @@ class WorkerManagerSpec extends ColossusSpec with Eventually {
         probes.foreach { _.expectMsg(window, Worker.CheckIdleConnections) }
 
         //no more messages should be sent, until acks are received
-        probes.foreach { _.expectNoMsg(window * 2) }
+        probes.foreach { _.expectNoMessage(window * 2) }
 
         //lets now send the acks back
         probes.foreach { x =>

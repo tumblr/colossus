@@ -2,10 +2,11 @@ package colossus.protocols.http
 
 import akka.util.ByteString
 import com.github.nscala_time.time.Imports._
-import java.util.{LinkedList, List => JList}
+import java.util.{LinkedList, Locale, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
-import colossus.parsing.{ParseException, Zero}
+import colossus.util.Zero
+import colossus.util.{ParseException, Zero}
 
 import scala.util.{Failure, Success, Try}
 
@@ -137,7 +138,7 @@ object HttpHeader {
     new EncodedHttpHeader((key + ": " + value + "\r\n").getBytes("UTF-8"))
 
   implicit object FPHZero extends Zero[EncodedHttpHeader] {
-    def isZero(t: EncodedHttpHeader) = t.data.size == 2 //just the /r/n
+    def isZero(t: EncodedHttpHeader) = t.data.length == 2 //just the /r/n
   }
 
 }
@@ -285,9 +286,11 @@ object HttpHeaders {
 
   //make these all lower-case
   val Accept           = "accept"
+  val AcceptEncoding   = "accept-encoding"
   val Connection       = "connection"
   val ContentLength    = "content-length"
   val ContentType      = "content-type"
+  val ContentEncoding  = "content-encoding"
   val CookieHeader     = "cookie"
   val Host             = "host"
   val SetCookie        = "set-cookie"
@@ -331,7 +334,10 @@ object Cookie {
     cookieVals.map { case (key, value) => Cookie(key, value, expiration) }.toList
   }
 
-  val CookieExpirationFormat = org.joda.time.format.DateTimeFormat.forPattern("E, dd MMM yyyy HH:mm:ss z")
+  val CookieExpirationFormat = org.joda.time.format.DateTimeFormat
+    .forPattern("E, dd MMM yyyy HH:mm:ss z")
+    .withLocale(Locale.ENGLISH)
+
   def parseCookieExpiration(str: String): DateTime = {
     org.joda.time.DateTime.parse(str, CookieExpirationFormat)
   }
@@ -411,10 +417,9 @@ object Connection {
 }
 
 object ContentType {
-
   val TextPlain       = "text/plain"
   val ApplicationJson = "application/json"
-
+  val OctetStream     = "application/octet-stream"
 }
 
 trait ParameterParser[T] {
@@ -474,9 +479,8 @@ case class QueryParameters(parameters: Seq[(String, String)]) extends AnyVal {
 
 class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
   import java.util.Date
-  import java.text.SimpleDateFormat
 
-  private val formatter = new SimpleDateFormat(DateHeader.DATE_FORMAT)
+  private val formatter = DateHeader.createFormatter()
 
   private def generate(time: Long) = HttpHeader("Date", formatter.format(new Date(time)))
   private var lastDate             = generate(start)
@@ -505,7 +509,12 @@ class DateHeader(start: Long = System.currentTimeMillis) extends HttpHeader {
 }
 
 object DateHeader {
+  import java.text.SimpleDateFormat
 
-  val DATE_FORMAT = "EEE, MMM d yyyy HH:mm:ss z"
+  def createFormatter(): SimpleDateFormat = {
+    val df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
+    df.setTimeZone(TimeZone.getTimeZone("GMT"))
+    df
+  }
 
 }

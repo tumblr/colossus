@@ -18,9 +18,9 @@ package object redis {
         "op" -> request.command
       )
     }
-    
-    implicit def clientFactory = 
-      ServiceClientFactory.basic("redis", () => new RedisClientCodec, tagDecorator)
+
+    implicit def clientFactory =
+      ServiceClientFactory.basic[Redis]("redis", () => new RedisClientCodec, tagDecorator)
 
   }
 

@@ -1,5 +1,5 @@
 import akka.actor.ActorSystem
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.metrics.MetricSystem
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
@@ -23,24 +23,26 @@ object Fibonacci2 extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
 
-          case req @ Get on Root / "hello" =>
-            Callback.successful(req.ok("Hello World!"))
+              case req @ Get on Root / "hello" =>
+                Callback.successful(req.ok("Hello World!"))
 
-          // #fibonacci2
-          case req @ Get on Root / "fib" / Long(n) =>
-            if (n > 0) {
-              Callback.fromFuture(Future(fibonacci(n))).map { result =>
-                req.ok(result.toString)
-              }
-            } else {
-              Callback.successful(req.badRequest("number must be positive"))
+              // #fibonacci2
+              case req @ Get on Root / "fib" / Long(n) =>
+                if (n > 0) {
+                  Callback.fromFuture(Future(fibonacci(n))).map { result =>
+                    req.ok(result.toString)
+                  }
+                } else {
+                  Callback.successful(req.badRequest("number must be positive"))
+                }
+              // #fibonacci2
             }
-          // #fibonacci2
         }
-      }
     }
   }
 }

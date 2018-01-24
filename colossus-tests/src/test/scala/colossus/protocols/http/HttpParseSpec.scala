@@ -3,7 +3,8 @@ package colossus.protocols.http
 import colossus.core._
 import org.scalatest._
 import akka.util.ByteString
-import colossus.parsing._, DataSize._
+import colossus.util.DataSize._
+import colossus.util.ParseException
 
 object Broke extends Tag("broke")
 
@@ -12,7 +13,6 @@ class HttpParserSuite extends WordSpec with MustMatchers {
   def requestParser = HttpRequestParser(maxRequestSize = 10.MB)
 
   import HttpHeader.Conversions._
-  import HttpBody._
 
   "http request parser" must {
     "parse a basic request" in {
@@ -392,8 +392,8 @@ class HttpParserSuite extends WordSpec with MustMatchers {
     }
 
     "parse requests with request parameters" in {
-      val req = HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1?a=bla&b=2", HttpVersion.`1.1`, Nil),
-                            HttpBody.NoBody)
+      val req =
+        HttpRequest(HttpRequestHead(HttpMethod.Get, "a/path/with/1?a=bla&b=2", HttpVersion.`1.1`, Nil), HttpBody.NoBody)
       req match {
         case r @ Get on Root / "a" / "path" / "with" / Integer(1) =>
         case _                                                    => throw new Exception(s"$req failed to parse correctly")

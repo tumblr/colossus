@@ -1,6 +1,13 @@
 package colossus.protocols.http.streaming
 
-import colossus.protocols.http.{BaseHttp, BaseHttpMessage, HttpMessageHead, HttpRequestHead, HttpResponse, HttpResponseHead}
+import colossus.protocols.http.{
+  BaseHttp,
+  BaseHttpMessage,
+  HttpMessageHead,
+  HttpRequestHead,
+  HttpResponse,
+  HttpResponseHead
+}
 import colossus.streaming.Source
 
 trait StreamingHttpMessage[T <: HttpMessageHead] extends BaseHttpMessage[T, Source[Data]] {

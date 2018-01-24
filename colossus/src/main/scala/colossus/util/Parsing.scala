@@ -1,11 +1,11 @@
-package colossus.parsing
-
-import colossus.metrics.collectors.Histogram
-import colossus.core.DataBuffer
-
-import akka.util.{ByteString, ByteStringBuilder}
+package colossus.util
 
 import java.nio.ByteBuffer
+
+import akka.util.{ByteString, ByteStringBuilder}
+import colossus.core.DataBuffer
+import colossus.metrics.collectors.Histogram
+
 import scala.util.Try
 
 sealed trait ParseStatus
@@ -21,7 +21,7 @@ case class DataSize(value: Long) extends AnyVal {
   def KB: DataSize = DataSize(value * 1024)
   def bytes        = this
 }
-import DataSize._
+import colossus.util.DataSize._
 
 object DataSize {
 
@@ -184,10 +184,10 @@ object Combinators {
       }
     }
     override def endOfStream(): Option[~[A, B]] = {
-      if (!donea.isDefined) {
+      if (donea.isEmpty) {
         donea = first.endOfStream()
       }
-      if (!doneb.isDefined) {
+      if (doneb.isEmpty) {
         doneb = second.endOfStream()
       }
       (donea, doneb) match {
@@ -319,8 +319,8 @@ object Combinators {
     }
   }
 
-  def bytes(num: Parser[Int]): Parser[Array[Byte]] = bytes(num, 10.MB, 1.MB)
-  def bytes(num: Int): Parser[Array[Byte]]         = bytes(num, 10.MB, 1.MB)
+  def bytes(num: Parser[Int]): Parser[Array[Byte]] = bytes(num, 10240.MB, 1.MB)
+  def bytes(num: Int): Parser[Array[Byte]]         = bytes(num, 10240.MB, 1.MB)
 
   /**
     * Keep reading bytes until the terminus is encounted.  This accounts for
@@ -438,7 +438,7 @@ object Combinators {
           done = true
         } else {
           val ws = isWhiteSpace(b.toChar)
-          if (allowWhiteSpace == false && ws) {
+          if (!allowWhiteSpace && ws) {
             throw new ParseException(
               s"Invalid whitespace character '${b.toChar}' ($b) in stream, after '${build.toString}'")
           }
@@ -742,7 +742,7 @@ object Combinators {
 
     def parse(data: DataBuffer): Option[U] = {
       var res: Option[U] = None
-      while (data.hasUnreadData && res == None) {
+      while (data.hasUnreadData && res.isEmpty) {
         parser.parse(data) match {
           case Some(v) =>
             if (!zero.isZero(v)) {
@@ -839,9 +839,7 @@ object Combinators {
     * faster.  I have made several attempts to get the bytesUntil parser as fast
     * as this one to no avail.
     */
-  class LineParser[T](constructor: Array[Byte] => T,
-                      includeNewline: Boolean = false,
-                      internalBufferBaseSize: Int = 100)
+  class LineParser[T](constructor: Array[Byte] => T, includeNewline: Boolean = false, internalBufferBaseSize: Int = 100)
       extends Parser[T]
       with FastArrayBuilding {
     private val CR = '\r'.toByte
@@ -871,7 +869,7 @@ object Combinators {
       if (scanByte == LF && buffer.hasUnreadData) {
         res = Some(checkLineFeed(buffer))
       }
-      while (buffer.hasUnreadData && res == None) {
+      while (buffer.hasUnreadData && res.isEmpty) {
         val byte = buffer.data.get
         if (byte == CR) {
           if (buffer.hasUnreadData) {

@@ -1,6 +1,6 @@
 // #example
 import akka.actor.ActorSystem
-import colossus.IOSystem
+import colossus.core.IOSystem
 import colossus.protocols.http.Http
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
@@ -15,12 +15,14 @@ object HttpServiceExample extends App {
 
   HttpServer.start("example-server", 9000) { initContext =>
     new Initializer(initContext) {
-      override def onConnect = serverContext => new RequestHandler(serverContext) {
-        override def handle: PartialHandler[Http] = {
-          case request @ Get on Root / "hello" =>
-            Callback.successful(request.ok("Hello world!"))
+      override def onConnect: RequestHandlerFactory =
+        serverContext =>
+          new RequestHandler(serverContext) {
+            override def handle: PartialHandler[Http] = {
+              case request @ Get on Root / "hello" =>
+                Callback.successful(request.ok("Hello world!"))
+            }
         }
-      }
     }
   }
 }

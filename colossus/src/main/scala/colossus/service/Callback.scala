@@ -305,7 +305,7 @@ case class ConstantCallback[O](value: Try[O]) extends Callback[O] {
   * A `CallbackExecutor` represents a scheduler and execution environment for
   * [[Callback]]s and is required when either converting a `Future` to a
   * `Callback` or scheduling delayed execution of a `Callback`.  Every
-  * [[colossus.core.Worker Worker]] provides an `CallbackExecutor` that can be
+  * `Worker` provides an `CallbackExecutor` that can be
   * imported when doing such operations.
   *
   */

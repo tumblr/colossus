@@ -1,10 +1,9 @@
 package colossus.protocols.redis
 
 import akka.util.ByteString
-import colossus.parsing._
 
 object RedisReplyParser {
-  import Combinators._
+  import colossus.util.Combinators._
 
   def apply(): Parser[Reply] = reply
 

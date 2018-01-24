@@ -3,8 +3,7 @@ package colossus.examples
 import java.net.InetSocketAddress
 
 import akka.util.ByteString
-import colossus.IOSystem
-import colossus.core.{ServerContext, ServerRef}
+import colossus.core.{IOSystem, ServerContext, ServerRef}
 import colossus.protocols.http.HttpMethod._
 import colossus.protocols.http.UrlParsing._
 import colossus.protocols.http._
@@ -42,8 +41,9 @@ object HttpExample {
       }
 
       case req @ Get on Root / "get" / key =>
-        redis.get(ByteString(key)).map { x =>
-          req.ok(x.utf8String)
+        redis.get(ByteString(key)).map {
+          case Some(value) => req.ok(value.utf8String)
+          case None        => req.ok("No value found")
         }
 
       case req @ Get on Root / "set" / key / value =>

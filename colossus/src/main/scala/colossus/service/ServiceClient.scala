@@ -3,15 +3,16 @@ package colossus.service
 import java.net.InetSocketAddress
 
 import akka.event.Logging
+import colossus.core.ColossusRuntimeException
 import colossus.controller._
 import colossus.core._
 import colossus.metrics.{MetricAddress, TagMap}
 import colossus.metrics.collectors.{Histogram, Rate}
 import colossus.metrics.logging.ColossusLogging
 import com.typesafe.config.{Config, ConfigFactory}
-import colossus.parsing.DataSize
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import colossus.streaming.{BufferedPipe, PullAction, PullResult, PushResult, Sink}
+import colossus.util.DataSize
 import colossus.util.ExceptionFormatter._
 
 import scala.concurrent.duration._
@@ -33,7 +34,7 @@ import scala.util.{Failure, Success, Try}
   * @param maxResponseSize max allowed response size -- larger responses are dropped
   */
 case class ClientConfig(
-    address: InetSocketAddress,
+    address: Seq[InetSocketAddress],
     requestTimeout: Duration,
     name: MetricAddress,
     pendingBufferSize: Int = 500,
@@ -41,16 +42,17 @@ case class ClientConfig(
     failFast: Boolean = false,
     connectRetry: RetryPolicy = BackoffPolicy(50.milliseconds, BackoffMultiplier.Exponential(5.seconds)),
     idleTimeout: Duration = Duration.Inf,
-    maxResponseSize: DataSize = 1.MB
+    maxResponseSize: DataSize = 1.MB,
+    requestRetry: RetryPolicy = BackoffPolicy(0.milliseconds, BackoffMultiplier.Constant)
 )
 
 object ClientConfig {
 
   /**
-    * Load a ClientConfig definition from a Config.  Looks into `colossus.clients.$clientName` and falls back onto
+    * Load a ClientConfig definition from a Config.  Looks into `colossus.clients.clientName` and falls back onto
     * `colossus.client-defaults`
     * @param clientName The name of the client definition to load
-    * @param config A config object which contains at the least a `colossus.clients.$clientName` and a `colossus.client-defaults`
+    * @param config A config object which contains at the least a `colossus.clients.clientName` and a `colossus.client-defaults`
     * @return
     */
   def load(clientName: String, config: Config = ConfigFactory.load()): ClientConfig = {
@@ -66,7 +68,7 @@ object ClientConfig {
     */
   def load(config: Config): ClientConfig = {
     import colossus.metrics.ConfigHelpers._
-    val address            = config.getInetSocketAddress("address")
+    val address            = config.getInetSocketAddressList("address")
     val name               = config.getString("name")
     val requestTimeout     = config.getScalaDuration("request-timeout")
     val pendingBufferSize  = config.getInt("pending-buffer-size")
@@ -75,6 +77,8 @@ object ClientConfig {
     val connectRetryPolicy = RetryPolicy.fromConfig(config.getConfig("connect-retry-policy"))
     val idleTimeout        = config.getScalaDuration("idle-timeout")
     val maxResponseSize    = DataSize(config.getString("max-response-size"))
+    val requestRetry       = RetryPolicy.fromConfig(config.getConfig("request-retry-policy"))
+
     ClientConfig(address,
                  requestTimeout,
                  name,
@@ -83,11 +87,12 @@ object ClientConfig {
                  failFast,
                  connectRetryPolicy,
                  idleTimeout,
-                 maxResponseSize)
+                 maxResponseSize,
+                 requestRetry)
   }
 }
 
-class ServiceClientException(message: String) extends Exception(message)
+class ServiceClientException(message: String) extends Exception(message) with ColossusRuntimeException
 
 /**
   * Thrown when a request is lost in transit
@@ -158,8 +163,10 @@ class UnbindHandler(ds: CoreDownstream, tail: HandlerTail) extends PipelineHandl
   * TODO: make underlying output controller data size configurable
   */
 class ServiceClient[P <: Protocol](
+    val address: InetSocketAddress,
     val config: ClientConfig,
-    val context: Context
+    val context: Context,
+    requestEnhancement: (P#Request, Sender[P, Callback]) => P#Request
 )(implicit tagDecorator: TagDecorator[P] = TagDecorator.default[P])
     extends ControllerDownstream[Encoding.Client[P]]
     with Client[P, Callback]
@@ -228,8 +235,9 @@ class ServiceClient[P <: Protocol](
   private var retryIncident: Option[RetryIncident] = None
 
   //TODO way too application specific
-  private val hpTags: TagMap = Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
-
+  private val hpTags: TagMap =
+    Map("client_host" -> address.getHostName, "client_port" -> address.getPort.toString)
+  
   def connectionStatus: Callback[ConnectionStatus] =
     Callback.successful(clientState match {
       case ClientState.Connected                             => ConnectionStatus.Connected
@@ -289,7 +297,8 @@ class ServiceClient[P <: Protocol](
     * Create a callback for sending a request.  this allows you to do something like
     * service.send("request"){response => "YAY"}.map{str => println(str)}.execute()
     */
-  def send(request: Request): Callback[P#Response] = UnmappedCallback[P#Response](sendNow(request))
+  def send(request: Request): Callback[P#Response] =
+    UnmappedCallback[P#Response](sendNow(requestEnhancement(request, this)))
 
   def processMessages(): Unit = incoming.pullWhile(
     response => {
@@ -380,8 +389,7 @@ class ServiceClient[P <: Protocol](
           worker.unbind(id)
         }
         case RetryAttempt.RetryNow => {
-          warn(
-            s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
+          warn(s"attempting to reconnect to ${address.toString} after ${incident.attempts} unsuccessful attempts.")
           clientState = ClientState.Connecting
           worker ! Connect(address, id)
         }
@@ -436,4 +444,7 @@ class ServiceClient[P <: Protocol](
   def disconnect() {
     connection.disconnect()
   }
+
+  override def update(addresses: Seq[InetSocketAddress]): Unit =
+    throw new NotImplementedError("Can not directly update service client")
 }

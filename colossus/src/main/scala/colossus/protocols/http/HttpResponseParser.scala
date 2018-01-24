@@ -1,9 +1,8 @@
 package colossus.protocols.http
 
 import akka.util.ByteStringBuilder
-import colossus.parsing._
 import HttpParse._
-import Combinators._
+import colossus.util.Combinators._
 import colossus.core.DataBuffer
 
 object HttpResponseParser {
@@ -27,7 +26,7 @@ object HttpResponseParser {
         }
       case _ =>
         chunkedBody >> { body =>
-          HttpResponse(parsedHead, HttpBody(body))
+          HttpResponse(parsedHead, body)
         }
     }
   }

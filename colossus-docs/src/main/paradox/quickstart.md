@@ -43,7 +43,7 @@ user-code lives.
 Add the following to your Build.scala or build.sbt:
 
 ```sbtshell
-libraryDependencies += "com.tumblr" %% "colossus" % "LATEST_VERSION"
+libraryDependencies += "com.tumblr" %% "colossus" % "VERSION"
 ```
 
 Colossus is compiled for Scala 2.10 and 2.11 and built against Akka 2.3.
@@ -126,7 +126,7 @@ as a SQL database, it currently has native support for Redis, Memcached, and
 HTTP clients.  Colossus is protocol agnostic, so writing native adapters for
 any protocol is easy.
 
-@@snip [RedisClient.scala](../scala/RedisClient.scala) { #redis-client }
+@@snip [RedisClientExample2.scala](../scala/RedisClientExample2.scala) { #redis-client }
 
 Here, we create a `ServiceClient` using the redis protocol in the service's
 `Initializer`.  This means that one connection to Redis is opened per Worker,

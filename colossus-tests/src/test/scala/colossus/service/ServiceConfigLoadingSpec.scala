@@ -1,6 +1,6 @@
 package colossus.service
 
-import colossus.parsing.DataSize._
+import colossus.util.DataSize._
 import org.scalatest.{WordSpec, MustMatchers}
 
 import scala.concurrent.duration.Duration

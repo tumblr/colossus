@@ -1,11 +1,12 @@
 package colossus.service
 
+import java.net.InetSocketAddress
+
 import akka.actor._
 import akka.util.Timeout
 import java.util.concurrent.atomic.AtomicBoolean
 
-import colossus.IOSystem
-import colossus.core._
+import colossus.core.{IOSystem, _}
 
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
@@ -63,20 +64,22 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
   type O = P#Response
 
   case class PackagedRequest(request: I, response: Promise[O])
+  case class Addresses(seq: Seq[InetSocketAddress])
 
   class ClientWrapper(val context: Context) extends WorkerItem with ProxyActor {
 
     val client = base(config)(worker)
 
     def receive = {
-      case PackagedRequest(request, promise) => {
+      case PackagedRequest(request, promise) =>
         client.send(request).execute(promise.complete)
-      }
-      case FutureClient.GetConnectionStatus(promise) => {
+
+      case FutureClient.GetConnectionStatus(promise) =>
         import scala.concurrent.ExecutionContext.Implicits.global
         promise.completeWith(client.connectionStatus.toFuture)
-      }
-
+        
+      case Addresses(addresses) =>
+        client.update(addresses)
     }
     override def onUnbind() {
       super.onUnbind()
@@ -127,7 +130,12 @@ class AsyncHandlerGenerator[P <: Protocol](config: ClientConfig, base: FutureCli
       }
     }
 
+    override def address(): InetSocketAddress =
+      throw new NotImplementedError("Async handler generator does not have an address")
+
     val clientConfig = config
+    
+    override def update(addresses: Seq[InetSocketAddress]): Unit = proxy ! Addresses(addresses)
   }
 
 }

@@ -9,7 +9,6 @@ import java.nio.channels.{SelectionKey, Selector, SocketChannel}
 import colossus.metrics.MetricNamespace
 import colossus.metrics.collectors.{Counter, Rate}
 import colossus.metrics.logging.ColossusLogging
-import colossus.{IOCommand, IOSystem}
 import colossus.service.{CallbackExecution, CallbackExecutor}
 
 import scala.collection.JavaConverters._
@@ -158,7 +157,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
   private var trace = true
 
   private val watchedConnections = collection.mutable.Map[ActorRef, ClientConnection]()
-  
+
   private val workerIdTag = Map("worker" -> (io.name + "-" + workerId.toString))
 
   implicit val ns: MetricNamespace = io.namespace / io.name
@@ -236,7 +235,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
 
     case WorkerManager.ServerShutdownRequest(server) =>
       activeConnections.collect {
-        case (id, connection: ServerConnection) if connection.server == server =>
+        case (_, connection: ServerConnection) if connection.server == server =>
           connection.serverHandler.shutdownRequest()
       }
 
@@ -385,8 +384,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
           .map {
             case handler: ClientConnectionHandler => clientConnect(address, handler)
             case other =>
-              error(
-                s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
+              error(s"Attempted to attach connection ($address) to a worker item that's not a ClientConnectionHandler")
           }
           .getOrElse {
             error(s"Attempted to attach connection (${address}) to non-existant WorkerItem $id")
@@ -468,7 +466,7 @@ private[colossus] class Worker(config: WorkerConfig) extends Actor with Colossus
   }
 
   def selectLoop() {
-    val num = selector.select(1) //need short wait times to register new connections
+    selector.select(1) //need short wait times to register new connections
     eventLoops.hit(tags = workerIdTag)
     implicit val TIME = System.currentTimeMillis
     val selectedKeys  = selector.selectedKeys()

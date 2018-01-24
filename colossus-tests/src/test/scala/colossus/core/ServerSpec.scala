@@ -10,10 +10,11 @@ import akka.testkit.TestProbe
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import akka.util.ByteString
+import akka.util.{ByteString, Timeout}
 import colossus._
 
 class ServerSpec extends ColossusSpec {
+  override implicit val timeout: Timeout = Timeout(1.second)
 
   def expectConnections(server: ServerRef, num: Int) {
     server.server ! Server.GetInfo
@@ -114,14 +115,15 @@ class ServerSpec extends ColossusSpec {
     }
 
     "shutdown when a initializer fails to instantiate" in {
-      val badDelegator: Initializer.Factory = (_: InitContext) => throw new Exception("failed during initializer creation")
+      val badDelegator: Initializer.Factory =
+        (_: InitContext) => throw new Exception("failed during initializer creation")
 
       withIOSystem { implicit io =>
         val cfg = ServerConfig(
           "echo",
           badDelegator,
           ServerSettings(
-            TEST_PORT,
+            port = TEST_PORT,
             delegatorCreationPolicy =
               WaitPolicy(200 milliseconds,
                          BackoffPolicy(50 milliseconds, BackoffMultiplier.Constant, maxTries = Some(3)))
@@ -198,12 +200,14 @@ class ServerSpec extends ColossusSpec {
       withIOSystem { implicit io =>
         val serverProbe = TestProbe()
         val failedServer =
-          Server.start("fail",
-                       ServerSettings(TEST_PORT, delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(
-            initContext => new Initializer(initContext) {
+          Server.start(
+            "fail",
+            ServerSettings(port = TEST_PORT,
+                           delegatorCreationPolicy = WaitPolicy(200 milliseconds, NoRetry)))(initContext =>
+            new Initializer(initContext) {
               Thread.sleep(600)
               def onConnect = serverContext => new EchoHandler(serverContext)
-            })
+          })
         serverProbe.watch(failedServer.server)
         serverProbe.expectTerminated(failedServer.server)
       }
@@ -288,7 +292,7 @@ class ServerSpec extends ColossusSpec {
       val workerRouterProbe = TestProbe()
       server.initializerBroadcast("TEST")
       mprobe.expectMsgType[WorkerManager.RegisterServer](50.milliseconds)
-      mprobe.expectNoMsg(100.milliseconds)
+      mprobe.expectNoMessage(100.milliseconds)
       server.server ! WorkerManager.WorkersReady(workerRouterProbe.ref)
       workerRouterProbe.expectMsgType[akka.routing.Broadcast](50.milliseconds)
       server.shutdown()
@@ -302,8 +306,7 @@ class ServerSpec extends ColossusSpec {
         def acceptNewConnection                                            = None // >:(
         override def onConnect: (ServerContext) => ServerConnectionHandler = ???
       }
-      withIOSystemAndServer((ic) => new SleepyInitializer(ic.server, ic.worker), waitTime = 10.seconds)(
-        (io, sys) => ())
+      withIOSystemAndServer((ic) => new SleepyInitializer(ic.server, ic.worker), waitTime = 10.seconds)((io, sys) => ())
     }
 
     "switch to high water timeout when connection count passes the high water mark" in {

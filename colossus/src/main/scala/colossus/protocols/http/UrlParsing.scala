@@ -29,7 +29,7 @@ object UrlParsing {
       paramless
         .map { x =>
           val p = x.split("/").filter { _ != "" }.reverse.toList
-          if (p.size == 0) {
+          if (p.isEmpty) {
             Root
           } else {
             ParsedUrl(p)
