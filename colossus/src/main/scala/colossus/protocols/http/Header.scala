@@ -1,7 +1,9 @@
 package colossus.protocols.http
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import akka.util.ByteString
-import com.github.nscala_time.time.Imports._
 import java.util.{LinkedList, Locale, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
@@ -309,7 +311,7 @@ object HttpHeaders {
   val Empty = new HttpHeaders(new LinkedList)
 }
 
-case class Cookie(name: String, value: String, expiration: Option[DateTime])
+case class Cookie(name: String, value: String, expiration: Option[LocalDateTime])
 
 object Cookie {
   def parseHeader(line: String): List[Cookie] = {
@@ -334,13 +336,13 @@ object Cookie {
     cookieVals.map { case (key, value) => Cookie(key, value, expiration) }.toList
   }
 
-  val CookieExpirationFormat = org.joda.time.format.DateTimeFormat
-    .forPattern("E, dd MMM yyyy HH:mm:ss z")
+  val CookieExpirationFormat: DateTimeFormatter =
+    DateTimeFormatter
+    .ofPattern("E, dd MMM yyyy HH:mm:ss z")
     .withLocale(Locale.ENGLISH)
 
-  def parseCookieExpiration(str: String): DateTime = {
-    org.joda.time.DateTime.parse(str, CookieExpirationFormat)
-  }
+  def parseCookieExpiration(str: String): LocalDateTime =
+    LocalDateTime.from(CookieExpirationFormat.parse(str))
 }
 
 sealed trait TransferEncoding {
