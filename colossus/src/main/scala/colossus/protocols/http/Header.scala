@@ -115,9 +115,10 @@ object HttpHeader {
         var r     = length
         var index = 9
         while (r > 0) {
-          arr(index) = ((r % 10) + 48).toByte
-          r = r / 10
+          val q = (r * 3435973837L >> 35).toInt // divide positive int by 10
+          arr(index) = (48 + r - 10 * q).toByte
           index -= 1
+          r = q
         }
         buffer.write(arr, index + 1, 10 - (index + 1))
       }
