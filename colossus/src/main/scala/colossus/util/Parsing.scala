@@ -785,39 +785,41 @@ object Combinators {
 
     def written = writePos
 
-    @inline final private def grow() {
-      val nb = new Array[Byte](build.length * 2)
-      System.arraycopy(build, 0, nb, 0, build.length)
-      build = nb
+    @inline final private def grow(required: Int) {
+      build = java.util.Arrays.copyOf(build, Integer.highestOneBit(build.length | required) << 1)
     }
 
     @inline final def write(b: Byte) {
-      if (writePos == build.length) {
-        grow()
+      val pos = writePos
+      if (pos == build.length) {
+        grow(pos + 1)
       }
-      build(writePos) = b
-      writePos += 1
+      build(pos) = b
+      writePos = pos + 1
     }
 
     def write(buffer: DataBuffer, bytes: Int) {
-      while (writePos + bytes > build.length) {
-        grow()
+      val pos = writePos
+      val required = pos + bytes
+      if (required > build.length) {
+        grow(required)
       }
-      buffer.takeInto(build, writePos, bytes)
-      writePos += bytes
+      buffer.takeInto(build, pos, bytes)
+      writePos = pos + bytes
     }
 
     def write(bytes: Array[Byte]) {
-      while (writePos + bytes.length > build.length) {
-        grow()
+      val pos = writePos
+      val required = pos + bytes.length
+      if (required > build.length) {
+        grow(required)
       }
-      System.arraycopy(bytes, 0, build, writePos, bytes.length)
-      writePos += bytes.length
+      System.arraycopy(bytes, 0, build, pos, bytes.length)
+      writePos = pos + bytes.length
     }
 
     def complete(): Array[Byte] = {
-      val res = new Array[Byte](writePos)
-      System.arraycopy(build, 0, res, 0, writePos)
+      val res = java.util.Arrays.copyOf(build, writePos)
       writePos = 0
       if (shrinkOnComplete && build.length > initSize) {
         build = new Array(initSize)

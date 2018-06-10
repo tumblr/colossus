@@ -82,7 +82,7 @@ trait HttpRequestHead extends Encoder with HttpMessageHead {
     copy(headers = headers + header)
   }
 
-  lazy val cookies: Seq[Cookie] = headers.allValues(HttpHeaders.CookieHeader).flatMap { Cookie.parseHeader }
+  lazy val cookies: Seq[Cookie] = headers.allValuesInternal(HttpHeaders.CookieHeader).flatMap { Cookie.parseHeader }
 
   def encode(buffer: DataOutBuffer) {
     firstLine encode buffer
