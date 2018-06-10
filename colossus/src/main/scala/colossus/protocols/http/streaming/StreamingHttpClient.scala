@@ -20,7 +20,7 @@ object StreamingHttpClient {
 
     def requestEnhancement: (StreamingHttpRequest, Sender[StreamingHttp, Callback]) => StreamingHttpRequest =
       (input: StreamingHttpRequest, sender: Sender[StreamingHttp, Callback]) => {
-        input.head.headers.firstValue(HttpHeaders.Host) match {
+        input.head.headers.firstValueInternal(HttpHeaders.Host) match {
           case Some(_) => input // Host header is already present.
           case None =>
             StreamingHttpRequestOps.withHeader(input, HttpHeader(HttpHeaders.Host, sender.address().getHostName))

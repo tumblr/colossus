@@ -86,7 +86,7 @@ case class HttpResponse(head: HttpResponseHead, body: HttpBody) extends Encoder 
   def encode(buffer: DataOutBuffer, extraHeaders: HttpHeaders) {
     head.encode(buffer)
     //if 'content-type' wasn't manually defined in the response head, add the encoder's 'content-type' if it exists
-    if (head.headers.firstValue(HttpHeaders.ContentType).isEmpty && !body.encoderContentType.isEmpty) {
+    if (head.headers.firstValueInternal(HttpHeaders.ContentType).isEmpty && !body.encoderContentType.isEmpty) {
       HttpHeader(HttpHeaders.ContentType, body.encoderContentType).encode(buffer)
     }
     extraHeaders.encode(buffer)

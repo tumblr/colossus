@@ -28,7 +28,7 @@ package object http {
 
     def requestEnhancement: (HttpRequest, Sender[Http, Callback]) => HttpRequest =
       (input: HttpRequest, sender: Sender[Http, Callback]) => {
-        input.head.headers.firstValue(HttpHeaders.Host) match {
+        input.head.headers.firstValueInternal(HttpHeaders.Host) match {
           case Some(_) => input // Host header is already present.
           case None    => HttpRequestOps.withHeader(input, HttpHeader(HttpHeaders.Host, sender.address().getHostName))
         }
