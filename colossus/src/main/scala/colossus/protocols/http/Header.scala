@@ -148,9 +148,9 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
 
   protected def parseErrorMessage = "Malformed header"
 
-  private lazy val valueStart = parsed { data.indexOf(':'.toByte) + 1 }
-  lazy val key                = parsed { new String(data, 0, valueStart - 1).toLowerCase }
-  lazy val value              = parsed { new String(data, valueStart, data.length - valueStart - 2).trim }
+  private lazy val valueStart: Int = parsed { fastIndex(data, ':') }
+  lazy val key: String = parsed { new String(data, 0, valueStart).toLowerCase }
+  lazy val value: String = parsed { new String(data, valueStart + 1, data.length - valueStart - 1).trim }
 
   def encode(out: DataOutBuffer) {
     out.write(data)
@@ -161,19 +161,19 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
     * will check the first character before attempting to build the full string
     * of the header, amortizing the costs
     */
-  def matches(matchkey: String) = {
+  def matches(matchkey: String): Boolean = {
     val c = matchkey(0).toByte
     if (data(0) == c || data(0) + 32 == c) matchkey == key else false
   }
 
-  override def toString = key + ":" + value
+  override def toString: String = key + ":" + value
 
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeader => this.key == that.key && this.value == that.value
     case other            => false
   }
 
-  override def hashCode = toString.hashCode
+  override def hashCode: Int = key.hashCode * 31 + value.hashCode
 }
 
 /**
