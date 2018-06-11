@@ -785,11 +785,10 @@ object Combinators {
 
     def written = writePos
 
-    @inline final private def grow(required: Int) {
+    @inline final private def grow(required: Int): Unit =
       build = java.util.Arrays.copyOf(build, Integer.highestOneBit(build.length | required) << 1)
-    }
 
-    @inline final def write(b: Byte) {
+    @inline final def write(b: Byte): Unit = {
       val pos = writePos
       if (pos == build.length) {
         grow(pos + 1)
@@ -798,7 +797,7 @@ object Combinators {
       writePos = pos + 1
     }
 
-    def write(buffer: DataBuffer, bytes: Int) {
+    def write(buffer: DataBuffer, bytes: Int): Unit = {
       val pos = writePos
       val required = pos + bytes
       if (required > build.length) {
@@ -808,7 +807,7 @@ object Combinators {
       writePos = pos + bytes
     }
 
-    def write(bytes: Array[Byte]) {
+    def write(bytes: Array[Byte]): Unit = {
       val pos = writePos
       val required = pos + bytes.length
       if (required > build.length) {

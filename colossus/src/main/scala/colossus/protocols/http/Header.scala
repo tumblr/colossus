@@ -7,6 +7,7 @@ import java.util.{LinkedList, Locale, TimeZone, List => JList}
 import colossus.core.{DataOutBuffer, Encoder}
 import colossus.util.{ParseException, Zero}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.hashing.MurmurHash3
 import scala.util.{Failure, Success, Try}
@@ -221,10 +222,20 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
   // NOTE - the headers value should contain ALL headers, even ones like
   // content-length that we track separately
 
-  def firstValue(name: String): Option[String] = firstValueInternal(name.toLowerCase)
+  def firstValue(name: String): Option[String] = firstValueInternal(name.toLowerCase, headers.iterator())
 
-  private def firstValueInternal(lowerCaseName: String): Option[String] =
-    headers.asScala.collectFirst { case x if x.key == lowerCaseName => x.value }
+  @tailrec
+  private def firstValueInternal(lowerCaseName: String, it: java.util.Iterator[HttpHeader]): Option[String] =
+    if (it.hasNext) {
+      val x = it.next()
+      if (x.key == lowerCaseName) {
+        Some(x.value)
+      } else {
+        firstValueInternal(lowerCaseName, it)
+      }
+    } else {
+      None
+    }
 
   def allValues(name: String): Seq[String] = allValuesInternal(name.toLowerCase)
 
@@ -236,14 +247,15 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
     * Be aware that lacking this header may or may not be a valid request,
     * depending if the "transfer-encoding" header is set to "chunked"
     */
-  def contentLength: Option[Int] = firstValueInternal(HttpHeaders.ContentLength).map { _.toInt }
+  def contentLength: Option[Int] = firstValueInternal(HttpHeaders.ContentLength, headers.iterator()).map { _.toInt }
 
   def transferEncoding: TransferEncoding =
-    firstValueInternal(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
+    firstValueInternal(HttpHeaders.TransferEncoding, headers.iterator())
+      .fold[TransferEncoding](TransferEncoding.Identity)(TransferEncoding(_))
 
-  def connection: Option[Connection] = firstValueInternal(HttpHeaders.Connection).map(Connection(_))
+  def connection: Option[Connection] = firstValueInternal(HttpHeaders.Connection, headers.iterator()).map(Connection(_))
 
-  def contentType: Option[String] = firstValueInternal(HttpHeaders.ContentType)
+  def contentType: Option[String] = firstValueInternal(HttpHeaders.ContentType, headers.iterator())
 
   def +(kv: (String, String)): HttpHeaders = this + HttpHeader(kv._1, kv._2)
 
