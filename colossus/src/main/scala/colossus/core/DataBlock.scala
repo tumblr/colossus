@@ -27,16 +27,13 @@ case class DataBlock(data: Array[Byte]) {
     * data in this block
     */
   def ++(block: DataBlock): DataBlock = {
-    val concat = new Array[Byte](data.length + block.length)
-    System.arraycopy(data, 0, concat, 0, data.length)
+    val concat = java.util.Arrays.copyOf(data, data.length + block.length)
     System.arraycopy(block.data, 0, concat, data.length, block.length)
     DataBlock(concat)
   }
 
   def take(bytes: Int): DataBlock = {
-    val copy = new Array[Byte](math.min(bytes, size))
-    System.arraycopy(data, 0, copy, 0, copy.length)
-    DataBlock(copy)
+    DataBlock(java.util.Arrays.copyOf(data, Math.min(bytes, size)))
   }
 
   def drop(bytes: Int): DataBlock = {
