@@ -126,10 +126,23 @@ object Frame {
     * mask must be 4 bytes long
     */
   def mask(mask: DataBlock, payload: DataBlock): DataBlock = {
-    val build = new Array[Byte](payload.length)
+    val len = payload.length
+    val build = new Array[Byte](len)
+    val len4 = len & -4
     var index = 0
-    while (index < payload.length) {
-      build(index) = (payload(index) ^ mask(index % 4)).toByte
+    val m0 = mask(0)
+    val m1 = mask(1)
+    val m2 = mask(2)
+    val m3 = mask(3)
+    while (index < len4) {
+      build(index) = (payload(index) ^ m0).toByte
+      build(index + 1) = (payload(index + 1) ^ m1).toByte
+      build(index + 2) = (payload(index + 2) ^ m2).toByte
+      build(index + 3) = (payload(index + 3) ^ m3).toByte
+      index += 4
+    }
+    while (index < len) {
+      build(index) = (payload(index) ^ mask(index & 3)).toByte
       index += 1
     }
     DataBlock(build)
