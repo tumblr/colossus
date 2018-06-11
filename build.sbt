@@ -4,10 +4,10 @@ import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import ProjectImplicits._
 
-val AkkaVersion      = "2.5.6"
+val AkkaVersion      = "2.5.13"
 val ScalatestVersion = "3.0.1"
 
-val MIMAPreviousVersions = Seq("0.9.1")
+val MIMAPreviousVersions = Seq("0.11.0")
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -15,8 +15,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
   compile := (compile in Compile).dependsOn(compile in Test).dependsOn(compile in IntegrationTest).value,
   testAll := (test in Test).dependsOn(test in IntegrationTest).value,
   organization := "com.tumblr",
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  scalaVersion := "2.12.6",
+  crossScalaVersions := Seq("2.11.12", "2.12.6"),
   apiURL := Some(url("https://www.javadoc.io/doc/")),
   parallelExecution in Test := false,
   scalacOptions := scalaVersion.map { v: String =>
@@ -42,8 +42,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "org.scalatest"          %% "scalatest"                   % ScalatestVersion % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
     "org.mockito"            %  "mockito-all"                 % "1.9.5" % "test",
-    "com.github.nscala-time" %% "nscala-time"                 % "2.16.0",
-    "org.slf4j"              %  "slf4j-api"                   % "1.7.6"
+    "com.github.nscala-time" %% "nscala-time"                 % "2.20.0",
+    "org.slf4j"              %  "slf4j-api"                   % "1.7.25"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
   credentials += Credentials("Sonatype Nexus Repository Manager",
@@ -89,9 +89,9 @@ lazy val testkitDependencies = libraryDependencies ++= Seq(
 
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s"                   %% "json4s-jackson"       % "3.5.3",
-    "ch.qos.logback"               %  "logback-classic"      % "1.2.2",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.2",
+    "org.json4s"                   %% "json4s-jackson"       % "3.5.4",
+    "ch.qos.logback"               %  "logback-classic"      % "1.2.3",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.5",
     "org.mockito"                  %  "mockito-all"          % "1.10.19"
   )
 )
@@ -152,7 +152,7 @@ lazy val ColossusTestsProject = Project(
   ).settings(noPubSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "ch.qos.logback" %  "logback-classic" % "1.2.2"
+      "ch.qos.logback" %  "logback-classic" % "1.2.3"
     )
   ).configs(IntegrationTest)
 

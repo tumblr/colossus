@@ -81,10 +81,11 @@ trait LazyParsing {
       case other: Throwable  => throw new ParseException(parseErrorMessage + s": $other")
     }
 
-  def fastIndex(data: Array[Byte], byte: Byte, start: Int = 0) = {
+  def fastIndex(data: Array[Byte], byte: Byte, start: Int = 0): Int = {
     var pos = start
-    while (pos < data.length && data(pos) != byte) { pos += 1 }
-    if (pos >= data.length) -1 else pos
+    val len = data.length
+    while (pos < len && data(pos) != byte) { pos += 1 }
+    if (pos >= len) -1 else pos
   }
 
 }

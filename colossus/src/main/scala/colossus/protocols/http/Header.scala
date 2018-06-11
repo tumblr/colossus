@@ -5,9 +5,10 @@ import com.github.nscala_time.time.Imports._
 import java.util.{LinkedList, Locale, TimeZone, List => JList}
 
 import colossus.core.{DataOutBuffer, Encoder}
-import colossus.util.Zero
 import colossus.util.{ParseException, Zero}
 
+import scala.collection.JavaConverters._
+import scala.util.hashing.MurmurHash3
 import scala.util.{Failure, Success, Try}
 
 sealed abstract class HttpMethod(val name: String) {
@@ -115,11 +116,12 @@ object HttpHeader {
         var r     = length
         var index = 9
         while (r > 0) {
-          arr(index) = ((r % 10) + 48).toByte
-          r = r / 10
+          val q = (r * 3435973837L >> 35).toInt // divide positive int by 10
+          arr(index) = (48 + r - (q << 3) - (q << 1)).toByte
           index -= 1
+          r = q
         }
-        buffer.write(arr, index + 1, 10 - (index + 1))
+        buffer.write(arr, index + 1, 9 - index)
       }
     }
     buffer.write(HttpHeader.ContentLengthKeyArray)
@@ -149,9 +151,9 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
 
   protected def parseErrorMessage = "Malformed header"
 
-  private lazy val valueStart = parsed { data.indexOf(':'.toByte) + 1 }
-  lazy val key                = parsed { new String(data, 0, valueStart - 1).toLowerCase }
-  lazy val value              = parsed { new String(data, valueStart, data.length - valueStart - 2).trim }
+  private lazy val valueStart: Int = parsed { fastIndex(data, ':') }
+  lazy val key: String = parsed { new String(data, 0, valueStart).toLowerCase }
+  lazy val value: String = parsed { new String(data, valueStart + 1, data.length - valueStart - 1).trim }
 
   def encode(out: DataOutBuffer) {
     out.write(data)
@@ -162,19 +164,19 @@ class EncodedHttpHeader(val data: Array[Byte]) extends HttpHeader with LazyParsi
     * will check the first character before attempting to build the full string
     * of the header, amortizing the costs
     */
-  def matches(matchkey: String) = {
+  def matches(matchkey: String): Boolean = {
     val c = matchkey(0).toByte
     if (data(0) == c || data(0) + 32 == c) matchkey == key else false
   }
 
-  override def toString = key + ":" + value
+  override def toString: String = key + ":" + value
 
   override def equals(that: Any): Boolean = that match {
     case that: HttpHeader => this.key == that.key && this.value == that.value
     case other            => false
   }
 
-  override def hashCode = toString.hashCode
+  override def hashCode: Int = key.hashCode * 31 + value.hashCode
 }
 
 /**
@@ -219,42 +221,37 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
   // NOTE - the headers value should contain ALL headers, even ones like
   // content-length that we track separately
 
-  def firstValue(name: String): Option[String] = {
-    val l = name.toLowerCase
-    toSeq.collectFirst { case x if (x.key == l) => x.value }
-  }
+  def firstValue(name: String): Option[String] = firstValueInternal(name.toLowerCase)
 
-  def allValues(name: String): Seq[String] = {
-    val l = name.toLowerCase
-    toSeq.collect { case x if (x.key == l) => x.value }
-  }
+  private def firstValueInternal(lowerCaseName: String): Option[String] =
+    headers.asScala.collectFirst { case x if x.key == lowerCaseName => x.value }
+
+  def allValues(name: String): Seq[String] = allValuesInternal(name.toLowerCase)
+
+  private def allValuesInternal(lowerCaseName: String): Seq[String] =
+    headers.asScala.collect { case x if x.key == lowerCaseName => x.value }
 
   /** Returns the value of the content-length header, if it exists.
     *
     * Be aware that lacking this header may or may not be a valid request,
     * depending if the "transfer-encoding" header is set to "chunked"
     */
-  def contentLength: Option[Int] = firstValue(HttpHeaders.ContentLength).map { _.toInt }
+  def contentLength: Option[Int] = firstValueInternal(HttpHeaders.ContentLength).map { _.toInt }
 
   def transferEncoding: TransferEncoding =
-    firstValue(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
+    firstValueInternal(HttpHeaders.TransferEncoding).map(TransferEncoding(_)).getOrElse(TransferEncoding.Identity)
 
-  def connection: Option[Connection] = firstValue(HttpHeaders.Connection).map(Connection(_))
+  def connection: Option[Connection] = firstValueInternal(HttpHeaders.Connection).map(Connection(_))
 
-  def contentType: Option[String] = firstValue(HttpHeaders.ContentType)
+  def contentType: Option[String] = firstValueInternal(HttpHeaders.ContentType)
 
-  def +(kv: (String, String)): HttpHeaders = {
-    val n = HttpHeader(kv._1, kv._2)
-    this + n
-  }
+  def +(kv: (String, String)): HttpHeaders = this + HttpHeader(kv._1, kv._2)
 
-  def +(header: HttpHeader): HttpHeaders = {
-    HttpHeaders.fromSeq(toSeq :+ header)
-  }
+  def +(header: HttpHeader): HttpHeaders = HttpHeaders.fromSeq(headers.asScala :+ header)
 
-  def size = headers.size
+  def size: Int = headers.size
 
-  def toSeq: Seq[HttpHeader] = headers.toArray(Array[HttpHeader]())
+  def toSeq: Seq[HttpHeader] = headers.asScala
 
   def encode(buffer: DataOutBuffer) {
     val it = headers.iterator
@@ -272,13 +269,13 @@ class HttpHeaders(private[http] val headers: JList[HttpHeader]) {
   }
 
   override def equals(that: Any): Boolean = that match {
-    case that: HttpHeaders => this.toSeq.toSet == that.toSeq.toSet
+    case that: HttpHeaders => this.headers.asScala.toSet == that.headers.asScala.toSet
     case _                 => false
   }
 
-  override def hashCode(): Int = this.toSeq.toSet.hashCode()
+  override def hashCode(): Int = MurmurHash3.unorderedHash(headers.asScala, 0x3c074a61)
 
-  override def toString = "[" + toSeq.map { _.toString }.mkString(" ") + "]"
+  override def toString: String = headers.asScala.mkString("[", " ", "]")
 
 }
 
@@ -300,11 +297,7 @@ object HttpHeaders {
   def fromString(hdrs: (String, String)*): HttpHeaders =
     HttpHeaders.fromSeq(hdrs.map { case (k, v) => HttpHeader(k, v) })
 
-  def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = {
-    val l = new LinkedList[HttpHeader]
-    seq.foreach(l.add)
-    new HttpHeaders(l)
-  }
+  def fromSeq(seq: Seq[HttpHeader]): HttpHeaders = new HttpHeaders(seq.asJava)
 
   val Empty = new HttpHeaders(new LinkedList)
 }
