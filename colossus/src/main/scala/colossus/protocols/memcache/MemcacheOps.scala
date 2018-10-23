@@ -10,7 +10,6 @@ import scala.language.higherKinds
 /**
   * This trait houses the Memcache API.  It contains implementations for most(not all commands.
   * The only commands not supported yet are:
-  * - CAS (upcoming)
   * - admin type commands.
   *
   *
@@ -65,6 +64,14 @@ trait MemcacheClient[M[_]] extends LiftedClient[Memcache, M] {
   def append(key: ByteString, value: ByteString): M[Boolean] =
     storageAsBooleanCommand(Append(key, value), key)
 
+  def cas(key: ByteString, value: ByteString, ttl: Int = 0, flags: Int = 0, casUnique: Int): M[Boolean] = {
+    executeCommand(Cas(key, value, ttl, flags, Some(casUnique)), key) {
+      case Stored   => success(true)
+      case Exists   => success(false)
+      case NotFound => failure(CasNotFoundException("The key we're trying to CAS does not exist."))
+    }
+  }
+
   def decr(key: ByteString, value: Long): M[Option[Long]] =
     counterAsOptionCommand(Decr(key, value), key)
 
@@ -87,6 +94,13 @@ trait MemcacheClient[M[_]] extends LiftedClient[Memcache, M] {
       case a: Value  => success(Map(a.key -> a))
       case Values(x) => success(x.map(y => y.key -> y).toMap)
       case NoData    => success(Map())
+    }
+  }
+
+  def gets(key: ByteString): M[Option[CasValue]] = {
+    executeCommand(Gets(key), key) {
+      case a: CasValue => success(Some(a))
+      case NoData      => success(None)
     }
   }
 
@@ -123,3 +137,4 @@ object MemcacheClient {
 }
 
 case class UnexpectedMemcacheReplyException(message: String) extends Exception
+case class CasNotFoundException(message: String)             extends Exception

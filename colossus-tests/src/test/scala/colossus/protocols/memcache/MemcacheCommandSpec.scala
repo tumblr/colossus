@@ -12,10 +12,22 @@ class MemcacheCommandSuite extends FlatSpec with Matchers {
     experimental.bytes(NoCompressor) should equal(ByteString("get test\r\n"))
   }
 
+  it should "format a GETS correctly" in {
+    val experimental = Gets(ByteString("test"))
+    experimental.toString() should equal("gets test\r\n")
+    experimental.bytes(NoCompressor) should equal(ByteString("gets test\r\n"))
+  }
+
   it should "format a SET correctly" in {
     val experimental = Set(ByteString("key"), ByteString("value"), 30) // key, value, ttl
     experimental.toString() should equal("set key 0 30 5\r\nvalue\r\n")
     experimental.bytes(NoCompressor) should equal(ByteString("set key 0 30 5\r\nvalue\r\n"))
+  }
+
+  it should "format a CAS correctly" in {
+    val experimental = Cas(ByteString("key"), ByteString("value"), 30, casUniqueMaybe = Some(1337)) // key, value, ttl, cas
+    experimental.toString() should equal("cas key 0 30 5 1337\r\nvalue\r\n")
+    experimental.bytes(NoCompressor) should equal(ByteString("cas key 0 30 5 1337\r\nvalue\r\n"))
   }
 
   it should "format an ADD correctly" in {
@@ -41,12 +53,6 @@ class MemcacheCommandSuite extends FlatSpec with Matchers {
     experimental.toString() should equal("prepend key 0 0 5\r\nmagic\r\n")
     experimental.bytes(NoCompressor) should equal(ByteString("prepend key 0 0 5\r\nmagic\r\n"))
   }
-
-  /*  it should "format a CAS correctly" in {
-    val experimental = Cas(ByteString("key"), "magic", 30)
-    //experimental.bytes(NoCompressor) should equal(ByteString("cas key 0 30 5\r\nmagic\r\n"))
-    experimental.toString() should equal("cas key 0 30 5\r\nmagic\r\n")
-  }*/
 
   it should "format DELETE correctly" in {
     val experimental = Delete(ByteString("key"))
