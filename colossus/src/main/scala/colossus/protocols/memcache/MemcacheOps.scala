@@ -68,7 +68,7 @@ trait MemcacheClient[M[_]] extends LiftedClient[Memcache, M] {
     executeCommand(Cas(key, value, ttl, flags, Some(casUnique)), key) {
       case Stored   => success(true)
       case Exists   => success(false)
-      case NotFound => failure(CasNotFoundException("The key we're trying to CAS does not exist."))
+      case NotFound => failure(KeyNotFoundException("The key we're trying to CAS does not exist."))
     }
   }
 
@@ -137,4 +137,4 @@ object MemcacheClient {
 }
 
 case class UnexpectedMemcacheReplyException(message: String) extends Exception
-case class CasNotFoundException(message: String)             extends Exception
+case class KeyNotFoundException(message: String)             extends Exception
