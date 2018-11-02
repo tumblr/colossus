@@ -221,7 +221,11 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
     val flagsStr     = ByteString(flags.toString)
     val ttlStr       = ByteString(ttl.toString)
     val dataSizeStr  = ByteString(value.size.toString)
-    val casUniqueStr = ByteString(casUniqueMaybe.getOrElse("").toString)
+
+    val casUniqueStr = casUniqueMaybe match {
+      case Some(casUnique) => ByteString(casUnique.toString)
+      case None            => ByteString("")
+    }
 
     val padding = getMemcacheCommandPadding(casUniqueStr.nonEmpty)
 
