@@ -208,26 +208,22 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
   def flags: Int
   def casUniqueMaybe: Option[Int]
 
+  /**
+    * Write commands are of the format
+    * <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT> [<CAS UNIQUE>]\r\n<data>\r\n
+    * We don't support the [noreply] semantics at this time
+    * @return ByteString of a memcache write command
+    */
   def memcacheCommandMsg(): ByteString = {
 
-    val b = new ByteStringBuilder
-
-    /*write commands are of the format
-    We don't support the [noreply] semantics at this time
-    <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT> [<CAS UNIQUE>]\r\n<data>\r\n
-
-    padding accounts for spaces, \r\n's, bytecount and exptime:
-       4 or 5 spaces, depending if <CAS UNIQUE> is present
-    +  4 (2 \r\n's)
-     ----
-       8 or 9, depending if <CAS UNIQUE> is present*/
+    val buffer = new ByteStringBuilder
 
     val flagsStr     = ByteString(flags.toString)
     val ttlStr       = ByteString(ttl.toString)
     val dataSizeStr  = ByteString(value.size.toString)
     val casUniqueStr = ByteString(casUniqueMaybe.getOrElse("").toString)
 
-    val padding = 8 + (if (casUniqueStr.nonEmpty) 1 else 0)
+    val padding = getMemcacheCommandPadding(casUniqueStr.nonEmpty)
 
     val sizeHint = commandName.length +
                       flagsStr.length +
@@ -237,32 +233,41 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
                            value.size +
                               padding
 
-    b.sizeHint(sizeHint)
-    b.append(commandName)
-    b.append(MemcachedMessageDelimiter)
+    buffer.sizeHint(sizeHint)
+    buffer.append(commandName)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(key)
-    b.append(MemcachedMessageDelimiter)
+    buffer.append(key)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(flagsStr)
-    b.append(MemcachedMessageDelimiter)
+    buffer.append(flagsStr)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(ttlStr)
-    b.append(MemcachedMessageDelimiter)
+    buffer.append(ttlStr)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(dataSizeStr)
+    buffer.append(dataSizeStr)
 
     if (casUniqueStr.nonEmpty) {
-      b.append(MemcachedMessageDelimiter)
-      b.append(casUniqueStr)
+      buffer.append(MemcachedMessageDelimiter)
+      buffer.append(casUniqueStr)
     }
 
-    b.append(EndOfMessageDelimiter)
-    b.append(value)
-    b.append(EndOfMessageDelimiter)
+    buffer.append(EndOfMessageDelimiter)
+    buffer.append(value)
+    buffer.append(EndOfMessageDelimiter)
 
-    b.result()
+    buffer.result()
   }
+
+  /**
+    * padding accounts for spaces, \r\n's, bytecount and exptime:
+    *         4 or 5 spaces, depending if <CAS UNIQUE> is present
+    *      +  4 (2 \r\n's)
+    *       ----
+    * @return 8 or 9, depending if <CAS UNIQUE> is present
+    */
+  private def getMemcacheCommandPadding(casUniquePresent: Boolean): Int = 8 + (if (casUniquePresent) 1 else 0)
 }
 
 object MemcacheException {
