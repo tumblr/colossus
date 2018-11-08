@@ -528,7 +528,7 @@ object Combinators {
   def repeat[T](times: Parser[Long], parser: Parser[T]): Parser[Vector[T]] = new Parser[Vector[T]] {
     var build: Vector[T]          = Vector()
     var parsedTimes: Option[Long] = None
-    def parse(data: DataBuffer) = {
+    def parse(data: DataBuffer): Option[Vector[T]] = {
       if (parsedTimes.isEmpty) {
         parsedTimes = times.parse(data)
         if (parsedTimes.isDefined) {

@@ -3,8 +3,6 @@ package colossus.protocols.memcache
 import colossus.controller.Codec
 import colossus.core._
 import akka.util.{ByteString, ByteStringBuilder}
-import colossus.util.ParseException
-import colossus.util.compress.{Compressor, NoCompressor}
 
 /*
  * Memcache protocol for Colossus, implements a majority of the commands with the exception of some of the
@@ -25,94 +23,108 @@ import colossus.util.compress.{Compressor, NoCompressor}
 object UnifiedProtocol {
   val ADD     = ByteString("add")
   val APPEND  = ByteString("append")
+  val CAS     = ByteString("cas")
   val DECR    = ByteString("decr")
   val DELETE  = ByteString("delete")
   val GET     = ByteString("get")
+  val GETS    = ByteString("gets")
   val INCR    = ByteString("incr")
   val PREPEND = ByteString("prepend")
   val REPLACE = ByteString("replace")
   val SET     = ByteString("set")
   val TOUCH   = ByteString("touch")
 
-  val RN = ByteString("\r\n")
-  val SP = ByteString(" ")
+  val EndOfMessageDelimiter     = ByteString("\r\n")
+  val MemcachedMessageDelimiter = ByteString(" ")
 
-  val invalidKeyChars = (RN ++ SP).toSet[Byte]
+  val invalidKeyChars: Set[Byte] = (EndOfMessageDelimiter ++ MemcachedMessageDelimiter).toSet[Byte]
 }
 
 //TODO: 'Flags' doesn't fully support the memcached protocol:  ie: using an Int doesn't allow us to utilize the full 32 unsigned int space
-//TODO: implement CAS
-//TODO: incrs/decrs are not utilizing full 64 bit unsigned int space since we are using singed Longs
+//TODO: incrs/decrs are not utilizing full 64 bit unsigned int space since we are using signed Longs
 object MemcacheCommand {
 
   import UnifiedProtocol._
 
+  private def getMemcacheCommandMsg(commandName: ByteString)(keys: ByteString*) = {
+    val buffer = new ByteStringBuilder
+    val totalKeyBytes = keys.foldLeft(0) {
+      case (acc, key) =>
+        acc + key.length + 1
+    }
+
+    buffer.sizeHint(commandName.size + totalKeyBytes + EndOfMessageDelimiter.size)
+    buffer.append(commandName)
+    keys.foreach { x =>
+      buffer.append(MemcachedMessageDelimiter).append(x)
+    }
+    buffer.append(EndOfMessageDelimiter).result()
+  }
+
   case class Get(keys: ByteString*) extends MemcacheCommand {
+    val commandName: ByteString = GET
 
-    val commandName = GET
+    def memcacheCommandMsg(): ByteString = {
+      getMemcacheCommandMsg(commandName)(keys: _*)
+    }
+  }
 
-    def bytes(compressor: Compressor = NoCompressor) = {
-      val b = new ByteStringBuilder
-      val totalKeyBytes = keys.foldLeft(0) {
-        case (acc, key) =>
-          acc + key.length + 1
-      }
-      //padding is 2..for the \r\n.  The spaces between keys are already accounted for in the foldLeft
-      b.sizeHint(GET.size + totalKeyBytes + 2)
-      b.append(GET)
-      keys.foreach { x =>
-        b.append(SP).append(x)
-      }
-      b.append(RN).result()
+  case class Gets(keys: ByteString*) extends MemcacheCommand {
+    val commandName: ByteString = GETS
+
+    def memcacheCommandMsg(): ByteString = {
+      getMemcacheCommandMsg(commandName)(keys: _*)
     }
   }
 
   case class Set(key: ByteString, value: ByteString, ttl: Int = 0, flags: Int = 0) extends MemcacheWriteCommand {
-    val commandName = SET
+    val commandName: ByteString = SET
+    override def casUniqueMaybe: Option[Int] = None
+  }
+
+  case class Cas(key: ByteString,
+               value: ByteString,
+                    ttl: Int = 0,
+                  flags: Int = 0,
+      casUniqueMaybe: Option[Int]) extends MemcacheWriteCommand {
+    val commandName: ByteString = CAS
   }
 
   case class Add(key: ByteString, value: ByteString, ttl: Int = 0, flags: Int = 0) extends MemcacheWriteCommand {
-    val commandName = ADD
+    val commandName: ByteString = ADD
+    val casUniqueMaybe: Option[Int] = None
   }
 
   case class Replace(key: ByteString, value: ByteString, ttl: Int = 0, flags: Int = 0) extends MemcacheWriteCommand {
-    val commandName = REPLACE
+    val commandName: ByteString = REPLACE
+    val casUniqueMaybe: Option[Int] = None
   }
 
   // Append does not take <flags> or <expiretime> but we have to provide them according to the protocol
   case class Append(key: ByteString, value: ByteString) extends MemcacheWriteCommand {
-    val commandName = APPEND
+    val commandName: ByteString = APPEND
     val ttl         = 0
     val flags       = 0
+    val casUniqueMaybe: Option[Int] = None
   }
 
   // Prepend does not take <flags> or <expiretime> but we have to provide them according to the protocol
   case class Prepend(key: ByteString, value: ByteString) extends MemcacheWriteCommand {
-    val commandName = PREPEND
+    val commandName: ByteString = PREPEND
     val ttl         = 0
     val flags       = 0
+    val casUniqueMaybe: Option[Int] = None
   }
-
-  /*object Cas {
-    def apply(key: String, value: String, ttl: Integer = 0): Cas = Cas(ByteString(key), ByteString(value), ttl)
-  }
-  case class Cas(key: ByteString, value: ByteString, ttl: Integer) extends MemcachedCommand {
-    def bytes(compressor: Compressor) = {
-      val data = compressor.compress(value)
-      formatCommand(ByteString("cas"), key, Some(data), Some(ByteString(s"${ttl}")), Some(ByteString(s"0")))
-    }
-  }*/
 
   case class Delete(key: ByteString) extends MemcacheCommand {
+    val commandName: ByteString = DELETE
 
-    val commandName = DELETE
-
-    def bytes(c: Compressor = NoCompressor) = {
+    def memcacheCommandMsg(): ByteString = {
       val b = new ByteStringBuilder()
       //3 for SP and \R\N
       val hintSize = DELETE.size + key.size + 3
       b.sizeHint(hintSize)
-      b.append(DELETE).append(SP).append(key).append(RN).result()
+      b.append(DELETE).append(MemcachedMessageDelimiter).append(key).append(EndOfMessageDelimiter).result()
     }
   }
 
@@ -121,7 +133,7 @@ object MemcacheCommand {
       val b      = new ByteStringBuilder
       val valStr = ByteString(value.toString)
       b.sizeHint(commandName.size + key.size + valStr.length + 4) //4 bytes one each for 2 spaces and an \r\n
-      b.append(commandName).append(SP).append(key).append(SP).append(valStr).append(RN).result()
+      b.append(commandName).append(MemcachedMessageDelimiter).append(key).append(MemcachedMessageDelimiter).append(valStr).append(EndOfMessageDelimiter).result()
     }
   }
 
@@ -130,7 +142,7 @@ object MemcacheCommand {
     val commandName = INCR
 
     assert(value > 0, "Increment value must be non negative")
-    def bytes(c: Compressor = NoCompressor) = formatCommand(INCR, key, value)
+    def memcacheCommandMsg(): ByteString = formatCommand(INCR, key, value)
   }
 
   case class Decr(key: ByteString, value: Long) extends CounterCommand {
@@ -138,7 +150,7 @@ object MemcacheCommand {
     val commandName = DECR
 
     assert(value > 0, "Decrement value must be non negative")
-    def bytes(c: Compressor = NoCompressor) = formatCommand(DECR, key, value)
+    def memcacheCommandMsg(): ByteString = formatCommand(DECR, key, value)
   }
 
   case class Touch(key: ByteString, ttl: Int) extends MemcacheCommand {
@@ -147,11 +159,17 @@ object MemcacheCommand {
 
     assert(ttl > 0, "TTL Must be a non negative number")
 
-    def bytes(c: Compressor = NoCompressor) = {
-      val b      = new ByteStringBuilder
+    def memcacheCommandMsg(): ByteString = {
+      val builder      = new ByteStringBuilder
       val ttlStr = ByteString(ttl.toString)
-      b.sizeHint(TOUCH.size + key.size + ttlStr.length + 4) //4 one each for 2 spaces and an \r\n
-      b.append(TOUCH).append(SP).append(key).append(SP).append(ttlStr).append(RN).result()
+      builder.sizeHint(TOUCH.size + key.size + ttlStr.length + 4) //4 one each for 2 spaces and an \r\n
+      builder.append(TOUCH)
+        .append(MemcachedMessageDelimiter)
+        .append(key)
+        .append(MemcachedMessageDelimiter)
+        .append(ttlStr)
+        .append(EndOfMessageDelimiter)
+        .result()
     }
   }
 }
@@ -172,15 +190,14 @@ sealed class MemcacheInvalidCharacterException(val key: ByteString, val position
 
 sealed trait MemcacheCommand {
 
-  //compressor should only be used on DATA
-  def bytes(compressor: Compressor): ByteString
+  def memcacheCommandMsg(): ByteString
 
-  override def toString = bytes(NoCompressor).utf8String
+  override def toString = memcacheCommandMsg().utf8String
 
   def commandName: ByteString
 }
 
-//set, add, replace, append, prepend
+//set, cas, add, replace, append, prepend
 sealed trait MemcacheWriteCommand extends MemcacheCommand {
 
   import UnifiedProtocol._
@@ -189,50 +206,68 @@ sealed trait MemcacheWriteCommand extends MemcacheCommand {
   def value: ByteString
   def ttl: Int
   def flags: Int
+  def casUniqueMaybe: Option[Int]
 
-  def bytes(compressor: Compressor): ByteString = {
+  /**
+    * Write commands are of the format
+    * <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT> [<CAS UNIQUE>]\r\n<data>\r\n
+    * We don't support the [noreply] semantics at this time
+    * @return ByteString of a memcache write command
+    */
+  def memcacheCommandMsg(): ByteString = {
 
-    val b = new ByteStringBuilder
+    val buffer = new ByteStringBuilder
 
-    /*write commands are of the format
-    We don't support the [noreply] semantics at this time
-    <COMMAND> <KEY> <FLAGS> <EXPTIME> <BYTECOUNT>\r\n<data>\r\n
+    val flagsStr     = ByteString(flags.toString)
+    val ttlStr       = ByteString(ttl.toString)
+    val dataSizeStr  = ByteString(value.size.toString)
+    val casUniqueStr = ByteString(casUniqueMaybe.map(_.toString).getOrElse(""))
 
-    padding accounts for spaces, \r\n's, bytecount and exptime:
-       4 spaces
-    +  4 (2 \r\n's)
-     ----
-       8 */
+    val padding = getMemcacheCommandPadding(casUniqueStr.nonEmpty)
 
-    val padding = 8
+    val sizeHint = commandName.length +
+                      flagsStr.length +
+                        ttlStr.length +
+                   dataSizeStr.length +
+                  casUniqueStr.length +
+                           value.size +
+                              padding
 
-    val flagsStr    = ByteString(flags.toString)
-    val ttlStr      = ByteString(ttl.toString)
-    val dataSizeStr = ByteString(value.size.toString)
+    buffer.sizeHint(sizeHint)
+    buffer.append(commandName)
+    buffer.append(MemcachedMessageDelimiter)
 
-    val sizeHint = commandName.length + flagsStr.length + ttlStr.length + dataSizeStr.length + value.size + padding
+    buffer.append(key)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.sizeHint(sizeHint)
-    b.append(commandName)
-    b.append(SP)
+    buffer.append(flagsStr)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(key)
-    b.append(SP)
+    buffer.append(ttlStr)
+    buffer.append(MemcachedMessageDelimiter)
 
-    b.append(flagsStr)
-    b.append(SP)
+    buffer.append(dataSizeStr)
 
-    b.append(ttlStr)
-    b.append(SP)
+    if (casUniqueStr.nonEmpty) {
+      buffer.append(MemcachedMessageDelimiter)
+      buffer.append(casUniqueStr)
+    }
 
-    b.append(dataSizeStr)
-    b.append(RN)
-    b.append(value)
-    b.append(RN)
+    buffer.append(EndOfMessageDelimiter)
+    buffer.append(value)
+    buffer.append(EndOfMessageDelimiter)
 
-    b.result()
-
+    buffer.result()
   }
+
+  /**
+    * padding accounts for spaces, \r\n's, bytecount and exptime:
+    *         4 or 5 spaces, depending if <CAS UNIQUE> is present
+    *      +  4 (2 \r\n's)
+    *       ----
+    * @return 8 or 9, depending if <CAS UNIQUE> is present
+    */
+  private def getMemcacheCommandPadding(casUniquePresent: Boolean): Int = 8 + (if (casUniquePresent) 1 else 0)
 }
 
 object MemcacheException {
@@ -254,10 +289,11 @@ sealed trait MemcacheHeader
 object MemcacheReply {
   sealed trait DataReply extends MemcacheReply
 
-  case class Value(key: ByteString, data: ByteString, flags: Int) extends DataReply
-  case class Counter(value: Long)                                 extends DataReply
-  case class Values(values: Vector[Value])                        extends DataReply
-  case object NoData                                              extends DataReply
+  case class Value(key: ByteString, data: ByteString, flags: Int)                    extends DataReply
+  case class CasValue(key: ByteString, data: ByteString, flags: Int, casUnique: Int) extends DataReply
+  case class Counter(value: Long)                                                    extends DataReply
+  case class Values(values: Vector[Value])                                           extends DataReply
+  case object NoData                                                                 extends DataReply
 
   //these are all one-line responses
   sealed trait MemcacheError extends MemcacheReply with MemcacheHeader
@@ -291,11 +327,18 @@ object MemcacheReplyParser {
   import colossus.util.Combinators._
   import MemcacheReply._
 
+  val NumberOfPiecesInCasValueReply = 5
+
   def apply() = reply
 
-  def reply = delimitedString(' ', '\r') <~ byte |> { pieces =>
+  def reply = delimitedString(' ', '\r') <~ byte |> { pieces: Seq[String] =>
     pieces.head match {
-      case "VALUE"                   => value(Vector.empty, pieces(1), pieces(2).toInt, pieces(3).toInt)
+      case "VALUE"                   =>
+        if (pieces.size < NumberOfPiecesInCasValueReply) {
+          value(Vector.empty, pieces(1), pieces(2).toInt, pieces(3).toInt)
+        } else {
+          casValue(pieces(1), pieces(2).toInt, pieces(3).toInt, pieces(4).toInt)
+        }
       case "END"                     => const(NoData)
       case "NOT_STORED"              => const(NotStored)
       case "STORED"                  => const(Stored)
@@ -311,7 +354,7 @@ object MemcacheReplyParser {
     }
   }
 
-  def isNumeric(str: String) = str.forall(_.isDigit)
+  def isNumeric(str: String): Boolean = str.forall(_.isDigit)
 
   //returns either a Value or Values object depending if 1 or >1 values received
   def values(build: Vector[Value]): Parser[DataReply] = delimitedString(' ', '\r') <~ byte |> { pieces =>
@@ -321,8 +364,12 @@ object MemcacheReplyParser {
     }
   }
 
-  def value(build: Vector[Value], key: String, flags: Int, len: Int) = bytes(len) <~ bytes(2) |> { b =>
-    values(build :+ Value(ByteString(key), ByteString(b), flags))
+  def value(build: Vector[Value], key: String, flags: Int, len: Int): Parser[DataReply] =
+    bytes(len) <~ bytes(2) |> { b => values(build :+ Value(ByteString(key), ByteString(b), flags))
+  }
+
+  def casValue(key: String, flags: Int, len: Int, casUnique: Int): Parser[CasValue] =
+    bytes(len) <~ bytes(2) |> { b => const(CasValue(ByteString(key), ByteString(b), flags, casUnique))
   }
 }
 
@@ -330,7 +377,7 @@ class MemcacheClientCodec() extends Codec.Client[Memcache] {
   private var parser = new MemcacheReplyParser()
 
   def encode(cmd: MemcacheCommand, buffer: DataOutBuffer) {
-    buffer.write(cmd.bytes(NoCompressor))
+    buffer.write(cmd.memcacheCommandMsg())
   }
   def decode(data: DataBuffer): Option[MemcacheReply] = parser.parse(data)
   def reset() {
