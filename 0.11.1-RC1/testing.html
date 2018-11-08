@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Testing · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<link rel="shortcut icon" href="img/favicon.ico" />
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.11.1-RC1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.11.1-RC1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="page">Streaming</a></li>
+  <li><a href="testing.html" class="active page">Testing</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.11.1-RC1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.11.1-RC1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="streaming.html" class="page">Streaming</a></li>
+  <li><a href="testing.html" class="active page">Testing</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Testing</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#testing" name="testing" class="anchor"><span class="anchor-link"></span></a>Testing</h1>
+<p>Colossus comes with a testkit that contains some helper classes and functions that simplifying the testing of a colossus service. Testkit is built on <a href="http://scalatest.org">ScalaTest</a>. Add <code>colossus-testkit</code> to your dependencies, using the same version as colossus itself. For example:</p>
+<pre class="prettyprint"><code class="language-sbtshell">libraryDependencies += &quot;com.tumblr&quot; %% &quot;colossus-testkit&quot; % &quot;VERSION&quot; % Test
+</code></pre>
+<h2><a href="#testing-callbacks" name="testing-callbacks" class="anchor"><span class="anchor-link"></span></a>Testing Callbacks</h2>
+<p><a href="https://static.javadoc.io/com.tumblr/colossus-testkit_2.11/0.11.1-RC1/index.html#colossus.testkit.CallbackAwait$">CallbackAwait</a> works similarly to Scala&rsquo;s <code>Await</code> for futures.</p>
+<pre class="prettyprint"><code class="language-scala">// callback executor is where the callback runs and also required an actor system to be in scope
+implicit val callbackExecutor: CallbackExecutor = FakeIOSystem.testExecutor
+
+val callbackUnderTest: Callback[Int] = Callback.complete(Try(42))
+
+val result = CallbackAwait.result(callbackUnderTest, 1.second)
+
+assert(result == 42)</code></pre>
+<h2><a href="#testing-any-service" name="testing-any-service" class="anchor"><span class="anchor-link"></span></a>Testing any Service</h2>
+<p><a href="https://static.javadoc.io/com.tumblr/colossus-testkit_2.11/0.11.1-RC1/index.html#colossus.testkit.ServiceSpec">ServiceSpec</a> abstract class provides helper functions to test expected responses. To use <code>ServerSpec</code> an implementation of the <code>service</code> method needs to be provided. In this example we are testing want to test this redis handler, but it could be any protocol:</p>
+<pre class="prettyprint"><code class="language-scala">class MyRequestHandler(context: ServerContext, db: ConcurrentHashMap[String, String]) extends RequestHandler(context) {
+  override def handle: PartialHandler[Redis] = {
+    case Command(&quot;GET&quot;, args) =&gt;
+      args match {
+        case head +: _ =&gt;
+          Option(db.get(head.utf8String)) match {
+            case Some(value) =&gt; Callback.successful(BulkReply(ByteString(value)))
+            case None        =&gt; Callback.successful(NilReply)
+          }
+        case Nil =&gt;
+          Callback.successful(ErrorReply(&quot;ERR wrong number of arguments for &#39;get&#39; command&quot;))
+      }
+
+    case Command(&quot;SET&quot;, args) =&gt;
+      args match {
+        case key +: value +: _ =&gt;
+          db.put(key.utf8String, value.utf8String)
+          Callback.successful(StatusReply(&quot;OK&quot;))
+        case Nil =&gt;
+          Callback.successful(ErrorReply(&quot;ERR wrong number of arguments for &#39;set&#39; command&quot;))
+      }
+  }
+}</code></pre>
+<p>Unit tests could look like:</p>
+<pre class="prettyprint"><code class="language-scala">class AnyServiceSpec extends ServiceSpec[Redis] {
+
+  val fakeDd = new ConcurrentHashMap[String, String]()
+
+  override def service: ServerRef = {
+    RedisServer.start(&quot;example-server&quot;, 9123) { initContext =&gt;
+      new Initializer(initContext) {
+        override def onConnect: ServerContext =&gt; MyRequestHandler = { serverContext =&gt;
+          new MyRequestHandler(serverContext, fakeDd)
+        }
+      }
+    }
+  }
+
+  &quot;My request handler&quot; must {
+
+    &quot;set can set a key value&quot; in {
+      val request  = Command(&quot;SET&quot;, &quot;name&quot;, &quot;ben&quot;)
+      val response = StatusReply(&quot;OK&quot;)
+
+      assert(fakeDd.isEmpty)
+      expectResponse(request, response)
+      assert(fakeDd.size() == 1)
+    }
+
+    &quot;get can get a value&quot; in {
+      val request  = Command(&quot;GET&quot;, &quot;name&quot;)
+      val response = BulkReply(ByteString(&quot;ben&quot;))
+
+      expectResponse(request, response)
+    }
+
+    &quot;get return nil when no value&quot; in {
+      val request = Command(&quot;GET&quot;, &quot;age&quot;)
+
+      expectResponseType[NilReply.type](request)
+    }
+
+  }
+}</code></pre>
+<p><code>ServerSpec</code> extends <code>ColossusSpec</code>, which provides the ability to spin up a server/iosystem. These functions can be used directly for more flexible testing needs:</p>
+<ul>
+  <li><code>withIOSystem</code> will spin up a new <code>IOSystem</code> for the duration of a test and shut it down at the end.</li>
+  <li><code>withServer</code> will shutdown the given server after the test completes.</li>
+</ul>
+<h2><a href="#testing-http-service" name="testing-http-service" class="anchor"><span class="anchor-link"></span></a>Testing HTTP Service</h2>
+<p><code>HttpServiceSpec</code> adds to <code>ServerSpec</code> some HTTP-specific utility functions for asserting that a HTTP handler behaves correctly. To illustrate, let&rsquo;s test this request handler:</p>
+<pre class="prettyprint"><code class="language-scala">class MyHandler(context: ServerContext) extends RequestHandler(context) {
+  override def handle: PartialHandler[Http] = {
+    case request @ Get on Root / &quot;ping&quot; =&gt;
+      Callback.successful(request.ok(&quot;pong&quot;))
+
+    case request @ Get on Root / &quot;ping&quot; / data =&gt;
+      Callback.successful(request.ok(s&quot;&quot;&quot;{&quot;type&quot;:&quot;pong&quot;,&quot;data&quot;:$data}&quot;&quot;&quot;).withContentType(ContentType.ApplicationJson))
+  }
+}</code></pre>
+<p>And now, the <code>HttpServiceSpec</code>-based test class:</p>
+<pre class="prettyprint"><code class="language-scala">class MyHttpHandlerSpec extends HttpServiceSpec {
+
+  implicit val formats: Formats = org.json4s.DefaultFormats
+
+  override def service: ServerRef = {
+    HttpServer.start(&quot;example-server&quot;, 9123) { initContext =&gt;
+      new Initializer(initContext) {
+        override def onConnect: ServerContext =&gt; MyHandler = { serverContext =&gt;
+          new MyHandler(serverContext)
+        }
+      }
+    }
+  }
+
+  &quot;My request handler&quot; must {
+    &quot;return 200 and correct body&quot; in {
+      expectCodeAndBody(HttpRequest.get(&quot;ping&quot;), HttpCodes.OK, &quot;pong&quot;)
+    }
+
+    &quot;return 200 and body that satisfies predicate&quot; in {
+      expectCodeAndBodyPredicate(HttpRequest.get(&quot;ping/1&quot;), HttpCodes.OK) { body =&gt;
+        val actual   = JsonMethods.parse(body).extract[Map[String, JValue]]
+        val expected = Map(&quot;data&quot; -&gt; JInt(1), &quot;type&quot; -&gt; JString(&quot;pong&quot;))
+        actual == expected
+      }
+    }
+
+  }
+
+}</code></pre>
+<ul>
+  <li><code>expectCodeAndBody</code> will hit the service instance with a request, and match the returned code and body with a given expected code and body.</li>
+  <li><code>expectCodeAndBodyPredicate</code> takes a predicate that the body must satisfy. In the example, the returned JSON body is parsed into a <code>Map[String, JValue]</code> and is tested for equality against a given <code>Map[String, JValue]</code> instead.</li>
+</ul>
+<h2><a href="#testing-clients" name="testing-clients" class="anchor"><span class="anchor-link"></span></a>Testing Clients</h2>
+<p>Colossus clients should be passed into the request handler so they can be mocked in tests. For example, lets test this code:</p>
+<pre class="prettyprint"><code class="language-scala">class AnyClientHandler(context: ServerContext,
+                       redisClient: RedisClient[Callback],
+                       memcacheClient: MemcacheClient[Callback])
+    extends RequestHandler(context) {
+  override def handle: PartialHandler[Http] = {
+    case request @ Get on Root / &quot;data&quot; / name =&gt;
+      redisClient
+        .get(ByteString(name))
+        .flatMap {
+          case Some(value) =&gt;
+            Callback.successful(request.ok(s&quot;The key $name has value ${value.utf8String}&quot;))
+          case None =&gt;
+            memcacheClient.get(ByteString(name)).map {
+              case Some(Value(_, data, _)) =&gt;
+                request.ok(s&quot;The key $name has value ${data.utf8String}&quot;)
+              case None =&gt;
+                request.ok(s&quot;The key $name has no value&quot;)
+            }
+        }
+
+  }
+}</code></pre>
+<p><code>MockSender</code> functionality can be used in the following manner:</p>
+<pre class="prettyprint"><code class="language-scala">class AnyClientSpec extends HttpServiceSpec {
+
+  val basicRedis: Command =&gt; Callback[Reply] = MockSender.mockResponse[Redis](
+    Map(
+      Command(&quot;GET&quot;, &quot;ben&quot;) -&gt; Success(BulkReply(ByteString(&quot;1&quot;))),
+      Command(&quot;GET&quot;, &quot;bob&quot;) -&gt; Success(NilReply),
+      Command(&quot;GET&quot;, &quot;jen&quot;) -&gt; Success(NilReply)
+    )
+  )
+
+  val basicMemcache: MemcacheCommand =&gt; Callback[MemcacheReply] = MockSender.mockResponse[Memcache](
+    Map(
+      MemcacheCommand.Get(ByteString(&quot;bob&quot;)) -&gt; Success(MemcacheReply.Value(ByteString(&quot;ben&quot;), ByteString(&quot;2&quot;), 0)),
+      MemcacheCommand.Get(ByteString(&quot;jen&quot;)) -&gt; Success(MemcacheReply.NoData)
+    )
+  )
+
+  override def service: ServerRef = {
+    HttpServer.start(&quot;example&quot;, 9123) { initContext =&gt;
+      implicit val workerRef: WorkerRef = initContext.worker
+
+      val redis    = Redis.client(MockSender[Redis, Callback](basicRedis))
+      val memcache = Memcache.client(MockSender[Memcache, Callback](basicMemcache))
+
+      new Initializer(initContext) {
+        override def onConnect: ServerContext =&gt; AnyClientHandler = { serverContext =&gt;
+          new AnyClientHandler(serverContext, redis, memcache)
+        }
+      }
+    }
+  }
+
+  &quot;Any client handler&quot; must {
+    &quot;return valid redis value&quot; in {
+      expectCodeAndBody(HttpRequest.get(&quot;/data/ben&quot;), HttpCodes.OK, &quot;The key ben has value 1&quot;)
+    }
+
+    &quot;return valid memcache value&quot; in {
+      expectCodeAndBody(HttpRequest.get(&quot;/data/bob&quot;), HttpCodes.OK, &quot;The key bob has value 2&quot;)
+    }
+
+    &quot;return no value for unknown key&quot; in {
+      expectCodeAndBody(HttpRequest.get(&quot;/data/jen&quot;), HttpCodes.OK, &quot;The key jen has no value&quot;)
+    }
+  }
+}</code></pre>
+<p>Alternatively, using mockito, the clients can be mocked:</p>
+<pre class="prettyprint"><code class="language-scala">class AnyClientSpec2 extends HttpServiceSpec with MockitoSugar {
+
+  val redis: RedisClient[Callback]       = mock[RedisClient[Callback]]
+  val memcache: MemcacheClient[Callback] = mock[MemcacheClient[Callback]]
+
+  override def service: ServerRef = {
+    HttpServer.start(&quot;example&quot;, 9123) { initContext =&gt;
+      implicit val workerRef: WorkerRef = initContext.worker
+
+      new Initializer(initContext) {
+        override def onConnect: ServerContext =&gt; AnyClientHandler = { serverContext =&gt;
+          new AnyClientHandler(serverContext, redis, memcache)
+        }
+      }
+    }
+  }
+
+  &quot;Any client handler&quot; must {
+    &quot;return valid redis value&quot; in {
+      when(redis.get(ByteString(&quot;ben&quot;))).thenReturn(Callback.successful(Some(ByteString(&quot;1&quot;))))
+      expectCodeAndBody(HttpRequest.get(&quot;/data/ben&quot;), HttpCodes.OK, &quot;The key ben has value 1&quot;)
+    }
+
+    &quot;return valid memcache value&quot; in {
+      when(redis.get(ByteString(&quot;bob&quot;))).thenReturn(Callback.successful(None))
+      when(memcache.get(ByteString(&quot;bob&quot;))).thenReturn(
+        Callback.successful(Some(MemcacheReply.Value(ByteString(&quot;ben&quot;), ByteString(&quot;2&quot;), 0)))
+      )
+      expectCodeAndBody(HttpRequest.get(&quot;/data/bob&quot;), HttpCodes.OK, &quot;The key bob has value 2&quot;)
+    }
+
+    &quot;return no value for unknown key&quot; in {
+      when(redis.get(ByteString(&quot;jen&quot;))).thenReturn(Callback.successful(None))
+      when(memcache.get(ByteString(&quot;jen&quot;))).thenReturn(Callback.successful(None))
+      expectCodeAndBody(HttpRequest.get(&quot;/data/jen&quot;), HttpCodes.OK, &quot;The key jen has no value&quot;)
+    }
+  }
+}</code></pre>
+<h2><a href="#testing-metrics" name="testing-metrics" class="anchor"><span class="anchor-link"></span></a>Testing Metrics</h2>
+<p>At its core, metrics are just a collection of maps containing strings and numbers. To test metrics, get the map and make sure it contains what you expect. Let&rsquo;s say we have this code:</p>
+<pre class="prettyprint"><code class="language-scala">class SimpleMetricController()(implicit mn: MetricNamespace) {
+  private val hellos = Counter(&quot;hellos&quot;)
+
+  def sayHello(request: HttpRequest): HttpResponse = {
+    val color = request.head.parameters.getFirst(&quot;color&quot;).getOrElse(&quot;NA&quot;)
+    hellos.increment(Map(&quot;color&quot; -&gt; color))
+    request.ok(&quot;Hello!&quot;)
+  }
+}</code></pre>
+<p>The test could be written like this:</p>
+<pre class="prettyprint"><code class="language-scala">&quot;say hello&quot; in {
+  implicit val metricContext: MetricContext = MetricContext(&quot;/&quot;, Collection.withReferenceConf(Seq(1.minute)))
+
+  val controller = new SimpleMetricController()
+
+  val response = controller.sayHello(HttpRequest.get(&quot;/hello?color=red&quot;))
+
+  assert(response == HttpResponse.ok(&quot;Hello!&quot;))
+
+  val metrics = metricContext.collection.tick(1.minute)
+
+  assert(metrics(MetricAddress.Root / &quot;hellos&quot;) === Map(Map(&quot;color&quot; -&gt; &quot;red&quot;) -&gt; 1))
+}</code></pre>
+<div class="source-github">
+The source code for this page can be found <a href="https://github.com/tumblr/colossus/tree/master/colossus-docs/src/main/paradox/testing.md">here</a>.
+</div>
+
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="about.html">About</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="testing.html#testing" class="header">Testing</a>
+  <ul>
+    <li><a href="testing.html#testing-callbacks" class="header">Testing Callbacks</a></li>
+    <li><a href="testing.html#testing-any-service" class="header">Testing any Service</a></li>
+    <li><a href="testing.html#testing-http-service" class="header">Testing HTTP Service</a></li>
+    <li><a href="testing.html#testing-clients" class="header">Testing Clients</a></li>
+    <li><a href="testing.html#testing-metrics" class="header">Testing Metrics</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

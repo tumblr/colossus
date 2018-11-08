@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Metrics · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="active page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="active page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Metrics</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#metrics" name="metrics" class="anchor"><span class="anchor-link"></span></a>Metrics</h1>
+<p>Colossus uses the (currently nameless) metrics library.</p>
+<h2><a href="#introduction" name="introduction" class="anchor"><span class="anchor-link"></span></a>Introduction</h2>
+<p>High-throughput Colossus services can serve hundreds of thousands of requests per second, which can easily translate to millions of recordable events per second. The Metrics library provides a way to work with metrics with as little overhead as possible. It is configurable via a <a href="https://github.com/typesafehub/config">typesafe config</a>. See <a href="https://github.com/tumblr/colossus/blob/master/colossus-metrics/src/main/resources/reference.conf">reference config</a> The Colossus server and clients define several metrics be default.</p>
+<h3><a href="#collection-intervals" name="collection-intervals" class="anchor"><span class="anchor-link"></span></a>Collection Intervals</h3>
+<p>Collection intervals define how often the raw data from all event collectors are snapshotted and merged together into a single database of values.</p>
+<p>The provided config creates a metric system with both 1 second and 1 minute collection intervals. The 1 second interval is used to show real-time metrics where rates and histograms are all showing values reflective of the last second of activity, whereas the 1 minute intervals are used for reporting values to an external database in which case the values reported are all reflective of the last minute of activity.</p>
+<h3><a href="#default-metrics-in-colossus" name="default-metrics-in-colossus" class="anchor"><span class="anchor-link"></span></a>Default Metrics in Colossus</h3>
+<p>Running the Colossus Client and Colossus Server makes several metrics available in a default service, the server is prefixed with the service name, the client is prefixed with the service name AND the client name</p>
+<h4><a href="#server" name="server" class="anchor"><span class="anchor-link"></span></a>Server</h4>
+<table>
+  <thead>
+    <tr>
+      <th>metric name </th>
+      <th>Description </th>
+      <th>Tags </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>system/fd_count</strong></td>
+      <td>the open file descriptor counts</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>system/gc/cycles</strong></td>
+      <td>number of garbage collection cycles</td>
+      <td>type : ConcurrentMarkSweep, ParNew</td>
+    </tr>
+    <tr>
+      <td><strong>system/gc/msec</strong></td>
+      <td>the milliseconds it takes for garbage collection</td>
+      <td>type : ConcurrentMarkSweep, ParNew</td>
+    </tr>
+    <tr>
+      <td><strong>system/memory</strong></td>
+      <td>the total memory availble to the JVM</td>
+      <td>type: free, max, allocated</td>
+    </tr>
+    <tr>
+      <td><strong>requests</strong></td>
+      <td>the amount of request to the service</td>
+      <td>status_code: http code(example: 201, 400)</td>
+    </tr>
+    <tr>
+      <td><strong>concurrent_requests</strong></td>
+      <td>the amount of request to the service in a time interval</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>requests_per_connection</strong></td>
+      <td>the amount of different async requests made in a single request</td>
+      <td>label: max, mean, etc</td>
+    </tr>
+    <tr>
+      <td><strong>errors</strong></td>
+      <td>the amount of exceptionst that have bubbled up in the service</td>
+      <td>type: exception name</td>
+    </tr>
+    <tr>
+      <td><strong>latency</strong></td>
+      <td>the time (in ms) it takes to complete a request</td>
+      <td>label:max,mean, etc status_code:200, 404, etc</td>
+    </tr>
+    <tr>
+      <td><strong>worker/event_loops</strong></td>
+      <td>how many event loops were selected in a given interval</td>
+      <td>worker: the worker Id for a given event loop</td>
+    </tr>
+    <tr>
+      <td><strong>worker/connections</strong></td>
+      <td>the connections registrered for a new or reconnecting client</td>
+      <td>worker: the worker Id for a given event loop</td>
+    </tr>
+    <tr>
+      <td><strong>worker/rejected_connections</strong></td>
+      <td>the number of connections that weren&rsquo;t able to be created by the worker</td>
+      <td>server: servername, worker: worker id</td>
+    </tr>
+    <tr>
+      <td><strong>connections</strong></td>
+      <td>the amount of connections that are used for work</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>refused_connections</strong></td>
+      <td>the amount of connections that were rejected due to the connection limiter</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>connects</strong></td>
+      <td>the amount of connections attempted, this includes both connections and refused_connections</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td><strong>closed</strong></td>
+      <td>the number of connections that are closed</td>
+      <td>cause: string for the connection closing</td>
+    </tr>
+    <tr>
+      <td><strong>highwaters</strong></td>
+      <td>the amount threads that have changed connection state (normal or highwater_</td>
+      <td>N/A</td>
+    </tr>
+  </tbody>
+</table>
+<h4><a href="#client" name="client" class="anchor"><span class="anchor-link"></span></a>Client</h4>
+<table>
+  <thead>
+    <tr>
+      <th>metric name </th>
+      <th>Description </th>
+      <th>Tags </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>requests</strong></td>
+      <td>the amount of requests the client made</td>
+      <td>client_port: the port in use</td>
+    </tr>
+    <tr>
+      <td><strong>errors</strong></td>
+      <td>the exceptions that bubbled up to the client</td>
+      <td>type: the exception</td>
+    </tr>
+    <tr>
+      <td><strong>dropped_requests</strong></td>
+      <td>the number of requests that cannot be sent back to the client</td>
+      <td>client_port: the port in use</td>
+    </tr>
+    <tr>
+      <td><strong>connection_failures</strong></td>
+      <td>if a connection failed to an external host</td>
+      <td>client_port: the port in use</td>
+    </tr>
+    <tr>
+      <td><strong>disconnects</strong></td>
+      <td>if a connection is lost due to being closed, that isn&rsquo;t a connection failure (example: connection closed)</td>
+      <td>client_port</td>
+    </tr>
+    <tr>
+      <td><strong>latency</strong></td>
+      <td>the time (in ms) it takes to complete a request, this includes time in the queue</td>
+      <td>label:max,mean, etc client_port: the port in use</td>
+    </tr>
+    <tr>
+      <td><strong>transit_time</strong></td>
+      <td>the time (in ms) it takes to complete a request, this does NOT include queue time</td>
+      <td>label:max,mean, etc client_port: the port in use</td>
+    </tr>
+    <tr>
+      <td><strong>queue_time</strong></td>
+      <td>the time between a request is made to when the call is made</td>
+      <td>label:max,mean, etc client_port: the port in use</td>
+    </tr>
+  </tbody>
+</table>
+<h3><a href="#metric-filters" name="metric-filters" class="anchor"><span class="anchor-link"></span></a>Metric Filters</h3>
+<h3><a href="#metric-addresses-and-tags" name="metric-addresses-and-tags" class="anchor"><span class="anchor-link"></span></a>Metric Addresses and Tags</h3>
+<p>Every metric has a url-like address used to identify it. </p>
+<p>One of the most important aspects of metrics is that values can be tagged. For example, a rate can track hits to API endpoints, using a &ldquo;endpoint&rdquo; tag to break down the usage by endpoint.</p>
+<pre class="prettyprint"><code class="language-scala">val rate = Rate(&quot;my-rate&quot;)
+rate.hit(Map(&quot;endpoint&quot; -&gt; &quot;foo&quot;))
+rate.hit(Map(&quot;endpoint&quot; -&gt; &quot;bar&quot;))
+rate.hit(Map(&quot;endpoint&quot; -&gt; &quot;bar&quot;))</code></pre>
+<p>This will in turn lead to</p>
+<table>
+  <thead>
+    <tr>
+      <th>endpoint </th>
+      <th>value </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>foo </td>
+      <td>1 </td>
+    </tr>
+    <tr>
+      <td>bar </td>
+      <td>2 </td>
+    </tr>
+  </tbody>
+</table>
+<h2><a href="#getting-started" name="getting-started" class="anchor"><span class="anchor-link"></span></a>Getting Started</h2>
+<p>If you are using colossus, it depends on the metrics library and pulls it in. Otherwise you must add the following to your build.sbt/Build.scala</p>
+<pre class="prettyprint"><code class="language-sbtshell">libraryDependencies += &quot;com.tumblr&quot; %% &quot;colossus-metrics&quot; % &quot;LATEST_VERSION&quot;
+</code></pre>
+<p>From there, the only required step is to spin up a <code>MetricSystem</code>.</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+implicit val metricSystem = MetricSystem(&quot;name&quot;)
+
+val rate = Rate(&quot;my-rate&quot;)
+rate.hit()</code></pre>
+<h3><a href="#namespaces" name="namespaces" class="anchor"><span class="anchor-link"></span></a>Namespaces</h3>
+<p>When creating a new collector, you always need an implicit <code>MetricNamespace</code> in scope. The <code>MetricSystem</code> itself acts as the root namespace, but you can use it to create sub-namespaces:</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+val metricSystem = MetricSystem(&quot;name&quot;)
+
+implicit val namespace = metricSystem / &quot;foo&quot; / &quot;bar&quot;
+
+// this rate will have the address &quot;/foo/bar/baz&quot;
+val rate = Rate(&quot;baz&quot;)</code></pre>
+<h3><a href="#metric-tick-complete-example" name="metric-tick-complete-example" class="anchor"><span class="anchor-link"></span></a>Metric Tick Complete example</h3>
+<p>The example below illustrates creating a service with a url called badUrl and doing a metric tick when an endpoint is hit.</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+
+val metricSystem = MetricSystem(&quot;badurl&quot;)
+
+implicit val ioSystem = IOSystem(&quot;badurl&quot;, None, metricSystem)
+
+implicit val metricNamespace = ioSystem.metrics
+
+val badUrl = Rate(&quot;badurl&quot;)
+
+HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+        case request @ Get on Root / &quot;url&quot; =&gt;
+          //bad url, metric tick
+          if(!request.head.parameters.contains(&quot;myurl&quot;)) {
+            badUrl.hit()
+          }
+          Callback.successful(request.ok(&quot;received response&quot;))
+      }
+    }
+  }
+}</code></pre>
+<h2><a href="#available-collectors" name="available-collectors" class="anchor"><span class="anchor-link"></span></a>Available Collectors</h2>
+<p>All collectors are thread-safe.</p>
+<h3><a href="#counter" name="counter" class="anchor"><span class="anchor-link"></span></a>Counter</h3>
+<p>A counter simply allows you to set, increment, and decrement values:</p>
+<pre class="prettyprint"><code class="language-scala">val counter = Counter(&quot;my-counter&quot;)
+counter.set(Map(&quot;foo&quot; -&gt; &quot;bar&quot;), 2)
+counter.increment(Map(&quot;foo&quot; -&gt; &quot;bar&quot;))</code></pre>
+<h3><a href="#rate" name="rate" class="anchor"><span class="anchor-link"></span></a>Rate</h3>
+<p>A rate is like a counter, but resets at the beginning of each collection interval. Rates are also tracked for every interval.</p>
+<pre class="prettyprint"><code class="language-scala">val rate = Rate(&quot;my-rate&quot;)
+rate.hit()</code></pre>
+<h3><a href="#histogram" name="histogram" class="anchor"><span class="anchor-link"></span></a>Histogram</h3>
+<p>Histograms can gather statistical data about values added to them. By default, histograms are setup with various percentiles defined, the values are sorted and placed in the appropriate percentiles.</p>
+<pre class="prettyprint"><code class="language-scala">val hist = Histogram(&quot;my-histogram&quot;, percentiles = List(0.5, 0.99, 0.999))
+hist.add(12)
+hist.add(1)
+hist.add(98765)</code></pre>
+<h2><a href="#metric-reporting" name="metric-reporting" class="anchor"><span class="anchor-link"></span></a>Metric Reporting</h2>
+<p>Metric reporters are used to take the periodically generated snapshots of metrics and report them to an external system. A <code>MetricSender</code> is the interface to the remote system and is responsible for properly formatting metrics and handling all communication. Colossus currently has native support for OpenTSDB.</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+implicit val metricSystem = MetricSystem(&quot;name&quot;)
+
+val reporterConfig = MetricReporterConfig(
+  metricSenders = Seq(OpenTsdbSender(&quot;host&quot;, 123)),
+  filters = MetricReporterFilter.All
+)
+
+// reporter must be attached to a specific collection interval.
+metricSystem.collectionIntervals.get(1.minute).foreach(_.report(reporterConfig))
+
+// now once per minute the value of this rate and any other metrics will be reported
+val rate = Rate(&quot;myrate&quot;)</code></pre>
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="tasks.html">Tasks</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="metrics.html#metrics" class="header">Metrics</a>
+  <ul>
+    <li><a href="metrics.html#introduction" class="header">Introduction</a></li>
+    <li><a href="metrics.html#getting-started" class="header">Getting Started</a></li>
+    <li><a href="metrics.html#available-collectors" class="header">Available Collectors</a></li>
+    <li><a href="metrics.html#metric-reporting" class="header">Metric Reporting</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+<title>Quick Start · Colossus</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content='colossus-docs'/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:100normal,100italic,300normal,300italic,400normal,400italic,500normal,500italic,700normal,700italic,900normal,900italicc" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="js/page.js"></script>
+<script type="text/javascript" src="js/groups.js"></script>
+<link rel="stylesheet" type="text/css" href="lib/normalize.css/normalize.css"/>
+<link rel="stylesheet" type="text/css" href="lib/foundation/dist/foundation.min.css"/>
+<link rel="stylesheet" type="text/css" href="css/page.css"/>
+
+<!--
+<link rel="shortcut icon" href="images/favicon.ico" />
+-->
+</head>
+
+<body>
+<div class="off-canvas-wrapper">
+<div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+
+<div class="off-canvas position-left" id="off-canvas-menu" data-off-canvas>
+<nav class="off-canvas-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="active page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="off-canvas-content" data-off-canvas-content>
+
+<header class="site-header expanded row">
+<div class="small-12 column">
+<a href="#" class="off-canvas-toggle hide-for-medium" data-toggle="off-canvas-menu"><svg class="svg-icon svg-icon-menu" version="1.1" id="Menu" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 20 20" enable-background="new 0 0 20 20" xml:space="preserve"> <path class="svg-icon-menu-path" fill="#53CDEC" d="M16.4,9H3.6C3.048,9,3,9.447,3,10c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,9.447,16.952,9,16.4,9z M16.4,13
+H3.6C3.048,13,3,13.447,3,14c0,0.553,0.048,1,0.6,1H16.4c0.552,0,0.6-0.447,0.6-1C17,13.447,16.952,13,16.4,13z M3.6,7H16.4
+C16.952,7,17,6.553,17,6c0-0.553-0.048-1-0.6-1H3.6C3.048,5,3,5.447,3,6C3,6.553,3.048,7,3.6,7z"/></svg>
+</a>
+<div class="title"><a href="index.html">Colossus</a></div>
+
+<!--
+<a href="https://www.example.com" class="logo show-for-medium">logo</a>
+-->
+</div>
+</header>
+
+<div class="expanded row">
+
+<div class="medium-3 large-2 show-for-medium column">
+<nav class="site-nav">
+<div class="nav-home">
+<select>
+<option value="0.11.1-RC1">0.11.1-RC1</option><option value="0.11.0">0.11.0</option><option value="0.10.1">0.10.1</option><option value="0.10.0">0.10.0</option><option value="0.9.1">0.9.1</option><option value="0.9.0">0.9.0</option>    </select>
+<script type="text/javascript">
+var selects = document.getElementsByTagName('select');
+for(var z=0; z<selects.length; z++) {
+selects[z].value = "0.9.1";
+selects[z].onchange = function() {
+var newVersion = this.value
+var current = window.location.href
+var next = current.replace(/0.9.1/, newVersion)
+window.location = next
+};
+}
+</script>
+</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html" class="active page">Quick Start</a></li>
+  <li><a href="clients.html" class="page">Clients</a></li>
+  <li><a href="workers.html" class="page">Workers</a></li>
+  <li><a href="services.html" class="page">Services</a></li>
+  <li><a href="configuration.html" class="page">Configuration</a></li>
+  <li><a href="testkit.html" class="page">Testkit</a></li>
+  <li><a href="metrics.html" class="page">Metrics</a></li>
+  <li><a href="tasks.html" class="page">Tasks</a></li>
+  <li><a href="about.html" class="page">About</a></li>
+</ul>
+</div>
+
+</nav>
+</div>
+
+<div class="small-12 medium-9 large-10 column">
+<section class="site-content">
+
+<div class="page-header row">
+<div class="medium-12 show-for-medium column">
+<div class="nav-breadcrumbs">
+<ul>
+  <li><a href="index.html">Colossus</a></li>
+  <li>Quick Start</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="page-content row">
+<div class="small-12 large-9 column" id="docs">
+<h1><a href="#quick-start" name="quick-start" class="anchor"><span class="anchor-link"></span></a>Quick Start</h1>
+<p>This guide will get you familiar with Colossus and help you write your first service.</p>
+<h2><a href="#anatomy-of-a-service" name="anatomy-of-a-service" class="anchor"><span class="anchor-link"></span></a>Anatomy of a Service</h2>
+<p>Before we get to writing code, it will help to understand the basics about what Colossus is for and how it works. While Colossus is a fully generalized I/O framework for building many different types of applications, this guide is focused on the primary use case, services. A <strong>Service</strong> is a reactive server application that receives incoming requests from clients, processes them (often in parallel), and returns responses.</p>
+<p>To be even more specific, Colossus is focused on building <strong>Microservices</strong>, which generally are stateless, single-feature, RESTful HTTP servers which exist as part of a larger architecture.</p>
+<p>A Colossus application consists of roughly two parts:</p>
+<ul>
+  <li>A Server that listens on a TCP port and accepts incoming connections</li>
+  <li>A set of Workers that provide the environment for processing requests from those connections</li>
+</ul>
+<p>Workers are where the majority of a service&rsquo;s business logic is performed. Workers are reactive event-loops and delegate events to be processed as they are received. Generally a service will start one worker per physical CPU core, and work will be distributed amongst them.</p>
+<p>When it comes to writing a service, you supply two components:</p>
+<ul>
+  <li>An <strong>Initializer</strong>, which is used to hook environment/setup logic into a worker</li>
+  <li>A <strong>Request Handler</strong> which is attached to each connection to do your service&rsquo;s actual work</li>
+</ul>
+<p>Whenever a Server accepts a new connection, the connection is transferred and <em>bound</em> to one of the workers. The binding process consists of attaching the connection to the Worker&rsquo;s event-loop and creating a request handler that reacts to events generated by the connection (such as when new data is available to read or the connection closes). It is in this request handler where most of the service&rsquo;s user-code lives.</p>
+<h2><a href="#build-a-hello-world-service" name="build-a-hello-world-service" class="anchor"><span class="anchor-link"></span></a>Build a Hello World service</h2>
+<p>Add the following to your Build.scala or build.sbt:</p>
+<pre class="prettyprint"><code class="language-sbtshell">libraryDependencies += &quot;com.tumblr&quot; %% &quot;colossus&quot; % &quot;LATEST_VERSION&quot;
+</code></pre>
+<p>Colossus is compiled for Scala 2.10 and 2.11 and built against Akka 2.3.</p>
+<p>We&rsquo;ll start with a simple &ldquo;hello world&rdquo; http service written in a fairly verbose manner to make things easy to follow:</p>
+<pre class="prettyprint"><code class="language-scala">import akka.actor.ActorSystem
+import colossus.IOSystem
+import colossus.core.{InitContext, ServerContext}
+import colossus.protocols.http.Http
+import colossus.protocols.http.HttpMethod._
+import colossus.protocols.http.UrlParsing._
+import colossus.protocols.http.server.{HttpServer, Initializer, RequestHandler}
+import colossus.service.Callback
+import colossus.service.GenRequestHandler.PartialHandler
+
+
+object HelloWorld2 extends App {
+
+  implicit val actorSystem = ActorSystem()
+  implicit val ioSystem = IOSystem()
+
+  HttpServer.start(&quot;hello-world&quot;, 9000){ context =&gt; new HelloInitializer(context) }
+
+}
+
+class HelloInitializer(context: InitContext) extends Initializer(context) {
+
+  override def onConnect = context =&gt; new HelloRequestHandler(context)
+
+}
+
+class HelloRequestHandler(context: ServerContext) extends RequestHandler(context) {
+
+  override def handle: PartialHandler[Http] = {
+    case request @ Get on Root / &quot;hello&quot; =&gt; {
+      Callback.successful(request.ok(&quot;Hello World!&quot;))
+    }
+  }
+
+}</code></pre>
+<p>This will start a basic http server on port 9000:</p>
+<pre class="prettyprint"><code class="language-bash">&gt; curl localhost:9000/hello
+Hello World! (200 OK)
+
+&gt; curl localhost:9000/foo
+No route for /foo (404 Not Found)
+</code></pre>
+<h3><a href="#closer-look" name="closer-look" class="anchor"><span class="anchor-link"></span></a>Closer Look</h3>
+<p>Let&rsquo;s look at this code piece-by-piece.</p>
+<pre class="prettyprint"><code class="language-scala">class HelloRequestHandler(context: ServerContext) extends RequestHandler(context) {
+
+  override def handle: PartialHandler[Http] = {
+    case request @ Get on Root / &quot;hello&quot; =&gt; {
+      Callback.successful(request.ok(&quot;Hello World!&quot;))
+    }
+  }
+
+}</code></pre>
+<p>This defines the request handler for the service. A new request handler is attached to every connection and does all of the actual request processing. </p>
+<p>The <code>handle</code> partial function is where request processing actually happens. In it, incoming <code>HttpRequest</code> objects are mapped to <code>HttpResponse</code>.</p>
+<p>Notice that the return value of <code>handle</code> is of type <code>Callback[HttpResponse]</code>. Callbacks are the concurrency mechanism Colossus provides to do non-blocking operations. They are similar to Scala Futures in their use, but their execution is entirely single-threaded and managed by the Worker. Since in this example, no actual concurrency is required, <code>Callback.successful</code> simply wraps our final result in a Callback.</p>
+<pre class="prettyprint"><code class="language-scala">class HelloInitializer(context: InitContext) extends Initializer(context) {
+
+  override def onConnect = context =&gt; new HelloRequestHandler(context)
+
+}</code></pre>
+<p>The <code>Initializer</code> is a long-lived object that is created once per Worker and manages the service&rsquo;s environment within the worker. Because Workers are single-threaded, Initializers provide a place to share resources among all connections handled by the worker. In particular this is often where outgoing connections to external services can be opened.</p>
+<p>Initializers also are responsible for providing new connections with request handlers. This is how our <code>HelloService</code> handler is created. We provide Colossus with a function of type <code>ServerContext =&gt; ServerConnectionHandler</code> and it gets used like a factory.</p>
+<p>Lastly, let&rsquo;s look at the bootstrap code to get the service running</p>
+<pre class="prettyprint"><code class="language-scala">implicit val actorSystem = ActorSystem()
+implicit val ioSystem = IOSystem()</code></pre>
+<p>An <code>IOSystem</code> is a collection of Workers with a thin management layer on top. Servers do not manage their own workers, but instead attach to an IOSystem and let the system do all the Worker management. Likewise, on its own, an IOSystem does nothing and its workers sit idle.</p>
+<p>Because an <code>IOSystem</code> is really just a set of Akka actors, it requires an <code>ActorSystem</code> to start.</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;hello-world&quot;, 9000){ context =&gt; new HelloInitializer(context) }</code></pre>
+<p>This starts a Server that will listen on port 9000. The important part here is the third argument, which is a function of type <code>InitContext =&gt; Initializer</code>. This is a function that will be sent to every Worker in the IOSystem to initialize it, so every worker will call this function once.</p>
+<h2><a href="#working-with-clients" name="working-with-clients" class="anchor"><span class="anchor-link"></span></a>Working with Clients</h2>
+<p>In our next example we&rsquo;ll write a simple HTTP frontend for Redis. One of the driving features of Colossus is the ability to do low-latency non-blocking interactions with external systems. Redis, being an in-memory database, is an ideal candidate for the kinds of systems Colossus works best with. </p>
+<p>While Colossus services can easily be built to communicate with any system such as a SQL database, it currently has native support for Redis, Memcached, and HTTP clients. Colossus is protocol agnostic, so writing native adapters for any protocol is easy.</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val redisClient = Redis.client(&quot;localhost&quot;, 6379)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+
+        case req@Get on Root / &quot;get&quot; / key =&gt; {
+          redisClient.get(ByteString(key)).mapTry {
+            case Success(data) =&gt; Success(req.ok(data.utf8String))
+            case Failure(_) =&gt; Success(req.notFound(s&quot;Key $key was not found&quot;))
+          }
+        }
+
+        case req@Get on Root / &quot;set&quot; / key / value =&gt; {
+          redisClient.set(ByteString(key), ByteString(value)).map {
+            _ =&gt; req.ok(&quot;OK&quot;)
+          }
+        }
+      }
+    }
+  }
+}</code></pre>
+<p>Here, we create a <code>ServiceClient</code> using the redis protocol in the service&rsquo;s <code>Initializer</code>. This means that one connection to Redis is opened per Worker, and all connections handled by that worker will use this client. Again, since everything here is per-worker and hence single-threaded, there are no issues with many request handlers using the same redis client. </p>
+<p>This gives us a service that conceptually looks like:</p>
+<p><img src="img/redis.png" alt="redis" /></p>
+<p>The client&rsquo;s <code>send</code> method returns a <code>Callback[Reply]</code> that can be mapped and flatMapped just like a regular Scala Future. In fact Callbacks implement most of the same methods as Futures, including <code>recover</code> and <code>sequence</code>.</p>
+<h2><a href="#working-with-futures" name="working-with-futures" class="anchor"><span class="anchor-link"></span></a>Working with Futures</h2>
+<p>So far all the request-handling code we&rsquo;ve seen has been effectively single-threaded. Even though our service has multiple workers running in parallel, everything in the context of a single request handler is single-threaded.</p>
+<p>Sometimes this is not what we want. If processing a request involves either performing some CPU intensive operation or using a blocking API, the Worker&rsquo;s event-loop will get stuck waiting, causing high latency on any other connections that happen to be bound to it. In other cases, we need all our request handlers interacting with some form of shared state.</p>
+<p>Consider this service:</p>
+<pre class="prettyprint"><code class="language-scala">def fibonacci(i: Long): Long = i match {
+  case 1 | 2 =&gt; 1
+  case n =&gt; fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+implicit val actorSystem = ActorSystem()
+implicit val io = IOSystem(&quot;io-system&quot;, workerCount = Some(1), MetricSystem(&quot;io-system&quot;))
+
+HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+
+        case req@Get on Root / &quot;hello&quot; =&gt;
+          Callback.successful(req.ok(&quot;Hello World!&quot;))
+
+        case req@Get on Root / &quot;fib&quot; / Long(n) =&gt;
+          if (n &gt; 0) {
+            Callback.successful(req.ok(fibonacci(n).toString))
+          } else {
+            Callback.successful(req.badRequest(&quot;number must be positive&quot;))
+          }
+      }
+    }
+  }
+}</code></pre>
+<p>By starting an IOSystem with just one Worker, we can be sure all connections are being handled by the same worker. Now if you hit the url <code>/fib/1000000</code>, it will take the server quite a while to calculate this. But since this is happening in the worker&rsquo;s thread, no other request handling can happen and all other requests to the server, even those to the <code>/hello</code> route, will be blocked until it completes.</p>
+<p>The best way to avoid this situation is to offload the calculation to a separate thread using Sala Futures. This is easy to do using <code>Callback.fromFuture</code>:</p>
+<pre class="prettyprint"><code class="language-scala">case req@Get on Root / &quot;fib&quot; / Long(n) =&gt;
+  if (n &gt; 0) {
+    Callback.fromFuture(Future(fibonacci(n))).map { result =&gt;
+      req.ok(result.toString)
+    }
+  } else {
+    Callback.successful(req.badRequest(&quot;number must be positive&quot;))
+  }</code></pre>
+<p>This will let the calculation of the result happen in another thread, and once the Future is complete, execution will be moved back into the Worker and the response will be built and sent back to the client.</p>
+<p>Of course, this works even when a connection is pipelining multiple requests at the same time on a single connection. Colossus will continue to process incoming requests even while it is waiting for existing ones to complete, making it easy to parallelize work.</p>
+<p>Lastly, let&rsquo;s add some caching to this service by using Memcached</p>
+<pre class="prettyprint"><code class="language-scala">HttpServer.start(&quot;example-server&quot;, 9000) {
+  new Initializer(_) {
+
+    val cache = Memcache.client(&quot;localhost&quot;, 11211)
+
+    override def onConnect = new RequestHandler(_) {
+      override def handle: PartialHandler[Http] = {
+
+        case req@Get on Root / &quot;hello&quot; =&gt;
+          Callback.successful(req.ok(&quot;Hello World!&quot;))
+
+        case req@Get on Root / &quot;fib&quot; / Long(n) =&gt;
+          if (n &gt; 0) {
+            val key = ByteString(s&quot;fib_$n&quot;)
+            cache.get(key).flatMap {
+              case Some(value) =&gt; Callback.successful(req.ok(value.data.utf8String))
+              case None =&gt; for {
+                result &lt;- Callback.fromFuture(Future(fibonacci(n)))
+                cacheSet &lt;- cache.set(key, ByteString(result.toString))
+              } yield req.ok(result.toString)
+            }
+          } else {
+            Callback.successful(req.badRequest(&quot;number must be positive&quot;))
+          }
+      }
+    }
+  }
+}</code></pre>
+<p>In this case, all of the memcached interactions are still happening entirely in the worker&rsquo;s thread, with cache misses being offloaded to another thread to keep the event loop unblocked. On modern hardware, this service could easily handle hundreds of thousands of requests per second.</p>
+<div class="nav-next">
+<p><strong>Next:</strong> <a href="clients.html">Clients</a></p>
+</div>
+</div>
+<div class="large-3 show-for-large column" data-sticky-container>
+<nav class="sidebar sticky" data-sticky data-anchor="docs" data-sticky-on="large">
+<div class="page-nav">
+<div class="nav-title">On this page:</div>
+<div class="nav-toc">
+<ul>
+  <li><a href="quickstart.html#quick-start" class="header">Quick Start</a>
+  <ul>
+    <li><a href="quickstart.html#anatomy-of-a-service" class="header">Anatomy of a Service</a></li>
+    <li><a href="quickstart.html#build-a-hello-world-service" class="header">Build a Hello World service</a></li>
+    <li><a href="quickstart.html#working-with-clients" class="header">Working with Clients</a></li>
+    <li><a href="quickstart.html#working-with-futures" class="header">Working with Futures</a></li>
+  </ul></li>
+</ul>
+</div>
+</div>
+</nav>
+</div>
+</div>
+
+</section>
+</div>
+
+</div>
+
+<footer class="site-footer">
+
+<section class="site-footer-nav">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 medium-4 large-3 text-center column">
+<div class="nav-links">
+<ul>
+<!-- <li><a href="https://www.example.com/products/">Products</a> -->
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<section class="site-footer-base">
+<div class="expanded row">
+<div class="small-12 large-offset-2 large-10 column">
+<div class="row site-footer-content">
+
+<div class="small-12 text-center large-9 column">
+
+<!--
+<div class="copyright">
+<span class="text">&copy; 2018</span>
+<a href="https://www.example.com" class="logo">logo</a>
+</div>
+-->
+</div>
+
+</div>
+</div>
+</div>
+</section>
+</footer>
+
+</div>
+</div>
+</div>
+</body>
+
+<script type="text/javascript" src="lib/foundation/dist/foundation.min.js"></script>
+<script type="text/javascript">jQuery(document).foundation();</script>
+<script type="text/javascript" src="js/magellan.js"></script>
+
+<style type="text/css">@import "lib/prettify/prettify.css";</style>
+<script type="text/javascript" src="lib/prettify/prettify.js"></script>
+<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
+<script type="text/javascript">jQuery(function(){window.prettyPrint && prettyPrint()});</script>
+
+</html>
