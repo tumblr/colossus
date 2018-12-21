@@ -4,8 +4,8 @@ import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import ProjectImplicits._
 
-val AkkaVersion      = "2.5.6"
-val ScalatestVersion = "3.0.1"
+val AkkaVersion      = "2.5.19"
+val ScalatestVersion = "3.0.5"
 
 val MIMAPreviousVersions = Seq("0.9.1")
 
@@ -15,8 +15,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
   compile := (compile in Compile).dependsOn(compile in Test).dependsOn(compile in IntegrationTest).value,
   testAll := (test in Test).dependsOn(test in IntegrationTest).value,
   organization := "com.tumblr",
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  scalaVersion := "2.12.7",
+  crossScalaVersions := Seq("2.11.11", "2.12.7"),
   apiURL := Some(url("https://www.javadoc.io/doc/")),
   parallelExecution in Test := false,
   scalacOptions := scalaVersion.map { v: String =>
@@ -42,7 +42,7 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "org.scalatest"          %% "scalatest"                   % ScalatestVersion % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
     "org.mockito"            %  "mockito-all"                 % "1.9.5" % "test",
-    "org.slf4j"              %  "slf4j-api"                   % "1.7.6"
+    "org.slf4j"              %  "slf4j-api"                   % "1.7.25"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
   credentials += Credentials("Sonatype Nexus Repository Manager",
