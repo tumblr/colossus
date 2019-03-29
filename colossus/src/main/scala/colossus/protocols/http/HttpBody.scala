@@ -73,7 +73,7 @@ object HttpBodyEncoder {
   }
 
   implicit object StringEncoder extends HttpBodyEncoder[String] {
-    val contentType: String = ContentType.TextPlain
+    val contentType: String = ContentType.TextPlainUtf8
     def encode(data: String): HttpBody = new HttpBody(data.getBytes("UTF-8"))
   }
 }
