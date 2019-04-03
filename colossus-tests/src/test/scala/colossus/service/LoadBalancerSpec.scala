@@ -41,11 +41,13 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         MetricAddress("/")
       )
 
-      val (serviceClientFactory, sentToClients, interceptorCount) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, disconnectedClients) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
       val newAddresses = Seq(address1, address2, address2, address3, address5)
+
+      val expectedDisconnectedClients = Seq(address3, address4)
 
       lb.send(HttpRequest.get("/")).execute()
 
@@ -58,6 +60,8 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
       lb.send(HttpRequest.get("/")).execute()
 
       assert(sentToClients.map(_.toString).sorted == newAddresses.map(_.toString).sorted)
+
+      assert(disconnectedClients.map(_.toString).sorted == expectedDisconnectedClients.map(_.toString).sorted)
     }
 
     "send to only one client when configured with no retry" in {
@@ -68,7 +72,7 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         requestRetry = NoRetry
       )
 
-      val (serviceClientFactory, sentToClients, _) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, _) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
@@ -91,7 +95,7 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         )
       )
 
-      val (serviceClientFactory, sentToClients, _) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, _) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
@@ -112,7 +116,7 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         )
       )
 
-      val (serviceClientFactory, sentToClients, _) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, _) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
@@ -133,7 +137,7 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         )
       )
 
-      val (serviceClientFactory, sentToClients, _) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, _) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
@@ -149,7 +153,7 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
         MetricAddress("/")
       )
 
-      val (serviceClientFactory, sentToClients, _) = createServiceClientFactory()
+      val (serviceClientFactory, sentToClients, _, _) = createServiceClientFactory()
 
       val lb = new LoadBalancer[Http](config, serviceClientFactory, simplePermutationFactory)
 
@@ -165,11 +169,12 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
     }
   }
 
-  def createServiceClientFactory(): (ServiceClientFactory[Http], ArrayBuffer[InetSocketAddress], AtomicInteger) = {
+  def createServiceClientFactory():
+  (ServiceClientFactory[Http], ArrayBuffer[InetSocketAddress], AtomicInteger, ArrayBuffer[InetSocketAddress]) = {
     val sentToClients = ArrayBuffer.empty[InetSocketAddress]
+    val disconnectedClients = ArrayBuffer.empty[InetSocketAddress]
 
-    var interceptorCount = new AtomicInteger(0)
-    var disconnectCount  = new AtomicInteger(0)
+    val interceptorCount = new AtomicInteger(0)
 
     val serviceClientFactory = new ServiceClientFactory[Http] {
       override implicit def clientTagDecorator: TagDecorator[Http] = ???
@@ -188,7 +193,9 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
             Callback.failed(new Exception("fake"))
           }
 
-          override def disconnect(): Unit = {}
+          override def disconnect(): Unit = {
+            disconnectedClients.append(clientAddress)
+          }
 
           override def address(): InetSocketAddress = clientAddress
 
@@ -199,6 +206,6 @@ class LoadBalancerSpec extends ColossusSpec with MockitoSugar {
       override def requestEnhancement: (HttpRequest, Sender[Http, Callback]) => HttpRequest = ???
     }
 
-    (serviceClientFactory, sentToClients, interceptorCount)
+    (serviceClientFactory, sentToClients, interceptorCount, disconnectedClients)
   }
 }

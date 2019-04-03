@@ -18,7 +18,7 @@ private class LoadBalancer[P <: Protocol](
     with ColossusLogging {
 
   implicit val cbe: CallbackExecutor = worker.callbackExecutor
-  
+
   private var clients: Seq[Client[P, Callback]] = config.address.map(address => createClient(address))
 
   private var permutations = permutationFactory(clients)
@@ -93,7 +93,7 @@ private class LoadBalancer[P <: Protocol](
           } else {
             ConnectionStatus.Mixed
           }
-        case Failure(exception) =>
+        case Failure(_) =>
           ConnectionStatus.Mixed
       }
     }
@@ -135,6 +135,7 @@ private class LoadBalancer[P <: Protocol](
     leftovers.foreach {
       case (address, deadClients) =>
         debug(s"[$address|0] Killing ${deadClients.size} clients(s)")
+        deadClients.foreach(_.disconnect())
     }
 
     clients = newClientsMap.values.flatten.toSeq
