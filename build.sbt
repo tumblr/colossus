@@ -93,13 +93,12 @@ lazy val RootProject = Project(id = "colossus-root", base = file("."))
   .settings(noPubSettings: _*)
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
-  .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject, ColossusDocs)
+  .aggregate(ColossusProject, ColossusTestsProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject, ColossusDocs)
 
 lazy val ColossusProject: Project = Project(id = "colossus", base = file("colossus"))
   .settings(ColossusSettings: _*)
   .withMima(MIMAPreviousVersions : _*)
   .configs(IntegrationTest)
-  .aggregate(ColossusTestsProject)
   .dependsOn(ColossusMetricsProject)
 
 lazy val ColossusExamplesProject = Project(id = "colossus-examples", base = file("colossus-examples"))
@@ -138,11 +137,9 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
   .configs(IntegrationTest)
   .dependsOn(ColossusProject, ColossusTestkitProject)
 
-lazy val ColossusTestsProject = Project(
-  id = "colossus-tests",
-  base = file("colossus-tests"),
-  dependencies = Seq(ColossusTestkitProject % "compile;test->test")
-  ).settings(noPubSettings: _*)
+lazy val ColossusTestsProject = Project(id = "colossus-tests", base = file("colossus-tests"))
+  .dependsOn(ColossusTestkitProject % "compile;test->test")
+  .settings(noPubSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
       "ch.qos.logback" %  "logback-classic" % "1.2.2"
