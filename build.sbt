@@ -4,10 +4,10 @@ import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import ProjectImplicits._
 
-val AkkaVersion      = "2.5.6"
-val ScalatestVersion = "3.0.1"
+val AkkaVersion      = "2.5.23"
+val ScalatestVersion = "3.0.8"
 
-val MIMAPreviousVersions = Seq("0.9.1")
+val MIMAPreviousVersions = Seq("0.11.1-RC1")
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -35,8 +35,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "com.typesafe.akka"      %% "akka-testkit"                % AkkaVersion % "test",
     "org.scalatest"          %% "scalatest"                   % ScalatestVersion % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
-    "org.mockito"            %  "mockito-all"                 % "1.9.5" % "test",
-    "org.slf4j"              %  "slf4j-api"                   % "1.7.6"
+    "org.mockito"            %  "mockito-all"                 % "1.10.19" % "test",
+    "org.slf4j"              %  "slf4j-api"                   % "1.7.26"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
   credentials += Credentials("Sonatype Nexus Repository Manager",
@@ -82,9 +82,9 @@ lazy val testkitDependencies = libraryDependencies ++= Seq(
 
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s"                   %% "json4s-jackson"       % "3.5.3",
-    "ch.qos.logback"               %  "logback-classic"      % "1.2.2",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.2",
+    "org.json4s"                   %% "json4s-jackson"       % "3.6.6",
+    "ch.qos.logback"               %  "logback-classic"      % "1.2.3",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9",
     "org.mockito"                  %  "mockito-all"          % "1.10.19"
   )
 )
@@ -142,7 +142,7 @@ lazy val ColossusTestsProject = Project(id = "colossus-tests", base = file("colo
   .settings(noPubSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "ch.qos.logback" %  "logback-classic" % "1.2.2"
+      "ch.qos.logback" %  "logback-classic" % "1.2.3"
     )
   ).configs(IntegrationTest)
 
