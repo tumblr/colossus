@@ -1,8 +1,5 @@
 language: scala
 
-scala:
-- 2.12.2
-
 jdk: oraclejdk8
 
 sudo: false
@@ -17,7 +14,7 @@ cache:
   - $HOME/.sbt/boot/
 
 script:
-- sbt +clean +coverage +testAll +coverageReport +coverageAggregate
+- sbt +clean +coverage +testAll +coverageAggregate
 
 before_cache:
 - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete

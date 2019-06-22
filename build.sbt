@@ -15,25 +15,19 @@ lazy val GeneralSettings = Seq[Setting[_]](
   compile := (compile in Compile).dependsOn(compile in Test).dependsOn(compile in IntegrationTest).value,
   testAll := (test in Test).dependsOn(test in IntegrationTest).value,
   organization := "com.tumblr",
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq("2.11.12", "2.12.8"),
   apiURL := Some(url("https://www.javadoc.io/doc/")),
   parallelExecution in Test := false,
-  scalacOptions := scalaVersion.map { v: String =>
-    val default = List(
-      "-feature",
-      "-language:implicitConversions",
-      "-language:postfixOps",
-      "-unchecked",
-      "-deprecation",
-      "-target:jvm-1.8"
-    )
-    if (v.startsWith("2.10.")) {
-      default
-    } else {
-      "-Ywarn-unused-import" :: default
-    }
-  }.value,
+  scalacOptions := Seq(
+    "-feature",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-unchecked",
+    "-deprecation",
+    "-target:jvm-1.8",
+    "-Ywarn-unused-import"
+  ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
   scalacOptions in (Compile, console) := Seq(),
   libraryDependencies ++= Seq(
