@@ -4,10 +4,10 @@ import com.lightbend.paradox.sbt.ParadoxPlugin
 import com.lightbend.paradox.sbt.ParadoxPlugin.autoImport._
 import ProjectImplicits._
 
-val AkkaVersion      = "2.5.6"
-val ScalatestVersion = "3.0.1"
+val AkkaVersion      = "2.5.23"
+val ScalatestVersion = "3.0.8"
 
-val MIMAPreviousVersions = Seq("0.9.1")
+val MIMAPreviousVersions = Seq("0.11.1-RC1")
 
 lazy val testAll = TaskKey[Unit]("test-all")
 
@@ -15,25 +15,19 @@ lazy val GeneralSettings = Seq[Setting[_]](
   compile := (compile in Compile).dependsOn(compile in Test).dependsOn(compile in IntegrationTest).value,
   testAll := (test in Test).dependsOn(test in IntegrationTest).value,
   organization := "com.tumblr",
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq("2.11.12", "2.12.8"),
   apiURL := Some(url("https://www.javadoc.io/doc/")),
   parallelExecution in Test := false,
-  scalacOptions := scalaVersion.map { v: String =>
-    val default = List(
-      "-feature",
-      "-language:implicitConversions",
-      "-language:postfixOps",
-      "-unchecked",
-      "-deprecation",
-      "-target:jvm-1.8"
-    )
-    if (v.startsWith("2.10.")) {
-      default
-    } else {
-      "-Ywarn-unused-import" :: default
-    }
-  }.value,
+  scalacOptions := Seq(
+    "-feature",
+    "-language:implicitConversions",
+    "-language:postfixOps",
+    "-unchecked",
+    "-deprecation",
+    "-target:jvm-1.8",
+    "-Ywarn-unused-import"
+  ),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
   scalacOptions in (Compile, console) := Seq(),
   libraryDependencies ++= Seq(
@@ -41,8 +35,8 @@ lazy val GeneralSettings = Seq[Setting[_]](
     "com.typesafe.akka"      %% "akka-testkit"                % AkkaVersion % "test",
     "org.scalatest"          %% "scalatest"                   % ScalatestVersion % "test, it",
     "org.scalamock"          %% "scalamock-scalatest-support" % "3.6.0" % "test",
-    "org.mockito"            %  "mockito-all"                 % "1.9.5" % "test",
-    "org.slf4j"              %  "slf4j-api"                   % "1.7.6"
+    "org.mockito"            %  "mockito-all"                 % "1.10.19" % "test",
+    "org.slf4j"              %  "slf4j-api"                   % "1.7.26"
   ),
   coverageExcludedPackages := "colossus\\.examples\\..*;.*\\.testkit\\.*",
   credentials += Credentials("Sonatype Nexus Repository Manager",
@@ -88,9 +82,9 @@ lazy val testkitDependencies = libraryDependencies ++= Seq(
 
 lazy val ExamplesSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.json4s"                   %% "json4s-jackson"       % "3.5.3",
-    "ch.qos.logback"               %  "logback-classic"      % "1.2.2",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.2",
+    "org.json4s"                   %% "json4s-jackson"       % "3.6.6",
+    "ch.qos.logback"               %  "logback-classic"      % "1.2.3",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9",
     "org.mockito"                  %  "mockito-all"          % "1.10.19"
   )
 )
@@ -99,13 +93,12 @@ lazy val RootProject = Project(id = "colossus-root", base = file("."))
   .settings(noPubSettings: _*)
   .configs(IntegrationTest)
   .dependsOn(ColossusProject)
-  .aggregate(ColossusProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject, ColossusDocs)
+  .aggregate(ColossusProject, ColossusTestsProject, ColossusTestkitProject, ColossusMetricsProject, ColossusExamplesProject, ColossusDocs)
 
 lazy val ColossusProject: Project = Project(id = "colossus", base = file("colossus"))
   .settings(ColossusSettings: _*)
   .withMima(MIMAPreviousVersions : _*)
   .configs(IntegrationTest)
-  .aggregate(ColossusTestsProject)
   .dependsOn(ColossusMetricsProject)
 
 lazy val ColossusExamplesProject = Project(id = "colossus-examples", base = file("colossus-examples"))
@@ -144,14 +137,12 @@ lazy val ColossusDocs = Project(id = "colossus-docs", base = file("colossus-docs
   .configs(IntegrationTest)
   .dependsOn(ColossusProject, ColossusTestkitProject)
 
-lazy val ColossusTestsProject = Project(
-  id = "colossus-tests",
-  base = file("colossus-tests"),
-  dependencies = Seq(ColossusTestkitProject % "compile;test->test")
-  ).settings(noPubSettings: _*)
+lazy val ColossusTestsProject = Project(id = "colossus-tests", base = file("colossus-tests"))
+  .dependsOn(ColossusTestkitProject % "compile;test->test")
+  .settings(noPubSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "ch.qos.logback" %  "logback-classic" % "1.2.2"
+      "ch.qos.logback" %  "logback-classic" % "1.2.3"
     )
   ).configs(IntegrationTest)
 
