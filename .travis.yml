@@ -34,3 +34,5 @@ after_success:
   elif [[ "$TRAVIS_BRANCH" = "master" || "$TRAVIS_BRANCH" = "develop" ]]; then bash
   <(curl -s https://codecov.io/bash); fi
 - ./publish.sh
+
+
